@@ -526,6 +526,78 @@
 				);
 				return wp_kses( $string, $allow_attr );
 			}
+
+            public static function get_global_settings( $option, $key='', $default = '' )
+            {
+                $options = get_option( $option );
+                return self::get_mptbm_settings( $options, $key, $default );
+            }
+
+            public static function get_vehicle_details_image($element_name,$default_file_name)
+            {
+                $default_file =  MPTBM_PLUGIN_URL.'/assets/frontend/images/vehicle-details/'.$default_file_name;
+                $src = self::get_global_settings('mptbm_vehicle_icon_settings',$element_name,$default_file);
+                ?>
+                <style>
+                    .icon-image
+                    {
+                        width: var(--fs) !important;
+                        height: var(--fs) !important;
+                    }
+                </style>
+                <img class="icon-image" src="<?php echo $src;?>" alt="No Image" /> </img>
+                <?php
+            }
+
+            public static function get_post_list_by_type($post_type)
+            {
+                $posts = get_posts(array(
+                    'fields' => array('ids','post_title'),
+                    'post_type'=>$post_type,
+                    'posts_per_page'  => -1
+                ));
+                $array_return = [];
+
+                foreach( $posts as $single) {
+                    $array_return[ $single->ID ] = $single->post_title;
+                }
+                return $array_return;
+
+            }
+
+            public static function get_custom_forms()
+            {
+                $forms = array(''=>"Select Form");
+                $forms = array_replace($forms,self::get_post_list_by_type('mptbm_reg_form'));
+
+                return $forms;
+            }
+
+            public static function get_custom_form()
+            {
+                $form_id = self::get_global_settings('mptbm_form_builder_settings' , 'form_builder_id');
+
+                if(is_null($form_id) || !class_exists('MPTBM_Form_Builder') ||  !method_exists( 'MPTBM_Form_Builder','form_builder' ) )
+                {
+                    return;
+                }
+
+                echo MPTBM_Form_Builder::form_builder($form_id);
+            }
+
+            public static function get_custom_form_inputs()
+            {
+                $form_id = self::get_global_settings('mptbm_form_builder_settings' , 'form_builder_id');
+
+                if(is_null($form_id))
+                {
+                    return;
+                }
+
+                $inputs = json_decode(self::get_post_info($form_id,'mptbm_form_data'));
+
+                echo "<pre>";print_r($inputs);
+            }
 		}
 		new MPTBM_Function();
 	}

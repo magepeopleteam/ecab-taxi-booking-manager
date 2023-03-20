@@ -27,6 +27,7 @@
 					$cart_item_data['mptbm_duration']           = $_COOKIE['mptbm_duration_text'] ?? '';
 					$cart_item_data['mptbm_user_info']          = apply_filters( 'add_mptbm_user_info_data', array(), $product_id );
 					$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info( $product_id );
+                    //$cart_item_data['mptbm_custom_form_info']   = self::cart_custom_form_info( $product_id );
 					$cart_item_data['mptbm_tp']                 = $total_price;
 					$cart_item_data['line_total']               = $total_price;
 					$cart_item_data['line_subtotal']            = $total_price;
@@ -369,6 +370,37 @@
 				}
 				return $value ?? '';
 			}
+
+            public static function cart_custom_form_info( $post_id ): array
+            {
+                $inputs = MPTBM_Function::get_custom_form_inputs();
+
+                foreach($inputs as $input)
+                {
+                    if($input['multiple'])
+                    {
+                        $form = MPTBM_Function::get_submit_info( $input['mptbm_extra_service'],array());
+                    }
+                    else
+                    {
+                        $form = MPTBM_Function::get_submit_info( $input['mptbm_extra_service']);
+                    }
+
+                }
+
+
+                $extra_service = array();
+                if ( sizeof( $service_name ) > 0 ) {
+                    for ( $i = 0; $i < count( $service_name ); $i ++ ) {
+                        if ( $service_name[ $i ] ) {
+                            $extra_service[ $i ]['service_name']  = $service_name[ $i ];
+                            $extra_service[ $i ]['service_price'] = MPTBM_Function::get_extra_service_price_by_name( $post_id, $service_name[ $i ] );
+                            $extra_service[ $i ]['mptbm_date']    = $start_date ?? '';
+                        }
+                    }
+                }
+                return $extra_service;
+            }
 		}
 		new MPTBM_Woocommerce();
 	}

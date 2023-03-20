@@ -7,7 +7,7 @@
 	body {margin: 0;padding: 0;}
 	body.noScroll {overflow: hidden;}
 	/******/
-	.mpStyle {font-size: var(--fs);font-weight: var(--fw);color: var(--default-color);line-height: 1.5;}
+	.mpStyle {font-size: var(--fs);font-weight: var(--fw);color: var(--d_color);line-height: 1.5;}
 	.mpStyle,
 	.mpStyle [data-collapse].mActive {display: block;}
 	.mpStyle p {margin: 0;padding: 0;line-height: 1.5;font-size: var(--fs);}
@@ -26,10 +26,9 @@
 	div.mpStyle button,
 	div.mpStyle [data-bg-image],
 	div.mpStyle [data-tabs-target],
-	div.mpStyle .mpPopup,
-	div.mpStyle .popupClose,
+	div.mpPopup,
+	div.mpPopup .popupClose,
 	div.mpStyle .customCheckbox,
-	div.mpStyle [class*='_faqItem'],
 	div.mpStyle .mpTransition,
 	div.mpStyle [class*="_mpTransition"] {
 		-webkit-transition: all 350ms ease-in-out;
@@ -47,8 +46,8 @@
 		-o-box-shadow: var(--default-content-shadow);
 		box-shadow: var(--default-content-shadow);
 	}
+	.groupRadioCheck [data-radio-check].mpActive,
 	div.mpStyle .dShadow_1, [class*='_dShadow_1'] {
-		background-color: var(--default-bg);padding: var(--default-mp);
 		-webkit-box-shadow: 0 5px 10px rgba(0, 44, 102, 0.2);
 		-moz-box-shadow: 0 5px 10px rgba(0, 44, 102, 0.2);
 		-o-box-shadow: 0 5px 10px rgba(0, 44, 102, 0.2);
@@ -68,7 +67,7 @@
 		-o-box-shadow: 0 2px 10px #444;
 		box-shadow: 0 2px 10px #444;
 	}
-	div.mpStyle .dShadow42, [class*='_dShadow_4'],
+	div.mpStyle .dShadow_4, [class*='_dShadow_4'],
 	div.mpStyle ul.mage_input_select_list {
 		-webkit-box-shadow: 3px 3px 10px rgba(0, 0, 0, .5);
 		-moz-box-shadow: 3px 3px 10px rgba(0, 0, 0, .5);
@@ -95,7 +94,7 @@
 	.mpStyle h3 {font-size: var(--font-size-h3);font-weight: var(--fw-bold);}
 	.mpStyle h4 {font-size: var(--font-size-h4);font-weight: var(--fw-medium);}
 	.mpStyle h5 {font-size: var(--font-size-h5);font-weight: var(--fw-medium);}
-	.mpStyle h6 {font-size: var(--font-size-h6);font-weight: var(--fw-medium);}
+	.mpStyle h6 {font-size: var(--fs_h6);font-weight: var(--fw-medium);}
 	.mpStyle label {font-size: var(--font-size-label);font-weight: var(--fw-medium);}
 }
 /******************************************************************** Flex Section ************************************************/
@@ -132,18 +131,21 @@
 	.mpStyle .mp_remove_icon,
 	.mpStyle [class*="mage_qty"],
 	.mpStyle .mpMenu li a,
+	.mpTabs.tabBorder > .tabLists li,
 	.mpStyle [class*="addonGroupContent"],
 	.mpStyle button, .mpStyle .mpBtn, .mpStyle [class*="_mpBtn"],
 	.mpStyle [class*="slideIndicator"],
 	.mpStyle [class*="circleIcon"],
 	div[class*="dLoader"],
 	div[class*="simpleSpinner"],
-	.mpStyle .mpPopup.in,
-	.mpStyle .mpPopup .popupClose {
+	div.mpPopup.in,
+	div.mpPopup .popupClose {
 		display: -webkit-flex;display: flex;
 		-webkit-justify-content: center;justify-content: center;
 		-webkit-align-items: center;align-items: center;
 	}
+	/************/
+	.mpStyle [class*="_flexAuto"], .mpStyle .flexAuto {-webkit-flex: auto;flex: auto;}
 	/************/
 	.mpStyle .justifyStart {display: -webkit-flex;display: flex;-webkit-justify-content: flex-start;justify-content: flex-start;}
 	.mpStyle [class*="_justifyStart"] {-webkit-justify-content: flex-start;justify-content: flex-start;}
@@ -180,6 +182,7 @@
 	.flexEqual > *, .equalChild > *, [class*="_equalChild"] > *,
 	.buttonGroup > *,
 	[class*="listEqual"] > li,
+	.mpTabs.tabBorder > .tabLists li,
 	.inputInline .inputList {-webkit-flex: 1;-ms-flex: 1;flex: 1;}
 }
 /******************************************************************** Radios Section************************************************/
@@ -188,12 +191,11 @@
 	.mpStyle [class*="dButton"],
 	div.filter_item,
 	.mpStyle .formControl,
-	.mpStyle .mpPopup .popupMainArea, .mpStyle .mpPopup .popupClose,
+	div.mpPopup .popupMainArea, div.mpPopup .popupClose,
 	.mpStyle [class*="clickSlide"],
 	.mpStyle [class*="slideIndicatorItem"],
 	.mpStyle [class*="dLayout"],
 	.mpStyle div.mage_item_list,
-	.mpStyle [class*="faqItem"],
 	.mpStyle .groupContent,
 	.mpStyle [class*="radius"] {
 		-webkit-border-radius: var(--default-border-radious);
@@ -226,8 +228,12 @@
 	.mpStyle .mpBtn, .mpStyle [class*="_mpBtn"],
 	.mpStyle button {position: relative;font-size: var(--button-fs);font-weight: var(--fw-medium);line-height: 1; cursor: pointer;overflow: visible;border: none;-webkit-appearance: button;text-transform: capitalize;}
 	.mpStyle button[disabled] {cursor: not-allowed;opacity: 0.8;background-color: #DDD;}
-	.mpStyle Button:hover, .mpStyle Button:focus {text-decoration: none;opacity: 0.8;background-color: #000;color: #FFF;}
-	.mpStyle Button:hover span, .mpStyle Button:focus span {color: #FFF;}
+	.mpStyle button:hover, .mpStyle button:focus {text-decoration: none;opacity: 0.8;background-color: var(--d_color);color: #FFF;}
+	.mpStyle button:hover span, .mpStyle button:focus span {color: #FFF;}
+	.mpStyle .mpBtn, .mpStyle [class*="_mpBtn"] {padding: var(--default-mp-xs) var(--default-mp);color: var(--d_color);background-color: transparent;border: 1px solid var(--border_color);}
+	.mpStyle .mpBtn_xs, .mpStyle [class*="_mpBtn_xs"] {padding: var(--default-mp-xs);}
+	.mpStyle .mpBtn.mpActive, .mpStyle [class*="_mpBtn"].mpActive {border-color: var(--theme-color);color: var(--theme-color);}
+	.mpStyle .mpBtn.mpActive:hover, .mpStyle [class*="_mpBtn"].mpActive:hover {background-color: var(--theme-color);color: var(--theme-alternate-color); }
 	/***/
 	.mpStyle [class*="dButton"] { padding: 0 var(--default-mp); min-width: var(--button-width); height: auto; min-height: var(--button-height);color: var(--button-color);background-color: var(--button-bg);}
 	.mpStyle [class*="dButton"] span {margin: 0 var(--default-mp-xs) 0 0;}
@@ -244,7 +250,19 @@
 	.mpStyle .warningButton:hover, .mpStyle [class*="_warningButton"]:hover {background-color: var(--info-bg);color: var(--warning_color);}
 	.mpStyle .warningButton:hover span, .mpStyle [class*="_warningButton"]:hover span {color: var(--warning_color);}
 	/*********/
+	.mpStyle .successButton, .mpStyle [class*="_successButton"] {background-color: var(--success_color);color: var(--theme-alternate-color);padding: var(--default-mp-xs) var(--default-mp);border: 2px solid var(--success_color);}
+	.mpStyle .successButton span, .mpStyle [class*="_successButton"] span {color: var(--theme-alternate-color);}
+	.mpStyle .successButton:hover, .mpStyle [class*="_successButton"]:hover {background-color: var(--info-bg);color: var(--success_color);}
+	.mpStyle .successButton:hover span, .mpStyle [class*="_successButton"]:hover span {color: var(--success_color);}
+	/*********/
+	.mpStyle .navy_blueButton, .mpStyle [class*="_navy_blueButton"] {background-color: var(--navy-blue-color);color: var(--theme-alternate-color);padding: var(--default-mp-xs) var(--default-mp);border: 2px solid var(--navy-blue-color);}
+	.mpStyle .navy_blueButton span, .mpStyle [class*="_navy_blueButton"] span {color: var(--theme-alternate-color);}
+	.mpStyle .navy_blueButton:hover, .mpStyle [class*="_navy_blueButton"]:hover {background-color: var(--theme-alternate-color);color: var(--navy-blue-color);border-color: var(--navy-blue-color);}
+	.mpStyle .navy_blueButton:hover span, .mpStyle [class*="_navy_blueButton"]:hover span {color: var(--navy-blue-color);}
+	/****/
 	.mpStyle [class*="Button_xs"] {min-width: auto;min-height: var(--button-height-xs); padding: 7px var(--default-mp-xs);font-size: var(--fs);}
+	/*************************/
+	.mpStyle [class*="dButton"].mpActive {background-color: var(--theme-color);color: var(--theme-alternate-color);}
 }
 /******************************************************************** Helper Section************************************************/
 @media only screen and (min-width: 10px) {
@@ -253,7 +271,7 @@
 	.mpStyle .divider, .mpStyle [class*="_divider"], .mpStyle hr {margin: var(--default-mp-xs) 0;line-height: 1;border-color: var(--border_color);display: block;height: 1px;background-color: var(--border_color);width: 100%;}
 	.mpStyle .separatorRight, .mpStyle [class*="_separatorRight"] > * {border-right: 2px solid var(--border_color);}
 	.mpStyle .separatorRight, .mpStyle [class*="_separatorRight"] > :last-child {border-right: none;}
-	div.mpStyle .mage_disabled {cursor: no-drop;opacity: 0.2;}
+	div.mpStyle .mpDisabled {cursor: no-drop;opacity: 0.7; pointer-events: none;}
 	.mpStyle .strikeLine {position: relative;padding: 0 var(--default-mp-xs);color: var(--warning_color);}
 	.mpStyle .strikeLine:before {content: " ";display: block;width: 100%;border-top: 1px solid #8B0000AA;position: absolute;left: 0;right: 0;top: 11px;transform: rotate(-11deg);}
 	/**************/
@@ -296,17 +314,17 @@
 	.mpStyle .textCapitalize, .mpStyle [class*="_textCapitalize"] {text-transform: capitalize;}
 	.mpStyle .textNowrap, .mpStyle [class*="_textNowrap"] {white-space: nowrap;}
 	/**************/
-	.mpStyle [class*="dotted"] {border-style: dotted;}
-	.mpStyle [class*="border"] {border: 1px solid var(--border_color);}
+	.mpStyle [class*="_dotted"] {border-style: dotted;}
+	.mpStyle [class*="_border"] {border: 1px solid var(--border_color);}
 	.mpStyle .bT,
 	.mpStyle [class*="_bT"] {border-top: 1px solid var(--border_color);}
-	.mpStyle [class*="bDot"] {border: 1px dotted var(--border_color);}
-	.mpStyle [class*="bDash"] {border: 1px dashed var(--border_color);}
-	.mpStyle [class*="b_r"] {border-right: 1px solid var(--border_color);}
-	.mpStyle [class*="b_r_dash"] {border-right: 1px dashed var(--border_color);}
-	.mpStyle [class*="b_r_dot"] {border-right: 1px dotted var(--border_color);}
-	.mpStyle [class*="_borB"], .mpStyle .borB {border-bottom: 1px solid var(--border_color);}
-	.mpStyle [class*="b_b_dot"] {border-bottom: 1px dotted var(--border_color);}
+	.mpStyle [class*="_bDot"] {border: 1px dotted var(--border_color);}
+	.mpStyle [class*="_bDash"] {border: 1px dashed var(--border_color);}
+	.mpStyle [class*="_bR"] {border-right: 1px solid var(--border_color);}
+	.mpStyle [class*="_bR_dash"] {border-right: 1px dashed var(--border_color);}
+	.mpStyle [class*="_bR_dot"] {border-right: 1px dotted var(--border_color);}
+	.mpStyle [class*="_bB"], .mpStyle .borB {border-bottom: 1px solid var(--border_color);}
+	.mpStyle [class*="_bB_dot"] {border-bottom: 1px dotted var(--border_color);}
 	.mpStyle .zeroBorder, .mpStyle [class*="_zeroBorder"] {border: none;}
 	/**************/
 	.mpStyle .padZero, .mpStyle span.padZero, .mpStyle [class*="_pad_zero"] {padding: 0;}
@@ -330,22 +348,22 @@
 	.mpStyle .marZero, .mpStyle [class*="mar_zero"], .mpStyle span[class*="_icon"] {margin: 0;}
 	.mpStyle .marAuto, .mpStyle [class*="_marAuto"] {margin: 0 auto;}
 	.mpStyle [class*="_mT"], .mpStyle .mT {margin-top: var(--default-mp);}
-	.mpStyle .mt_xs, .mpStyle [class*="_mt_xs"] {margin-top: var(--default-mp-xs) !important;}
+	.mpStyle .mT_xs, .mpStyle [class*="_mT_xs"] {margin-top: var(--default-mp-xs) !important;}
 	.mpStyle .mt_25, .mpStyle [class*="_mt_25"] {margin-top: 25px;}
 	.mpStyle .mt_40, .mpStyle [class*="_mt_40"] {margin-top: 40px;}
 	.mpStyle .mR, .mpStyle [class*="_mR"] {margin-right: var(--default-mp);}
 	.mpStyle .mR_xs, .mpStyle [class*="_mR_xs"] {margin-right: var(--default-mp-xs);}
 	.mpStyle .mr_5, .mpStyle [class*="_mr_5"] {margin-right: 5%;}
-	.mpStyle .mb, .mpStyle .marB, .mpStyle [class*="_mb"], .mpStyle [class*="_mB"] {margin-bottom: var(--default-mp);}
-	.mpStyle .mb_xs, .mpStyle [class*="_mb_xs"] {margin-bottom: var(--default-mp-xs);}
-	.mpStyle .ml, .mpStyle [class*="_ml"], .mpStyle [class*="_mL"] {margin-left: var(--default-mp);}
-	.mpStyle .ml_xs, .mpStyle [class*="_ml_xs"] {margin-left: var(--default-mp-xs);}
+	.mpStyle .mB, .mpStyle [class*="_mB"] {margin-bottom: var(--default-mp);}
+	.mpStyle .mB_xs, .mpStyle [class*="_mB_xs"] {margin-bottom: var(--default-mp-xs);}
+	.mpStyle .mL, .mpStyle [class*="_mL"] {margin-left: var(--default-mp);}
+	.mpStyle .mL_xs, .mpStyle [class*="_mL_xs"] {margin-left: var(--default-mp-xs);}
 	.mpStyle .ml_20, .mpStyle [class*="_ml_20"] {margin-left: 20px;}
 	.mpStyle .ml_25, .mpStyle [class*="_ml_25"] {margin-left: 25px;}
 	.mpStyle [class*="mar_txs_b"] {margin: var(--default-mp-xs) 0 var(--default-mp) 0;}
 	.mpStyle [class*="marXsT"] {margin-top: var(--default-mp-xs);}
 	.mpStyle .mtb, .mpStyle [class*="_mtb"] {margin: var(--default-mp) 0;}
-	.mpStyle .mtb_xs, .mpStyle [class*="_mtb_xs"] {margin: var(--default-mp-xs) 0 !important;}
+	.mpStyle .mTB_xs, .mpStyle [class*="_mTB_xs"] {margin: var(--default-mp-xs) 0 !important;}
 	/***************/
 	div.mpStyle .mp_zero {margin: 0;padding: 0;}
 	/***************/
@@ -373,11 +391,10 @@
 }
 /******************************************************************** Loader Section ************************************************/
 @media only screen and (min-width: 10px) {
-	div[class*="dLoader"].pFixed {position: fixed;}
-	div[class*="dLoader"] {
-		position: absolute;z-index: 11111;left: 0;right: 0;top: 0;bottom: 0; font-size: var(--font-size-h1);
-		width: 100%;height: 100%; max-width: 100vw;max-height: 100vh; background: #0003;color: var(--theme-color);
-	}
+	div[class*="dLoader"],
+	div[class*="simpleSpinner"] {position: absolute;z-index: 11111;left: 0;right: 0;top: 0;bottom: 0; font-size: var(--font-size-h1);width: 100%;height: 100%; }
+	div[class*="dLoader"] {background: #0003;color: var(--theme-color);}
+	div[class*="dLoader"].pFixed {position: fixed;max-width: 100vw;max-height: 100vh;}
 	div.dLoader_xs {font-size: var(--font-size-h5);}
 	div[class*="dLoader"].border_spin_loader span {
 		border-top: 5px solid var(--theme-alternate-color);border-right: 5px solid var(--theme-color);border-bottom: 5px solid var(--theme-alternate-color);border-left: 5px solid var(--theme-color);
@@ -391,6 +408,8 @@
 		75% { transform: rotate(270deg); }
 		100% { transform: rotate(360deg); }
 	}
+	div[class*="simpleSpinner"] { padding: var(--default-mp); color: var(--theme-color); }
+	/******/
 	.placeholderLoader .placeholder_area {background-color: #FFF;position: relative;padding: var(--default-mp-xs);}
 	.placeholderLoader .placeholder_area::before {
 		position: absolute;left: 0;right: 0;top: 0;bottom: 0;z-index: 111;content: '';
@@ -409,10 +428,6 @@
 	@keyframes placeholderAnimate {
 		0% { background-position: -1000px 0; }
 		100% { background-position: 1000px 0; }
-	}
-	div[class*="simpleSpinner"] {
-		z-index: 11111;font-size: var(--font-size-h1);padding: var(--default-mp);
-		width: 100%;height: 100%; max-width: 100vw;max-height: 100vh; color: var(--theme-color);
 	}
 }
 /******************************************************************** Menu section ************************************************/
@@ -568,13 +583,13 @@
 /******************************************************************** Layout Section ************************************************/
 @media only screen and (min-width: 10px) {
 	/***********Circular***********/
-	.mpStyle [class*="circleIcon"] {width: 40px;height: 40px;min-width: 40px;font-size: var(--font-size-h6);background-color: var(--theme-color); color: var(--theme-alternate-color);margin: 0 var(--default-mp) 0 0;}
+	.mpStyle [class*="circleIcon"] {width: 40px;height: 40px;min-width: 40px;font-size: var(--fs_h6);background-color: var(--theme-color); color: var(--theme-alternate-color);margin: 0 var(--default-mp) 0 0;}
 	.mpStyle .circleIcon_xs, .mpStyle [class*="_circleIcon_xs"] {width: 25px;height: 25px;min-width: 25px;font-size: var(--fs_small);margin: 0 var(--default-mp-xs) 0 0;}
 	/*****Remove icon******/
 	.mpStyle .mp_remove_area {position: relative}
 	.mpStyle .mp_remove_icon {
-		position: absolute;top: -5px;right: -5px;width: 25px;height: 25px;cursor: pointer;
-		font-size: var(--font-size-h6);background-color: var(--warning_color);color: var(--theme-alternate-color);
+		position: absolute;top: -5px;right: -5px;width: 20px;height: 20px;cursor: pointer;opacity: 0;
+		font-size: var(--fs);background-color: var(--danger-color);color: var(--theme-alternate-color);
 	}
 	/**************Default************************/
 	.mpStyle .dLayout, .mpStyle [class*="_dLayout"] {
@@ -659,7 +674,7 @@
 	div.mpStyle .formControl {
 		width: 100%;height: auto;min-width: auto;max-width: inherit;min-height: 34px;
 		border: 1px solid var(--border_color) !important;padding: var(--default-mp-xs);
-		font-size: var(--fs);color: var(--default-color) !important;background-color: #FFF !important;
+		font-size: var(--fs);color: var(--d_color) !important;background-color: #FFF !important;
 		-webkit-box-shadow: 0 4px 8px rgba(0, 0, 0, .1) inset;box-shadow: 0 4px 8px rgba(0, 0, 0, .1) inset;
 	}
 	.mpStyle .formControl:focus {
@@ -683,7 +698,7 @@
 		background-repeat: no-repeat;
 		background-position: var(--default-mp-xs) center;
 		background-size: auto;
-		font-size: var(--font-size-h6);
+		font-size: var(--fs_h6);
 		font-weight: var(--fw-medium);
 		padding: var(--default-mp-xs) var(--default-mp-xs) var(--default-mp-xs) 50px;
 		border-radius: 0;
@@ -718,7 +733,7 @@
 	.mpStyle .inputHorizontal .mpForm {max-width: 500px;width: 100%;}
 	/*****Form Qty inc dec*******/
 	/**********Checkbox Radio*********/
-	div.mpStyle .customRadioLabel {font-size: var(--font-size-h6);font-weight: var(--fw-medium);-webkit-flex-wrap: wrap;flex-wrap: wrap;}
+	div.mpStyle .customRadioLabel {font-size: var(--fs_h6);font-weight: var(--fw-medium);-webkit-flex-wrap: wrap;flex-wrap: wrap;}
 	div.mpStyle .customRadioLabel input[type="radio"] ~ .formControl,
 	.mpStyle .customRadioLabel input[type="radio"] {display: none;}
 	.mpStyle .customRadio {padding: 0 var(--default-mp-xs) 0 30px;margin: 0 var(--default-mp-xs) var(--default-mp-xs) 0;position: relative;cursor: pointer;line-height: 1;white-space: nowrap;min-height: 20px;}
@@ -737,17 +752,24 @@
 	.mpStyle .customCheckbox {padding: 3px 0 0 30px;position: relative;line-height: 1;min-width: auto;}
 	.mpStyle .customCheckbox::before { content: "";position: absolute; left: 0;top: 0;height: 20px;width: 20px;
 		background-color: var(--theme-alternate-color);
-		border: 2px solid var(--default-color); border-radius: 2px; }
+		border: 2px solid var(--d_color); border-radius: 2px; }
 	.mpStyle .customCheckboxLabel {padding: 0 0 10px 0;cursor: pointer;font-weight: var(--fw-medium);}
-	.mpStyle .customCheckboxLabel input[type="checkbox"] {display: none;}
-	.mpStyle .customCheckboxLabel input:checked ~ .customCheckbox::before {background: var(--default-color);}
-	.mpStyle .customCheckboxLabel input:focus ~ .customCheckbox::before {outline: 0;-webkit-box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.3); box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.3);}
-	.mpStyle .customCheckboxLabel input:checked ~ .customCheckbox::after {
+	.mpStyle .customCheckboxLabel input:checked ~ .customCheckbox::before {background: var(--d_color);}
+	/*******************/
+	div.mpStyle .selectCheckbox {min-width: 150px;padding: var(--default-mp-xs);width: auto;border: 1px solid var(--border_color);cursor: pointer;}
+	div.mpStyle .customCheckboxLabel input[type="checkbox"],
+	div.mpStyle .selectCheckbox input[type='checkbox'] {display: none;}
+	div.mpStyle .selectCheckbox .customCheckbox::before {border: none;background-color: transparent;}
+	div.mpStyle .customCheckboxLabel input:focus ~ .customCheckbox::before,
+	div.mpStyle .selectCheckbox input:focus ~ .customCheckbox::before {outline: 0;-webkit-box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.3); box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.3);}
+	div.mpStyle .customCheckboxLabel input:checked ~ .customCheckbox::after,
+	div.mpStyle .selectCheckbox input:checked ~ .customCheckbox::after {
 		content: "";position: absolute; left: 2px;top: 4px;height: 8px;width: 16px;
 		border: 2px solid var(--theme-alternate-color);border-top: none;border-right: none;
 		z-index: 11;background-color: transparent;
 		-ms-transform: rotate(-45deg);transform: rotate(-45deg);
 	}
+	div.mpStyle .active_select {background-color: var(--theme-color);color: var(--theme-alternate-color);}
 	/*********Input Switch*******/
 	.mpStyle .roundSwitchLabel input[type='checkbox'] {display: none;}
 	.mpStyle .roundSwitch {
@@ -760,9 +782,14 @@
 		height: 17px;width: 17px;left: 4px;bottom: 4px;
 		-webkit-transition: .4s;transition: .4s;
 	}
-	.mpStyle .roundSwitchLabel input:checked + .roundSwitch {background-color: var(--success-color);}
+	.mpStyle .roundSwitchLabel input:checked + .roundSwitch {background-color: var(--success_color);}
 	.mpStyle .roundSwitchLabel input:focus + .roundSwitch {box-shadow: 0 0 1px #2276D2;}
 	.mpStyle .roundSwitchLabel input:checked + .roundSwitch:before {-ms-transform: translateX(35px);transform: translateX(35px);}
+	/*********Group radio check*******/
+	.groupRadioCheck [data-radio-check] {cursor: pointer;-webkit-justify-content: flex-start;justify-content: flex-start;}
+	.groupRadioCheck button[data-radio-check] {-webkit-justify-content: center;justify-content: center;}
+	.groupRadioCheck [data-radio-check]:hover {border-color: var(--theme-color_88);}
+	.groupRadioCheck [data-radio-check].mpActive {border-color: var(--theme-color);}
 	/*********Group Content*******/
 	.mpStyle .groupContent {
 		font-size: var(--fs);
@@ -792,19 +819,6 @@
 	.mpStyle .addonGroupContent:hover {background-color: #555;color: #F2F2F2;}
 	/*****/
 	.mpStyle .qtyIncDec {max-width: 100px;}
-	/*******************/
-	div.mpStyle .selectCheckbox {min-width: 150px;padding: var(--default-mp-xs);width: auto;border: 1px solid var(--border_color);cursor: pointer;}
-	div.mpStyle .selectCheckbox input[type='checkbox'] {display: none;}
-	div.mpStyle .selectCheckbox .customCheckbox::before {border: none;background-color: transparent;}
-	/*div.mpStyle  .selectCheckbox  input:checked ~ .customCheckbox::before {background: var(--default-color);}*/
-	div.mpStyle .selectCheckbox input:focus ~ .customCheckbox::before {outline: 0;-webkit-box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.3); box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.3);}
-	div.mpStyle .selectCheckbox input:checked ~ .customCheckbox::after {
-		content: "";position: absolute; left: 2px;top: 4px;height: 8px;width: 16px;
-		border: 2px solid var(--theme-alternate-color);border-top: none;border-right: none;
-		z-index: 11;background-color: transparent;
-		-ms-transform: rotate(-45deg);transform: rotate(-45deg);
-	}
-	div.mpStyle .active_select {background-color: var(--theme-color);color: var(--theme-alternate-color);}
 	/**********Responsive*********/
 	@media only screen and (max-width: 1250px) {
 		.mpStyle .inputInline .inputList {max-width: calc(25% - 10px);}
@@ -851,9 +865,9 @@
 	.mpStyle table[class*='_layoutFixed'] {table-layout: fixed;}
 	.mpStyle table th,
 	.mpStyle table td {border: 1px solid var(--border_color);padding: var(--default-mp-xs);}
-	.mpStyle table thead th {padding: var(--default-mp-xs);font-weight: bold;font-size: var(--fs);white-space: nowrap;background-color: var(--section-bg);color: var(--default-color);}
+	.mpStyle table thead th {padding: var(--default-mp-xs);font-weight: bold;font-size: var(--fs);white-space: nowrap;background-color: var(--section-bg);color: var(--d_color);}
 	.mpStyle table th {vertical-align: top;}
-	.mpStyle table td {padding: var(--default-mp-xs);font-weight: var(--fw);font-size: var(--fs);line-height: 1.25;color: var(--default-color);vertical-align: middle;}
+	.mpStyle table td {padding: var(--default-mp-xs);font-weight: var(--fw);font-size: var(--fs);line-height: 1.25;color: var(--d_color);vertical-align: middle;}
 	/**************/
 	.mpStyle table tr[data-collapse].mActive {display: table-row;}
 	.mpStyle table th[data-collapse].mActive,
@@ -863,24 +877,27 @@
 @media only screen and (min-width: 10px) {
 	.mpStyle .tabLists,
 	.mpStyle .leftTabs {display: -webkit-flex;display: flex;}
-	.mpStyle .tabLists {font-size: var(--font-size-h6);background-color: #2C3338;width: 100%;}
+	.mpStyle .tabLists {font-size: var(--fs_h6);width: 100%;}
 	.mpStyle .tabLists span {margin: 0 var(--default-mp-xs) 0 0;}
-	.leftTabs .tabLists {-webkit-flex-flow: column;flex-flow: column;min-width: 250px;max-width: 250px;}
+	.leftTabs > .tabLists {-webkit-flex-flow: column;flex-flow: column;min-width: 250px;max-width: 250px;}
 	div.mpStyle [data-tabs-target] {
 		display: -webkit-flex;display: flex;
 		-webkit-align-items: center;align-items: center;
 		-webkit-flex-wrap: nowrap;flex-wrap: nowrap;
 		position: relative;text-align: left;cursor: pointer;
 		padding: var(--default-mp-xs);
-		color: var(--theme-alternate-color);
+		color: var(--d_color);
 	}
-	.mpStyle [data-tabs-target]:hover,
-	.mpStyle [data-tabs-target].active {font-weight: var(--fw-medium); background-color: var(--theme-color);}
+	.mpStyle [data-tabs-target]:hover {font-weight: var(--fw-medium); border-color: var(--theme-color);color: var(--theme-color)}
+	.mpStyle [data-tabs-target].active {font-weight: var(--fw-medium); background-color: var(--theme-color);color: var(--theme-alternate-color);}
 	.topTabs [data-tabs-target] {border-right: 1px solid var(--border_color);-webkit-justify-content: center;justify-content: center;}
 	.topTabs [data-tabs-target]:last-child {border-right: none;}
 	.leftTabs [data-tabs-target] {border-bottom: 1px solid var(--border_color);}
 	.mpStyle .tabsContent {position: relative;overflow: hidden;width: 100%;padding: var(--default-mp);}
 	.tabsContent [data-tabs] {display: none;}
+	/**************/
+	.mpTabs.tabBorder {border: 1px solid var(--border_color);}
+	.mpTabs.tabBorder > .tabLists {}
 }
 /******************************************************************** Panel section ************************************************/
 @media only screen and (min-width: 10px) {
@@ -892,162 +909,32 @@
 }
 /******************************************************************** Faq section ************************************************/
 @media only screen and (min-width: 10px) {
-	[class*='faqItem'] {
-		margin: var(--default-mp) 0 0 0;
-		background-color: var(--section-bg);
-	}
-	[class*='faqItem']:hover {
-		background-color: #F7F7F7;
-	}
-	[class*='faqItem'].mage_faq_active {
-		border: 1px solid var(--border_color);
-		background-color: var(--active_color);
-		color: #FFF;
-	}
-	[class*='faqItem'] h6 {
-		color: #555;
-		padding: var(--default-mp-xs) var(--default-mp);
-		cursor: pointer;
-		margin: 0 !important;
-	}
-	[class*='faqItem'] h6 span {
-		margin: 0 var(--default-mp-xs) 0 0;
-		color: #707;
-	}
-	[class*='faqItem'] p {
-		display: none;
-		padding: var(--default-mp);
-		color: #222;
-		background-color: #F7F7F7;
-		border-top: 1px solid var(--border_color);
-		margin: 0 !important;
-	}
 }
 /******************************************************************** Popup section ************************************************/
 @media only screen and (min-width: 10px) {
 	[data-target-popup] {cursor: pointer;}
-	.mpStyle .mpPopup {
+	div.mpPopup {
 		display: none;position: fixed;
-		left: 0;right: 0;top: 0;bottom: 0;z-index: 1111;
-		overflow: hidden auto;background: #000C;
+		left: 0;right: 0;top: 0;bottom: 0;z-index: 111111;
+		overflow: hidden;background: #000C;
 	}
-	.mpStyle .mpPopup .popupMainArea {
+	div.mpPopup .popupMainArea {
 		min-width: 500px;max-width: 700px;width: auto;
 		min-height: 250px;max-height: 100vh;height: auto;
 		background-color: #FFF; border: 20px solid #444;position: relative;
 		display: -webkit-flex;display: flex;-webkit-justify-content: space-between;justify-content: space-between;-webkit-flex-flow: column;flex-flow: column;
 	}
-	.mpStyle .mpPopup .popupClose {
+	div.mpPopup .popupMainArea.fullWidth { max-width: 100vw; width: 100%;}
+	div.mpPopup .popupClose {
 		position: fixed;z-index: 1111;cursor: pointer;top: 50px;right: 50px;
 		width: 50px;height: 50px;
 		background-color: #444;color: #FFF;font-size: 20px;
 	}
-	.mpStyle .mpPopup.popupClose:hover {color: #444;background-color: #FFF;}
-	.mpStyle .mpPopup .popupHeader {border-bottom: 4px double var(--border_color);padding: var(--default-mp-xs);}
-	.mpStyle .mpPopup .popupBody {padding: var(--default-mp);}
-	.mpStyle .mpPopup .popupFooter {border-top: 4px double var(--border_color);padding: var(--default-mp-xs);}
-	.mpStyle .mpPopup .dLayout, .mpStyle .mpPopup [class*='_dLayout'] {margin: 0;}
-	/*********Popup Icon*****************************/
-	div.mp_input_add_icon {
-		display: -webkit-flex;display: flex;
-		-webkit-align-items: center;align-items: center;
-		-webkit-justify-content: center;justify-content: center;
-		width: auto;padding: 0 10px;
-		border-radius: 5px;
-	}
-	button.mp_input_add_icon_button span.remove_input_icon {
-		cursor: pointer;display: none;
-		position: absolute;top: -7px;right: -7px;
-		background-color: #6B003E;color: #FFF;
-		padding: 4px;
-		font-size: 12px;
-		border-radius: 50%;
-		height: auto; width: auto;
-	}
-	button.mp_input_add_icon_button span.remove_input_icon.active {display: block;}
-	/*************popup font***************/
-	div.add_icon_list_popup .iconItem,
-	div.add_icon_list_popup .popupIconMenu li,
-	div.add_icon_list_popup .popupClose {
-		-webkit-transition: 350ms ease-in-out;
-		-moz-transition: 350ms ease-in-out;
-		-o-transition: 350ms ease-in-out;
-		transition: 350ms ease-in-out;
-	}
-	div.add_icon_list_popup .popupHeader,
-	div.add_icon_list_popup .popup_all_icon .popupTabItem .iconItem,
-	div.add_icon_list_popup.in,
-	div.add_icon_list_popup .popupClose {
-		display: -webkit-flex;display: flex;
-		-webkit-justify-content: center;justify-content: center;
-		-webkit-align-items: center;align-items: center;
-	}
-	div.add_icon_list_popup {
-		display: none;position: fixed;left: 0;right: 0;top: 0;bottom: 0; z-index: 1111111; overflow: hidden auto;background: #F2F2F2;
-	}
-	div.add_icon_list_popup .popupClose {
-		position: absolute;z-index: 1111;cursor: pointer;
-		top: 5px;right: 25px;
-		width: 50px;height: 50px;
-		background-color: #FFF;color: #222;
-		font-size: 40px;
-		border: 2px solid #FFF;border-radius: 5px;
-	}
-	div.add_icon_list_popup .popupClose:hover {color: #FFF;background-color: #6B003E;}
-	div.add_icon_list_popup .popupHeader {
-		color: #FFF;height: 60px;
-		margin: 0 auto;width: 100%;background-color: #222;position: relative;
-		border-bottom: 1px solid #FFF;
-	}
-	div.add_icon_list_popup .popupHeader h2 {
-		color: #FFF;text-align: center;
-		font-size: 30px !important;
-		font-weight: 500;
-	}
-	div.add_icon_list_popup .popupBody {
-		position: relative;width: 100%;display: -webkit-flex;display: flex;
-		height: calc(100vh - 61px);
-	}
-	div.add_icon_list_popup ul.popupIconMenu {
-		min-width: 270px;background-color: #222;margin: 0;
-		max-height: 100%;
-		overflow: hidden auto;
-	}
-	div.add_icon_list_popup .popupIconMenu li {
-		padding: 7px 15px;margin: 0;
-		border-bottom: 1px solid #DDD;
-		color: #FFF;font-size: 16px;display: block;cursor: pointer;
-		position: relative;
-		font-weight: 500;
-	}
-	div.add_icon_list_popup .popupIconMenu li strong {color: #9F6C8A;}
-	div.add_icon_list_popup .popupIconMenu li.active {background-color: #E3A939;}
-	div.add_icon_list_popup .popupIconMenu li:hover {color: #E3A939;}
-	div.add_icon_list_popup .popupIconMenu li.active:hover {color: #FFF;}
-	div.add_icon_list_popup .add_icon_list {
-		display: -webkit-flex;display: flex;
-		-webkit-flex-direction: column;flex-direction: column;
-		width: 100vw;height: 100vh;overflow: hidden auto;
-	}
-	div.add_icon_list_popup .popup_all_icon {
-		width: 100%;padding: 10px;background-color: #FFF;
-		max-height: 100%;
-		overflow: hidden auto;
-	}
-	div.add_icon_list_popup .popup_all_icon .popupTabItem {width: 100%;}
-	div.add_icon_list_popup .popup_all_icon .itemIconArea {
-		width: 100%;
-		display: -webkit-flex;display: flex;
-		-webkit-flex-wrap: wrap;flex-wrap: wrap;
-	}
-	div.add_icon_list_popup .iconItem {
-		width: 60px;height: 60px;font-size: 30px;margin: 7px;cursor: pointer;
-		border: 2px solid #FFF;background-color: #F2F2F2;
-		-webkit-box-shadow: 0 1px 4px 1px #DBDBDB;
-		box-shadow: 0 1px 4px 1px #DBDBDB;
-	}
-	div.add_icon_list_popup .iconItem.active,
-	div.add_icon_list_popup .iconItem:hover {border-color: #E3A939;color: #E3A939;border-radius: 5px;}
+	div.mpPopup .popupClose:hover {color: #FFF;background-color: #6B003E;}
+	div.mpPopup .popupHeader {border-bottom: 4px double var(--border_color);padding: var(--default-mp-xs);}
+	div.mpPopup .popupBody {padding: var(--default-mp);overflow: auto;}
+	div.mpPopup .popupFooter {border-top: 4px double var(--border_color);padding: var(--default-mp-xs);}
+	div.mpPopup .dLayout, div.mpPopup [class*='_dLayout'] {margin: 0;}
 }
 /******************************************************************** Pagination section ************************************************/
 @media only screen and (min-width: 10px) {
@@ -1080,7 +967,7 @@
 	.mpStyle .w_50 {width: 50px;}
 	.mpStyle .w_100, .mpStyle [class*="_w_100"] {width: 100px;min-width: 100px;max-width: 100px;}
 	.mpStyle .w_125 {width: 125px;}
-	.mpStyle .w_150 {width: 150px;}
+	.mpStyle .w_150, .mpStyle [class*="_w_150"] {width: 150px;}
 	.mpStyle .w_200 {width: 200px;}
 	.mpStyle .w_300 {width: 300px;}
 	.mpStyle .max_100, .mpStyle [class*="_max_100"] {max-width: 100px;width: 100%;}
@@ -1097,9 +984,9 @@
 	.mpStyle .max_1200, .mpStyle [class*="_max_1200"] {max-width: 1200px;width: 100%;}
 	.mpStyle .max_full, .mpStyle [class*="_max_full"] {max-width: 100%;width: 100%;}
 	/************************/
-	.mpStyle .min_50 {min-width: 50px;}
-	.mpStyle .min_100 {min-width: 100px;}
-	.mpStyle .min_150 {min-width: 150px;}
+	.mpStyle .min_50, .mpStyle [class*="_min_50"] {min-width: 50px;}
+	.mpStyle .min_100, .mpStyle [class*="_min_100"] {min-width: 100px;}
+	.mpStyle .min_150, .mpStyle [class*="_min_150"] {min-width: 150px;}
 	.mpStyle .min_200, .mpStyle [class*="_min_200"] {min-width: 200px;}
 	.mpStyle .min_250 {min-width: 250px;}
 	.mpStyle .min_300 {min-width: 300px;}
@@ -1304,11 +1191,11 @@
 	div.mpStyle .bgTheme, div.mpStyle [class*='_bgTheme'] {background-color: var(--theme-color);color: var(--theme-alternate-color);}
 	[class*='_bTheme'], .bTheme {border: 1px solid var(--theme-color);}
 	/*****default*********/
-	div.mpStyle [class*='textDefault'] {color: var(--default-color);}
-	div.mpStyle [class*='bgDefault'] {background-color: var(--default-color);}
+	div.mpStyle [class*='textDefault'] {color: var(--d_color);}
+	div.mpStyle [class*='bgDefault'] {background-color: var(--d_color);}
 	/*****Success*********/
-	div.mpStyle [class*='textSuccess'] {color: var(--success-color);}
-	div.mpStyle [class*='bgSuccess'] {background-color: var(--success-color);}
+	div.mpStyle [class*='textSuccess'] {color: var(--success_color);}
+	div.mpStyle [class*='bgSuccess'] {background-color: var(--success_color);}
 	/*****Success*********/
 	div.mpStyle [class*='textInfo'] {color: #666;}
 	div.mpStyle [class*='bgInfo'] {background-color: #666;}
@@ -1356,8 +1243,9 @@
 /********************************************************************************************************************/
 @media only screen and (min-width: 10px) {
 }
-/********************************************************************************************************************/
+/******************************************************************** Owl Carousel************************************************/
 @media only screen and (min-width: 10px) {
+	div.mpStyle .owl-nav {display: none;}
 }
 /********************************************************************************************************************/
 @media only screen and (min-width: 10px) {
@@ -1367,7 +1255,7 @@
 	.woocommerce-cart table.cart .product-remove {vertical-align: top;padding: var(--default-mp-xs);width: 50px;}
 	.woocommerce-cart table.cart .product-remove a:hover {color: var(--danger-color);border-color: var(--danger-color);}
 	.woocommerce-cart table.cart .product-thumbnail {min-width: 20%;vertical-align: top;padding: var(--default-mp-xs);}
-	ul.cart_list { list-style-type: none;line-height: 1.25;font-size: var(--fs);color: var(--default-color);}
+	ul.cart_list { list-style-type: none;line-height: 1.25;font-size: var(--fs);color: var(--d_color);}
 	ul.cart_list li {padding: 3px 0;display: -webkit-flex;display: flex;-webkit-align-items: center;align-items: center;}
 	ul.cart_list li span {margin: 0 var(--default-mp-xs) 0 0;}
 	.cart_product_item {

@@ -4,7 +4,12 @@ function load_sortable_datepicker(parent, item) {
 			handle: jQuery(this).find('.mp_sortable_button')
 		});
 		parent.find(".date_type").removeClass('hasDatepicker').attr('id', '').removeData('datepicker').unbind().datepicker({
-			dateFormat: ttbm_date_format
+			dateFormat: mp_date_format,
+			autoSize: true,
+			onSelect: function (dateString, data) {
+				let date = data.selectedYear + '-' + (parseInt(data.selectedMonth) + 1) + '-' + data.selectedDay;
+				jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
+			}
 		});
 	});
 	return true;
@@ -13,14 +18,6 @@ function load_sortable_datepicker(parent, item) {
 (function ($) {
 	"use strict";
 	$(document).ready(function () {
-		$(".mpStyle .date_type").datepicker({
-			dateFormat: mp_date_format
-		});
-		$('.ttbm_select2').select2({});
-		$('.field-select2-wrapper select').select2({});
-		$("ul.select2-selection__rendered").sortable({
-			containment: 'parent'
-		});
 		//=========Short able==============//
 		$(document).find('.mp_sortable_area').sortable({
 			handle: $(this).find('.mp_sortable_button')
@@ -78,7 +75,7 @@ function load_sortable_datepicker(parent, item) {
 		return false;
 	});
 	//=========Remove Setting Item ==============//
-	$(document).on('click', '.mp_item_remove,.mp_remove_icon', function () {
+	$(document).on('click', '.mp_item_remove', function () {
 		if (confirm('Are You Sure , Remove this row ? \n\n 1. Ok : To Remove . \n 2. Cancel : To Cancel .')) {
 			$(this).closest('.mp_remove_area').slideUp(250, function () {
 				$(this).remove();
@@ -90,16 +87,81 @@ function load_sortable_datepicker(parent, item) {
 	//=========Add Setting Item==============//
 	$(document).on('click', '.mp_add_item', function () {
 		let parent = $(this).closest('.mp_settings_area');
-		let item = parent.find('.mp_hidden_content').first().find('.mp_hidden_item').html();
+		let item = $(this).next($('.mp_hidden_content')).find(' .mp_hidden_item').html();
+		if (!item || item === "undefined" || item === " ") {
+			item = parent.find('.mp_hidden_content').first().find('.mp_hidden_item').html();
+		}
 		load_sortable_datepicker(parent, item);
-		parent.find('.mp_item_insert').find('.add_ttbm_select2').select2({});
+		parent.find('.mp_item_insert').find('.add_mp_select2').select2({});
 		return true;
 	});
-	$(document).on('click', '.ttbm_add_item', function () {
-		let parent = $(this).closest('.mp_settings_area');
-		let item = parent.find('>.mp_hidden_content').first().find('.mp_hidden_item').html();
-		load_sortable_datepicker(parent, item);
-		parent.find('.mp_item_insert').find('.add_ttbm_select2').select2({});
-		return true;
+}(jQuery));
+(function ($) {
+	"use strict";
+	//=================select icon=========================//
+	$(document).on('click', 'button.mp_icon_add', function () {
+		let $this = $(this);
+		let parent = $this.closest('.mp_add_icon_image_area');
+		let target_popup = $('.mp_add_icon_popup');
+		target_popup.find('.iconItem').click(function () {
+			let icon_class = $(this).data('icon-class');
+			if (icon_class) {
+				parent.find('input[type="hidden"]').val(icon_class);
+				parent.find('.mp_image_item').slideUp('fast');
+				parent.find('.mp_icon_item').slideDown('fast');
+				parent.find('[data-add-icon]').removeAttr('class').addClass(icon_class);
+				target_popup.find('.iconItem').removeClass('active');
+				$(this).addClass('active');
+				target_popup.find('.popupClose').trigger('click');
+			}
+		});
+		target_popup.find('[data-icon-menu]').click(function () {
+			if (!$(this).hasClass('active')) {
+				let target = $(this);
+				let tabsTarget = target.data('icon-menu');
+				target_popup.find('[data-icon-menu]').removeClass('active');
+				target.addClass('active');
+				target_popup.find('[data-icon-list]').each(function () {
+					let targetItem = $(this).data('icon-list');
+					if (tabsTarget === 'all_item' || targetItem === tabsTarget) {
+						$(this).slideDown(250);
+					} else {
+						$(this).slideUp(250);
+					}
+				});
+			}
+			return false;
+		});
+		target_popup.find('.popupClose').click(function () {
+			target_popup.find('[data-icon-menu="all_item"]').trigger('click');
+			target_popup.find('.iconItem').removeClass('active');
+		});
+	});
+	$(document).on('click', '.mp_add_icon_image_area .mp_icon_remove', function () {
+		let parent = $(this).closest('.mp_add_icon_image_area');
+		parent.find('input[type="hidden"]').val('');
+		parent.find('[data-add-icon]').removeAttr('class');
+		parent.find('.mp_icon_item').slideUp('fast');
+	});
+	//=================select Single image=========================//
+	$(document).on('click', 'button.mp_image_add', function () {
+		let $this = $(this);
+		let parent = $this.closest('.mp_add_icon_image_area');
+		wp.media.editor.send.attachment = function (props, attachment) {
+			let attachment_id = attachment.id;
+			let attachment_url = attachment.url;
+			parent.find('input[type="hidden"]').val(attachment_id);
+			parent.find('.mp_icon_item').slideUp('fast');
+			parent.find('img').attr('src', attachment_url);
+			parent.find('.mp_image_item').slideDown('fast');
+		}
+		wp.media.editor.open($this);
+		return false;
+	});
+	$(document).on('click', '.mp_add_icon_image_area .mp_image_remove', function () {
+		let parent = $(this).closest('.mp_add_icon_image_area');
+		parent.find('input[type="hidden"]').val('');
+		parent.find('img').attr('src', '');
+		parent.find('.mp_image_item').slideUp('fast');
 	});
 }(jQuery));

@@ -53,6 +53,14 @@
 						'id'    => 'mptbm_style_settings',
 						'title' => __( 'Style Settings', 'mptbm_plugin' )
 					),
+                    array(
+                        'id'    => 'mptbm_vehicle_icon_settings',
+                        'title' => __( 'Icon Settings', 'mptbm_plugin' )
+                    ),
+                    array(
+                        'id'    => 'mptbm_form_builder_settings',
+                        'title' => __( 'Form Settings', 'mptbm_plugin' )
+                    ),
 					array(
 						'id'    => 'mptbm_custom_css',
 						'title' => __( 'Custom CSS', 'mptbm_plugin' )
@@ -198,7 +206,7 @@
 							)
 						),
 					) ),
-					'mptbm_style_settings'           => apply_filters( 'filter_mptbm_style_settings', array(
+					'mptbm_style_settings' => apply_filters( 'filter_mptbm_style_settings', array(
 						array(
 							'name'    => 'theme_color',
 							'label'   => esc_html__( 'Theme Color', 'mptbm_plugin' ),
@@ -312,6 +320,76 @@
 							'default' => '#FAFCFE'
 						),
 					) ),
+                    'mptbm_vehicle_icon_settings' => apply_filters( 'filter_mptbm_vehicle_icon_settings', array(
+                        array(
+                            'name'    => 'engine_icon',
+                            'label'   => esc_html__( 'Engine Icon', 'mptbm_plugin' ),
+                            'desc'    => esc_html__( 'Select Default Engine Icon', 'mptbm_plugin' ),
+                            'type'    => 'file',
+                            'default' => ''
+                        ),
+                        array(
+                            'name'    => 'interior_color_icon',
+                            'label'   => esc_html__( 'Interior Color Icon', 'mptbm_plugin' ),
+                            'desc'    => esc_html__( 'Select Default Interior Icon', 'mptbm_plugin' ),
+                            'type'    => 'file',
+                            'default' => ''
+                        ),
+                        array(
+                            'name'    => 'exterior_color_icon',
+                            'label'   => esc_html__( 'Exterior Color Icon', 'mptbm_plugin' ),
+                            'desc'    => esc_html__( 'Select Default Exterior Color Icon', 'mptbm_plugin' ),
+                            'type'    => 'file',
+                            'default' => ''
+                        ),
+                        array(
+                            'name'    => 'power_icon',
+                            'label'   => esc_html__( 'Power Icon', 'mptbm_plugin' ),
+                            'desc'    => esc_html__( 'Select Default Power Icon', 'mptbm_plugin' ),
+                            'type'    => 'file',
+                            'default' => ''
+                        ),
+                        array(
+                            'name'    => 'fuel_type_icon',
+                            'label'   => esc_html__( 'Fuel Type Icon', 'mptbm_plugin' ),
+                            'desc'    => esc_html__( 'Select Default Fuel Type Icon', 'mptbm_plugin' ),
+                            'type'    => 'file',
+                            'default' => ''
+                        ),
+                        array(
+                            'name'    => 'length_icon',
+                            'label'   => esc_html__( 'Length Icon', 'mptbm_plugin' ),
+                            'desc'    => esc_html__( 'Select Default Length Icon', 'mptbm_plugin' ),
+                            'type'    => 'file',
+                            'default' => ''
+                        ),
+                        array(
+                            'name'    => 'transmission_icon',
+                            'label'   => esc_html__( 'Transmission Icon', 'mptbm_plugin' ),
+                            'desc'    => esc_html__( 'Select Default Transmission Icon', 'mptbm_plugin' ),
+                            'type'    => 'file',
+                            'default' => ''
+                        ),
+                        array(
+                            'name'    => 'extras_icon',
+                            'label'   => esc_html__( 'Extras Icon', 'mptbm_plugin' ),
+                            'desc'    => esc_html__( 'Select Default Extras Icon', 'mptbm_plugin' ),
+                            'type'    => 'file',
+                            'default' => ''
+                        ),
+
+                    ) ),
+                    'mptbm_form_builder_settings' => apply_filters( 'filter_mptbm_form_builder_settings', array(
+                        array(
+                            'name'    => 'form_builder_id',
+                            'label'   => esc_html__( 'Custom Form', 'mptbm_plugin' ),
+                            'desc'    => esc_html__( 'Select Custom Form', 'mptbm_plugin' ),
+                            'type'    => 'select',
+                            'default' => '',
+                            'options' => MPTBM_Function::get_custom_forms(),
+                        ),
+                    )
+                    ),
 					'mptbm_custom_css'               => apply_filters( 'filter_mptbm_custom_css', array(
 							array(
 								'name'  => 'custom_css',
