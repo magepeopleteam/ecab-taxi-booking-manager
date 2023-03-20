@@ -98,6 +98,17 @@
 				</div>
 				<?php
 			}
+
+            public static function quantity_box($name="quantity",$default="1",$min="1",$max="10")
+            {
+                ?>
+                    <div class="quantity-box">
+                        <span class="minus">-</span>
+                        <input type="number" name="<?php echo $name;?>" class="mp_number_validation" value="<?php echo $default;?>" min="<?php echo $min;?>" max="<?php echo $max;?>" />
+                        <span class="plus">+</span>
+                    </div>
+                <?php
+            }
 		}
 		new MPTBM_Layout();
 	}

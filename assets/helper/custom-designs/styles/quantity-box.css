@@ -1,0 +1,67 @@
+.quantity-box
+{
+    margin:5px;
+}
+
+.quantity-box > span
+{
+    cursor:pointer;
+}
+
+.quantity-box > .minus,
+.quantity-box > .plus
+{
+    width:20px;
+    height:20px;
+    background:#f2f2f2;
+    border-radius:4px;
+    padding:0px;
+    border:1px solid #ddd;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.quantity-box > .minus
+{
+    background-color:red;
+    color:white;
+}
+
+.quantity-box > .plus
+{
+    background-color:green;
+    color:white;
+}
+
+.quantity-box > input
+{
+    height: 20px;
+    width: 30px;
+    font-size: var(--fs);
+    border:1px solid #ddd;
+    border-radius:4px;
+    padding: 5px;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+}
+
+/* Chrome, Safari, Edge, Opera */
+.quantity-box > input::-webkit-outer-spin-button,
+.quantity-box > input::-webkit-inner-spin-button
+{
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+.quantity-box > input[type=number]
+{
+    -moz-appearance: textfield;
+}
+
+.hide-quantity-box
+{
+    display:none;
+}

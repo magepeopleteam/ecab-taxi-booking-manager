@@ -1,5 +1,6 @@
 function mptbm_price_format(price) {
 	let price_text = '';
+	price = parseFloat(price).toFixed(2);
 	if (mp_currency_position === 'right') {
 		price_text = price + mp_currency_symbol;
 	} else if (mp_currency_position === 'right_space') {
@@ -30,13 +31,13 @@ function mptbm_price_format(price) {
 
 	});
 	$(document).on("click", ".mptbm_book_now[type='button']", function () {
-		let parent = $(this).closest('.mptbm_booking_item');
+		let parent = $(this).closest('form');
 		let start_place = parent.find('[name="mptbm_start_place"]');
 		let end_place = parent.find('[name="mptbm_end_place"]');
-		if (start_place.val().trim() !== "" && end_place.val().trim() !== "") {
+		if (start_place.val() !=='' && end_place.val() !=='') {
 			$.when(mptbm_set_cookie_distance_duration(start_place.value, end_place.value)).done(function () {
 				parent.find('.mptbm_add_to_cart').trigger('click');
 			});
-		}
+		}S
 	});
 }(jQuery));

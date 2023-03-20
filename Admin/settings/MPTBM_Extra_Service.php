@@ -18,13 +18,19 @@
 					<div class="ovAuto mt_xs">
 						<table>
 							<thead>
+                            <style>
+                                .service-hader-text
+                                {
+                                    font-weight: 700;
+                                }
+                            </style>
 							<tr>
-								<th><?php esc_html_e( 'Service Icon', 'mptbm_plugin' ); ?></th>
-								<th><?php esc_html_e( 'Service Name', 'mptbm_plugin' ); ?></th>
-								<th><?php esc_html_e( 'Short description', 'mptbm_plugin' ); ?></th>
-								<th><?php esc_html_e( 'Service Price', 'mptbm_plugin' ); ?></th>
-								<th><?php esc_html_e( 'Qty Box Type', 'mptbm_plugin' ); ?></th>
-								<th><?php esc_html_e( 'Action', 'mptbm_plugin' ); ?></th>
+								<td><span class="service-hader-text"><?php esc_html_e( 'Service Icon', 'mptbm_plugin' ); ?></span></td>
+								<td><span class="service-hader-text"><?php esc_html_e( 'Service Name', 'mptbm_plugin' ); ?></span></td>
+								<td><span class="service-hader-text"><?php esc_html_e( 'Short description', 'mptbm_plugin' ); ?></span></td>
+								<td><span class="service-hader-text"><?php esc_html_e( 'Service Price', 'mptbm_plugin' ); ?></span></td>
+								<td><span class="service-hader-text"><?php esc_html_e( 'Qty Box Type', 'mptbm_plugin' ); ?></span></td>
+                                <td><span class="service-hader-text"><?php esc_html_e( 'Action', 'mptbm_plugin' ); ?></span></td>
 							</tr>
 							</thead>
 							<tbody class="mp_sortable_area mp_item_insert">
@@ -45,14 +51,32 @@
 			}
 			public function extra_service_item( $field = array() ) {
 				$field         = $field ?: array();
+                $images            = $field && is_array( $field ) ? $field : array();
 				$service_icon  = array_key_exists( 'service_icon', $field ) ? $field['service_icon'] : '';
 				$service_name  = array_key_exists( 'service_name', $field ) ? $field['service_name'] : '';
 				$service_price = array_key_exists( 'service_price', $field ) ? $field['service_price'] : '';
 				$input_type    = array_key_exists( 'service_qty_type', $field ) ? $field['service_qty_type'] : 'inputbox';
 				$description = array_key_exists( 'extra_service_description', $field ) ? $field['extra_service_description'] : '';
+
+                $icon = $image = "";
+
+                if ( $service_icon )
+                {
+                    if ( preg_match( '/\s/', $service_icon ) )
+                    {
+                        $icon = $service_icon;
+                    }
+                    else
+                    {
+                        $image = $service_icon;
+                    }
+                }
+
 				?>
 				<tr class="mp_remove_area">
-					<td><?php do_action( 'mp_input_add_icon', 'service_icon[]', $service_icon ); ?></td>
+					<td><?php //do_action( 'mp_input_add_icon', 'service_icon[]', $service_icon ); ?>
+                        <?php do_action( 'mp_add_icon_image', $image_name='service_icon[]', $icon, $image ); ?>
+                    </td>
 					<td>
 						<label>
 							<input type="text" class="formControl mp_name_validation" name="service_name[]" placeholder="<?php esc_html_e( 'EX: Driver', 'mptbm_plugin' ); ?>" value="<?php echo esc_attr( $service_name ); ?>"/>

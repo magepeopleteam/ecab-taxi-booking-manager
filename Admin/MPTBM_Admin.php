@@ -21,6 +21,7 @@
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Price_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Extra_Service.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Gallery_Settings.php';
+                require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Select_Icon_image.php';
 			}
 			public function add_taxonomy() {
 				new MPTBM_Dummy_Import();
