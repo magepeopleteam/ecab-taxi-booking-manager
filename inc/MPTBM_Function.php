@@ -538,14 +538,16 @@
                 $default_file =  MPTBM_PLUGIN_URL.'/assets/frontend/images/vehicle-details/'.$default_file_name;
                 $src = self::get_global_settings('mptbm_vehicle_icon_settings',$element_name,$default_file);
                 ?>
-                <style>
-                    .icon-image
-                    {
-                        width: var(--fs) !important;
-                        height: var(--fs) !important;
-                    }
-                </style>
-                <img class="icon-image" src="<?php echo $src;?>" alt="No Image" /> </img>
+                <img class="car-icon-image" src="<?php echo $src;?>" alt="No Image" /> </img>
+                <?php
+            }
+
+            public static function get_icon_image($element_name,$default_file_name)
+            {
+                $default_file =  MPTBM_PLUGIN_URL.'/assets/frontend/images/icon-details/'.$default_file_name;
+                $src = self::get_global_settings('mptbm_icon_settings',$element_name,$default_file);
+                ?>
+                <img src="<?php echo $src;?>" alt="No Image" /> </img>
                 <?php
             }
 
