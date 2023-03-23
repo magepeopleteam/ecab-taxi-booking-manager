@@ -43,6 +43,7 @@ function calculate_price(element)
             let target_element = $('#quantity_'+target_quantity_box);
             target_element.toggleClass("hide-quantity-box");
             $(this).toggleClass("selected-background");
+            $(this).toggleClass("selected-extra-service");
 
             let price_checkbox = $(this).find("input[type='checkbox']").first();
             price_checkbox.prop('checked', !price_checkbox.is(':checked'));
@@ -62,6 +63,21 @@ function calculate_price(element)
 
         });
 
+        $(document).on('focusout','.car-select',function (event) {
+
+            event.preventDefault();
+
+            if($(this).closest('#product-details').hasClass('product-details-active'))
+            {
+                $(this).addClass('uncollapsed-button');
+            }
+            else
+            {
+                $(this).removeClass('uncollapsed-button');
+            }
+
+        });
+
         $(document).on('change', 'input[name="mptbm_extra_service_quantity[]"]', function (event) {
             event.preventDefault();
             let selectBox = $(this).closest('td').siblings().find(".selectCheckbox");
@@ -74,5 +90,23 @@ function calculate_price(element)
 
         });
 
+        $(document).on('click', '.field-wrapper .field-placeholder', function (event) {
+            event.preventDefault();
+            $(this).closest(".field-wrapper").find("input").focus();
+        });
+
+        $(document).on('keyup', '.field-wrapper input', function (event) {
+            event.preventDefault();
+            var value = $.trim($(this).val());
+            if (value) {
+                $(this).closest(".field-wrapper").addClass("hasValue");
+            } else {
+                $(this).closest(".field-wrapper").removeClass("hasValue");
+            }
+        });
+
     });
 }(jQuery));
+
+
+

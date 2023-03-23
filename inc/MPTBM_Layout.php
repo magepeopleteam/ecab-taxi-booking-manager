@@ -103,9 +103,10 @@
             {
                 ?>
                     <div class="quantity-box">
-                        <span class="minus">-</span>
+                        <span class="minus"><span class="dashicons dashicons-minus"></span></span>
                         <input type="number" name="<?php echo $name;?>" class="mp_number_validation" value="<?php echo $default;?>" min="<?php echo $min;?>" max="<?php echo $max;?>" />
-                        <span class="plus">+</span>
+                        <span class="plus"><span class="dashicons dashicons-plus"></span></span>
+<!--                        <span class="quantity-label">Quantity of service</span>-->
                     </div>
                 <?php
             }

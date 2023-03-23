@@ -108,10 +108,12 @@ if (!class_exists('MPTBM_Transport_Search')) {
                             $all_posts = MPTBM_Query::query_transport_list($price_based);
                             if ($all_posts->found_posts > 0) {
                                 $posts = $all_posts->posts;
-                                foreach ($posts as $post) {
-                                    $post_id = $post->ID;
-                                    $this->product_item($post_id);
-                                }
+//                                foreach ($posts as $post) {
+//                                    $post_id = $post->ID;
+//                                    //$this->product_item($post_id);
+//                                    $this->product_item_modify($post_id);
+//                                }
+                                $this->product_item_modify($post_id,$posts);
                             }
                         }
                         ?>
@@ -256,7 +258,8 @@ if (!class_exists('MPTBM_Transport_Search')) {
             }
         }
 
-        public function product_item_modify($post_id) {
+        public function search_info()
+        {
             $distance = $_COOKIE['mptbm_distance'] ?? '';
             $duration = $_COOKIE['mptbm_duration'] ?? '';
             $start_date = MPTBM_Function::data_sanitize($_POST['start_date']);
@@ -264,17 +267,52 @@ if (!class_exists('MPTBM_Transport_Search')) {
             $date = $start_date . ' ' . $start_time;
             $start_place = MPTBM_Function::data_sanitize($_POST['start_place']);
             $end_place = MPTBM_Function::data_sanitize($_POST['end_place']);
-            $location_exit = MPTBM_Function::location_exit($post_id, $start_place, $end_place);
-            if ($location_exit) {
+
+            return array(
+                    'distance' => $distance,
+                    'duration' => $duration,
+                    'start_date' => $start_date,
+                    'start_time' => $start_time,
+                    'start_place' => $start_place,
+                    'end_place' => $end_place,
+                    'date' => $date
+                );
+
+        }
+
+        public function product_info($post_id,$search_info=array())
+        {
+
+            $location_exit = MPTBM_Function::location_exit($post_id, $search_info['start_place'], $search_info['end_place']);
+            if ($location_exit)
+            {
                 $product_id = MPTBM_Function::get_post_info($post_id, 'link_wc_product');
                 $thumbnail = MPTBM_Function::get_image_url($post_id);
-                $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place);
+                $price = MPTBM_Function::get_price($post_id, $search_info['distance'], $search_info['duration'], $search_info['start_place'], $search_info['end_place']);
                 $wc_price = MPTBM_Function::wc_price($post_id, $price);
                 $raw_price = MPTBM_Function::price_convert_raw($wc_price);
+            }
 
+            return array(
+                'location_exist' => $location_exit??'',
+                'product_id' => $product_id??'',
+                'thumbnail' => $thumbnail??'',
+                'price' => $price??'',
+                'wc_price' => $wc_price??'',
+                'raw_price' => $raw_price??''
+
+            );
+        }
+
+
+        public function product_item_modify($post_id,$posts = null)
+        {
+                
+                $search_info = $this->search_info();
+            
                 ?>
 
-                <div id="searched-item-details" class="mptbm_booking_item">
+                <div id="searched-item-details" class="">
 
                     <div class="search-item">
 
@@ -319,60 +357,51 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                 <?php esc_html_e('Pick-Up Date', 'mptbm_plugin'); ?>
                             </div>
                             <div class="sidebar-topic-value">
-                                <?php echo date(MPTBM_Function::date_format(), strtotime($start_date)); ?>
+                                <?php echo date(MPTBM_Function::date_format(), strtotime($search_info['start_date'])); ?>
                             </div>
                             <div class="divider"></div>
                             <div class="sidebar-topic">
                                 <?php esc_html_e('Pick-Up Time', 'mptbm_plugin'); ?>
                             </div>
                             <div class="sidebar-topic-value">
-                                <?php echo $start_time . ' AM'; ?>
+                                <?php echo $search_info['start_time'] . ' AM'; ?>
                             </div>
                             <div class="divider"></div>
                             <div class="sidebar-topic">
                                 <?php esc_html_e('Pick-Up Location', 'mptbm_plugin'); ?>
                             </div>
                             <div class="sidebar-topic-value">
-                                <?php echo $start_place; ?>
+                                <?php echo $search_info['start_place']; ?>
                             </div>
                             <div class="divider"></div>
                             <div class="sidebar-topic">
                                 <?php esc_html_e('Drop-Off Location', 'mptbm_plugin'); ?>
                             </div>
                             <div class="sidebar-topic-value">
-                                <?php echo $end_place; ?>
+                                <?php echo $search_info['end_place']; ?>
                             </div>
                             <div class="divider"></div>
                         </div>
 
-<!--                        <div class="filter_item">-->
-<!--                            <ul class="border-list">-->
-<!--                                <li><span class="span-text"><h4>--><?php //esc_html_e('SUMMARY', 'mptbm_plugin'); ?><!--</h4></span></li>-->
-<!--                                <li>-->
-<!--                                    <div class="divider"></div>-->
-<!--                                </li>-->
-<!--                                <li><span class="span-text">--><?php //esc_html_e('Pick-Up Date', 'mptbm_plugin'); ?><!--</span><br>--><?php //echo date(MPTBM_Function::date_format(), strtotime($start_date)); ?><!--</li>-->
-<!--                                <li>-->
-<!--                                    <div class="divider"></div>-->
-<!--                                </li>-->
-<!--                                <li><span class="span-text">--><?php //esc_html_e('Pick-Up Time', 'mptbm_plugin'); ?><!--</span><br>--><?php //echo $start_time . ' AM'; ?><!--</li>-->
-<!--                                <li>-->
-<!--                                    <div class="divider"></div>-->
-<!--                                </li>-->
-<!--                                <li><span class="span-text">--><?php //esc_html_e('Pick-Up Location', 'mptbm_plugin'); ?><!--</span><br>--><?php //echo $start_place; ?><!--</li>-->
-<!--                                <li>-->
-<!--                                    <div class="divider"></div>-->
-<!--                                </li>-->
-<!--                                <li><span class="span-text">--><?php //esc_html_e('Drop-Off Location', 'mptbm_plugin'); ?><!--</span><br>--><?php //echo $end_place; ?><!--</li>-->
-<!--                            </ul>-->
-<!--                        </div>-->
                     </div>
                     <div class="search-item">
 
-                        <div id="product-details"  class="">
+                        <?php
+                            if( !is_null($posts) )
+                            {
+
+                                foreach ($posts as $post)
+                                {
+                                    unset($post_id);
+                                    $post_id = $post->ID;
+                                    unset($product_info);
+                                    $product_info = $this->product_info($post_id,$search_info);
+                        ?>
+
+                        <div id="product-details"  class="mptbm_booking_item">
                             <div class="details-item">
                                 <div class="bg-image" data-href="<?php echo get_the_permalink($post_id); ?>" data-placeholder>
-                                    <div data-bg-image="<?php echo esc_attr($thumbnail); ?>"></div>
+                                    <div data-bg-image="<?php echo esc_attr($product_info['thumbnail']); ?>"></div>
                                 </div>
                             </div>
                             <div class="details-item">
@@ -429,7 +458,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                             </div>
                             <div class="details-item">
                                 <div class="select-div">
-                                    <h2 class="textTheme"> <?php echo MPTBM_Function::esc_html($wc_price); ?></h2>
+                                    <h2 class="textTheme"> <?php echo MPTBM_Function::esc_html($product_info['wc_price']); ?></h2>
                                     <button type="button" class="dButton_xs w_150 car-select" data-collapse-target="#mptbm_collape_select_<?php echo esc_attr($post_id); ?>"><span><?php esc_html_e('Select', 'mptbm_plugin'); ?></span></button>
                                 </div>
                             </div>
@@ -437,15 +466,16 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                 <div style="margin:5px;">
                                     <form method="post" action="">
                                         <input type="hidden" name="mptbm_post_id" value="<?php echo esc_attr($post_id); ?>"/>
-                                        <input type="hidden" name="mptbm_start_place" value="<?php echo esc_attr($start_place); ?>"/>
-                                        <input type="hidden" name="mptbm_end_place" value="<?php echo esc_attr($end_place); ?>"/>
-                                        <input type="hidden" name="mptbm_date" value="<?php echo esc_attr($date); ?>"/>
+                                        <input type="hidden" name="mptbm_start_place" value="<?php echo esc_attr($search_info['start_place']); ?>"/>
+                                        <input type="hidden" name="mptbm_end_place" value="<?php echo esc_attr($search_info['end_place']); ?>"/>
+                                        <input type="hidden" name="mptbm_date" value="<?php echo esc_attr($search_info['date']); ?>"/>
                                         <div class="">
                                             <div data-collapse="#mptbm_collape_select_<?php echo esc_attr($post_id); ?>">
                                                 <?php $extra_services = MPTBM_Function::get_post_info($post_id, 'mptbm_extra_service_data', array()); ?>
+                                                <?php if(!is_null($extra_services) && count($extra_services)) { ?>
                                                 <div class="mptbm_extra_service_area" data-placeholder>
                                                     <div>
-                                                        <h5 class="extra-service-container-header"><span class="dashicons dashicons-cart" style="color:var(--button-bg);"></span> Extra Options</h5>
+                                                        <h5 class="extra-service-container-header"><span class="custom-icon-image"><?php echo MPTBM_Function::get_icon_image('cart_icon', 'cart.png'); ?></span> EXTRA OPTIONS </h5>
                                                     </div>
                                                     <div class="divider"></div>
                                                     <div>
@@ -532,22 +562,103 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                     </div>
 
                                                 </div>
-
-
-
+                                                <?php } ?>
                                                 <div class="custom-form">
-
-                                                    <div class="aCsJod oJeWuf">
-                                                        <div class="Xb9hP">
-                                                            <input type="email" class="whsOnd zHQkBf" jsname="YPqjbf" autocomplete="username" spellcheck="false" tabindex="0" aria-label="Email or phone" name="identifier" autocapitalize="none" id="identifierId" dir="ltr" data-initial-dir="ltr" data-initial-value="">
-                                                            <div jsname="YRMmle" class="AxOyFc snByac" aria-hidden="true">Email or phone</div>
+                                                    <div class="custom-form-row">
+                                                        <div class="custom-form-item">
+                                                            <div class="custom-form-title">
+                                                                <h5><span class="custom-icon-image"><?php echo MPTBM_Function::get_icon_image('custom_form_icon', 'files.png'); ?></span>  BOOKING INFORMATION </h5>
+                                                            </div>
+                                                            <div class="divider"></div>
                                                         </div>
                                                     </div>
 
+                                                    <div class="custom-form-row">
+                                                        <div class="custom-form-item">
+                                                            <div class="form-wrapper-outer">
+                                                                <div class="field-wrapper">
+                                                                    <input type="text" name="full_name" id="email">
+                                                                    <div class="field-placeholder"><span>Full Name</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="custom-form-item">
+                                                            <div class="form-wrapper-outer">
+                                                                <div class="field-wrapper">
+                                                                    <input type="text" name="email" id="email">
+                                                                    <div class="field-placeholder"><span>Email Address</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
+                                                    <div class="custom-form-row">
+                                                        <div class="custom-form-item">
+                                                            <div class="form-wrapper-outer">
+                                                                <div class="field-wrapper">
+                                                                    <input type="text" name="phone" id="email">
+                                                                    <div class="field-placeholder"><span>Phone Number</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="custom-form-item">
+                                                            <div class="form-wrapper-outer">
+                                                                <div class="field-wrapper">
+                                                                    <input type="text" name="address" id="email">
+                                                                    <div class="field-placeholder"><span>Street Address</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="custom-form-row">
+                                                        <div class="custom-form-item">
+                                                            <div class="form-wrapper-outer">
+                                                                <div class="field-wrapper">
+                                                                    <input type="text" name="city" id="email">
+                                                                    <div class="field-placeholder"><span>City</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="custom-form-item">
+                                                            <div class="form-wrapper-outer">
+                                                                <div class="field-wrapper">
+                                                                    <input type="text" name="zip_code" id="email">
+                                                                    <div class="field-placeholder"><span>Zip Code</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="custom-form-item">
+                                                            <div class="form-wrapper-outer">
+                                                                <div class="field-wrapper">
+                                                                    <input type="text" name="country" id="email">
+                                                                    <div class="field-placeholder"><span>Country</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="custom-form-row">
+                                                        <div class="custom-form-item">
+                                                            <div class="form-wrapper-outer">
+                                                                <div class="field-wrapper">
+                                                                    <input type="text" name="passport" id="email">
+                                                                    <div class="field-placeholder"><span>Passport Number</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="custom-form-item">
+                                                            <div class="form-wrapper-outer">
+                                                                <div class="field-wrapper">
+                                                                    <input type="text" name="nid" id="email">
+                                                                    <div class="field-placeholder"><span>NID Number</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
                                                     <div class="custom-form-item">
-                                                        <div class="mpStyle"><?php MPTBM_Function::get_custom_form(); ?></div>
+                                                        <div class="mpStyle"><?php //MPTBM_Function::get_custom_form(); ?></div>
                                                     </div>
                                                     <div class="cart-add-item">
                                                         <?php //MPTBM_Function::get_custom_form_inputs(); ?>
@@ -561,14 +672,14 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                         <table id="booking-total">
                                                             <tr>
                                                                 <td>
-                                                                    <h4 class="textTheme" data-main-price="<?php echo esc_attr($raw_price); ?>">Total Amount :  <?php echo MPTBM_Function::esc_html($wc_price); ?></h4>
+                                                                    <h4 class="textTheme"><span class="total-amount-text"> Total Amount : </span>  <span  data-main-price="<?php echo esc_attr($product_info['raw_price']); ?>"><?php echo MPTBM_Function::esc_html($product_info['wc_price']); ?></span></h4>
                                                                 </td>
                                                                 <td>
                                                                     <button class="_dButton_fRight mptbm_book_now" type="button">
-                                                                        <span class="fas fa-cart-plus"></span>
+<!--                                                                        <span class="fas fa-cart-plus"></span>-->
                                                                         <?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
                                                                     </button>
-                                                                    <button type="submit" name="add-to-cart" value="<?php echo esc_html($product_id); ?>" class="dNone mptbm_add_to_cart">
+                                                                    <button type="submit" name="add-to-cart" value="<?php echo esc_html($product_info['product_id']); ?>" class="dNone mptbm_add_to_cart">
                                                                         <?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
                                                                     </button>
                                                                 </td>
@@ -588,13 +699,325 @@ if (!class_exists('MPTBM_Transport_Search')) {
                             </div>
                         </div>
 
+                       <?php
+                                }
+                            }
+                            else
+                            {
+                                $product_info = $this->product_info($post_id,$search_info);
+                       ?>
+
+                         <div id="product-details"  class="mptbm_booking_item">
+                                    <div class="details-item">
+                                        <div class="bg-image" data-href="<?php echo get_the_permalink($post_id); ?>" data-placeholder>
+                                            <div data-bg-image="<?php echo esc_attr($product_info['thumbnail']); ?>"></div>
+                                        </div>
+                                    </div>
+                                    <div class="details-item">
+                                        <div class="bordered" data-placeholder>
+
+                                            <div id="icon-details">
+                                                <div class="icon-item">
+                                                    <span class="car-title" data-href="<?php echo get_the_permalink($post_id); ?>"><?php echo get_the_title($post_id); ?></span>
+                                                </div>
+                                                <div class="icon-item">
+                                                    <table class="table-1">
+                                                        <tr>
+                                                            <td><span><?php echo MPTBM_Function::get_vehicle_details_image('engine_icon', 'car-engine.png'); ?></span></td>
+                                                            <td><?php echo MPTBM_Function::get_post_info($post_id, 'mptbm_engine'); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><span><?php echo MPTBM_Function::get_vehicle_details_image('interior_color_icon', 'paint.png'); ?></span></td>
+                                                            <td><?php echo MPTBM_Function::get_post_info($post_id, 'mptbm_interior_color'); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><span><?php echo MPTBM_Function::get_vehicle_details_image('power_icon', 'wireless-charging.png'); ?></span></td>
+                                                            <td><?php echo MPTBM_Function::get_post_info($post_id, 'mptbm_power'); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><span><?php echo MPTBM_Function::get_vehicle_details_image('fuel_type_icon', 'group.png'); ?></span></td>
+                                                            <td><?php echo MPTBM_Function::get_post_info($post_id, 'mptbm_fuel_type'); ?></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <div class="icon-item">
+                                                    <table class="table-2">
+                                                        <tr>
+                                                            <td><span><?php echo MPTBM_Function::get_vehicle_details_image('length_icon', 'ruler-icon.png'); ?></span></td>
+                                                            <td><?php echo MPTBM_Function::get_post_info($post_id, 'mptbm_length'); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><span><?php echo MPTBM_Function::get_vehicle_details_image('exterior_color_icon', 'varnish.png'); ?></span></td>
+                                                            <td><?php echo MPTBM_Function::get_post_info($post_id, 'mptbm_exterior_color'); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><span><?php echo MPTBM_Function::get_vehicle_details_image('transmission_icon', 'gears-icon.png'); ?></span></td>
+                                                            <td><?php echo MPTBM_Function::get_post_info($post_id, 'mptbm_transmission'); ?></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><span><?php echo MPTBM_Function::get_vehicle_details_image('extras_icon', 'extra-icon.png'); ?></span></td>
+                                                            <td><?php echo MPTBM_Function::get_post_info($post_id, 'mptbm_extras'); ?></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                    <div class="details-item">
+                                        <div class="select-div">
+                                            <h2 class="textTheme"> <?php echo MPTBM_Function::esc_html($product_info['wc_price']); ?></h2>
+                                            <button type="button" class="dButton_xs w_150 car-select" data-collapse-target="#mptbm_collape_select_<?php echo esc_attr($post_id); ?>"><span><?php esc_html_e('Select', 'mptbm_plugin'); ?></span></button>
+                                        </div>
+                                    </div>
+                                    <div class="details-item">
+                                        <div style="margin:5px;">
+                                            <form method="post" action="">
+                                                <input type="hidden" name="mptbm_post_id" value="<?php echo esc_attr($post_id); ?>"/>
+                                                <input type="hidden" name="mptbm_start_place" value="<?php echo esc_attr($search_info['start_place']); ?>"/>
+                                                <input type="hidden" name="mptbm_end_place" value="<?php echo esc_attr($search_info['end_place']); ?>"/>
+                                                <input type="hidden" name="mptbm_date" value="<?php echo esc_attr($search_info['date']); ?>"/>
+                                                <div class="">
+                                                    <div data-collapse="#mptbm_collape_select_<?php echo esc_attr($post_id); ?>">
+                                                        <?php $extra_services = MPTBM_Function::get_post_info($post_id, 'mptbm_extra_service_data', array()); ?>
+                                                        <?php if(!is_null($extra_services)  && count($extra_services)) { ?>
+                                                        <div class="mptbm_extra_service_area" data-placeholder>
+                                                            <div>
+                                                                <h5 class="extra-service-container-header"><span class="custom-icon-image" style="color:var(--button-bg);"><?php echo MPTBM_Function::get_icon_image('cart_icon', 'cart.png'); ?></span> EXTRA OPTIONS </h5>
+                                                            </div>
+                                                            <div class="divider"></div>
+                                                            <div>
+                                                                <table class="noShadow bordered extra-service-table">
+                                                                    <!--                                                                <thead class="extra-service-table-header"><th>Service</th><th>Quantity</th><th>Select</th></thead>-->
+                                                                    <tbody>
+                                                                    <?php foreach ($extra_services as $service) { ?>
+                                                                        <?php
+                                                                        $service_icon = array_key_exists('service_icon', $service) ? $service['service_icon'] : '';
+                                                                        $service_name = array_key_exists('service_name', $service) ? $service['service_name'] : '';
+                                                                        $service_price = array_key_exists('service_price', $service) ? $service['service_price'] : 0;
+                                                                        $service_price = MPTBM_Function::wc_price($post_id, $service_price);
+                                                                        $service_price_raw = MPTBM_Function::price_convert_raw($service_price);
+                                                                        $description = array_key_exists('extra_service_description', $service) ? $service['extra_service_description'] : '';
+
+                                                                        $icon = $image = "";
+
+                                                                        if ($service_icon) {
+                                                                            if (preg_match('/\s/', $service_icon)) {
+                                                                                $icon = $service_icon;
+                                                                            } else {
+                                                                                $image = wp_get_attachment_image_url($service_icon);
+                                                                            }
+                                                                        }
+                                                                        ?>
+                                                                        <tr>
+                                                                            <th>
+                                                                                <h6>
+                                                                                    <?php if ($service_icon && $icon) { ?>
+                                                                                        <span class="<?php echo esc_attr($icon); ?> extra-service-icon"></span>
+                                                                                    <?php } else { ?>
+                                                                                        <img class="extra-service-icon-image" src="<?php echo esc_attr($image); ?>"></img>
+                                                                                    <?php } ?>
+                                                                                    <?php echo MPTBM_Function::esc_html($service_name); ?>
+                                                                                    <span> - </span>
+                                                                                    <span class="price-text"><?php echo MPTBM_Function::esc_html($service_price); ?></span>
+
+                                                                                </h6>
+                                                                                <?php
+                                                                                if ($description) {
+                                                                                    $word_count = str_word_count($description);
+                                                                                    if ($word_count > 16) {
+                                                                                        $message = implode(" ", array_slice(explode(" ", $description), 0, 16));
+                                                                                        $more_message = implode(" ", array_slice(explode(" ", $description), 16, $word_count));
+                                                                                        $name_text = preg_replace("/[{}()<>+ ]/", '_', $service_name) . '_' . $post_id;
+                                                                                        ?>
+                                                                                        <p class="service-description" style="margin-top: 5px;">
+                                                                                            <small>
+                                                                                                <?php echo esc_html($message); ?>
+                                                                                                <span data-collapse='#<?php echo esc_attr($name_text); ?>'><?php echo esc_html($more_message); ?></span>
+                                                                                                <span class="load_more_text" data-collapse-target="#<?php echo esc_attr($name_text); ?>">
+                                                                    <?php esc_html_e('view more ', 'mptbm_plugin'); ?>
+                                                                </span>
+                                                                                            </small>
+                                                                                        </p>
+                                                                                        <?php
+                                                                                    } else {
+                                                                                        ?>
+                                                                                        <p class="service-description" style="margin-top: 5px;"><small><?php echo esc_html($description); ?></small></p>
+                                                                                        <?php
+                                                                                    }
+                                                                                }
+                                                                                ?>
+                                                                            </th>
+                                                                            <td class="textCenter">
+                                                                                <div id="quantity_<?php echo str_replace(' ', '_', MPTBM_Function::esc_html($service_name)); ?>" class="quantity-class hide-quantity-box">
+                                                                                    <?php echo MPTBM_Layout::quantity_box('mptbm_extra_service_quantity[]'); ?>
+                                                                                </div>
+
+                                                                            </td>
+                                                                            <td>
+                                                                                <label class="_allCenter_fRight selectCheckbox" data-extra-service-id="<?php echo str_replace(' ', '_', MPTBM_Function::esc_html($service_name)); ?>">
+                                                                                    <input type="hidden" name="mptbm_extra_service[]" value=""/>
+                                                                                    <input type="checkbox" data-extra-service-price="<?php echo esc_attr($service_price_raw); ?>" value="<?php echo MPTBM_Function::esc_html($service_name); ?>"/>
+                                                                                    <span class="customCheckbox"><?php esc_html_e('Select', 'mptbm_plugin'); ?></span>
+                                                                                </label>
+                                                                            </td>
+                                                                        </tr>
+                                                                    <?php } ?>
+
+                                                                    </tbody>
+                                                                </table>
+
+                                                            </div>
+
+                                                        </div>
+                                                        <?php } ?>
+
+                                                        <div class="custom-form">
+                                                            <div class="custom-form-row">
+                                                                <div class="custom-form-item">
+                                                                    <div class="custom-form-title">
+                                                                        <h5><span class="custom-icon-image"><?php echo MPTBM_Function::get_icon_image('custom_form_icon', 'files.png'); ?></span>  BOOKING INFORMATION </h5>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="divider"></div>
+                                                            </div>
+
+                                                            <div class="custom-form-row">
+                                                                <div class="custom-form-item">
+                                                                    <div class="form-wrapper-outer">
+                                                                        <div class="field-wrapper">
+                                                                            <input type="text" name="full_name" id="email">
+                                                                            <div class="field-placeholder"><span>Full Name</span></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="custom-form-item">
+                                                                    <div class="form-wrapper-outer">
+                                                                        <div class="field-wrapper">
+                                                                            <input type="text" name="email" id="email">
+                                                                            <div class="field-placeholder"><span>Email Address</span></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="custom-form-row">
+                                                                <div class="custom-form-item">
+                                                                    <div class="form-wrapper-outer">
+                                                                        <div class="field-wrapper">
+                                                                            <input type="text" name="phone" id="email">
+                                                                            <div class="field-placeholder"><span>Phone Number</span></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="custom-form-item">
+                                                                    <div class="form-wrapper-outer">
+                                                                        <div class="field-wrapper">
+                                                                            <input type="text" name="address" id="email">
+                                                                            <div class="field-placeholder"><span>Street Address</span></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="custom-form-row">
+                                                                <div class="custom-form-item">
+                                                                    <div class="form-wrapper-outer">
+                                                                        <div class="field-wrapper">
+                                                                            <input type="text" name="city" id="email">
+                                                                            <div class="field-placeholder"><span>City</span></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="custom-form-item">
+                                                                    <div class="form-wrapper-outer">
+                                                                        <div class="field-wrapper">
+                                                                            <input type="text" name="zip_code" id="email">
+                                                                            <div class="field-placeholder"><span>Zip Code</span></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="custom-form-item">
+                                                                    <div class="form-wrapper-outer">
+                                                                        <div class="field-wrapper">
+                                                                            <input type="text" name="country" id="email">
+                                                                            <div class="field-placeholder"><span>Country</span></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="custom-form-row">
+                                                                <div class="custom-form-item">
+                                                                    <div class="form-wrapper-outer">
+                                                                        <div class="field-wrapper">
+                                                                            <input type="text" name="passport" id="email">
+                                                                            <div class="field-placeholder"><span>Passport Number</span></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="custom-form-item">
+                                                                    <div class="form-wrapper-outer">
+                                                                        <div class="field-wrapper">
+                                                                            <input type="text" name="nid" id="email">
+                                                                            <div class="field-placeholder"><span>NID Number</span></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="custom-form-item">
+                                                                <div class="mpStyle"><?php //MPTBM_Function::get_custom_form(); ?></div>
+                                                            </div>
+                                                            <div class="cart-add-item">
+                                                                <?php //MPTBM_Function::get_custom_form_inputs(); ?>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="booking-part">
+                                                            <div class="divider"></div>
+                                                            <div class="cart-add-item">
+
+                                                                <table id="booking-total">
+                                                                    <tr>
+                                                                        <td>
+                                                                            <h4 class="textTheme" ><span class="total-amount-text"> Total Amount : </span> <span  data-main-price="<?php echo esc_attr($product_info['raw_price']); ?>"><?php echo MPTBM_Function::esc_html($product_info['wc_price']); ?></span></h4>
+                                                                        </td>
+                                                                        <td>
+                                                                            <button class="_dButton_fRight mptbm_book_now" type="button">
+<!--                                                                                <span class="fas fa-cart-plus"></span>-->
+                                                                                <?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
+                                                                            </button>
+                                                                            <button type="submit" name="add-to-cart" value="<?php echo esc_html($product_info['product_id']); ?>" class="dNone mptbm_add_to_cart">
+                                                                                <?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <div class="details-item">
+
+
+                                    </div>
+                                </div>
+
+                       <?php } ?>
+
                     </div>
 
                 </div>
 
 
                 <?php
-            }
+
         }
 
         public function get_mptbm_end_place() {
