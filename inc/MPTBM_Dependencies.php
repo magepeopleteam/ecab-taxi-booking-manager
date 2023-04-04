@@ -9,7 +9,6 @@ if (!class_exists('MPTBM_Dependencies')) {
             $this->load_file();
             add_action('admin_enqueue_scripts', array($this, 'admin_enqueue'), 90);
             add_action('wp_enqueue_scripts', array($this, 'frontend_enqueue'), 90);
-            add_action('wp_enqueue_scripts', array($this, 'global_enqueue'), 90);
             add_action('admin_head', array($this, 'js_constant'), 5);
             add_action('wp_head', array($this, 'js_constant'), 5);
         }
@@ -50,18 +49,15 @@ if (!class_exists('MPTBM_Dependencies')) {
 
         public function frontend_enqueue() {
             $this->global_enqueue();
-            wp_enqueue_style('mptbm_filter_pagination', MPTBM_PLUGIN_URL . '/assets/frontend/filter_pagination.css', array(), time());
-            wp_enqueue_script('mptbm_filter_pagination', MPTBM_PLUGIN_URL . '/assets/frontend/filter_pagination.js', array('jquery'), time(), true);
+           // wp_enqueue_style('mptbm_filter_pagination', MPTBM_PLUGIN_URL . '/assets/frontend/filter_pagination.css', array(), time());
+            //wp_enqueue_script('mptbm_filter_pagination', MPTBM_PLUGIN_URL . '/assets/frontend/filter_pagination.js', array('jquery'), time(), true);
             wp_enqueue_style('mptbm_style', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_style.css', array(), time());
             wp_enqueue_script('mptbm_script', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_script.js', array('jquery'), time(), true);
-            wp_enqueue_script('mptbm_price_calculation', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_price_calculation.js', array('jquery'), time(), true);
+            wp_enqueue_script('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.js', array('jquery'), time(), true);
+            wp_enqueue_style('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.css', array(), time());
+
             do_action('mptbm_registration_enqueue');
             do_action('mptbm_frontend_enqueue');
-            wp_enqueue_style('quantity-box', MPTBM_PLUGIN_URL . '/assets/helper/custom-designs/styles/quantity-box.css', array(), time());
-            wp_enqueue_script('quantity-box', MPTBM_PLUGIN_URL . '/assets/helper/custom-designs/scripts/quantity-box.js', array('jquery'), time(), true);
-            wp_enqueue_style('custom-css', MPTBM_PLUGIN_URL . '/assets/helper/custom-designs/styles/custom-css.css', array(), time());
-            wp_enqueue_script('custom-js', MPTBM_PLUGIN_URL . '/assets/helper/custom-designs/scripts/custom-js.js', array('jquery'), time(), true);
-
         }
 
         public function global_enqueue() {
