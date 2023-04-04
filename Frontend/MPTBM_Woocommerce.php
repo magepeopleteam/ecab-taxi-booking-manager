@@ -193,23 +193,12 @@
 										self::add_cpt_data( 'mptbm_service_booking', '#' . $order_id . $ex_data['mptbm_service_name'], $ex_data );
 									}
 								}
+                                
 
-//                                $booking_info      = self::get_order_item_meta( $item_id, '_mptbm_booking_info' );
-//                                $booking_infos = $booking_info ? MPTBM_Function::data_sanitize( $booking_info ) : [];
-//                                if ( sizeof( $booking_infos ) > 0 ) {
-//                                    foreach ( $booking_infos as $info ) {
-//                                        $ex_data['mptbm_booking_name'] = $info['mptbm_booking_name'];
-//                                        $ex_data['mptbm_booking_email'] = $info['mptbm_booking_email'];
-//                                        $ex_data['mptbm_booking_phone'] = $info['mptbm_booking_phone'];
-//                                        $ex_data['mptbm_booking_address'] = $info['mptbm_booking_address'];;
-//                                        $ex_data['mptbm_booking_city'] = $info['mptbm_booking_city'];;
-//                                        $ex_data['mptbm_booking_zip'] = $info['mptbm_booking_zip'];;
-//                                        $ex_data['mptbm_booking_country'] = $info['mptbm_booking_email'];;
-//                                        $ex_data['mptbm_booking_passport'] = $info['mptbm_booking_email'];;
-//                                        $ex_data['mptbm_booking_nid']        = $info['mptbm_booking_email'];;
-//                                        self::add_cpt_data( 'mptbm_booking_info', '#' . $order_id . $ex_data['mptbm_user_email'], $ex_data );
-//                                    }
-//                                }
+                                $booking_info      = self::get_order_item_meta( $item_id, '_mptbm_booking_info' );
+                                $booking_infos = $booking_info ? MPTBM_Function::data_sanitize( $booking_info ) : [];
+                                self::add_cpt_data( 'mptbm_booking', $booking_infos['mptbm_booking_info'], $booking_infos );
+
                             }
 						}
 					}
