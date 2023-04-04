@@ -125,7 +125,7 @@
 				}
 				?>
 				<div class="mpStyle">
-					<div id="ttbm_quick_setup" class="dLayout">
+					<div id="mptbm_quick_setup" class="dLayout">
 						<form method="post" action="">
 							<div class="welcome-tabs">
 								<ul class="tab-navs">

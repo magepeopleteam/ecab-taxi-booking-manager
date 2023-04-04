@@ -164,6 +164,18 @@
 				}
 				return $price;
 			}
+            public static function get_extra_service_quantity_by_name( $post_id, $service_name ) {
+                $extra_services = self::get_post_info( $post_id, 'mptbm_extra_service_quantity', array() );
+                $price          = '';
+                if ( sizeof( $extra_services ) > 0 ) {
+                    foreach ( $extra_services as $service ) {
+                        if ( $service['service_name'] == $service_name ) {
+                            return $service['service_price'];
+                        }
+                    }
+                }
+                return $price;
+            }
 			public static function price_convert_raw( $price ) {
 				$price = wp_strip_all_tags( $price );
 				$price = str_replace( get_woocommerce_currency_symbol(), '', $price );
@@ -228,6 +240,93 @@
 				$display_suffix = get_option( 'woocommerce_price_display_suffix' ) ? get_option( 'woocommerce_price_display_suffix' ) : '';
 				return wc_price( $return_price ) . ' ' . $display_suffix;
 			}
+
+            public static function get_value_from_array($key,$array)
+            {
+                if(array_search($key, $array) !== NULL)
+                {
+                    return $array[$key];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            public static function get_order_metas($order,$keys=array())
+            {
+                $return = array();
+                $order_items = $order->get_items();
+                if(!is_null($order_items))
+                {
+                    foreach ($order_items as $order_item)
+                    {
+                        $meta_datas = $order_item->get_meta_data();
+                        foreach ($meta_datas as $meta)
+                        {
+                            if(in_array($meta->key,$keys))
+                            {
+                                $return[$meta->key] = $meta->value;
+                            }
+                        }
+
+                    }
+
+                }
+
+                return $return;
+
+            }
+
+            public static function get_custom_woocommerce_price($array=array())
+            {
+                $price = self::get_value_from_array('price',$array);
+                $ex_tax_label = self::get_value_from_array('ex_tax_label',$array);
+                $currency = self::get_value_from_array('currency',$array);
+                $decimal_separator = self::get_value_from_array('decimal_separator',$array);
+                $thousand_separator = self::get_value_from_array('thousand_separator',$array);
+                $decimals = self::get_value_from_array('decimals',$array);
+                $price_format = self::get_value_from_array('price_format',$array);
+                $currency_pos = self::get_value_from_array('currency_pos',$array);
+
+                $price = !is_null($price) ? $price : '0';
+
+                $args = array();
+                $args['ex_tax_label'] = !is_null($ex_tax_label) ? $ex_tax_label : get_option( 'woocommerce_ex_tax_label' );
+                $args['currency'] = !is_null($currency) ? $currency : get_option( 'woocommerce_currency' );
+                $args['decimal_separator'] = !is_null($decimal_separator) ? $decimal_separator : wc_get_price_decimal_separator();
+                $args['thousand_separator'] = !is_null($thousand_separator) ? $thousand_separator : wc_get_price_thousand_separator();
+                $args['decimals'] = !is_null($decimals) ? $decimals : wc_get_price_decimals();
+                $args['price_format'] = !is_null($price_format) ? $price_format : get_woocommerce_price_format();
+                $args['currency_pos'] = !is_null($currency_pos) ? $currency_pos : get_option( 'woocommerce_currency_pos' );
+
+
+                return wc_price($price,$args);
+
+            }
+            public static function get_custom_woocommerce_price_format($currency_pos)
+            {
+                $currency_position = !is_null($currency_pos) ? $currency_pos : get_option( 'woocommerce_currency_pos' );
+                $format = '%1$s%2$s';
+
+                switch ( $currency_position ) {
+                    case 'left':
+                        $format = '%1$s%2$s';
+                        break;
+                    case 'right':
+                        $format = '%2$s%1$s';
+                        break;
+                    case 'left_space':
+                        $format = '%1$s&nbsp;%2$s';
+                        break;
+                    case 'right_space':
+                        $format = '%2$s&nbsp;%1$s';
+                        break;
+                }
+
+                return apply_filters( 'woocommerce_price_format', $format, $currency_position );
+
+            }
 			//*******************************//
 			public static function get_image_url( $post_id = '', $image_id = '', $size = 'full' ) {
 				if ( $post_id ) {
@@ -380,8 +479,8 @@
 			public static function get_map_api() {
 				$options = get_option( 'mptbm_general_settings' );
 				$default = '';
-				if ( isset( $options['ttbm_gmap_api_key'] ) && $options['ttbm_gmap_api_key'] ) {
-					$default = $options['ttbm_gmap_api_key'];
+				if ( isset( $options['mptbm_gmap_api_key'] ) && $options['mptbm_gmap_api_key'] ) {
+					$default = $options['mptbm_gmap_api_key'];
 				}
 				return $default;
 			}
@@ -533,6 +632,14 @@
                 return self::get_mptbm_settings( $options, $key, $default );
             }
 
+            public static function get_custom_icon_image($image_name,$class='')
+            {
+                $src =  MPTBM_PLUGIN_URL.'/assets/frontend/images/icon-details/'.$image_name;
+                ?>
+                <img class="<?php echo $class;?>" src="<?php echo $src;?>" alt="No Image" /> </img>
+                <?php
+            }
+
             public static function get_vehicle_details_image($element_name,$default_file_name)
             {
                 $default_file =  MPTBM_PLUGIN_URL.'/assets/frontend/images/vehicle-details/'.$default_file_name;
@@ -600,6 +707,7 @@
 
                 echo "<pre>";print_r($inputs);
             }
+
 		}
 		new MPTBM_Function();
 	}

@@ -20,7 +20,8 @@ if (!class_exists('MPTBM_Transport_Search')) {
         public function transport_search($params) {
             $price_based = $params['price_based'] ?: 'distance';
             ?>
-            <div class="mpStyle ">
+            <?php echo do_shortcode( '[shop_messages]' ); ?>
+            <div id="global-search-container">
                 <?php $this->transport_search_form('', $price_based); ?>
             </div>
             <?php
@@ -29,63 +30,188 @@ if (!class_exists('MPTBM_Transport_Search')) {
         public function transport_search_form($post_id = '', $price_based = '') {
             $price_based = $post_id && $post_id > 0 ? MPTBM_Function::get_post_info($post_id, 'mptbm_price_based') : $price_based;
             ?>
-            <div class="mpRow mptbm_map_form_area dLayout_xs">
-                <div class="col_6  mpForm">
-                    <input type="hidden" name="mptbm_price_based" value="<?php echo esc_attr($price_based); ?>"/>
-                    <input type="hidden" name="mptbm_filter_post_id" value="<?php echo esc_attr($post_id); ?>"/>
-                    <label class="fdColumn">
-                        <input type="hidden" id="mptbm_map_start_date" value=""/>
-                        <span class="fas fa-calendar-alt"><?php esc_html_e(' Select Date', 'mptbm_plugin'); ?></span>
-                        <input type="text" class="formControl date_type" placeholder="<?php esc_html_e(' Select Date', 'mptbm_plugin'); ?>" value=""/>
-                    </label>
-                    <label class="fdColumn">
-                        <span class="far fa-clock"><?php esc_html_e(' Select Time', 'mptbm_plugin'); ?></span>
-                        <select id="mptbm_map_start_time" class="formControl">
-                            <option selected><?php esc_html_e('Please Select Time', 'mptbm_plugin'); ?></option>
-                            <option value="9:00"><?php esc_html_e('9.00 AM', 'mptbm_plugin'); ?></option>
-                            <option value="9:15"><?php esc_html_e('9.15 AM', 'mptbm_plugin'); ?></option>
-                            <option value="9:30"><?php esc_html_e('9.30 AM', 'mptbm_plugin'); ?></option>
-                            <option value="9:45"><?php esc_html_e('9.45 AM', 'mptbm_plugin'); ?></option>
-                            <option value="10:00"><?php esc_html_e('10.00 AM', 'mptbm_plugin'); ?></option>
-                        </select>
-                    </label>
-                    <label class="fdColumn">
-                        <span class="fas fa-map-marker-alt"><?php esc_html_e(' Start Location', 'mptbm_plugin'); ?></span>
-                        <?php if ($price_based == 'manual') { ?>
-                            <?php $all_start_locations = MPTBM_Function::get_manual_start_location($post_id); ?>
-                            <select id="mptbm_manual_start_place" class="formControl mptbm_map_start_place">
-                                <option selected disabled><?php esc_html_e(' Select start Location', 'mptbm_plugin'); ?></option>
-                                <?php if (sizeof($all_start_locations) > 0) {
-                                    foreach ($all_start_locations as $start_location) {
-                                        ?>
-                                        <option value="<?php echo esc_attr($start_location); ?>"><?php echo esc_html($start_location); ?></option>
-                                        <?php
-                                    }
-                                } ?>
-                            </select>
-                            <?php //echo '<pre>';print_r();echo '</pre>'; ?>
-                        <?php } else { ?>
-                            <input type="text" id="mptbm_map_start_place" class="formControl mptbm_map_start_place" placeholder="<?php esc_html_e(' Enter start Location', 'mptbm_plugin'); ?>" value=""/>
-                        <?php } ?>
-                    </label>
-                    <label class="fdColumn mptbm_manual_end_place">
-                        <span class="fas fa-map-marker-alt"><?php esc_html_e(' Destination Location', 'mptbm_plugin'); ?></span>
-                        <?php if ($price_based == 'manual') { ?>
-                            <select class="formControl mptbm_map_end_place">
-                                <option selected disabled><?php esc_html_e(' Select Destination Location', 'mptbm_plugin'); ?></option>
-                            </select>
-                            <?php //echo '<pre>';print_r();echo '</pre>'; ?>
-                        <?php } else { ?>
-                            <input type="text" id="mptbm_map_end_place" class="formControl mptbm_map_end_place" placeholder="<?php esc_html_e(' Enter end Location', 'mptbm_plugin'); ?>" value=""/>
-                        <?php } ?>
-                    </label>
-                    <div class="divider"></div>
-                    <button type="button" class="_themeButton_fullWidth" id="mptbm_get_vehicle"><?php esc_html_e(' Search', 'mptbm_plugin'); ?></button>
+
+            <div id="global-searched-item-details" class="mpStyle">
+                <div class="global-search-item">
+                    <div class="step-container">
+                        <div class="step">
+                            <div class="step-circle active">1</div>
+                            <!--<div class="step-label">Enter Ride Details</div>-->
+                        </div>
+                        <div class="connector"></div>
+                        <div class="step">
+                            <div class="step-circle default">2</div>
+                            <!--<div class="step-label">Choose a vehicle</div>-->
+                        </div>
+                        <div class="connector"></div>
+                        <div class="step">
+                            <div class="step-circle default">3</div>
+                            <!--<div class="step-label">Booking Cart</div>-->
+                        </div>
+                    </div>
+                    <div class="step-container">
+                        <div class="step">
+                            <div class="step-label">Enter Ride Details</div>
+                        </div>
+                        <div class="step-label-connector"></div>
+                        <div class="step">
+                            <div class="step-label">Choose a vehicle</div>
+                        </div>
+                        <div class="step-label-connector"></div>
+                        <div class="step">
+                            <div class="step-label">Booking Cart</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col_6 _pL">
-                    <div id="mptbm_map_area"></div>
+                <div class="global-search-item">
+                    <div id="global-searched-item-elements">
+                        <div class="search-item-element">
+                            <div class="search-box-title">START BOOKING</div>
+                            <div class="mpForm">
+                                <input type="hidden" name="mptbm_price_based" value="<?php echo esc_attr($price_based); ?>"/>
+                                <input type="hidden" name="mptbm_filter_post_id" value="<?php echo esc_attr($post_id); ?>"/>
+                                <label class="fdColumn">
+                                    <input type="hidden" id="mptbm_map_start_date" value=""/>
+                                    <span><?php esc_html_e(' Pick-Up Date', 'mptbm_plugin'); ?></span>
+                                    <input type="text" class="formControl date_type" placeholder="<?php esc_html_e(' Select Date', 'mptbm_plugin'); ?>" value=""/>
+                                </label>
+                                <label class="fdColumn">
+                                    <span><?php esc_html_e(' Pick-Up Time', 'mptbm_plugin'); ?></span>
+                                    <select id="mptbm_map_start_time" class="formControl">
+                                        <option selected><?php esc_html_e('Please Select Time', 'mptbm_plugin'); ?></option>
+                                        <option value="9:00"><?php esc_html_e('9.00 AM', 'mptbm_plugin'); ?></option>
+                                        <option value="9:15"><?php esc_html_e('9.15 AM', 'mptbm_plugin'); ?></option>
+                                        <option value="9:30"><?php esc_html_e('9.30 AM', 'mptbm_plugin'); ?></option>
+                                        <option value="9:45"><?php esc_html_e('9.45 AM', 'mptbm_plugin'); ?></option>
+                                        <option value="10:00"><?php esc_html_e('10.00 AM', 'mptbm_plugin'); ?></option>
+                                    </select>
+                                </label>
+                                <label class="fdColumn">
+                                    <span class="fas fa-map-marker-alt icon-font"><span class="icon-font-text"><?php esc_html_e(' Start Location', 'mptbm_plugin'); ?></span></span>
+
+                                    <?php if ($price_based == 'manual') { ?>
+                                        <?php $all_start_locations = MPTBM_Function::get_manual_start_location($post_id); ?>
+                                        <select id="mptbm_manual_start_place" class="formControl mptbm_map_start_place">
+                                            <option selected disabled><?php esc_html_e(' Select start Location', 'mptbm_plugin'); ?></option>
+                                            <?php if (sizeof($all_start_locations) > 0) {
+                                                foreach ($all_start_locations as $start_location) {
+                                                    ?>
+                                                    <option value="<?php echo esc_attr($start_location); ?>"><?php echo esc_html($start_location); ?></option>
+                                                    <?php
+                                                }
+                                            } ?>
+                                        </select>
+                                        <?php //echo '<pre>';print_r();echo '</pre>'; ?>
+                                    <?php } else { ?>
+                                        <input type="text" id="mptbm_map_start_place" class="formControl mptbm_map_start_place" placeholder="<?php esc_html_e(' Enter start Location', 'mptbm_plugin'); ?>" value=""/>
+                                    <?php } ?>
+                                </label>
+                                <label class="fdColumn mptbm_manual_end_place">
+                                    <span class="fas fa-map-marker-alt icon-font"><span class="icon-font-text"><?php esc_html_e(' Destination Location', 'mptbm_plugin'); ?></span></span>
+                                    <?php if ($price_based == 'manual') { ?>
+                                        <select class="formControl mptbm_map_end_place">
+                                            <option selected disabled><?php esc_html_e(' Select Destination Location', 'mptbm_plugin'); ?></option>
+                                        </select>
+                                        <?php //echo '<pre>';print_r();echo '</pre>'; ?>
+                                    <?php } else { ?>
+                                        <input type="text" id="mptbm_map_end_place" class="formControl mptbm_map_end_place" placeholder="<?php esc_html_e(' Enter end Location', 'mptbm_plugin'); ?>" value=""/>
+                                    <?php } ?>
+                                </label>
+                                <button type="button" class="_themeButton_fullWidth search-button" id="mptbm-get-vehicle"><?php esc_html_e(' Search', 'mptbm_plugin'); ?></button>
+                            </div>
+                        </div>
+                        <div class="search-item-element">
+                            <div id="map-item-details">
+                                <div class="map-item">
+                                    <div id="mptbm_map_area"></div>
+                                </div>
+                                <div class="map-item">
+                                    <div class="search-info">
+                                        <div class="info-item">
+                                            <div id="map-info-details">
+                                                <div class="map-info-item"><?php MPTBM_Function::get_custom_icon_image('distance.png','distance-info');?></div>
+                                                <div class="map-info-item">
+                                                    <div>TOTAL DISTANCE</div>
+                                                    <div><?php echo $_COOKIE['mptbm_distance'] ?? '';?></div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <div class="vL"></div>
+                                        <div class="info-item">
+                                            <div id="map-info-details">
+                                                <div class="map-info-item"><?php MPTBM_Function::get_custom_icon_image('time.png','distance-info');?></div>
+                                                <div class="map-info-item">
+                                                    <div>TOTAL TIME</div>
+                                                    <div><?php echo $_COOKIE['mptbm_duration'] ?? '';?></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
             </div>
+<!--            <div class="mpRow mptbm_map_form_area dLayout_xs">-->
+<!--                <div class="col_6  mpForm">-->
+<!--                    <input type="hidden" name="mptbm_price_based" value="--><?php //echo esc_attr($price_based); ?><!--"/>-->
+<!--                    <input type="hidden" name="mptbm_filter_post_id" value="--><?php //echo esc_attr($post_id); ?><!--"/>-->
+<!--                    <label class="fdColumn">-->
+<!--                        <input type="hidden" id="mptbm_map_start_date" value=""/>-->
+<!--                        <span class="fas fa-calendar-alt">--><?php //esc_html_e(' Select Date', 'mptbm_plugin'); ?><!--</span>-->
+<!--                        <input type="text" class="formControl date_type" placeholder="--><?php //esc_html_e(' Select Date', 'mptbm_plugin'); ?><!--" value=""/>-->
+<!--                    </label>-->
+<!--                    <label class="fdColumn">-->
+<!--                        <span class="far fa-clock">--><?php //esc_html_e(' Select Time', 'mptbm_plugin'); ?><!--</span>-->
+<!--                        <select id="mptbm_map_start_time" class="formControl">-->
+<!--                            <option selected>--><?php //esc_html_e('Please Select Time', 'mptbm_plugin'); ?><!--</option>-->
+<!--                            <option value="9:00">--><?php //esc_html_e('9.00 AM', 'mptbm_plugin'); ?><!--</option>-->
+<!--                            <option value="9:15">--><?php //esc_html_e('9.15 AM', 'mptbm_plugin'); ?><!--</option>-->
+<!--                            <option value="9:30">--><?php //esc_html_e('9.30 AM', 'mptbm_plugin'); ?><!--</option>-->
+<!--                            <option value="9:45">--><?php //esc_html_e('9.45 AM', 'mptbm_plugin'); ?><!--</option>-->
+<!--                            <option value="10:00">--><?php //esc_html_e('10.00 AM', 'mptbm_plugin'); ?><!--</option>-->
+<!--                        </select>-->
+<!--                    </label>-->
+<!--                    <label class="fdColumn">-->
+<!--                        <span class="fas fa-map-marker-alt">--><?php //esc_html_e(' Start Location', 'mptbm_plugin'); ?><!--</span>-->
+<!--                        --><?php //if ($price_based == 'manual') { ?>
+<!--                            --><?php //$all_start_locations = MPTBM_Function::get_manual_start_location($post_id); ?>
+<!--                            <select id="mptbm_manual_start_place" class="formControl mptbm_map_start_place">-->
+<!--                                <option selected disabled>--><?php //esc_html_e(' Select start Location', 'mptbm_plugin'); ?><!--</option>-->
+<!--                                --><?php //if (sizeof($all_start_locations) > 0) {
+//                                    foreach ($all_start_locations as $start_location) {
+//                                        ?>
+<!--                                        <option value="--><?php //echo esc_attr($start_location); ?><!--">--><?php //echo esc_html($start_location); ?><!--</option>-->
+<!--                                        --><?php
+//                                    }
+//                                } ?>
+<!--                            </select>-->
+<!--                            --><?php ////echo '<pre>';print_r();echo '</pre>'; ?>
+<!--                        --><?php //} else { ?>
+<!--                            <input type="text" id="mptbm_map_start_place" class="formControl mptbm_map_start_place" placeholder="--><?php //esc_html_e(' Enter start Location', 'mptbm_plugin'); ?><!--" value=""/>-->
+<!--                        --><?php //} ?>
+<!--                    </label>-->
+<!--                    <label class="fdColumn mptbm_manual_end_place">-->
+<!--                        <span class="fas fa-map-marker-alt">--><?php //esc_html_e(' Destination Location', 'mptbm_plugin'); ?><!--</span>-->
+<!--                        --><?php //if ($price_based == 'manual') { ?>
+<!--                            <select class="formControl mptbm_map_end_place">-->
+<!--                                <option selected disabled>--><?php //esc_html_e(' Select Destination Location', 'mptbm_plugin'); ?><!--</option>-->
+<!--                            </select>-->
+<!--                            --><?php ////echo '<pre>';print_r();echo '</pre>'; ?>
+<!--                        --><?php //} else { ?>
+<!--                            <input type="text" id="mptbm_map_end_place" class="formControl mptbm_map_end_place" placeholder="--><?php //esc_html_e(' Enter end Location', 'mptbm_plugin'); ?><!--" value=""/>-->
+<!--                        --><?php //} ?>
+<!--                    </label>-->
+<!--                    <div class="divider"></div>-->
+<!--                    <button type="button" class="_themeButton_fullWidth" id="mptbm-get-vehicle">--><?php //esc_html_e(' Search', 'mptbm_plugin'); ?><!--</button>-->
+<!--                </div>-->
+<!--                <div class="col_6 _pL">-->
+<!--                    <div id="mptbm_map_area"></div>-->
+<!--                </div>-->
+<!--            </div>-->
             <div class="mptbm_map_search_result mT">
             </div>
             <?php
@@ -97,6 +223,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
             if ($distance && $duration) {
                 ?>
                 <div class="all_filter_item">
+
                     <div class="flexWrap modern">
                         <?php
                         $post_id = MPTBM_Function::data_sanitize($_POST['post_id']);
@@ -144,7 +271,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                     <div class="bg_image_area" data-href="<?php echo get_the_permalink($post_id); ?>" data-placeholder>
                         <div data-bg-image="<?php echo esc_attr($thumbnail); ?>"></div>
                     </div>
-                    <div class="fdColumn ttbm_list_details">
+                    <div class="fdColumn mptbm_list_details">
                         <h5 data-href="<?php echo get_the_permalink($post_id); ?>"><?php echo get_the_title($post_id); ?></h5>
                         <div class="divider"></div>
                         <p><span class="fas fa-map-marker-alt"></span>&nbsp;&nbsp;<strong><?php esc_html_e('Start Location', 'mptbm_plugin'); ?> : </strong><?php echo esc_html($start_place); ?></p>
@@ -184,7 +311,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                             </div>
                             <div data-collapse="#mptbm_collape_select_<?php echo esc_attr($post_id); ?>">
                                 <?php $extra_services = MPTBM_Function::get_post_info($post_id, 'mptbm_extra_service_data', array()); ?>
-                                <div class="mptbm_extra_service_area" data-placeholder>
+                                <div class="mptbm-extra-service-area" data-placeholder>
                                     <table class="noShadow">
                                         <tbody>
                                         <?php foreach ($extra_services as $service) { ?>
@@ -247,7 +374,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                     <span class="fas fa-cart-plus"></span>
                                     <?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
                                 </button>
-                                <button type="submit" name="add-to-cart" value="<?php echo esc_html($product_id); ?>" class="dNone mptbm_add_to_cart">
+                                <button type="submit" name="add-to-cart" value="<?php echo esc_html($product_id); ?>" class="mptbm_add_to_cart">
                                     <?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
                                 </button>
                             </div>
@@ -312,7 +439,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
             
                 ?>
 
-                <div id="searched-item-details" class="">
+                <div id="searched-item-details" class="mpStyle">
 
                     <div class="search-item">
 
@@ -380,7 +507,6 @@ if (!class_exists('MPTBM_Transport_Search')) {
                             <div class="sidebar-topic-value">
                                 <?php echo $search_info['end_place']; ?>
                             </div>
-                            <div class="divider"></div>
                         </div>
 
                     </div>
@@ -473,7 +599,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                             <div data-collapse="#mptbm_collape_select_<?php echo esc_attr($post_id); ?>">
                                                 <?php $extra_services = MPTBM_Function::get_post_info($post_id, 'mptbm_extra_service_data', array()); ?>
                                                 <?php if(!is_null($extra_services) && count($extra_services)) { ?>
-                                                <div class="mptbm_extra_service_area" data-placeholder>
+                                                <div class="mptbm-extra-service-area" data-placeholder>
                                                     <div>
                                                         <h5 class="extra-service-container-header"><span class="custom-icon-image"><?php echo MPTBM_Function::get_icon_image('cart_icon', 'cart.png'); ?></span> EXTRA OPTIONS </h5>
                                                     </div>
@@ -503,17 +629,20 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                                 ?>
                                                                 <tr>
                                                                     <th>
-                                                                        <h6>
-                                                                            <?php if ($service_icon && $icon) { ?>
-                                                                                <span class="<?php echo esc_attr($icon); ?> extra-service-icon"></span>
-                                                                            <?php } else { ?>
-                                                                                <img class="extra-service-icon-image" src="<?php echo esc_attr($image); ?>"></img>
-                                                                            <?php } ?>
-                                                                            <?php echo MPTBM_Function::esc_html($service_name); ?>
-                                                                            <span> - </span>
-                                                                            <span class="price-text"><?php echo MPTBM_Function::esc_html($service_price); ?></span>
+                                                                        <div class="extra-service-name">
+                                                                            <h6>
+                                                                                <?php if ($service_icon && $icon) { ?>
+                                                                                    <span class="<?php echo esc_attr($icon); ?> extra-service-icon"></span>
+                                                                                <?php } else { ?>
+                                                                                    <img class="extra-service-icon-image" src="<?php echo esc_attr($image); ?>"></img>
+                                                                                <?php } ?>
+                                                                                <?php echo MPTBM_Function::esc_html($service_name); ?>
+                                                                                <span> - </span>
+                                                                                <span class="price-text"><?php echo MPTBM_Function::esc_html($service_price); ?></span>
 
-                                                                        </h6>
+                                                                            </h6>
+                                                                        </div>
+
                                                                         <?php
                                                                         if ($description) {
                                                                             $word_count = str_word_count($description);
@@ -577,7 +706,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                         <div class="custom-form-item">
                                                             <div class="form-wrapper-outer">
                                                                 <div class="field-wrapper">
-                                                                    <input type="text" name="full_name" id="email">
+                                                                    <input type="text" name="mptbm_user_name">
                                                                     <div class="field-placeholder"><span>Full Name</span></div>
                                                                 </div>
                                                             </div>
@@ -585,7 +714,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                         <div class="custom-form-item">
                                                             <div class="form-wrapper-outer">
                                                                 <div class="field-wrapper">
-                                                                    <input type="text" name="email" id="email">
+                                                                    <input type="text" name="mptbm_user_email">
                                                                     <div class="field-placeholder"><span>Email Address</span></div>
                                                                 </div>
                                                             </div>
@@ -596,7 +725,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                         <div class="custom-form-item">
                                                             <div class="form-wrapper-outer">
                                                                 <div class="field-wrapper">
-                                                                    <input type="text" name="phone" id="email">
+                                                                    <input type="text" name="mptbm_user_phone">
                                                                     <div class="field-placeholder"><span>Phone Number</span></div>
                                                                 </div>
                                                             </div>
@@ -604,7 +733,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                         <div class="custom-form-item">
                                                             <div class="form-wrapper-outer">
                                                                 <div class="field-wrapper">
-                                                                    <input type="text" name="address" id="email">
+                                                                    <input type="text" name="mptbm_user_address">
                                                                     <div class="field-placeholder"><span>Street Address</span></div>
                                                                 </div>
                                                             </div>
@@ -615,7 +744,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                         <div class="custom-form-item">
                                                             <div class="form-wrapper-outer">
                                                                 <div class="field-wrapper">
-                                                                    <input type="text" name="city" id="email">
+                                                                    <input type="text" name="mptbm_user_city">
                                                                     <div class="field-placeholder"><span>City</span></div>
                                                                 </div>
                                                             </div>
@@ -623,7 +752,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                         <div class="custom-form-item">
                                                             <div class="form-wrapper-outer">
                                                                 <div class="field-wrapper">
-                                                                    <input type="text" name="zip_code" id="email">
+                                                                    <input type="text" name="mptbm_user_zip">
                                                                     <div class="field-placeholder"><span>Zip Code</span></div>
                                                                 </div>
                                                             </div>
@@ -631,7 +760,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                         <div class="custom-form-item">
                                                             <div class="form-wrapper-outer">
                                                                 <div class="field-wrapper">
-                                                                    <input type="text" name="country" id="email">
+                                                                    <input type="text" name="mptbm_user_country">
                                                                     <div class="field-placeholder"><span>Country</span></div>
                                                                 </div>
                                                             </div>
@@ -642,7 +771,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                         <div class="custom-form-item">
                                                             <div class="form-wrapper-outer">
                                                                 <div class="field-wrapper">
-                                                                    <input type="text" name="passport" id="email">
+                                                                    <input type="text" name="mptbm_user_passport">
                                                                     <div class="field-placeholder"><span>Passport Number</span></div>
                                                                 </div>
                                                             </div>
@@ -650,7 +779,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                         <div class="custom-form-item">
                                                             <div class="form-wrapper-outer">
                                                                 <div class="field-wrapper">
-                                                                    <input type="text" name="nid" id="email">
+                                                                    <input type="text" name="mptbm_user_nid">
                                                                     <div class="field-placeholder"><span>NID Number</span></div>
                                                                 </div>
                                                             </div>
@@ -666,7 +795,6 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                 </div>
 
                                                 <div class="booking-part">
-                                                    <div class="divider"></div>
                                                     <div class="cart-add-item">
 
                                                         <table id="booking-total">
@@ -676,7 +804,6 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                                 </td>
                                                                 <td>
                                                                     <button class="_dButton_fRight mptbm_book_now" type="button">
-<!--                                                                        <span class="fas fa-cart-plus"></span>-->
                                                                         <?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
                                                                     </button>
                                                                     <button type="submit" name="add-to-cart" value="<?php echo esc_html($product_info['product_id']); ?>" class="dNone mptbm_add_to_cart">
@@ -782,7 +909,7 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                     <div data-collapse="#mptbm_collape_select_<?php echo esc_attr($post_id); ?>">
                                                         <?php $extra_services = MPTBM_Function::get_post_info($post_id, 'mptbm_extra_service_data', array()); ?>
                                                         <?php if(!is_null($extra_services)  && count($extra_services)) { ?>
-                                                        <div class="mptbm_extra_service_area" data-placeholder>
+                                                        <div class="mptbm-extra-service-area" data-placeholder>
                                                             <div>
                                                                 <h5 class="extra-service-container-header"><span class="custom-icon-image" style="color:var(--button-bg);"><?php echo MPTBM_Function::get_icon_image('cart_icon', 'cart.png'); ?></span> EXTRA OPTIONS </h5>
                                                             </div>
@@ -976,7 +1103,6 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                         </div>
 
                                                         <div class="booking-part">
-                                                            <div class="divider"></div>
                                                             <div class="cart-add-item">
 
                                                                 <table id="booking-total">

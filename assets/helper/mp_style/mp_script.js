@@ -83,7 +83,7 @@ function placeholderLoaderRemove(target) {
 
 function pageScrollTo(target) {
     jQuery('html, body').animate({
-        scrollTop: target.offset().top -= 100
+        scrollTop: target.offset().top -= 150
     }, 1000);
 }
 
@@ -96,6 +96,10 @@ function mp_load_date_picker() {
             jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
         }
     });
+}
+
+function mp_alert($this, attr = 'alert') {
+    alert($this.data(attr));
 }
 
 //==========Load initial=================//
@@ -111,10 +115,17 @@ function mp_load_date_picker() {
 function loadBgImage() {
     jQuery('body').find('[data-bg-image]:visible').each(function () {
         let target = jQuery(this);
-        let height = target.outerWidth() * 2 / 3;
+        //let height = target.outerWidth() * 2 / 3;
         if (target.css('background-image') === 'none') {
-            target.css({"min-height": height});
             let bg_url = target.data('bg-image');
+            let tmpImg = new Image();
+            tmpImg.src = bg_url;
+            jQuery(tmpImg).one('load', function () {
+                let imgWidth = tmpImg.width;
+                let imgHeight = tmpImg.height;
+                let height = target.outerWidth() * imgHeight / imgWidth;
+                target.css({"min-height": height});
+            });
             if (!bg_url || bg_url.width === 0 || bg_url.width === 'undefined') {
                 bg_url = mp_empty_image_url;
             }
@@ -203,6 +214,7 @@ function content_input_value_change(currentTarget) {
         } else {
             jQuery(this).val(jQuery(this).data('value'));
         }
+        jQuery(this).trigger('change');
     });
 }
 
@@ -216,6 +228,15 @@ function mp_all_content_change($this) {
 
 (function ($) {
     "use strict";
+    $(document).on('click', '.mp_load_more_text_area [data-read]', function (e) {
+        e.stopPropagation();
+        let parent = $(this).closest('.mp_load_more_text_area');
+        let open_text = parent.find('[data-read-open]').html();
+        let close_text = parent.find('[data-read-close]').html();
+        parent.find('[data-read-close]').html(open_text);
+        parent.find('[data-read-open]').html(close_text);
+        content_text_change($(this));
+    });
     $(document).on('click', '[data-all-change]', function () {
         mp_all_content_change($(this));
     });
@@ -244,6 +265,40 @@ function mp_all_content_change($this) {
         $("[data-same-input='" + input_id + "']").each(function () {
             $(this).val(input_value);
         });
+    });
+}(jQuery));
+//===========Sticky================//
+(function ($) {
+    "use strict";
+
+    function mp_sticky_management() {
+        $('.mpStyle .mp_sticky_area').each(function () {
+            let body_width = $('body').outerWidth();
+            let scroll_top = $(window).scrollTop();
+            let current = $(this);
+            let target_scroll = current.find('.mp_sticky_on_scroll');
+            let content_top = current.parent().offset().top;
+            let parent = current.closest('.mp_sticky_section');
+            let depend_height = parent.find('.mp_sticky_depend_area').innerHeight();
+            let content_height = depend_height - Math.max(scroll_top - content_top, 0) - (target_scroll.offset().top - current.offset().top) - 100;
+            if (body_width > 800 && scroll_top + 100 >= content_top) {
+                target_scroll.css('max-height', content_height);
+                if (!current.hasClass('mpSticky')) {
+                    current.addClass('mpSticky').css('top', 100);
+                }
+            } else {
+                target_scroll.css('max-height', content_height + 100);
+                current.removeClass('mpSticky');
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        if ($('.mpStyle .mp_sticky_area').length > 0) {
+            window.onscroll = function () {
+                mp_sticky_management()
+            };
+        }
     });
 }(jQuery));
 //===========Tabs================//
@@ -294,7 +349,6 @@ function mp_all_content_change($this) {
         if (target_close(close_id, target_id) && collapse_close_inside(currentTarget) && target_collapse(target, currentTarget)) {
             mp_all_content_change(currentTarget);
         }
-        loadBgImage();
     });
     $(document).on('change', 'select[data-collapse-target]', function () {
         let currentTarget = $(this);
@@ -385,7 +439,7 @@ function mp_all_content_change($this) {
         });
     });
     //Group radio like checkbox
-    $(document).on('click', '.groupRadioCheck [data-radio-check]', function (e) {
+    $(document).on('click', '.groupRadioCheck [data-radio-check]', function () {
         //e.stopPropagation();
         let parent = $(this).closest('.groupRadioCheck');
         let $this = $(this);
@@ -418,6 +472,14 @@ function mp_all_content_change($this) {
     $(document).on('keyup change', '.mpStyle .mp_name_validation', function () {
         let n = $(this).val();
         $(this).val(n.replace(/[@%'":;&_]/g, ''));
+        return true;
+    });
+    $(document).on('keyup change', '.mpStyle [required]', function () {
+        if ($(this).val() !== '') {
+            $(this).removeClass('mpRequired');
+        } else {
+            $(this).addClass('mpRequired');
+        }
         return true;
     });
 }(jQuery));
@@ -482,18 +544,17 @@ function mp_pagination_page_management(parent, pagination_page, total_item) {
 (function ($) {
     "use strict";
     $(document).on('click', '.mpStyle [data-target-popup]', function () {
-        let target = $(this).data('target-popup');
+        let target = $(this).attr('data-active-popup', '').data('target-popup');
         $('body').addClass('noScroll').find('[data-popup="' + target + '"]').addClass('in').promise().done(function () {
             loadBgImage();
             return true;
         });
-        $(document).on('click', 'div.mpPopup  .popupClose', function () {
-            $(this).closest('[data-popup]').removeClass('in');
-            $('body').removeClass('noScroll');
-            return true;
-        });
     });
-
+    $(document).on('click', 'div.mpPopup  .popupClose', function () {
+        $(this).closest('[data-popup]').removeClass('in');
+        $('body').removeClass('noScroll').find('[data-active-popup]').removeAttr('data-active-popup');
+        return true;
+    });
     $(document).click(function (e) {
         let target = $(e.target);
         let popup = target.closest('[data-popup]');

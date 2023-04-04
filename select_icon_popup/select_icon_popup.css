@@ -1,5 +1,5 @@
 button.mp_input_add_icon_button span.remove_input_icon.active {display: block;}
-.mpStyle button.mp_input_add_icon_button {background-color: transparent;color: var(--default-color);border: 1px solid var(--border_color);min-width: 120px;}
+.mpStyle button.mp_input_add_icon_button {background-color: transparent;color: var(--d_color);border: 1px solid var(--border_color);min-width: 120px;}
 .mpStyle button.mp_input_add_icon_button span {margin: 0;}
 /*************popup font***************/
 div.add_icon_list_popup .iconItem,

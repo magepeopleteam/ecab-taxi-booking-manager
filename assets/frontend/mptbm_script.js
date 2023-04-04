@@ -98,7 +98,7 @@ function createMarker(place) {
 			}
 		}
 	});
-	$(document).on("click", "#mptbm_get_vehicle", function () {
+	$(document).on("click", "#mptbm-get-vehicle", function () {
 		let start_date = $('#mptbm_map_start_date').val();
 		let start_time = $('#mptbm_map_start_time').val();
 		let start_place;
