@@ -674,40 +674,6 @@
 
             }
 
-            public static function get_custom_forms()
-            {
-                $forms = array(''=>"Select Form");
-                $forms = array_replace($forms,self::get_post_list_by_type('mptbm_reg_form'));
-
-                return $forms;
-            }
-
-            public static function get_custom_form()
-            {
-                $form_id = self::get_global_settings('mptbm_form_builder_settings' , 'form_builder_id');
-
-                if(is_null($form_id) || !class_exists('MPTBM_Form_Builder') ||  !method_exists( 'MPTBM_Form_Builder','form_builder' ) )
-                {
-                    return;
-                }
-
-                echo MPTBM_Form_Builder::form_builder($form_id);
-            }
-
-            public static function get_custom_form_inputs()
-            {
-                $form_id = self::get_global_settings('mptbm_form_builder_settings' , 'form_builder_id');
-
-                if(is_null($form_id))
-                {
-                    return;
-                }
-
-                $inputs = json_decode(self::get_post_info($form_id,'mptbm_form_data'));
-
-                echo "<pre>";print_r($inputs);
-            }
-
 		}
 		new MPTBM_Function();
 	}

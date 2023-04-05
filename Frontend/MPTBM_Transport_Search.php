@@ -787,10 +787,10 @@ if (!class_exists('MPTBM_Transport_Search')) {
                                                     </div>
 
                                                     <div class="custom-form-item">
-                                                        <div class="mpStyle"><?php //MPTBM_Function::get_custom_form(); ?></div>
+                                                        <div><?php MPTBM_Form_Builder::get_custom_form(); ?></div>
                                                     </div>
                                                     <div class="cart-add-item">
-                                                        <?php //MPTBM_Function::get_custom_form_inputs(); ?>
+                                                        <?php MPTBM_Form_Builder::get_custom_form_inputs(); ?>
                                                     </div>
                                                 </div>
 

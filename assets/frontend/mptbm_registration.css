@@ -126,7 +126,7 @@
         grid-template-columns: repeat(1, 1fr);
         grid-template-rows: auto;
         grid-gap: 25px;
-        padding: 20px 50px 20px 50px;
+        padding: 50px 50px 20px 50px;
     }
 
     .global-search-item:nth-child(1) {
@@ -326,7 +326,7 @@
         grid-template-columns: repeat(4, 1fr);
         grid-template-rows: auto;
         grid-gap: 25px;
-        padding: 0 50px 50px 50px;
+        padding: 50px 50px 50px 50px;
     }
 
     .search-item:nth-child(1) {
@@ -643,10 +643,10 @@
         font-weight: bold;
     }
 
-    .custom-form-title > h5:nth-child(1) > .custom-icon-image,
-    .extra-service-container-header > .custom-icon-image {
+    .custom-icon-image
+    {
         padding-right: 5px;
-        transform: translateY(7px) translateX(0px);
+        transform: translateY(-.1rem) translateX(0);
     }
 
     .custom-form {

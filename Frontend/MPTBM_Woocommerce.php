@@ -193,7 +193,7 @@
 										self::add_cpt_data( 'mptbm_service_booking', '#' . $order_id . $ex_data['mptbm_service_name'], $ex_data );
 									}
 								}
-                                
+
 
                                 $booking_info      = self::get_order_item_meta( $item_id, '_mptbm_booking_info' );
                                 $booking_infos = $booking_info ? MPTBM_Function::data_sanitize( $booking_info ) : [];
