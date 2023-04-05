@@ -386,7 +386,7 @@
                             'desc'    => esc_html__( 'Select Custom Form', 'mptbm_plugin' ),
                             'type'    => 'select',
                             'default' => '',
-                            'options' => MPTBM_Function::get_custom_forms(),
+                            'options' => MPTBM_Form_Builder::get_custom_forms(),
                         ),
                     )
                     ),

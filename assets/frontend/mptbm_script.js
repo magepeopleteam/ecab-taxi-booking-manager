@@ -141,6 +141,7 @@ function createMarker(place) {
 						dLoader(target);
 					},
 					success: function (data) {
+						$("#global-searched-item-details").hide();
 						target.html(data).promise().done(function () {
 							loadBgImage();
 						});
