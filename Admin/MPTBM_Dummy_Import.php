@@ -15,7 +15,7 @@
 					foreach ( $dummy_data as $type => $dummy ) {
 						if ( $type == 'taxonomy' ) {
 							foreach ( $dummy as $taxonomy => $dummy_taxonomy ) {
-								$check_taxonomy = MPTBM_Function::get_taxonomy( $taxonomy );
+								$check_taxonomy = MP_Global_Function::get_taxonomy( $taxonomy );
 								if ( is_string( $check_taxonomy ) || sizeof( $check_taxonomy ) == 0 ) {
 									foreach ( $dummy_taxonomy as $taxonomy_data ) {
 										wp_insert_term( $taxonomy_data['name'], $taxonomy );
@@ -55,7 +55,7 @@
 							0 => [
 								'name'      => 'BMW 5 Series',
 								'post_data' => [
-									'mptbm_list_thumbnail'        => '100',
+									'mp_thumbnail'        => '100',
 									//General_settings
 									'mptbm_name'                  => 'BMW 5 Series Long',
 									'mptbm_model'                 => 'EXPRW',
@@ -139,7 +139,7 @@
 										2 => 'Watch as Gerry McCambridge performs comedy and magic',
 									],
 									//gallery_settings
-									'mptbm_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
+									'mp_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
 									//extras_settings
 									'mptbm_display_contact'       => 'on',
 									'mptbm_email'                 => 'example.gmail.com',
@@ -150,7 +150,7 @@
 							1 => [
 								'name'      => 'Cadillac Escalade Limousine',
 								'post_data' => [
-									'mptbm_list_thumbnail'        => '100',
+									'mp_thumbnail'        => '100',
 									//General_settings
 									'mptbm_name'                  => 'Cadillac Escalade Limousine',
 									'mptbm_model'                 => 'CADESR',
@@ -234,7 +234,7 @@
 										2 => 'Watch as Gerry McCambridge performs comedy and magic',
 									],
 									//gallery_settings
-									'mptbm_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
+									'mp_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
 									//extras_settings
 									'mptbm_display_contact'       => 'on',
 									'mptbm_email'                 => 'example.gmail.com',
@@ -245,7 +245,7 @@
 							2=> [
 								'name'      => 'Hummer New York Limousine',
 								'post_data' => [
-									'mptbm_list_thumbnail'        => '100',
+									'mp_thumbnail'        => '100',
 									//General_settings
 									'mptbm_name'                  => 'Hummer New York Limousine',
 									'mptbm_model'                 => 'HUMYL',
@@ -329,7 +329,7 @@
 										2 => 'Watch as Gerry McCambridge performs comedy and magic',
 									],
 									//gallery_settings
-									'mptbm_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
+									'mp_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
 									//extras_settings
 									'mptbm_display_contact'       => 'on',
 									'mptbm_email'                 => 'example.gmail.com',
@@ -340,7 +340,7 @@
 							3=> [
 								'name'      => 'Cadillac Escalade SUV',
 								'post_data' => [
-									'mptbm_list_thumbnail'        => '100',
+									'mp_thumbnail'        => '100',
 									//General_settings
 									'mptbm_name'                  => 'Cadillac Escalade SUV',
 									'mptbm_model'                 => 'CASUV',
@@ -424,7 +424,7 @@
 										2 => 'Watch as Gerry McCambridge performs comedy and magic',
 									],
 									//gallery_settings
-									'mptbm_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
+									'mp_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
 									//extras_settings
 									'mptbm_display_contact'       => 'on',
 									'mptbm_email'                 => 'example.gmail.com',
@@ -435,7 +435,7 @@
 							4=> [
 								'name'      => 'Ford Tourneo',
 								'post_data' => [
-									'mptbm_list_thumbnail'        => '100',
+									'mp_thumbnail'        => '100',
 									//General_settings
 									'mptbm_name'                  => 'Ford Tourneo',
 									'mptbm_model'                 => 'FORD_DD',
@@ -519,7 +519,7 @@
 										2 => 'Watch as Gerry McCambridge performs comedy and magic',
 									],
 									//gallery_settings
-									'mptbm_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
+									'mp_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
 									//extras_settings
 									'mptbm_display_contact'       => 'on',
 									'mptbm_email'                 => 'example.gmail.com',
@@ -530,7 +530,7 @@
 							5=> [
 								'name'      => 'Mercedes-Benz E220',
 								'post_data' => [
-									'mptbm_list_thumbnail'        => '100',
+									'mp_thumbnail'        => '100',
 									//General_settings
 									'mptbm_name'                  => 'Mercedes-Benz E220',
 									'mptbm_model'                 => 'Mercedes',
@@ -614,7 +614,7 @@
 										2 => 'Watch as Gerry McCambridge performs comedy and magic',
 									],
 									//gallery_settings
-									'mptbm_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
+									'mp_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
 									//extras_settings
 									'mptbm_display_contact'       => 'on',
 									'mptbm_email'                 => 'example.gmail.com',
@@ -625,7 +625,7 @@
 							6=> [
 								'name'      => 'Fiat Panda',
 								'post_data' => [
-									'mptbm_list_thumbnail'        => '100',
+									'mp_thumbnail'        => '100',
 									//General_settings
 									'mptbm_name'                  => 'Fiat Panda',
 									'mptbm_model'                 => 'FIAT',
@@ -709,7 +709,7 @@
 										2 => 'Watch as Gerry McCambridge performs comedy and magic',
 									],
 									//gallery_settings
-									'mptbm_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
+									'mp_slider_images'         => [ 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300 ],
 									//extras_settings
 									'mptbm_display_contact'       => 'on',
 									'mptbm_email'                 => 'example.gmail.com',

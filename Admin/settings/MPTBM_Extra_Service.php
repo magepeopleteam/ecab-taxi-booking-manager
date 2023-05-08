@@ -10,7 +10,7 @@
 				add_action( 'mptbm_settings_save', [ $this, 'save_extra_service' ], 10, 1 );
 			}
 			public function extra_service_settings( $post_id ) {
-				$extra_services = MPTBM_Function::get_post_info( $post_id, 'mptbm_extra_service_data', array() );
+				$extra_services = MP_Global_Function::get_post_info( $post_id, 'mptbm_extra_service_data', array() );
 				?>
 				<div class="tabsItem mp_settings_area" data-tabs="#mptbm_settings_extra_service">
 					<h5><?php esc_html_e( 'Extra Service Settings', 'mptbm_plugin' ); ?></h5>
@@ -44,8 +44,8 @@
 							</tbody>
 						</table>
 					</div>
-					<?php MPTBM_Layout::add_new_button( esc_html__( 'Add Extra New Service', 'mptbm_plugin' ) ); ?>
-					<?php do_action( 'mptbm_hidden_item_table', 'mptbm_extra_service_item' ); ?>
+					<?php MP_Custom_Layout::add_new_button( esc_html__( 'Add Extra New Service', 'mptbm_plugin' ) ); ?>
+					<?php do_action( 'add_mp_hidden_table', 'mptbm_extra_service_item' ); ?>
 				</div>
 				<?php
 			}
@@ -100,18 +100,18 @@
 							</select>
 						</label>
 					</td>
-					<td><?php MPTBM_Layout::move_remove_button(); ?></td>
+					<td><?php MP_Custom_Layout::move_remove_button(); ?></td>
 				</tr>
 				<?php
 			}
 			public function save_extra_service( $post_id ) {
-				if ( get_post_type( $post_id ) == MPTBM_Function::get_cpt_name() ) {
+				if ( get_post_type( $post_id ) == MPTBM_Function::mp_cpt() ) {
 					$new_extra_service = array();
-					$extra_icon        = MPTBM_Function::get_submit_info( 'service_icon', array() );
-					$extra_names       = MPTBM_Function::get_submit_info( 'service_name', array() );
-					$extra_price       = MPTBM_Function::get_submit_info( 'service_price', array() );
-					$extra_qty_type    = MPTBM_Function::get_submit_info( 'service_qty_type', array() );
-					$extra_service_description    = MPTBM_Function::get_submit_info( 'extra_service_description', array() );
+					$extra_icon        = MP_Global_Function::get_submit_info( 'service_icon', array() );
+					$extra_names       = MP_Global_Function::get_submit_info( 'service_name', array() );
+					$extra_price       = MP_Global_Function::get_submit_info( 'service_price', array() );
+					$extra_qty_type    = MP_Global_Function::get_submit_info( 'service_qty_type', array() );
+					$extra_service_description    = MP_Global_Function::get_submit_info( 'extra_service_description', array() );
 					$extra_count       = count( $extra_names );
 					for ( $i = 0; $i < $extra_count; $i ++ ) {
 						if ( $extra_names[ $i ] && $extra_price[ $i ] >= 0) {

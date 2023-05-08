@@ -9,10 +9,10 @@
 				add_action( 'mptbm_settings_save', [ $this, 'save_price_settings' ], 10, 1 );
 			}
 			public function price_settings( $post_id ) {
-				$price_based    = MPTBM_Function::get_post_info( $post_id, 'mptbm_price_based' );
-				$distance_price = MPTBM_Function::get_post_info( $post_id, 'mptbm_km_price' );
-				$time_price     = MPTBM_Function::get_post_info( $post_id, 'mptbm_hour_price' );
-				$manual_prices  = MPTBM_Function::get_post_info( $post_id, 'mptbm_manual_price_info', [] );
+				$price_based    = MP_Global_Function::get_post_info( $post_id, 'mptbm_price_based' );
+				$distance_price = MP_Global_Function::get_post_info( $post_id, 'mptbm_km_price' );
+				$time_price     = MP_Global_Function::get_post_info( $post_id, 'mptbm_hour_price' );
+				$manual_prices  = MP_Global_Function::get_post_info( $post_id, 'mptbm_manual_price_info', [] );
 				?>
 				<div class="tabsItem" data-tabs="#mptbm_settings_pricing">
 					<h5><?php esc_html_e( 'Price Settings', 'mptbm_plugin' ); ?></h5>
@@ -27,13 +27,14 @@
 										<option disabled selected><?php esc_html_e( 'Please select ...', 'mptbm_plugin' ); ?></option>
 										<option value="distance" data-option-target="#mp_distance" <?php echo esc_attr( $price_based == 'distance' ? 'selected' : '' ); ?>><?php esc_html_e( 'Distance', 'mptbm_plugin' ); ?></option>
 										<option value="duration" data-option-target="#mp_duration" <?php echo esc_attr( $price_based == 'duration' ? 'selected' : '' ); ?>><?php esc_html_e( 'Duration/Time', 'mptbm_plugin' ); ?></option>
+										<option value="distance_duration" data-option-target data-option-target-multi="#mp_distance #mp_duration" <?php echo esc_attr( $price_based == 'distance_duration' ? 'selected' : '' ); ?>><?php esc_html_e( 'Distance + Duration', 'mptbm_plugin' ); ?></option>
 										<option value="manual" data-option-target="#mp_manual" <?php echo esc_attr( $price_based == 'manual' ? 'selected' : '' ); ?>><?php esc_html_e( 'Manual', 'mptbm_plugin' ); ?></option>
 									</select>
 								</label>
 							</td>
 							<td></td>
 						</tr>
-						<tr data-collapse="#mp_distance" class="<?php echo esc_attr( $price_based == 'distance' ? 'mActive' : '' ); ?>">
+						<tr data-collapse="#mp_distance" class="<?php echo esc_attr( $price_based == 'distance' ||  $price_based == 'distance_duration'? 'mActive' : '' ); ?>">
 							<th> <?php esc_html_e( 'Price/KM', 'mptbm_plugin' ); ?> </th>
 							<td>
 								<label>
@@ -42,7 +43,7 @@
 							</td>
 							<td></td>
 						</tr>
-						<tr data-collapse="#mp_duration" class="<?php echo esc_attr( $price_based == 'duration' ? 'mActive' : '' ); ?>">
+						<tr data-collapse="#mp_duration" class="<?php echo esc_attr( $price_based == 'duration' ||  $price_based == 'distance_duration' ? 'mActive' : '' ); ?>">
 							<th> <?php esc_html_e( 'Price/Hour', 'mptbm_plugin' ); ?> </th>
 							<td>
 								<label>
@@ -73,7 +74,7 @@
 									?>
 									</tbody>
 								</table>
-								<?php MPTBM_Layout::add_new_button( esc_html__( 'Add New Price', 'mptbm_plugin' ) ); ?>
+								<?php MP_Custom_Layout::add_new_button( esc_html__( 'Add New Price', 'mptbm_plugin' ) ); ?>
 								<?php $this->hidden_manual_price_item(); ?>
 							</td>
 						</tr>
@@ -116,23 +117,23 @@
 						</label>
 					</td>
 					<td>
-						<?php MPTBM_Layout::move_remove_button(); ?>
+						<?php MP_Custom_Layout::move_remove_button(); ?>
 					</td>
 				</tr>
 				<?php
 			}
 			public function save_price_settings( $post_id ) {
-				if ( get_post_type( $post_id ) == MPTBM_Function::get_cpt_name() ) {
-					$price_based = MPTBM_Function::get_submit_info( 'mptbm_price_based' );
+				if ( get_post_type( $post_id ) == MPTBM_Function::mp_cpt() ) {
+					$price_based = MP_Global_Function::get_submit_info( 'mptbm_price_based' );
 					update_post_meta( $post_id, 'mptbm_price_based', $price_based );
-					$distance_price = MPTBM_Function::get_submit_info( 'mptbm_km_price' );
+					$distance_price = MP_Global_Function::get_submit_info( 'mptbm_km_price',0 );
 					update_post_meta( $post_id, 'mptbm_km_price', $distance_price );
-					$hour_price = MPTBM_Function::get_submit_info( 'mptbm_hour_price' );
+					$hour_price = MP_Global_Function::get_submit_info( 'mptbm_hour_price' ,0);
 					update_post_meta( $post_id, 'mptbm_hour_price', $hour_price );
 					$manual_price_infos = array();
-					$start_location     = MPTBM_Function::get_submit_info( 'mptbm_manual_start_location', array() );
-					$end_location       = MPTBM_Function::get_submit_info( 'mptbm_manual_end_location', array() );
-					$manual_price       = MPTBM_Function::get_submit_info( 'mptbm_manual_price', array() );
+					$start_location     = MP_Global_Function::get_submit_info( 'mptbm_manual_start_location', array() );
+					$end_location       = MP_Global_Function::get_submit_info( 'mptbm_manual_end_location', array() );
+					$manual_price       = MP_Global_Function::get_submit_info( 'mptbm_manual_price', array() );
 					if ( sizeof( $start_location ) > 1 && sizeof( $end_location ) > 1 && sizeof( $manual_price ) > 0 ) {
 						$count = 0;
 						foreach ( $start_location as $key => $location ) {

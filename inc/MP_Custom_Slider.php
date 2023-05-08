@@ -3,30 +3,29 @@
 		die;
 	} // Cannot access pages directly.
 	//echo '<pre>';print_r();echo '</pre>';
-	if ( ! class_exists( 'MPTBM_Super_Slider' ) ) {
-		class MPTBM_Super_Slider {
+	if ( ! class_exists( 'MP_Custom_Slider' ) ) {
+		class MP_Custom_Slider {
 			public function __construct() {
-				add_filter( 'mptbm_settings_sec_reg', array( $this, 'slider_tab_name' ), 20 );
-				add_filter( 'mptbm_settings_sec_fields', array( $this, 'slider_settings' ), 10 );
-				//add_shortcode('add_super_slider', array($this, 'super_slider'), 10, 2);
-				add_action( 'mptbm_super_slider', array( $this, 'super_slider' ), 10, 2);
-				add_action( 'mptbm_super_slider_only', array( $this, 'super_slider_only' ), 10, 1 );
-				add_action( 'mptbm_super_slider_icon_indicator', array( $this, 'icon_indicator' ), 10 );
+				add_filter( 'mp_settings_sec_reg', array( $this, 'slider_tab_name' ), 20 );
+				add_filter( 'mp_settings_sec_fields', array( $this, 'slider_settings' ), 1200 );
+				add_action( 'add_mp_custom_slider', array( $this, 'super_slider' ), 10, 2);
+				add_action( 'add_mp_custom_slider_only', array( $this, 'super_slider_only' ));
+				add_action( 'add_mp_custom_slider_icon_indicator', array( $this, 'icon_indicator' ) );
 			}
 			public function slider_tab_name( $default_sec ): array {
 				$sections = array(
 					array(
-						'id'    => 'super_slider_settings',
-						'title' => __( 'Super Slider Settings', 'mptbm_plugin' )
+						'id'    => 'mp_slider_settings',
+						'title' => __( 'Slider Settings', 'mptbm_plugin' )
 					)
 				);
 				return array_merge( $default_sec, $sections );
 			}
 			public function slider_settings( $default_fields ): array {
 				$settings_fields = array(
-					'super_slider_settings' => array(
+					'mp_slider_settings' => array(
 						array(
-							'name'    => 'super_slider_type',
+							'name'    => 'slider_type',
 							'label'   => esc_html__( 'Slider Type', 'mptbm_plugin' ),
 							'desc'    => esc_html__( 'Please Select Slider Type Default Slider', 'mptbm_plugin' ),
 							'type'    => 'select',
@@ -37,7 +36,7 @@
 							)
 						),
 						array(
-							'name'    => 'super_slider_style',
+							'name'    => 'slider_style',
 							'label'   => esc_html__( 'Slider Style', 'mptbm_plugin' ),
 							'desc'    => esc_html__( 'Please Select Slider Style Default Style One', 'mptbm_plugin' ),
 							'type'    => 'select',
@@ -48,7 +47,7 @@
 							)
 						),
 						array(
-							'name'    => 'super_slider_indicator_visible',
+							'name'    => 'indicator_visible',
 							'label'   => esc_html__( 'Slider Indicator Visible?', 'mptbm_plugin' ),
 							'desc'    => esc_html__( 'Please Select Slider Indicator Visible or Not? Default ON', 'mptbm_plugin' ),
 							'type'    => 'select',
@@ -59,7 +58,7 @@
 							)
 						),
 						array(
-							'name'    => 'super_slider_indicator_type',
+							'name'    => 'indicator_type',
 							'label'   => esc_html__( 'Slider Indicator Type', 'mptbm_plugin' ),
 							'desc'    => esc_html__( 'Please Select Slider Indicator Type Default Icon', 'mptbm_plugin' ),
 							'type'    => 'select',
@@ -70,7 +69,7 @@
 							)
 						),
 						array(
-							'name'    => 'super_slider_showcase_visible',
+							'name'    => 'showcase_visible',
 							'label'   => esc_html__( 'Slider Showcase Visible?', 'mptbm_plugin' ),
 							'desc'    => esc_html__( 'Please Select Slider Showcase Visible or Not? Default ON', 'mptbm_plugin' ),
 							'type'    => 'select',
@@ -81,7 +80,7 @@
 							)
 						),
 						array(
-							'name'    => 'super_slider_showcase_position',
+							'name'    => 'showcase_position',
 							'label'   => esc_html__( 'Slider Showcase Position', 'mptbm_plugin' ),
 							'desc'    => esc_html__( 'Please Select Slider Showcase Position Default Right', 'mptbm_plugin' ),
 							'type'    => 'select',
@@ -94,7 +93,7 @@
 							)
 						),
 						array(
-							'name'    => 'super_slider_popup_image_indicator',
+							'name'    => 'popup_image_indicator',
 							'label'   => esc_html__( 'Slider Popup Image Indicator', 'mptbm_plugin' ),
 							'desc'    => esc_html__( 'Please Select Slider Popup Indicator Image ON or Off? Default ON', 'mptbm_plugin' ),
 							'type'    => 'select',
@@ -105,7 +104,7 @@
 							)
 						),
 						array(
-							'name'    => 'super_slider_popup_icon_indicator',
+							'name'    => 'popup_icon_indicator',
 							'label'   => esc_html__( 'Slider Popup Icon Indicator', 'mptbm_plugin' ),
 							'desc'    => esc_html__( 'Please Select Slider Popup Indicator Icon ON or Off? Default ON', 'mptbm_plugin' ),
 							'type'    => 'select',
@@ -120,7 +119,7 @@
 				return array_merge( $default_fields, $settings_fields );
 			}
 			public function super_slider( $post_id = '' ,$meta_key='') {
-				$type      = MPTBM_Function::get_settings( 'super_slider_type', 'super_slider_settings', 'slider' );
+				$type      = MP_Global_Function::get_slider_settings( 'slider_type','slider' );
 				$post_id   = $post_id > 0 ? $post_id : get_the_id();
 				$image_ids = $this->get_slider_ids( $post_id, $meta_key);
 				if ( is_array( $image_ids ) && sizeof( $image_ids ) > 0 ) {
@@ -144,9 +143,9 @@
 			}
 			public function slider( $post_id, $image_ids ) {
 				if ( is_array( $image_ids ) && sizeof( $image_ids ) > 0 ) {
-					$showcase_position = MPTBM_Function::get_settings( 'super_slider_showcase_position', 'super_slider_settings', 'right' );
+					$showcase_position = MP_Global_Function::get_slider_settings( 'showcase_position',  'right' );
 					$column_class      = $showcase_position == 'top' || $showcase_position == 'bottom' ? 'area_column' : '';
-					$slider_style      = MPTBM_Function::get_settings( 'super_slider_style', 'super_slider_settings', 'style_1' );
+					$slider_style      = MP_Global_Function::get_slider_settings( 'slider_style',  'style_1' );
 					?>
 					<div class="superSlider placeholder_area fdColumn">
 						<div class="dFlex  <?php echo esc_attr( $column_class ); ?>">
@@ -170,8 +169,8 @@
 							?>
 						</div>
 						<?php
-							$slider_indicator = MPTBM_Function::get_settings( 'super_slider_indicator_visible', 'super_slider_settings', 'on' );
-							$icon             = MPTBM_Function::get_settings( 'super_slider_indicator_type', 'super_slider_settings', 'icon' );
+							$slider_indicator = MP_Global_Function::get_slider_settings( 'indicator_visible', 'on' );
+							$icon             = MP_Global_Function::get_slider_settings( 'indicator_type', 'icon' );
 							if ( $slider_indicator == 'on' && $icon == 'image' ) {
 								$this->image_indicator( $image_ids );
 							}
@@ -182,7 +181,7 @@
 				}
 			}
 			public function post_thumbnail( $image_id = '' ) {
-				$thumbnail = MPTBM_Function::get_image_url( '', $image_id );
+				$thumbnail = MP_Global_Function::get_image_url( '', $image_id );
 				if ( $thumbnail ) {
 					?>
 					<div class="superSlider">
@@ -198,7 +197,7 @@
 						<?php
 							$count = 1;
 							foreach ( $image_ids as $id ) {
-								$image_url = MPTBM_Function::get_image_url( '', $id );
+								$image_url = MP_Global_Function::get_image_url( '', $id );
 								?>
 								<div class="sliderItem" data-slide-index="<?php echo esc_html( $count ); ?>" data-target-popup="superSlider" data-placeholder>
 									<div data-bg-image="<?php echo esc_html( $image_url ); ?>"></div>
@@ -208,7 +207,7 @@
 							}
 						?>
 						<?php
-							$icon = MPTBM_Function::get_settings( 'super_slider_indicator_type', 'super_slider_settings', 'icon' );
+							$icon = MP_Global_Function::get_slider_settings( 'indicator_type',  'icon' );
 							if ( ( $icon == 'icon' || $popup_slider_icon == 'on' ) && sizeof( $image_ids ) > 1 ) {
 								$this->icon_indicator( $popup_slider_icon );
 							}
@@ -218,12 +217,12 @@
 				}
 			}
 			public function slider_showcase( $image_ids ) {
-				$showcase = MPTBM_Function::get_settings( 'super_slider_showcase_visible', 'super_slider_settings', 'on' );
+				$showcase = MP_Global_Function::get_slider_settings( 'showcase_visible',  'on' );
 				if ( $showcase == 'on' && is_array( $image_ids ) && sizeof( $image_ids ) > 0 ) {
-					$showcase_position = MPTBM_Function::get_settings( 'super_slider_showcase_position', 'super_slider_settings', 'right' );
-					$slider_style      = MPTBM_Function::get_settings( 'super_slider_style', 'super_slider_settings', 'style_1' );
+					$showcase_position = MP_Global_Function::get_slider_settings( 'showcase_position',  'right' );
+					$slider_style      = MP_Global_Function::get_slider_settings( 'slider_style', 'style_1' );
 					?>
-					<div class="sliderShowcase <?php echo esc_html( $showcase_position . ' ' . $slider_style ); ?>">
+					<div class="sliderShowcase <?php echo esc_attr( $showcase_position . ' ' . $slider_style ); ?>">
 						<?php
 							if ( $slider_style == 'style_1' ) {
 								$this->slider_showcase_style_1( $image_ids );
@@ -238,7 +237,7 @@
 			public function slider_showcase_style_1( $image_ids ) {
 				$count = 1;
 				foreach ( $image_ids as $id ) {
-					$image_url = MPTBM_Function::get_image_url( '', $id );
+					$image_url = MP_Global_Function::get_image_url( '', $id );
 					if ( $count < 4 ) {
 						?>
 						<div class="sliderShowcaseItem" data-slide-target="<?php echo esc_html( $count ); ?>" data-placeholder>
@@ -264,7 +263,7 @@
 			public function slider_showcase_style_2( $image_ids ) {
 				$count = 1;
 				foreach ( $image_ids as $id ) {
-					$image_url = MPTBM_Function::get_image_url( '', $id );
+					$image_url = MP_Global_Function::get_image_url( '', $id );
 					if ( $count > 1 && $count < 5 ) {
 						?>
 						<div class="sliderShowcaseItem" data-target-popup="superSlider" data-slide-index="<?php echo esc_html( $count ); ?>" data-placeholder>
@@ -282,7 +281,7 @@
 						<?php
 							$count = 1;
 							foreach ( $image_ids as $id ) {
-								$image_url = MPTBM_Function::get_image_url( '', $id, array( 150, 100 ) );
+								$image_url = MP_Global_Function::get_image_url( '', $id, array( 150, 100 ) );
 								?>
 								<div class="slideIndicatorItem" data-slide-target="<?php echo esc_html( $count ); ?>">
 									<div data-bg-image="<?php echo esc_html( $image_url ); ?>"></div>
@@ -296,7 +295,7 @@
 				}
 			}
 			public function icon_indicator( $popup_slider_icon = '' ) {
-				$slider_indicator = MPTBM_Function::get_settings( 'super_slider_indicator_visible', 'super_slider_settings', 'on' );
+				$slider_indicator = MP_Global_Function::get_slider_settings( 'indicator_visible',  'on' );
 				if ( $slider_indicator == 'on' || $popup_slider_icon == 'on' ) {
 					?>
 					<div class="iconIndicator prevItem">
@@ -310,7 +309,7 @@
 			}
 			public function slider_popup( $post_id, $image_ids ) {
 				if ( is_array( $image_ids ) && sizeof( $image_ids ) > 0 ) {
-					$popup_icon_indicator = MPTBM_Function::get_settings( 'super_slider_popup_icon_indicator', 'super_slider_settings', 'on' );
+					$popup_icon_indicator = MP_Global_Function::get_slider_settings( 'popup_icon_indicator',  'on' );
 					?>
 					<div class="sliderPopup" data-popup="superSlider">
 						<div class="superSlider">
@@ -323,7 +322,7 @@
 							</div>
 							<div class="popupFooter">
 								<?php
-									$indicator = MPTBM_Function::get_settings( 'super_slider_popup_image_indicator', 'super_slider_settings', 'on' );
+									$indicator = MP_Global_Function::get_slider_settings( 'popup_image_indicator',  'on' );
 									if ( $indicator == 'on' ) {
 										$this->image_indicator( $image_ids );
 									}
@@ -337,12 +336,12 @@
 			//==============//
 			public function get_slider_ids( $post_id, $key ) {
 				$thumb_id  = get_post_thumbnail_id( $post_id );
-				$image_ids = MPTBM_Function::get_post_info( $post_id, $key, array() );
+				$image_ids = MP_Global_Function::get_post_info( $post_id, $key, array() );
 				if ( $thumb_id ) {
 					array_unshift( $image_ids, $thumb_id );
 				}
 				return array_unique( $image_ids );
 			}
 		}
-		new MPTBM_Super_Slider();
+		new MP_Custom_Slider();
 	}

@@ -1,17 +1,4 @@
-function mptbm_price_format(price) {
-	let price_text = '';
-	price = parseFloat(price).toFixed(2);
-	if (mp_currency_position === 'right') {
-		price_text = price + mp_currency_symbol;
-	} else if (mp_currency_position === 'right_space') {
-		price_text = price + '&nbsp;' + mp_currency_symbol;
-	} else if (mp_currency_position === 'left') {
-		price_text = mp_currency_symbol + price;
-	} else {
-		price_text = mp_currency_symbol + '&nbsp;' + price;
-	}
-	return price_text;
-}
+
 (function ($) {
 	$(document).on('change', '.mptbm_booking_item [data-extra-service-price]', function () {
 		$(this).closest('label').toggleClass('active_select');
@@ -27,7 +14,7 @@ function mptbm_price_format(price) {
 				$(this).siblings('[name="mptbm_extra_service[]"]').val('');
 			}
 		});
-		parent.find('[data-main-price]').html(mptbm_price_format(price));
+		parent.find('[data-main-price]').html(mp_price_format(price));
 
 	});
 	$(document).on("click", ".mptbm_book_now[type='button']", function () {

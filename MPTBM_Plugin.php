@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Plugin Name: Hire a car or taxi booking manager
+	 * Plugin Name: E-cab taxi booking manager
 	 * Plugin URI: http://mage-people.com
 	 * Description: A Complete Transportation Solution for WordPress by MagePeople.
 	 * Version: 1.0.0
@@ -27,12 +27,15 @@
 				if ( ! defined( 'MPTBM_PLUGIN_URL' ) ) {
 					define( 'MPTBM_PLUGIN_URL', plugins_url() . '/' . plugin_basename( dirname( __FILE__ ) ) );
 				}
-				if ( self::check_woocommerce() == 1 ) {
+				require_once MPTBM_PLUGIN_DIR . '/inc/MP_Global_Function.php';
+				require_once MPTBM_PLUGIN_DIR . '/inc/MP_Global_Style.php';
+				if ( MP_Global_Function::check_woocommerce() == 1 ) {
 					add_action( 'activated_plugin', array( $this, 'activation_redirect' ), 90, 1 );
 					register_activation_hook( __FILE__, array( $this, 'on_activation_page_create' ) );
 					require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Dependencies.php';
 				} else {
 					require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Quick_Setup.php';
+					add_action( 'admin_notices', [ $this, 'woocommerce_not_active' ] );
 					add_action( 'activated_plugin', array( $this, 'activation_redirect_setup' ), 90, 1 );
 				}
 			}
@@ -47,7 +50,7 @@
 				}
 			}
 			public function on_activation_page_create(): void {
-				if ( ! $this->get_page_by_slug( 'transport_booking' ) ) {
+				if ( ! MP_Global_Function::get_page_by_slug( 'transport_booking' ) ) {
 					$transport_booking = array(
 						'post_type'    => 'page',
 						'post_name'    => 'transport_booking',
@@ -58,26 +61,9 @@
 					wp_insert_post( $transport_booking );
 				}
 			}
-			public function get_page_by_slug( $slug ) {
-				if ( $pages = get_pages() ) {
-					foreach ( $pages as $page ) {
-						if ( $slug === $page->post_name ) {
-							return $page;
-						}
-					}
-				}
-				return false;
-			}
-			public static function check_woocommerce(): int {
-				include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-				$plugin_dir = ABSPATH . 'wp-content/plugins/woocommerce';
-				if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
-					return 1;
-				} elseif ( is_dir( $plugin_dir ) ) {
-					return 2;
-				} else {
-					return 0;
-				}
+			public function woocommerce_not_active() {
+				$wc_install_url = get_admin_url() . 'plugin-install.php?s=woocommerce&tab=search&type=term';
+				printf( '<div class="error" style="background:red; color:#fff;"><p>%s</p></div>', __( 'You Must Install WooCommerce Plugin before activating E-cab taxi booking manager, Because It is dependent on Woocommerce Plugin. <a class="btn button" href=' . $wc_install_url . '>Click Here to Install</a>' ) );
 			}
 		}
 		new MPTBM_Plugin();

@@ -117,9 +117,6 @@
         border-radius: 15px;
     }
 
-    #global-search-container *:not(.dashicons):not(.fa):not(.fa):not(.far):not(.fas) {
-        box-sizing: border-box;
-    }
 
     #global-searched-item-details {
         display: grid;
@@ -525,10 +522,6 @@
         width: 80%;
     }
 
-    #icon-details  [class*="car-icon-image"] {
-        width: var(--fs);
-        height: var(--fs);
-    }
 
     #product-details .car-select {
         color: black;

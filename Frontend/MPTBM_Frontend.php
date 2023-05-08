@@ -21,7 +21,7 @@
 			}
 			public function load_single_template( $template ): string {
 				global $post;
-				if ( $post->post_type && $post->post_type == MPTBM_Function::get_cpt_name()) {
+				if ( $post->post_type && $post->post_type == MPTBM_Function::mp_cpt()) {
 					$template = MPTBM_Function::template_path( 'single_page/mptbm_details.php' );
 				}
 				if ( $post->post_type && $post->post_type == 'transport_booking') {

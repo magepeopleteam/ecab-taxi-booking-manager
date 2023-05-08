@@ -9,24 +9,27 @@
 				$this->settings_api = new MAGE_Setting_API;
 				add_action( 'admin_menu', array( $this, 'global_settings_menu' ) );
 				add_action( 'admin_init', array( $this, 'admin_init' ) );
-				add_filter( 'mptbm_settings_sec_reg', array( $this, 'settings_sec_reg' ), 10 );
-				add_filter( 'mptbm_settings_sec_fields', array( $this, 'settings_sec_fields' ), 10 );
+				add_filter( 'mp_settings_sec_reg', array( $this, 'settings_sec_reg' ), 10 );
+				add_filter( 'mp_settings_sec_fields', array( $this, 'settings_sec_fields' ), 10 );
 			}
 			public function global_settings_menu() {
 				$label = MPTBM_Function::get_name();
-				$cpt   = MPTBM_Function::get_cpt_name();
-				add_submenu_page( 'edit.php?post_type='.$cpt, $label . esc_html__( ' Settings', 'mptbm_plugin' ), $label . esc_html__( ' Settings', 'mptbm_plugin' ), 'manage_options', 'mptbm_settings_page', array( $this, 'settings_page' ) );
+				$cpt   = MPTBM_Function::mp_cpt();
+				add_submenu_page( 'edit.php?post_type=' . $cpt, $label . esc_html__( ' Settings', 'mptbm_plugin' ), $label . esc_html__( ' Settings', 'mptbm_plugin' ), 'manage_options', 'mptbm_settings_page', array( $this, 'settings_page' ) );
 			}
 			public function settings_page() {
-				$plugin_data = get_plugin_data( __FILE__ );
+				$label = MPTBM_Function::get_name();
 				?>
-				<div class="mp_settings_panel_header">
-					<?php echo $plugin_data['Name']; ?>
-					<small><?php echo $plugin_data['Version']; ?></small>
-				</div>
-				<div class="mp_settings_panel">
-					<?php $this->settings_api->show_navigation(); ?>
-					<?php $this->settings_api->show_forms(); ?>
+				<div class="mpStyle">
+					<div class="mp_settings_panel_header">
+						<h3>
+							<?php echo esc_html( $label . esc_html__( ' Global Settings', 'mptbm_plugin' ) ); ?>
+						</h3>
+					</div>
+					<div class="mp_settings_panel">
+						<?php $this->settings_api->show_navigation(); ?>
+						<?php $this->settings_api->show_forms(); ?>
+					</div>
 				</div>
 				<?php
 			}
@@ -37,11 +40,11 @@
 			}
 			public function get_settings_sections() {
 				$sections = array();
-				return apply_filters( 'mptbm_settings_sec_reg', $sections );
+				return apply_filters( 'mp_settings_sec_reg', $sections );
 			}
 			public function get_settings_fields() {
 				$settings_fields = array();
-				return apply_filters( 'mptbm_settings_sec_fields', $settings_fields );
+				return apply_filters( 'mp_settings_sec_fields', $settings_fields );
 			}
 			public function settings_sec_reg( $default_sec ): array {
 				$sections = array(
@@ -50,19 +53,11 @@
 						'title' => __( 'General Settings', 'mptbm_plugin' )
 					),
 					array(
-						'id'    => 'mptbm_style_settings',
+						'id'    => 'mp_style_settings',
 						'title' => __( 'Style Settings', 'mptbm_plugin' )
 					),
-                    array(
-                        'id'    => 'mptbm_vehicle_icon_settings',
-                        'title' => __( 'Icon Settings', 'mptbm_plugin' )
-                    ),
-                    array(
-                        'id'    => 'mptbm_form_builder_settings',
-                        'title' => __( 'Form Settings', 'mptbm_plugin' )
-                    ),
 					array(
-						'id'    => 'mptbm_custom_css',
+						'id'    => 'mp_add_custom_css',
 						'title' => __( 'Custom CSS', 'mptbm_plugin' )
 					)
 				);
@@ -72,16 +67,32 @@
 				$label           = MPTBM_Function::get_name();
 				$current_date    = current_time( 'Y-m-d' );
 				$settings_fields = array(
-					'mptbm_general_settings'         => apply_filters( 'filter_mptbm_general_settings', array(
+					'mptbm_general_settings' => apply_filters( 'filter_mptbm_general_settings', array(
 						array(
 							'name'    => 'disable_block_editor',
 							'label'   => esc_html__( 'Disable Block/Gutenberg Editor', 'mptbm_plugin' ),
-							'desc'    => esc_html__( 'If you want to disable WordPress\'s new Block/Gutenberg editor for Tour, please select Yes.', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'If you want to disable WordPress\'s new Block/Gutenberg editor, please select Yes.', 'mptbm_plugin' ),
 							'type'    => 'select',
 							'default' => 'yes',
 							'options' => array(
 								'yes' => esc_html__( 'Yes', 'mptbm_plugin' ),
 								'no'  => esc_html__( 'No', 'mptbm_plugin' )
+							)
+						),
+						array(
+							'name'    => 'set_book_status',
+							'label'   => esc_html__( 'Seat Booked Status', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'Please Select when and which order status Seat Will be Booked/Reduced.', 'mptbm_plugin' ),
+							'type'    => 'multicheck',
+							'default' => array(
+								'processing' => 'processing',
+								'completed'  => 'completed'
+							),
+							'options' => array(
+								'on-hold'    => esc_html__( 'On Hold', 'mptbm_plugin' ),
+								'pending'    => esc_html__( 'Pending', 'mptbm_plugin' ),
+								'processing' => esc_html__( 'Processing', 'mptbm_plugin' ),
+								'completed'  => esc_html__( 'Completed', 'mptbm_plugin' ),
 							)
 						),
 						array(
@@ -130,25 +141,34 @@
 							)
 						),
 						array(
-							'name'    => 'set_book_status',
-							'label'   => esc_html__( 'Seat Booked Status', 'mptbm_plugin' ),
-							'desc'    => esc_html__( 'Please Select when and which order status Seat Will be Booked/Reduced.', 'mptbm_plugin' ),
+							'name'    => 'payment_system',
+							'label'   => esc_html__( 'Payment System', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'Please Select Payment System.', 'mptbm_plugin' ),
 							'type'    => 'multicheck',
 							'default' => array(
-								'processing' => 'processing',
-								'completed'  => 'completed'
+								'direct_order' => 'direct_order',
+								'woocommerce'  => 'woocommerce'
 							),
 							'options' => array(
-								'on-hold'    => esc_html__( 'On Hold', 'mptbm_plugin' ),
-								'pending'    => esc_html__( 'Pending', 'mptbm_plugin' ),
-								'processing' => esc_html__( 'Processing', 'mptbm_plugin' ),
-								'completed'  => esc_html__( 'Completed', 'mptbm_plugin' ),
+								'direct_order' => esc_html__( 'Pay on service', 'mptbm_plugin' ),
+								'woocommerce'  => esc_html__( 'woocommerce Payment', 'mptbm_plugin' ),
+							)
+						),
+						array(
+							'name'    => 'direct_book_status',
+							'label'   => esc_html__( 'Pay on service Booked Status', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'Please Select when and which order status service Will be Booked/Reduced in Pay on service.', 'mptbm_plugin' ),
+							'type'    => 'select',
+							'default' => 'completed',
+							'options' => array(
+								'pending'   => esc_html__( 'Pending', 'mptbm_plugin' ),
+								'completed' => esc_html__( 'completed', 'mptbm_plugin' )
 							)
 						),
 						array(
 							'name'    => 'label',
 							'label'   => $label . ' ' . esc_html__( 'Label', 'mptbm_plugin' ),
-							'desc'    => esc_html__( 'If you like to change the ' . $label . ' label in the dashboard menu, you can change it here.', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'If you like to change the label in the dashboard menu, you can change it here.', 'mptbm_plugin' ),
 							'type'    => 'text',
 							'default' => 'Transportation'
 						),
@@ -162,42 +182,42 @@
 						array(
 							'name'    => 'icon',
 							'label'   => $label . ' ' . esc_html__( 'Icon', 'mptbm_plugin' ),
-							'desc'    => esc_html__( 'If you want to change the ' . $label . ' icon in the dashboard menu, you can change it from here, and the Dashboard icon only supports the Dashicons, So please go to ', 'mptbm_plugin' ) . '<a href=https://developer.wordpress.org/resource/dashicons/#calendar-alt target=_blank>' . esc_html__( 'Dashicons Library.', 'mptbm_plugin' ) . '</a>' . esc_html__( 'and copy your icon code and paste it here.', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'If you want to change the  icon in the dashboard menu, you can change it from here, and the Dashboard icon only supports the Dashicons, So please go to ', 'mptbm_plugin' ) . '<a href=https://developer.wordpress.org/resource/dashicons/#calendar-alt target=_blank>' . esc_html__( 'Dashicons Library.', 'mptbm_plugin' ) . '</a>' . esc_html__( 'and copy your icon code and paste it here.', 'mptbm_plugin' ),
 							'type'    => 'text',
 							'default' => 'dashicons-car'
 						),
 						array(
 							'name'    => 'category_label',
 							'label'   => $label . ' ' . esc_html__( 'Category Label', 'mptbm_plugin' ),
-							'desc'    => esc_html__( 'If you want to change the ' . $label . ' category label in the dashboard menu, you can change it here.', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'If you want to change the  category label in the dashboard menu, you can change it here.', 'mptbm_plugin' ),
 							'type'    => 'text',
 							'default' => 'Category'
 						),
 						array(
 							'name'    => 'category_slug',
 							'label'   => $label . ' ' . esc_html__( 'Category Slug', 'mptbm_plugin' ),
-							'desc'    => esc_html__( 'Please enter the slug name you want for ' . $label . ' category. Remember after change this slug you need to flush permalink, Just go to  ', 'mptbm_plugin' ) . '<strong>' . esc_html__( 'Settings-> Permalinks', 'mptbm_plugin' ) . '</strong> ' . esc_html__( 'hit the Save Settings button.', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'Please enter the slug name you want for category. Remember after change this slug you need to flush permalink, Just go to  ', 'mptbm_plugin' ) . '<strong>' . esc_html__( 'Settings-> Permalinks', 'mptbm_plugin' ) . '</strong> ' . esc_html__( 'hit the Save Settings button.', 'mptbm_plugin' ),
 							'type'    => 'text',
 							'default' => 'transportation-category'
 						),
 						array(
 							'name'    => 'organizer_label',
 							'label'   => $label . ' ' . esc_html__( 'Organizer Label', 'mptbm_plugin' ),
-							'desc'    => esc_html__( 'If you want to change the  ' . $label . '  category label in the dashboard menu you can change here', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'If you want to change the  category label in the dashboard menu you can change here', 'mptbm_plugin' ),
 							'type'    => 'text',
 							'default' => 'Organizer'
 						),
 						array(
 							'name'    => 'organizer_slug',
 							'label'   => $label . ' ' . esc_html__( 'Organizer Slug', 'mptbm_plugin' ),
-							'desc'    => esc_html__( 'Please enter the slug name you want for the  ' . $label . '  organizer. Remember, after changing this slug, you need to flush the permalinks. Just go to ', 'mptbm_plugin' ) . '<strong>' . esc_html__( 'Settings-> Permalinks', 'mptbm_plugin' ) . '</strong> ' . esc_html__( 'hit the Save Settings button.', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'Please enter the slug name you want for the  organizer. Remember, after changing this slug, you need to flush the permalinks. Just go to ', 'mptbm_plugin' ) . '<strong>' . esc_html__( 'Settings-> Permalinks', 'mptbm_plugin' ) . '</strong> ' . esc_html__( 'hit the Save Settings button.', 'mptbm_plugin' ),
 							'type'    => 'text',
 							'default' => 'transportation-organizer'
 						),
 						array(
 							'name'    => 'expire',
-							'label'   => esc_html__( 'Expired  ' . $label . '  both Visibility', 'mptbm_plugin' ),
-							'desc'    => esc_html__( 'If you want to visible expired  ' . $label . ' , please select ', 'mptbm_plugin' ) . '<strong> ' . esc_html__( 'Yes', 'mptbm_plugin' ) . '</strong>' . esc_html__( 'or to make it hidden, select', 'mptbm_plugin' ) . '<strong> ' . esc_html__( 'No', 'mptbm_plugin' ) . '</strong>' . esc_html__( '. Default is', 'mptbm_plugin' ) . '<strong>' . esc_html__( 'No', 'mptbm_plugin' ) . '</strong>',
+							'label'   => $label . ' ' . esc_html__( 'Expired  Visibility', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'If you want to visible expired  ?, please select ', 'mptbm_plugin' ) . '<strong> ' . esc_html__( 'Yes', 'mptbm_plugin' ) . '</strong>' . esc_html__( 'or to make it hidden, select', 'mptbm_plugin' ) . '<strong> ' . esc_html__( 'No', 'mptbm_plugin' ) . '</strong>' . esc_html__( '. Default is', 'mptbm_plugin' ) . '<strong>' . esc_html__( 'No', 'mptbm_plugin' ) . '</strong>',
 							'type'    => 'select',
 							'default' => 'no',
 							'options' => array(
@@ -206,7 +226,7 @@
 							)
 						),
 					) ),
-					'mptbm_style_settings' => apply_filters( 'filter_mptbm_style_settings', array(
+					'mp_style_settings'      => apply_filters( 'filter_mp_style_settings', array(
 						array(
 							'name'    => 'theme_color',
 							'label'   => esc_html__( 'Theme Color', 'mptbm_plugin' ),
@@ -320,84 +340,14 @@
 							'default' => '#FAFCFE'
 						),
 					) ),
-                    'mptbm_vehicle_icon_settings' => apply_filters( 'filter_mptbm_vehicle_icon_settings', array(
-                        array(
-                            'name'    => 'engine_icon',
-                            'label'   => esc_html__( 'Engine Icon', 'mptbm_plugin' ),
-                            'desc'    => esc_html__( 'Select Default Engine Icon', 'mptbm_plugin' ),
-                            'type'    => 'file',
-                            'default' => ''
-                        ),
-                        array(
-                            'name'    => 'interior_color_icon',
-                            'label'   => esc_html__( 'Interior Color Icon', 'mptbm_plugin' ),
-                            'desc'    => esc_html__( 'Select Default Interior Icon', 'mptbm_plugin' ),
-                            'type'    => 'file',
-                            'default' => ''
-                        ),
-                        array(
-                            'name'    => 'exterior_color_icon',
-                            'label'   => esc_html__( 'Exterior Color Icon', 'mptbm_plugin' ),
-                            'desc'    => esc_html__( 'Select Default Exterior Color Icon', 'mptbm_plugin' ),
-                            'type'    => 'file',
-                            'default' => ''
-                        ),
-                        array(
-                            'name'    => 'power_icon',
-                            'label'   => esc_html__( 'Power Icon', 'mptbm_plugin' ),
-                            'desc'    => esc_html__( 'Select Default Power Icon', 'mptbm_plugin' ),
-                            'type'    => 'file',
-                            'default' => ''
-                        ),
-                        array(
-                            'name'    => 'fuel_type_icon',
-                            'label'   => esc_html__( 'Fuel Type Icon', 'mptbm_plugin' ),
-                            'desc'    => esc_html__( 'Select Default Fuel Type Icon', 'mptbm_plugin' ),
-                            'type'    => 'file',
-                            'default' => ''
-                        ),
-                        array(
-                            'name'    => 'length_icon',
-                            'label'   => esc_html__( 'Length Icon', 'mptbm_plugin' ),
-                            'desc'    => esc_html__( 'Select Default Length Icon', 'mptbm_plugin' ),
-                            'type'    => 'file',
-                            'default' => ''
-                        ),
-                        array(
-                            'name'    => 'transmission_icon',
-                            'label'   => esc_html__( 'Transmission Icon', 'mptbm_plugin' ),
-                            'desc'    => esc_html__( 'Select Default Transmission Icon', 'mptbm_plugin' ),
-                            'type'    => 'file',
-                            'default' => ''
-                        ),
-                        array(
-                            'name'    => 'extras_icon',
-                            'label'   => esc_html__( 'Extras Icon', 'mptbm_plugin' ),
-                            'desc'    => esc_html__( 'Select Default Extras Icon', 'mptbm_plugin' ),
-                            'type'    => 'file',
-                            'default' => ''
-                        ),
-
-                    ) ),
-                    'mptbm_form_builder_settings' => apply_filters( 'filter_mptbm_form_builder_settings', array(
-                        array(
-                            'name'    => 'form_builder_id',
-                            'label'   => esc_html__( 'Custom Form', 'mptbm_plugin' ),
-                            'desc'    => esc_html__( 'Select Custom Form', 'mptbm_plugin' ),
-                            'type'    => 'select',
-                            'default' => '',
-                            'options' => MPTBM_Form_Builder::get_custom_forms(),
-                        ),
-                    )
-                    ),
-					'mptbm_custom_css'               => apply_filters( 'filter_mptbm_custom_css', array(
-							array(
-								'name'  => 'custom_css',
-								'label' => esc_html__( 'Custom CSS', 'mptbm_plugin' ),
-								'desc'  => esc_html__( 'Write Your Custom CSS Code Here', 'mptbm_plugin' ),
-								'type'  => 'textarea',
-							)
-						) )
+					'mp_add_custom_css'      => apply_filters( 'filter_mp_add_custom_css', array(
+						array(
+							'name'  => 'custom_css',
+							'label' => esc_html__( 'Custom CSS', 'mptbm_plugin' ),
+							'desc'  => esc_html__( 'Write Your Custom CSS Code Here', 'mptbm_plugin' ),
+							'type'  => 'textarea',
+						)
+					) )
 				);
 				return array_merge( $default_fields, $settings_fields );
 			}

@@ -19,7 +19,7 @@ function calculate_price(element)
             }
         });
 
-        parent.find('[data-main-price]').html(mptbm_price_format(main_price));
+        parent.find('[data-main-price]').html(mp_price_format(main_price));
     });
 
 }

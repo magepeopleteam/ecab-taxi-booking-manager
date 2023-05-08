@@ -11,7 +11,7 @@
 				add_action( 'wp', array( $this, 'hide_hidden_wc_product_from_frontend' ) );
 			}
 			public function create_hidden_wc_product_on_publish( $post_id, $post ) {
-				if ( $post->post_type == MPTBM_Function::get_cpt_name() && $post->post_status == 'publish' && empty( MPTBM_Function::get_post_info( $post_id, 'check_if_run_once' ) ) ) {
+				if ( $post->post_type == MPTBM_Function::mp_cpt() && $post->post_status == 'publish' && empty( MP_Global_Function::get_post_info( $post_id, 'check_if_run_once' ) ) ) {
 					$new_post     = array(
 						'post_title'    => $post->post_title,
 						'post_content'  => '',
@@ -34,7 +34,7 @@
 				}
 			}
 			public function run_link_product_on_save( $post_id ) {
-				if ( get_post_type( $post_id ) == MPTBM_Function::get_cpt_name() ) {
+				if ( get_post_type( $post_id ) == MPTBM_Function::mp_cpt() ) {
 					if ( ! isset( $_POST['mptbm_nonce'] ) || ! wp_verify_nonce( $_POST['mptbm_nonce'], 'mptbm_nonce' ) ) {
 						return;
 					}
@@ -45,15 +45,15 @@
 						return;
 					}
 					$title = get_the_title( $post_id );
-					if ( $this->count_hidden_wc_product( $post_id ) == 0 || empty( MPTBM_Function::get_post_info( $post_id, 'link_wc_product' ) ) ) {
+					if ( $this->count_hidden_wc_product( $post_id ) == 0 || empty( MP_Global_Function::get_post_info( $post_id, 'link_wc_product' ) ) ) {
 						$this->create_hidden_wc_product( $post_id, $title );
 					}
-					$product_id = MPTBM_Function::get_post_info( $post_id, 'link_wc_product', $post_id );
+					$product_id = MP_Global_Function::get_post_info( $post_id, 'link_wc_product', $post_id );
 					set_post_thumbnail( $product_id, get_post_thumbnail_id( $post_id ) );
 					wp_publish_post( $product_id );
 					$product_type = 'yes';
-					$_tax_status  = MPTBM_Function::submit_sanitize( '_tax_status', 'none' );
-					$_tax_class   = MPTBM_Function::submit_sanitize( '_tax_class' );
+					$_tax_status  = MP_Global_Function::get_submit_info( '_tax_status', 'none' );
+					$_tax_class   = MP_Global_Function::get_submit_info( '_tax_class' );
 					update_post_meta( $product_id, '_tax_status', $_tax_status );
 					update_post_meta( $product_id, '_tax_class', $_tax_class );
 					update_post_meta( $product_id, '_stock_status', 'instock' );
@@ -92,7 +92,7 @@
 					$visibility = get_the_terms( $post_id, 'product_visibility' );
 					if ( is_object( $visibility ) ) {
 						if ( $visibility[0]->name == 'exclude-from-catalog' ) {
-							$check_event_hidden = MPTBM_Function::get_post_info( $post_id, 'link_mptbm_id', 0 );
+							$check_event_hidden = MP_Global_Function::get_post_info( $post_id, 'link_mptbm_id', 0 );
 							if ( $check_event_hidden > 0 ) {
 								$wp_query->set_404();
 								status_header( 404 );

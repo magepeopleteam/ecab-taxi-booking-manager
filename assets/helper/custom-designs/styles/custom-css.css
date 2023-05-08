@@ -13,9 +13,6 @@
     border-radius: 15px;
 }
 
-#global-search-container *:not(.dashicons):not(.fa):not(.fa):not(.far):not(.fas) {
-    box-sizing: border-box;
-}
 
 #global-searched-item-details {
     display: grid;
@@ -409,11 +406,6 @@ table:not(.has-background) tbody tr:nth-child(n) td, fieldset, fieldset legend {
 .icon-item .table-1 tr > td:nth-child(2),
 .icon-item .table-2 tr > td:nth-child(2) {
     width: 80%;
-}
-
-#icon-details  [class*="car-icon-image"] {
-    width: var(--fs);
-    height: var(--fs);
 }
 
 #product-details .car-select {

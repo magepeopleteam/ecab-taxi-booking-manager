@@ -4,7 +4,7 @@
 	} // Cannot access pages directly.
 	if ( ! class_exists( 'MP_Select_Icon_image' ) ) {
 		$GLOBALS['mp_icon_popup_exit'] = false;
-		class MPTBM_Select_Icon_image {
+		class MP_Select_Icon_image {
 			public function __construct() {
 				add_action( 'mp_input_add_icon', array( $this, 'load_icon' ), 10, 2 );
 				add_action( 'mp_add_single_image', array( $this, 'add_single_image' ), 10, 2 );
@@ -16,14 +16,14 @@
 				<div class="mp_add_icon_area">
 					<button type="button" class="mp_add_icon dButton_xs ">
 						<input type="hidden" name="<?php echo esc_html( $name ); ?>" placeholder="" value="<?php echo esc_html( $value ); ?>"/>
-						<span class="<?php echo esc_html( $value ); ?>" data-empty-text="<?php esc_html_e( 'Add Icon', 'mpwpb_plugin' ); ?>">
+						<span class="<?php echo esc_html( $value ); ?>" data-empty-text="<?php esc_html_e( 'Add Icon', 'mptbm_plugin' ); ?>">
 			                    <?php
-							  if ( ! $value ) {
-								  esc_html_e( 'Add Icon', 'mpwpb_plugin' );
-							  }
-						  ?>
+				                    if ( ! $value ) {
+					                    esc_html_e( 'Add Icon', 'mptbm_plugin' );
+				                    }
+			                    ?>
 			                </span>
-						<span class="fas fa-times remove_input_icon <?php echo esc_html( $value ? 'active' : '' ); ?> " title="<?php esc_html_e( 'Remove Icon', 'mpwpb_plugin' ); ?>"></span>
+						<span class="fas fa-times remove_input_icon <?php echo esc_html( $value ? 'active' : '' ); ?> " title="<?php esc_html_e( 'Remove Icon', 'mptbm_plugin' ); ?>"></span>
 					</button>
 				</div>
 				<?php
@@ -36,7 +36,7 @@
 					<div class="mp_add_icon_popup mpPopup mpStyle" data-popup="#mp_add_icon_popup">
 						<div class="popupMainArea fullWidth">
 							<div class="popupHeader">
-								<h2><?php esc_html_e( 'Select Icon', 'mpwpb_plugin' ); ?></h2>
+								<h2><?php esc_html_e( 'Select Icon', 'mptbm_plugin' ); ?></h2>
 								<span class="fas fa-times popupClose"></span>
 							</div>
 							<div class="popupBody">
@@ -50,7 +50,7 @@
 										?>
 										<div class="dFlex">
 											<ul class="popupIconMenu">
-												<li class="active" data-icon-menu="all_item"><?php esc_html_e( 'All Icon', 'mpwpb_plugin' ); ?>&nbsp;(<strong><?php echo esc_html( $total_icon ); ?></strong>)</li>
+												<li class="active" data-icon-menu="all_item"><?php esc_html_e( 'All Icon', 'mptbm_plugin' ); ?>&nbsp;(<strong><?php echo esc_html( $total_icon ); ?></strong>)</li>
 												<?php
 													foreach ( $icons as $key => $icon ) {
 														?>
@@ -104,13 +104,13 @@
 						</div>
 					<?php } ?>
 					<button type="button" class="_dButton_xs_bgColor_1_fullWidth <?php echo esc_attr( $image_id ? 'dNone' : '' ); ?>">
-						<span class="fas fa-images mR_xs"></span><?php esc_html_e( 'Image', 'mpwpb_plugin' ); ?>
+						<span class="fas fa-images mR_xs"></span><?php esc_html_e( 'Image', 'mptbm_plugin' ); ?>
 					</button>
 				</div>
 				<?php
 			}
 			public function add_multi_image( $name, $images ) {
-				$images = is_array( $images ) ? MPTBM_Function::array_to_string( $images ) : $images;
+				$images = is_array( $images ) ? MP_Global_Function::array_to_string( $images ) : $images;
 				?>
 				<div class="mp_multi_image_area">
 					<input type="hidden" class="mp_multi_image_value" name="<?php echo esc_attr( $name ); ?>" value="<?php esc_attr_e( $images ); ?>"/>
@@ -122,7 +122,7 @@
 									?>
 									<div class="mp_multi_image_item" data-image-id="<?php esc_attr_e( $image ); ?>">
 										<span class="fas fa-times circleIcon_xs mp_remove_multi_image"></span>
-										<img src="<?php echo MPTBM_Function::get_image_url( '', $image, 'medium' ); ?>" alt="<?php esc_attr_e( $image ); ?>"/>
+										<img src="<?php echo MP_Global_Function::get_image_url( '', $image, 'medium' ); ?>" alt="<?php esc_attr_e( $image ); ?>"/>
 									</div>
 									<?php
 								}
@@ -130,9 +130,8 @@
 						?>
 					</div>
 					<button type="button" class="_dButton_bgColor_1 add_multi_image">
-						<span class="fas fa-images mR_xs"></span><?php esc_html_e( 'Image', 'mpwpb_plugin' ); ?>
+						<span class="fas fa-images mR_xs"></span><?php esc_html_e( 'Image', 'mptbm_plugin' ); ?>
 					</button>
-					<?php //MPTBM_Layout::add_new_button( esc_html__( 'Add Image', 'mpwpb_plugin' ), 'add_multi_image', '_dButton_bgColor_1' ); ?>
 				</div>
 				<?php
 			}
@@ -141,6 +140,7 @@
 				$icon_class = $icon ? '' : 'dNone';
 				$image_class = $image ? '' : 'dNone';
 				$value=$image?:$icon;
+				$button_active_class=$icon || $image?'dNone':'';
 				?>
 				<div class="mp_add_icon_image_area fdColumn">
 					<input type="hidden" name="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $value ); ?>"/>
@@ -148,16 +148,19 @@
 						<div class="allCenter">
 							<span class="<?php echo esc_attr( $icon ); ?>" data-add-icon></span>
 						</div>
-						<span class="fas fa-times mp_remove_icon mp_icon_remove" title="<?php esc_html_e( 'Remove Icon', 'mpwpb_plugin' ); ?>"></span>
+						<span class="fas fa-times mp_remove_icon mp_icon_remove" title="<?php esc_html_e( 'Remove Icon', 'mptbm_plugin' ); ?>"></span>
 					</div>
 					<div class="mp_image_item <?php echo esc_attr( $image_class ); ?>">
-						<img class="" src="<?php echo esc_attr( MPTBM_Function::get_image_url( '', $image, 'medium' ) ); ?>" alt="">
-						<span class="fas fa-times mp_remove_icon mp_image_remove" title="<?php esc_html_e( 'Remove Image', 'mpwpb_plugin' ); ?>"></span>
+						<img class="" src="<?php echo esc_attr( MP_Global_Function::get_image_url( '', $image, 'medium' ) ); ?>" alt="">
+						<span class="fas fa-times mp_remove_icon mp_image_remove" title="<?php esc_html_e( 'Remove Image', 'mptbm_plugin' ); ?>"></span>
 					</div>
-					<div class="flexEqual">
-						<button class="_mpBtn_xs mp_image_add" type="button"><span class="fas fa-images"></span><?php esc_html_e( 'Image', 'mpwpb_plugin' ); ?></button>
-						<button class="_mpBtn_xs mp_icon_add" type="button" data-target-popup="#mp_add_icon_popup"><span class="fas fa-plus"></span><?php esc_html_e( 'Icon', 'mpwpb_plugin' ); ?></button>
+					<div class="mp_add_icon_image_button_area <?php echo esc_attr( $button_active_class ); ?>">
+						<div class="flexEqual">
+							<button class="_mpBtn_xs mp_image_add" type="button"><span class="fas fa-images"></span><?php esc_html_e( 'Image', 'mptbm_plugin' ); ?></button>
+							<button class="_mpBtn_xs mp_icon_add" type="button" data-target-popup="#mp_add_icon_popup"><span class="fas fa-plus"></span><?php esc_html_e( 'Icon', 'mptbm_plugin' ); ?></button>
+						</div>
 					</div>
+
 				</div>
 				<?php
 				add_action( 'admin_footer', array( $this, 'icon_popup' ) );
@@ -1906,5 +1909,5 @@
 				];
 			}
 		}
-		new MPTBM_Select_Icon_image();
+		new MP_Select_Icon_image();
 	}

@@ -16,13 +16,13 @@
 				return get_posts( array(
 					'fields'         => 'ids',
 					'posts_per_page' => - 1,
-					'post_type'      => MPTBM_Function::get_cpt_name(),
+					'post_type'      => MPTBM_Function::mp_cpt(),
 					'post_status'    => 'publish'
 				) );
 			}
 			public static function query_transport_list($price_based): WP_Query {
 				$args = array(
-					'post_type'      => array( MPTBM_Function::get_cpt_name() ),
+					'post_type'      => array( MPTBM_Function::mp_cpt() ),
 					'posts_per_page' => - 1,
 					'meta_key'       => 'mptbm_price_based',
 					'meta_value'       =>$price_based

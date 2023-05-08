@@ -99,19 +99,18 @@ function load_sortable_datepicker(parent, item) {
 (function ($) {
 	"use strict";
 	//=================select icon=========================//
-	$(document).on('click', 'button.mp_icon_add', function () {
-		let $this = $(this);
-		let parent = $this.closest('.mp_add_icon_image_area');
+	$(document).on('click', '.mp_add_icon_image_area button.mp_icon_add', function () {
 		let target_popup = $('.mp_add_icon_popup');
 		target_popup.find('.iconItem').click(function () {
+			let parent = $('[data-active-popup]').closest('.mp_add_icon_image_area');
 			let icon_class = $(this).data('icon-class');
 			if (icon_class) {
 				parent.find('input[type="hidden"]').val(icon_class);
+				parent.find('.mp_add_icon_image_button_area').slideUp('fast');
 				parent.find('.mp_image_item').slideUp('fast');
 				parent.find('.mp_icon_item').slideDown('fast');
 				parent.find('[data-add-icon]').removeAttr('class').addClass(icon_class);
 				target_popup.find('.iconItem').removeClass('active');
-				$(this).addClass('active');
 				target_popup.find('.popupClose').trigger('click');
 			}
 		});
@@ -142,6 +141,7 @@ function load_sortable_datepicker(parent, item) {
 		parent.find('input[type="hidden"]').val('');
 		parent.find('[data-add-icon]').removeAttr('class');
 		parent.find('.mp_icon_item').slideUp('fast');
+		parent.find('.mp_add_icon_image_button_area').slideDown('fast');
 	});
 	//=================select Single image=========================//
 	$(document).on('click', 'button.mp_image_add', function () {
@@ -154,6 +154,7 @@ function load_sortable_datepicker(parent, item) {
 			parent.find('.mp_icon_item').slideUp('fast');
 			parent.find('img').attr('src', attachment_url);
 			parent.find('.mp_image_item').slideDown('fast');
+			parent.find('.mp_add_icon_image_button_area').slideUp('fast');
 		}
 		wp.media.editor.open($this);
 		return false;
@@ -163,5 +164,6 @@ function load_sortable_datepicker(parent, item) {
 		parent.find('input[type="hidden"]').val('');
 		parent.find('img').attr('src', '');
 		parent.find('.mp_image_item').slideUp('fast');
+		parent.find('.mp_add_icon_image_button_area').slideDown('fast');
 	});
 }(jQuery));

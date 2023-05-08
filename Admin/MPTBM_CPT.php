@@ -44,11 +44,11 @@
 					'public'       => true,
 					'labels'       => $labels,
 					'menu_icon'    => $icon,
-					'supports'     => [ 'title', 'thumbnail', 'editor', 'excerpt' ],
+					'supports'     => [ 'title', 'thumbnail'],
 					'rewrite'      => [ 'slug' => $slug ],
 					'show_in_rest' => true
 				];
-				register_post_type( MPTBM_Function::get_cpt_name(), $args );
+				register_post_type( MPTBM_Function::mp_cpt(), $args );
 
 			}
 		}
