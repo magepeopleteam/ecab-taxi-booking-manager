@@ -2,9 +2,9 @@
 /******************************************************************** Global settings ************************************************/
 @media only screen and (min-width: 10px) {
 	div.mp_settings_panel {overflow: hidden;position: relative;display: -webkit-flex;display: flex; line-height: 1.4;}
-	div.mp_settings_panel tr.set_book_status fieldset ,
+	div.mp_settings_panel tr.set_book_status fieldset,
 	div.mp_settings_panel tr.payment_system fieldset {display: -webkit-flex;display: flex; -webkit-flex-wrap: wrap;flex-wrap: wrap;}
-	div.mp_settings_panel tr.set_book_status fieldset label ,
+	div.mp_settings_panel tr.set_book_status fieldset label,
 	div.mp_settings_panel tr.payment_system fieldset label {min-width: 150px;margin: 0 var(--dMP_xs) var(--dMP_xs) 0;}
 	/*******************/
 	.mp_settings_panel_header { background: #161B37;padding: 30px 20px 30px 20px;color: #FFF;font-size: 20px;margin-top: 30px;}
@@ -14,12 +14,12 @@
 		display: -webkit-flex;display: flex;
 		-webkit-flex-direction: column;flex-direction: column;
 		background: #161B37;border: 5px solid #C6C6C6;
-	}
+		}
 	.mp_settings_panel .nav-tab {
 		margin: 0;width: 100%; font-weight: 600;text-decoration: none;white-space: nowrap; line-height: 1.4;color: #FFF;
 		background-color: transparent;border: none;border-bottom: 1px dotted #FFF;
 		float: initial;padding: 10px 12px;font-size: 14px;transition: 0.2s;
-	}
+		}
 	.mp_settings_panel .nav-tab:hover {background: #49AC2F;transition: 0.2s;}
 	.mp_settings_panel .nav-tab.nav-tab-active { background: #49AC2F;color: #FFF;}
 	.mp_settings_panel .metabox-holder {background: #FFF;padding: 10px;margin: 0;width: calc(100% - 300px);border: 5px solid #C6C6C6;}
@@ -51,7 +51,7 @@
 	.mp_settings_panel .metabox-holder table th { padding: 12px;}
 	.mp_settings_panel .metabox-holder table tr:nth-child(even) { background-color: #0CB32612;}
 	.mp_settings_panel .metabox-holder table tr:nth-child(odd) { background-color: #FFF;}
-}
+	}
 /******************************************************************** Meta tab settings ************************************************/
 @media only screen and (min-width: 10px) {
 	#mp_meta_box_panel .tabLists {border-right: 1px solid var(--color_border);}
@@ -61,7 +61,7 @@
 	#mp_meta_box_panel table tr:nth-child(odd) {background-color: #FFF;}
 	#mp_meta_box_panel table th,
 	#mp_meta_box_panel table td {border: 0;vertical-align: top;padding: 5px;}
-	#mp_meta_box_panel table th {text-align: center;font-size: var(--font-size-label);font-weight: 600;}
+	#mp_meta_box_panel table th {text-align: center;font-size: var(--fs_label);font-weight: 600;}
 	#mp_meta_box_panel table tbody th {text-align: left;}
 	#mp_meta_box_panel table tbody thead th {text-align: center;}
 	/************************************/
@@ -73,7 +73,7 @@
 	#mp_meta_box_panel .postbox-header h2 {color: #FFF;font-size: 18px;-webkit-justify-content: flex-start;justify-content: flex-start;}
 	#mp_meta_box_panel .postbox-header h2 span {margin: 0 7px 0 0;}
 	#mp_meta_box_panel .wp-editor-wrap {width: 100%;}
-}
+	}
 /******************************************************************** Image upload  ************************************************/
 @media only screen and (min-width: 10px) {
 	div.mp_multi_image { display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap;}
@@ -85,7 +85,7 @@
 	div.mp_multi_image_item:hover span.mp_remove_multi_image {opacity: 0.9;}
 	div.mp_add_single_image {max-width: 150px;width: 100%;}
 	div.mp_single_image_item {position: relative; width: 100%;}
-}
+	}
 /******************************************************************** add Icon image ************************************************/
 @media only screen and (min-width: 10px) {
 	div.mp_add_icon_image_area {border: 1px solid var(--color_theme);position: relative;max-width: 120px;}
@@ -100,25 +100,25 @@
 		color: #FFF;height: 60px;
 		margin: 0 auto;width: 100%;background-color: #222;position: relative;
 		border-bottom: 1px solid #FFF;
-	}
+		}
 	div.mp_add_icon_popup .popupHeader h2 {
 		color: #FFF;text-align: center;
 		font-size: 30px !important;
 		font-weight: 500;
-	}
+		}
 	div.mp_add_icon_popup .popupBody {padding: 0;}
 	div.mp_add_icon_popup ul.popupIconMenu {
 		min-width: 270px;background-color: #222;margin: 0;
 		max-height: calc(100vh - var(--dMP) - var(--dMP) - 60px);
 		overflow: hidden auto;
-	}
+		}
 	div.mp_add_icon_popup .popupIconMenu li {
 		padding: 7px 15px;margin: 0;
 		border-bottom: 1px solid #DDD;
 		color: #FFF;font-size: 16px;display: block;cursor: pointer;
 		position: relative;
 		font-weight: 500;
-	}
+		}
 	div.mp_add_icon_popup .popupIconMenu li strong {color: #9F6C8A;}
 	div.mp_add_icon_popup .popupIconMenu li.active {background-color: #E3A939;}
 	div.mp_add_icon_popup .popupIconMenu li:hover {color: #E3A939;}
@@ -127,19 +127,19 @@
 		width: 100%;padding: 10px;background-color: #FFF;
 		max-height: calc(100vh - var(--dMP) - var(--dMP) - 60px);
 		overflow: hidden auto;
-	}
+		}
 	div.mp_add_icon_popup .popup_all_icon .popupTabItem {width: 100%;}
 	div.mp_add_icon_popup .popup_all_icon .itemIconArea {
 		width: 100%;
 		display: -webkit-flex;display: flex;
 		-webkit-flex-wrap: wrap;flex-wrap: wrap;
-	}
+		}
 	div.mp_add_icon_popup .iconItem {
 		width: 60px;height: 60px;font-size: 30px;margin: 7px;cursor: pointer;
 		border: 2px solid #FFF;background-color: #F2F2F2;
 		-webkit-box-shadow: 0 1px 4px 1px #DBDBDB;
 		box-shadow: 0 1px 4px 1px #DBDBDB;
-	}
+		}
 	div.mp_add_icon_popup .iconItem.active,
 	div.mp_add_icon_popup .iconItem:hover {border-color: var(--color_theme);color: var(--color_theme);border-radius: 5px;}
 	/************* font***************/
@@ -149,23 +149,23 @@
 		-moz-transition: 350ms ease-in-out;
 		-o-transition: 350ms ease-in-out;
 		transition: 350ms ease-in-out;
+		}
 	}
-}
 /********************************************************************  ************************************************/
 @media only screen and (min-width: 10px) {
-}
+	}
 /******************************************************************** ************************************************/
 @media only screen and (min-width: 10px) {
-	div.mpStyle .adminLayout,
-	div.mpStyle [class*="_adminLayout"]{padding: 50px;max-width: 1000px;margin: 100px auto;background-color: #FFF;border: 1px solid var(--color_border);border-radius: var(--dBRL);}
+	.mpStyle .adminLayout,
+	.mpStyle [class*="_adminLayout"] {padding: 50px;max-width: 1000px;margin: 100px auto;background-color: #FFF;border: 1px solid var(--color_border);border-radius: var(--dBRL);}
 	div.mpStyle .adminLayout th,
 	div.mpStyle .adminLayout td,
 	div.mpStyle [class*="_adminLayout"] th,
-	div.mpStyle [class*="_adminLayout"] td{text-align: left;font-size: var(--fs_h5);}
-}
+	div.mpStyle [class*="_adminLayout"] td {text-align: left;font-size: var(--fs_h5);}
+	}
 /********************************************************************  ************************************************/
 @media only screen and (min-width: 10px) {
-}
+	}
 /********Info Text******************/
 div.mpStyle .info_text {display: block;font-weight: normal;font-size: var(--fs_small);color: #666;}
 div.mpStyle .info_text span {margin: 0 5px 0 0;}
