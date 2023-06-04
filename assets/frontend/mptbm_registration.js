@@ -245,6 +245,7 @@ function mptbm_price_calculation(parent) {
 			target_summary.slideUp(350);
 			target_extra_service.slideUp(350);
 			parent.find('[name="mptbm_post_id"]').val('');
+			parent.find('.mptbm_add_to_cart').attr('value','');
 		} else {
 			parent.find('.mptbm_transport_select.active_select').each(function () {
 				$(this).removeClass('active_select');
@@ -258,6 +259,8 @@ function mptbm_price_calculation(parent) {
 				$this.addClass('active_select');
 				mp_all_content_change($this);
 				parent.find('[name="mptbm_post_id"]').val(post_id).attr('data-price', transport_price).promise().done(function () {
+					let link_id=$this.data('link-id')
+					parent.find('.mptbm_add_to_cart').attr('value',link_id);
 					mptbm_price_calculation(parent);
 				});
 				target_summary.slideDown(350);

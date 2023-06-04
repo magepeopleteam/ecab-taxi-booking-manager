@@ -129,25 +129,15 @@
 				$price = self::get_price($post_id);
 				return MP_Global_Function::wc_price($post_id, $price);
 			}
-			public static function get_extra_service_price_by_name($post_id, $service_name) {
-				$extra_services = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_service_data', array());
-				$price = '';
-				if (sizeof($extra_services) > 0) {
+			public static function get_extra_service_price_by_name($service_name) {
+				$extra_services = get_option('mptbm_extra_services');
+				$display_extra_services = get_option('display_mptbm_extra_services', 'on');
+				$price = 0;
+				if ($display_extra_services == 'on' && is_array($extra_services) && sizeof($extra_services) > 0) {
 					foreach ($extra_services as $service) {
-						if ($service['service_name'] == $service_name) {
-							return $service['service_price'];
-						}
-					}
-				}
-				return $price;
-			}
-			public static function get_extra_service_quantity_by_name($post_id, $service_name) {
-				$extra_services = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_service_quantity', array());
-				$price = '';
-				if (sizeof($extra_services) > 0) {
-					foreach ($extra_services as $service) {
-						if ($service['service_name'] == $service_name) {
-							return $service['service_price'];
+						$ex_service_name = array_key_exists('service_name', $service) ? $service['service_name'] : '';
+						if ($ex_service_name== $service_name) {
+							return array_key_exists('service_price', $service) ? $service['service_price'] : 0;
 						}
 					}
 				}

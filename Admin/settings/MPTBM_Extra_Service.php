@@ -7,6 +7,9 @@
 			public function __construct() {
 				add_action('admin_menu', array($this, 'extra_service_menu'));
 				add_action('mptbm_extra_service_item', array($this, 'extra_service_item'));
+				//****************************//
+				add_action('add_mptbm_settings_tab_content', [$this, 'ex_service_settings'], 10, 1);
+				add_action('mptbm_settings_save', [$this, 'save_ex_service_settings']);
 			}
 			public function extra_service_menu() {
 				$cpt = MPTBM_Function::get_cpt();
@@ -17,20 +20,15 @@
 					$this->save_extra_service();
 				}
 				$extra_services = get_option('mptbm_extra_services');
-				$display = get_option('display_mptbm_extra_services', 'on');
-				$active = $display == 'off' ? '' : 'mActive';
-				$checked = $display == 'off' ? '' : 'checked';
+				
 				?>
                 <div class="wrap"></div>
                 <div class="mpStyle">
                     <form method="post" action="">
                         <div class=_dShadow_6_adminLayout_max_1200">
-                            <h5 class="dFlex">
-                                <span class="mR"><?php esc_html_e('On/Off Extra Service Settings', 'mptbm_plugin'); ?></span>
-								<?php MP_Custom_Layout::switch_button('display_mptbm_extra_services', $checked); ?>
-                            </h5>
-							<?php MPTBM_Settings::info_text('display_mptbm_extra_services'); ?>
-                            <div data-collapse="#display_mptbm_extra_services" class="mp_settings_area mT <?php echo esc_attr($active); ?>">
+                            <h5><?php esc_html_e('Global Extra Service Settings', 'mptbm_plugin'); ?></h5>
+							<?php MPTBM_Settings::info_text('mptbm_extra_services_global'); ?>
+                            <div class="mp_settings_area mT">
                                 <div class="divider"></div>
                                 <div class="ovAuto mt_xs">
                                     <table>
@@ -135,8 +133,71 @@
 					}
 					$extra_service_data = apply_filters('filter_mptbm_extra_service_data', $new_extra_service);
 					update_option('mptbm_extra_services', $extra_service_data);
+				}
+			}
+			//**************************************//
+			public function ex_service_settings($post_id) {
+				$extra_services = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_services', []);
+				$display = MP_Global_Function::get_post_info($post_id, 'display_mptbm_extra_services', 'on');
+				$service_type = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_services_type', 'global');
+				$active = $display == 'off' ? '' : 'mActive';
+				$checked = $display == 'off' ? '' : 'checked';
+				?>
+				<div class="tabsItem" data-tabs="#mptbm_settings_ex_service">
+					<h5 class="dFlex">
+						<span class="mR"><?php esc_html_e('On/Off Extra Service Settings', 'mptbm_plugin'); ?></span>
+						<?php MP_Custom_Layout::switch_button('display_mptbm_extra_services', $checked); ?>
+					</h5>
+					<?php MPTBM_Settings::info_text('display_mptbm_extra_services'); ?>
+					<div data-collapse="#display_mptbm_extra_services" class="mp_settings_area mT <?php echo esc_attr($active); ?>">
+						<div class="divider"></div>
+						<label class="max_600">
+							<span class="max_300"><?php esc_html_e( 'Select extra option :', 'mptbm_plugin' ); ?></span>
+							<select class="formControl" name="mptbm_extra_services_type">
+								<option value=""><?php esc_html_e( 'Select extra option', 'mptbm_plugin' ); ?></option>
+								<option value="global" <?php echo esc_attr( $service_type == 'global' ? 'selected' : '' ); ?>><?php esc_html_e( 'Global', 'mptbm_plugin' ); ?></option>
+								<option value="custom" <?php echo esc_attr( $service_type == 'custom' ? 'selected' : '' ); ?>><?php esc_html_e( 'Custom', 'mptbm_plugin' ); ?></option>
+							</select>
+						</label>
+						<?php MPTBM_Settings::info_text('mptbm_extra_services_type'); ?>
+						<div class="divider"></div>
+						<div class="ovAuto mt_xs">
+							<table>
+								<thead>
+								<tr>
+									<th><span><?php esc_html_e('Service Icon', 'mptbm_plugin'); ?></span></th>
+									<th><span><?php esc_html_e('Service Name', 'mptbm_plugin'); ?></span></th>
+									<th><span><?php esc_html_e('Short description', 'mptbm_plugin'); ?></span></th>
+									<th><span><?php esc_html_e('Service Price', 'mptbm_plugin'); ?></span></th>
+									<th><span><?php esc_html_e('Qty Box Type', 'mptbm_plugin'); ?></span></th>
+									<th><span><?php esc_html_e('Action', 'mptbm_plugin'); ?></span></th>
+								</tr>
+								</thead>
+								<tbody class="mp_sortable_area mp_item_insert">
+								<?php
+									if (sizeof($extra_services) > 0) {
+										foreach ($extra_services as $extra_service) {
+											$this->extra_service_item($extra_service);
+										}
+									}
+								?>
+								</tbody>
+							</table>
+						</div>
+						<?php MP_Custom_Layout::add_new_button(esc_html__('Add Extra New Service', 'mptbm_plugin')); ?>
+						<?php do_action('add_mp_hidden_table', 'mptbm_extra_service_item'); ?>
+					</div>
+				</div>
+				<?php
+			}
+			
+			public function save_ex_service_settings($post_id) {
+				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 					$display = MP_Global_Function::get_submit_info('display_mptbm_extra_services') ? 'on' : 'off';
-					update_option('display_mptbm_extra_services', $display);
+					update_post_meta($post_id, 'display_mptbm_extra_services', $display);
+					$extra_services=[];
+					update_post_meta($post_id, 'mptbm_extra_services', $extra_services);
+;
 				}
 			}
 		}

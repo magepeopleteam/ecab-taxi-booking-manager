@@ -1,6 +1,8 @@
 <?php
+	$post_id = $post_id ?? '';
 	$extra_services = get_option('mptbm_extra_services');
 	$display_extra_services = get_option('display_mptbm_extra_services', 'on');
+	
 ?>
 	<div class="dLayout mptbm_extra_service">
 		<?php if ($display_extra_services == 'on' && is_array($extra_services) && sizeof($extra_services) > 0) { ?>
@@ -59,7 +61,7 @@
 			<span class="fas fa-cart-plus"></span>
 			<?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
 		</button>
-		<button type="submit" name="add-to-cart" value="" class="dNone mptbm_add_to_cart">
+		<button type="submit" name="add-to-cart" value=""  class="dNone mptbm_add_to_cart">
 			<?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
 		</button>
 	</div>

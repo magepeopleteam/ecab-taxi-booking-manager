@@ -6,6 +6,7 @@
     $start_place = $start_place ?? MP_Global_Function::data_sanitize($_POST['start_place']);
     $end_place = $end_place ?? MP_Global_Function::data_sanitize($_POST['end_place']);
     $location_exit = MPTBM_Function::location_exit($post_id, $start_place, $end_place);
+	$link_wc_product = MP_Global_Function::get_post_info( $post_id, 'link_wc_product' );
     if ($location_exit && $post_id) {
         //$product_id = MP_Global_Function::get_post_info($post_id, 'link_wc_product');
         $thumbnail = MP_Global_Function::get_image_url($post_id);
@@ -50,8 +51,9 @@
                         <button type="button" class="_dButton_xs_w_150 mptbm_transport_select"
                                 data-transport-name="<?php echo get_the_title($post_id); ?>"
                                 data-transport-price="<?php echo esc_attr($raw_price); ?>"
+                                data-link-id="<?php echo esc_attr($link_wc_product); ?>"
                                 data-post-id="<?php echo esc_attr($post_id); ?>"
-                                data-open-text="<?php esc_html_e('Select Car', 'mptbm_plugin'); ?>"
+                                data-open-text="<?php esc_attr_e('Select Car', 'mptbm_plugin'); ?>"
                                 data-close-text="<?php esc_html_e('Selected', 'mptbm_plugin'); ?>"
                                 data-open-icon="" data-close-icon="fas fa-check">
                             <span class="" data-icon></span>&nbsp;&nbsp;

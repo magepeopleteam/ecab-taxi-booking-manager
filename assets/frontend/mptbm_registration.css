@@ -1,5 +1,6 @@
 /******************************************************************** ************************************************/
 @media only screen and (min-width: 10px) {
+	div.mptbm_transport_search_area {min-width: 1000px;}
 	div.mptbm_transport_search_area div.tabsContentNext {padding: 0; margin: 30px 0 0 0; }
 	div.mptbm_transport_search_area div.mptbm_distance_time { display: none; margin: var(--dMP) 0 0 0; }
 	div.mptbm_transport_search_area ul.list_inline_two li {border: none;}
@@ -9,4 +10,4 @@
 	div.mptbm_transport_summary,
 	div.mptbm_extra_service {display: none;}
 	div.mptbm_transport_search_area div[data-extra-service] {display: none;}
-}
+	}

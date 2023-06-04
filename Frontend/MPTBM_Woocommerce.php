@@ -17,32 +17,38 @@
 			}
 			public function add_cart_item_data($cart_item_data, $product_id) {
 				$linked_id = MP_Global_Function::get_post_info($product_id, 'link_mptbm_id', $product_id);
-				$product_id = is_string(get_post_status($linked_id)) ? $linked_id : $linked_id;
-				if (get_post_type($product_id) == MPTBM_Function::get_cpt()) {
-					$total_price = $this->get_cart_total_price($product_id);
+				$post_id = is_string(get_post_status($linked_id)) ? $linked_id : $product_id;
+				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
+					$distance = $_COOKIE['mptbm_distance'] ?? '';
+					$duration = $_COOKIE['mptbm_duration'] ?? '';
+					$start_place = MP_Global_Function::get_submit_info('mptbm_start_place');
+					$end_place = MP_Global_Function::get_submit_info('mptbm_end_place');
+					$total_price = $this->get_cart_total_price($post_id);
 					$cart_item_data['mptbm_date'] = MP_Global_Function::get_submit_info('mptbm_date');
-					$cart_item_data['mptbm_start_place'] = MP_Global_Function::get_submit_info('mptbm_start_place');
-					$cart_item_data['mptbm_end_place'] = MP_Global_Function::get_submit_info('mptbm_end_place');
-					$cart_item_data['mptbm_distance'] = $_COOKIE['mptbm_distance_text'] ?? '';
-					$cart_item_data['mptbm_duration'] = $_COOKIE['mptbm_duration_text'] ?? '';
-					$cart_item_data['mptbm_currency'] = get_woocommerce_currency();
-					$cart_item_data['mptbm_currency_pos'] = get_option('woocommerce_currency_pos');
-					$cart_item_data['mptbm_base_price'] = $this->get_base_price($product_id);
-					$cart_item_data['mptbm_user_info'] = apply_filters('add_mptbm_user_info_data', array(), $product_id);
-					$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info($product_id);
-					$cart_item_data['mptbm_booking_info'] = self::get_booking_info();
+					$cart_item_data['mptbm_start_place'] = $start_place;
+					$cart_item_data['mptbm_end_place'] = $end_place;
+					$cart_item_data['mptbm_distance'] = $distance;
+					$cart_item_data['mptbm_distance_text'] = $_COOKIE['mptbm_distance_text'] ?? '';
+					$cart_item_data['mptbm_duration'] = $duration;
+					$cart_item_data['mptbm_duration_text'] = $_COOKIE['mptbm_duration_text'] ?? '';
+					//$cart_item_data['mptbm_base_price'] = $this->get_base_price($product_id);
+					$cart_item_data['mptbm_price'] = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place);
+					$cart_item_data['mptbm_user_info'] = apply_filters('add_mptbm_user_info_data', array(), $post_id);
+					$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info();
+					//$cart_item_data['mptbm_booking_info'] = self::get_booking_info();
 					$cart_item_data['mptbm_tp'] = $total_price;
 					$cart_item_data['line_total'] = $total_price;
 					$cart_item_data['line_subtotal'] = $total_price;
-					$cart_item_data = apply_filters('mptbm_add_cart_item', $cart_item_data, $product_id);
+					$cart_item_data = apply_filters('mptbm_add_cart_item', $cart_item_data, $post_id);
 				}
-				$cart_item_data['mptbm_id'] = $product_id;
+				$cart_item_data['mptbm_id'] = $post_id;
+				echo '<pre>';print_r($cart_item_data);echo '</pre>';die();
 				return $cart_item_data;
 			}
 			public function before_calculate_totals($cart_object) {
 				foreach ($cart_object->cart_contents as $value) {
-					$mptbm_id = array_key_exists('mptbm_id', $value) ? $value['mptbm_id'] : 0;
-					if (get_post_type($mptbm_id) == MPTBM_Function::get_cpt()) {
+					$post_id = array_key_exists('mptbm_id', $value) ? $value['mptbm_id'] : 0;
+					if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 						$total_price = $value['mptbm_tp'];
 						$value['data']->set_price($total_price);
 						$value['data']->set_regular_price($total_price);
@@ -89,8 +95,6 @@
 					$end_location = $values['mptbm_end_place'] ?? '';
 					$distance = $values['mptbm_distance'] ?? '';
 					$duration = $values['mptbm_duration'] ?? '';
-					$currency = $values['mptbm_currency'] ?? '';
-					$currency_pos = $values['mptbm_currency_pos'] ?? '';
 					$base_price = $values['mptbm_base_price'] ?? '';
 					$extra_service = $values['mptbm_extra_service_info'] ?? [];
 					$booking_info = $values['mptbm_booking_info'] ?? [];
@@ -114,8 +118,6 @@
 					$item->add_meta_data('_mptbm_end_place', $end_location);
 					$item->add_meta_data('_mptbm_distance', $distance);
 					$item->add_meta_data('_mptbm_duration', $duration);
-					$item->add_meta_data('_mptbm_currency', $currency);
-					$item->add_meta_data('_mptbm_currency_pos', $currency_pos);
 					$item->add_meta_data('_mptbm_base_price', $base_price);
 					$item->add_meta_data('_mptbm_user_info', $user_info);
 					$item->add_meta_data('_mptbm_service_info', $extra_service);
@@ -221,7 +223,7 @@
 			}
 			//**************************//
 			public function show_cart_item($cart_item, $post_id) {
-				$data_format = MP_Global_Function::date_format();
+				//$data_format = MP_Global_Function::date_format();
 				$date = $cart_item['mptbm_date'];
 				$start_location = $cart_item['mptbm_start_place'];
 				$end_location = $cart_item['mptbm_end_place'];
@@ -244,7 +246,7 @@
                                 <span><?php echo esc_html($end_location); ?></span>
                             </li>
                             <li>
-                                <span class="fas fa-map-marker-alt"></span>
+                                <span class="fas fa-route"></span>
                                 <h6><?php esc_html_e('Distance : ', 'mptbm_plugin'); ?></h6>&nbsp;
                                 <span><?php echo esc_html($cart_item['mptbm_distance']); ?></span>
                             </li>
@@ -256,12 +258,12 @@
                             <li>
                                 <span class="far fa-calendar-alt"></span>
                                 <h6><?php esc_html_e('Date : ', 'mptbm_plugin'); ?></h6>&nbsp;
-                                <span><?php echo esc_html(date_i18n($data_format, strtotime($date))); ?></span>
+                                <span><?php echo esc_html(MP_Global_Function::date_format($date)); ?></span>
                             </li>
                             <li>
                                 <span class="far fa-clock"></span>
                                 <h6><?php esc_html_e('Time : ', 'mptbm_plugin'); ?></h6>&nbsp;
-                                <span><?php echo esc_html(MPTBM_Function::datetime_format($date, 'time')); ?></span>
+                                <span><?php echo esc_html(MP_Global_Function::date_format($date, 'time')); ?></span>
                             </li>
                             <li>
                                 <span class="fa fa-tag"></span>
@@ -290,50 +292,6 @@
                                 </ul>
                             </div>
 						<?php } ?>
-					<?php } ?>
-					<?php if (sizeof($booking_infos) > 0) { ?>
-                        <h5 class="mb_xs"><?php esc_html_e('Booking Info', 'mptbm_plugin'); ?></h5>
-
-                        <div class="dLayout_xs">
-                            <ul class="cart_list">
-                                <li>
-                                    <h6><?php esc_html_e('Full Name : ', 'mptbm_plugin'); ?></h6>&nbsp;
-                                    <span><?php echo esc_html($booking_infos['booking_name'] ?? ''); ?></span>
-                                </li>
-                                <li>
-                                    <h6><?php esc_html_e('Email : ', 'mptbm_plugin'); ?></h6>&nbsp;
-                                    <span><?php echo esc_html($booking_infos['booking_email'] ?? ''); ?></span>
-                                </li>
-                                <li>
-                                    <h6><?php esc_html_e('Phone : ', 'mptbm_plugin'); ?></h6>&nbsp;
-                                    <span><?php echo esc_html($booking_infos['booking_phone'] ?? ''); ?></span>
-                                </li>
-                                <li>
-                                    <h6><?php esc_html_e('Address : ', 'mptbm_plugin'); ?></h6>&nbsp;
-                                    <span><?php echo esc_html($booking_infos['booking_address'] ?? ''); ?></span>
-                                </li>
-                                <li>
-                                    <h6><?php esc_html_e('City : ', 'mptbm_plugin'); ?></h6>&nbsp;
-                                    <span><?php echo esc_html($booking_infos['booking_city'] ?? ''); ?></span>
-                                </li>
-                                <li>
-                                    <h6><?php esc_html_e('Zip : ', 'mptbm_plugin'); ?></h6>&nbsp;
-                                    <span><?php echo esc_html($booking_infos['booking_zip'] ?? ''); ?></span>
-                                </li>
-                                <li>
-                                    <h6><?php esc_html_e('Country : ', 'mptbm_plugin'); ?></h6>&nbsp;
-                                    <span><?php echo esc_html($booking_infos['booking_country'] ?? ''); ?></span>
-                                </li>
-                                <li>
-                                    <h6><?php esc_html_e('Passport : ', 'mptbm_plugin'); ?></h6>&nbsp;
-                                    <span><?php echo esc_html($booking_infos['booking_passport'] ?? ''); ?></span>
-                                </li>
-                                <li>
-                                    <h6><?php esc_html_e('NID : ', 'mptbm_plugin'); ?></h6>&nbsp;
-                                    <span><?php echo esc_html($booking_infos['booking_nid'] ?? ''); ?></span>
-                                </li>
-                            </ul>
-                        </div>
 					<?php } ?>
 					<?php do_action('mptbm_after_cart_item_display', $cart_item, $post_id); ?>
                 </div>
@@ -390,44 +348,22 @@
 				}
 			}
 			//**********************//
-			public static function cart_extra_service_info($post_id): array {
+			public static function cart_extra_service_info(): array {
 				$start_date = MP_Global_Function::get_submit_info('mptbm_date');
 				$service_name = MP_Global_Function::get_submit_info('mptbm_extra_service', array());
-				$service_quantity = MP_Global_Function::get_submit_info('mptbm_extra_service_quantity', array());
+				$service_quantity = MP_Global_Function::get_submit_info('mptbm_extra_service_qty', array());
 				$extra_service = array();
 				if (sizeof($service_name) > 0) {
 					for ($i = 0; $i < count($service_name); $i++) {
-						if ($service_name[$i]) {
+						if ($service_name[$i] && $service_quantity[$i]>0 ) {
 							$extra_service[$i]['service_name'] = $service_name[$i];
 							$extra_service[$i]['service_quantity'] = $service_quantity[$i];
-							$extra_service[$i]['service_price'] = MPTBM_Function::get_extra_service_price_by_name($post_id, $service_name[$i]);
+							$extra_service[$i]['service_price'] = MPTBM_Function::get_extra_service_price_by_name($service_name[$i]);
 							$extra_service[$i]['mptbm_date'] = $start_date ?? '';
 						}
 					}
 				}
 				return $extra_service;
-			}
-			public static function get_booking_info(): array {
-				return array(
-					'booking_name' => MP_Global_Function::get_submit_info('mptbm_user_name'),
-					'booking_email' => MP_Global_Function::get_submit_info('mptbm_user_email'),
-					'booking_phone' => MP_Global_Function::get_submit_info('mptbm_user_phone'),
-					'booking_street' => MP_Global_Function::get_submit_info('mptbm_user_address'),
-					'booking_city' => MP_Global_Function::get_submit_info('mptbm_user_city'),
-					'booking_zip' => MP_Global_Function::get_submit_info('mptbm_user_zip'),
-					'booking_country' => MP_Global_Function::get_submit_info('mptbm_user_country'),
-					'booking_passport' => MP_Global_Function::get_submit_info('mptbm_user_passport'),
-					'booking_nid' => MP_Global_Function::get_submit_info('mptbm_user_nid'),
-				);
-			}
-			public function get_base_price($post_id) {
-				$distance = $_COOKIE['mptbm_distance'] ?? '';
-				$duration = $_COOKIE['mptbm_duration'] ?? '';
-				$start_place = MP_Global_Function::get_submit_info('mptbm_start_place');
-				$end_place = MP_Global_Function::get_submit_info('mptbm_end_place');
-				$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place);
-				$wc_price = MP_Global_Function::wc_price($post_id, $price);
-				//return MPTBM_Function::get_custom_woocommerce_price(array('price'=>$price,'decimals'=>2));
 			}
 			public function get_cart_total_price($post_id) {
 				$distance = $_COOKIE['mptbm_distance'] ?? '';

@@ -61,7 +61,7 @@
                                         <th><?php _e('Start Location', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
                                         <th><?php _e('End Location', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
                                         <th><?php _e('Price', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
-                                        <th class="w_100"><?php _e('Action', 'ttbm-pro'); ?></th>
+                                        <th class="w_100"><?php _e('Action', 'mptbm_plugin'); ?></th>
                                     </tr>
                                     </thead>
                                     <tbody class="mp_sortable_area mp_item_insert">
