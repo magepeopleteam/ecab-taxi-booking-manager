@@ -10,14 +10,15 @@
 				$args = array(
 					'post_type' => $post_type,
 					'posts_per_page' => -1,
+					'post_status' => 'publish'
 				);
 				return new WP_Query($args);
 			}
-			public static function query_post_id(): array {
+			public static function query_post_id($post_type): array {
 				return get_posts(array(
 					'fields' => 'ids',
 					'posts_per_page' => -1,
-					'post_type' => MPTBM_Function::get_cpt(),
+					'post_type' => $post_type,
 					'post_status' => 'publish'
 				));
 			}
@@ -26,7 +27,8 @@
 					'post_type' => array(MPTBM_Function::get_cpt()),
 					'posts_per_page' => -1,
 					'meta_key' => 'mptbm_price_based',
-					'meta_value' => $price_based
+					'meta_value' => $price_based,
+					'post_status' => 'publish'
 				);
 				return new WP_Query($args);
 			}

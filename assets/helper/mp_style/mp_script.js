@@ -76,9 +76,7 @@ function pageScrollTo(target) {
 }
 function mp_load_date_picker() {
 	jQuery(".mpStyle .date_type").datepicker({
-		dateFormat: mp_date_format,
-		autoSize: true,
-		onSelect: function (dateString, data) {
+		dateFormat: mp_date_format, autoSize: true, onSelect: function (dateString, data) {
 			let date = data.selectedYear + '-' + ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + data.selectedDay;
 			jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
 		}
@@ -178,7 +176,7 @@ function content_text_change(currentTarget) {
 	let closeText = currentTarget.data('close-text');
 	if (openText || closeText) {
 		let text = currentTarget.find('[data-text]').html();
-		if (text != openText) {
+		if (text !== openText) {
 			currentTarget.find('[data-text]').html(openText);
 		} else {
 			currentTarget.find('[data-text]').html(closeText);

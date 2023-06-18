@@ -26,7 +26,6 @@
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_CPT.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Quick_Setup.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Status.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Save.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_General_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Price_Settings.php';

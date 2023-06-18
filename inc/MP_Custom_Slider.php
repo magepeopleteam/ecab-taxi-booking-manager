@@ -7,7 +7,7 @@
 		class MP_Custom_Slider {
 			public function __construct() {
 				add_filter( 'mp_settings_sec_reg', array( $this, 'slider_tab_name' ), 20 );
-				add_filter( 'mp_settings_sec_fields', array( $this, 'slider_settings' ), 1200 );
+				add_filter( 'mp_settings_sec_fields', array( $this, 'slider_settings' ), 20 );
 				add_action( 'add_mp_custom_slider', array( $this, 'super_slider' ), 10, 2);
 				add_action( 'add_mp_custom_slider_only', array( $this, 'super_slider_only' ));
 				add_action( 'add_mp_custom_slider_icon_indicator', array( $this, 'icon_indicator' ) );

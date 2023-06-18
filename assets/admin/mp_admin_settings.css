@@ -61,7 +61,7 @@
 	#mp_meta_box_panel table tr:nth-child(odd) {background-color: #FFF;}
 	#mp_meta_box_panel table th,
 	#mp_meta_box_panel table td {border: 0;vertical-align: top;padding: 5px;}
-	#mp_meta_box_panel table th {text-align: center;font-size: var(--fs_label);font-weight: 600;}
+	#mp_meta_box_panel table th {text-align: center;font-size: var(--fs_h6);font-weight: 600;}
 	#mp_meta_box_panel table tbody th {text-align: left;}
 	#mp_meta_box_panel table tbody thead th {text-align: center;}
 	/************************************/
@@ -151,10 +151,8 @@
 		transition: 350ms ease-in-out;
 		}
 	}
-/********************************************************************  ************************************************/
-@media only screen and (min-width: 10px) {
-	}
-/******************************************************************** ************************************************/
+
+/********************************************************************Admin layout ************************************************/
 @media only screen and (min-width: 10px) {
 	.mpStyle .adminLayout,
 	.mpStyle [class*="_adminLayout"] {padding: 50px;max-width: 1000px;margin: 100px auto;background-color: #FFF;border: 1px solid var(--color_border);border-radius: var(--dBRL);}
@@ -165,7 +163,6 @@
 	}
 /********************************************************************  ************************************************/
 @media only screen and (min-width: 10px) {
+	div.mpStyle .info_text {display: block;font-weight: normal;font-size: var(--fs_small);color: #666;}
+	div.mpStyle .info_text span {margin: 0 5px 0 0;}
 	}
-/********Info Text******************/
-div.mpStyle .info_text {display: block;font-weight: normal;font-size: var(--fs_small);color: #666;}
-div.mpStyle .info_text span {margin: 0 5px 0 0;}
