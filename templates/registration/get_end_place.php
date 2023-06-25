@@ -1,5 +1,6 @@
 <?php
-    $start_place = MP_Global_Function::data_sanitize($_POST['start_place']);
+
+	$start_place = MP_Global_Function::data_sanitize( $_POST['start_place']);
     $price_based = MP_Global_Function::data_sanitize($_POST['price_based']);
     $post_id = MP_Global_Function::data_sanitize($_POST['post_id']);
     $end_locations = MPTBM_Function::get_manual_end_location($start_place, $post_id);

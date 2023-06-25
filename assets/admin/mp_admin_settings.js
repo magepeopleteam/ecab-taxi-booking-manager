@@ -3,18 +3,12 @@ function load_sortable_datepicker(parent, item) {
 		parent.find('.mp_sortable_area').sortable({
 			handle: jQuery(this).find('.mp_sortable_button')
 		});
-		parent.find(".date_type").removeClass('hasDatepicker').attr('id', '').removeData('datepicker').unbind().datepicker({
-			dateFormat: mp_date_format,
-			autoSize: true,
-			onSelect: function (dateString, data) {
-				let date = data.selectedYear + '-' + (parseInt(data.selectedMonth) + 1) + '-' + data.selectedDay;
-				jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
-			}
+		parent.find(".date_type").removeClass('hasDatepicker').attr('id', '').removeData('datepicker').unbind().promise().done(function () {
+			mp_load_date_picker(parent);
 		});
 	});
 	return true;
 }
-
 (function ($) {
 	"use strict";
 	$(document).ready(function () {
@@ -23,7 +17,31 @@ function load_sortable_datepicker(parent, item) {
 			handle: $(this).find('.mp_sortable_button')
 		});
 	});
-	//=========upload image==============//
+	//=========Remove Setting Item ==============//
+	$(document).on('click', '.mp_item_remove', function () {
+		if (confirm('Are You Sure , Remove this row ? \n\n 1. Ok : To Remove . \n 2. Cancel : To Cancel .')) {
+			$(this).closest('.mp_remove_area').slideUp(250, function () {
+				$(this).remove();
+			});
+			return true;
+		}
+		return false;
+	});
+	//=========Add Setting Item==============//
+	$(document).on('click', '.mp_add_item', function () {
+		let parent = $(this).closest('.mp_settings_area');
+		let item = $(this).next($('.mp_hidden_content')).find(' .mp_hidden_item').html();
+		if (!item || item === "undefined" || item === " ") {
+			item = parent.find('.mp_hidden_content').first().find('.mp_hidden_item').html();
+		}
+		load_sortable_datepicker(parent, item);
+		parent.find('.mp_item_insert').find('.add_mp_select2').select2({});
+		return true;
+	});
+}(jQuery));
+//=========upload image==============//
+(function ($) {
+	"use strict";
 	$(document).on('click', '.mp_add_single_image', function () {
 		let parent = $(this);
 		parent.find('.mp_single_image_item').remove();
@@ -74,31 +92,32 @@ function load_sortable_datepicker(parent, item) {
 		wp.media.editor.open($(this));
 		return false;
 	});
-	//=========Remove Setting Item ==============//
-	$(document).on('click', '.mp_item_remove', function () {
-		if (confirm('Are You Sure , Remove this row ? \n\n 1. Ok : To Remove . \n 2. Cancel : To Cancel .')) {
-			$(this).closest('.mp_remove_area').slideUp(250, function () {
-				$(this).remove();
-			});
-			return true;
-		}
-		return false;
-	});
-	//=========Add Setting Item==============//
-	$(document).on('click', '.mp_add_item', function () {
-		let parent = $(this).closest('.mp_settings_area');
-		let item = $(this).next($('.mp_hidden_content')).find(' .mp_hidden_item').html();
-		if (!item || item === "undefined" || item === " ") {
-			item = parent.find('.mp_hidden_content').first().find('.mp_hidden_item').html();
-		}
-		load_sortable_datepicker(parent, item);
-		parent.find('.mp_item_insert').find('.add_mp_select2').select2({});
-		return true;
-	});
 }(jQuery));
+//=================select icon / image=========================//
 (function ($) {
 	"use strict";
-	//=================select icon=========================//
+	$(document).on('click', 'button.mp_image_add', function () {
+		let $this = $(this);
+		let parent = $this.closest('.mp_add_icon_image_area');
+		wp.media.editor.send.attachment = function (props, attachment) {
+			let attachment_id = attachment.id;
+			let attachment_url = attachment.url;
+			parent.find('input[type="hidden"]').val(attachment_id);
+			parent.find('.mp_icon_item').slideUp('fast');
+			parent.find('img').attr('src', attachment_url);
+			parent.find('.mp_image_item').slideDown('fast');
+			parent.find('.mp_add_icon_image_button_area').slideUp('fast');
+		}
+		wp.media.editor.open($this);
+		return false;
+	});
+	$(document).on('click', '.mp_add_icon_image_area .mp_image_remove', function () {
+		let parent = $(this).closest('.mp_add_icon_image_area');
+		parent.find('input[type="hidden"]').val('');
+		parent.find('img').attr('src', '');
+		parent.find('.mp_image_item').slideUp('fast');
+		parent.find('.mp_add_icon_image_button_area').slideDown('fast');
+	});
 	$(document).on('click', '.mp_add_icon_image_area button.mp_icon_add', function () {
 		let target_popup = $('.mp_add_icon_popup');
 		target_popup.find('.iconItem').click(function () {
@@ -141,29 +160,6 @@ function load_sortable_datepicker(parent, item) {
 		parent.find('input[type="hidden"]').val('');
 		parent.find('[data-add-icon]').removeAttr('class');
 		parent.find('.mp_icon_item').slideUp('fast');
-		parent.find('.mp_add_icon_image_button_area').slideDown('fast');
-	});
-	//=================select Single image=========================//
-	$(document).on('click', 'button.mp_image_add', function () {
-		let $this = $(this);
-		let parent = $this.closest('.mp_add_icon_image_area');
-		wp.media.editor.send.attachment = function (props, attachment) {
-			let attachment_id = attachment.id;
-			let attachment_url = attachment.url;
-			parent.find('input[type="hidden"]').val(attachment_id);
-			parent.find('.mp_icon_item').slideUp('fast');
-			parent.find('img').attr('src', attachment_url);
-			parent.find('.mp_image_item').slideDown('fast');
-			parent.find('.mp_add_icon_image_button_area').slideUp('fast');
-		}
-		wp.media.editor.open($this);
-		return false;
-	});
-	$(document).on('click', '.mp_add_icon_image_area .mp_image_remove', function () {
-		let parent = $(this).closest('.mp_add_icon_image_area');
-		parent.find('input[type="hidden"]').val('');
-		parent.find('img').attr('src', '');
-		parent.find('.mp_image_item').slideUp('fast');
 		parent.find('.mp_add_icon_image_button_area').slideDown('fast');
 	});
 }(jQuery));

@@ -1,12 +1,14 @@
 <?php
+	/*
+* @Author 		magePeople
+* Copyright: 	mage-people.com
+*/
 	if (!defined('ABSPATH')) {
-		exit;
-	}
+		die;
+	} // Cannot access pages directly
 	$distance = $distance ?? $_COOKIE['mptbm_distance'];
 	$duration = $duration ?? $_COOKIE['mptbm_duration'];
 	$label = $label ?? MPTBM_Function::get_name();
-	$extra_services = $extra_services ?? get_option('mptbm_extra_services');
-	$display_extra_services = $display_extra_services ?? get_option('display_mptbm_extra_services', 'on');
 ?>
 	<div class="mp_sticky_area">
 		<div class="_dLayout_dShadow_7_bRL_dFlex_fdColumn">
@@ -33,29 +35,7 @@
 					</div>
 					<span class="mptbm_product_price _textTheme"></span>
 				</div>
-				<?php
-					if ($display_extra_services == 'on' && is_array($extra_services) && sizeof($extra_services) > 0) {
-						foreach ($extra_services as $service) { ?><?php
-							$service_name = array_key_exists('service_name', $service) ? $service['service_name'] : '';
-							$service_price = array_key_exists('service_price', $service) ? $service['service_price'] : 0;
-							if ($service_name) {
-								?>
-								<div data-extra-service="<?php echo esc_attr($service_name); ?>">
-									<div class="_textLight_1_dFlex_flexWrap_justifyBetween">
-										<div class="_dFlex_alignCenter">
-											<span class="fas fa-check-square _textTheme_mR_xs"></span>
-											<span><?php echo esc_html($service_name); ?></span>
-										</div>
-										<p>
-											<span class="textTheme ex_service_qty">x1</span>&nbsp;|&nbsp; <span class="textTheme"><?php echo wc_price($service_price); ?></span>
-										</p>
-									</div>
-								</div>
-								<?php
-							}
-						}
-					}
-				?>
+				<div class="mptbm_extra_service_summary"></div>
 				<div class="dividerL"></div>
 				<div class="justifyBetween">
 					<h4><?php esc_html_e('Total : ', 'mptbm_plugin'); ?></h4>

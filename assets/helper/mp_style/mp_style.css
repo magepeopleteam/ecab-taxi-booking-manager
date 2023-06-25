@@ -32,12 +32,7 @@
 	div.mpPopup .popupClose,
 	div.mpStyle .customCheckbox,
 	div.mpStyle .mpTransition,
-	div.mpStyle [class*="_mpTransition"] {
-		-webkit-transition: all 350ms ease-in-out;
-		-moz-transition: all 350ms ease-in-out;
-		-o-transition: all 350ms ease-in-out;
-		transition: all 350ms ease-in-out;
-	}
+	div.mpStyle [class*="_mpTransition"] { -webkit-transition: all 350ms ease-in-out; -moz-transition: all 350ms ease-in-out; -o-transition: all 350ms ease-in-out; transition: all 350ms ease-in-out; }
 }
 /******************************************************************** Shadow content ************************************************/
 @media only screen and (min-width: 10px) {
@@ -101,6 +96,12 @@
 		-o-box-shadow: 2px 4px 40px rgba(103, 103, 103, 0.1);
 		box-shadow: 2px 4px 40px rgba(103, 103, 103, 0.1);
 	}
+	.mpStyle .formControl:focus,
+	div.mpStyle .dShadow_9, [class*='_dShadow_9'] {-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6); box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);}
+	div.mpStyle .selectCheckbox input:focus ~ .customCheckbox::before,
+	div.mpStyle .dShadow_10, [class*='_dShadow_10'] {-webkit-box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.3); box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.3);}
+	.mpStyle .groupContent input[type="radio"],
+	.mpStyle .groupContent input[type="radio"] ~ input:focus,
 	div.mpStyle [class*='noShadow'] { -webkit-box-shadow: none; -moz-box-shadow: none; -o-box-shadow: none; box-shadow: none; }
 }
 /******************************************************************** Font Size & Font weight ************************************************/
@@ -125,14 +126,13 @@
 /******************************************************************** Flex Section ************************************************/
 @media only screen and (min-width: 10px) {
 	.mpStyle [class*="_equalChild"], .mpStyle .equalChild, .mpStyle .flexEqual, .mpStyle [class*="listEqual"],
-	.mpStyle .groupContent,
 	.mpStyle [class*="_dFlex"], .mpStyle .dFlex,
-	.mpStyle .mpMenu li,
+	.mpStyle .mpMenu li { display: -webkit-flex; display: flex; }
+	.mpStyle .groupContent,
 	.mpStyle .buttonGroup,
 	.mpStyle .inputGroup,
 	.mpStyle .inputInline .mpForm,
-	.mpStyle .mage_form_qty,
-	.mpStyle [class^="mpMenu"] { display: -webkit-flex; display: flex; }
+	.mpStyle [class^="mpMenu"] { display: -webkit-inline-flex; display: inline-flex; }
 	.mpStyle .mpRow,
 	.mpStyle .flexWrap,
 	.mpStyle .listInline,
@@ -226,7 +226,6 @@
 	[data-bg-image],
 	[class*="_fdColumn"] { -webkit-flex-direction: column; flex-direction: column; }
 	.flexEqual > *, .equalChild > *, [class*="_equalChild"] > *,
-	.buttonGroup > *,
 	[class*="listEqual"] > li,
 	.mpTabs.tabBorder > .tabLists li,
 	.inputInline .inputList { -webkit-flex: 1; -ms-flex: 1; flex: 1; }
@@ -271,7 +270,7 @@
 	.mpStyle button:hover, .mpStyle button:focus { text-decoration: none; opacity: 0.8; background-color: var(--d_color); color: #FFF; }
 	.mpStyle button:hover span, .mpStyle button:focus span { color: #FFF; }
 	.mpStyle .mpBtn, .mpStyle [class*="_mpBtn"] { padding: var(--dMP_xs) var(--dMP); color: var(--d_color); background-color: transparent; border: 1px solid var(--color_border); }
-	.mpStyle .mpBtn_xs, .mpStyle [class*="_mpBtn_xs"] { padding: var(--dMP_xs); }
+	.mpStyle .mpBtn_xs, .mpStyle [class*="_mpBtn_xs"] { padding: 7px var(--dMP_xs); }
 	.mpStyle .mpBtn.mpActive, .mpStyle [class*="_mpBtn"].mpActive { border-color: var(--color_theme); color: var(--color_theme); }
 	.mpStyle .mpBtn.mActive, .mpStyle [class*="_mpBtn"].mActive,
 	.mpStyle .mpBtn.mpActive:hover, .mpStyle [class*="_mpBtn"].mpActive:hover { background-color: var(--color_theme); color: var(--color_theme_alter); }
@@ -326,15 +325,6 @@
 	.mpStyle .fLeft, .mpStyle [class*="_fLeft"] { float: left; }
 	.mpStyle .fRight, .mpStyle [class*="_fRight"] { float: right; }
 	/**************/
-	.mpStyle .pFixed, .mpStyle [class*="_pFixed"] { position: fixed; }
-	.mpStyle .pRelative, .mpStyle [class*="_pRelative"] { position: relative; }
-	.mpStyle .pAbsolute, .mpStyle [class*="_pAbsolute"] { position: absolute; }
-	.mpStyle .abTopRight, .mpStyle [class*="_abTopRight"] { position: absolute; right: 0; top: 0; }
-	.mpStyle .abTopRight_xs, .mpStyle [class*="_abTopRight_xs"] { position: absolute; right: var(--dMP_xs); top: var(--dMP_xs); }
-	.mpStyle .abTopLeft_xs, .mpStyle [class*="_abTopLeft_xs"] { position: absolute; left: var(--dMP_xs); top: var(--dMP_xs); z-index: 1; }
-	.mpStyle .abTopLeft, .mpStyle [class*="_abTopLeft"] { position: absolute; left: var(--dMP); top: var(--dMP); z-index: 1; }
-	.mpStyle .ribbon { position: absolute; top: var(--dMP); left: 0; width: auto; height: auto; padding: 5px var(--dMP); background: var(--color_warning); color: #FFF; border-radius: 3px 6px 6px 0; -webkit-box-shadow: 1px 2px 2px 0 rgba(0, 0, 0, 0.4); box-shadow: 1px 2px 2px 0 rgba(0, 0, 0, 0.4); z-index: 1; }
-	.mpStyle .ribbon::before { content: ''; position: absolute; left: 0; bottom: -10px; width: 0; height: 0; border: 5px solid var(--color_warning); border-bottom-color: transparent; border-left-color: transparent; z-index: -1; }
 	/**************/
 	.mpStyle .textCenter, .mpStyle [class*="_textCenter"] { text-align: center; }
 	.mpStyle .textRight, .mpStyle [class*="_textRight"] { text-align: right; }
@@ -343,8 +333,7 @@
 	/**************/
 	.mpStyle [class*="_dotted"] { border-style: dotted; }
 	.mpStyle [class*="_border"] { border: 1px solid var(--color_border); }
-	.mpStyle .bT,
-	.mpStyle [class*="_bT"] { border-top: 1px solid var(--color_border); }
+	.mpStyle .bT, .mpStyle [class*="_bT"] { border-top: 1px solid var(--color_border); }
 	.mpStyle [class*="_bDot"] { border: 1px dotted var(--color_border); }
 	.mpStyle [class*="_bDash"] { border: 1px dashed var(--color_border); }
 	.mpStyle [class*="_bR"] { border-right: 1px solid var(--color_border); }
@@ -1000,804 +989,283 @@
 }
 /******************************************************************** position Section************************************************/
 @media only screen and (min-width: 10px) {
-	/********fixed Content********/
-	div.mpStyle .mp_sticky_area.mpSticky {
-		position: fixed;
-	}
-	div.mpStyle .mp_sticky_area.mpSticky .mp_sticky_on_scroll {
-		overflow: auto;
-	}
 	/********Absolute Content********/
-	.mpStyle [class*="fullAbsolute"] {
-		position: absolute;
-		left: 0;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		z-index: 11;
-		width: 100%;
-		height: 100%;
-	}
-	.mpStyle [class*="hoverAbsolute"] {
-		position: absolute;
-		right: 0;
-		top: 100%;
-		left: 0;
-		display: none;
-		padding: 7px;
-		border: 1px solid var(--color_border);
-		font-size: 15px;
-		z-index: 111;
-	}
-	.mpStyle [class*="pRelative"]:hover [class*="hoverAbsolute"] {
-		display: block;
-	}
-	.mpStyle .abBottomRight,
-	.mpStyle [class*="_abBottomRight"] {
-		position: absolute;
-		right: -1px;
-		bottom: -1px;
-		z-index: 1;
-		padding: 5px;
-		font-size: 20px;
-		font-weight: 500;
-	}
-	.mpStyle .abLeftRightBottom,
-	.mpStyle [class*="_abLeftRightBottom"] {
-		position: absolute;
-		left: 0;
-		right: 0;
-		top: 100%;
-		z-index: 111;
-		padding: var(--dMP_xs);
-	}
-	.mpStyle .abLeftRightBottom_inside,
-	.mpStyle [class*="_abLeftRightBottom_inside"] {
-		position: absolute;
-		left: 0;
-		right: 0;
-		top: inherit;
-		bottom: 0;
-		z-index: 111;
-		padding: var(--dMP_xs);
-	}
+	.mpStyle .pFixed, .mpStyle [class*="_pFixed"] { position: fixed; }
+	.mpStyle .pRelative, .mpStyle [class*="_pRelative"] { position: relative; }
+	.mpStyle [class*="pRelative"]:hover [class*="hoverAbsolute"] { display: block; }
+	.mpStyle .pAbsolute, .mpStyle [class*="_pAbsolute"] { position: absolute; }
+	.mpStyle .fullAbsolute, .mpStyle [class*="_fullAbsolute"] { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 11; width: 100%; height: 100%; }
+	.mpStyle [class*="hoverAbsolute"] { position: absolute; right: 0; top: 100%; left: 0; display: none; padding: 7px; border: 1px solid var(--color_border); font-size: 15px; z-index: 111; }
+	.mpStyle .abTopRight, .mpStyle [class*="_abTopRight"] { position: absolute; right: 0; top: 0; }
+	.mpStyle .abTopRight_xs, .mpStyle [class*="_abTopRight_xs"] { position: absolute; right: var(--dMP_xs); top: var(--dMP_xs); }
+	.mpStyle .abTopLeft_xs, .mpStyle [class*="_abTopLeft_xs"] { position: absolute; left: var(--dMP_xs); top: var(--dMP_xs); z-index: 1; }
+	.mpStyle .abTopLeft, .mpStyle [class*="_abTopLeft"] { position: absolute; left: var(--dMP); top: var(--dMP); z-index: 1; }
+	.mpStyle .abBottomRight, .mpStyle [class*="_abBottomRight"] { position: absolute; right: -1px; bottom: -1px; z-index: 1; padding: 5px; font-size: 20px; font-weight: 500; }
+	.mpStyle .abLeftRightBottom, .mpStyle [class*="_abLeftRightBottom"] { position: absolute; left: 0; right: 0; top: 100%; z-index: 111; padding: var(--dMP_xs); }
+	.mpStyle .abLeftRightBottom_inside, .mpStyle [class*="_abLeftRightBottom_inside"] { position: absolute; left: 0; right: 0; top: inherit; bottom: 0; z-index: 111; padding: var(--dMP_xs); }
 	/****************/
-	.mpStyle .title_on_border {
-		line-height: 1;
-		height: 40px;
-		position: absolute;
-		top: -20px;
-		left: 30px;
-		color: var(--color_theme);
-		background-color: var(--color_theme_alter);
-		padding: 0 var(--dMP);
-		border-radius: var(--dBR);
-	}
+	.mpStyle .ribbon { position: absolute; top: var(--dMP); left: 0; width: auto; height: auto; padding: 5px var(--dMP); background: var(--color_warning); color: #FFF; border-radius: 3px 6px 6px 0; -webkit-box-shadow: 1px 2px 2px 0 rgba(0, 0, 0, 0.4); box-shadow: 1px 2px 2px 0 rgba(0, 0, 0, 0.4); z-index: 1; }
+	.mpStyle .ribbon::before { content: ''; position: absolute; left: 0; bottom: -10px; width: 0; height: 0; border: 5px solid var(--color_warning); border-bottom-color: transparent; border-left-color: transparent; z-index: -1; }
+	/****************/
+	.mpStyle .title_on_border { line-height: 1; height: 40px; position: absolute; top: -20px; left: 30px; color: var(--color_theme); background-color: var(--color_theme_alter); padding: 0 var(--dMP); border-radius: var(--dBR); }
+	/********fixed Content********/
+	div.mpStyle .mp_sticky_area.mpSticky { position: fixed; }
+	div.mpStyle .mp_sticky_area.mpSticky .mp_sticky_on_scroll { overflow: auto; }
 }
 /******************************************************************** Form section ************************************************/
 @media only screen and (min-width: 10px) {
-	.mpStyle input, .mpStyle optgroup, .mpStyle select, .mpStyle textarea,
-	.mpStyle button {
-		font-family: inherit;
-		line-height: 1.25;
-		margin: 0;
-	}
+	.mpStyle input,
+	.mpStyle optgroup,
+	.mpStyle select,
+	.mpStyle textarea,
+	.mpStyle button { font-family: inherit; line-height: 1.25; margin: 0; }
 	.mpStyle .formControl:-webkit-autofill,
 	.mpStyle .formControl:-webkit-autofill:hover,
 	.mpStyle .formControl:-webkit-autofill:focus,
-	.mpStyle .formControl:-webkit-autofill:active {
-		-webkit-transition: color 9999s ease-out, background-color 9999s ease-out;
-		transition: color 9999s ease-out, background-color 9999s ease-out;
-		-webkit-transition-delay: 9999s;
-		transition-delay: 9999s;
-	}
-	div.mpStyle form {
-		margin: 0;
-		padding: 0;
-		line-height: 1.25;
-	}
-	.mpStyle label {
-		position: relative;
-	}
-	.mpStyle label span:not(.woocommerce-Price-currencySymbol) {
-		margin: 0 var(--dMP_xs) 0 0;
-	}
+	.mpStyle .formControl:-webkit-autofill:active { -webkit-transition: color 9999s ease-out, background-color 9999s ease-out; transition: color 9999s ease-out, background-color 9999s ease-out; -webkit-transition-delay: 9999s; transition-delay: 9999s; }
+	div.mpStyle form { margin: 0; padding: 0; line-height: 1.25; }
+	.mpStyle label { position: relative; }
+	.mpStyle label span:not(.woocommerce-Price-currencySymbol) { margin: 0 var(--dMP_xs) 0 0;white-space: nowrap }
 	/***************************/
-	.mpStyle .formControl::placeholder {
-		color: #0005;
-	}
-	.mpStyle .formControl:disabled {
-		background-color: #DDD5;
-		color: #FFF;
-	}
+	.mpStyle .formControl::placeholder { color: #0005; }
+	.mpStyle .formControl:disabled { background-color: #DDD5; color: #FFF; }
 	/***************************/
-	div.mpStyle .formControl {
-		width: 100%;
-		height: auto;
-		min-width: auto;
-		max-width: inherit;
-		min-height: 34px;
-		border: 1px solid var(--color_border);
-		padding: 5px var(--dMP_xs);
-		font-size: var(--fs);
-		color: var(--d_color);
-		background-color: #FFF;
-	}
-	.mpStyle .formControl:focus {
-		outline: 0;
-		background-color: #FFF;
-		border-color: #80BDFF;
-		-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
-		box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
-	}
+	div.mpStyle .formControl { width: 100%; height: auto; min-width: auto; max-width: inherit; min-height: 34px; border: 1px solid var(--color_border); padding: 5px var(--dMP_xs); font-size: var(--fs); color: var(--d_color); background-color: #FFF; }
+	.mpStyle .formControl:focus { outline: 0; background-color: #FFF; border-color: #80BDFF; }
 	div.mpStyle select.formControl {
-		background-image: url('../images/arrow_down.png');
-		-webkit-appearance: none;
-		background-repeat: no-repeat;
-		background-position: calc(100% - var(--dMP_xs));
-		background-size: auto;
-		padding: var(--dMP_xs) 35px var(--dMP_xs) var(--dMP_xs);
+		background-image: url('../images/arrow_down.png');background-repeat: no-repeat;background-position: calc(100% - var(--dMP_xs));background-size: auto;
+		-webkit-appearance: none; padding: var(--dMP_xs) 35px var(--dMP_xs) var(--dMP_xs);
 	}
-	div.mpStyle select.formControl:focus {
-		background-color: var(--color_theme_aa);
-	}
+	div.mpStyle select.formControl:focus { background-color: var(--color_theme_aa); }
 	div.mpStyle .formControl.date_type,
 	div.mpStyle .formControl[type='date'] {
-		background-image: url('../images/calendar.png');
+		background-image: url('../images/calendar.png');background-repeat: no-repeat; background-position: var(--dMP_xs) center; background-size: auto;
 		-webkit-appearance: none;
-		background-repeat: no-repeat;
-		background-position: var(--dMP_xs) center;
-		background-size: auto;
-		font-size: var(--fs_h6);
-		font-weight: var(--fw-medium);
+		font-size: var(--fs_h6); font-weight: var(--fw-medium);
 		padding: var(--dMP_xs) var(--dMP_xs) var(--dMP_xs) 50px;
 	}
-	div.mpStyle textarea.formControl {
-		height: auto;
-	}
-	.mpStyle .mpForm label {
-		margin: var(--dMP_xs) 0 0 0;
-		text-transform: capitalize;
-	}
-	.mpStyle .mpForm label span {
-		width: 100%;
-		margin: 0 0 var(--dMP_xs) 0;
-	}
-	.mpStyle .mpForm label span::before {
-		padding: 0 var(--dMP_xs);
-	}
+	div.mpStyle textarea.formControl { height: auto; }
+	.mpStyle .mpForm label { margin: var(--dMP_xs) 0 0 0; text-transform: capitalize; }
+	.mpStyle .mpForm label span { width: 100%; margin: 0 0 var(--dMP_xs) 0; }
+	.mpStyle .mpForm label span::before { padding: 0 var(--dMP_xs); }
 	/****************/
-	.mpStyle .inputList {
-		margin: var(--dMP) 0 0 0;
-		position: relative;
-	}
-	.mpStyle .inputList textarea.formControl {
-		height: auto;
-	}
+	.mpStyle .inputList { margin: var(--dMP) 0 0 0; position: relative; }
+	.mpStyle .inputList textarea.formControl { height: auto; }
 	/******* group form*********/
-	.mpStyle .inputGroup {
-		width: 100%;
-		padding: 0 0 var(--dMP_xs) 0;
-	}
-	.mpStyle .inputGroup label {
-		width: auto;
-		padding: 0 var(--dMP) 0 0;
-	}
-	.mpStyle .inputGroup label input[type="checkbox"] {
-		margin: 0 var(--dMP_xs);
-	}
+	.mpStyle .inputGroup { width: 100%; padding: 0 0 var(--dMP_xs) 0; }
+	.mpStyle .inputGroup label { width: auto; padding: 0 var(--dMP) 0 0; }
+	.mpStyle .inputGroup label input[type="checkbox"] { margin: 0 var(--dMP_xs); }
 	/******* input as a select*********/
-	.mpStyle .inputList .mp_input_select .formControl:focus {
-		border-color: var(--color_border);
-	}
-	.mpStyle div.mp_input_select {
-		position: relative;
-	}
+	.mpStyle .inputList .mp_input_select .formControl:focus { border-color: var(--color_border); }
+	.mpStyle div.mp_input_select { position: relative; }
 	.mpStyle ul.mp_input_select_list {
-		display: none;
-		z-index: 111;
-		overflow: auto;
-		max-height: 250px;
-		height: auto;
-		width: 100%;
-		margin: 1px 0 0 0;
-		padding: 10px;
-		position: absolute;
-		left: 0;
-		top: 100%;
-		right: 0;
-		border: 1px solid var(--color_border);
-		background-color: var(--color_white);
+		display: none; z-index: 111; overflow: auto;
+		max-height: 250px; height: auto; width: 100%;
+		margin: 1px 0 0 0; padding: 10px;
+		position: absolute; left: 0; top: 100%; right: 0;
+		border: 1px solid var(--color_border); background-color: var(--color_white);
 	}
-	.mpStyle ul.mp_input_select_list li {
-		padding: 10px;
-		cursor: pointer;
-		border-bottom: 1px solid var(--color_border);
-		margin: 0;
-		list-style-type: none;
-	}
-	.mpStyle ul.mp_input_select_list li:last-child {
-		border-bottom: none;
-	}
-	.mpStyle ul.mp_input_select_list li:hover {
-		background-color: #777;
-		color: #FFF;
-	}
+	.mpStyle ul.mp_input_select_list li { padding: 10px; cursor: pointer; border-bottom: 1px solid var(--color_border); margin: 0; list-style-type: none; }
+	.mpStyle ul.mp_input_select_list li:last-child { border-bottom: none; }
+	.mpStyle ul.mp_input_select_list li:hover { background-color: #777; color: #FFF; }
 	/*****Form inline*******/
-	.mpStyle .inputInline {
-		padding: var(--dMP);
-		margin: var(--dMP) 0 0 0;
-	}
-	.mpStyle .inputInline .inputList {
-		max-width: calc(20% - 10px);
-		width: 100%;
-		margin: 0 5px;
-	}
+	.mpStyle .inputInline { padding: var(--dMP); margin: var(--dMP) 0 0 0; }
+	.mpStyle .inputInline .inputList { max-width: calc(20% - 10px); width: 100%; margin: 0 5px; }
 	/********Form Horizontal**************/
-	.mpStyle .inputHorizontal .mpForm {
-		max-width: 500px;
-		width: 100%;
-	}
-	/*****Form Qty inc dec*******/
+	.mpStyle .inputHorizontal .mpForm { max-width: 500px; width: 100%; }
 	/**********Checkbox Radio*********/
-	div.mpStyle .customRadioLabel {
-		font-size: var(--fs_h6);
-		font-weight: var(--fw-medium);
-		-webkit-flex-wrap: wrap;
-		flex-wrap: wrap;
-	}
+	div.mpStyle .customRadioLabel { font-size: var(--fs_h6); font-weight: var(--fw-medium); -webkit-flex-wrap: wrap; flex-wrap: wrap; }
 	div.mpStyle .customRadioLabel input[type="radio"] ~ .formControl,
-	.mpStyle .customRadioLabel input[type="radio"] {
-		display: none;
-	}
-	.mpStyle .customRadio {
-		padding: 0 var(--dMP_xs) 0 30px;
-		margin: 0 var(--dMP_xs) var(--dMP_xs) 0;
-		position: relative;
-		cursor: pointer;
-		line-height: 1;
-		white-space: nowrap;
-		min-height: 20px;
-	}
-	.mpStyle .customRadio::before {
-		content: "";
-		position: absolute;
-		left: 0;
-		top: 0;
-		height: 20px;
-		width: 20px;
-		background-color: #FFF;
-		border: 2px rgba(0, 0, 0, 0.5) solid;;
-		border-radius: 50%;
-	}
-	.mpStyle .customRadioLabel input[type="radio"]:checked ~ .formControl {
-		display: block;
-	}
+	.mpStyle .customRadioLabel input[type="radio"] { display: none; }
+	.mpStyle .customRadio { padding: 0 var(--dMP_xs) 0 30px; margin: 0 var(--dMP_xs) var(--dMP_xs) 0; position: relative; cursor: pointer; line-height: 1; white-space: nowrap; min-height: 20px; }
+	.mpStyle .customRadio::before { content: ""; position: absolute; left: 0; top: 0; height: 20px; width: 20px; background-color: #FFF; border: 2px rgba(0, 0, 0, 0.5) solid;; border-radius: 50%; }
+	.mpStyle .customRadioLabel input[type="radio"]:checked ~ .formControl { display: block; }
 	.mpStyle .customRadioLabel input[type="radio"]:checked ~ .customRadio::after,
-	.mpStyle .customRadio.active::after {
-		content: "";
-		position: absolute;
-		left: 5px;
-		top: 5px;
-		height: 10px;
-		width: 10px;
-		background-color: var(--color_theme);
-		border: 1px solid rgba(0, 0, 0, 0.5);
-		border-radius: 50%;
-	}
+	.mpStyle .customRadio.active::after { content: ""; position: absolute; left: 5px; top: 5px; height: 10px; width: 10px; background-color: var(--color_theme); border: 1px solid rgba(0, 0, 0, 0.5); border-radius: 50%; }
 	.mpStyle .customRadio.button_type {
-		padding: var(--dMP_xs);
-		margin: 5px;
-		min-width: 120px;
-		text-align: center;
+		padding: var(--dMP_xs); margin: 5px; min-width: 120px; text-align: center;
 		border: 1px solid var(--color_theme_alter);
-		color: var(--color_theme_alter);
-		background-color: var(--color_theme);
+		color: var(--color_theme_alter); background-color: var(--color_theme);
 	}
-	.mpStyle .customRadio.button_type.active {
-		background-color: grey;
-		color: var(--color_theme_alter);
-	}
+	.mpStyle .customRadio.button_type.active { background-color: grey; color: var(--color_theme_alter); }
 	.mpStyle .customRadio.button_type::before,
-	.mpStyle .customRadio.button_type::after {
-		display: none;
-	}
+	.mpStyle .customRadio.button_type::after { display: none; }
 	/**********Checkbox Custom*********/
-	.mpStyle .customCheckbox {
-		padding: 3px 0 0 30px;
-		position: relative;
-		line-height: 1;
-		min-width: auto;
-	}
+	.mpStyle .customCheckbox { padding: 3px 0 0 30px; position: relative; line-height: 1; min-width: auto; }
 	.mpStyle .customCheckbox::before {
-		content: "";
-		position: absolute;
-		left: 0;
-		top: 0;
-		height: 20px;
-		width: 20px;
+		content: ""; position: absolute; left: 0; top: 0; height: 20px; width: 20px;
 		background-color: var(--color_theme_alter);
-		border: 2px solid var(--d_color);
-		border-radius: 2px;
-	}
-	.mpStyle .customCheckboxLabel {
-		padding: 0 0 10px 0;
-		cursor: pointer;
-		font-weight: var(--fw-medium);
-	}
-	.mpStyle .customCheckboxLabel input:checked ~ .customCheckbox::before {
-		background: var(--d_color);
-	}
+		border: 2px solid var(--d_color); border-radius: 2px; }
+	.mpStyle .customCheckboxLabel { padding: 0 0 10px 0; cursor: pointer; font-weight: var(--fw-medium); }
+	.mpStyle .customCheckboxLabel input:checked ~ .customCheckbox::before { background: var(--d_color); }
 	/*******************/
-	div.mpStyle .selectCheckbox {
-		min-width: 150px;
-		padding: var(--dMP_xs);
-		width: auto;
-		border: 1px solid var(--color_border);
-		cursor: pointer;
-	}
+	div.mpStyle .selectCheckbox { min-width: 150px; padding: var(--dMP_xs); width: auto; border: 1px solid var(--color_border); cursor: pointer; }
 	div.mpStyle .customCheckboxLabel input[type="checkbox"],
-	div.mpStyle .selectCheckbox input[type='checkbox'] {
-		display: none;
-	}
-	div.mpStyle .selectCheckbox .customCheckbox::before {
-		border: none;
-		background-color: transparent;
-	}
+	div.mpStyle .selectCheckbox input[type='checkbox'] { display: none; }
+	div.mpStyle .selectCheckbox .customCheckbox::before { border: none; background-color: transparent; }
 	div.mpStyle .customCheckboxLabel input:focus ~ .customCheckbox::before,
-	div.mpStyle .selectCheckbox input:focus ~ .customCheckbox::before {
-		outline: 0;
-		-webkit-box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.3);
-		box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.3);
-	}
+	div.mpStyle .selectCheckbox input:focus ~ .customCheckbox::before { outline: 0; }
 	div.mpStyle .customCheckboxLabel input:checked ~ .customCheckbox::after,
 	div.mpStyle .selectCheckbox input:checked ~ .customCheckbox::after {
-		content: "";
-		position: absolute;
-		left: 2px;
-		top: 4px;
-		height: 8px;
-		width: 16px;
-		border: 2px solid var(--color_theme_alter);
-		border-top: none;
-		border-right: none;
-		z-index: 11;
-		background-color: transparent;
-		-ms-transform: rotate(-45deg);
-		transform: rotate(-45deg);
+		content: ""; position: absolute; left: 2px; top: 4px; height: 8px; width: 16px;
+		border: 2px solid var(--color_theme_alter); border-top: none; border-right: none;
+		z-index: 11; background-color: transparent; -ms-transform: rotate(-45deg); transform: rotate(-45deg);
 	}
-	div.mpStyle .active_select {
-		background-color: var(--color_theme);
-		color: var(--color_theme_alter);
-	}
+	div.mpStyle .active_select { background-color: var(--color_theme); color: var(--color_theme_alter); }
 	/*********Input Switch*******/
-	.mpStyle .roundSwitchLabel input[type='checkbox'] {
-		display: none;
-	}
+	.mpStyle .roundSwitchLabel input[type='checkbox'] { display: none; }
 	.mpStyle .roundSwitch {
-		width: 60px;
-		height: 25px;
-		min-width: auto;
-		position: relative;
-		background-color: #CCC;
-		border-radius: 30px;
-		-webkit-transition: .4s;
-		transition: .4s;
+		width: 60px; height: 25px; min-width: auto;
+		position: relative; background-color: #CCC; border-radius: 30px;
+		-webkit-transition: .4s; transition: .4s;
 	}
 	.mpStyle .roundSwitch::before {
-		position: absolute;
-		content: "";
-		background-color: white;
-		border-radius: 50%;
-		height: 17px;
-		width: 17px;
-		left: 4px;
-		bottom: 4px;
-		-webkit-transition: .4s;
-		transition: .4s;
+		position: absolute; content: "";height: 17px; width: 17px; left: 4px; bottom: 4px;
+		background-color: white; border-radius: 50%;
+		-webkit-transition: .4s; transition: .4s;
 	}
-	.mpStyle .roundSwitchLabel input:checked + .roundSwitch {
-		background-color: var(--color_success);
-	}
-	.mpStyle .roundSwitchLabel input:focus + .roundSwitch {
-		box-shadow: 0 0 1px #2276D2;
-	}
-	.mpStyle .roundSwitchLabel input:checked + .roundSwitch:before {
-		-ms-transform: translateX(35px);
-		transform: translateX(35px);
-	}
+	.mpStyle .roundSwitchLabel input:checked + .roundSwitch { background-color: var(--color_success); }
+	.mpStyle .roundSwitchLabel input:focus + .roundSwitch { box-shadow: 0 0 1px #2276D2; }
+	.mpStyle .roundSwitchLabel input:checked + .roundSwitch:before { -ms-transform: translateX(35px); transform: translateX(35px); }
 	/*********Group radio check*******/
-	.groupRadioCheck [data-radio-check] {
-		cursor: pointer;
-		-webkit-justify-content: flex-start;
-		justify-content: flex-start;
-	}
-	.groupRadioCheck button[data-radio-check] {
-		-webkit-justify-content: center;
-		justify-content: center;
-	}
-	.groupRadioCheck [data-radio-check]:hover {
-		border-color: var(--color_theme_88);
-	}
-	.groupRadioCheck [data-radio-check].mpActive {
-		border-color: var(--color_theme);
-	}
+	.groupRadioCheck [data-radio-check] { cursor: pointer; -webkit-justify-content: flex-start; justify-content: flex-start; }
+	.groupRadioCheck button[data-radio-check] { -webkit-justify-content: center; justify-content: center; }
+	.groupRadioCheck [data-radio-check]:hover { border-color: var(--color_theme_88); }
+	.groupRadioCheck [data-radio-check].mpActive { border-color: var(--color_theme); }
 	/*********Group Content*******/
 	.mpStyle .groupContent {
-		font-size: var(--fs);
-		border: 1px solid var(--color_border);
-		background-color: var(--color_theme);
-		color: var(--color_theme_alter);
-		text-align: center;
-		position: relative;
+		font-size: var(--fs); border: 1px solid var(--color_border);
+		background-color: var(--color_theme); color: var(--color_theme_alter);
+		text-align: center; position: relative;
 	}
-	div.mpStyle div.groupContent > * {
-		border-left: 1px solid var(--color_border);
-		margin: 0;
-	}
-	div.mpStyle div.groupContent > *:first-child {
-		border: none;
-	}
-	div.mpStyle div.groupContent .formControl {
-		text-align: center;
-		border: none;
-		background-color: var(--color_white);
-		height: 100%;
-		border-radius: 0;
-	}
-	.mpStyle .groupContent textarea.formControl {
-		text-align: left;
-	}
-	.mpStyle .groupContent input[type="radio"] {
-	}
+	div.mpStyle div.groupContent > * { border-left: 1px solid var(--color_border); margin: 0; }
+	div.mpStyle div.groupContent > *:first-child { border: none; }
+	div.mpStyle div.groupContent .formControl { text-align: center; border: none; background-color: var(--color_white); height: 100%; border-radius: 0; }
+	.mpStyle .groupContent textarea.formControl { text-align: left; }
+	.mpStyle .groupContent input[type="radio"] { }
 	.mpStyle .groupContent input[type="radio"]::after {
-		margin: 10px;
-		position: absolute;
-		content: '';
-		width: 20px;
-		height: 20px;
-		left: 0;
-		top: 0;
-		border: 1px solid var(--color_border);
-		border-radius: 50%;
+		position: absolute; content: ''; width: 20px; height: 20px; left: 0; top: 0;
+		border: 1px solid var(--color_border); border-radius: 50%;margin: 10px;
 	}
-	div.mpStyle .groupContent input[type="radio"]:checked::after {
-		border-color: var(--color_theme);
-	}
+	div.mpStyle .groupContent input[type="radio"]:checked::after { border-color: var(--color_theme); }
 	.mpStyle .groupContent input[type="radio"]:checked::before {
-		margin: 10px;
-		position: absolute;
-		content: '';
-		width: 14px;
-		height: 14px;
-		left: 3px;
-		top: 3px;
-		border: 1px solid var(--color_theme);
-		border-radius: 50%;
-		background-color: var(--color_theme);
+		position: absolute; content: ''; width: 14px; height: 14px; left: 3px; top: 3px;
+		border: 1px solid var(--color_theme); border-radius: 50%; background-color: var(--color_theme);margin: 10px;
 	}
-	.mpStyle .groupContent input[type="radio"],
-	.mpStyle .groupContent input[type="radio"] ~ input:focus {
-		-webkit-box-shadow: none;
-		box-shadow: none;
-	}
-	.mpStyle .addonGroupContent {
-		min-width: 30px;
-		cursor: pointer;
-		background-color: #FFF;
-		color: var(--color_theme_88);
-	}
-	.mpStyle .addonGroupContent:hover {
-		background-color: #555;
-		color: #F2F2F2;
-	}
+	.mpStyle .addonGroupContent { min-width: 30px; cursor: pointer; background-color: #FFF; color: var(--color_theme_88); }
+	.mpStyle .addonGroupContent:hover { background-color: #555; color: #F2F2F2; }
 	.mpStyle .groupContent .select2-container--default .select2-selection--single {border: none;border-radius: 0;}
-	/*****/
-	.mpStyle .qtyIncDec {
-		max-width: 100px;
-	}
+	/*****Form Qty inc dec*******/
+	.mpStyle .qtyIncDec { max-width: 100px; }
 	/**********Responsive*********/
 	@media only screen and (max-width: 1250px) {
-		.mpStyle .inputInline .inputList {
-			max-width: calc(25% - 10px);
-		}
+		.mpStyle .inputInline .inputList { max-width: calc(25% - 10px); }
 	}
 	@media only screen and (max-width: 1050px) {
-		.mpStyle .inputInline .inputList {
-			max-width: calc(33.33% - 10px);
-		}
+		.mpStyle .inputInline .inputList { max-width: calc(33.33% - 10px); }
 	}
 	@media only screen and (max-width: 850px) {
-		.mpStyle .inputInline .inputList {
-			max-width: calc(50% - 10px);
-		}
+		.mpStyle .inputInline .inputList { max-width: calc(50% - 10px); }
 	}
 	@media only screen and (max-width: 600px) {
-		.mpStyle .inputInline .inputList {
-			max-width: 100%;
-			min-width: 100%;
-		}
+		.mpStyle .inputInline .inputList { max-width: 100%; min-width: 100%; }
 	}
 	@media only screen and (max-width: 450px) {
-		.mpStyle .addonGroupContent {
-			min-width: 25px;
-		}
+		.mpStyle .addonGroupContent { min-width: 25px; }
 	}
 }
 /******************************************************************** List section ************************************************/
 @media only screen and (min-width: 10px) {
-	.mpStyle ul:not(.mp_wp_editor ul) {
-		list-style-type: none;
-		margin: 0;
-		padding: 0;
-		line-height: 1.25;
-	}
-	.mpStyle ul li {
-		margin: 0;
-		padding: 0;
-		line-height: inherit;
-	}
+	.mpStyle ul:not(.mp_wp_editor ul) { list-style-type: none; margin: 0; padding: 0; line-height: 1.25; }
+	.mpStyle ul li { margin: 0; padding: 0; line-height: inherit; }
 	/******List inline**********/
-	.mpStyle ul.listInline li {
-		text-align: center;
-		border-right: 1px solid;
-	}
-	.mpStyle ul.listInline li:last-child {
-		border: none;
-	}
-	.mpStyle ul.listInline li a {
-		padding: var(--dMP_xs);
-		display: block;
-	}
-	.mpStyle ul.listInline li.mage_active {
-		background-color: var(--color_active)
-	}
-	.mpStyle ul.listInline li.mage_active a {
-		color: #FFF;
-	}
+	.mpStyle ul.listInline li { text-align: center; border-right: 1px solid; }
+	.mpStyle ul.listInline li:last-child { border: none; }
+	.mpStyle ul.listInline li a { padding: var(--dMP_xs); display: block; }
+	.mpStyle ul.listInline li.mage_active { background-color: var(--color_active) }
+	.mpStyle ul.listInline li.mage_active a { color: #FFF; }
 	/******list Horizontal*****/
-	.mpStyle ul.mp_list {
-		margin: var(--dMP_xs) 0 0 0;
-	}
-	.mpStyle ul.mp_list li {
-		padding: 5px 0;
-		border-bottom: 1px dotted var(--color_border);
-		width: 100%;
-	}
-	.mpStyle ul.mp_list li:last-child {
-		border: none;
-	}
+	.mpStyle ul.mp_list { margin: var(--dMP_xs) 0 0 0; }
+	.mpStyle ul.mp_list li { padding: 5px 0; border-bottom: 1px dotted var(--color_border); width: 100%; }
+	.mpStyle ul.mp_list li:last-child { border: none; }
 	/******All in one line*****/
-	.mpStyle ul.listEqual li {
-		text-align: center;
-		border-right: 1px solid;
-	}
-	.mpStyle ul.listEqual li a {
-		padding: var(--dMP_xs);
-		display: block;
-	}
-	.mpStyle ul.listEqual li.mage_active {
-		background-color: var(--color_active)
-	}
-	.mpStyle ul.listEqual li.mage_active a {
-		color: #FFF;
-	}
+	.mpStyle ul.listEqual li { text-align: center; border-right: 1px solid; }
+	.mpStyle ul.listEqual li a { padding: var(--dMP_xs); display: block; }
+	.mpStyle ul.listEqual li.mage_active { background-color: var(--color_active) }
+	.mpStyle ul.listEqual li.mage_active a { color: #FFF; }
 	/***list inline two li***/
-	.mpStyle ul.list_inline_two li {
-		width: 45%;
-		padding: 5px;
-		border-bottom: 1px solid var(--color_border);
-	}
-	.mpStyle ul.list_inline_two li span {
-		margin: 0 var(--dMP_xs) 0 0;
-	}
+	.mpStyle ul.list_inline_two li { width: 45%; padding: 5px; border-bottom: 1px solid var(--color_border); }
+	.mpStyle ul.list_inline_two li span { margin: 0 var(--dMP_xs) 0 0; }
 }
 /******************************************************************** Table section ************************************************/
 @media only screen and (min-width: 10px) {
-	.mpStyle table {
-		border-collapse: collapse;
-		width: 100%;
-	}
+	.mpStyle table { border-collapse: collapse; width: 100%; }
 	.mpStyle table.layoutFixed,
-	.mpStyle table[class*='_layoutFixed'] {
-		table-layout: fixed;
-	}
+	.mpStyle table[class*='_layoutFixed'] { table-layout: fixed; }
 	.mpStyle table th,
-	.mpStyle table td {
-		border: 1px solid var(--color_border);
-		padding: var(--dMP_xs);
-	}
-	.mpStyle table thead th {
-		padding: var(--dMP_xs);
-		font-weight: bold;
-		font-size: var(--fs);
-		white-space: nowrap;
-		background-color: var(--color_light);
-		color: var(--d_color);
-	}
-	.mpStyle table th {
-		vertical-align: top;
-	}
-	.mpStyle table td {
-		padding: var(--dMP_xs);
-		font-weight: var(--fw);
-		font-size: var(--fs);
-		line-height: 1.25;
-		color: var(--d_color);
-		vertical-align: middle;
-	}
+	.mpStyle table td { border: 1px solid var(--color_border); padding: var(--dMP_xs); }
+	.mpStyle table thead th {vertical-align: middle; padding: var(--dMP_xs); font-weight: bold; font-size: var(--fs); white-space: nowrap; background-color: var(--color_light); color: var(--d_color); }
+	.mpStyle table th { vertical-align: top; }
+	.mpStyle table td { padding: var(--dMP_xs); font-weight: var(--fw); font-size: var(--fs); line-height: 1.25; color: var(--d_color); vertical-align: middle; }
 	/**************/
-	.mpStyle table tr[data-collapse].mActive {
-		display: table-row;
-	}
+	.mpStyle table tr[data-collapse].mActive { display: table-row; }
 	.mpStyle table th[data-collapse].mActive,
-	.mpStyle table td[data-collapse].mActive {
-		display: table-cell;
-	}
+	.mpStyle table td[data-collapse].mActive { display: table-cell; }
 }
 /******************************************************************** Tabs section ************************************************/
 @media only screen and (min-width: 10px) {
 	.mpStyle .tabLists,
-	.mpStyle .leftTabs {
-		display: -webkit-flex;
-		display: flex;
-	}
-	.mpStyle .tabLists {
-		font-size: var(--fs_h6);
-		width: 100%;
-	}
-	.mpStyle .tabLists span {
-		margin: 0 var(--dMP_xs) 0 0;
-	}
-	.leftTabs > .tabLists {
-		-webkit-flex-flow: column;
-		flex-flow: column;
-		min-width: 250px;
-		max-width: 250px;
-	}
+	.mpStyle .leftTabs { display: -webkit-flex; display: flex; }
+	.mpStyle .tabLists { font-size: var(--fs_h6); width: 100%; }
+	.mpStyle .tabLists span { margin: 0 var(--dMP_xs) 0 0; }
+	.leftTabs > .tabLists { -webkit-flex-flow: column; flex-flow: column; min-width: 250px; max-width: 250px; }
 	div.mpStyle [data-tabs-target] {
-		display: -webkit-flex;
-		display: flex;
-		-webkit-align-items: center;
-		align-items: center;
-		-webkit-flex-wrap: nowrap;
-		flex-wrap: nowrap;
-		position: relative;
-		text-align: left;
-		cursor: pointer;
-		padding: var(--dMP_xs);
-		color: var(--d_color);
+		display: -webkit-flex; display: flex;
+		-webkit-align-items: center; align-items: center;
+		-webkit-flex-wrap: nowrap; flex-wrap: nowrap;
+		position: relative; text-align: left; cursor: pointer;
+		padding: var(--dMP_xs); color: var(--d_color);
 	}
-	.mpStyle [data-tabs-target]:hover {
-		font-weight: var(--fw-medium);
-		border-color: var(--color_theme);
-		color: var(--color_theme)
-	}
-	.mpStyle [data-tabs-target].active {
-		font-weight: var(--fw-medium);
-		background-color: var(--color_theme);
-		color: var(--color_theme_alter);
-	}
-	.topTabs [data-tabs-target] {
-		border-right: 1px solid var(--color_border);
-		-webkit-justify-content: center;
-		justify-content: center;
-	}
-	.topTabs [data-tabs-target]:last-child {
-		border-right: none;
-	}
-	.leftTabs [data-tabs-target] {
-		border-bottom: 1px solid var(--color_border);
-	}
-	.mpStyle .tabsContent {
-		position: relative;
-		overflow: hidden;
-		width: 100%;
-		padding: var(--dMP);
-	}
-	.tabsContent [data-tabs] {
-		display: none;
-	}
+	.mpStyle [data-tabs-target]:hover { font-weight: var(--fw-medium); border-color: var(--color_theme); color: var(--color_theme) }
+	.mpStyle [data-tabs-target].active { font-weight: var(--fw-medium); background-color: var(--color_theme); color: var(--color_theme_alter); }
+	.topTabs [data-tabs-target] { border-right: 1px solid var(--color_border); -webkit-justify-content: center; justify-content: center; }
+	.topTabs [data-tabs-target]:last-child { border-right: none; }
+	.leftTabs [data-tabs-target] { border-bottom: 1px solid var(--color_border); }
+	.mpStyle .tabsContent { position: relative; overflow: hidden; width: 100%; padding: var(--dMP); }
+	.tabsContent [data-tabs] { display: none; }
 	/**************/
-	.mpTabs.tabBorder {
-		border: 1px solid var(--color_border);
-	}
-	.mpTabs.tabBorder > .tabLists {
-	}
+	.mpTabs.tabBorder { border: 1px solid var(--color_border); }
+	.mpTabs.tabBorder > .tabLists { }
 	/******Tab next*********/
-	.mpStyle .mpTabsNext {
-	}
-	.mpTabsNext .tabListsNext {
-		display: -webkit-flex;
-		display: flex;
-		-webkit-justify-content: space-between;
-		justify-content: space-between;
-	}
+	.mpStyle .mpTabsNext { }
+	.mpTabsNext .tabListsNext { display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; }
 	.mpTabsNext .tabItemNext {
-		position: relative;
-		min-height: 80px;
-		display: -webkit-flex;
-		display: flex;
-		-webkit-align-items: center;
-		align-items: center;
-		-webkit-flex-direction: column;
-		flex-direction: column;
-		-webkit-flex: 1;
-		flex: 1;
+		position: relative; min-height: 80px;
+		display: -webkit-flex; display: flex;
+		-webkit-align-items: center; align-items: center;
+		-webkit-flex-direction: column; flex-direction: column;
+		-webkit-flex: 1; flex: 1;
 	}
-	.mpTabsNext .tabItemNext [class*="circleIcon"] {
-		background-color: var(--color_light);
-		color: var(--d_color);
-		margin: 0;
-		z-index: 1;
-	}
-	.mpTabsNext .tabItemNext .circleTitle {
-		color: var(--d_color);
-		margin: var(--dMP_xs) 0 0 0;
-		left: 0;
-		top: 40px;
-		width: 100%;
-		position: absolute;
-		text-align: center;
-	}
-	.mpTabsNext .tabItemNext.active [class*="circleIcon"] {
-		background-color: var(--color_theme);
-		color: var(--color_theme_alter);
-	}
-	.mpTabsNext .tabItemNext.active .circleTitle {
-		color: var(--color_theme_aa);
-	}
-	.mpTabsNext .tabItemNext [class*="circleIcon"]::after {
-		content: "";
-		right: 0;
-		left: calc(50% + 20px);
-		top: 20px;
-		position: absolute;
-		border-bottom: 1px solid var(--color_border);
-		z-index: -1;
-		width: 100%;
-	}
-	.mpTabsNext .tabItemNext.active [class*="circleIcon"]::after {
-		border-color: var(--color_theme);
-	}
-	.mpTabsNext .tabItemNext:last-child [class*="circleIcon"]::after {
-		border: none;
-		width: 0;
-	}
-	.mpStyle .tabsContentNext {
-		position: relative;
-		overflow: hidden;
-		width: 100%;
-		padding: var(--dMP);
-	}
-	.tabsContentNext [data-tabs-next] {
-		display: none;
-	}
-	.tabsContentNext [data-tabs-next].active {
-		display: block;
-	}
+	.mpTabsNext .tabItemNext [class*="circleIcon"] { background-color: var(--color_light); color: var(--d_color); margin: 0; z-index: 1; }
+	.mpTabsNext .tabItemNext .circleTitle { color: var(--d_color); margin: var(--dMP_xs) 0 0 0; left: 0; top: 40px; width: 100%; position: absolute; text-align: center; }
+	.mpTabsNext .tabItemNext.active [class*="circleIcon"] { background-color: var(--color_theme); color: var(--color_theme_alter); }
+	.mpTabsNext .tabItemNext.active [class*="circleIcon"].success {background-color: var(--color_success);}
+	.mpTabsNext .tabItemNext.active .circleTitle { color: var(--color_theme_aa); }
+	.mpTabsNext .tabItemNext.active .circleTitle.success{color: var(--color_success);}
+	.mpTabsNext .tabItemNext [class*="circleIcon"]::after { content: ""; right: 0; left: calc(50% + 20px); top: 20px; position: absolute; border-bottom: 1px solid var(--color_border); z-index: -1; width: 100%; }
+	.mpTabsNext .tabItemNext.active [class*="circleIcon"]::after { border-color: var(--color_theme); }
+	.mpTabsNext .tabItemNext:last-child [class*="circleIcon"]::after { border: none; width: 0; }
+	.mpStyle .tabsContentNext { position: relative; overflow: hidden; width: 100%; padding: var(--dMP); }
+	.tabsContentNext [data-tabs-next] { display: none; }
+	.tabsContentNext [data-tabs-next].active { display: block; }
 }
 /******************************************************************** Panel section ************************************************/
 @media only screen and (min-width: 10px) {
-	div.mpStyle .mpPanel {
-		position: relative;
-		border: 1px solid var(--color_border);
-		border-radius: var(--dBR);
-	}
-	div.mpStyle .mpPanelHeader {
-		padding: 10px var(--dMP);
-		background-color: #555;
-		color: #FFF;
-	}
+	div.mpStyle .mpPanel { position: relative; border: 1px solid var(--color_border); border-radius: var(--dBR); }
+	div.mpStyle .mpPanelHeader { padding: 10px var(--dMP); background-color: #555; color: #FFF; }
 	div.mpStyle .mpPanelHeader .panelTitle,
-	div.mpStyle .mpPanelHeader .panelTitle span {
-		color: #FFF;
-	}
-	div.mpStyle .mpPanelBody {
-		padding: var(--dMP);
-		background-color: var(--color_3);
-		overflow-x: auto;
-	}
+	div.mpStyle .mpPanelHeader .panelTitle span { color: #FFF; }
+	div.mpStyle .mpPanelBody { padding: var(--dMP); background-color: var(--color_3); overflow-x: auto; }
 }
 /******************************************************************** Faq section ************************************************/
 @media only screen and (min-width: 10px) {
@@ -2172,31 +1640,34 @@
 }
 /******************************************************************** Date picker ************************************************/
 @media only screen and (min-width: 10px) {
-	#ui-datepicker-div { width: 342px; border-color: var(--color_theme); padding: 0; background-color: #FFF; }
+	#ui-datepicker-div {width: 342px;border-color: var(--color_theme);padding: 0;background-color: #FFF;}
 	#ui-datepicker-div .ui-datepicker-header {
-		background-color: var(--color_theme); background-image: none;
-		border-color: var(--color_theme);font-size: var(--fs_h5); padding: var(--dMP_xs); color: var(--color_theme_alter); border-radius: 0;
-		display: -webkit-flex; display: flex;
-		-webkit-justify-content: center; justify-content: center;
+		background-color: var(--color_theme);background-image: none;border-color: var(--color_theme);
+		padding: var(--dMP_xs);color: var(--color_theme_alter);border-radius: 0;
+		display: -webkit-flex;display: flex;-webkit-justify-content: center;justify-content: center;
+		font-size: var(--fs_h6);
 	}
-	#ui-datepicker-div .ui-datepicker-header .ui-icon { display: none; }
-	#ui-datepicker-div .ui-datepicker-prev { top: 10px; left: 10px; }
-	#ui-datepicker-div .ui-datepicker-next { top: 10px; right: 0; }
+	#ui-datepicker-div .ui-datepicker-header .ui-icon {display: none;}
+	#ui-datepicker-div .ui-datepicker-prev {top: var(--dMP_xs);left: 5px;height: 30px;width: 30px;}
+	#ui-datepicker-div .ui-datepicker-next {top: var(--dMP_xs);right: 5px;height: 30px;width: 30px;}
+	#ui-datepicker-div .ui-datepicker-prev:hover,
+	#ui-datepicker-div .ui-datepicker-prev:focus,
+	#ui-datepicker-div .ui-datepicker-next:focus,
+	#ui-datepicker-div .ui-datepicker-next:hover {box-shadow: 0 0 0 2px #FFF, 0 0 2px 1px #FFF; outline: 1px solid transparent}
 	#ui-datepicker-div .ui-datepicker-header a.ui-datepicker-prev::before,
-	#ui-datepicker-div .ui-datepicker-header a.ui-datepicker-next::before { position: absolute; content: '>'; color: #FFF; left: 0; font-size: var(--fs_h5); top: 0; }
-	#ui-datepicker-div .ui-datepicker-header a.ui-datepicker-prev::before { content: '<'; }
-	#ui-datepicker-div .ui-datepicker-header .ui-state-hover { background-color: var(--color_theme); background-image: none; border-color: var(--color_theme); }
+	#ui-datepicker-div .ui-datepicker-header a.ui-datepicker-next::before { position: absolute;content: '>';color: #FFF;left: 10px;font-size: var(--fs_h3);top: 5px;font-weight: bold;line-height: 1;}
+	#ui-datepicker-div .ui-datepicker-header a.ui-datepicker-prev::before {content: '<';}
+	#ui-datepicker-div .ui-datepicker-header .ui-state-hover {background-color: var(--color_theme);background-image: none;border-color: var(--color_theme);}
 	#ui-datepicker-div .ui-state-default {
-		background-color: transparent; background-image: none;
-		border: none; border-radius: 50%; width: 35px; height: 35px; color: var(--color_theme); font-weight: bold; padding: 0;
-		display: -webkit-flex; display: flex;
-		-webkit-align-items: center; align-items: center;
-		-webkit-justify-content: center; justify-content: center;
+		background-color: transparent;background-image: none;border: none;border-radius: 50%;
+		width: 35px;height: 35px;color: var(--color_theme);font-weight: bold;padding: 0;
+		display: -webkit-flex;display: flex;-webkit-align-items: center;align-items: center;-webkit-justify-content: center;justify-content: center;
 	}
-	#ui-datepicker-div a.ui-state-default:hover { background-color: darksalmon; }
-	#ui-datepicker-div .ui-state-active { background-color: var(--color_theme); color: var(--color_theme_alter); background-image: none; }
-	#ui-datepicker-div .ui-datepicker-title { background-color: var(--color_theme); color: var(--color_theme_alter); background-image: none; font-size: var(--fs_h5); }
-	#ui-datepicker-div.ui-datepicker td { background-color: floralwhite; border: 1px dotted #000; padding: 4px 6px; }
+	#ui-datepicker-div a.ui-state-default:hover {background-color: darksalmon;}
+	#ui-datepicker-div .ui-state-active {background-color: var(--color_theme);color: var(--color_theme_alter);background-image: none;}
+	#ui-datepicker-div .ui-datepicker-title {background-color: var(--color_theme);color: var(--color_theme_alter);background-image: none;font-size: var(--fs_h5);display: -webkit-flex;display: flex;margin: 0;}
+	#ui-datepicker-div .ui-datepicker-title select {min-width: 100px;height: 30px;font-size: var(--fs);}
+	#ui-datepicker-div.ui-datepicker td {background-color: floralwhite;border: 1px dotted #000;padding: 4px 6px;}
 }
 /********************************************************************************************************************/
 @media only screen and (min-width: 10px) {

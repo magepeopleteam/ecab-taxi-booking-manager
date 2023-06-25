@@ -239,13 +239,15 @@ function mptbm_price_calculation(parent) {
 		let parent = $this.closest('.mptbm_transport_search_area');
 		let target_summary = parent.find('.mptbm_transport_summary');
 		let target_extra_service = parent.find('.mptbm_extra_service');
+		let target_extra_service_summary = parent.find('.mptbm_extra_service_summary');
 		if ($this.hasClass('active_select')) {
 			$this.removeClass('active_select');
 			mp_all_content_change($this);
 			target_summary.slideUp(350);
-			target_extra_service.slideUp(350);
+			target_extra_service.slideUp(350).html('');
+			target_extra_service_summary.slideUp(350).html('');
 			parent.find('[name="mptbm_post_id"]').val('');
-			parent.find('.mptbm_add_to_cart').attr('value','');
+			parent.find('.mptbm_add_to_cart').attr('value', '');
 		} else {
 			parent.find('.mptbm_transport_select.active_select').each(function () {
 				$(this).removeClass('active_select');
@@ -259,12 +261,45 @@ function mptbm_price_calculation(parent) {
 				$this.addClass('active_select');
 				mp_all_content_change($this);
 				parent.find('[name="mptbm_post_id"]').val(post_id).attr('data-price', transport_price).promise().done(function () {
-					let link_id=$this.data('link-id')
-					parent.find('.mptbm_add_to_cart').attr('value',link_id);
 					mptbm_price_calculation(parent);
 				});
-				target_summary.slideDown(350);
-				target_extra_service.slideDown(350);
+				$.ajax({
+					type: 'POST',
+					url: mp_ajax_url,
+					data: {
+						"action": "get_mptbm_extra_service",
+						"post_id": post_id,
+					},
+					beforeSend: function () {
+						dLoader(parent);
+					},
+					success: function (data) {
+						target_extra_service.html(data);
+					},
+					error: function (response) {
+						console.log(response);
+					}
+				}).promise().done(function (){
+					$.ajax({
+						type: 'POST',
+						url: mp_ajax_url,
+						data: {
+							"action": "get_mptbm_extra_service_summary",
+							"post_id": post_id,
+						},
+						success: function (data) {
+							target_extra_service_summary.html(data).promise().done(function () {
+								target_summary.slideDown(350);
+								target_extra_service.slideDown(350);
+								target_extra_service_summary.slideDown(350);
+								dLoaderRemove(parent);
+							});
+						},
+						error: function (response) {
+							console.log(response);
+						}
+					})
+				});
 			});
 		}
 	});

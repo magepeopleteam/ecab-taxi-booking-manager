@@ -74,7 +74,7 @@
 			}
 			//************************//
 			public static function get_general_settings($key, $default = '') {
-				return MP_Global_Function::get_settings('mptbm_general_settings', $key, $default);
+				return MP_Global_Function::get_settings('MPTBM_General_Settings', $key, $default);
 			}
 			public static function get_cpt(): string {
 				return 'mptbm_rent';
@@ -129,9 +129,10 @@
 				$price = self::get_price($post_id);
 				return MP_Global_Function::wc_price($post_id, $price);
 			}
-			public static function get_extra_service_price_by_name($service_name) {
-				$extra_services = get_option('mptbm_extra_services');
-				$display_extra_services = get_option('display_mptbm_extra_services', 'on');
+			public static function get_extra_service_price_by_name($post_id,$service_name) {
+				$display_extra_services = MP_Global_Function::get_post_info($post_id, 'display_mptbm_extra_services', 'on');
+				$service_id = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_services_id', $post_id);
+				$extra_services = MP_Global_Function::get_post_info($service_id, 'mptbm_extra_service_infos', []);
 				$price = 0;
 				if ($display_extra_services == 'on' && is_array($extra_services) && sizeof($extra_services) > 0) {
 					foreach ($extra_services as $service) {

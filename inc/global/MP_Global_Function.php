@@ -1,4 +1,8 @@
 <?php
+	/*
+* @Author 		engr.sumonazma@gmail.com
+* Copyright: 	mage-people.com
+*/
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly.
@@ -22,13 +26,15 @@
 					$all_date[] = '"' . date('j-n-Y', strtotime($date)) . '"';
 				}
 				?>
-                <script>
+				<script>
 					jQuery(document).ready(function () {
 						jQuery("<?php echo esc_attr($selector); ?>").datepicker({
 							dateFormat: mp_date_format,
 							minDate: new Date(<?php echo esc_attr($start_year); ?>, <?php echo esc_attr($start_month); ?>, <?php echo esc_attr($start_day); ?>),
 							maxDate: new Date(<?php echo esc_attr($end_year); ?>, <?php echo esc_attr($end_month); ?>, <?php echo esc_attr($end_day); ?>),
 							autoSize: true,
+							changeMonth: true,
+							changeYear: true,
 							beforeShowDay: WorkingDates,
 							onSelect: function (dateString, data) {
 								let date = data.selectedYear + '-' + ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + data.selectedDay;
@@ -45,7 +51,7 @@
 							}
 						}
 					});
-                </script>
+				</script>
 				<?php
 			}
 			public static function date_format($date, $format = 'date') {
@@ -56,17 +62,23 @@
 				$timestamp = strtotime($date . ' ' . $timezone);
 				if ($format == 'date') {
 					$date = date_i18n($date_format, $timestamp);
-				} elseif ($format == 'time') {
+				}
+				elseif ($format == 'time') {
 					$date = date_i18n($time_format, $timestamp);
-				} elseif ($format == 'full') {
+				}
+				elseif ($format == 'full') {
 					$date = date_i18n($wp_settings, $timestamp);
-				} elseif ($format == 'day') {
+				}
+				elseif ($format == 'day') {
 					$date = date_i18n('d', $timestamp);
-				} elseif ($format == 'month') {
+				}
+				elseif ($format == 'month') {
 					$date = date_i18n('M', $timestamp);
-				} elseif ($format == 'year') {
+				}
+				elseif ($format == 'year') {
 					$date = date_i18n('Y', $timestamp);
-				} else {
+				}
+				else {
 					$date = date_i18n($format, $timestamp);
 				}
 				return $date;
@@ -100,14 +112,17 @@
 					$data = maybe_unserialize($data);
 					if (is_array($data)) {
 						$data = self::data_sanitize($data);
-					} else {
+					}
+					else {
 						$data = sanitize_text_field($data);
 					}
-				} elseif (is_array($data)) {
+				}
+				elseif (is_array($data)) {
 					foreach ($data as &$value) {
 						if (is_array($value)) {
 							$value = self::data_sanitize($value);
-						} else {
+						}
+						else {
 							$value = sanitize_text_field($value);
 						}
 					}
@@ -159,7 +174,8 @@
 				$tax_with_price = get_option('woocommerce_tax_display_shop');
 				if ('' === $price) {
 					return '';
-				} elseif (empty($qty)) {
+				}
+				elseif (empty($qty)) {
 					return 0.0;
 				}
 				$line_price = (float)$price * (int)$qty;
@@ -170,29 +186,34 @@
 						$taxes = WC_Tax::calc_tax($line_price, $tax_rates);
 						if ('yes' === get_option('woocommerce_tax_round_at_subtotal')) {
 							$taxes_total = array_sum($taxes);
-						} else {
+						}
+						else {
 							$taxes_total = array_sum(array_map('wc_round_tax_total', $taxes));
 						}
 						$return_price = $tax_with_price == 'excl' ? round($line_price, $num_of_decimal) : round($line_price + $taxes_total, $num_of_decimal);
-					} else {
+					}
+					else {
 						$tax_rates = WC_Tax::get_rates($product->get_tax_class());
 						$base_tax_rates = WC_Tax::get_base_tax_rates($product->get_tax_class('unfiltered'));
 						if (!empty(WC()->customer) && WC()->customer->get_is_vat_exempt()) { // @codingStandardsIgnoreLine.
 							$remove_taxes = apply_filters('woocommerce_adjust_non_base_location_prices', true) ? WC_Tax::calc_tax($line_price, $base_tax_rates, true) : WC_Tax::calc_tax($line_price, $tax_rates, true);
 							if ('yes' === get_option('woocommerce_tax_round_at_subtotal')) {
 								$remove_taxes_total = array_sum($remove_taxes);
-							} else {
+							}
+							else {
 								$remove_taxes_total = array_sum(array_map('wc_round_tax_total', $remove_taxes));
 							}
 							// $return_price = round( $line_price, $num_of_decimal);
 							$return_price = round($line_price - $remove_taxes_total, $num_of_decimal);
-						} else {
+						}
+						else {
 							$base_taxes = WC_Tax::calc_tax($line_price, $base_tax_rates, true);
 							$modded_taxes = WC_Tax::calc_tax($line_price - array_sum($base_taxes), $tax_rates);
 							if ('yes' === get_option('woocommerce_tax_round_at_subtotal')) {
 								$base_taxes_total = array_sum($base_taxes);
 								$modded_taxes_total = array_sum($modded_taxes);
-							} else {
+							}
+							else {
 								$base_taxes_total = array_sum(array_map('wc_round_tax_total', $base_taxes));
 								$modded_taxes_total = array_sum(array_map('wc_round_tax_total', $modded_taxes));
 							}
@@ -251,9 +272,11 @@
 				$plugin_dir = ABSPATH . 'wp-content/plugins/woocommerce';
 				if (is_plugin_active('woocommerce/woocommerce.php')) {
 					return 1;
-				} elseif (is_dir($plugin_dir)) {
+				}
+				elseif (is_dir($plugin_dir)) {
 					return 2;
-				} else {
+				}
+				else {
 					return 0;
 				}
 			}

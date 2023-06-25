@@ -1,7 +1,11 @@
 <?php
+	/*
+	* @Author 		magePeople
+	* Copyright: 	mage-people.com
+	*/
 	if (!defined('ABSPATH')) {
 		die;
-	} // Cannot access pages directly.
+	} // Cannot access pages directly
 	if (!class_exists('MPTBM_Query')) {
 		class MPTBM_Query {
 			public function __construct() {

@@ -1,3 +1,4 @@
+//=========Price Format==============//
 function mp_price_format(price) {
 	price = price.toFixed(mp_num_of_decimal);
 	let total_part = price.toString().split(".");
@@ -15,7 +16,7 @@ function mp_price_format(price) {
 	}
 	return price_text;
 }
-//loader
+//=========Loader==============//
 function dLoader(target) {
 	if (target.find('div[class*="dLoader"]').length < 1) {
 		target.addClass('pRelative').append('<div class="dLoader"><span class="fas fa-spinner fa-pulse"></span></div>');
@@ -69,19 +70,26 @@ function placeholderLoaderRemove(target) {
 		target.removeClass('placeholderLoader');
 	})
 }
+//=========Page Scroll==============//
 function pageScrollTo(target) {
 	jQuery('html, body').animate({
 		scrollTop: target.offset().top -= 150
 	}, 1000);
 }
-function mp_load_date_picker() {
-	jQuery(".mpStyle .date_type").datepicker({
-		dateFormat: mp_date_format, autoSize: true, onSelect: function (dateString, data) {
+//=========Load Date picker==============//
+function mp_load_date_picker(parent = jQuery('.mpStyle')) {
+	parent.find(".date_type").datepicker({
+		dateFormat: mp_date_format,
+		autoSize: true,
+		changeMonth: true,
+		changeYear: true,
+		onSelect: function (dateString, data) {
 			let date = data.selectedYear + '-' + ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + data.selectedDay;
 			jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
 		}
 	});
 }
+//=========Alert==============//
 function mp_alert($this, attr = 'alert') {
 	alert($this.data(attr));
 }
@@ -173,9 +181,12 @@ function content_icon_change(currentTarget) {
 }
 function content_text_change(currentTarget) {
 	let openText = currentTarget.data('open-text');
+	openText = openText ? openText.toString() : '';
 	let closeText = currentTarget.data('close-text');
+	closeText = closeText ? closeText : '';
 	if (openText || closeText) {
 		let text = currentTarget.find('[data-text]').html();
+		text = text ? text.toString() : ''
 		if (text !== openText) {
 			currentTarget.find('[data-text]').html(openText);
 		} else {

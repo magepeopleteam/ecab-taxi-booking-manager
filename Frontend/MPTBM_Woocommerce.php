@@ -1,4 +1,5 @@
 <?php
+
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly.
@@ -34,7 +35,7 @@
 					//$cart_item_data['mptbm_base_price'] = $this->get_base_price($product_id);
 					$cart_item_data['mptbm_price'] = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place);
 					$cart_item_data['mptbm_user_info'] = apply_filters('add_mptbm_user_info_data', array(), $post_id);
-					$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info();
+					$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info($post_id);
 					//$cart_item_data['mptbm_booking_info'] = self::get_booking_info();
 					$cart_item_data['mptbm_tp'] = $total_price;
 					$cart_item_data['line_total'] = $total_price;
@@ -42,7 +43,7 @@
 					$cart_item_data = apply_filters('mptbm_add_cart_item', $cart_item_data, $post_id);
 				}
 				$cart_item_data['mptbm_id'] = $post_id;
-				echo '<pre>';print_r($cart_item_data);echo '</pre>';die();
+				//echo '<pre>';print_r($cart_item_data);echo '</pre>';die();
 				return $cart_item_data;
 			}
 			public function before_calculate_totals($cart_object) {
@@ -348,7 +349,7 @@
 				}
 			}
 			//**********************//
-			public static function cart_extra_service_info(): array {
+			public static function cart_extra_service_info($post_id): array {
 				$start_date = MP_Global_Function::get_submit_info('mptbm_date');
 				$service_name = MP_Global_Function::get_submit_info('mptbm_extra_service', array());
 				$service_quantity = MP_Global_Function::get_submit_info('mptbm_extra_service_qty', array());
@@ -358,7 +359,7 @@
 						if ($service_name[$i] && $service_quantity[$i]>0 ) {
 							$extra_service[$i]['service_name'] = $service_name[$i];
 							$extra_service[$i]['service_quantity'] = $service_quantity[$i];
-							$extra_service[$i]['service_price'] = MPTBM_Function::get_extra_service_price_by_name($service_name[$i]);
+							$extra_service[$i]['service_price'] = MPTBM_Function::get_extra_service_price_by_name($post_id,$service_name[$i]);
 							$extra_service[$i]['mptbm_date'] = $start_date ?? '';
 						}
 					}
@@ -373,7 +374,7 @@
 				$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place);
 				$wc_price = MP_Global_Function::wc_price($post_id, $price);
 				$raw_price = MP_Global_Function::price_convert_raw($wc_price);
-				$service_name = MP_Global_Function::get_submit_info('mptbm_extra_service', array());
+				$service_name = MP_Global_Function::get_submit_info('MPTBM_Extra_Service', array());
 				$service_quantity = MP_Global_Function::get_submit_info('mptbm_extra_service_quantity', array());
 				if (sizeof($service_name) > 0) {
 					for ($i = 0; $i < count($service_name); $i++) {

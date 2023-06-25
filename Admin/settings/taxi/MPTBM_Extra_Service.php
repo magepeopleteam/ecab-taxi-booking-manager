@@ -1,8 +1,12 @@
 <?php
+	/*
+   * @Author 		engr.sumonazma@gmail.com
+   * Copyright: 	mage-people.com
+   */
 	if ( ! defined( 'ABSPATH' ) ) {
 		die;
 	} // Cannot access pages directly.
-	if ( ! class_exists( 'MPTBM_Extra_Service' ) ) {
+	if ( ! class_exists('MPTBM_Extra_Service') ) {
 		class MPTBM_Extra_Service {
 			public function __construct() {
 				add_action( 'add_meta_boxes', array( $this, 'mptbm_extra_service_meta' ) );
@@ -196,6 +200,9 @@
 						$extra_service_data = $this->ex_service_data( $post_id );
 						update_post_meta( $post_id, 'mptbm_extra_service_infos', $extra_service_data );
 					}
+					echo $ex_id;
+					echo $post_id;
+					die();
 				}
 			}
 			public function ex_service_data( $post_id ) {

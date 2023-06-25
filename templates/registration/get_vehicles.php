@@ -1,5 +1,12 @@
 <?php
-    $post_id = MP_Global_Function::data_sanitize($_POST['post_id']);
+	/*
+	* @Author 		magePeople
+	* Copyright: 	mage-people.com
+	*/
+	if (!defined('ABSPATH')) {
+		die;
+	} // Cannot access pages directly
+	$post_id = MP_Global_Function::data_sanitize( $_POST['post_id']);
     if ($post_id > 0) {
         include(MPTBM_Function::template_path('registration/vehicle_item.php'));
     } else {

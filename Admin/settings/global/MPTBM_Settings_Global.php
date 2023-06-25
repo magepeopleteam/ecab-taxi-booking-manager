@@ -1,4 +1,8 @@
 <?php
+	/*
+   * @Author 		engr.sumonazma@gmail.com
+   * Copyright: 	mage-people.com
+   */
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly.
@@ -49,7 +53,7 @@
 			public function settings_sec_reg($default_sec): array {
 				$sections = array(
 					array(
-						'id' => 'mptbm_general_settings',
+						'id' => 'MPTBM_General_Settings',
 						'title' => __('General Settings', 'mptbm_plugin')
 					),
 					array(
@@ -67,7 +71,7 @@
 				$label = MPTBM_Function::get_name();
 				$current_date = current_time('Y-m-d');
 				$settings_fields = array(
-					'mptbm_general_settings' => apply_filters('filter_mptbm_general_settings', array(
+					'MPTBM_General_Settings' => apply_filters('filter_mptbm_general_settings', array(
 						array(
 							'name' => 'disable_block_editor',
 							'label' => esc_html__('Disable Block/Gutenberg Editor', 'mptbm_plugin'),

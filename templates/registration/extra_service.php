@@ -1,68 +1,78 @@
 <?php
-	$post_id = $post_id ?? '';
-	$extra_services = get_option('mptbm_extra_services');
-	$display_extra_services = get_option('display_mptbm_extra_services', 'on');
-	
-?>
-	<div class="dLayout mptbm_extra_service">
-		<?php if ($display_extra_services == 'on' && is_array($extra_services) && sizeof($extra_services) > 0) { ?>
-			<h3><?php esc_html_e('Choose Extra Features (Optional)', 'mptbm_plugin'); ?></h3>
-			<div class="divider"></div>
-			<?php foreach ($extra_services as $service) {
-				$service_icon = array_key_exists('service_icon', $service) ? $service['service_icon'] : '';
-				$service_image = array_key_exists('service_image', $service) ? $service['service_image'] : '';
-				$service_name = array_key_exists('service_name', $service) ? $service['service_name'] : '';
-				$service_price = array_key_exists('service_price', $service) ? $service['service_price'] : 0;
-				$description = array_key_exists('extra_service_description', $service) ? $service['extra_service_description'] : '';
-				$ex_unique_id = '#ex_service_' . uniqid();
-				if ($service_name) {
-					?>
-					<div class="dFlex mptbm_extra_service_item">
-						<?php if ($service_image) { ?>
-							<div class="service_img_area alignCenter">
-								<div class="bg_image_area">
-									<div data-bg-image="<?php echo esc_attr(MP_Global_Function::get_image_url('', $service_image, 'medium')); ?>"></div>
-								</div>
-							</div>
-						<?php } ?>
-						<div class="fdColumn fullWidth">
-							<h4>
-								<?php if ($service_icon) { ?>
-									<span class="<?php echo esc_attr($service_icon); ?>"></span>
-								<?php } ?>
-								<?php echo MP_Global_Function::esc_html($service_name); ?>
-								<sub class="textTheme">&nbsp;/ &nbsp;&nbsp;<?php echo wc_price($service_price); ?></sub>
-							</h4>
-							<div class="divider"></div>
-							<div class="_dFlex_justifyBetween_alignCenter">
-								<div>
-									<?php MP_Custom_Layout::load_more_text($description, 100); ?>
-								</div>
-								<div class="alignCenter">
-									<div class="mR_xs min_100" data-collapse="<?php echo esc_attr($ex_unique_id); ?>">
-										<?php MP_Custom_Layout::qty_input('mptbm_extra_service_qty[]', $service_price, 100, 1, 0); ?>
+	/*
+* @Author 		magePeople
+* Copyright: 	mage-people.com
+*/
+	if (!defined('ABSPATH')) {
+		die;
+	} // Cannot access pages directly
+	$post_id = MP_Global_Function::data_sanitize($_POST['post_id']);
+	if ($post_id && $post_id > 0) {
+		$link_wc_product = MP_Global_Function::get_post_info($post_id, 'link_wc_product');
+		$display_extra_services = MP_Global_Function::get_post_info($post_id, 'display_mptbm_extra_services', 'on');
+		$service_id = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_services_id', $post_id);
+		$extra_services = MP_Global_Function::get_post_info($service_id, 'mptbm_extra_service_infos', []);
+		?>
+		<div class="dLayout">
+			<?php if ($display_extra_services == 'on' && is_array($extra_services) && sizeof($extra_services) > 0) { ?>
+				<h3><?php esc_html_e('Choose Extra Features (Optional)', 'mptbm_plugin'); ?></h3>
+				<div class="divider"></div>
+				<?php foreach ($extra_services as $service) {
+					$service_icon = array_key_exists('service_icon', $service) ? $service['service_icon'] : '';
+					$service_image = array_key_exists('service_image', $service) ? $service['service_image'] : '';
+					$service_name = array_key_exists('service_name', $service) ? $service['service_name'] : '';
+					$service_price = array_key_exists('service_price', $service) ? $service['service_price'] : 0;
+					$description = array_key_exists('extra_service_description', $service) ? $service['extra_service_description'] : '';
+					$ex_unique_id = '#ex_service_' . uniqid();
+					if ($service_name) {
+						?>
+						<div class="dFlex mptbm_extra_service_item">
+							<?php if ($service_image) { ?>
+								<div class="service_img_area alignCenter">
+									<div class="bg_image_area">
+										<div data-bg-image="<?php echo esc_attr(MP_Global_Function::get_image_url('', $service_image, 'medium')); ?>"></div>
 									</div>
-									<button type="button" class="_mpBtn_bBR_min_150 mptbm_price_calculation" data-extra-item data-collapse-target="<?php echo esc_attr($ex_unique_id); ?>" data-open-icon="far fa-check-circle" data-close-icon="" data-open-text="<?php esc_attr_e('Select', 'mptbm_plugin'); ?>" data-close-text="<?php esc_attr_e('Selected', 'mptbm_plugin'); ?>" data-add-class="mActive">
-										<input type="hidden" name="mptbm_extra_service[]" data-value="<?php echo esc_attr($service_name); ?>" value="" />
-										<span data-text><?php esc_html_e('Select', 'mptbm_plugin'); ?></span>
-										<span data-icon class="mL_xs"></span>
-									</button>
+								</div>
+							<?php } ?>
+							<div class="fdColumn fullWidth">
+								<h4>
+									<?php if ($service_icon) { ?>
+										<span class="<?php echo esc_attr($service_icon); ?>"></span>
+									<?php } ?>
+									<?php echo MP_Global_Function::esc_html($service_name); ?>
+									<sub class="textTheme">&nbsp;/ &nbsp;&nbsp;<?php echo wc_price($service_price); ?></sub>
+								</h4>
+								<div class="divider"></div>
+								<div class="_dFlex_justifyBetween_alignCenter">
+									<div>
+										<?php MP_Custom_Layout::load_more_text($description, 100); ?>
+									</div>
+									<div class="alignCenter">
+										<div class="mR_xs min_100" data-collapse="<?php echo esc_attr($ex_unique_id); ?>">
+											<?php MP_Custom_Layout::qty_input('mptbm_extra_service_qty[]', $service_price, 100, 1, 0); ?>
+										</div>
+										<button type="button" class="_mpBtn_bBR_min_150 mptbm_price_calculation" data-extra-item data-collapse-target="<?php echo esc_attr($ex_unique_id); ?>" data-open-icon="far fa-check-circle" data-close-icon="" data-open-text="<?php esc_attr_e('Select', 'mptbm_plugin'); ?>" data-close-text="<?php esc_attr_e('Selected', 'mptbm_plugin'); ?>" data-add-class="mActive">
+											<input type="hidden" name="mptbm_extra_service[]" data-value="<?php echo esc_attr($service_name); ?>" value=""/>
+											<span data-text><?php esc_html_e('Select', 'mptbm_plugin'); ?></span>
+											<span data-icon class="mL_xs"></span>
+										</button>
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>
-					<div class="divider"></div>
-					<?php
+						<div class="divider"></div>
+						<?php
+					}
 				}
 			}
-		}
-		?>
-		<button class="_dButton mptbm_book_now" type="button">
-			<span class="fas fa-cart-plus"></span>
-			<?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
-		</button>
-		<button type="submit" name="add-to-cart" value=""  class="dNone mptbm_add_to_cart">
-			<?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
-		</button>
-	</div>
-<?php
+			?>
+			<button class="_dButton mptbm_book_now" type="button">
+				<span class="fas fa-cart-plus"></span>
+				<?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
+			</button>
+			<button type="submit" name="add-to-cart" value="<?php echo esc_attr($link_wc_product); ?>" class="dNone mptbm_add_to_cart">
+				<?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
+			</button>
+		</div>
+		<?php
+	}
