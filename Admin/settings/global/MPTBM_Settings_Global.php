@@ -24,17 +24,15 @@
 			public function settings_page() {
 				$label = MPTBM_Function::get_name();
 				?>
-                <div class="mpStyle">
-                    <div class="mp_settings_panel_header">
-                        <h3>
-							<?php echo esc_html($label . esc_html__(' Global Settings', 'mptbm_plugin')); ?>
-                        </h3>
-                    </div>
-                    <div class="mp_settings_panel">
-						<?php $this->settings_api->show_navigation(); ?>
-						<?php $this->settings_api->show_forms(); ?>
-                    </div>
-                </div>
+				<div class="mp_settings_panel_header">
+					<h3>
+						<?php echo esc_html($label . esc_html__(' Global Settings', 'mptbm_plugin')); ?>
+					</h3>
+				</div>
+				<div class="mp_settings_panel">
+					<?php $this->settings_api->show_navigation(); ?>
+					<?php $this->settings_api->show_forms(); ?>
+				</div>
 				<?php
 			}
 			public function admin_init() {

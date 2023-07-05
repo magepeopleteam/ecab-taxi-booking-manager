@@ -77,16 +77,20 @@ function pageScrollTo(target) {
 	}, 1000);
 }
 //=========Load Date picker==============//
-function mp_load_date_picker(parent = jQuery('.mpStyle')) {
-	parent.find(".date_type").datepicker({
-		dateFormat: mp_date_format,
-		autoSize: true,
-		changeMonth: true,
-		changeYear: true,
-		onSelect: function (dateString, data) {
-			let date = data.selectedYear + '-' + ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + data.selectedDay;
-			jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
-		}
+function mp_load_date_picker(parent=jQuery('.mpStyle')) {
+	parent.find(".date_type.hasDatepicker").each(function (){
+		jQuery(this).removeClass('hasDatepicker').attr('id', '').removeData('datepicker').unbind();
+	}).promise().done(function (){
+		parent.find(".date_type").datepicker({
+			dateFormat: mp_date_format,
+			autoSize: true,
+			changeMonth: true,
+			changeYear: true,
+			onSelect: function (dateString, data) {
+				let date = data.selectedYear + '-' + ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + data.selectedDay;
+				jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
+			}
+		});
 	});
 }
 //=========Alert==============//

@@ -8,6 +8,7 @@
 	div.mp_settings_panel tr.payment_system fieldset label {min-width: 150px;margin: 0 var(--dMP_xs) var(--dMP_xs) 0;}
 	/*******************/
 	.mp_settings_panel_header { background: #161B37;padding: 30px 20px 30px 20px;color: #FFF;font-size: 20px;margin-top: 30px;}
+	.mp_settings_panel_header h3{color: #FFF;font-size: var(--fs_h3);margin: 0;}
 	.mp_settings_panel_header small {margin-left: 10px;font-size: 13px;}
 	.mp_settings_panel .nav-tab-wrapper {
 		width: 300px;padding: 0;margin: 0;overflow: hidden;
@@ -77,7 +78,7 @@
 /******************************************************************** Image upload  ************************************************/
 @media only screen and (min-width: 10px) {
 	div.mp_multi_image { display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap;}
-	div.mp_multi_image_item { position: relative; width: calc(25% - var(--dMP_xs)); min-width: 150px;margin: 0 var(--dMP_xs) var(--dMP_xs) 0;}
+	div.mp_multi_image_item { position: relative; width: calc(25% - var(--dMP_xs)); min-width: 150px;margin: 0 var(--dMP_xs) var(--dMP_xs) 0;min-height: 50px;}
 	span.mp_remove_single_image,
 	div.mpStyle span.mp_remove_multi_image { cursor: pointer; position: absolute; top: 0; right: 0; background-color: var(--color_danger);margin: 0; opacity: 0;}
 	div.mp_single_image_item:hover span.mp_remove_single_image,

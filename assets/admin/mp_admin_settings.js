@@ -3,9 +3,7 @@ function load_sortable_datepicker(parent, item) {
 		parent.find('.mp_sortable_area').sortable({
 			handle: jQuery(this).find('.mp_sortable_button')
 		});
-		parent.find(".date_type").removeClass('hasDatepicker').attr('id', '').removeData('datepicker').unbind().promise().done(function () {
-			mp_load_date_picker(parent);
-		});
+		mp_load_date_picker(parent);
 	});
 	return true;
 }

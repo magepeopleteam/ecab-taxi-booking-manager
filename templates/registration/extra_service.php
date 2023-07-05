@@ -44,14 +44,14 @@
 								</h4>
 								<div class="divider"></div>
 								<div class="_dFlex_justifyBetween_alignCenter">
-									<div>
+									<div class="_mR_xs">
 										<?php MP_Custom_Layout::load_more_text($description, 100); ?>
 									</div>
 									<div class="alignCenter">
 										<div class="mR_xs min_100" data-collapse="<?php echo esc_attr($ex_unique_id); ?>">
 											<?php MP_Custom_Layout::qty_input('mptbm_extra_service_qty[]', $service_price, 100, 1, 0); ?>
 										</div>
-										<button type="button" class="_mpBtn_bBR_min_150 mptbm_price_calculation" data-extra-item data-collapse-target="<?php echo esc_attr($ex_unique_id); ?>" data-open-icon="far fa-check-circle" data-close-icon="" data-open-text="<?php esc_attr_e('Select', 'mptbm_plugin'); ?>" data-close-text="<?php esc_attr_e('Selected', 'mptbm_plugin'); ?>" data-add-class="mActive">
+										<button type="button" class="_mpBtn_dBR_min_150 mptbm_price_calculation" data-extra-item data-collapse-target="<?php echo esc_attr($ex_unique_id); ?>" data-open-icon="far fa-check-circle" data-close-icon="" data-open-text="<?php esc_attr_e('Select', 'mptbm_plugin'); ?>" data-close-text="<?php esc_attr_e('Selected', 'mptbm_plugin'); ?>" data-add-class="mActive">
 											<input type="hidden" name="mptbm_extra_service[]" data-value="<?php echo esc_attr($service_name); ?>" value=""/>
 											<span data-text><?php esc_html_e('Select', 'mptbm_plugin'); ?></span>
 											<span data-icon class="mL_xs"></span>
