@@ -20,22 +20,7 @@
 				}
 				return $post_id;
 			}
-			//***********************************//
-			public static function date_picker_format(): string {
-				$format = self::get_general_settings('date_format', 'D d M , yy');
-				$date_format = 'Y-m-d';
-				$date_format = $format == 'yy/mm/dd' ? 'Y/m/d' : $date_format;
-				$date_format = $format == 'yy-dd-mm' ? 'Y-d-m' : $date_format;
-				$date_format = $format == 'yy/dd/mm' ? 'Y/d/m' : $date_format;
-				$date_format = $format == 'dd-mm-yy' ? 'd-m-Y' : $date_format;
-				$date_format = $format == 'dd/mm/yy' ? 'd/m/Y' : $date_format;
-				$date_format = $format == 'mm-dd-yy' ? 'm-d-Y' : $date_format;
-				$date_format = $format == 'mm/dd/yy' ? 'm/d/Y' : $date_format;
-				$date_format = $format == 'd M , yy' ? 'j M , Y' : $date_format;
-				$date_format = $format == 'D d M , yy' ? 'D j M , Y' : $date_format;
-				$date_format = $format == 'M d , yy' ? 'M  j, Y' : $date_format;
-				return $format == 'D M d , yy' ? 'D M  j, Y' : $date_format;
-			}
+		
 			//***********Template********************//
 			public static function all_details_template() {
 				$template_path = get_stylesheet_directory() . '/mptbm_templates/themes/';

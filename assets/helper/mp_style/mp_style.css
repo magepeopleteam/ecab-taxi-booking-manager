@@ -590,33 +590,13 @@
 		height: 35px;
 	}
 	/***********Bg Image****************/
-	div.bg_image_area {
-		width: 100%;
-		overflow: hidden;
-		position: relative;
-		height: max-content;
-	}
-	[data-bg-image] {
-		background-size: 100% 100%;
-		background-position: center center;
-		position: relative;
-		height: 100%;
-		width: 100%;
-		min-height: inherit;
-	}
-	[data-bg-image] > * {
-		color: #FFF;
-	}
+	div.bg_image_area { width: 100%; overflow: hidden; position: relative; height: max-content; }
+	[data-bg-image] { background-size: 100% 100%; background-position: center center; position: relative; height: 100%; width: 100%; min-height: inherit;}
+	[data-bg-image] > * { color: #FFF; }
 	div.bg_image_area:hover [data-bg-image],
-	[data-bg-image]:hover {
-		-ms-transform: scale(1.1);
-		transform: scale(1.1);
-		-webkit-transition: all 0.5s ease-in-out;
-		transition: all 0.5s ease-in-out;
-	}
-	[data-href] {
-		cursor: pointer;
-	}
+	[data-bg-image]:hover { -ms-transform: scale(1.1); transform: scale(1.1); -webkit-transition: all 0.5s ease-in-out; transition: all 0.5s ease-in-out; }
+	[data-href] { cursor: pointer; }
+	[data-bg-image].circle {overflow: hidden;}
 	/**************** Super slider **********************************************/
 	div.superSlider .iconIndicator,
 	div.superSlider .sliderPopup .popupClose {
@@ -895,60 +875,17 @@
 /******************************************************************** Layout Section ************************************************/
 @media only screen and (min-width: 10px) {
 	/***********Circular***********/
-	.mpStyle [class*="circleIcon"] {
-		width: 40px;
-		height: 40px;
-		min-width: 40px;
-		background-color: var(--color_theme);
-		color: var(--color_theme_alter);
-		margin: 0 var(--dMP) 0 0;
-	}
-	.mpStyle .circleIcon_xs, .mpStyle [class*="_circleIcon_xs"] {
-		width: 25px;
-		height: 25px;
-		min-width: 25px;
-		font-size: var(--fs_small);
-		margin: 0 var(--dMP_xs) 0 0;
-	}
+	.mpStyle .circleIcon, .mpStyle [class*="_circleIcon"] { width: 40px; height: 40px; min-width: 40px; background-color: var(--color_theme); color: var(--color_theme_alter); margin: 0 var(--dMP) 0 0; }
+	.mpStyle .circleIcon_xs, .mpStyle [class*="_circleIcon_xs"] { width: 25px; height: 25px; min-width: 25px; font-size: var(--fs_small); margin: 0 var(--dMP_xs) 0 0; }
 	/*****Remove icon******/
-	.mpStyle .mp_remove_area {
-		position: relative
-	}
-	.mpStyle .mp_remove_icon {
-		position: absolute;
-		top: -5px;
-		right: -5px;
-		width: 20px;
-		height: 20px;
-		cursor: pointer;
-		opacity: 0;
-		font-size: var(--fs);
-		background-color: var(--color_danger);
-		color: var(--color_theme_alter);
-	}
+	.mpStyle .mp_remove_area { position: relative; }
+	.mpStyle .mp_remove_icon { position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; cursor: pointer; opacity: 0; font-size: var(--fs); background-color: var(--color_danger); color: var(--color_theme_alter); }
 	/**************Default************************/
-	.mpStyle .dLayout, .mpStyle [class*="_dLayout"] {
-		padding: var(--dMP);
-		margin-bottom: var(--dMP);
-		background-color: var(--color_white);
-		border: 1px solid var(--color_border);
-	}
-	.mpStyle .dLayout_xs, .mpStyle [class*="_dLayout_xs"] {
-		padding: var(--dMP_xs);
-		background-color: var(--color_white);
-		border: 1px solid var(--color_border);
-		margin-bottom: var(--dMP_xs);
-	}
+	.mpStyle .dLayout, .mpStyle [class*="_dLayout"] { padding: var(--dMP); margin-bottom: var(--dMP); background-color: var(--color_white); border: 1px solid var(--color_border); }
+	.mpStyle .dLayout_xs, .mpStyle [class*="_dLayout_xs"] { padding: var(--dMP_xs); background-color: var(--color_white); border: 1px solid var(--color_border); margin-bottom: var(--dMP_xs); }
 	/***********info***********/
-	.mpStyle .infoLayout, .mpStyle [class*="_infoLayout"] {
-		padding: var(--dMP);
-		background-color: var(--color_light);
-		margin-bottom: var(--dMP);
-	}
-	.mpStyle .infoLayout_xs, .mpStyle [class*="_infoLayout_xs"] {
-		padding: var(--dMP_xs);
-		margin-bottom: var(--dMP_xs);
-	}
+	.mpStyle .infoLayout, .mpStyle [class*="_infoLayout"] { padding: var(--dMP); background-color: var(--color_light); margin-bottom: var(--dMP); }
+	.mpStyle .infoLayout_xs, .mpStyle [class*="_infoLayout_xs"] { padding: var(--dMP_xs); margin-bottom: var(--dMP_xs); }
 }
 /******************************************************************** position Section************************************************/
 @media only screen and (min-width: 10px) {

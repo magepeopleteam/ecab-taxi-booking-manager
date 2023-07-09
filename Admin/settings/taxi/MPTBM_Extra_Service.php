@@ -200,9 +200,6 @@
 						$extra_service_data = $this->ex_service_data( $post_id );
 						update_post_meta( $post_id, 'mptbm_extra_service_infos', $extra_service_data );
 					}
-					echo $ex_id;
-					echo $post_id;
-					die();
 				}
 			}
 			public function ex_service_data( $post_id ) {

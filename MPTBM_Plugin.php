@@ -30,7 +30,7 @@
 				$this->load_global_file();
 				if (MP_Global_Function::check_woocommerce() == 1) {
 					add_action('activated_plugin', array($this, 'activation_redirect'), 90, 1);
-					register_activation_hook(__FILE__, array($this, 'on_activation_page_create'));
+					self::on_activation_page_create();
 					require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Dependencies.php';
 				}
 				else {
@@ -56,7 +56,7 @@
 					exit(wp_redirect(admin_url('admin.php?post_type=mptbm_rent&page=mptbm_quick_setup')));
 				}
 			}
-			public function on_activation_page_create(): void {
+			public static function on_activation_page_create(): void {
 				if (!MP_Global_Function::get_page_by_slug('transport_booking')) {
 					$transport_booking = array(
 						'post_type' => 'page',

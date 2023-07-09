@@ -15,8 +15,6 @@
 				wp_enqueue_script('mp_plugin_global', MPTBM_PLUGIN_URL . '/assets/helper/mp_style/mp_script.js', array('jquery'), time(), true);
 				wp_enqueue_script('mp_admin_settings', MPTBM_PLUGIN_URL . '/assets/admin/mp_admin_settings.js', array('jquery'), time(), true);
 				wp_enqueue_style('mp_admin_settings', MPTBM_PLUGIN_URL . '/assets/admin/mp_admin_settings.css', array(), time());
-				wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), time(), true);
-				wp_enqueue_style('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.css', array(), time());
 				wp_enqueue_style('mp_font_awesome', '//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css', array(), '5.15.4');
 			}
 			public function quick_setup_menu() {
@@ -38,7 +36,7 @@
 					</script>
 					<?php
 					activate_plugin('woocommerce/woocommerce.php');
-					$this->on_activation_page_create();
+					MPTBM_Plugin::on_activation_page_create();
 					?>
 					<script>
 						(function ($) {
@@ -82,7 +80,7 @@
 					$woocommerce_plugin = new Plugin_Upgrader(new Plugin_Installer_Skin(compact('title', 'url', 'nonce', 'plugin', 'api')));
 					$woocommerce_plugin->install($api->download_link);
 					activate_plugin('woocommerce/woocommerce.php');
-					$this->on_activation_page_create();
+					MPTBM_Plugin::on_activation_page_create();
 					echo '</div>';
 					?>
 					<script>
@@ -123,21 +121,21 @@
 											<span class="mp_zero" data-icon></span>
 											<span class="mp_zero" data-text>1</span>
 										</h4>
-										<h6 class="circleTitle"><?php esc_html_e('Welcome', 'mptbm_plugin'); ?></h6>
+										<h6 class="circleTitle" data-class><?php esc_html_e('Welcome', 'mptbm_plugin'); ?></h6>
 									</div>
 									<div data-tabs-target-next="#mptbm_qs_general" class="tabItemNext" data-open-text="2" data-close-text="" data-open-icon="" data-close-icon="fas fa-check" data-add-class="success">
 										<h4 class="circleIcon" data-class>
 											<span class="mp_zero" data-icon></span>
 											<span class="mp_zero" data-text>2</span>
 										</h4>
-										<h6 class="circleTitle"><?php esc_html_e('General', 'mptbm_plugin'); ?></h6>
+										<h6 class="circleTitle" data-class><?php esc_html_e('General', 'mptbm_plugin'); ?></h6>
 									</div>
 									<div data-tabs-target-next="#mptbm_qs_done" class="tabItemNext" data-open-text="3" data-close-text="" data-open-icon="" data-close-icon="fas fa-check" data-add-class="success">
 										<h4 class="circleIcon" data-class>
 											<span class="mp_zero" data-icon></span>
 											<span class="mp_zero" data-text>3</span>
 										</h4>
-										<h6 class="circleTitle"><?php esc_html_e('Done', 'mptbm_plugin'); ?></h6>
+										<h6 class="circleTitle" data-class><?php esc_html_e('Done', 'mptbm_plugin'); ?></h6>
 									</div>
 								</div>
 								<div class="tabsContentNext _infoLayout_mT">
@@ -234,19 +232,6 @@
 					</div>
 				</div>
 				<?php
-			}
-			public function on_activation_page_create(): void {
-				if (!MP_Global_Function::get_page_by_slug('transport_booking')) {
-					$transport_booking = array(
-						'post_type' => 'page',
-						'post_name' => 'transport_booking',
-						'post_title' => 'Transport Booking',
-						'post_content' => '[mptbm_booking]',
-						'post_status' => 'publish',
-					);
-					wp_insert_post($transport_booking);
-					flush_rewrite_rules();
-				}
 			}
 		}
 		new MPTBM_Quick_Setup();
