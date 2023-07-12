@@ -77,10 +77,10 @@ function pageScrollTo(target) {
 	}, 1000);
 }
 //=========Load Date picker==============//
-function mp_load_date_picker(parent=jQuery('.mpStyle')) {
-	parent.find(".date_type.hasDatepicker").each(function (){
+function mp_load_date_picker(parent = jQuery('.mpStyle')) {
+	parent.find(".date_type.hasDatepicker").each(function () {
 		jQuery(this).removeClass('hasDatepicker').attr('id', '').removeData('datepicker').unbind();
-	}).promise().done(function (){
+	}).promise().done(function () {
 		parent.find(".date_type").datepicker({
 			dateFormat: mp_date_format,
 			autoSize: true,

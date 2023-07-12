@@ -27,12 +27,34 @@
 				));
 			}
 			public static function query_transport_list($price_based): WP_Query {
+				$price_based_1=$price_based=='dynamic'?array(
+					'key'=>'mptbm_price_based',
+					'value'=>'distance',
+					'compare'=>'=',
+				):'';
+				$price_based_2=$price_based=='dynamic'?array(
+					'key'=>'mptbm_price_based',
+					'value'=>'duration',
+					'compare'=>'=',
+				):'';
+				$price_based_3=$price_based=='dynamic'?array(
+					'key'=>'mptbm_price_based',
+					'value'=>'distance_duration',
+					'compare'=>'=',
+				):'';
+				$price_based_4=$price_based=='manual'?array(
+					'key'=>'mptbm_price_based',
+					'value'=>'manual',
+					'compare'=>'=',
+				):'';
 				$args = array(
 					'post_type' => array(MPTBM_Function::get_cpt()),
 					'posts_per_page' => -1,
-					'meta_key' => 'mptbm_price_based',
-					'meta_value' => $price_based,
-					'post_status' => 'publish'
+					'post_status' => 'publish',
+					'meta_query'=>array(
+						'relation'=>'OR',
+						$price_based_1,$price_based_2,$price_based_3,$price_based_4
+					)
 				);
 				return new WP_Query($args);
 			}

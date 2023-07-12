@@ -57,30 +57,16 @@
 														if (sizeof($particular_date_lists)) {
 															foreach ($particular_date_lists as $particular_date) {
 																if ($particular_date) {
-																	$hidden_particular_date = date('Y-m-d', strtotime($particular_date));
-																	$visible_particular_date = date_i18n($date_format, strtotime($particular_date));
-																	?>
-																	<div class="justifyBetween mp_remove_area">
-																		<label class="col_8">
-																			<input type="hidden" name="mptbm_particular_dates[]" value="<?php echo esc_attr($hidden_particular_date); ?>"/>
-																			<input value="<?php echo esc_attr($visible_particular_date); ?>" class="formControl date_type" placeholder="<?php echo esc_attr($now); ?>"/>
-																		</label>
-																		<?php MP_Custom_Layout::move_remove_button(); ?>
-																	</div>
-																<?php }
+																	$this->particular_date_item('mptbm_particular_dates[]', $particular_date);
+																}
 															}
-														} ?>
+														}
+													?>
 												</div>
 												<?php MP_Custom_Layout::add_new_button(esc_html__('Add New Particular date', 'mptbm_plugin')); ?>
 												<div class="mp_hidden_content">
 													<div class="mp_hidden_item">
-														<div class="justifyBetween mp_remove_area">
-															<label class="col_8">
-																<input type="hidden" name="mptbm_particular_dates[]" value=""/>
-																<input value="" class="formControl date_type" placeholder="<?php echo esc_attr($now); ?>"/>
-															</label>
-															<?php MP_Custom_Layout::move_remove_button(); ?>
-														</div>
+														<?php $this->particular_date_item('mptbm_particular_dates[]'); ?>
 													</div>
 												</div>
 											</div>
@@ -118,7 +104,7 @@
 									</tr>
 									<tr data-collapse="#mp_repeated" class="<?php echo esc_attr($mptbm_date_type == 'repeated' ? 'mActive' : ''); ?>">
 										<th>
-											<?php esc_html_e('Active days', 'mptbm_plugin'); ?>
+											<?php esc_html_e('Maximum advanced day booking', 'mptbm_plugin'); ?>
 											<span class="textRequired">&nbsp;*</span>
 										</th>
 										<td colspan="2">
@@ -161,26 +147,16 @@
 														if (sizeof($off_day_lists)) {
 															foreach ($off_day_lists as $off_day) {
 																if ($off_day) {
-																	$hidden_off_day = date('Y-m-d', strtotime($off_day));
-																	$visible_off_day = date_i18n($date_format, strtotime($off_day));
-																	?>
-																	<label>
-																		<input type="hidden" name="mptbm_off_dates[]" value="<?php echo esc_attr($hidden_off_day); ?>"/>
-																		<input value="<?php echo esc_attr($visible_off_day); ?>" class="formControl date_type" placeholder="<?php echo esc_attr($now); ?>"/>
-																	</label>
-																	<div class="divider"></div>
-																<?php }
+																	$this->particular_date_item('mptbm_off_dates[]', $off_day);
+																}
 															}
-														} ?>
+														}
+													?>
 												</div>
 												<?php MP_Custom_Layout::add_new_button(esc_html__('Add New Off date', 'mptbm_plugin')); ?>
 												<div class="mp_hidden_content">
 													<div class="mp_hidden_item">
-														<label>
-															<input type="hidden" name="mptbm_off_dates[]" value=""/>
-															<input value="" class="formControl date_type" placeholder="<?php echo esc_attr($now); ?>"/>
-														</label>
-														<div class="divider"></div>
+														<?php $this->particular_date_item('mptbm_off_dates[]'); ?>
 													</div>
 												</div>
 											</div>
@@ -193,8 +169,22 @@
 				</div>
 				<?php
 			}
-			public function particular_date_item($date) {
+			public function particular_date_item($name, $date = '') {
+				$date_format = MP_Global_Function::date_picker_format('MPTBM_General_Settings');
+				$now = date_i18n($date_format, strtotime(current_time('Y-m-d')));
+				$hidden_date = $date ? date('Y-m-d', strtotime($date)) : '';
+				$visible_date = $date ? date_i18n($date_format, strtotime($date)) : '';
 				?>
+				<div class="mp_remove_area">
+					<div class="justifyBetween">
+						<label class="col_8">
+							<input type="hidden" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($hidden_date); ?>"/>
+							<input value="<?php echo esc_attr($visible_date); ?>" class="formControl date_type" placeholder="<?php echo esc_attr($now); ?>"/>
+						</label>
+						<?php MP_Custom_Layout::move_remove_button(); ?>
+					</div>
+					<div class="divider"></div>
+				</div>
 				<?php
 			}
 			/*************************************/

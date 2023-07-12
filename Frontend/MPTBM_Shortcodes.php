@@ -18,7 +18,7 @@
 				do_action('mptbm_transport_search', $params);
 				return ob_get_clean();
 			}
-			public function default_attribute($style = 'list', $show = 9, $price_based = 'distance') {
+			public function default_attribute($style = 'list', $show = 9, $price_based = 'dynamic') {
 				return array(
 					"cat" => "0",
 					"org" => "0",

@@ -271,7 +271,7 @@ function mptbm_price_calculation(parent) {
 						"post_id": post_id,
 					},
 					beforeSend: function () {
-						dLoader(parent);
+						dLoaderBody();
 					},
 					success: function (data) {
 						target_extra_service.html(data);
@@ -292,7 +292,7 @@ function mptbm_price_calculation(parent) {
 								target_summary.slideDown(350);
 								target_extra_service.slideDown(350);
 								target_extra_service_summary.slideDown(350);
-								dLoaderRemove(parent);
+								dLoaderRemove();
 							});
 						},
 						error: function (response) {

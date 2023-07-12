@@ -133,6 +133,7 @@ function load_sortable_datepicker(parent, item) {
 		});
 		target_popup.find('[data-icon-menu]').click(function () {
 			if (!$(this).hasClass('active')) {
+				//target_popup.find('[name="mp_select_icon_name"]').val('');
 				let target = $(this);
 				let tabsTarget = target.data('icon-menu');
 				target_popup.find('[data-icon-menu]').removeClass('active');
@@ -141,8 +142,11 @@ function load_sortable_datepicker(parent, item) {
 					let targetItem = $(this).data('icon-list');
 					if (tabsTarget === 'all_item' || targetItem === tabsTarget) {
 						$(this).slideDown(250);
+						$(this).find('.iconItem').each(function () {
+							$(this).slideDown('fast');
+						});
 					} else {
-						$(this).slideUp(250);
+						$(this).slideUp('fast');
 					}
 				});
 			}
@@ -159,5 +163,50 @@ function load_sortable_datepicker(parent, item) {
 		parent.find('[data-add-icon]').removeAttr('class');
 		parent.find('.mp_icon_item').slideUp('fast');
 		parent.find('.mp_add_icon_image_button_area').slideDown('fast');
+	});
+	$(document).on('keyup change', '.mp_add_icon_popup [name="mp_select_icon_name"]', function () {
+		let parent = $(this).closest('.mp_add_icon_popup');
+		let input = $(this).val().toString().toLowerCase();
+		parent.find('[data-icon-menu="all_item"]').trigger('click');
+		if (input) {
+			parent.find('.popupTabItem').each(function () {
+				let tabItem = $(this);
+				let count = 0;
+				let icon_type = $(this).data('icon-title').toString().toLowerCase();
+				let active = (icon_type && icon_type.match(new RegExp(input, "i"))) ? 1 : 0;
+				if (active > 0) {
+					tabItem.slideDown(250);
+					tabItem.find('.iconItem').each(function () {
+						$(this).slideDown('fast');
+					});
+				} else {
+					tabItem.find('.iconItem').each(function () {
+						let icon_class = $(this).data('icon-class').toString().toLowerCase();
+						let icon_name = $(this).data('icon-name').toString().toLowerCase();
+						active = (icon_class && icon_class.match(new RegExp(input, "i"))) ? 1 : active;
+						active = (icon_name && icon_name.match(new RegExp(input, "i"))) ? 1 : active;
+						if (active > 0) {
+							$(this).slideDown('fast');
+							count++;
+						} else {
+							$(this).slideUp('fast');
+						}
+					}).promise().done(function () {
+						if (count > 0) {
+							tabItem.slideDown('fast');
+						} else {
+							tabItem.slideUp('fast');
+						}
+					});
+				}
+			});
+		} else {
+			parent.find('.popupTabItem').each(function () {
+				$(this).slideDown(250);
+				$(this).find('.iconItem').each(function () {
+					$(this).slideDown(250);
+				});
+			});
+		}
 	});
 }(jQuery));

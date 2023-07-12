@@ -1,4 +1,8 @@
 <?php
+	/*
+* @Author 		engr.sumonazma@gmail.com
+* Copyright: 	mage-people.com
+*/
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly.
@@ -86,6 +90,17 @@
 				return self::get_general_settings('organizer_slug', 'transportation-organizer');
 			}
 			//*************************************************************Full Custom Function******************************//
+			//*************Date*********************************//
+			public function get_date($post_id){
+				$date_type = MP_Global_Function::get_post_info($post_id, 'mptbm_date_type', 'repeated');
+				$all_dates=[];
+				if($date_type=='repeated'){
+					$start_date = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_start_date');
+					$repeated_after = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
+					$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 10);
+				}
+				return $all_dates;
+			}
 			//*************Price*********************************//
 			public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = ''): string {
 				$price = '';
