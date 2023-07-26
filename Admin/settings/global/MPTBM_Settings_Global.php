@@ -51,7 +51,7 @@
 			public function settings_sec_reg($default_sec): array {
 				$sections = array(
 					array(
-						'id' => 'MPTBM_General_Settings',
+						'id' => 'mptbm_general_settings',
 						'title' => __('General Settings', 'mptbm_plugin')
 					),
 					array(
@@ -69,7 +69,7 @@
 				$label = MPTBM_Function::get_name();
 				$current_date = current_time('Y-m-d');
 				$settings_fields = array(
-					'MPTBM_General_Settings' => apply_filters('filter_mptbm_general_settings', array(
+					'mptbm_general_settings' => apply_filters('filter_mptbm_general_settings', array(
 						array(
 							'name' => 'disable_block_editor',
 							'label' => esc_html__('Disable Block/Gutenberg Editor', 'mptbm_plugin'),
@@ -226,6 +226,13 @@
 								'yes' => esc_html__('Yes', 'mptbm_plugin'),
 								'no' => esc_html__('No', 'mptbm_plugin')
 							)
+						),
+						array(
+							'name'    => 'gmap_api_key',
+							'label'   => esc_html__( 'Google MAP API', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'Please Enter your workable google map api key', 'mptbm_plugin' ),
+							'type'    => 'text',
+							'default' => ''
 						),
 					)),
 					'mp_style_settings' => apply_filters('filter_mp_style_settings', array(

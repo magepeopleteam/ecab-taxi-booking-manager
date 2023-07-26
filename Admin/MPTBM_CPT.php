@@ -46,19 +46,25 @@
 					'filter_items_list' => esc_html__('Filter ', 'mptbm_plugin') . ' ' . $label . ' ' . esc_html__(' list', 'mptbm_plugin')
 				];
 				$args = [
-					'public' => true,
+					'public' => false,
 					'labels' => $labels,
 					'menu_icon' => $icon,
 					'supports' => ['title', 'thumbnail'],
-					'rewrite' => ['slug' => $slug],
-					'show_in_rest' => true
+					'show_in_rest' => true,
+					'capability_type' => 'post',
+					'publicly_queryable' => true,  // you should be able to query it
+					'show_ui' => true,  // you should be able to edit it in wp-admin
+					'exclude_from_search' => true,  // you should exclude it from search results
+					'show_in_nav_menus' => false,  // you shouldn't be able to add it to menus
+					'has_archive' => false,  // it shouldn't have archive page
+					'rewrite' => false,
 				];
 				register_post_type($cpt, $args);
 				$ex_args = array(
 					'public' => false,
-					'label' => esc_html__( 'Extra Services', 'mptbm_plugin' ),
-					'supports' => array( 'title' ),
-					'show_in_menu' => 'edit.php?post_type='.$cpt,
+					'label' => esc_html__('Extra Services', 'mptbm_plugin'),
+					'supports' => array('title'),
+					'show_in_menu' => 'edit.php?post_type=' . $cpt,
 					'capability_type' => 'post',
 					'publicly_queryable' => true,  // you should be able to query it
 					'show_ui' => true,  // you should be able to edit it in wp-admin
@@ -67,7 +73,7 @@
 					'has_archive' => false,  // it shouldn't have archive page
 					'rewrite' => false,
 				);
-				register_post_type( 'mptbm_extra_services', $ex_args );
+				register_post_type('mptbm_extra_services', $ex_args);
 			}
 		}
 		new MPTBM_CPT();

@@ -1,8 +1,8 @@
 <?php
 	/*
-* @Author 		magePeople
-* Copyright: 	mage-people.com
-*/
+ * @Author 		engr.sumonazma@gmail.com
+ * Copyright: 	mage-people.com
+ */
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly
@@ -43,5 +43,9 @@
 				</div>
 			</div>
 		</div>
+		<div class="divider"></div>
+		<button type="button" class="_themeButton_fullWidth mptbm_get_vehicle_prev">
+			<span>&longleftarrow; &nbsp;<?php esc_html_e('Previous', 'mptbm_plugin'); ?></span>
+		</button>
 	</div>
 <?php

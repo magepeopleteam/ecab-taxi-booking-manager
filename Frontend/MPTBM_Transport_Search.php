@@ -10,29 +10,24 @@
 		class MPTBM_Transport_Search {
 			public function __construct() {
 				add_action('mptbm_transport_search', [$this, 'transport_search'], 10, 1);
-				add_action('mptbm_transport_search_form', [$this, 'transport_search_form'], 10, 2);
+				//add_action('mptbm_transport_search_form', [$this, 'transport_search_form'], 10, 2);
+				/*******************/
 				add_action('wp_ajax_get_mptbm_map_search_result', [$this, 'get_mptbm_map_search_result']);
 				add_action('wp_ajax_nopriv_get_mptbm_map_search_result', [$this, 'get_mptbm_map_search_result']);
+				/*********************/
 				add_action('wp_ajax_get_mptbm_end_place', [$this, 'get_mptbm_end_place']);
 				add_action('wp_ajax_nopriv_get_mptbm_end_place', [$this, 'get_mptbm_end_place']);
+				/**************************/
 				add_action('wp_ajax_get_mptbm_extra_service', [$this, 'get_mptbm_extra_service']);
 				add_action('wp_ajax_nopriv_get_mptbm_extra_service', [$this, 'get_mptbm_extra_service']);
+				/*******************************/
 				add_action('wp_ajax_get_mptbm_extra_service_summary', [$this, 'get_mptbm_extra_service_summary']);
 				add_action('wp_ajax_nopriv_get_mptbm_extra_service_summary', [$this, 'get_mptbm_extra_service_summary']);
 			}
 			public function transport_search($params) {
-				$price_based = $params['price_based'] ?: 'distance';
+				$price_based = $params['price_based'] ?: 'dynamic';
 				echo do_shortcode('[shop_messages]');
-				$this->transport_search_form('', $price_based);
-			}
-			public function transport_search_form($post_id = '', $price_based = '') {
-				?>
-				<div class="mpStyle mptbm_transport_search_area">
-					<form method="post" action="">
-						<?php include(MPTBM_Function::template_path('registration/registration_layout.php')); ?>
-					</form>
-				</div>
-				<?php
+				include(MPTBM_Function::template_path('registration/registration_layout.php'));
 			}
 			public function get_mptbm_map_search_result() {
 				$distance = $_COOKIE['mptbm_distance'] ?? '';
@@ -44,26 +39,7 @@
 				$start_place = MP_Global_Function::data_sanitize($_POST['start_place']);
 				$end_place = MP_Global_Function::data_sanitize($_POST['end_place']);
 				if ($distance && $duration) {
-					?>
-					<input type="hidden" name="mptbm_post_id" value="" data-price=""/>
-					<input type="hidden" name="mptbm_start_place" value="<?php echo esc_attr($start_place); ?>"/>
-					<input type="hidden" name="mptbm_end_place" value="<?php echo esc_attr($end_place); ?>"/>
-					<input type="hidden" name="mptbm_date" value="<?php echo esc_attr($date); ?>"/>
-					<div class="mp_sticky_section">
-						<div class="flexWrap">
-							<div class="leftSidebar">
-								<?php include(MPTBM_Function::template_path('registration/summary.php')); ?>
-							</div>
-							<div class="mainSection ">
-								<div class="mp_sticky_depend_area fdColumn">
-									<?php include(MPTBM_Function::template_path('registration/get_vehicles.php')); ?>
-									<?php //include(MPTBM_Function::template_path('registration/extra_service.php')); ?>
-									<div class="mptbm_extra_service"></div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<?php
+					include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
 				}
 				die();
 			}

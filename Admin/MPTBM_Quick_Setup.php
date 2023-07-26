@@ -49,7 +49,6 @@
 								window.location.href = mptbm_admin_location;
 							});
 						}(jQuery));
-						
 					</script>
 					<?php
 				}
@@ -94,20 +93,19 @@
 								window.location.href = mptbm_admin_location;
 							});
 						}(jQuery));
-					
 					</script>
 					<?php
 				}
 				if (isset($_POST['finish_quick_setup'])) {
 					$label = isset($_POST['mptbm_label']) ? sanitize_text_field($_POST['mptbm_label']) : 'Transportation';
 					$slug = isset($_POST['mptbm_slug']) ? sanitize_text_field($_POST['mptbm_slug']) : 'transportation';
-					$general_settings_data = get_option('MPTBM_General_Settings');
+					$general_settings_data = get_option('mptbm_general_settings');
 					$update_general_settings_arr = [
 						'label' => $label,
 						'slug' => $slug
 					];
 					$new_general_settings_data = is_array($general_settings_data) ? array_replace($general_settings_data, $update_general_settings_arr) : $update_general_settings_arr;
-					update_option('MPTBM_General_Settings', $new_general_settings_data);
+					update_option('mptbm_general_settings', $new_general_settings_data);
 					wp_redirect(admin_url('edit.php?post_type=mptbm_rent'));
 				}
 				?>
@@ -192,8 +190,8 @@
 				<?php
 			}
 			public function setup_general_content() {
-				$label = MP_Global_Function::get_settings('MPTBM_General_Settings', 'label', 'Transportation');
-				$slug = MP_Global_Function::get_settings('MPTBM_General_Settings', 'slug', 'transportation');
+				$label = MP_Global_Function::get_settings('mptbm_general_settings', 'label', 'Transportation');
+				$slug = MP_Global_Function::get_settings('mptbm_general_settings', 'slug', 'transportation');
 				?>
 				<div data-tabs-next="#mptbm_qs_general">
 					<div class="section">

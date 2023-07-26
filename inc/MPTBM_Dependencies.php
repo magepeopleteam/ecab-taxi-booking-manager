@@ -24,6 +24,10 @@
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Frontend.php';
 			}
 			public function global_enqueue() {
+				$api_key = MP_Global_Function::get_settings('mptbm_general_settings','gmap_api_key');
+				if ($api_key) {
+					wp_enqueue_script( 'mptbm_map', 'https://maps.googleapis.com/maps/api/js?libraries=places&amp;language=en&amp;key='.$api_key, array( 'jquery' ), time(), true );
+				}
 				wp_enqueue_script( 'jquery' );
 				wp_enqueue_script( 'jquery-ui-core' );
 				wp_enqueue_script( 'jquery-ui-datepicker' );
@@ -57,11 +61,12 @@
 			}
 			public function frontend_enqueue() {
 				$this->global_enqueue();
+				wp_enqueue_script( 'wc-checkout' );
 				wp_enqueue_style( 'mptbm_style', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_style.css', array(), time() );
 				wp_enqueue_script( 'mptbm_script', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_script.js', array( 'jquery' ), time(), true );
 				wp_enqueue_script( 'mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.js', array( 'jquery' ), time(), true );
 				wp_enqueue_style( 'mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.css', array(), time() );
-				wp_enqueue_script( 'mptbm_map', 'https://maps.googleapis.com/maps/api/js?libraries=places&amp;language=en&amp;key=AIzaSyD61CGRsenVDXkRMrBzxQnVTtL7EZz0k_c', array( 'jquery' ), time(), true );
+				
 				do_action( 'add_mptbm_frontend_script' );
 			}
 			public function js_constant() {
