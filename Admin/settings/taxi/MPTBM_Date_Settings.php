@@ -13,7 +13,7 @@
 				add_action('save_post', array($this, 'save_date_time_settings'), 99, 1);
 			}
 			public function date_settings($post_id) {
-				$date_format = MP_Global_Function::date_picker_format('MPTBM_General_Settings');
+				$date_format = MP_Global_Function::date_picker_format('mptbm_general_settings');
 				$now = date_i18n($date_format, strtotime(current_time('Y-m-d')));
 				$mptbm_date_type = MP_Global_Function::get_post_info($post_id, 'mptbm_date_type', 'repeated');
 				?>
@@ -141,7 +141,7 @@
 										<th><?php esc_html_e('Off Dates', 'mptbm_plugin'); ?></th>
 										<td colspan="2">
 											<div class="mp_settings_area">
-												<div class="mp_item_insert">
+												<div class="mp_item_insert mp_sortable_area">
 													<?php
 														$off_day_lists = MP_Global_Function::get_post_info($post_id, 'mptbm_off_dates', array());
 														if (sizeof($off_day_lists)) {
@@ -170,7 +170,7 @@
 				<?php
 			}
 			public function particular_date_item($name, $date = '') {
-				$date_format = MP_Global_Function::date_picker_format('MPTBM_General_Settings');
+				$date_format = MP_Global_Function::date_picker_format('mptbm_general_settings');
 				$now = date_i18n($date_format, strtotime(current_time('Y-m-d')));
 				$hidden_date = $date ? date('Y-m-d', strtotime($date)) : '';
 				$visible_date = $date ? date_i18n($date_format, strtotime($date)) : '';

@@ -341,6 +341,7 @@
 	.mpStyle .mL_25, .mpStyle [class*="_mL_25"] { margin-left: 25px; }
 	.mpStyle .mTB, .mpStyle [class*="_mTB"] { margin: var(--dMP) 0; }
 	.mpStyle .mTB_xs, .mpStyle [class*="_mTB_xs"] { margin: var(--dMP_xs) 0; }
+	.mpStyle .mLR, .mpStyle [class*="_mLR"] { margin: 0 var(--dMP); }
 	.mpStyle .mLR_xs, .mpStyle [class*="_mLR_xs"] { margin: 0 var(--dMP_xs); }
 	/***************/
 	div.mpStyle .mp_zero { margin: 0; padding: 0; }
@@ -1158,6 +1159,7 @@
 	.mpStyle .tabsContentNext { position: relative; overflow: hidden; width: 100%; padding: var(--dMP); }
 	.tabsContentNext [data-tabs-next] { display: none; }
 	.tabsContentNext [data-tabs-next].active { display: block; }
+	.nextTab_prev_link{cursor: pointer;}
 }
 /******************************************************************** Panel section ************************************************/
 @media only screen and (min-width: 10px) {

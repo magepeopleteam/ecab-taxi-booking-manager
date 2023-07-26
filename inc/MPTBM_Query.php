@@ -1,22 +1,14 @@
 <?php
 	/*
-	* @Author 		magePeople
-	* Copyright: 	mage-people.com
-	*/
+ * @Author 		engr.sumonazma@gmail.com
+ * Copyright: 	mage-people.com
+ */
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly
 	if (!class_exists('MPTBM_Query')) {
 		class MPTBM_Query {
 			public function __construct() {
-			}
-			public static function query_post_type($post_type): WP_Query {
-				$args = array(
-					'post_type' => $post_type,
-					'posts_per_page' => -1,
-					'post_status' => 'publish'
-				);
-				return new WP_Query($args);
 			}
 			public static function query_post_id($post_type): array {
 				return get_posts(array(

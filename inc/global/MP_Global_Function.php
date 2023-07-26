@@ -11,9 +11,60 @@
 			public function __construct() {
 				add_action('mp_load_date_picker_js', [$this, 'date_picker_js'], 10, 2);
 			}
+			public static function query_post_type($post_type, $show = -1, $page = 1): WP_Query {
+				$args = array(
+					'post_type' => $post_type,
+					'posts_per_page' => $show,
+					'paged' => $page,
+					'post_status' => 'publish'
+				);
+				return new WP_Query($args);
+			}
+			public static function get_all_post_id($post_type, $show = -1, $page = 1): array {
+				return get_posts(array(
+					'fields' => 'ids',
+					'post_type' => $post_type,
+					'posts_per_page' => $show,
+					'paged' => $page,
+					'post_status' => 'publish'
+				));
+			}
+			public static function get_taxonomy($name) {
+				return get_terms(array('taxonomy' => $name, 'hide_empty' => false));
+			}
+			public static function get_post_info($post_id, $key, $default = '') {
+				$data = get_post_meta($post_id, $key, true) ?: $default;
+				return self::data_sanitize($data);
+			}
+			public static function get_submit_info($key, $default = '') {
+				return self::data_sanitize($_POST[$key] ?? $default);
+			}
+			public static function data_sanitize($data) {
+				$data = maybe_unserialize($data);
+				if (is_string($data)) {
+					$data = maybe_unserialize($data);
+					if (is_array($data)) {
+						$data = self::data_sanitize($data);
+					}
+					else {
+						$data = sanitize_text_field(stripslashes(strip_tags($data)));
+					}
+				}
+				elseif (is_array($data)) {
+					foreach ($data as &$value) {
+						if (is_array($value)) {
+							$value = self::data_sanitize($value);
+						}
+						else {
+							$value = sanitize_text_field(stripslashes(strip_tags($value)));
+						}
+					}
+				}
+				return $data;
+			}
 			//**************Date related*********************//
-			public static function date_picker_format($option,$key='date_format'): string {
-				$format=MP_Global_Function::get_settings($option, $key, 'D d M , yy');
+			public static function date_picker_format($option, $key = 'date_format'): string {
+				$format = MP_Global_Function::get_settings($option, $key, 'D d M , yy');
 				$date_format = 'Y-m-d';
 				$date_format = $format == 'yy/mm/dd' ? 'Y/m/d' : $date_format;
 				$date_format = $format == 'yy-dd-mm' ? 'Y-d-m' : $date_format;
@@ -113,37 +164,10 @@
 				}
 				return false;
 			}
+			public static function sort_date($a, $b) {
+				return strtotime($a) - strtotime($b);
+			}
 			//***********************************//
-			public static function get_post_info($post_id, $key, $default = '') {
-				$data = get_post_meta($post_id, $key, true) ?: $default;
-				return self::data_sanitize($data);
-			}
-			public static function get_submit_info($key, $default = '') {
-				return self::data_sanitize($_POST[$key] ?? $default);
-			}
-			public static function data_sanitize($data) {
-				$data = maybe_unserialize($data);
-				if (is_string($data)) {
-					$data = maybe_unserialize($data);
-					if (is_array($data)) {
-						$data = self::data_sanitize($data);
-					}
-					else {
-						$data = sanitize_text_field($data);
-					}
-				}
-				elseif (is_array($data)) {
-					foreach ($data as &$value) {
-						if (is_array($value)) {
-							$value = self::data_sanitize($value);
-						}
-						else {
-							$value = sanitize_text_field($value);
-						}
-					}
-				}
-				return $data;
-			}
 			public static function get_settings($section, $key, $default = '') {
 				$options = get_option($section);
 				if (isset($options[$key]) && $options[$key]) {
@@ -157,24 +181,15 @@
 			public static function get_slider_settings($key, $default = '') {
 				return self::get_settings('mp_slider_settings', $key, $default);
 			}
-			public static function get_image_url($post_id = '', $image_id = '', $size = 'full') {
-				if ($post_id) {
-					$image_id = self::get_post_info($post_id, 'mp_thumbnail');
-					$image_id = $image_id ?: get_post_thumbnail_id($post_id);
-				}
-				return wp_get_attachment_image_url($image_id, $size);
-			}
-			public static function wc_product_sku($product_id) {
-				if ($product_id) {
-					return new WC_Product($product_id);
-				}
-				return null;
-			}
+			//***********************************//
 			public static function price_convert_raw($price) {
 				$price = wp_strip_all_tags($price);
 				$price = str_replace(get_woocommerce_currency_symbol(), '', $price);
-				$price = str_replace(wc_get_price_thousand_separator(), '', $price);
-				$price = str_replace(wc_get_price_decimal_separator(), '.', $price);
+				$price = str_replace(wc_get_price_thousand_separator(), 't_s', $price);
+				$price = str_replace(wc_get_price_decimal_separator(), 'd_s', $price);
+				$price = str_replace('t_s', '', $price);
+				$price = str_replace('d_s', '.', $price);
+				$price = str_replace('&nbsp;', '', $price);
 				return max($price, 0);
 			}
 			public static function wc_price($post_id, $price, $args = array()): string {
@@ -240,6 +255,66 @@
 				$display_suffix = get_option('woocommerce_price_display_suffix') ? get_option('woocommerce_price_display_suffix') : '';
 				return wc_price($return_price) . ' ' . $display_suffix;
 			}
+			//***********************************//
+			public static function get_image_url($post_id = '', $image_id = '', $size = 'full') {
+				if ($post_id) {
+					$image_id = self::get_post_info($post_id, 'mp_thumbnail');
+					$image_id = $image_id ?: get_post_thumbnail_id($post_id);
+				}
+				return wp_get_attachment_image_url($image_id, $size);
+			}
+			public static function get_page_by_slug($slug) {
+				if ($pages = get_pages()) {
+					foreach ($pages as $page) {
+						if ($slug === $page->post_name) {
+							return $page;
+						}
+					}
+				}
+				return false;
+			}
+			//***********************************//
+			public static function check_woocommerce(): int {
+				include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+				$plugin_dir = ABSPATH . 'wp-content/plugins/woocommerce';
+				if (is_plugin_active('woocommerce/woocommerce.php')) {
+					return 1;
+				}
+				elseif (is_dir($plugin_dir)) {
+					return 2;
+				}
+				else {
+					return 0;
+				}
+			}
+			public static function get_order_item_meta($item_id, $key): string {
+				global $wpdb;
+				$table_name = $wpdb->prefix . "woocommerce_order_itemmeta";
+				$results = $wpdb->get_results($wpdb->prepare("SELECT meta_value FROM $table_name WHERE order_item_id = %d AND meta_key = %s", $item_id, $key));
+				foreach ($results as $result) {
+					$value = $result->meta_value;
+				}
+				return $value ?? '';
+			}
+			public static function check_product_in_cart($post_id) {
+				$status = MP_Global_Function::check_woocommerce();
+				if ($status == 1) {
+					$product_id = MP_Global_Function::get_post_info($post_id, 'link_wc_product');
+					foreach (WC()->cart->get_cart() as $cart_item) {
+						if ($cart_item['product_id'] == $product_id) {
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+			public static function wc_product_sku($product_id) {
+				if ($product_id) {
+					return new WC_Product($product_id);
+				}
+				return null;
+			}
+			//***********************************//
 			public static function all_tax_list(): array {
 				global $wpdb;
 				$table_name = $wpdb->prefix . 'wc_tax_rate_classes';
@@ -261,12 +336,6 @@
 					'sunday' => esc_html__('Sunday', 'mptbm_plugin'),
 				];
 			}
-			public static function get_faq($post_id) {
-				return self::get_post_info($post_id, 'mp_faq', array());
-			}
-			public static function get_why_choose_us($post_id) {
-				return self::get_post_info($post_id, 'mp_why_choose_us', array());
-			}
 			public static function get_plugin_data($data) {
 				$plugin_data = get_plugin_data(__FILE__);
 				return $plugin_data[$data];
@@ -281,29 +350,6 @@
 					}
 				}
 				return $ids;
-			}
-			public static function check_woocommerce(): int {
-				include_once(ABSPATH . 'wp-admin/includes/plugin.php');
-				$plugin_dir = ABSPATH . 'wp-content/plugins/woocommerce';
-				if (is_plugin_active('woocommerce/woocommerce.php')) {
-					return 1;
-				}
-				elseif (is_dir($plugin_dir)) {
-					return 2;
-				}
-				else {
-					return 0;
-				}
-			}
-			public static function get_page_by_slug($slug) {
-				if ($pages = get_pages()) {
-					foreach ($pages as $page) {
-						if ($slug === $page->post_name) {
-							return $page;
-						}
-					}
-				}
-				return false;
 			}
 			public static function esc_html($string): string {
 				$allow_attr = array(
@@ -427,10 +473,6 @@
 				return wp_kses($string, $allow_attr);
 			}
 			//***********************************//
-			public static function get_taxonomy($name) {
-				return get_terms(array('taxonomy' => $name, 'hide_empty' => false));
-			}
 		}
 		new MP_Global_Function();
 	}
-

@@ -1,8 +1,8 @@
 <?php
 	/*
-* @Author 		magePeople
-* Copyright: 	mage-people.com
-*/
+ * @Author 		engr.sumonazma@gmail.com
+ * Copyright: 	mage-people.com
+ */
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly
@@ -12,20 +12,21 @@
 		$display_extra_services = MP_Global_Function::get_post_info($post_id, 'display_mptbm_extra_services', 'on');
 		$service_id = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_services_id', $post_id);
 		$extra_services = MP_Global_Function::get_post_info($service_id, 'mptbm_extra_service_infos', []);
-		?>
-		<div class="dLayout">
-			<?php if ($display_extra_services == 'on' && is_array($extra_services) && sizeof($extra_services) > 0) { ?>
+		if ($display_extra_services == 'on' && is_array($extra_services) && sizeof($extra_services) > 0) {
+			?>
+			<div class="dLayout">
 				<h3><?php esc_html_e('Choose Extra Features (Optional)', 'mptbm_plugin'); ?></h3>
 				<div class="divider"></div>
-				<?php foreach ($extra_services as $service) {
+				<?php foreach ($extra_services as $service) { ?>
+					<?php
 					$service_icon = array_key_exists('service_icon', $service) ? $service['service_icon'] : '';
 					$service_image = array_key_exists('service_image', $service) ? $service['service_image'] : '';
 					$service_name = array_key_exists('service_name', $service) ? $service['service_name'] : '';
 					$service_price = array_key_exists('service_price', $service) ? $service['service_price'] : 0;
 					$description = array_key_exists('extra_service_description', $service) ? $service['extra_service_description'] : '';
 					$ex_unique_id = '#ex_service_' . uniqid();
-					if ($service_name) {
-						?>
+					?>
+					<?php if ($service_name) { ?>
 						<div class="dFlex mptbm_extra_service_item">
 							<?php if ($service_image) { ?>
 								<div class="service_img_area alignCenter">
@@ -61,16 +62,15 @@
 							</div>
 						</div>
 						<div class="divider"></div>
-						<?php
-					}
-				}
-			}
-			?>
-			<button class="_dButton mptbm_book_now" type="button">
+					<?php } ?>
+				<?php } ?>
+			</div>
+		<?php } ?>
+		<div class="divider"></div>
+		<div class="justifyBetween">
+			<div></div>
+			<button class="_dButton mptbm_book_now" type="button" data-wc_link_id="<?php echo esc_attr($link_wc_product); ?>">
 				<span class="fas fa-cart-plus"></span>
-				<?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
-			</button>
-			<button type="submit" name="add-to-cart" value="<?php echo esc_attr($link_wc_product); ?>" class="dNone mptbm_add_to_cart">
 				<?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
 			</button>
 		</div>

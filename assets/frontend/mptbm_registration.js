@@ -125,9 +125,9 @@ function mptbmCreateMarker(place) {
 			end_place.focus();
 		} else {
 			dLoader(parent.find('.tabsContentNext'));
-			let price_based = parent.find('[name="mptbm_price_based"]').val();
-			let post_id = parent.find('[name="mptbm_filter_post_id"]').val();
+			mptbm_content_refresh(parent);
 			mptbm_set_cookie_distance_duration(start_place.value, end_place.value);
+			let price_based = parent.find('[name="mptbm_price_based"]').val();
 			if (start_place.value && end_place.value && start_date && start_time) {
 				$.ajax({
 					type: 'POST',
@@ -139,7 +139,6 @@ function mptbmCreateMarker(place) {
 						"start_date": start_date,
 						"start_time": start_time,
 						"price_based": price_based,
-						"post_id": post_id
 					},
 					beforeSend: function () {
 						//dLoader(target);
@@ -159,13 +158,14 @@ function mptbmCreateMarker(place) {
 	});
 	$(document).on("change", "#mptbm_manual_start_place", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
+		mptbm_content_refresh(parent);
 		let start_place = $(this).val();
 		let target = parent.find('.mptbm_manual_end_place');
 		if (start_place) {
 			let end_place = '';
 			let price_based = parent.find('[name="mptbm_price_based"]').val();
 			if (price_based === 'manual') {
-				let post_id = parent.find('[name="mptbm_filter_post_id"]').val();
+				let post_id = parent.find('[name="mptbm_post_id"]').val();
 				$.ajax({
 					type: 'POST',
 					url: mp_ajax_url,
@@ -198,6 +198,7 @@ function mptbmCreateMarker(place) {
 	});
 	$(document).on("change", "#mptbm_manual_end_place", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
+		mptbm_content_refresh(parent);
 		let start_place = parent.find("#mptbm_manual_start_place").val();
 		let end_place = $(this).val();
 		if (end_place) {
@@ -206,13 +207,24 @@ function mptbmCreateMarker(place) {
 	});
 	$(document).on("change", "#mptbm_map_start_place", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
+		mptbm_content_refresh(parent);
 		let start_place = parent.find("#mptbm_manual_start_place").val();
 		let end_place = $(this).val();
 		if (end_place) {
 			mptbm_set_cookie_distance_duration(start_place, end_place);
 		}
 	});
+	$(document).on("change", "#mptbm_map_start_date,#mptbm_map_start_time", function () {
+		let parent = $(this).closest('.mptbm_transport_search_area');
+		mptbm_content_refresh(parent);
+	});
 }(jQuery));
+function mptbm_content_refresh(parent) {
+	parent.find('[name="mptbm_post_id"]').val('');
+	parent.find('.mptbm_map_search_result').html('');
+	parent.find('.mptbm_order_summary').html('');
+	parent.find('.get_details_next_link').slideUp('fast');
+}
 //=======================//
 function mptbm_price_calculation(parent) {
 	let target_summary = parent.find('.mptbm_transport_summary');
@@ -240,14 +252,14 @@ function mptbm_price_calculation(parent) {
 		let target_summary = parent.find('.mptbm_transport_summary');
 		let target_extra_service = parent.find('.mptbm_extra_service');
 		let target_extra_service_summary = parent.find('.mptbm_extra_service_summary');
+		target_summary.slideUp(350);
+		target_extra_service.slideUp(350).html('');
+		target_extra_service_summary.slideUp(350).html('');
+		parent.find('[name="mptbm_post_id"]').val('');
+		parent.find('.mptbm_order_summary').html('');
 		if ($this.hasClass('active_select')) {
 			$this.removeClass('active_select');
 			mp_all_content_change($this);
-			target_summary.slideUp(350);
-			target_extra_service.slideUp(350).html('');
-			target_extra_service_summary.slideUp(350).html('');
-			parent.find('[name="mptbm_post_id"]').val('');
-			parent.find('.mptbm_add_to_cart').attr('value', '');
 		} else {
 			parent.find('.mptbm_transport_select.active_select').each(function () {
 				$(this).removeClass('active_select');
@@ -271,15 +283,16 @@ function mptbm_price_calculation(parent) {
 						"post_id": post_id,
 					},
 					beforeSend: function () {
-						dLoaderBody();
+						dLoader(parent.find('.tabsContentNext'));
 					},
 					success: function (data) {
 						target_extra_service.html(data);
+
 					},
 					error: function (response) {
 						console.log(response);
 					}
-				}).promise().done(function (){
+				}).promise().done(function () {
 					$.ajax({
 						type: 'POST',
 						url: mp_ajax_url,
@@ -292,13 +305,14 @@ function mptbm_price_calculation(parent) {
 								target_summary.slideDown(350);
 								target_extra_service.slideDown(350);
 								target_extra_service_summary.slideDown(350);
-								dLoaderRemove();
+								pageScrollTo(target_extra_service);
+								dLoaderRemove(parent.find('.tabsContentNext'));
 							});
 						},
 						error: function (response) {
 							console.log(response);
 						}
-					})
+					});
 				});
 			});
 		}
@@ -322,13 +336,66 @@ function mptbm_price_calculation(parent) {
 		}
 		mptbm_price_calculation(parent);
 	});
+	//===========================//
+	$(document).on('click', '.mptbm_transport_search_area .mptbm_get_vehicle_prev', function () {
+		let parent = $(this).closest('.mptbm_transport_search_area');
+		parent.find('.get_details_next_link').slideDown('fast');
+		parent.find('.nextTab_prev').trigger('click');
+	});
+	$(document).on('click', '.mptbm_transport_search_area .mptbm_summary_prev', function () {
+		let parent = $(this).closest('.mptbm_transport_search_area');
+		parent.find('.nextTab_prev').trigger('click');
+	});
+	//===========================//
 	$(document).on("click", ".mptbm_book_now[type='button']", function () {
-		let parent = $(this).closest('form');
-		let start_place = parent.find('[name="mptbm_start_place"]');
-		let end_place = parent.find('[name="mptbm_end_place"]');
-		if (start_place.val() !== '' && end_place.val() !== '') {
-			$.when(mptbm_set_cookie_distance_duration(start_place.value, end_place.value)).done(function () {
-				parent.find('.mptbm_add_to_cart').trigger('click');
+		let parent = $(this).closest('.mptbm_transport_search_area');
+		let target_checkout = parent.find('.mptbm_order_summary');
+		let start_place = parent.find('[name="mptbm_start_place"]').val();
+		let end_place = parent.find('[name="mptbm_end_place"]').val();
+		let post_id = parent.find('[name="mptbm_post_id"]').val();
+		let date = parent.find('[name="mptbm_date"]').val();
+		let link_id = $(this).attr('data-wc_link_id');
+		if (start_place !== '' && end_place !== '' && link_id && post_id) {
+			let extra_service_name = {};
+			let extra_service_qty = {};
+			let count = 0;
+			parent.find('[name="mptbm_extra_service[]"]').each(function () {
+				let ex_name = $(this).val();
+				if (ex_name) {
+					extra_service_name[count] = ex_name;
+					let ex_qty = parseInt($(this).closest('.mptbm_extra_service_item').find('[name="mptbm_extra_service_qty[]"]').val());
+					ex_qty = ex_qty > 0 ? ex_qty : 1;
+					extra_service_qty[count] = ex_qty;
+					count++;
+				}
+			});
+			$.ajax({
+				type: 'POST',
+				url: mp_ajax_url,
+				data: {
+					"action": "mptbm_add_to_cart",
+					//"product_id": post_id,
+					"link_id": link_id,
+					"mptbm_start_place": start_place,
+					"mptbm_end_place": end_place,
+					"mptbm_date": date,
+					"mptbm_extra_service": extra_service_name,
+					"mptbm_extra_service_qty": extra_service_qty,
+				},
+				beforeSend: function () {
+					dLoader(parent.find('.tabsContentNext'));
+				},
+				success: function (data) {
+					target_checkout.html(data);
+					dLoaderRemove(parent.find('.tabsContentNext'));
+					$( document.body ).trigger( 'init_checkout' );
+					$(document).find( '#billing_country' ).select2({});
+					$(document).find( '#billing_state' ).select2({});
+					parent.find('.nextTab_next').trigger('click');
+				},
+				error: function (response) {
+					console.log(response);
+				}
 			});
 		}
 	});

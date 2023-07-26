@@ -8,8 +8,7 @@
 	} // Cannot access pages directly.
 	if (!class_exists('MPTBM_Function')) {
 		class MPTBM_Function {
-			public function __construct() {
-			}
+			public function __construct() {}
 			//**************Support multi Language*********************//
 			public static function post_id_multi_language($post_id) {
 				if (function_exists('wpml_loaded')) {
@@ -24,7 +23,6 @@
 				}
 				return $post_id;
 			}
-		
 			//***********Template********************//
 			public static function all_details_template() {
 				$template_path = get_stylesheet_directory() . '/mptbm_templates/themes/';
@@ -63,7 +61,7 @@
 			}
 			//************************//
 			public static function get_general_settings($key, $default = '') {
-				return MP_Global_Function::get_settings('MPTBM_General_Settings', $key, $default);
+				return MP_Global_Function::get_settings('mptbm_general_settings', $key, $default);
 			}
 			public static function get_cpt(): string {
 				return 'mptbm_rent';
@@ -91,14 +89,59 @@
 			}
 			//*************************************************************Full Custom Function******************************//
 			//*************Date*********************************//
-			public function get_date($post_id){
+			public static function get_date($post_id, $expire = false) {
+				$now = current_time('Y-m-d');
 				$date_type = MP_Global_Function::get_post_info($post_id, 'mptbm_date_type', 'repeated');
-				$all_dates=[];
-				if($date_type=='repeated'){
-					$start_date = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_start_date');
-					$repeated_after = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
-					$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 10);
+				$all_dates = [];
+				$off_days = MP_Global_Function::get_post_info($post_id, 'mptbm_off_days');
+				$all_off_days = explode(',', $off_days);
+				$all_off_dates = MP_Global_Function::get_post_info($post_id, 'mptbm_off_dates', array());
+				$off_dates = [];
+				foreach ($all_off_dates as $off_date) {
+					$off_dates[] = date('Y-m-d', strtotime($off_date));
 				}
+				if ($date_type == 'repeated') {
+					$start_date = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_start_date', $now);
+					if (strtotime($now) >= strtotime($start_date) && !$expire) {
+						$start_date = $now;
+					}
+					$repeated_after = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
+					$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 10) - 1;
+					$end_date = date('Y-m-d', strtotime($start_date . ' +' . $active_days . ' day'));
+					$dates = MP_Global_Function::date_separate_period($start_date, $end_date, $repeated_after);
+					foreach ($dates as $date) {
+						$date = $date->format('Y-m-d');
+						$day = strtolower(date('l', strtotime($date)));
+						if (!in_array($date, $off_dates) && !in_array($day, $all_off_days)) {
+							$all_dates[] = $date;
+						}
+					}
+				}
+				else {
+					$particular_date_lists = MP_Global_Function::get_post_info($post_id, 'mptbm_particular_dates', array());
+					if (sizeof($particular_date_lists)) {
+						foreach ($particular_date_lists as $particular_date) {
+							if ($particular_date && ($expire || strtotime($now) <= strtotime($particular_date)) && !in_array($particular_date, $off_dates) && !in_array($particular_date, $all_off_days)) {
+								$all_dates[] = $particular_date;
+							}
+						}
+					}
+				}
+				return $all_dates;
+			}
+			public static function get_all_dates($price_based = 'dynamic', $expire = false) {
+				$all_posts = MPTBM_Query::query_transport_list($price_based);
+				$all_dates = [];
+				if ($all_posts->found_posts > 0) {
+					$posts = $all_posts->posts;
+					foreach ($posts as $post) {
+						$post_id = $post->ID;
+						$dates = MPTBM_Function::get_date($post_id, $expire);
+						$all_dates = array_merge($all_dates, $dates);
+					}
+				}
+				$all_dates = array_unique($all_dates);
+				usort($all_dates, "MP_Global_Function::sort_date");
 				return $all_dates;
 			}
 			//*************Price*********************************//
@@ -107,11 +150,14 @@
 				$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
 				if ($price_based == 'distance') {
 					$price = MP_Global_Function::get_post_info($post_id, 'mptbm_km_price') * $distance / 1000;
-				} elseif ($price_based == 'duration') {
+				}
+				elseif ($price_based == 'duration') {
 					$price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price') * $duration / 3600;
-				} elseif ($price_based == 'distance_duration') {
+				}
+				elseif ($price_based == 'distance_duration') {
 					$price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price') * $duration / 3600 + MP_Global_Function::get_post_info($post_id, 'mptbm_km_price') * $distance / 1000;
-				} else {
+				}
+				else {
 					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 					if (sizeof($manual_prices) > 0) {
 						foreach ($manual_prices as $manual_price) {
@@ -125,11 +171,7 @@
 				}
 				return $price;
 			}
-			public static function get_wc_price($post_id): string {
-				$price = self::get_price($post_id);
-				return MP_Global_Function::wc_price($post_id, $price);
-			}
-			public static function get_extra_service_price_by_name($post_id,$service_name) {
+			public static function get_extra_service_price_by_name($post_id, $service_name) {
 				$display_extra_services = MP_Global_Function::get_post_info($post_id, 'display_mptbm_extra_services', 'on');
 				$service_id = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_services_id', $post_id);
 				$extra_services = MP_Global_Function::get_post_info($service_id, 'mptbm_extra_service_infos', []);
@@ -137,27 +179,12 @@
 				if ($display_extra_services == 'on' && is_array($extra_services) && sizeof($extra_services) > 0) {
 					foreach ($extra_services as $service) {
 						$ex_service_name = array_key_exists('service_name', $service) ? $service['service_name'] : '';
-						if ($ex_service_name== $service_name) {
+						if ($ex_service_name == $service_name) {
 							return array_key_exists('service_price', $service) ? $service['service_price'] : 0;
 						}
 					}
 				}
 				return $price;
-			}
-			public static function get_order_metas($order, $keys = array()) {
-				$return = array();
-				$order_items = $order->get_items();
-				if (!is_null($order_items)) {
-					foreach ($order_items as $order_item) {
-						$meta_datas = $order_item->get_meta_data();
-						foreach ($meta_datas as $meta) {
-							if (in_array($meta->key, $keys)) {
-								$return[$meta->key] = $meta->value;
-							}
-						}
-					}
-				}
-				return $return;
 			}
 			//************Location*******************//
 			public static function location_exit($post_id, $start_place, $destination_place) {
@@ -179,7 +206,7 @@
 				}
 				return true;
 			}
-			public static function get_manual_start_location($post_id = '') {
+			public static function get_all_start_location($post_id = '') {
 				$all_location = [];
 				if ($post_id && $post_id > 0) {
 					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
@@ -191,7 +218,8 @@
 							}
 						}
 					}
-				} else {
+				}
+				else {
 					$all_posts = MPTBM_Query::query_transport_list('manual');
 					if ($all_posts->found_posts > 0) {
 						$posts = $all_posts->posts;
@@ -211,10 +239,9 @@
 				}
 				return array_unique($all_location);
 			}
-			public static function get_manual_end_location($start_place, $post_id = '') {
+			public static function get_end_location($start_place, $post_id = '') {
 				$all_location = [];
 				if ($post_id && $post_id > 0) {
-					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 					if (sizeof($manual_prices) > 0) {
 						foreach ($manual_prices as $manual_price) {
@@ -225,7 +252,8 @@
 							}
 						}
 					}
-				} else {
+				}
+				else {
 					$all_posts = MPTBM_Query::query_transport_list('manual');
 					if ($all_posts->found_posts > 0) {
 						$posts = $all_posts->posts;

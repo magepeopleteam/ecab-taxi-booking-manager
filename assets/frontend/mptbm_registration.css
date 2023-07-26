@@ -1,6 +1,6 @@
 /******************************************************************** ************************************************/
 @media only screen and (min-width: 10px) {
-	div.mptbm_transport_search_area {min-width: 1000px;}
+	div.mptbm_transport_search_area {width: 100%;max-width: 1200px;}
 	div.mptbm_transport_search_area div.tabsContentNext {padding: 0; margin: 30px 0 0 0; }
 	div.mptbm_transport_search_area div.mptbm_distance_time { display: none; margin: var(--dMP) 0 0 0; }
 	div.mptbm_transport_search_area ul.list_inline_two li {border: none;}
@@ -10,4 +10,13 @@
 	div.mptbm_transport_summary,
 	div.mptbm_extra_service {display: none;}
 	div.mptbm_transport_search_area div[data-extra-service] {display: none;}
-	}
+	div.get_details_next_link {display: none;}
+	div.mptbm_transport_search_area .woocommerce-page span.woocommerce-input-wrapper,
+	div.mptbm_transport_search_area .woocommerce-page table span{display: initial;}
+	div.mptbm_transport_search_area .woocommerce-page label{margin: 0 0 var(--dMP_xs) 0;}
+	div.mptbm_transport_search_area table th,
+	div.mptbm_transport_search_area table td{border: none;}
+	div.mptbm_transport_search_area .woocommerce form .form-row{margin-bottom: var(--dMP_xs);}
+	div.mptbm_transport_search_area .woocommerce-page .select2-container .select2-selection,
+	div.mptbm_transport_search_area .woocommerce-page .input-text{padding: 5px var(--dMP_xs);}
+}

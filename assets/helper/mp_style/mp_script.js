@@ -361,6 +361,13 @@ function mp_all_content_change($this) {
 			});
 		});
 	}
+	$(document).on('click', '.mpStyle .mpTabsNext .nextTab_prev_link', function () {
+		let parent = $(this).closest('.mpTabsNext');
+		if(parent.find('[data-tabs-target-next].active').length>1){
+			parent.find('.nextTab_prev').trigger('click');
+		}
+
+	});
 	$(document).on('click', '.mpStyle .mpTabsNext .nextTab_next', function () {
 		let parent = $(this).closest('.mpTabsNext');
 		let target = parent.find('.tabListsNext:first');
