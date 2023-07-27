@@ -22,27 +22,39 @@
 					$all_features = array(
 						array(
 							'label' => esc_html__('Name', 'mptbm_plugin'),
-							'icon' => '',
+							'icon' => 'fas fa-car-side',
 							'image' => '',
 							'text' => ''
 						),
 						array(
 							'label' => esc_html__('Model', 'mptbm_plugin'),
-							'icon' => '',
+							'icon' => 'fas fa-car',
 							'image' => '',
 							'text' => ''
 						),
 						array(
 							'label' => esc_html__('Engine', 'mptbm_plugin'),
-							'icon' => '',
+							'icon' => 'fas fa-cogs',
 							'image' => '',
 							'text' => ''
 						),
 						array(
 							'label' => esc_html__('Fuel Type', 'mptbm_plugin'),
-							'icon' => '',
+							'icon' => 'fas fa-gas-pump',
 							'image' => '',
 							'text' => ''
+						),
+						array(
+							'label' => esc_html__('Maximum Passenger', 'mptbm_plugin'),
+							'icon' => 'fas fa-users',
+							'image' => '',
+							'text' => '4'
+						),
+						array(
+							'label' => esc_html__('Maximum Bag', 'mptbm_plugin'),
+							'icon' => 'fas fa-briefcase',
+							'image' => '',
+							'text' => '3'
 						)
 					);
 				}

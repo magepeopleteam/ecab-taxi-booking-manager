@@ -389,8 +389,8 @@ function mptbm_price_calculation(parent) {
 					target_checkout.html(data);
 					dLoaderRemove(parent.find('.tabsContentNext'));
 					$( document.body ).trigger( 'init_checkout' );
-					$(document).find( '#billing_country' ).select2({});
-					$(document).find( '#billing_state' ).select2({});
+					$( 'body #billing_country' ).select2({});
+					$( 'body #billing_state' ).select2({});
 					parent.find('.nextTab_next').trigger('click');
 				},
 				error: function (response) {

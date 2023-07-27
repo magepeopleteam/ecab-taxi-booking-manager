@@ -18,9 +18,7 @@
 	<input type="hidden" name="mptbm_date" value="<?php echo esc_attr($date); ?>"/>
 	<div class="mp_sticky_section">
 		<div class="flexWrap">
-			<div class="leftSidebar">
-				<?php include(MPTBM_Function::template_path('registration/summary.php')); ?>
-			</div>
+			<?php include(MPTBM_Function::template_path('registration/summary.php')); ?>
 			<div class="mainSection ">
 				<div class="mp_sticky_depend_area fdColumn">
 					<?php

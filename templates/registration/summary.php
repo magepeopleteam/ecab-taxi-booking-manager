@@ -11,8 +11,8 @@
 	$label = $label ?? MPTBM_Function::get_name();
 ?>
 	<div class="mp_sticky_area">
-		<div class="_dLayout_dShadow_7_bRL_dFlex_fdColumn">
-			<h3 class="_textCenter"><?php esc_html_e('SUMMERY', 'mptbm_plugin'); ?></h3>
+		<div class="_dLayout_dFlex_fdColumn">
+			<h3><?php esc_html_e('SUMMERY', 'mptbm_plugin'); ?></h3>
 			<div class="dividerL"></div>
 			<h6 class="_mB_xs"><?php esc_html_e('Pick-Up Date', 'mptbm_plugin'); ?></h6>
 			<p class="_textLight_1"><?php echo MP_Global_Function::date_format($_POST['start_date']); ?></p>
@@ -44,7 +44,7 @@
 			</div>
 		</div>
 		<div class="divider"></div>
-		<button type="button" class="_themeButton_fullWidth mptbm_get_vehicle_prev">
+		<button type="button" class="_mpBtn_fullWidth mptbm_get_vehicle_prev">
 			<span>&longleftarrow; &nbsp;<?php esc_html_e('Previous', 'mptbm_plugin'); ?></span>
 		</button>
 	</div>

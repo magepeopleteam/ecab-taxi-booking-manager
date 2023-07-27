@@ -258,8 +258,8 @@
 			//***********************************//
 			public static function get_image_url($post_id = '', $image_id = '', $size = 'full') {
 				if ($post_id) {
-					$image_id = self::get_post_info($post_id, 'mp_thumbnail');
-					$image_id = $image_id ?: get_post_thumbnail_id($post_id);
+					$image_id = get_post_thumbnail_id($post_id);
+					$image_id = $image_id ?:self::get_post_info($post_id, 'mp_thumbnail') ;
 				}
 				return wp_get_attachment_image_url($image_id, $size);
 			}

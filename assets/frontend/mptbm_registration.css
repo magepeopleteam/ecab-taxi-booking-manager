@@ -2,21 +2,58 @@
 @media only screen and (min-width: 10px) {
 	div.mptbm_transport_search_area {width: 100%;max-width: 1200px;}
 	div.mptbm_transport_search_area div.tabsContentNext {padding: 0; margin: 30px 0 0 0; }
-	div.mptbm_transport_search_area div.mptbm_distance_time { display: none; margin: var(--dMP) 0 0 0; }
-	div.mptbm_transport_search_area ul.list_inline_two li {border: none;}
+	div.mptbm_transport_search_area div.mptbm_distance_time { margin: var(--dMP) 0 0 0; }
 	div.mptbm_distance_time h6 {font-size: var(--fs);color: var(--color_light_1);}
 	div.mptbm_distance_time strong {font-size: var(--fs);}
-	#mptbm_map_area { width: 100%; height: 100%; min-height: 200px; }
+	#mptbm_map_area { width: 100%; height: 100%; min-height: 200px;border-radius: 15px; }
 	div.mptbm_transport_summary,
 	div.mptbm_extra_service {display: none;}
 	div.mptbm_transport_search_area div[data-extra-service] {display: none;}
 	div.get_details_next_link {display: none;}
 	div.mptbm_transport_search_area .woocommerce-page span.woocommerce-input-wrapper,
-	div.mptbm_transport_search_area .woocommerce-page table span{display: initial;}
-	div.mptbm_transport_search_area .woocommerce-page label{margin: 0 0 var(--dMP_xs) 0;}
+	div.mptbm_transport_search_area .woocommerce-page table span {display: initial;}
+	div.mptbm_transport_search_area .woocommerce-page label {margin: 0 0 var(--dMP_xs) 0;}
 	div.mptbm_transport_search_area table th,
-	div.mptbm_transport_search_area table td{border: none;}
-	div.mptbm_transport_search_area .woocommerce form .form-row{margin-bottom: var(--dMP_xs);}
-	div.mptbm_transport_search_area .woocommerce-page .select2-container .select2-selection,
-	div.mptbm_transport_search_area .woocommerce-page .input-text{padding: 5px var(--dMP_xs);}
+	div.mptbm_transport_search_area table td {border: none;}
+	div.mptbm_transport_search_area .woocommerce form .form-row {margin-bottom: var(--dMP_xs);}
+}
+/******************************************************************** ************************************************/
+@media only screen and (min-width: 10px) {
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext {min-height: 135px;}
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext .circleIcon {width: 62px;height: 62px;font-size: 27px;font-weight: 600;color: #666666;background-color: #EAECEE; }
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext.active [class*="circleIcon"] {background-color: var(--color_theme);color: #FFF;}
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext.active [class*="circleIcon"].success {background-color: var(--color_success);}
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext .circleTitle {font-weight: 400;color: #A9A9A9;margin: 0 !important;top: 80px;font-size: 22px;text-transform: capitalize;}
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext.active .circleTitle {font-weight: 600;color: #152C5B;}
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]::after {top: 31px;border-color: #EAECEE;left: calc(50% + 31px);}
+	div.mptbm_transport_search_area .mptbm_search_area {max-width: 588px;width: 100%;padding: 50px;border-radius: 16px;border-color: #E5E5E5;margin: 0;}
+	div.mptbm_transport_search_area .mptbm_search_area h3 {font-size: 24px;font-weight: 600;text-transform: uppercase;color: #152C5B;text-align: center;margin: 0 0 50px 0;}
+	div.mptbm_transport_search_area .mptbm_search_area label {font-weight: 400;font-size: 17px;color: #152C5B;margin: 0 0 20px 0;}
+	div.mptbm_transport_search_area .mptbm_search_area label .formControl {
+		height: 47px;background-color: #F5F6F8;color: #222222;font-size: 17px;font-weight: 400;
+		padding: var(--dMP_xs) 35px var(--dMP_xs) var(--dMP_xs);border-color: #EBECEE;
+		background-image: url('../helper/images/arrow_down.png');
+		background-repeat: no-repeat;
+		background-position: calc(100% - var(--dMP_xs));
+		background-size: auto;
+		-webkit-appearance: none;
+	}
+	div.mptbm_transport_search_area .mptbm_map_area {max-width: 580px;width: 100%;}
+	div.mptbm_transport_search_area #mptbm_start_date.formControl {padding: var(--dMP_xs) 35px var(--dMP_xs) 60px;}
+	div.mptbm_transport_search_area #mptbm_map_start_time.formControl {padding: var(--dMP_xs) 35px var(--dMP_xs) 60px;}
+	div.mptbm_transport_search_area .mptbm_left_icon { position: absolute; left: 1px; top: 32px; width: 45px !important; font-size: 25px; background-color: var(--color_theme); color: #FFF; border-radius: var(--dBR) 0 0 var(--dBR); height: 46px; }
+	/*********************/
+	div.mptbm_transport_search_area .mp_sticky_area{min-width: var(--sidebarLeft);max-width: 310px;}
+	div.mptbm_transport_search_area [class*='_dLayout']{border: 1px solid #E5E5E5;border-radius: 15px;}
+	div.mptbm_transport_search_area .mp_sticky_area h3{color: #152C5B;	font-size: 24px;font-weight: 700;text-transform: uppercase;}
+	div.mptbm_transport_search_area .mp_sticky_area h6{color: #152C5B;font-size: 17px;font-weight: 600;}
+	div.mptbm_transport_search_area .mp_sticky_area p{color: #A9A9A9;font-size: 16px;font-weight: 400;}
+	div.mptbm_transport_search_area .mainSection{max-width: calc(100% - 350px);}
+	div.mptbm_booking_item h5{color: #000;font-size: 24px;font-weight: 600}
+	div.mptbm_booking_item h4{color: #000;font-size: 36px;font-weight: 600;margin: 0 0 var(--dMP_xs) 0;}
+	div.mptbm_transport_search_area ul.list_inline_two li {border: none;color: #626262;font-weight: 400;font-size: 12px;}
+	div.mptbm_transport_search_area button.mptbm_price_calculation,
+	div.mptbm_transport_search_area button.mptbm_transport_select {background-color: #EAECEE;color:#666;border-radius: var(--dBR);}
+	div.mptbm_transport_search_area button.mptbm_price_calculation.active_select,
+	div.mptbm_transport_search_area button.mptbm_transport_select.active_select{background-color: var(--color_theme);color: var(--color_theme_alter);}
 }

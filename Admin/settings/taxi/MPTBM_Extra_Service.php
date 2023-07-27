@@ -222,8 +222,8 @@
 				return apply_filters( 'filter_mptbm_extra_service_data', $new_extra_service, $post_id );
 			}
 			public function get_mptbm_ex_service() {
-				$post_id    = $_REQUEST['post_id'] ?? '';
-				$service_id = $_REQUEST['ex_id'] ?? '';
+				$post_id    = $_REQUEST['post_id'] ?MP_Global_Function::data_sanitize($_REQUEST['post_id']): '';
+				$service_id = $_REQUEST['ex_id'] ?MP_Global_Function::data_sanitize($_REQUEST['ex_id']): '';
 				$this->ex_service_table( $service_id, $post_id );
 				die();
 			}
