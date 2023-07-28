@@ -107,17 +107,17 @@
                 <tr class="mp_remove_area">
                     <td>
                         <label>
-                            <input type="text" name="mptbm_manual_start_location[]" class="formControl mp_name_validation" value="<?php echo $start_location; ?>" placeholder="<?php esc_attr_e('EX:Dhaka', 'mptbm_plugin'); ?>"/>
+                            <input type="text" name="mptbm_manual_start_location[]" class="formControl mp_name_validation" value="<?php echo esc_attr($start_location); ?>" placeholder="<?php esc_attr_e('EX:Dhaka', 'mptbm_plugin'); ?>"/>
                         </label>
                     </td>
                     <td>
                         <label>
-                            <input type="text" name="mptbm_manual_end_location[]" class="formControl mp_name_validation" value="<?php echo $end_location; ?>" placeholder="<?php esc_attr_e('EX:Dhaka', 'mptbm_plugin'); ?>"/>
+                            <input type="text" name="mptbm_manual_end_location[]" class="formControl mp_name_validation" value="<?php echo esc_attr($end_location); ?>" placeholder="<?php esc_attr_e('EX:Dhaka', 'mptbm_plugin'); ?>"/>
                         </label>
                     </td>
                     <td>
                         <label>
-                            <input type="text" name="mptbm_manual_price[]" class="formControl mp_price_validation" value="<?php echo $price; ?>" placeholder="<?php esc_attr_e('EX:10 ', 'mptbm_plugin'); ?>"/>
+                            <input type="text" name="mptbm_manual_price[]" class="formControl mp_price_validation" value="<?php echo esc_attr($price); ?>" placeholder="<?php esc_attr_e('EX:10 ', 'mptbm_plugin'); ?>"/>
                         </label>
                     </td>
                     <td>

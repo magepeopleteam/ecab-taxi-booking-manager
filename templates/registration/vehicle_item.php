@@ -26,13 +26,13 @@
 			$all_features = MP_Global_Function::get_post_info($post_id, 'mptbm_features');
 			?>
 			<div class="_dLayout_dFlex mptbm_booking_item" data-placeholder>
-				<div class="_max_150_mR">
+				<div class="_max_200_mR">
 					<div class="bg_image_area" data-href="<?php echo get_the_permalink($post_id); ?>" data-placeholder>
 						<div data-bg-image="<?php echo esc_attr($thumbnail); ?>"></div>
 					</div>
 				</div>
 				<div class="fdColumn _fullWidth mptbm_list_details">
-					<h5 data-href="<?php echo get_the_permalink($post_id); ?>"><?php echo get_the_title($post_id); ?></h5>
+					<h5><?php echo get_the_title($post_id); ?></h5>
 					<div class="justifyBetween _mT_xs">
 						<?php if ($display_features == 'on' && is_array($all_features) && sizeof($all_features) > 0) { ?>
 							<ul class="list_inline_two">
@@ -47,8 +47,7 @@
 											<?php if ($icon) { ?>
 												<span class="<?php echo esc_attr($icon); ?> _mR_xs"></span>
 											<?php } ?>
-											<?php echo esc_html($label); ?>:
-											<?php echo esc_html($text); ?>
+											<?php echo esc_html($label); ?>&nbsp;:&nbsp;<?php echo esc_html($text); ?>
 										</li>
 									<?php } ?>
 							</ul>

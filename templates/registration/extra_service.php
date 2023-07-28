@@ -41,23 +41,25 @@
 										<span class="<?php echo esc_attr($service_icon); ?>"></span>
 									<?php } ?>
 									<?php echo MP_Global_Function::esc_html($service_name); ?>
-									<sub class="textTheme">&nbsp;/ &nbsp;&nbsp;<?php echo wc_price($service_price); ?></sub>
+									<sub class="textTheme"> &nbsp;&nbsp;<?php echo wc_price($service_price); ?></sub>
 								</h4>
-								<div class="divider"></div>
-								<div class="_dFlex_justifyBetween_alignCenter">
+								<div class="_equalChild">
 									<div class="_mR_xs">
 										<?php MP_Custom_Layout::load_more_text($description, 100); ?>
 									</div>
-									<div class="alignCenter">
-										<div class="mR_xs min_100" data-collapse="<?php echo esc_attr($ex_unique_id); ?>">
-											<?php MP_Custom_Layout::qty_input('mptbm_extra_service_qty[]', $service_price, 100, 1, 0); ?>
+									<div>
+										<div class="justifyEnd">
+											<div class="_mR_min_100" data-collapse="<?php echo esc_attr($ex_unique_id); ?>">
+												<?php MP_Custom_Layout::qty_input('mptbm_extra_service_qty[]', $service_price, 100, 1, 0); ?>
+											</div>
+											<button type="button" class="_mpBtn_dBR_min_150 mptbm_price_calculation" data-extra-item data-collapse-target="<?php echo esc_attr($ex_unique_id); ?>" data-open-icon="far fa-check-circle" data-close-icon="" data-open-text="<?php esc_attr_e('Select', 'mptbm_plugin'); ?>" data-close-text="<?php esc_attr_e('Selected', 'mptbm_plugin'); ?>" data-add-class="mActive">
+												<input type="hidden" name="mptbm_extra_service[]" data-value="<?php echo esc_attr($service_name); ?>" value=""/>
+												<span data-text><?php esc_html_e('Select', 'mptbm_plugin'); ?></span>
+												<span data-icon class="mL_xs"></span>
+											</button>
 										</div>
-										<button type="button" class="_mpBtn_dBR_min_150 mptbm_price_calculation" data-extra-item data-collapse-target="<?php echo esc_attr($ex_unique_id); ?>" data-open-icon="far fa-check-circle" data-close-icon="" data-open-text="<?php esc_attr_e('Select', 'mptbm_plugin'); ?>" data-close-text="<?php esc_attr_e('Selected', 'mptbm_plugin'); ?>" data-add-class="mActive">
-											<input type="hidden" name="mptbm_extra_service[]" data-value="<?php echo esc_attr($service_name); ?>" value=""/>
-											<span data-text><?php esc_html_e('Select', 'mptbm_plugin'); ?></span>
-											<span data-icon class="mL_xs"></span>
-										</button>
 									</div>
+									
 								</div>
 							</div>
 						</div>
@@ -69,9 +71,9 @@
 		<div class="divider"></div>
 		<div class="justifyBetween">
 			<div></div>
-			<button class="_dButton mptbm_book_now" type="button" data-wc_link_id="<?php echo esc_attr($link_wc_product); ?>">
-				<span class="fas fa-cart-plus"></span>
-				<?php esc_html_e('Add to Cart', 'mptbm_plugin'); ?>
+			<button class="_successButton_min_200 mptbm_book_now" type="button" data-wc_link_id="<?php echo esc_attr($link_wc_product); ?>">
+				<span class="fas fa-cart-plus _mR_xs"></span>
+				<?php esc_html_e('Book Now', 'mptbm_plugin'); ?>
 			</button>
 		</div>
 		<?php

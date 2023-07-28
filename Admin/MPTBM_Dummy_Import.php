@@ -61,16 +61,44 @@
 								'post_data' => [
 									'mp_thumbnail'        => '100',
 									//General_settings
-									'mptbm_name'                  => 'BMW 5 Series Long',
-									'mptbm_model'                 => 'EXPRW',
-									'mptbm_engine'                => '3000',
-									'mptbm_interior_color'        => "Black",
-									'mptbm_power'                 => 285,
-									'mptbm_fuel_type'             => 'Diesel',
-									'mptbm_length'                => '5.1 meters',
-									'mptbm_exterior_color'        => 'silver',
-									'mptbm_transmission'          => 'Manual',
-									'mptbm_extras'                => 'Leather Seats, LED Lighting, Radio',
+									'mptbm_features'=>[
+										array(
+											'label' => 'Name',
+											'icon' => 'fas fa-car-side',
+											'image' => '',
+											'text' => 'BMW 5 Series Long'
+										),
+										array(
+											'label' => 'Model',
+											'icon' => 'fas fa-car',
+											'image' => '',
+											'text' => 'EXPRW'
+										),
+										array(
+											'label' => 'Engine',
+											'icon' => 'fas fa-cogs',
+											'image' => '3000',
+											'text' => ''
+										),
+										array(
+											'label' => 'Fuel Type',
+											'icon' => 'fas fa-gas-pump',
+											'image' => '',
+											'text' => 'Diesel'
+										),
+										array(
+											'label' => 'Maximum Passenger',
+											'icon' => 'fas fa-users',
+											'image' => '',
+											'text' => '4'
+										),
+										array(
+											'label' => 'Maximum Bag',
+											'icon' => 'fas fa-briefcase',
+											'image' => '',
+											'text' => '3'
+										)
+									],
 									//price_settings
 									'mptbm_price_based'           => 'distance',
 									'mptbm_km_price'              => 1.2,
