@@ -39,7 +39,7 @@ function mptbm_set_cookie_distance_duration(start_place = '', end_place = '') {
 				jQuery('.mptbm_distance_time').slideDown('fast');
 			} else {
 				directionsRenderer.setDirections({routes: []})
-				alert('location error');
+				//alert('location error');
 			}
 		});
 	} else if (start_place || end_place) {
@@ -146,6 +146,7 @@ function mptbmCreateMarker(place) {
 					success: function (data) {
 						target.html(data).promise().done(function () {
 							dLoaderRemove(parent.find('.tabsContentNext'));
+							mp_sticky_management();
 							parent.find('.nextTab_next').trigger('click');
 						});
 					},
@@ -205,18 +206,32 @@ function mptbmCreateMarker(place) {
 			mptbm_set_cookie_distance_duration(start_place, end_place);
 		}
 	});
-	$(document).on("change", "#mptbm_map_start_place", function () {
+	$(document).on("change", "#mptbm_map_start_place,#mptbm_map_end_place", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
 		mptbm_content_refresh(parent);
-		let start_place = parent.find("#mptbm_manual_start_place").val();
-		let end_place = $(this).val();
-		if (end_place) {
-			mptbm_set_cookie_distance_duration(start_place, end_place);
+		let start_place = parent.find('#mptbm_map_start_place').val();
+		let end_place = parent.find('#mptbm_map_end_place').val();
+		if (start_place || end_place) {
+			if (start_place) {
+				mptbm_set_cookie_distance_duration(start_place);
+				parent.find('#mptbm_map_end_place').focus();
+			} else {
+				mptbm_set_cookie_distance_duration(end_place);
+				parent.find('#mptbm_map_start_place').focus();
+			}
+		} else {
+			parent.find('#mptbm_map_start_place').focus();
 		}
 	});
-	$(document).on("change", "#mptbm_map_start_date,#mptbm_map_start_time", function () {
+	$(document).on("change", "#mptbm_map_start_date", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
 		mptbm_content_refresh(parent);
+		parent.find('.mp_input_select .formControl').trigger('click');
+	});
+	$(document).on("change", "#mptbm_map_start_time", function () {
+		let parent = $(this).closest('.mptbm_transport_search_area');
+		mptbm_content_refresh(parent);
+		parent.find('#mptbm_map_start_place').focus();
 	});
 }(jQuery));
 function mptbm_content_refresh(parent) {
@@ -287,7 +302,6 @@ function mptbm_price_calculation(parent) {
 					},
 					success: function (data) {
 						target_extra_service.html(data);
-
 					},
 					error: function (response) {
 						console.log(response);
@@ -388,9 +402,9 @@ function mptbm_price_calculation(parent) {
 				success: function (data) {
 					target_checkout.html(data);
 					dLoaderRemove(parent.find('.tabsContentNext'));
-					$( document.body ).trigger( 'init_checkout' );
-					$( 'body #billing_country' ).select2({});
-					$( 'body #billing_state' ).select2({});
+					$(document.body).trigger('init_checkout');
+					$('body #billing_country').select2({});
+					$('body #billing_state').select2({});
 					parent.find('.nextTab_next').trigger('click');
 				},
 				error: function (response) {

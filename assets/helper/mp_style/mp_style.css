@@ -957,7 +957,7 @@
 	.mpStyle .inputGroup label { width: auto; padding: 0 var(--dMP) 0 0; }
 	.mpStyle .inputGroup label input[type="checkbox"] { margin: 0 var(--dMP_xs); }
 	/******* input as a select*********/
-	.mpStyle .inputList .mp_input_select .formControl:focus { border-color: var(--color_border); }
+	div.mpStyle  div.mp_input_select .formControl:focus { border-color: var(--color_border); }
 	.mpStyle div.mp_input_select { position: relative; }
 	.mpStyle ul.mp_input_select_list {
 		display: none; z-index: 111; overflow: auto;

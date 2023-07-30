@@ -170,7 +170,7 @@
 						</div>
 						<label>
 							<input type="text"
-								class="formControl inputIncDec"
+								class="formControl inputIncDec mp_number_validation"
 								data-price="<?php echo esc_attr($price); ?>"
 								name="<?php echo esc_attr($input_name); ?>"
 								value="<?php echo esc_attr(max(0, $default_qty)); ?>"

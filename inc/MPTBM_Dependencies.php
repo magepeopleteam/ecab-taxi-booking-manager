@@ -19,6 +19,7 @@
 			private function load_file(): void {
 				require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Function.php';
 				require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Query.php';
+				require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Layout.php';
 				
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Admin.php';
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Frontend.php';

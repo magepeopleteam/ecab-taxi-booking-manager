@@ -19,21 +19,22 @@
 				<label class="fdColumn">
 					<input type="hidden" id="mptbm_map_start_date" value=""/>
 					<span><?php esc_html_e('Pick-Up Date', 'mptbm_plugin'); ?></span>
-					<input type="text" id="mptbm_start_date" class="formControl" placeholder="<?php esc_html_e('Select Date', 'mptbm_plugin'); ?>" value=""/>
+					<input type="text" id="mptbm_start_date" class="formControl" placeholder="<?php esc_html_e('Select Date', 'mptbm_plugin'); ?>" value="" readonly/>
 					<span class="far fa-calendar-alt mptbm_left_icon allCenter"></span>
 				</label>
-				<label class="fdColumn _mT">
-					<span><?php esc_html_e('Pick-Up Time', 'mptbm_plugin'); ?></span>
-					<select id="mptbm_map_start_time" class="formControl">
-						<option selected><?php esc_html_e('Please Select Time', 'mptbm_plugin'); ?></option>
-						<option value="9:00"><?php esc_html_e('9.00 AM', 'mptbm_plugin'); ?></option>
-						<option value="9:15"><?php esc_html_e('9.15 AM', 'mptbm_plugin'); ?></option>
-						<option value="9:30"><?php esc_html_e('9.30 AM', 'mptbm_plugin'); ?></option>
-						<option value="9:45"><?php esc_html_e('9.45 AM', 'mptbm_plugin'); ?></option>
-						<option value="10:00"><?php esc_html_e('10.00 AM', 'mptbm_plugin'); ?></option>
-					</select>
-					<span class="far fa-clock mptbm_left_icon allCenter"></span>
-				</label>
+				<div class="mp_input_select">
+					<input type="hidden" id="mptbm_map_start_time" value=""/>
+					<label class="fdColumn _mT">
+						<span><?php esc_html_e('Pick-Up Time', 'mptbm_plugin'); ?></span>
+						<input type="text" class="formControl" placeholder="<?php esc_html_e('Please Select Time', 'mptbm_plugin'); ?>" value="" readonly/>
+						<span class="far fa-clock mptbm_left_icon allCenter"></span>
+					</label>
+					<ul class="mp_input_select_list">
+						<?php for ($i = 0; $i <= 23.5; $i = $i + 0.5) { ?>
+							<li data-value="<?php echo esc_attr($i); ?>"><?php echo date_i18n('h:i A', $i * 3600); ?></li>
+						<?php } ?>
+					</ul>
+				</div>
 				<label class="fdColumn _mT">
 					<span><i class="fas fa-map-marker-alt _textTheme_mR_xs"></i><?php esc_html_e('Pick-Up Location', 'mptbm_plugin'); ?></span>
 					<?php if ($price_based == 'manual') { ?>
@@ -47,7 +48,7 @@
 							<?php } ?>
 						</select>
 					<?php } else { ?>
-						<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php esc_html_e('Start Location', 'mptbm_plugin'); ?>" value=""/>
+						<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php esc_html_e('Enter Pick-Up Location', 'mptbm_plugin'); ?>" value=""/>
 					<?php } ?>
 				</label>
 				<label class="fdColumn _mT mptbm_manual_end_place">
