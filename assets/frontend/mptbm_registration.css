@@ -26,7 +26,7 @@
 	div.mptbm_transport_search_area .mpTabsNext .tabItemNext .circleTitle {font-weight: 400;color: #A9A9A9;margin: 0 !important;top: 80px;font-size: 22px;text-transform: capitalize;}
 	div.mptbm_transport_search_area .mpTabsNext .tabItemNext.active .circleTitle {font-weight: 600;color: #152C5B;}
 	div.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]::after {top: 31px;border-color: #EAECEE;left: calc(50% + 31px);}
-	div.mptbm_transport_search_area .mptbm_search_area {max-width: 588px;width: 100%;padding: 50px;border-radius: 16px;border-color: #E5E5E5;margin: 0;}
+	div.mptbm_transport_search_area .mptbm_search_area {max-width: 588px;width: 50%;padding: 50px;border-radius: 16px;border-color: #E5E5E5;margin: 0;}
 	div.mptbm_transport_search_area .mptbm_search_area h3 {font-size: 24px;font-weight: 600;text-transform: uppercase;color: #152C5B;text-align: center;margin: 0 0 50px 0;}
 	div.mptbm_transport_search_area .mptbm_search_area label {font-weight: 400;font-size: 17px;color: #152C5B;margin: 0 0 20px 0;}
 	div.mptbm_transport_search_area .mptbm_search_area label .formControl {
@@ -38,7 +38,7 @@
 		background-size: auto;
 		-webkit-appearance: none;
 	}
-	div.mptbm_transport_search_area .mptbm_map_area {max-width: 580px;width: 100%;}
+	div.mptbm_transport_search_area .mptbm_map_area {max-width: calc(50% - 30px);width: 50%;}
 	div.mptbm_transport_search_area #mptbm_start_date.formControl {padding: var(--dMP_xs) 35px var(--dMP_xs) 60px;}
 	div.mptbm_transport_search_area div.mp_input_select .formControl {padding: var(--dMP_xs) 35px var(--dMP_xs) 60px;}
 	div.mptbm_transport_search_area .mptbm_left_icon { position: absolute; left: 1px; top: 32px; width: 45px !important; font-size: 25px; background-color: var(--color_theme); color: #FFF; border-radius: var(--dBR) 0 0 var(--dBR); height: 46px; }

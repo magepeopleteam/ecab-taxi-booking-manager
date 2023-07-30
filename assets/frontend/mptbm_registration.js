@@ -118,7 +118,7 @@ function mptbmCreateMarker(place) {
 		if (!start_date) {
 			target_date.trigger('click');
 		} else if (!start_time) {
-			target_time.trigger('click');
+			parent.find('#mptbm_map_start_time').closest('.mp_input_select').find('input.formControl').trigger('click');
 		} else if (!start_place.value) {
 			start_place.focus();
 		} else if (!end_place.value) {
@@ -226,7 +226,7 @@ function mptbmCreateMarker(place) {
 	$(document).on("change", "#mptbm_map_start_date", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
 		mptbm_content_refresh(parent);
-		parent.find('.mp_input_select .formControl').trigger('click');
+		parent.find('#mptbm_map_start_time').closest('.mp_input_select').find('input.formControl').trigger('click');
 	});
 	$(document).on("change", "#mptbm_map_start_time", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
@@ -414,3 +414,4 @@ function mptbm_price_calculation(parent) {
 		}
 	});
 }(jQuery));
+function gm_authFailure() { alert('Admin use Invalid Google Api Key . So, Google Map not working !'); }

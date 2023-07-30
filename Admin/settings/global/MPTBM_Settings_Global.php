@@ -55,6 +55,10 @@
 						'title' => __('General Settings', 'mptbm_plugin')
 					),
 					array(
+						'id' => 'mptbm_map_api_settings',
+						'title' => __('Map Api Settings', 'mptbm_plugin')
+					),
+					array(
 						'id' => 'mp_style_settings',
 						'title' => __('Style Settings', 'mptbm_plugin')
 					),
@@ -66,6 +70,7 @@
 				return array_merge($default_sec, $sections);
 			}
 			public function settings_sec_fields($default_fields): array {
+				$gm_api_url = 'https://developers.google.com/maps/documentation/javascript/get-api-key';
 				$label = MPTBM_Function::get_name();
 				$current_date = current_time('Y-m-d');
 				$settings_fields = array(
@@ -227,10 +232,13 @@
 								'no' => esc_html__('No', 'mptbm_plugin')
 							)
 						),
+						
+					)),
+					'mptbm_map_api_settings' => apply_filters('filter_mptbm_map_api_settings', array(
 						array(
 							'name'    => 'gmap_api_key',
 							'label'   => esc_html__( 'Google MAP API', 'mptbm_plugin' ),
-							'desc'    => esc_html__( 'Please Enter your workable google map api key', 'mptbm_plugin' ),
+							'desc'    => esc_html__( 'Please enter your Google Maps API key in this Options.', 'mptbm_plugin' ).'<a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',
 							'type'    => 'text',
 							'default' => ''
 						),
