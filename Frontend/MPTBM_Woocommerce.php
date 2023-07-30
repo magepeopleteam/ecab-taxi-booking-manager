@@ -142,7 +142,7 @@
 					if ($order_status != 'failed') {
 						//$item_id = current( array_keys( $order->get_items() ) );
 						foreach ($order->get_items() as $item_id => $item) {
-							$post_id = MPTBM_Query::get_order_meta($item_id, '_mptbm_id');
+							$post_id = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_id');
 							if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 								$date = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_date');
 								$date = $date ? MP_Global_Function::data_sanitize($date) : '';
@@ -200,7 +200,7 @@
 				$order = wc_get_order($order_id);
 				$order_status = $order->get_status();
 				foreach ($order->get_items() as $item_id => $item_values) {
-					$post_id = MPTBM_Query::get_order_meta($item_id, '_mptbm_id');
+					$post_id = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_id');
 					if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 						if ($order->has_status('processing') || $order->has_status('pending') || $order->has_status('on-hold') || $order->has_status('completed') || $order->has_status('cancelled') || $order->has_status('refunded') || $order->has_status('failed') || $order->has_status('requested')) {
 							$this->wc_order_status_change($order_status, $post_id, $order_id);

@@ -109,15 +109,6 @@
 				);
 				return new WP_Query($args);
 			}
-			public static function get_order_meta($item_id, $key): string {
-				global $wpdb;
-				$table_name = $wpdb->prefix . "woocommerce_order_itemmeta";
-				$results = $wpdb->get_results($wpdb->prepare("SELECT meta_value FROM $table_name WHERE order_item_id = %d AND meta_key = %s", $item_id, $key));
-				foreach ($results as $result) {
-					$value = $result->meta_value;
-				}
-				return $value ?? '';
-			}
 		}
 		new MPTBM_Query();
 	}

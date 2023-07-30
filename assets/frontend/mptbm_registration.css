@@ -40,14 +40,14 @@
 	}
 	div.mptbm_transport_search_area .mptbm_map_area {max-width: 580px;width: 100%;}
 	div.mptbm_transport_search_area #mptbm_start_date.formControl {padding: var(--dMP_xs) 35px var(--dMP_xs) 60px;}
-	div.mptbm_transport_search_area #mptbm_map_start_time.formControl {padding: var(--dMP_xs) 35px var(--dMP_xs) 60px;}
+	div.mptbm_transport_search_area div.mp_input_select .formControl {padding: var(--dMP_xs) 35px var(--dMP_xs) 60px;}
 	div.mptbm_transport_search_area .mptbm_left_icon { position: absolute; left: 1px; top: 32px; width: 45px !important; font-size: 25px; background-color: var(--color_theme); color: #FFF; border-radius: var(--dBR) 0 0 var(--dBR); height: 46px; }
 	/*********************/
-	div.mptbm_transport_search_area .mp_sticky_area{min-width: var(--sidebarLeft);max-width: 310px;}
+	div.mptbm_transport_search_area .leftSidebar{min-width: var(--sidebarLeft);max-width: 310px;}
 	div.mptbm_transport_search_area [class*='_dLayout']{border: 1px solid #E5E5E5;border-radius: 15px;}
-	div.mptbm_transport_search_area .mp_sticky_area h3{color: #152C5B;	font-size: 24px;font-weight: 700;text-transform: uppercase;}
-	div.mptbm_transport_search_area .mp_sticky_area h6{color: #152C5B;font-size: 17px;font-weight: 600;}
-	div.mptbm_transport_search_area .mp_sticky_area p{color: #A9A9A9;font-size: 16px;font-weight: 400;}
+	div.mptbm_transport_search_area .leftSidebar h3{color: #152C5B;	font-size: 24px;font-weight: 700;text-transform: uppercase;}
+	div.mptbm_transport_search_area .leftSidebar h6{color: #152C5B;font-size: 17px;font-weight: 600;}
+	div.mptbm_transport_search_area .leftSidebar p{color: #A9A9A9;font-size: 16px;font-weight: 400;}
 	div.mptbm_transport_search_area .mainSection{max-width: calc(100% - 350px);}
 	div.mptbm_booking_item h5{color: #000;font-size: 24px;font-weight: 600}
 	div.mptbm_booking_item h4{color: #000;font-size: 36px;font-weight: 600;margin: 0 0 var(--dMP_xs) 0;}
