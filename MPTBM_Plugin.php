@@ -47,12 +47,14 @@
 				require_once MPTBM_PLUGIN_DIR . '/inc/global/MP_Select_Icon_image.php';
 			}
 			public function activation_redirect($plugin) {
-				if ($plugin == plugin_basename(__FILE__)) {
+				$mptbm_quick_setup_done = get_option('mptbm_quick_setup_done');
+				if ($plugin == plugin_basename(__FILE__) && $mptbm_quick_setup_done != 'yes') {
 					exit(wp_redirect(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_quick_setup')));
 				}
 			}
 			public function activation_redirect_setup($plugin) {
-				if ($plugin == plugin_basename(__FILE__)) {
+				$mptbm_quick_setup_done = get_option('mptbm_quick_setup_done');
+				if ($plugin == plugin_basename(__FILE__) && $mptbm_quick_setup_done != 'yes') {
 					exit(wp_redirect(admin_url('admin.php?post_type=mptbm_rent&page=mptbm_quick_setup')));
 				}
 			}
