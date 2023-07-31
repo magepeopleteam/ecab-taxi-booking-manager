@@ -25,9 +25,11 @@
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Frontend.php';
 			}
 			public function global_enqueue() {
-				$api_key = MP_Global_Function::get_settings('mptbm_general_settings','gmap_api_key');
+				$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings','gmap_api_key');
 				if ($api_key) {
 					wp_enqueue_script( 'mptbm_map', 'https://maps.googleapis.com/maps/api/js?libraries=places&amp;language=en&amp;key='.$api_key, array( 'jquery' ), time(), true );
+				}else{
+					add_action('admin_notices', [$this, 'map_api_not_active']);
 				}
 				wp_enqueue_script( 'jquery' );
 				wp_enqueue_script( 'jquery-ui-core' );
@@ -89,6 +91,11 @@
 					}
 				</script>
 				<?php
+			}
+			public function map_api_not_active(){
+				$gm_api_url = 'https://developers.google.com/maps/documentation/javascript/get-api-key';
+				$label=MPTBM_Function::get_name();
+				printf('<div class="error" style="background:red; color:#fff;"><p>%s</p></div>', __('You Must Add Google Map Api key for E-cab taxi booking manager, Because It is dependent on Google Map. Please enter your Google Maps API key in Plugin Options.<strong style="font-size: 17px;">'.$label.'>'.$label.' Settings>Map Api Settings</strong> <a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>'));
 			}
 		}
 		new MPTBM_Dependencies();
