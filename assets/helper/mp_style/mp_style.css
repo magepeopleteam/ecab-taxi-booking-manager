@@ -957,7 +957,7 @@
 	.mpStyle .inputGroup label { width: auto; padding: 0 var(--dMP) 0 0; }
 	.mpStyle .inputGroup label input[type="checkbox"] { margin: 0 var(--dMP_xs); }
 	/******* input as a select*********/
-	div.mpStyle  div.mp_input_select .formControl:focus { border-color: var(--color_border); }
+	div.mpStyle div.mp_input_select .formControl:focus { border-color: var(--color_border); }
 	.mpStyle div.mp_input_select { position: relative; }
 	.mpStyle ul.mp_input_select_list {
 		display: none; z-index: 111; overflow: auto;
@@ -1013,6 +1013,8 @@
 		z-index: 11; background-color: transparent; -ms-transform: rotate(-45deg); transform: rotate(-45deg);
 	}
 	div.mpStyle .active_select { background-color: var(--color_theme); color: var(--color_theme_alter); }
+	div.mpStyle .customCheckboxLabel.only_checkbox{width: 20px;margin: 0;}
+	div.mpStyle .customCheckboxLabel.only_checkbox span{padding: 0;}
 	/*********Input Switch*******/
 	.mpStyle .roundSwitchLabel input[type='checkbox'] { display: none; }
 	.mpStyle .roundSwitch {
@@ -1159,7 +1161,7 @@
 	.mpStyle .tabsContentNext { position: relative; overflow: hidden; width: 100%; padding: var(--dMP); }
 	.tabsContentNext [data-tabs-next] { display: none; }
 	.tabsContentNext [data-tabs-next].active { display: block; }
-	.nextTab_prev_link{cursor: pointer;}
+	.nextTab_prev_link {cursor: pointer;}
 }
 /******************************************************************** Panel section ************************************************/
 @media only screen and (min-width: 10px) {
@@ -1215,21 +1217,20 @@
 	div.mpContainer { max-width: var(--dContainer_Width); width: 100%; margin: 0 auto; }
 	div.mpRow { min-height: 1px; }
 	/************************/
-	.mpStyle .fullHeight, .mpStyle [class*="_fullHeight"] { height: 100%; }
-	.mpStyle .h_100 { height: 100%; }
-	.mpStyle .h_100px { height: 100px; }
-	.mpStyle .h_200px { height: 200px; }
+	div.mpStyle .fullHeight, div.mpStyle [class*="_fullHeight"] { height: 100%; }
+	div.mpStyle [class*="_h_100"] { height: 100px; }
+	div.mpStyle [class*="_h_200"] { height: 200px; }
 	/************************/
-	.mpStyle .w_50, .mpStyle [class*="_w_50"] { width: 50px; min-width: 50px; }
-	.mpStyle .w_100, .mpStyle [class*="_w_100"] { width: 100px; min-width: 100px; max-width: 100px;}
-	.mpStyle .w_125, .mpStyle [class*="_w_125"] { width: 125px; min-width: 125px; }
-	.mpStyle .w_150, .mpStyle [class*="_w_150"] { width: 150px; min-width: 150px; }
-	.mpStyle .w_200, .mpStyle [class*="_w_200"] { width: 200px; min-width: 200px; }
-	.mpStyle .w_300, .mpStyle [class*="_w_300"] { width: 300px; min-width: 300px; }
-	.mpStyle .w_400, .mpStyle [class*="_w_400"] { width: 400px; min-width: 400px; }
-	.mpStyle .w_500, .mpStyle [class*="_w_500"] { width: 500px; min-width: 500px; }
-	.mpStyle .w_600, .mpStyle [class*="_w_600"] { width: 600px; min-width: 600px; }
-	.mpStyle .fullWidth, .mpStyle [class*='_fullWidth'] { width: 100%; max-width: 100%; }
+	div.mpStyle [class*="_w_50"] { width: 50px; min-width: 50px; }
+	div.mpStyle [class*="_w_100"] { width: 100px; min-width: 100px; max-width: 100px;}
+	div.mpStyle [class*="_w_125"] { width: 125px; min-width: 125px; }
+	div.mpStyle [class*="_w_150"] { width: 150px; min-width: 150px; }
+	div.mpStyle [class*="_w_200"] { width: 200px; min-width: 200px; }
+	div.mpStyle [class*="_w_300"] { width: 300px; min-width: 300px; }
+	div.mpStyle [class*="_w_400"] { width: 400px; min-width: 400px; }
+	div.mpStyle [class*="_w_500"] { width: 500px; min-width: 500px; }
+	div.mpStyle [class*="_w_600"] { width: 600px; min-width: 600px; }
+	div.mpStyle [class*='_fullWidth'] { width: 100%; max-width: 100%; }
 	/************************/
 	div.mpStyle .max_100, div.mpStyle [class*="_max_100"] { max-width: 100px; width: 100%; }
 	div.mpStyle .max_150, div.mpStyle [class*="_max_150"] { max-width: 150px; width: 100%; }

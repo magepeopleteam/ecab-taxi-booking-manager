@@ -9,6 +9,7 @@
 	$price_based = $price_based ?? '';
 	$price_based = $price_based ?? '';
 	$all_dates = MPTBM_Function::get_all_dates($price_based);
+	//echo '<pre>';print_r($all_dates);echo '</pre>';
 	if (sizeof($all_dates) > 0) {
 		?>
 		<div class="justifyBetween">
@@ -95,7 +96,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="fullWidth get_details_next_link">
+		<div class="_fullWidth get_details_next_link">
 			<div class="divider"></div>
 			<div class="justifyBetween">
 				<button type="button" class="mpBtn nextTab_prev">

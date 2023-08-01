@@ -43,7 +43,7 @@
 				require_once MPTBM_PLUGIN_DIR . '/inc/global/MP_Global_Function.php';
 				require_once MPTBM_PLUGIN_DIR . '/inc/global/MP_Global_Style.php';
 				require_once MPTBM_PLUGIN_DIR . '/inc/global/MP_Custom_Layout.php';
-				require_once MPTBM_PLUGIN_DIR . '/inc/global/MP_Custom_Slider.php';
+				//require_once MPTBM_PLUGIN_DIR . '/inc/global/MP_Custom_Slider.php';
 				require_once MPTBM_PLUGIN_DIR . '/inc/global/MP_Select_Icon_image.php';
 			}
 			public function activation_redirect($plugin) {

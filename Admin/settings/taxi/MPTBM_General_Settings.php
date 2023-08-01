@@ -73,10 +73,10 @@
                             <table>
                                 <thead>
                                 <tr>
-                                    <th class="w_150"><?php esc_html_e('Icon/Image', 'mptbm_plugin'); ?></th>
+                                    <th class="_w_150"><?php esc_html_e('Icon/Image', 'mptbm_plugin'); ?></th>
                                     <th><?php esc_html_e('Label', 'mptbm_plugin'); ?></th>
                                     <th><?php esc_html_e('Text', 'mptbm_plugin'); ?></th>
-                                    <th class="w_125"><?php esc_html_e('Action', 'mptbm_plugin'); ?></th>
+                                    <th class="_w_125"><?php esc_html_e('Action', 'mptbm_plugin'); ?></th>
                                 </tr>
                                 </thead>
                                 <tbody class="mp_sortable_area mp_item_insert">

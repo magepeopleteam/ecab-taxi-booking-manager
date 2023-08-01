@@ -35,7 +35,7 @@
 						<?php
 							if ($params['pagination-style'] == 'load_more') {
 								?>
-								<button type="button" class="_dButton_min_200 pagination_load_more" data-load-more="0">
+								<button type="button" class="_mpBtn_xs_min_200 pagination_load_more" data-load-more="0">
 									<?php esc_html_e('Load More', 'mptbm_plugin'); ?>
 								</button>
 								<?php
@@ -46,29 +46,29 @@
 								?>
 								<div class="buttonGroup">
 									<?php if ($total_page > 2) { ?>
-										<button class="dButton_xs page_prev" type="button" title="<?php esc_html_e('GoTO Previous Page', 'mptbm_plugin'); ?>" disabled>
+										<button class="_mpBtn_xs page_prev" type="button" title="<?php esc_html_e('GoTO Previous Page', 'mptbm_plugin'); ?>" disabled>
 											<span class="fas fa-chevron-left mp_zero"></span>
 										</button>
 									<?php } ?>
 									
 									<?php if ($total_page > 5) { ?>
-										<button class="dButton_xs ellipse_left" type="button" disabled>
+										<button class="_mpBtn_xs ellipse_left" type="button" disabled>
 											<span class="fas fa-ellipsis-h mp_zero"></span>
 										</button>
 									<?php } ?>
 									
 									<?php for ($i = 0; $i < $total_page; $i++) { ?>
-										<button class="dButton_xs <?php echo esc_html($i) == $active_page ? 'active_pagination' : ''; ?>" type="button" data-pagination="<?php echo esc_html($i); ?>"><?php echo esc_html($i + 1); ?></button>
+										<button class="_mpBtn_xs <?php echo esc_html($i) == $active_page ? 'active_pagination' : ''; ?>" type="button" data-pagination="<?php echo esc_html($i); ?>"><?php echo esc_html($i + 1); ?></button>
 									<?php } ?>
 									
 									<?php if ($total_page > 5) { ?>
-										<button class="dButton_xs ellipse_right" type="button" disabled>
+										<button class="_mpBtn_xs ellipse_right" type="button" disabled>
 											<span class="fas fa-ellipsis-h mp_zero"></span>
 										</button>
 									<?php } ?>
 									
 									<?php if ($total_page > 2) { ?>
-										<button class="dButton_xs page_next" type="button" title="<?php esc_html_e('GoTO Next Page', 'mptbm_plugin'); ?>">
+										<button class="_mpBtn_xs page_next" type="button" title="<?php esc_html_e('GoTO Next Page', 'mptbm_plugin'); ?>">
 											<span class="fas fa-chevron-right mp_zero"></span>
 										</button>
 									<?php } ?>

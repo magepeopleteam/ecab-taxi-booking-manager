@@ -202,18 +202,19 @@
 						<h2><?php esc_html_e('General settings', 'taxi-booking-manager'); ?></h2>
 						<p class="mTB_xs"><?php esc_html_e('Choose some general option.', 'taxi-booking-manager'); ?></p>
 						<div class="_dLayout_mT">
-							<label class="fullWidth">
-								<span class="min_200"><?php esc_html_e('Transportation Label:', 'taxi-booking-manager'); ?></span>
-								<input type="text" class="formControl" name="mptbm_rent_label" value='<?php echo esc_attr($label); ?>'/>
+							<label class="_fullWidth">
+								<span class="min_200"><?php esc_html_e('Transportation Label:', 'mptbm_plugin'); ?></span>
+								<input type="text" class="formControl" name="mptbm_label" value='<?php echo esc_attr($label); ?>'/>
+
 							</label>
 							<i class="info_text">
 								<span class="fas fa-info-circle"></span>
 								<?php esc_html_e('It will change the Transportation post type label on the entire plugin.', 'taxi-booking-manager'); ?>
 							</i>
 							<div class="divider"></div>
-							<label class="fullWidth">
-								<span class="min_200"><?php esc_html_e('Transportation Slug:', 'taxi-booking-manager'); ?></span>
-								<input type="text" class="formControl" name="mptbm_rent_slug" value='<?php echo esc_attr($slug); ?>'/>
+							<label class="_fullWidth">
+								<span class="min_200"><?php esc_html_e('Transportation Slug:', 'mptbm_plugin'); ?></span>
+								<input type="text" class="formControl" name="mptbm_slug" value='<?php echo esc_attr($slug); ?>'/>
 							</label>
 							<i class="info_text">
 								<span class="fas fa-info-circle"></span>
