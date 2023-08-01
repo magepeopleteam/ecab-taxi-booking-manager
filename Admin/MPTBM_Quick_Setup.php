@@ -37,7 +37,7 @@
 					</script>
 					<?php
 					activate_plugin('woocommerce/woocommerce.php');
-					MPTBM_Woocommerce_Plugin::on_activation_page_create();
+					MPTBM_Plugin::on_activation_page_create();
 					?>
 					<script>
 						(function ($) {
@@ -80,7 +80,7 @@
 					$woocommerce_plugin = new Plugin_Upgrader(new Plugin_Installer_Skin(compact('title', 'url', 'nonce', 'plugin', 'api')));
 					$woocommerce_plugin->install($api->download_link);
 					activate_plugin('woocommerce/woocommerce.php');
-					MPTBM_Woocommerce_Plugin::on_activation_page_create();
+					MPTBM_Plugin::on_activation_page_create();
 					echo '</div>';
 					?>
 					<script>

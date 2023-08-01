@@ -13,11 +13,9 @@
 
         class MPTBM_Dummy_Import 
         {
+			private $dummy_images;
             public function __construct() 
             {
-                //echo "<pre>";print_r(get_post_meta(144));exit;
-                //update_option('mptbm_dummy_already_inserted','no');exit;
-                //echo "<pre>";print_r($this->get_post_id_by_ttle('Pre-defined Extra Services','mptbm_extra_services'));exit;
                 add_action('deactivate_plugin', array($this, 'update_option'), 98);
                 add_action('activated_plugin', array($this, 'update_option'), 98);
                 add_action('admin_init', array($this, 'dummy_import'), 99);
@@ -56,6 +54,8 @@
                 
                 if ($count_existing_event == 0 && $plugin_active == 1 && $dummy_post_inserted != 'yes') 
                 {
+					$this->dummy_images = self::dummy_images();
+
                     $dummy_taxonomies = $this->dummy_taxonomy();
 
                     if(array_key_exists('taxonomy', $dummy_taxonomies))
@@ -85,91 +85,113 @@
 
                     }
 
-                    $dummy_cpt = $this->dummy_cpt();
+					$this->add_post($this->dummy_pre_cpt());
+					$this->add_post($this->dummy_cpt());
 
-                    if(array_key_exists('custom_post', $dummy_cpt))
-                    {
-                        $dummy_images = self::dummy_images();
-
-                        foreach ($dummy_cpt['custom_post'] as $custom_post => $dummy_post) 
-                        {
-                            unset($args);
-                            $args = array(
-                                'post_type' => $custom_post,
-                                'posts_per_page' => -1,
-                            );
-
-                            unset($post);
-                            $post = new WP_Query($args);
-
-                            if ($post->post_count == 0) 
-                            {
-                                foreach ($dummy_post as $dummy_data) 
-                                {
-                                    $args = array();
-                                    if(isset($dummy_data['name']))$args['post_title'] = $dummy_data['name'];
-                                    if(isset($dummy_data['content']))$args['post_content'] = $dummy_data['content'];
-                                    $args['post_status'] = 'publish';
-                                    $args['post_type'] = $custom_post;
-
-                                    $post_id = wp_insert_post($args);
-
-                                    if (array_key_exists('taxonomy_terms', $dummy_data) && count($dummy_data['taxonomy_terms'])) 
-                                    {
-                                        foreach ($dummy_data['taxonomy_terms'] as $taxonomy_term) 
-                                        {
-                                            wp_set_object_terms( $post_id, $taxonomy_term['terms'], $taxonomy_term['taxonomy_name'], true );
-                                        }
-                                    }
-
-                                    if (array_key_exists('post_data', $dummy_data)) 
-                                    {
-                                        foreach ($dummy_data['post_data'] as $meta_key => $data) 
-                                        {
-                                            if ($meta_key == 'mp_slider_images') 
-                                            {
-                                                if(is_array($data))
-                                                {
-                                                    $thumnail_ids = array();
-
-                                                    foreach($data as $url_index)
-                                                    {
-                                                        if(isset($dummy_images[$url_index]))
-                                                        {
-                                                            $thumnail_ids[] = $dummy_images[$url_index];
-                                                        }
-                                                        
-                                                    }
-
-                                                    update_post_meta($post_id,'mp_slider_images',$thumnail_ids);
-                                                }
-                                                else
-                                                {
-                                                    update_post_meta($post_id,'mp_slider_images',array(isset($dummy_images[$data])?$dummy_images[$data]:''));
-                                                }
-
-                                            } 
-                                            else 
-                                            {
-                                                update_post_meta($post_id, $meta_key, $data);
-                                            }
-
-                                        }
-                                    }
-                                    flush_rewrite_rules();
-                                    wp_reset_postdata();
-
-                                }
-                            }
-                            flush_rewrite_rules();
-                            wp_reset_postdata();
-                        }
-                    }
                     //$this->craete_pages();
                     flush_rewrite_rules();
                     update_option('mptbm_dummy_already_inserted', 'yes');
                 }
             }
+
+			public static function add_post($dummy_cpt)
+			{
+				if(array_key_exists('custom_post', $dummy_cpt))
+				{
+					foreach ($dummy_cpt['custom_post'] as $custom_post => $dummy_post) 
+					{
+						unset($args);
+						$args = array(
+							'post_type' => $custom_post,
+							'posts_per_page' => -1,
+						);
+
+						unset($post);
+						$post = new WP_Query($args);
+
+						if ($post->post_count == 0) 
+						{
+							foreach ($dummy_post as $dummy_data) 
+							{
+								$args = array();
+								if(isset($dummy_data['name']))$args['post_title'] = $dummy_data['name'];
+								if(isset($dummy_data['content']))$args['post_content'] = $dummy_data['content'];
+								$args['post_status'] = 'publish';
+								$args['post_type'] = $custom_post;
+
+								$post_id = wp_insert_post($args);
+
+								if (array_key_exists('taxonomy_terms', $dummy_data) && count($dummy_data['taxonomy_terms'])) 
+								{
+									foreach ($dummy_data['taxonomy_terms'] as $taxonomy_term) 
+									{
+										wp_set_object_terms( $post_id, $taxonomy_term['terms'], $taxonomy_term['taxonomy_name'], true );
+									}
+								}
+
+								if (array_key_exists('post_data', $dummy_data)) 
+								{
+									foreach ($dummy_data['post_data'] as $meta_key => $data) 
+									{
+										if ($meta_key == 'mp_thumbnail') 
+										{
+											if(is_array($data))
+											{
+												$thumnail_ids = array();
+
+												foreach($data as $url_index)
+												{
+													if(isset($dummy_images[$url_index]))
+													{
+														$thumnail_ids[] = $dummy_images[$url_index];
+													}
+													
+												}
+
+												update_post_meta($post_id,'mp_thumbnail',$thumnail_ids);
+											}
+											else
+											{
+												update_post_meta($post_id,'mp_thumbnail',array(isset($dummy_images[$data])?$dummy_images[$data]:''));
+											}
+
+										}
+										else if ($meta_key == 'mp_slider_images') 
+										{
+											if(is_array($data))
+											{
+												$thumnail_ids = array();
+
+												foreach($data as $url_index)
+												{
+													if(isset($dummy_images[$url_index]))
+													{
+														$thumnail_ids[] = $dummy_images[$url_index];
+													}
+													
+												}
+
+												update_post_meta($post_id,'mp_slider_images',$thumnail_ids);
+											}
+											else
+											{
+												update_post_meta($post_id,'mp_slider_images',array(isset($dummy_images[$data])?$dummy_images[$data]:''));
+											}
+
+										} 
+										else 
+										{
+											update_post_meta($post_id, $meta_key, $data);
+										}
+
+									}
+								}
+							}
+						}
+					}
+				}
+
+			}
 
             public static function dummy_images()
             {
@@ -224,10 +246,12 @@
                     ],
                 ];
             }
-            public function dummy_cpt(): array {
 
-                return [
-                    'custom_post' => [
+			public function dummy_pre_cpt(): array 
+			{
+				return array(
+					'custom_post' => array(
+
                         'mptbm_extra_services' => array(
                             0 => array(
                                 'name'      => 'Pre-defined Extra Services',
@@ -276,6 +300,16 @@
 
                             ),
                         ),
+					),
+
+				);
+			}
+
+            public function dummy_cpt(): array 
+			{
+                return [
+                    'custom_post' => [
+
                         'mptbm_rent' => [
 							0 => [
 								'name'      => 'BMW 5 Series',
