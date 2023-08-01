@@ -35,7 +35,7 @@
 									</div>
 								</div>
 							<?php } ?>
-							<div class="fdColumn fullWidth">
+							<div class="fdColumn _fullWidth">
 								<h4>
 									<?php if ($service_icon) { ?>
 										<span class="<?php echo esc_attr($service_icon); ?>"></span>

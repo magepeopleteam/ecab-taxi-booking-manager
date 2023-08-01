@@ -104,9 +104,9 @@
 					$base_price = $values['mptbm_base_price'] ?? '';
 					$extra_service = $values['mptbm_extra_service_info'] ?? [];
 					$user_info = $values['mptbm_user_info'] ?? [];
-					$item->add_meta_data(esc_html__('Start ', 'mptbm_plugin'), $start_location);
-					$item->add_meta_data(esc_html__('Destination ', 'mptbm_plugin'), $end_location);
-					$item->add_meta_data(esc_html__('Distance ', 'mptbm_plugin'), $distance_text);
+					$item->add_meta_data(esc_html__('Pick-Up Location ', 'mptbm_plugin'), $start_location);
+					$item->add_meta_data(esc_html__('Drop-Off Location ', 'mptbm_plugin'), $end_location);
+					$item->add_meta_data(esc_html__('Approximate Distance ', 'mptbm_plugin'), $distance_text);
 					$item->add_meta_data(esc_html__('Approximate Time ', 'mptbm_plugin'), $duration_text);
 					$item->add_meta_data(esc_html__('Date ', 'mptbm_plugin'), MP_Global_Function::date_format($date));
 					$item->add_meta_data(esc_html__('Time ', 'mptbm_plugin'), MP_Global_Function::date_format($date, 'time'));
@@ -223,17 +223,17 @@
 						<ul class="cart_list">
 							<li>
 								<span class="fas fa-map-marker-alt"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Start : ', 'mptbm_plugin'); ?></h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Pick-Up Location : ', 'mptbm_plugin'); ?></h6>
 								<span><?php echo esc_html($start_location); ?></span>
 							</li>
 							<li>
 								<span class="fas fa-map-marker-alt"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Destination : ', 'mptbm_plugin'); ?></h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Drop-Off Location : ', 'mptbm_plugin'); ?></h6>
 								<span><?php echo esc_html($end_location); ?></span>
 							</li>
 							<li>
 								<span class="fas fa-route"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Distance : ', 'mptbm_plugin'); ?></h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Approximate Distance : ', 'mptbm_plugin'); ?></h6>
 								<span><?php echo esc_html($cart_item['mptbm_distance_text']); ?></span>
 							</li>
 							<li>

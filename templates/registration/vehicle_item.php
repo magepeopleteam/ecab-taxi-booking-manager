@@ -8,6 +8,7 @@
 	} // Cannot access pages directly
 	$post_id = $post_id ?? '';
 	$start_date = $start_date ?? MP_Global_Function::data_sanitize($_POST['start_date']);
+	$start_date = date('Y-m-d', strtotime($start_date));
 	$all_dates = MPTBM_Function::get_date($post_id);
 	if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
 		$distance = $distance ?? $_COOKIE['mptbm_distance'];

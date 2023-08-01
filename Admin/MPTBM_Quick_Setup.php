@@ -198,7 +198,7 @@
 						<h2><?php esc_html_e('General settings', 'mptbm_plugin'); ?></h2>
 						<p class="mTB_xs"><?php esc_html_e('Choose some general option.', 'mptbm_plugin'); ?></p>
 						<div class="_dLayout_mT">
-							<label class="fullWidth">
+							<label class="_fullWidth">
 								<span class="min_200"><?php esc_html_e('Transportation Label:', 'mptbm_plugin'); ?></span>
 								<input type="text" class="formControl" name="mptbm_label" value='<?php echo esc_attr($label); ?>'/>
 							</label>
@@ -207,7 +207,7 @@
 								<?php esc_html_e('It will change the Transportation post type label on the entire plugin.', 'mptbm_plugin'); ?>
 							</i>
 							<div class="divider"></div>
-							<label class="fullWidth">
+							<label class="_fullWidth">
 								<span class="min_200"><?php esc_html_e('Transportation Slug:', 'mptbm_plugin'); ?></span>
 								<input type="text" class="formControl" name="mptbm_slug" value='<?php echo esc_attr($slug); ?>'/>
 							</label>

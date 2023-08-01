@@ -18,18 +18,18 @@
 					'post_status' => 'publish'
 				));
 			}
-			public static function query_transport_list($price_based): WP_Query {
-				$price_based_1=$price_based=='dynamic'?array(
+			public static function query_transport_list($price_based=''): WP_Query {
+				$price_based_1=!$price_based || $price_based=='dynamic'?array(
 					'key'=>'mptbm_price_based',
 					'value'=>'distance',
 					'compare'=>'=',
 				):'';
-				$price_based_2=$price_based=='dynamic'?array(
+				$price_based_2=!$price_based || $price_based=='dynamic'?array(
 					'key'=>'mptbm_price_based',
 					'value'=>'duration',
 					'compare'=>'=',
 				):'';
-				$price_based_3=$price_based=='dynamic'?array(
+				$price_based_3=!$price_based || $price_based=='dynamic'?array(
 					'key'=>'mptbm_price_based',
 					'value'=>'distance_duration',
 					'compare'=>'=',

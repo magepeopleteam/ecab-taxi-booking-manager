@@ -40,9 +40,6 @@
 								<span class="fas fa-hand-holding-usd"></span><?php esc_html_e('Extra Service', 'mptbm_plugin'); ?>
 							</li>
 							<?php do_action('add_mptbm_settings_tab_after_ex_service'); ?>
-							<li data-tabs-target="#mptbm_settings_gallery">
-								<span class="fas fa-images"></span><?php esc_html_e('Gallery ', 'mptbm_plugin'); ?>
-							</li>
 						</ul>
 						<div class="tabsContent tab-content">
 							<?php do_action('add_mptbm_settings_tab_content', $post_id); ?>
