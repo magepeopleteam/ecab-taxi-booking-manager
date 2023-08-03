@@ -56,4 +56,5 @@
 	div.mptbm_transport_search_area button.mptbm_transport_select {background-color: #EAECEE;color:#666;border-radius: var(--dBR);}
 	div.mptbm_transport_search_area button.mptbm_price_calculation.active_select,
 	div.mptbm_transport_search_area button.mptbm_transport_select.active_select{background-color: var(--color_theme);color: var(--color_theme_alter);}
+	div.mptbm_transport_search_area div.mp_sticky_on_scroll{min-height: 400px;overflow: auto;}
 }

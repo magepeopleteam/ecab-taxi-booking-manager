@@ -372,9 +372,12 @@ function mp_sticky_management() {
 		tabsContent.children('[data-tabs-next].active').slideUp(350).removeClass('active').promise().done(function () {
 			target_tabContent.addClass('active').promise().done(function () {
 				pageScrollTo(tabsContent);
-				parent.height('auto');
-				loadBgImage();
-				dLoaderRemove(parent);
+				parent.height('auto').promise().done(function () {
+					loadBgImage();
+					mp_sticky_management();
+					dLoaderRemove(parent);
+				});
+
 			});
 		});
 	}

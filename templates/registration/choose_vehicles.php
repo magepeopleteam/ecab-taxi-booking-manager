@@ -8,11 +8,11 @@
 	} // Cannot access pages directly
 	
 	$label = MPTBM_Function::get_name();
-	$start_date = MP_Global_Function::data_sanitize($_POST['start_date']);
-	$start_time = MP_Global_Function::data_sanitize($_POST['start_time']);
-	$date = $start_date . ' ' . $start_time;
-	$start_place = MP_Global_Function::data_sanitize($_POST['start_place']);
-	$end_place = MP_Global_Function::data_sanitize($_POST['end_place']);
+	$start_date = isset($_POST['start_date'])?MP_Global_Function::data_sanitize($_POST['start_date']):'';
+	$start_time = isset($_POST['start_time'])?MP_Global_Function::data_sanitize($_POST['start_time'])*3600:'';
+	$date=$start_date && $start_time?date('Y-m-d', strtotime($start_date)).' '.date('H:i', $start_time):'';
+	$start_place = isset($_POST['start_place'])?MP_Global_Function::data_sanitize($_POST['start_place']):'';
+	$end_place = isset($_POST['end_place'])?MP_Global_Function::data_sanitize($_POST['end_place']):'';
 ?>
 	<input type="hidden" name="mptbm_post_id" value="" data-price=""/>
 	<input type="hidden" name="mptbm_start_place" value="<?php echo esc_attr($start_place); ?>"/>

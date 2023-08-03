@@ -9,6 +9,9 @@
 	$distance = $distance ?? $_COOKIE['mptbm_distance'];
 	$duration = $duration ?? $_COOKIE['mptbm_duration'];
 	$label = $label ?? MPTBM_Function::get_name();
+	$date = $date ?? '';
+	$start_place = $start_place ?? '';
+	$end_place = $end_place ?? '';
 ?>
 	<div class="mp_sticky_area">
 		<div class="mp_sticky_on_scroll">
@@ -16,16 +19,16 @@
 				<h3><?php esc_html_e('SUMMERY', 'mptbm_plugin'); ?></h3>
 				<div class="dividerL"></div>
 				<h6 class="_mB_xs"><?php esc_html_e('Pick-Up Date', 'mptbm_plugin'); ?></h6>
-				<p class="_textLight_1"><?php echo MP_Global_Function::date_format($_POST['start_date']); ?></p>
+				<p class="_textLight_1"><?php echo MP_Global_Function::date_format($date); ?></p>
 				<div class="dividerL"></div>
 				<h6 class="_mB_xs"><?php esc_html_e('Pick-Up Time', 'mptbm_plugin'); ?></h6>
-				<p class="_textLight_1"><?php echo MP_Global_Function::date_format($_POST['start_time'], 'time'); ?></p>
+				<p class="_textLight_1"><?php echo MP_Global_Function::date_format($date, 'time'); ?></p>
 				<div class="dividerL"></div>
 				<h6 class="_mB_xs"><?php esc_html_e('Pick-Up Location', 'mptbm_plugin'); ?></h6>
-				<p class="_textLight_1"><?php echo MP_Global_Function::data_sanitize($_POST['start_place']); ?></p>
+				<p class="_textLight_1"><?php echo esc_html($start_place); ?></p>
 				<div class="dividerL"></div>
 				<h6 class="_mB_xs"><?php esc_html_e('Drop-Off Location', 'mptbm_plugin'); ?></h6>
-				<p class="_textLight_1"><?php echo MP_Global_Function::data_sanitize($_POST['end_place']); ?></p>
+				<p class="_textLight_1"><?php echo esc_html($end_place); ?></p>
 				<div class="mptbm_transport_summary">
 					<div class="dividerL"></div>
 					<h6 class="_mB_xs"><?php echo esc_html($label) . ' ' . esc_html__(' Details', 'mptbm_plugin') ?></h6>
@@ -49,6 +52,5 @@
 				<span>&longleftarrow; &nbsp;<?php esc_html_e('Previous', 'mptbm_plugin'); ?></span>
 			</button>
 		</div>
-		
 	</div>
 <?php
