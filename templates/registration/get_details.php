@@ -32,7 +32,7 @@
 					</label>
 					<ul class="mp_input_select_list">
 						<?php for ($i = 0; $i <= 23.5; $i = $i + 0.5) { ?>
-							<li data-value="<?php echo esc_attr($i); ?>"><?php echo date_i18n('h:i A', $i * 3600); ?></li>
+							<li data-value="<?php echo esc_attr($i); ?>"><?php echo MP_Global_Function::date_format(date('H:i', $i*3600), 'time'); ?></li>
 						<?php } ?>
 					</ul>
 				</div>

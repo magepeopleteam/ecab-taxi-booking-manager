@@ -77,6 +77,9 @@
 							'donate_link' => false,
 						),
 					));
+					$title='title';
+					$url='url';
+					$nonce='nonce';
 					$woocommerce_plugin = new Plugin_Upgrader(new Plugin_Installer_Skin(compact('title', 'url', 'nonce', 'plugin', 'api')));
 					$woocommerce_plugin->install($api->download_link);
 					activate_plugin('woocommerce/woocommerce.php');

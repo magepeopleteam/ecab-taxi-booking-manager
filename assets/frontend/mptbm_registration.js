@@ -146,7 +146,6 @@ function mptbmCreateMarker(place) {
 					success: function (data) {
 						target.html(data).promise().done(function () {
 							dLoaderRemove(parent.find('.tabsContentNext'));
-							mp_sticky_management();
 							parent.find('.nextTab_next').trigger('click');
 						});
 					},
