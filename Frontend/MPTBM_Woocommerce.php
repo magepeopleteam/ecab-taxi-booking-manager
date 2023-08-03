@@ -39,7 +39,6 @@
 					$cart_item_data['mptbm_duration'] = $duration;
 					$cart_item_data['mptbm_duration_text'] = $_COOKIE['mptbm_duration_text'] ?? '';
 					$cart_item_data['mptbm_base_price'] = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place);
-					$cart_item_data['mptbm_user_info'] = apply_filters('add_mptbm_user_info_data', array(), $post_id);
 					$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info($post_id);
 					$cart_item_data['mptbm_tp'] = $total_price;
 					$cart_item_data['line_total'] = $total_price;
@@ -103,13 +102,14 @@
 					$duration_text = $values['mptbm_duration_text'] ?? '';
 					$base_price = $values['mptbm_base_price'] ?? '';
 					$extra_service = $values['mptbm_extra_service_info'] ?? [];
-					$user_info = $values['mptbm_user_info'] ?? [];
+					$price = $values['mptbm_tp'] ?? [];
 					$item->add_meta_data(esc_html__('Pick-Up Location ', 'mptbm_plugin'), $start_location);
 					$item->add_meta_data(esc_html__('Drop-Off Location ', 'mptbm_plugin'), $end_location);
 					$item->add_meta_data(esc_html__('Approximate Distance ', 'mptbm_plugin'), $distance_text);
 					$item->add_meta_data(esc_html__('Approximate Time ', 'mptbm_plugin'), $duration_text);
 					$item->add_meta_data(esc_html__('Date ', 'mptbm_plugin'), MP_Global_Function::date_format($date));
 					$item->add_meta_data(esc_html__('Time ', 'mptbm_plugin'), MP_Global_Function::date_format($date, 'time'));
+					$item->add_meta_data(esc_html__('Price ', 'mptbm_plugin'), $base_price);
 					if (sizeof($extra_service) > 0) {
 						$item->add_meta_data(esc_html__('Optional Service ', 'mptbm_plugin'), '');
 						foreach ($extra_service as $service) {
@@ -127,7 +127,8 @@
 					$item->add_meta_data('_mptbm_duration', $duration);
 					$item->add_meta_data('_mptbm_duration_text', $duration_text);
 					$item->add_meta_data('_mptbm_base_price', $base_price);
-					$item->add_meta_data('_mptbm_user_info', $user_info);
+					$item->add_meta_data('_mptbm_base_price', $base_price);
+					$item->add_meta_data('_mptbm_tp', $price);
 					$item->add_meta_data('_mptbm_service_info', $extra_service);
 					do_action('mptbm_checkout_create_order_line_item', $item, $values);
 				}
@@ -156,8 +157,10 @@
 								$duration = $duration ? MP_Global_Function::data_sanitize($duration) : '';
 								$base_price = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_base_price');
 								$base_price = $base_price ? MP_Global_Function::data_sanitize($base_price) : '';
-								$user_info = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_user_info');
-								$user_info = $user_info ? MP_Global_Function::data_sanitize($user_info) : [];
+								$service = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_service_info');
+								$service_info = $service ? MP_Global_Function::data_sanitize($service) : [];
+								$price = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_tp');
+								$price = $price ? MP_Global_Function::data_sanitize($price) : [];
 								$data['mptbm_id'] = $post_id;
 								$data['mptbm_date'] = $date;
 								$data['mptbm_start_place'] = $start_place;
@@ -169,14 +172,14 @@
 								$data['mptbm_order_status'] = $order_status;
 								$data['mptbm_payment_method'] = $payment_method;
 								$data['mptbm_user_id'] = $user_id;
+								$data['mptbm_tp'] = $price;
+								$data['mptbm_service_info'] = $service_info;
 								$data['mptbm_billing_name'] = $order_meta['_billing_first_name'][0] . ' ' . $order_meta['_billing_last_name'][0];
 								$data['mptbm_billing_email'] = $order_meta['_billing_email'][0];
 								$data['mptbm_billing_phone'] = $order_meta['_billing_phone'][0];
 								$data['mptbm_billing_address'] = $order_meta['_billing_address_1'][0] . ' ' . $order_meta['_billing_address_2'][0];
-								$user_data = apply_filters('mptbm_user_booking_data', $data, $post_id, $user_info);
-								self::add_cpt_data('mptbm_booking', $user_data['mptbm_billing_name'], $user_data);
-								$service = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_service_info');
-								$service_info = $service ? MP_Global_Function::data_sanitize($service) : [];
+								$booking_data = apply_filters('add_mptbm_booking_data', $data, $post_id);
+								self::add_cpt_data('mptbm_booking', $booking_data['mptbm_billing_name'], $booking_data);
 								if (sizeof($service_info) > 0) {
 									foreach ($service_info as $service) {
 										$ex_data['mptbm_id'] = $post_id;
@@ -215,7 +218,6 @@
 				$end_location = array_key_exists('mptbm_end_place', $cart_item) ? $cart_item['mptbm_end_place'] : '';
 				$base_price = array_key_exists('mptbm_base_price', $cart_item) ? $cart_item['mptbm_base_price'] : '';
 				$extra_service = array_key_exists('mptbm_extra_service_info', $cart_item) ? $cart_item['mptbm_extra_service_info'] : [];
-				$booking_infos = $cart_item['mptbm_booking_info'] ?? [];
 				?>
 				<div class="mpStyle">
 					<?php do_action('mptbm_before_cart_item_display', $cart_item, $post_id); ?>

@@ -32,12 +32,6 @@
 			public function get_mptbm_map_search_result() {
 				$distance = $_COOKIE['mptbm_distance'] ?? '';
 				$duration = $_COOKIE['mptbm_duration'] ?? '';
-				$label = MPTBM_Function::get_name();
-				$start_date = MP_Global_Function::data_sanitize($_POST['start_date']);
-				$start_time = MP_Global_Function::data_sanitize($_POST['start_time']);
-				$date = $start_date . ' ' . $start_time;
-				$start_place = MP_Global_Function::data_sanitize($_POST['start_place']);
-				$end_place = MP_Global_Function::data_sanitize($_POST['end_place']);
 				if ($distance && $duration) {
 					include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
 				}
