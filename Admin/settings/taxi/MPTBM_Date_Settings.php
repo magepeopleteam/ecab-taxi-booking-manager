@@ -15,7 +15,7 @@
 			public function date_settings($post_id) {
 				$date_format = MP_Global_Function::date_picker_format('mptbm_general_settings');
 				$now = date_i18n($date_format, strtotime(current_time('Y-m-d')));
-				$mptbm_date_type = MP_Global_Function::get_post_info($post_id, 'mptbm_date_type', 'repeated');
+				$date_type = MP_Global_Function::get_post_info($post_id, 'mptbm_date_type', 'repeated');
 				?>
 				<div class="tabsItem" data-tabs="#mptbm_settings_date">
 					<h5><?php esc_html_e('Date Settings', 'mptbm_plugin'); ?></h5>
@@ -41,13 +41,13 @@
 											<label>
 												<select class="formControl" name="mptbm_date_type" data-collapse-target required>
 													<option disabled selected><?php esc_html_e('Please select ...', 'mptbm_plugin'); ?></option>
-													<option value="particular" data-option-target="#mp_particular" <?php echo esc_attr($mptbm_date_type == 'particular' ? 'selected' : ''); ?>><?php esc_html_e('Particular', 'mptbm_plugin'); ?></option>
-													<option value="repeated" data-option-target="#mp_repeated" <?php echo esc_attr($mptbm_date_type == 'repeated' ? 'selected' : ''); ?>><?php esc_html_e('Repeated', 'mptbm_plugin'); ?></option>
+													<option value="particular" data-option-target="#mp_particular" <?php echo esc_attr($date_type == 'particular' ? 'selected' : ''); ?>><?php esc_html_e('Particular', 'mptbm_plugin'); ?></option>
+													<option value="repeated" data-option-target="#mp_repeated" <?php echo esc_attr($date_type == 'repeated' ? 'selected' : ''); ?>><?php esc_html_e('Repeated', 'mptbm_plugin'); ?></option>
 												</select>
 											</label>
 										</td>
 									</tr>
-									<tr data-collapse="#mp_particular" class="<?php echo esc_attr($mptbm_date_type == 'particular' ? 'mActive' : ''); ?>">
+									<tr data-collapse="#mp_particular" class="<?php echo esc_attr($date_type == 'particular' ? 'mActive' : ''); ?>">
 										<th><?php esc_html_e('Particular Dates', 'mptbm_plugin'); ?></th>
 										<td colspan="2">
 											<div class="mp_settings_area">
@@ -79,7 +79,7 @@
 										$repeated_after = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
 										$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 10);
 									?>
-									<tr data-collapse="#mp_repeated" class="<?php echo esc_attr($mptbm_date_type == 'repeated' ? 'mActive' : ''); ?>">
+									<tr data-collapse="#mp_repeated" class="<?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
 										<th>
 											<?php esc_html_e('Repeated Start Date', 'mptbm_plugin'); ?>
 											<span class="textRequired">&nbsp;*</span>
@@ -91,7 +91,7 @@
 											</label>
 										</td>
 									</tr>
-									<tr data-collapse="#mp_repeated" class="<?php echo esc_attr($mptbm_date_type == 'repeated' ? 'mActive' : ''); ?>">
+									<tr data-collapse="#mp_repeated" class="<?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
 										<th>
 											<?php esc_html_e('Repeated after', 'mptbm_plugin'); ?>
 											<span class="textRequired">&nbsp;*</span>
@@ -102,7 +102,7 @@
 											</label>
 										</td>
 									</tr>
-									<tr data-collapse="#mp_repeated" class="<?php echo esc_attr($mptbm_date_type == 'repeated' ? 'mActive' : ''); ?>">
+									<tr data-collapse="#mp_repeated" class="<?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
 										<th>
 											<?php esc_html_e('Maximum advanced day booking', 'mptbm_plugin'); ?>
 											<span class="textRequired">&nbsp;*</span>

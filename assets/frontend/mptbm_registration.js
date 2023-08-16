@@ -101,7 +101,7 @@ function mptbmCreateMarker(place) {
 	});
 	$(document).on("click", "#mptbm_get_vehicle", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
-		let target = parent.find('.mptbm_map_search_result');
+		let target = parent.find('.tabsContentNext');
 		let target_date = parent.find('#mptbm_map_start_date');
 		let target_time = parent.find('#mptbm_map_start_time');
 		let start_place;
@@ -144,7 +144,7 @@ function mptbmCreateMarker(place) {
 						//dLoader(target);
 					},
 					success: function (data) {
-						target.html(data).promise().done(function () {
+						target.append(data).promise().done(function () {
 							dLoaderRemove(parent.find('.tabsContentNext'));
 							parent.find('.nextTab_next').trigger('click');
 						});
@@ -235,8 +235,8 @@ function mptbmCreateMarker(place) {
 }(jQuery));
 function mptbm_content_refresh(parent) {
 	parent.find('[name="mptbm_post_id"]').val('');
-	parent.find('.mptbm_map_search_result').html('');
-	parent.find('.mptbm_order_summary').html('');
+	parent.find('.mptbm_map_search_result').remove();
+	parent.find('.mptbm_order_summary').remove();
 	parent.find('.get_details_next_link').slideUp('fast');
 }
 //=======================//
@@ -270,7 +270,7 @@ function mptbm_price_calculation(parent) {
 		target_extra_service.slideUp(350).html('');
 		target_extra_service_summary.slideUp(350).html('');
 		parent.find('[name="mptbm_post_id"]').val('');
-		parent.find('.mptbm_order_summary').html('');
+		parent.find('.mptbm_checkout_area').html('');
 		if ($this.hasClass('active_select')) {
 			$this.removeClass('active_select');
 			mp_all_content_change($this);
@@ -362,7 +362,7 @@ function mptbm_price_calculation(parent) {
 	//===========================//
 	$(document).on("click", ".mptbm_book_now[type='button']", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
-		let target_checkout = parent.find('.mptbm_order_summary');
+		let target_checkout = parent.find('.mptbm_checkout_area');
 		let start_place = parent.find('[name="mptbm_start_place"]').val();
 		let end_place = parent.find('[name="mptbm_end_place"]').val();
 		let post_id = parent.find('[name="mptbm_post_id"]').val();

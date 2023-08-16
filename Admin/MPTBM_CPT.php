@@ -57,7 +57,7 @@
 					'exclude_from_search' => true,  // you should exclude it from search results
 					'show_in_nav_menus' => false,  // you shouldn't be able to add it to menus
 					'has_archive' => false,  // it shouldn't have archive page
-					'rewrite' => false,
+					'rewrite' => ['slug' => $slug],
 				];
 				register_post_type($cpt, $args);
 				$ex_args = array(

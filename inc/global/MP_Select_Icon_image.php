@@ -403,7 +403,7 @@
 							'fas fa-volume-mute' => 'Volume Mute',
 							'fas fa-volume-off' => 'Volume Off',
 							'fas fa-volume-up' => 'Volume Up',
-							'fas fa-youtube' => 'Youtube'
+							'fab fa-youtube' => 'Youtube'
 						]
 					],
 					5 => [

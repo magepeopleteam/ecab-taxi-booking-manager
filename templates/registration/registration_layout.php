@@ -36,8 +36,6 @@
 				<div data-tabs-next="#mptbm_pick_up_details" class="active mptbm_pick_up_details">
 					<?php include(MPTBM_Function::template_path('registration/get_details.php')); ?>
 				</div>
-				<div data-tabs-next="#mptbm_search_result" class="mptbm_map_search_result"></div>
-				<div data-tabs-next="#mptbm_order_summary" class="mptbm_order_summary"></div>
 			</div>
 		</div>
 	</div>

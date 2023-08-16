@@ -102,14 +102,14 @@
 					$duration_text = $values['mptbm_duration_text'] ?? '';
 					$base_price = $values['mptbm_base_price'] ?? '';
 					$extra_service = $values['mptbm_extra_service_info'] ?? [];
-					$price = $values['mptbm_tp'] ?? [];
+					$price = $values['mptbm_tp'] ?? '';
 					$item->add_meta_data(esc_html__('Pick-Up Location ', 'mptbm_plugin'), $start_location);
 					$item->add_meta_data(esc_html__('Drop-Off Location ', 'mptbm_plugin'), $end_location);
 					$item->add_meta_data(esc_html__('Approximate Distance ', 'mptbm_plugin'), $distance_text);
 					$item->add_meta_data(esc_html__('Approximate Time ', 'mptbm_plugin'), $duration_text);
 					$item->add_meta_data(esc_html__('Date ', 'mptbm_plugin'), MP_Global_Function::date_format($date));
 					$item->add_meta_data(esc_html__('Time ', 'mptbm_plugin'), MP_Global_Function::date_format($date, 'time'));
-					$item->add_meta_data(esc_html__('Price ', 'mptbm_plugin'), $base_price);
+					$item->add_meta_data(esc_html__('Price ', 'mptbm_plugin'), MP_Global_Function::wc_price( $post_id,$base_price));
 					if (sizeof($extra_service) > 0) {
 						$item->add_meta_data(esc_html__('Optional Service ', 'mptbm_plugin'), '');
 						foreach ($extra_service as $service) {
@@ -126,7 +126,6 @@
 					$item->add_meta_data('_mptbm_distance_text', $distance_text);
 					$item->add_meta_data('_mptbm_duration', $duration);
 					$item->add_meta_data('_mptbm_duration_text', $duration_text);
-					$item->add_meta_data('_mptbm_base_price', $base_price);
 					$item->add_meta_data('_mptbm_base_price', $base_price);
 					$item->add_meta_data('_mptbm_tp', $price);
 					$item->add_meta_data('_mptbm_service_info', $extra_service);
