@@ -133,6 +133,7 @@
 							--dMP: 10px;
 							--dMP_xs: 5px;
 							--dMP_xs_negative: -5px;
+							--button_fs: 14px;
 						}
 					}
 				</style>
