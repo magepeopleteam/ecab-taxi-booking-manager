@@ -127,7 +127,7 @@
 						}
 					}
 				}
-				return $all_dates;
+				return apply_filters('mptbm_get_date', $all_dates, $post_id);
 			}
 			public static function get_all_dates($price_based = 'dynamic', $expire = false) {
 				$all_posts = MPTBM_Query::query_transport_list($price_based);

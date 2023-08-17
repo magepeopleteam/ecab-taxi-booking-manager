@@ -92,6 +92,8 @@
 						--color_white: #FFFFFF;
 						--color_light: #F2F2F2;
 						--color_light_1: #BBB;
+						--color_light_2: #EAECEE;
+						--color_info: #666;
 						--color_yellow: #FEBB02;
 						--color_blue: #815DF2;
 						--color_navy_blue: #007CBA;
