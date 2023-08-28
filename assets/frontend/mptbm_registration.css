@@ -16,6 +16,15 @@
 	div.mptbm_transport_search_area table th,
 	div.mptbm_transport_search_area table td {border: none;}
 	div.mptbm_transport_search_area .woocommerce form .form-row {margin-bottom: var(--dMP_xs);}
+
+	div.mptbm_transport_search_area .woocommerce-page .woocommerce-checkout #customer_details, 
+	div.mptbm_transport_search_area .woocommerce-page .woocommerce-checkout .col2-set, 
+	div.mptbm_transport_search_area .woocommerce-page.woocommerce-order-pay #customer_details, 
+	div.mptbm_transport_search_area .woocommerce-page.woocommerce-order-pay .col2-set 
+	{
+		width: 100%;
+		float: none;
+	}
 }
 /******************************************************************** ************************************************/
 @media only screen and (min-width: 10px) {
