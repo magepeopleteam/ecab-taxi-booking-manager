@@ -299,8 +299,14 @@ function mp_all_content_change($this) {
 		let current = $(this);
 		let parent = $(this).closest('.mp_input_select');
 		let value = current.data('value');
+		let text = current.html();
 		parent.find('.mp_input_select_list').slideUp(250);
-		parent.find('input.formControl').val(value).trigger('change')
+		if(parent.find('input[type="hidden"]').length>0){
+			parent.find('input.formControl').val(text);
+			parent.find('input[type="hidden"]').val(value).trigger('change');
+		}else {
+			parent.find('input.formControl').val(value).trigger('change');
+		}
 	});
 	$(document).on({
 		keyup: function () {
