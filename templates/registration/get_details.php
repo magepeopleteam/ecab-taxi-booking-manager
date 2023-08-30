@@ -20,7 +20,7 @@
 				<label class="fdColumn">
 					<input type="hidden" id="mptbm_map_start_date" value=""/>
 					<span><?php esc_html_e('Pick-Up Date', 'mptbm_plugin'); ?></span>
-					<input type="text" id="mptbm_start_date" class="formControl" placeholder="<?php esc_html_e('Select Date', 'mptbm_plugin'); ?>" value="" readonly/>
+					<input type="text" id="mptbm_start_date" class="formControl" placeholder="<?php esc_attr_e('Select Date', 'mptbm_plugin'); ?>" value="" readonly/>
 					<span class="far fa-calendar-alt mptbm_left_icon allCenter"></span>
 				</label>
 				<div class="mp_input_select">

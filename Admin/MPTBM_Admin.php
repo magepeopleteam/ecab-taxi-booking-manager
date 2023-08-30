@@ -10,7 +10,6 @@
 		class MPTBM_Admin {
 			public function __construct() {
 				if (is_admin()) {
-					;
 					$this->load_file();
 					add_action('init', [$this, 'add_dummy_data']);
 					add_filter('use_block_editor_for_post_type', [$this, 'disable_gutenberg'], 10, 2);
