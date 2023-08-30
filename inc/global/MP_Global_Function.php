@@ -103,7 +103,7 @@
 							changeYear: true,
 							beforeShowDay: WorkingDates,
 							onSelect: function (dateString, data) {
-								let date = data.selectedYear + '-' + ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + ('0' + (parseInt(data.selectedDay) + 1)).slice(-2) ;
+								let date = data.selectedYear + '-' + ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + ('0' + parseInt(data.selectedDay) ).slice(-2) ;
 								jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
 							}
 						});
