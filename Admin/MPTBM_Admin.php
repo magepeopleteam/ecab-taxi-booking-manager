@@ -40,6 +40,8 @@
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/taxi/MPTBM_Extra_Service.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/taxi/MPTBM_Date_Settings.php';
 				//require_once MPTBM_PLUGIN_DIR . '/Admin/settings/taxi/MPTBM_Gallery_Settings.php';
+				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout.php';
+				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Fields.php';
 			}
 			public function add_dummy_data() {
 				new MPTBM_Dummy_Import();
