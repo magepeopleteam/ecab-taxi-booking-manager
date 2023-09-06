@@ -1,0 +1,35 @@
+@charset "utf-8";
+
+/******************************************************************** Woocommerce ************************************************/
+@media only screen and (min-width: 10px) 
+{
+	div.mptbm_checkout_area .woocommerce .col2-set .col-1, 
+	div.mptbm_checkout_area .woocommerce .col2-set .col-2, 
+	div.mptbm_checkout_area .woocommerce-page .col2-set .col-1, 
+	div.mptbm_checkout_area .woocommerce-page .col2-set .col-2 
+	{
+		float: none;
+		width: 100%;
+	}
+
+	div.mptbm_checkout_area input[type="file"] 
+	{
+		width: 100%;
+		border: 1px solid #8f8f9d;
+  		padding: .9rem 1.1rem;
+		line-height: 1.25;
+		font-size: var(--wp--preset--font-size--small);
+	}
+
+	div.mptbm_checkout_area .woocommerce-page .danger-text 
+	{
+		color: var(--color_danger);
+	}
+
+	div.mptbm_checkout_area .woocommerce-page .danger 
+	{
+		border: 1px solid var(--color_danger);
+		color: var(--color_danger);
+	}
+
+}
