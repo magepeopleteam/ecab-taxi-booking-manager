@@ -32,9 +32,9 @@
 			public function get_mptbm_map_search_result() {
 				$distance = $_COOKIE['mptbm_distance'] ?? '';
 				$duration = $_COOKIE['mptbm_duration'] ?? '';
-				if ($distance && $duration) {
+				//if ($distance && $duration) {
 					include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
-				}
+				//}
 				die();
 			}
 			public function get_mptbm_end_place() {

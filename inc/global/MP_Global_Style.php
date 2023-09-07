@@ -94,6 +94,7 @@
 						--color_light: #F2F2F2;
 						--color_light_1: #BBB;
 						--color_light_2: #EAECEE;
+						--color_light_3: #878787;
 						--color_info: #666;
 						--color_yellow: #FEBB02;
 						--color_blue: #815DF2;

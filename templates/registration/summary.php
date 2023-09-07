@@ -16,7 +16,7 @@
 	<div class="leftSidebar">
 		<div class="mp_sticky_area">
 			<div class="mp_sticky_on_scroll">
-				<div class="_dLayout_dFlex_fdColumn">
+				<div class="_dLayout_dFlex_fdColumn_btLight_2">
 					<h3><?php esc_html_e('SUMMERY', 'mptbm_plugin'); ?></h3>
 					<div class="dividerL"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Pick-Up Date', 'mptbm_plugin'); ?></h6>
@@ -33,7 +33,7 @@
 					<div class="mptbm_transport_summary">
 						<div class="dividerL"></div>
 						<h6 class="_mB_xs"><?php echo esc_html($label) . ' ' . esc_html__(' Details', 'mptbm_plugin') ?></h6>
-						<div class="_textLight_1 justifyBetween">
+						<div class="_textColor_4 justifyBetween">
 							<div class="_dFlex_alignCenter">
 								<span class="fas fa-check-square _textTheme_mR_xs"></span>
 								<span class="mptbm_product_name"></span>

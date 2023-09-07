@@ -38,7 +38,7 @@ function mptbm_set_cookie_distance_duration(start_place = '', end_place = '') {
 				jQuery('.mptbm_total_time').html(duration_text);
 				jQuery('.mptbm_distance_time').slideDown('fast');
 			} else {
-				directionsRenderer.setDirections({routes: []})
+				//directionsRenderer.setDirections({routes: []})
 				//alert('location error');
 			}
 		});
@@ -105,13 +105,14 @@ function mptbmCreateMarker(place) {
 		let target_date = parent.find('#mptbm_map_start_date');
 		let target_time = parent.find('#mptbm_map_start_time');
 		let start_place;
-		let end_place
-		if (parent.find('#mptbm_map_start_place').length > 0 && parent.find('#mptbm_map_end_place').length > 0) {
-			start_place = document.getElementById('mptbm_map_start_place');
-			end_place = document.getElementById('mptbm_map_end_place');
-		} else {
+		let end_place;
+		let price_based = parent.find('[name="mptbm_price_based"]').val();
+		if (price_based === 'manual') {
 			start_place = document.getElementById('mptbm_manual_start_place');
 			end_place = document.getElementById('mptbm_manual_end_place');
+		} else {
+			start_place = document.getElementById('mptbm_map_start_place');
+			end_place = document.getElementById('mptbm_map_end_place');
 		}
 		let start_date = target_date.val();
 		let start_time = target_time.val();
@@ -126,8 +127,10 @@ function mptbmCreateMarker(place) {
 		} else {
 			dLoader(parent.find('.tabsContentNext'));
 			mptbm_content_refresh(parent);
-			mptbm_set_cookie_distance_duration(start_place.value, end_place.value);
-			let price_based = parent.find('[name="mptbm_price_based"]').val();
+			if (price_based !== 'manual') {
+				mptbm_set_cookie_distance_duration(start_place.value, end_place.value);
+			}
+			//let price_based = parent.find('[name="mptbm_price_based"]').val();
 			if (start_place.value && end_place.value && start_date && start_time) {
 				$.ajax({
 					type: 'POST',
@@ -176,34 +179,23 @@ function mptbmCreateMarker(place) {
 						"post_id": post_id,
 					},
 					beforeSend: function () {
-						dLoader(target.closest('.mpForm'));
+						dLoader(target.closest('.mptbm_search_area'));
 					},
 					success: function (data) {
 						target.html(data).promise().done(function () {
-							dLoaderRemove(target.closest('.mpForm'));
+							dLoaderRemove(target.closest('.mptbm_search_area'));
 						});
 					},
 					error: function (response) {
 						console.log(response);
 					}
-				}).promise().done(function () {
-					end_place = parent.find("#mptbm_manual_start_place").val();
-					mptbm_set_cookie_distance_duration(start_place, end_place);
 				});
-			} else {
-				end_place = $("#mptbm_manual_start_place").val();
-				mptbm_set_cookie_distance_duration(start_place, end_place);
 			}
 		}
 	});
 	$(document).on("change", "#mptbm_manual_end_place", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
 		mptbm_content_refresh(parent);
-		let start_place = parent.find("#mptbm_manual_start_place").val();
-		let end_place = $(this).val();
-		if (end_place) {
-			mptbm_set_cookie_distance_duration(start_place, end_place);
-		}
 	});
 	$(document).on("change", "#mptbm_map_start_place,#mptbm_map_end_place", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');

@@ -33,6 +33,7 @@
 				}
 			}
 			public function quick_setup() {
+				$status = MP_Global_Function::check_woocommerce();
 				if (isset($_POST['active_woo_btn'])) {
 					?>
 					<script>
@@ -80,9 +81,9 @@
 							'donate_link' => false,
 						),
 					));
-					$title='title';
-					$url='url';
-					$nonce='nonce';
+					$title = 'title';
+					$url = 'url';
+					$nonce = 'nonce';
 					$woocommerce_plugin = new Plugin_Upgrader(new Plugin_Installer_Skin(compact('title', 'url', 'nonce', 'plugin', 'api')));
 					$woocommerce_plugin->install($api->download_link);
 					activate_plugin('woocommerce/woocommerce.php');
@@ -150,15 +151,17 @@
 										$this->setup_content_done();
 									?>
 								</div>
-								<div class="justifyBetween">
-									<button type="button" class="mpBtn nextTab_prev">
-										<span>&longleftarrow;<?php esc_html_e('Previous', 'mptbm_plugin'); ?></span>
-									</button>
-									<div></div>
-									<button type="button" class="themeButton nextTab_next">
-										<span><?php esc_html_e('Next', 'mptbm_plugin'); ?>&longrightarrow;</span>
-									</button>
-								</div>
+								<?php if ($status == 1) { ?>
+									<div class="justifyBetween">
+										<button type="button" class="_mpBtn_dBR nextTab_prev">
+											<span>&longleftarrow;<?php esc_html_e('Previous', 'mptbm_plugin'); ?></span>
+										</button>
+										<div></div>
+										<button type="button" class="_themeButton_dBR nextTab_next">
+											<span><?php esc_html_e('Next', 'mptbm_plugin'); ?>&longrightarrow;</span>
+										</button>
+									</div>
+								<?php } ?>
 							</div>
 						</form>
 					</div>
@@ -188,9 +191,9 @@
 								<span class="fas fa-check-circle textSuccess"></span>
 							</h5>
 						<?php } elseif ($status == 0) { ?>
-							<button class="warningButton" type="submit" name="install_and_active_woo_btn"><?php esc_html_e('Install & Active Now', 'mptbm_plugin'); ?></button>
+							<button class="_warningButton_dBR" type="submit" name="install_and_active_woo_btn"><?php esc_html_e('Install & Active Now', 'mptbm_plugin'); ?></button>
 						<?php } else { ?>
-							<button class="themeButton" type="submit" name="active_woo_btn"><?php esc_html_e('Active Now', 'mptbm_plugin'); ?></button>
+							<button class="_themeButton_dBR" type="submit" name="active_woo_btn"><?php esc_html_e('Active Now', 'mptbm_plugin'); ?></button>
 						<?php } ?>
 					</div>
 				</div>
@@ -233,7 +236,7 @@
 					<h2><?php esc_html_e('Finalize Setup', 'mptbm_plugin'); ?></h2>
 					<p class="mTB_xs"><?php esc_html_e('You are about to Finish & Save Transportation Booking Manager For Woocommerce Plugin setup process', 'mptbm_plugin'); ?></p>
 					<div class="mT allCenter">
-						<button type="submit" name="finish_quick_setup" class="themeButton"><?php esc_html_e('Finish & Save', 'mptbm_plugin'); ?></button>
+						<button type="submit" name="finish_quick_setup" class="_themeButton_dBR"><?php esc_html_e('Finish & Save', 'mptbm_plugin'); ?></button>
 					</div>
 				</div>
 				<?php
