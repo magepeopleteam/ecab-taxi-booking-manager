@@ -119,7 +119,7 @@
 
             public static function hide_checkout_order_additional_information_section($settings_options)
             {
-                if(isset($settings_options['hide_checkout_order_additional_information']) && isset($settings_options['hide_checkout_order_additional_information']['yes']))
+                if(!isset($settings_options['hide_checkout_order_additional_information']) || ( isset($settings_options['hide_checkout_order_additional_information']) && isset($settings_options['hide_checkout_order_additional_information']['yes'] ) ) )
                 {
                     return true;
                 }
@@ -127,7 +127,7 @@
 
             public static function hide_checkout_order_review_section($settings_options)
             {
-                if(isset($settings_options['hide_checkout_order_review']) && isset($settings_options['hide_checkout_order_review']['yes']))
+                if(!isset($settings_options['hide_checkout_order_review']) || ( isset($settings_options['hide_checkout_order_review']) && isset($settings_options['hide_checkout_order_review']['yes'] ) ) )
                 {
                     return true;
                 }
