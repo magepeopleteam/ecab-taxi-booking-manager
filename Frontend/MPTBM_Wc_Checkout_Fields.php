@@ -30,7 +30,7 @@
             function register_field() 
             {
                 $this->prepare_mptbm_pro_custom_checkout_fields();
-                add_filter('woocommerce_checkout_fields' , array($this, 'get_checkout_fields_for_checkout'));                
+                add_filter('woocommerce_checkout_fields' , array($this, 'get_checkout_fields_for_checkout'), 10);            
             }
 
             public function prepare_mptbm_pro_custom_checkout_fields() 
@@ -54,9 +54,7 @@
                         {
                             foreach($key_fields as $name => $field_array)
                             {
-                                $field_array['custom_field'] = '1';
-
-                                if ( (isset($field_array['deleted']) && $field_array['deleted'] == 'deleted') || (isset($field_array['disabled']) && $field_array['disabled'] == '1') || self::check_checkout_settings_hidden_field(self::$settings_options,$key,$name))  
+                                if (self::check_checkout_settings_hidden_field(self::$settings_options,$key,$name))  
                                 {
                                     unset($fields[$key][$name]);
                                 }
@@ -86,31 +84,31 @@
             {
                 if($key == 'billing')
                 {
-                    if($name == 'billing_company' && isset($settings_options['hide_checkout_billing_company']) && isset($settings_options['hide_checkout_billing_company']['yes']))
+                    if($name == 'billing_company' && ( !isset($settings_options['hide_checkout_billing_company']) || ( isset($settings_options['hide_checkout_billing_company']) && isset($settings_options['hide_checkout_billing_company']['yes']) ) ) )
                     {
                         return true;
                     }
-                    elseif($name == 'billing_country' && isset($settings_options['hide_checkout_billing_country']) && isset($settings_options['hide_checkout_billing_country']['yes']))
+                    elseif($name == 'billing_country' && ( !isset($settings_options['hide_checkout_billing_country']) || ( isset($settings_options['hide_checkout_billing_country']) && isset($settings_options['hide_checkout_billing_country']['yes']) ) ) )
                     {
                         return true;
                     }
-                    elseif($name == 'billing_address_1' && isset($settings_options['hide_checkout_billing_address_1']) && isset($settings_options['hide_checkout_billing_address_1']['yes']))
+                    elseif($name == 'billing_address_1' && ( !isset($settings_options['hide_checkout_billing_address_1']) || ( isset($settings_options['hide_checkout_billing_address_1']) && isset($settings_options['hide_checkout_billing_address_1']['yes']) ) ) )
                     {
                         return true;
                     }
-                    elseif($name == 'billing_address_2' && isset($settings_options['hide_checkout_billing_address_2']) && isset($settings_options['hide_checkout_billing_address_2']['yes']))
+                    elseif($name == 'billing_address_2' && ( !isset($settings_options['hide_checkout_billing_address_2']) || ( isset($settings_options['hide_checkout_billing_address_2']) && isset($settings_options['hide_checkout_billing_address_2']['yes']) ) ) )
                     {
                         return true;
                     }
-                    elseif($name == 'billing_city' && isset($settings_options['hide_checkout_billing_city']) && isset($settings_options['hide_checkout_billing_city']['yes']))
+                    elseif($name == 'billing_city' && ( !isset($settings_options['hide_checkout_billing_city']) || ( isset($settings_options['hide_checkout_billing_city']) && isset($settings_options['hide_checkout_billing_city']['yes']) ) ) )
                     {
                         return true;
                     }
-                    elseif($name == 'billing_state' && isset($settings_options['hide_checkout_billing_state']) && isset($settings_options['hide_checkout_billing_state']['yes']))
+                    elseif($name == 'billing_state' && ( !isset($settings_options['hide_checkout_billing_state']) || ( isset($settings_options['hide_checkout_billing_state']) && isset($settings_options['hide_checkout_billing_state']['yes']) ) ) )
                     {
                         return true;
                     }
-                    elseif($name == 'billing_postcode' && isset($settings_options['hide_checkout_billing_postcode']) && isset($settings_options['hide_checkout_billing_postcode']['yes']))
+                    elseif($name == 'billing_postcode'  && ( !isset($settings_options['hide_checkout_billing_postcode']) || ( isset($settings_options['hide_checkout_billing_postcode']) && isset($settings_options['hide_checkout_billing_postcode']['yes']) ) ) )
                     {
                         return true;
                     }
