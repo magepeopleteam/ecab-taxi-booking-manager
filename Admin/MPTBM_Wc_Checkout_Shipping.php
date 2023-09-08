@@ -1,0 +1,109 @@
+<?php
+if (!defined('ABSPATH'))
+{
+    die;
+} // Cannot access pages directly.
+
+/**
+ * Class MPTBM_Wc_Checkout_Shipping
+ *
+ * @since 1.0
+ *  
+ * */
+if (!class_exists('MPTBM_Wc_Checkout_Shipping'))
+{
+    class MPTBM_Wc_Checkout_Shipping 
+    {
+        private $error;
+
+        public function __construct()
+        {
+            $this->error = new WP_Error();
+            add_action('mptbm_wc_checkout_tab', array($this, 'tab_item'));
+            add_action('mptbm_wc_checkout_tab_content', array($this, 'tab_content'), 10, 1);
+            add_action('admin_init', [ $this, 'save_mptbm_wc_shipping_field_settings' ]);            
+            //add_action('wp_loaded', array( $this,'apply' ), 7  );
+            add_action('admin_notices',array($this, 'mp_admin_notice' ) );
+        }
+
+        public function apply()
+        {
+            			
+        }
+
+        public function tab_item()
+        {
+            ?>
+                <li class="tab-item" data-tabs-target="#mptbm_wc_shipping_field_settings"><i class="dashicons dashicons-airplane text-primary"></i> Shipping Fields <i class="i i-chevron-right dashicons dashicons-arrow-right-alt2"></i></li>
+            <?php
+        }
+
+        public function tab_content($contents)
+        {
+            ?>
+                <div class="tab-content" id="mptbm_wc_shipping_field_settings">
+                    <h2>Woocommerce Shipping Fields</h2>
+                    <div class="action-button">
+                        <a class="button open-modal" data-action="add" data-key="shipping">
+                            <i class="dashicons dashicons-plus-alt2"></i>
+                            Add Field
+                        </a>
+                    </div>
+                    <!-- <table class="wc_gateways wp-list-table widefat striped"> -->
+                    <div>
+                    <table class="wc_gateways widefat striped">
+						<thead>
+							<tr>
+								<th>Name</th>
+                                <th>Label</th>
+                                <th>Type</th>                                
+                                <th>Placeholder</th>
+                                <th>Validations</th>
+                                <th>Required</th>
+                                <th>Disabled</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+
+                            <?php foreach ($contents['shipping'] as $key => $checkout_field) : ?>
+                                
+                                <tr>
+                                    <input id="<?php echo esc_attr(esc_html($key))?>" type="hidden" name="<?php echo esc_attr(esc_html($key))?>" value="<?php echo esc_attr(esc_html(json_encode(array('name'=>$key,'attributes'=>$checkout_field))))?>" />
+                                    <td><?php echo esc_html($key); ?></td>
+                                    <td><?php echo esc_html(isset($checkout_field['label'])?$checkout_field['label']:''); ?></td>
+                                    <td><?php echo esc_html(isset($checkout_field['type'])?$checkout_field['type']:''); ?></td>
+                                    <td><?php echo esc_html(isset($checkout_field['placeholder'])?$checkout_field['placeholder']:''); ?></td>
+                                    <td><?php echo esc_html(implode(',',(isset($checkout_field['validate']) && is_array($checkout_field['validate']))?$checkout_field['validate']:array())); ?></td>
+                                    <td><span  class="<?php echo esc_attr(esc_html((isset($checkout_field['required']) && $checkout_field['required']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
+                                    <td><span  class="<?php echo esc_attr(esc_html((isset($checkout_field['disabled']) && $checkout_field['disabled']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
+                                    <td>
+                                        <a class="button button-small button-secondary open-modal" data-action="edit" data-key="shipping" data-name="<?php echo esc_attr(esc_html($key))?>">Edit</a>
+                                        <?php if(isset($checkout_field['custom_field'])) : ?>
+                                        <a class="button button-small button-link-delete" href="<?php echo esc_attr(wp_nonce_url(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_wc_checkout_fields&action=delete&key=' . esc_html('shipping').'&name=' . esc_html($key)), 'mptbm_checkout_field_delete', 'mptbm_checkout_field_delete_nonce')); ?>" class="delete" onclick="return confirm(esc_attr('Are you sure you want to delete this field?'))">Delete</a>
+                                        <?php endif ?>
+                                    </td>
+                                </tr>
+                                                            
+                            <?php endforeach; ?>
+						</tbody>
+					</table>
+                    </div>
+                </div>
+            <?php
+        }
+
+        public function save_mptbm_wc_shipping_field_settings()
+        {
+            // Save the
+        }
+
+        public function mp_admin_notice()
+        {				
+            MPTBM_Wc_Checkout_Fields::mp_error_notice($this->error);
+        }
+        
+    }
+
+    new MPTBM_Wc_Checkout_Shipping();
+}

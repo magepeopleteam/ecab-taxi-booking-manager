@@ -16,7 +16,7 @@
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Shortcodes.php';
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Transport_Search.php';
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Details_Layout.php';
-				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Wc_Checkout_Fields.php';
+				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Wc_Checkout_Fields_Front.php';
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Woocommerce.php';
 			}
 			public function load_single_template($template): string {

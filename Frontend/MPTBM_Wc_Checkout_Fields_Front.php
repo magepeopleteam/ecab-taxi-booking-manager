@@ -6,14 +6,14 @@
 	} // Cannot access pages directly.
 
     /**
-     * Class MPTBM_Wc_Checkout_Fields
+     * Class MPTBM_Wc_Checkout_Fields_Front
      *
      * @since 1.0
      *  
     * */
-	if ( ! class_exists( 'MPTBM_Wc_Checkout_Fields' ) ) 
+	if ( ! class_exists( 'MPTBM_Wc_Checkout_Fields_Front' ) ) 
 	{
-		class MPTBM_Wc_Checkout_Fields 
+		class MPTBM_Wc_Checkout_Fields_Front 
 		{
 			private $error;
             //private $settings_options;
@@ -29,11 +29,21 @@
 
             function register_field() 
             {
-                $this->prepare_mptbm_pro_custom_checkout_fields();
-                add_filter('woocommerce_checkout_fields' , array($this, 'get_checkout_fields_for_checkout'), 10);            
+                $this->prepare_mptbm_custom_checkout_fields();
+                add_filter('woocommerce_add_cart_item_data', array($this, 'add_cart_item_data'), 90, 3);            
             }
 
-            public function prepare_mptbm_pro_custom_checkout_fields() 
+            public function add_cart_item_data($cart_item_data, $product_id) 
+            {
+				$linked_id = MP_Global_Function::get_post_info($product_id, 'link_mptbm_id', $product_id);
+				$post_id = is_string(get_post_status($linked_id)) ? $linked_id : $product_id;
+				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) 
+                {
+                    add_filter('woocommerce_checkout_fields' , array($this, 'get_checkout_fields_for_checkout'), 10);
+                }
+            }
+
+            public function prepare_mptbm_custom_checkout_fields() 
             {
                 self::$settings_options = get_option('mptbm_checkout_settings');
             }
@@ -134,5 +144,5 @@
             }
 		}
 
-		new MPTBM_Wc_Checkout_Fields();
+		new MPTBM_Wc_Checkout_Fields_Front();
 	}

@@ -156,14 +156,14 @@ if (!class_exists('MPTBM_Wc_Checkout'))
             return array_merge($default_fields, $settings_fields);
         }
 
-        public function save_mptbm_pro_wc_account_field_settings()
+        public function save_mptbm_wc_account_field_settings()
         {
             // Save the
         }
 
         public function mp_admin_notice()
         {				
-            //MPTBM_Pro_Wc_Checkout_Fields::mp_error_notice($this->error);
+            //MPTBM_Wc_Checkout_Fields::mp_error_notice($this->error);
         }
         
     }
