@@ -41,7 +41,6 @@
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/taxi/MPTBM_Date_Settings.php';
 				//require_once MPTBM_PLUGIN_DIR . '/Admin/settings/taxi/MPTBM_Gallery_Settings.php';
 				//****************Woocommerce Checkout*********************** */
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Fields_Helper.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Fields.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Billing.php';

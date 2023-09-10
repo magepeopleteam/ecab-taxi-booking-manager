@@ -62,14 +62,7 @@
 					wp_die(__('You do not have sufficient permissions to access this page.'));
 				}
 
-                if(is_plugin_active('Ecab-Taxi-Booking-Manager-pro/MPTBM_Plugin_Pro.php'))
-                {
-                    if(class_exists('MPTBM_Pro_Wc_Checkout_Fields'))
-                    {
-                        MPTBM_Pro_Wc_Checkout_Fields::wc_checkout_fields();
-                    }                    
-                }
-
+                do_action('wc_checkout_fields');
                 
                 self::checkout_field_list();
 

@@ -156,6 +156,10 @@
 
     $(document).ready(function ($) {
 
+		$('#billing_country-custom, #billing_state-custom').select2();
+
+		$('#billing_country-custom, #billing_state-custom').select2('destroy');
+
 		$(document).on('change keyup focusout', 'input:not([type="file"])', function(e) {
     		reset_element($(this).closest('p#'+$(this).attr('id')+'_field'));
 		});
