@@ -171,7 +171,7 @@
 			reset_element(hiddenInput.closest('p#'+hiddenInput.attr('id')+'_field'));
 		});
 
-        $(document).on('click', '#place_order', function(e) {
+        $(document).on('click', '.mptbm_checkout_area #place_order', function(e) {
 
 			if (!allowDefaultBehavior) 
 			{		

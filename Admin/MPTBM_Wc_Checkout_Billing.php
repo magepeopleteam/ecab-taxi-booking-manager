@@ -44,12 +44,7 @@ if (!class_exists('MPTBM_Wc_Checkout_Billing'))
             ?>
                 <div class="tab-content active" id="mptbm_wc_billing_field_settings">
                     <h2>Woocommerce Billing Fields</h2>
-                    <div class="action-button">
-                        <a class="button open-modal" data-action="add" data-key="billing">
-                            <i class="dashicons dashicons-plus-alt2"></i>
-                            Add Field
-                        </a>
-                    </div>
+                    <?php do_action('wc_checkout_add','billing'); ?>
                     <!-- <table class="wc_gateways wp-list-table widefat striped"> -->
                     <div>
                     <table class="wc_gateways widefat striped">
@@ -67,6 +62,8 @@ if (!class_exists('MPTBM_Wc_Checkout_Billing'))
 						</thead>
 						<tbody>
                             <?php foreach ($contents['billing'] as $key => $checkout_field) : ?>
+
+                                <?php $status = ''; $status = (isset($checkout_field['disabled']) && $checkout_field['disabled']=='1')?'':'checked'; ?>
                                 
                                 <tr>
                                     <input id="<?php echo esc_attr(esc_html($key))?>" type="hidden" name="<?php echo esc_attr(esc_html($key))?>" value="<?php echo esc_attr(esc_html(json_encode(array('name'=>$key,'attributes'=>$checkout_field))))?>" />
@@ -76,12 +73,13 @@ if (!class_exists('MPTBM_Wc_Checkout_Billing'))
                                     <td><?php echo esc_html(isset($checkout_field['placeholder'])?$checkout_field['placeholder']:''); ?></td>
                                     <td><?php echo esc_html(implode(',',(isset($checkout_field['validate']) && is_array($checkout_field['validate']))?$checkout_field['validate']:array())); ?></td>
                                     <td><span  class="<?php echo esc_attr(esc_html((isset($checkout_field['required']) && $checkout_field['required']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
-                                    <td><span  class="<?php echo esc_attr(esc_html((isset($checkout_field['disabled']) && $checkout_field['disabled']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
+                                    <td><span  class="checkout-disabled <?php echo esc_attr(esc_html((isset($checkout_field['disabled']) && $checkout_field['disabled']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
                                     <td>
-                                        <a class="button button-small button-secondary open-modal" data-action="edit" data-key="billing" data-name="<?php echo esc_attr(esc_html($key))?>">Edit</a>
-                                        <?php if(isset($checkout_field['custom_field'])) : ?>
-                                        <a class="button button-small button-link-delete" href="<?php echo esc_attr(wp_nonce_url(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_wc_checkout_fields&action=delete&key=' . esc_html('billing').'&name=' . esc_html($key)), 'mptbm_checkout_field_delete', 'mptbm_checkout_field_delete_nonce')); ?>" class="delete" onclick="return confirm(esc_attr('Are you sure you want to delete this field?'))">Delete</a>
-                                        <?php endif ?>
+                                        <?php if(is_plugin_active('Ecab-Taxi-Booking-Manager-pro/MPTBM_Plugin_Pro.php')): ?>
+                                        <?php do_action('wc_checkout_action','billing',$key,$checkout_field); ?>
+                                        <?php else: ?>
+                                        <?php MPTBM_Wc_Checkout_Fields::switch_button($key,'checkoutSwitchButton',$key,$status,array('key'=>'billing','name'=>$key)); ?>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                                             

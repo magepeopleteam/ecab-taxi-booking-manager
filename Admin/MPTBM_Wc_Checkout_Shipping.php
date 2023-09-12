@@ -43,12 +43,7 @@ if (!class_exists('MPTBM_Wc_Checkout_Shipping'))
             ?>
                 <div class="tab-content" id="mptbm_wc_shipping_field_settings">
                     <h2>Woocommerce Shipping Fields</h2>
-                    <div class="action-button">
-                        <a class="button open-modal" data-action="add" data-key="shipping">
-                            <i class="dashicons dashicons-plus-alt2"></i>
-                            Add Field
-                        </a>
-                    </div>
+                    <?php do_action('wc_checkout_add','shipping'); ?>
                     <!-- <table class="wc_gateways wp-list-table widefat striped"> -->
                     <div>
                     <table class="wc_gateways widefat striped">
@@ -78,10 +73,7 @@ if (!class_exists('MPTBM_Wc_Checkout_Shipping'))
                                     <td><span  class="<?php echo esc_attr(esc_html((isset($checkout_field['required']) && $checkout_field['required']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
                                     <td><span  class="<?php echo esc_attr(esc_html((isset($checkout_field['disabled']) && $checkout_field['disabled']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
                                     <td>
-                                        <a class="button button-small button-secondary open-modal" data-action="edit" data-key="shipping" data-name="<?php echo esc_attr(esc_html($key))?>">Edit</a>
-                                        <?php if(isset($checkout_field['custom_field'])) : ?>
-                                        <a class="button button-small button-link-delete" href="<?php echo esc_attr(wp_nonce_url(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_wc_checkout_fields&action=delete&key=' . esc_html('shipping').'&name=' . esc_html($key)), 'mptbm_checkout_field_delete', 'mptbm_checkout_field_delete_nonce')); ?>" class="delete" onclick="return confirm(esc_attr('Are you sure you want to delete this field?'))">Delete</a>
-                                        <?php endif ?>
+                                        <?php do_action('wc_checkout_action','shipping',$key,$checkout_field); ?>
                                     </td>
                                 </tr>
                                                             

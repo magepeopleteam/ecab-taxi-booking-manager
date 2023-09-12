@@ -26,7 +26,8 @@
 			public function __construct()
 			{
 				$this->error = new WP_Error();
-                add_action('init',array($this,'prepare_mptbm_custom_checkout_fields'));			
+                add_action('init',array($this,'prepare_mptbm_custom_checkout_fields'));
+                add_filter('woocommerce_add_cart_item_data', array($this, 'add_cart_item_data'), 99, 3);			
 			}
 
             public function add_cart_item_data($cart_item_data, $product_id) 
@@ -36,19 +37,18 @@
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) 
                 {
                     add_filter('woocommerce_checkout_fields' , array($this, 'get_checkout_fields_for_checkout'), 10);
-                    add_action('woocommerce_after_checkout_validation', array($this, 'checkout_process'), 10);
                     add_action('woocommerce_after_checkout_billing_form', array($this, 'file_upload_field'));
                     add_action('woocommerce_after_checkout_shipping_form', array($this, 'file_upload_field'));
-                    add_action('woocommerce_after_checkout_order_form', array($this, 'file_upload_field'));                
-                    add_action('woocommerce_checkout_update_order_meta', array($this, 'save_custom_checkout_fields_to_order'), 10, 2);
-                    add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'order_details'), 10,1);
-                    add_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'order_details'), 10,1);
+                    add_action('woocommerce_after_checkout_order_form', array($this, 'file_upload_field'));
                 }
-                    
+                
+                return $cart_item_data;
             }
             
             public function prepare_mptbm_custom_checkout_fields() 
             {
+                // $order = get_post_meta(337);
+                // echo "<pre>"; print_r($order);echo "</pre>";exit;
                 self::$settings_options = get_option('mptbm_custom_checkout_fields');
                 self::$default_woocommerce_required_fields = self::default_woocommerce_required_fields();
                 self::$default_app_required_fields = self::default_app_required_fields();
@@ -58,7 +58,16 @@
                     "png" => "image/png",
                     "pdf" => "application/pdf"
                 );
-                add_filter('woocommerce_add_cart_item_data', array($this, 'add_cart_item_data'), 99, 3);
+
+                // add_filter('woocommerce_checkout_fields' , array($this, 'get_checkout_fields_for_checkout'), 10);
+                // add_action('woocommerce_after_checkout_billing_form', array($this, 'file_upload_field'));
+                // add_action('woocommerce_after_checkout_shipping_form', array($this, 'file_upload_field'));
+                // add_action('woocommerce_after_checkout_order_form', array($this, 'file_upload_field'));
+
+                add_action('woocommerce_checkout_update_order_meta', array($this, 'save_custom_checkout_fields_to_order'), 99, 2);
+                add_action('woocommerce_before_order_details', array($this, 'order_details'), 99,1);
+                add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'order_details'), 99,1);
+                add_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'order_details'), 99,1);
             }
 
             public static function get_checkout_fields_for_list() 
@@ -80,10 +89,6 @@
                                 if (self::check_deleted_field($key,$name))  
                                 {
                                     unset($fields[$key][$name]);
-                                }
-                                else if(self::check_disabled_field($key,$name))
-                                {
-                                    $fields[$key][$name]['disabled'] = '1';
                                 }
                                 else
                                 {
@@ -151,7 +156,7 @@
                         {
                             foreach($key_fields as $name => $field_array)
                             {
-                                if(self::check_disabled_field($key,$name))
+                                if (self::check_deleted_field($key,$name) || self::check_disabled_field($key,$name))
                                 {
                                     unset($fields[$key][$name]);
                                 }
@@ -175,7 +180,7 @@
 
             public static function hide_checkout_order_additional_information_section()
             {
-                if(!isset(self::$settings_options['hide_checkout_order_additional_information']) || ( isset(self::$settings_options['hide_checkout_order_additional_information']) && isset(self::$settings_options['hide_checkout_order_additional_information']['yes'] ) ) )
+                if(is_array(self::$settings_options) && ((!array_key_exists('hide_checkout_order_additional_information', self::$settings_options)) || ( array_key_exists('hide_checkout_order_additional_information', self::$settings_options) && self::$settings_options['hide_checkout_order_additional_information'] == 'on')))
                 {
                     return true;
                 }
@@ -183,7 +188,7 @@
 
             public static function hide_checkout_order_review_section()
             {
-                if(!isset(self::$settings_options['hide_checkout_order_review']) || ( isset(self::$settings_options['hide_checkout_order_review']) && isset(self::$settings_options['hide_checkout_order_review']['yes'] ) ) )
+                if(is_array(self::$settings_options) && ((!array_key_exists('hide_checkout_order_review', self::$settings_options)) || ( array_key_exists('hide_checkout_order_review', self::$settings_options) && self::$settings_options['hide_checkout_order_review'] == 'on')))
                 {
                     return true;
                 }
@@ -296,18 +301,39 @@
 
             public function hidden_element($key)
             {
-                $value = 'Software Made Data';
-                if($key == 'billing_country' || $key == 'shipping_country')
+                WC()->session->set_customer_session_cookie(true);
+                $user_id = get_current_user_id();
+                $user_data = get_userdata($user_id);
+
+                if ($user_data) 
                 {
-                    $value = "BD";
+                    $billing_address_1 = get_user_meta($user_id, 'billing_address_1', true);
+                    $billing_city = get_user_meta($user_id, 'billing_city', true);
+                    $billing_state = get_user_meta($user_id, 'billing_state', true);
+                    $billing_postcode = get_user_meta($user_id, 'billing_postcode', true);
+                    $billing_country = get_user_meta($user_id, 'billing_country', true);
+                }
+
+                $value = 'Software Made Data';
+                if($key == 'billing_address_1' || $key == 'shipping_address_1')
+                {
+                    $value = isset($billing_address_1) ? $billing_address_1 : 'Software Made Data';
+                }
+                else if($key == 'billing_country' || $key == 'shipping_country')
+                {
+                    $value = isset($billing_country) ? $billing_country : 'BD';
                 }
                 else if($key == 'billing_state' || $key == 'shipping_state')
                 {
-                    $value = "Dhaka";
+                    $value = isset($billing_state) ? $billing_state : 'Dhaka';
+                }
+                else if($key == 'billing_city' || $key == 'shipping_city')
+                {
+                    $value = isset($billing_city) ? $billing_city : 'Dhaka';
                 }
                 else if($key == 'billing_postcode' || $key == 'shipping_postcode')
                 {
-                    $value = "1205";
+                    $value = isset($billing_postcode) ? $billing_postcode : '1205';
                 }
                 ?>
                 <input type="hidden" class="<?php echo esc_attr(esc_html($key.'-custom'));?>" id="<?php echo esc_attr(esc_html($key.'-custom'));?>" name="<?php echo esc_attr(esc_html($key));?>" value="<?php echo esc_attr(esc_html($value));?>" />                    
@@ -334,7 +360,7 @@
             function save_custom_checkout_fields_to_order($order_id, $data) 
             {
                 $checkout_key_fields = self::get_checkout_fields_for_checkout();
-
+                
                 foreach($checkout_key_fields as $key => $checkout_fields)
                 {
                     if(is_array($checkout_fields) && count($checkout_fields))
@@ -342,14 +368,14 @@
                         $checkout_other_fields = array_filter($checkout_fields,array($this,'get_other_fields'));
                         foreach($checkout_other_fields as $key=>$file_fields)
                         {                            
-                            update_post_meta($order_id,sanitize_text_field('_'.$key),sanitize_text_field($data[$key]));
+                            update_post_meta($order_id,sanitize_text_field('_'.$key),sanitize_text_field($_POST[$key]));
                         }
 
                         if(in_array('file',array_column($checkout_fields, 'type')))
                         {
                             $checkout_file_fields = array_filter($checkout_fields,array($this,'get_file_fields'));
                             foreach($checkout_file_fields as $key=>$file_fields)
-                            {                                
+                            {                               
                                 $image_url = $this->get_uploaded_image_link($key.'_file');
                                 update_post_meta($order_id, '_' . $key, esc_url($image_url));
                             }

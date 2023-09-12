@@ -312,6 +312,45 @@
 				e.stopPropagation();
 			});
 
+			$('.mpStyles .checkout .checkoutSwitchButton').on('change', function() {
+				var element = $(this);
+				var key = $(this).data('key');
+				var name = $(this).data('name');
+				var isChecked = this.checked;
+				
+				$.ajax({
+					type: 'POST',
+					url: mptbm_checkout_ajax_url,
+					data: { 
+						action: "mptbm_disable_field",
+						key: key,
+						name: name,
+						isChecked: isChecked 
+					},
+					success: function(response) {
+						var jsonResponse = response;
+						if (jsonResponse == 'success') 
+						{
+							element.prop('checked', isChecked);
+						}
+						else
+						{
+							element.prop('checked', !isChecked);
+						}
+
+						if(isChecked)
+						{
+							element.closest('tr').find('td .checkout-disabled').removeClass("dashicons dashicons-yes tips");
+						}
+						else
+						{
+							element.closest('tr').find('td .checkout-disabled').addClass("dashicons dashicons-yes tips");
+						}
+					}
+				});
+				
+			});
+
 		}
 	);
 }(jQuery));
