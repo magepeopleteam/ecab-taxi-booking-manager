@@ -462,7 +462,7 @@
 
             public static function hide_checkout_order_additional_information_section()
             {
-                if(is_array(self::$settings_options) && ((!array_key_exists('hide_checkout_order_additional_information', self::$settings_options)) || ( array_key_exists('hide_checkout_order_additional_information', self::$settings_options) && self::$settings_options['hide_checkout_order_additional_information'] == 'on')))
+                if(!self::$settings_options || (is_array(self::$settings_options) && ((!array_key_exists('hide_checkout_order_additional_information', self::$settings_options)) || ( array_key_exists('hide_checkout_order_additional_information', self::$settings_options) && self::$settings_options['hide_checkout_order_additional_information'] == 'on'))))
                 {
                     return true;
                 }
@@ -470,7 +470,7 @@
 
             public static function hide_checkout_order_review_section()
             {
-                if(is_array(self::$settings_options) && ((!array_key_exists('hide_checkout_order_review', self::$settings_options)) || ( array_key_exists('hide_checkout_order_review', self::$settings_options) && self::$settings_options['hide_checkout_order_review'] == 'on')))
+                if(!self::$settings_options || (is_array(self::$settings_options) && ((!array_key_exists('hide_checkout_order_review', self::$settings_options)) || ( array_key_exists('hide_checkout_order_review', self::$settings_options) && self::$settings_options['hide_checkout_order_review'] == 'on'))))
                 {
                     return true;
                 }
