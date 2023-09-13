@@ -16,9 +16,9 @@
 		class MPTBM_Wc_Checkout_Fields_Helper 
 		{
 			private $error;
-            //private $settings_options;
             public static $settings_options;
-            public static $default_woocommerce_required_fields;
+            public static $default_woocommerce_checkout_fields;
+            public static $default_woocommerce_checkout_required_fields;
             public static $default_app_required_fields;
             private $allowed_extensions;
             private $allowed_mime_types;
@@ -26,31 +26,296 @@
 			public function __construct()
 			{
 				$this->error = new WP_Error();
-                add_action('init',array($this,'prepare_mptbm_custom_checkout_fields'));
-                add_filter('woocommerce_add_cart_item_data', array($this, 'add_cart_item_data'), 99, 3);			
+                $this->init();
 			}
 
-            public function add_cart_item_data($cart_item_data, $product_id) 
+            public static function woocommerce_default_checkout_fields()
             {
-				$linked_id = MP_Global_Function::get_post_info($product_id, 'link_mptbm_id', $product_id);
-				$post_id = is_string(get_post_status($linked_id)) ? $linked_id : $product_id;
-				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) 
-                {
-                    add_filter('woocommerce_checkout_fields' , array($this, 'get_checkout_fields_for_checkout'), 10);
-                    add_action('woocommerce_after_checkout_billing_form', array($this, 'file_upload_field'));
-                    add_action('woocommerce_after_checkout_shipping_form', array($this, 'file_upload_field'));
-                    add_action('woocommerce_after_checkout_order_form', array($this, 'file_upload_field'));
-                }
-                
-                return $cart_item_data;
-            }
+                return array
+                (
+                    "billing" => array(
+
+                        "billing_first_name" => array(
+
+                            "label" => "First name",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-first"
+                            ),            
+                            "autocomplete" => "given-name",
+                            "priority" => "10",
+                        ),
             
-            public function prepare_mptbm_custom_checkout_fields() 
+                        "billing_last_name" => array(
+
+                            "label" => "Last name",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-last"
+                            ),                
+                            "autocomplete" => "family-name",
+                            "priority" => "20",
+                        ),
+            
+                        "billing_company" => array(
+                            "label" => "Company name",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                            ),            
+                            "autocomplete" => "organization",
+                            "priority" => "30",
+                            "required" => '',
+                        ),
+
+                        "billing_country" => array(
+                            "type" => "country",
+                            "label" => "Country / Region",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field",
+                                "2" => "update_totals_on_change",
+                            ),
+        
+                            "autocomplete" => "country",
+                            "priority" => "40",
+                        ),
+            
+                        "billing_address_1" => array(
+                            "label" => "Street address",
+                            "placeholder" => "House number and street name",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field"
+                            ),            
+                            "autocomplete" => "address-line1",
+                            "priority" => "50"
+                        ),
+            
+                        "billing_address_2" => array(
+                            "label" => "Apartment, suite, unit, etc.",
+                            "label_class" => array(
+                                "0" => "screen-reader-text",
+                            ),                
+                            "placeholder" => "Apartment, suite, unit, etc. (optional)",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field"
+                            ),
+                            "autocomplete" => "address-line2",
+                            "priority" => "60",
+                            "required" => "",
+                        ),
+            
+                        "billing_city" => array(
+                            "label" => "Town / City",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field",
+                            ),            
+                            "autocomplete" => "address-level2",
+                            "priority" => "70",
+                        ),
+
+                        "billing_state" => array(
+                            "type" => "state",
+                            "label" => "State / County",
+                            "required" => "",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field"
+                            ),                
+                            "validate" => array(
+                                "0" => "state"
+                            ),                
+                            "autocomplete" => "address-level1",
+                            "priority" => "80",
+                            "country_field" => "billing_country",
+                            "country" => "AF"
+                        ),
+            
+                        "billing_postcode" => array(
+                            "label" => "Postcode / ZIP",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field"
+                            ),                
+                            "validate" => array(
+                                "0" => "postcode",
+                            ),            
+                            "autocomplete" => "postal-code",
+                            "priority" => "90"
+                        ),
+            
+                        "billing_phone" => array(
+                            "label" => "Phone",
+                            "required" => "1",
+                            "type" => "tel",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                            ),            
+                            "validate" => array(
+                                "0" => "phone",
+                            ),            
+                            "autocomplete" => "tel",
+                            "priority" => "100"
+                        ),
+            
+                        'billing_email' => array(
+                            "label" => "Email address",
+                            "required" => "1",
+                            "type" => "email",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                            ),                
+                            "validate" => array(
+                                "0" => "email",
+                            ),                
+                            "autocomplete" => "email username",
+                            "priority" => "110",
+                        )
+                
+                    ),
+                
+                    'shipping' => array(
+
+                        'shipping_first_name' => array(
+                            "label" => "First name",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-first",
+                            ),                
+                            "autocomplete" => "given-name",
+                            "priority" => "10",
+                        ),
+                
+                        "shipping_last_name" => array(
+                            "label" => "Last name",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-last",
+                            ),                
+                            "autocomplete" => "family-name",
+                            "priority" => "20",
+                        ),
+                
+                        "shipping_company" => array(
+                            "label" => "Company name",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                            ),        
+                            "autocomplete" => "organization",
+                            "priority" => "30",
+                            "required" => "",
+                        ),
+
+                        "shipping_country" => array(
+                            "type" => "country",
+                            "label" => "Country / Region",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field",
+                                "2" => "update_totals_on_change",
+                            ),        
+                            "autocomplete" => "country",
+                            "priority" => "40",
+                        ),
+                
+                        "shipping_address_1" => array(
+                            "label" => "Street address",
+                            "placeholder" => "House number and street name",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field",
+                            ),        
+                            "autocomplete" => "address-line1",
+                            "priority" => "50",
+                        ),
+                
+                        "shipping_address_2" => array(
+                            "label" => "Apartment, suite, unit, etc.", 
+                            "label_class" => array(
+                                "0" => "screen-reader-text",
+                            ),                
+                            "placeholder" => "Apartment, suite, unit, etc. (optional)",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field",
+                            ),                
+                            "autocomplete" => "address-line2",
+                            "priority" => "60",
+                            "required" => "",
+                        ),
+                
+                        "shipping_city" => array(
+                            "label" => "Town / City",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field",
+                            ),        
+                            "autocomplete" => "address-level2",
+                            "priority" => "70"
+                        ),
+                
+                        "shipping_state" => array(
+                            "type" => "state",
+                            "label" => "State / County",
+                            "required" => "",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field",
+                            ),        
+                            "validate" => array(
+                                "0" => "state",
+                            ),        
+                            "autocomplete" => "address-level1",
+                            "priority" => "80",
+                            "country_field" => "shipping_country",
+                            "country" => "AF",
+                        ),
+                
+                        "shipping_postcode" => array(
+                            "label" => "Postcode / ZIP",
+                            "required" => "1",
+                            "class" => array(
+                                "0" => "form-row-wide",
+                                "1" => "address-field"
+                            ),            
+                            "validate" => array(
+                                "0" => "postcode",
+                            ),            
+                            "autocomplete" => "postal-code",
+                            "priority" => "90",
+                        ),
+                
+                    ),
+                
+                    "order" => array(
+                        "order_comments" => array(
+                            "type" => "textarea",
+                            "class" => array(
+                                "0" => "notes",
+                            ),                
+                            "label" => "Order notes",
+                            "placeholder" => "Notes about your order, e.g. special notes for delivery.",
+                        )
+                    ),
+                
+                );
+
+            }
+
+            public function init()
             {
-                // $order = get_post_meta(337);
-                // echo "<pre>"; print_r($order);echo "</pre>";exit;
                 self::$settings_options = get_option('mptbm_custom_checkout_fields');
-                self::$default_woocommerce_required_fields = self::default_woocommerce_required_fields();
+                self::$default_woocommerce_checkout_fields = self::woocommerce_default_checkout_fields();      
+                self::$default_woocommerce_checkout_required_fields = self::default_woocommerce_checkout_required_fields();
                 self::$default_app_required_fields = self::default_app_required_fields();
                 $this->allowed_extensions = array( 'jpg', 'jpeg', 'png', 'pdf' );
                 $this->allowed_mime_types = array(
@@ -59,21 +324,38 @@
                     "pdf" => "application/pdf"
                 );
 
-                // add_filter('woocommerce_checkout_fields' , array($this, 'get_checkout_fields_for_checkout'), 10);
-                // add_action('woocommerce_after_checkout_billing_form', array($this, 'file_upload_field'));
-                // add_action('woocommerce_after_checkout_shipping_form', array($this, 'file_upload_field'));
-                // add_action('woocommerce_after_checkout_order_form', array($this, 'file_upload_field'));
+                add_filter('woocommerce_add_cart_item_data', array($this, 'add_cart_item_data'), 99, 3);
+                add_filter('woocommerce_checkout_fields' , array($this, 'get_checkout_fields_for_checkout'), 10);
+                add_action('woocommerce_after_checkout_billing_form', array($this, 'file_upload_field'));
+                add_action('woocommerce_after_checkout_shipping_form', array($this, 'file_upload_field'));
+                add_action('woocommerce_after_checkout_order_form', array($this, 'file_upload_field'));
 
                 add_action('woocommerce_checkout_update_order_meta', array($this, 'save_custom_checkout_fields_to_order'), 99, 2);
                 add_action('woocommerce_before_order_details', array($this, 'order_details'), 99,1);
                 add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'order_details'), 99,1);
                 add_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'order_details'), 99,1);
+
+            }
+
+            public function add_cart_item_data($cart_item_data, $product_id) 
+            {
+				$linked_id = MP_Global_Function::get_post_info($product_id, 'link_mptbm_id', $product_id);
+				$post_id = is_string(get_post_status($linked_id)) ? $linked_id : $product_id;
+				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) 
+                {
+                    // add_filter('woocommerce_checkout_fields' , array($this, 'get_checkout_fields_for_checkout'), 10);
+                    // add_action('woocommerce_after_checkout_billing_form', array($this, 'file_upload_field'));
+                    // add_action('woocommerce_after_checkout_shipping_form', array($this, 'file_upload_field'));
+                    // add_action('woocommerce_after_checkout_order_form', array($this, 'file_upload_field'));
+                }
+                
+                return $cart_item_data;
             }
 
             public static function get_checkout_fields_for_list() 
             {
                 $fields = array();
-                $checkout_fields = WC()->checkout->get_checkout_fields();
+                $checkout_fields = self::$default_woocommerce_checkout_fields;
                 $fields['billing'] = $checkout_fields['billing'];
                 $fields['shipping'] = $checkout_fields['shipping'];
                 $fields['order'] = $checkout_fields['order'];
@@ -119,13 +401,30 @@
                 return $fields;
             }
 
-            public static function get_checkout_fields_for_checkout() 
+            public function get_checkout_fields_for_checkout() 
             {
                 $fields = array();
                 $checkout_fields = WC()->checkout->get_checkout_fields();
                 $fields['billing'] = $checkout_fields['billing'];
                 $fields['shipping'] = $checkout_fields['shipping'];
                 $fields['order'] = $checkout_fields['order'];
+
+                if(isset($checkout_fields) && is_array($checkout_fields))
+                {
+                    foreach($checkout_fields as $key => $key_fields)
+                    {
+                        if(is_array($key_fields))
+                        {
+                            foreach($key_fields as $name => $field_array)
+                            {
+                                if (self::check_deleted_field($key,$name) || self::check_disabled_field($key,$name))
+                                {
+                                    unset($fields[$key][$name]);
+                                }
+                            }
+                        }
+                    }
+                }
 
                 if(isset(self::$settings_options) && is_array(self::$settings_options))
                 {
@@ -142,23 +441,6 @@
                                 else
                                 {
                                     $fields[$key][$name] = $field_array;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if(isset($checkout_fields) && is_array($checkout_fields))
-                {
-                    foreach($checkout_fields as $key => $key_fields)
-                    {
-                        if(is_array($key_fields))
-                        {
-                            foreach($key_fields as $name => $field_array)
-                            {
-                                if (self::check_deleted_field($key,$name) || self::check_disabled_field($key,$name))
-                                {
-                                    unset($fields[$key][$name]);
                                 }
                             }
                         }
@@ -220,7 +502,27 @@
                 }
             }
 
-            public static function default_woocommerce_required_fields()
+            public static function default_woocommerce_checkout_fields()
+            {
+                return array(
+                    'billing' => array(
+                        'billing_first_name'=>array(
+                            'required'=>'1'
+                        ),
+                        'billing_last_name'=>array('required'=>'1'),
+                        'billing_country'=>array('required'=>'1'),
+                        'billing_address_1'=>array('required'=>'1'),
+                        'billing_city'=>array('required'=>'1'),
+                        'billing_state'=>array('required'=>'1'),
+                        'billing_postcode'=>array('required'=>'1'),
+                        'billing_phone'=>array('required'=>'1'),
+                        'billing_email'=>array('required'=>'1')
+                    ),
+                    'shipping' => array('shipping_first_name'=>array('required'=>'1'),'shipping_last_name'=>array('required'=>'1'), 'shipping_country'=>array('required'=>'1'), 'shipping_address_1'=>array('required'=>'1'), 'shipping_city'=>array('required'=>'1'), 'shipping_state'=>array('required'=>'1')),
+                );
+            }
+
+            public static function default_woocommerce_checkout_required_fields()
             {
                 return array(
                     'billing' => array('billing_first_name'=>array('required'=>'1'),'billing_last_name'=>array('required'=>'1'), 'billing_country'=>array('required'=>'1'), 'billing_address_1'=>array('required'=>'1'), 'billing_city'=>array('required'=>'1'), 'billing_state'=>array('required'=>'1'),'billing_postcode'=>array('required'=>'1'), 'billing_phone'=>array('required'=>'1'), 'billing_email'=>array('required'=>'1')),
@@ -238,7 +540,7 @@
 
             function file_upload_field() 
             {
-                $checkout_fields = self::get_checkout_fields_for_checkout();
+                $checkout_fields = $this->get_checkout_fields_for_checkout();
                 $billing_fields = $checkout_fields['billing'];
                 $shipping_fields = $checkout_fields['shipping'];
                 $order_fields = $checkout_fields['order'];
@@ -246,11 +548,11 @@
                 $current_action = current_filter();
                 if($current_action == 'woocommerce_after_checkout_billing_form')
                 {
-                    foreach(self::$default_woocommerce_required_fields['billing'] as $key=>$field_array)
+                    foreach(self::$default_woocommerce_checkout_required_fields['billing'] as $key=>$field_array)
                     {
                         if(!isset(self::$default_app_required_fields['billing'][$key]))
                         {
-                            $this->hidden_element($key);
+                            //$this->hidden_element($key);
                         }
                     }
 
@@ -263,11 +565,11 @@
                 }
                 else if($current_action == 'woocommerce_after_checkout_shipping_form')
                 {
-                    foreach(self::$default_woocommerce_required_fields['shipping'] as $key=>$field_array)
+                    foreach(self::$default_woocommerce_checkout_required_fields['shipping'] as $key=>$field_array)
                     {
                         if(!isset(self::$default_app_required_fields['shipping'][$key]))
                         {
-                            $this->hidden_element($key);
+                            //$this->hidden_element($key);
                         }
                     }
 
@@ -359,7 +661,7 @@
 
             function save_custom_checkout_fields_to_order($order_id, $data) 
             {
-                $checkout_key_fields = self::get_checkout_fields_for_checkout();
+                $checkout_key_fields = $this->get_checkout_fields_for_checkout();
                 
                 foreach($checkout_key_fields as $key => $checkout_fields)
                 {
@@ -481,7 +783,7 @@
             {
                 $order = wc_get_order($order_id);
 
-                $checkout_fields = self::get_checkout_fields_for_checkout();
+                $checkout_fields = $this->get_checkout_fields_for_checkout();
                 $billing_fields = $checkout_fields['billing'];
                 $shipping_fields = $checkout_fields['shipping'];
                 $order_fields = $checkout_fields['order'];
