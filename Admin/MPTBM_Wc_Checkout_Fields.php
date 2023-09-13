@@ -38,10 +38,11 @@
                 add_action('wp_ajax_mptbm_disable_field', array( $this, 'mptbm_disable_field' ) );				
 			}
 
-            public function mptbm_checkout_ajax_url() {
+            public function mptbm_checkout_ajax_url() 
+            {
 				?>
 				<script type="text/javascript">
-							let mptbm_checkout_ajax_url = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
+					let mptbm_checkout_ajax_url = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
 				</script>
 				<?php
 			}

@@ -324,7 +324,7 @@
                     "pdf" => "application/pdf"
                 );
 
-                add_filter('woocommerce_add_cart_item_data', array($this, 'add_cart_item_data'), 99, 3);
+                //add_filter('woocommerce_add_cart_item_data', array($this, 'add_cart_item_data'), 99, 3);
                 add_filter('woocommerce_checkout_fields' , array($this, 'get_checkout_fields_for_checkout'), 10);
                 add_action('woocommerce_after_checkout_billing_form', array($this, 'file_upload_field'));
                 add_action('woocommerce_after_checkout_shipping_form', array($this, 'file_upload_field'));
@@ -548,14 +548,6 @@
                 $current_action = current_filter();
                 if($current_action == 'woocommerce_after_checkout_billing_form')
                 {
-                    foreach(self::$default_woocommerce_checkout_required_fields['billing'] as $key=>$field_array)
-                    {
-                        if(!isset(self::$default_app_required_fields['billing'][$key]))
-                        {
-                            //$this->hidden_element($key);
-                        }
-                    }
-
                     if(in_array('file',array_column($billing_fields, 'type')))
                     {
                         $billing_file_fields = array_filter($billing_fields,array($this,'get_file_fields'));
@@ -565,14 +557,6 @@
                 }
                 else if($current_action == 'woocommerce_after_checkout_shipping_form')
                 {
-                    foreach(self::$default_woocommerce_checkout_required_fields['shipping'] as $key=>$field_array)
-                    {
-                        if(!isset(self::$default_app_required_fields['shipping'][$key]))
-                        {
-                            //$this->hidden_element($key);
-                        }
-                    }
-
                     if(in_array('file',array_column($shipping_fields, 'type')))
                     {
                         $shipping_file_fields = array_filter($shipping_fields,array($this,'get_file_fields'));

@@ -73,12 +73,12 @@ if (!class_exists('MPTBM_Wc_Checkout_Shipping'))
                                     <td><?php echo esc_html(isset($checkout_field['placeholder'])?$checkout_field['placeholder']:''); ?></td>
                                     <td><?php echo esc_html(implode(',',(isset($checkout_field['validate']) && is_array($checkout_field['validate']))?$checkout_field['validate']:array())); ?></td>
                                     <td><span  class="<?php echo esc_attr(esc_html((isset($checkout_field['required']) && $checkout_field['required']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
-                                    <td><span  class="<?php echo esc_attr(esc_html((isset($checkout_field['disabled']) && $checkout_field['disabled']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
+                                    <td><span  class="checkout-disabled <?php echo esc_attr(esc_html((isset($checkout_field['disabled']) && $checkout_field['disabled']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
                                     <td>
                                         <?php if(is_plugin_active('Ecab-Taxi-Booking-Manager-pro/MPTBM_Plugin_Pro.php')): ?>
-                                        <?php do_action('mptbm_wc_checkout_action','billing',$key,$checkout_field); ?>
+                                        <?php do_action('mptbm_wc_checkout_action','shipping',$key,$checkout_field); ?>
                                         <?php else: ?>
-                                        <?php MPTBM_Wc_Checkout_Fields::switch_button($key,'checkoutSwitchButton',$key,$status,array('key'=>'billing','name'=>$key)); ?>
+                                        <?php MPTBM_Wc_Checkout_Fields::switch_button($key,'checkoutSwitchButton',$key,$status,array('key'=>'shipping','name'=>$key)); ?>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
