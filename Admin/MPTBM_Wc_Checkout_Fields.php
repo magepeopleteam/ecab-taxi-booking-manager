@@ -134,9 +134,9 @@
 					wp_die(__('You do not have sufficient permissions to access this page.'));
 				}
 
-                do_action('save_checkout_fields_settings');
+                do_action('mptbm_save_checkout_fields_settings');
 
-                do_action('wc_checkout_fields');
+                do_action('mptbm_wc_checkout_fields');
                 
                 self::checkout_field_list();
 
