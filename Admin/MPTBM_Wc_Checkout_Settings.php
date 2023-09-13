@@ -21,7 +21,7 @@ if (!class_exists('MPTBM_Wc_Checkout_Default'))
             $this->error = new WP_Error();
             add_action('mptbm_wc_checkout_tab', array($this, 'tab_item'));
             add_action('mptbm_wc_checkout_tab_content', array($this, 'tab_content'), 10, 1);
-            add_action('save_checkout_fields_settings', [ $this, 'save_checkout_fields_settings' ]);            
+            add_action('mptbm_save_checkout_fields_settings', [ $this, 'mptbm_save_checkout_fields_settings' ]);            
             //add_action('wp_loaded', array( $this,'apply' ), 7  );
             add_action('admin_notices',array($this, 'mp_admin_notice' ) );
         }
@@ -81,7 +81,7 @@ if (!class_exists('MPTBM_Wc_Checkout_Default'))
             <?php
         }
 
-        public function save_checkout_fields_settings()
+        public function mptbm_save_checkout_fields_settings()
         {
             if (!current_user_can('administrator')) 
             {

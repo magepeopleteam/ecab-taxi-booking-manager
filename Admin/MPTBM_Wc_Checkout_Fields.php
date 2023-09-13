@@ -38,10 +38,11 @@
                 add_action('wp_ajax_mptbm_disable_field', array( $this, 'mptbm_disable_field' ) );				
 			}
 
-            public function mptbm_checkout_ajax_url() {
+            public function mptbm_checkout_ajax_url() 
+            {
 				?>
 				<script type="text/javascript">
-							let mptbm_checkout_ajax_url = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
+					let mptbm_checkout_ajax_url = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
 				</script>
 				<?php
 			}
@@ -134,9 +135,9 @@
 					wp_die(__('You do not have sufficient permissions to access this page.'));
 				}
 
-                do_action('save_checkout_fields_settings');
+                do_action('mptbm_save_checkout_fields_settings');
 
-                do_action('wc_checkout_fields');
+                do_action('mptbm_wc_checkout_fields');
                 
                 self::checkout_field_list();
 

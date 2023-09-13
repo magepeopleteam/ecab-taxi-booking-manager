@@ -44,7 +44,7 @@ if (!class_exists('MPTBM_Wc_Checkout_Billing'))
             ?>
                 <div class="tab-content active" id="mptbm_wc_billing_field_settings">
                     <h2>Woocommerce Billing Fields</h2>
-                    <?php do_action('wc_checkout_add','billing'); ?>
+                    <?php do_action('mptbm_wc_checkout_add','billing'); ?>
                     <!-- <table class="wc_gateways wp-list-table widefat striped"> -->
                     <div>
                     <table class="wc_gateways widefat striped">
@@ -76,7 +76,7 @@ if (!class_exists('MPTBM_Wc_Checkout_Billing'))
                                     <td><span  class="checkout-disabled <?php echo esc_attr(esc_html((isset($checkout_field['disabled']) && $checkout_field['disabled']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
                                     <td>
                                         <?php if(is_plugin_active('Ecab-Taxi-Booking-Manager-pro/MPTBM_Plugin_Pro.php')): ?>
-                                        <?php do_action('wc_checkout_action','billing',$key,$checkout_field); ?>
+                                        <?php do_action('mptbm_wc_checkout_action','billing',$key,$checkout_field); ?>
                                         <?php else: ?>
                                         <?php MPTBM_Wc_Checkout_Fields::switch_button($key,'checkoutSwitchButton',$key,$status,array('key'=>'billing','name'=>$key)); ?>
                                         <?php endif; ?>

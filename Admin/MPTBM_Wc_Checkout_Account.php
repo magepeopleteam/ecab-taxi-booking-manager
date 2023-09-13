@@ -43,7 +43,7 @@ if (!class_exists('MPTBM_Wc_Checkout_Account'))
             ?>
                 <div class="tab-content" id="mptbm_wc_account_field_settings">
                     <h2>Woocommerce Account Fields</h2>
-                    <?php do_action('wc_checkout_add','account'); ?>
+                    <?php do_action('mptbm_wc_checkout_add','account'); ?>
                     <!-- <table class="wc_gateways wp-list-table widefat striped"> -->
                     <div>
                     <table class="wc_gateways widefat striped">
@@ -62,6 +62,8 @@ if (!class_exists('MPTBM_Wc_Checkout_Account'))
 						<tbody>
 
                             <?php foreach ($contents['account'] as $key => $checkout_field) : ?>
+
+                                <?php $status = ''; $status = (isset($checkout_field['disabled']) && $checkout_field['disabled']=='1')?'':'checked'; ?>
                                 
                                 <tr>
                                     <input id="<?php echo esc_attr(esc_html($key))?>" type="hidden" name="<?php echo esc_attr(esc_html($key))?>" value="<?php echo esc_attr(esc_html(json_encode(array('name'=>$key,'attributes'=>$checkout_field))))?>" />
@@ -71,9 +73,13 @@ if (!class_exists('MPTBM_Wc_Checkout_Account'))
                                     <td><?php echo esc_html(isset($checkout_field['placeholder'])?$checkout_field['placeholder']:''); ?></td>
                                     <td><?php echo esc_html(implode(',',(isset($checkout_field['validate']) && is_array($checkout_field['validate']))?$checkout_field['validate']:array())); ?></td>
                                     <td><span  class="<?php echo esc_attr(esc_html((isset($checkout_field['required']) && $checkout_field['required']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
-                                    <td><span  class="<?php echo esc_attr(esc_html((isset($checkout_field['disabled']) && $checkout_field['disabled']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
+                                    <td><span  class="checkout-disabled <?php echo esc_attr(esc_html((isset($checkout_field['disabled']) && $checkout_field['disabled']=='1')?'dashicons dashicons-yes tips':'')); ?>"></span></td>
                                     <td>
-                                        <?php do_action('wc_checkout_action','account',$key,$checkout_field); ?>
+                                        <?php if(is_plugin_active('Ecab-Taxi-Booking-Manager-pro/MPTBM_Plugin_Pro.php')): ?>
+                                        <?php do_action('mptbm_wc_checkout_action','account',$key,$checkout_field); ?>
+                                        <?php else: ?>
+                                        <?php MPTBM_Wc_Checkout_Fields::switch_button($key,'checkoutSwitchButton',$key,$status,array('key'=>'account','name'=>$key)); ?>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                                             
