@@ -95,7 +95,6 @@
 		-o-box-shadow: 5px 4px 30px rgba(189, 189, 189, 0.07);
 		box-shadow: 5px 4px 30px rgba(189, 189, 189, 0.07);
 	}
-	div.mpStyle .formControl,
 	div.mpStyle .dShadow_8,
 	div.mpStyle [class*='_dShadow_8'] {
 		-webkit-box-shadow: 2px 4px 40px rgba(103, 103, 103, 0.1);
@@ -124,13 +123,20 @@
 	div.mpStyle h6 { margin: 0; padding: 0; line-height: 1.25; }
 	div.mpStyle strong { font-weight: var(--fw-bold); }
 	div.mpStyle .extraBold { font-weight: 900; }
-	div.mpStyle h1 { font-size: var(--fs_h1); font-weight: var(--fw-bold); }
-	div.mpStyle h2 { font-size: var(--fs_h2); font-weight: var(--fw-bold); }
-	div.mpStyle h3 { font-size: var(--fs_h3); font-weight: var(--fw-medium); }
-	div.mpStyle h4 { font-size: var(--fs_h4); font-weight: var(--fw-medium); }
-	div.mpStyle h5 { font-size: var(--fs_h5); font-weight: var(--fw-medium); }
-	div.mpStyle h6 { font-size: var(--fs_h6); font-weight: var(--fw-normal); }
+	div.mpStyle h1,
+	div.mpStyle [class*="_fs_h1"] { font-size: var(--fs_h1); font-weight: var(--fw-bold); }
+	div.mpStyle h2,
+	div.mpStyle [class*="_fs_h2"] { font-size: var(--fs_h2); font-weight: var(--fw-bold); }
+	div.mpStyle h3,
+	div.mpStyle [class*="_fs_h3"] { font-size: var(--fs_h3); font-weight: var(--fw-medium); }
+	div.mpStyle h4,
+	div.mpStyle [class*="_fs_h4"] { font-size: var(--fs_h4); font-weight: var(--fw-medium); text-transform: inherit;}
+	div.mpStyle h5,
+	div.mpStyle [class*="_fs_h5"] { font-size: var(--fs_h5); font-weight: var(--fw-medium); text-transform: inherit;}
+	div.mpStyle h6,
+	div.mpStyle [class*="_fs_h6"] { font-size: var(--fs_h6); font-weight: var(--fw-normal); text-transform: inherit;}
 	div.mpStyle label { font-size: var(--fs_label); font-weight: var(--fw-medium); }
+	div.mpStyle .fs_50, div.mpStyle [class*="_fs_50"] {font-size: 50px;font-weight: var(--fw-medium);}
 }
 /******************************************************************** Flex Section ************************************************/
 @media only screen and (min-width: 10px) {
@@ -172,7 +178,7 @@
 	.mpStyle [class*="_justifyCenter"] { -webkit-justify-content: center; justify-content: center; }
 	.mpStyle .justifyBetween { display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; }
 	.mpStyle [class*="_justifyBetween"],
-	.mpStyle .inputInline .mpForm{ -webkit-justify-content: space-between; justify-content: space-between; }
+	.mpStyle .inputInline .mpForm { -webkit-justify-content: space-between; justify-content: space-between; }
 	.mpStyle .justifyAround { display: -webkit-flex; display: flex; -webkit-justify-content: space-around; justify-content: space-around; }
 	.mpStyle [class*="_justifyAround"] { -webkit-justify-content: space-around; justify-content: space-around; }
 	.mpStyle .justifyEnd { display: -webkit-flex; display: flex; -webkit-justify-content: flex-end; justify-content: flex-end; }
@@ -207,7 +213,7 @@
 /******************************************************************** Radios Section************************************************/
 @media only screen and (min-width: 10px) {
 	.mpStyle img,
-	.mpStyle [class*="dButton"],
+	.mpStyle [class*="dButton"], .mpStyle button,
 	div.filter_item,
 	.mpStyle .formControl,
 	div.mpPopup .popupMainArea, div.mpPopup .popupClose,
@@ -282,7 +288,7 @@
 	.mpStyle small { font-size: var(--fs_small); }
 	/********Helper Class***********/
 	.mpStyle .divider, .mpStyle [class*="_divider"], .mpStyle hr { margin: var(--dMP_xs) 0; line-height: 1; border-color: var(--color_border); display: block; height: 1px; background-color: var(--color_border); width: 100%; }
-	.mpStyle .divider_3, .mpStyle [class*="_divider_3"]{ margin: var(--dMP_xs) 0; line-height: 1; border-color: var(--color_border); display: block; height: 3px; background-color: var(--color_border); width: 100%; }
+	.mpStyle .divider_3, .mpStyle [class*="_divider_3"] { margin: var(--dMP_xs) 0; line-height: 1; border-color: var(--color_border); display: block; height: 3px; background-color: var(--color_border); width: 100%; }
 	.mpStyle .dividerL, .mpStyle [class*="_dividerL"] { margin: var(--dMP) 0; line-height: 1; border-color: var(--color_border); display: block; height: 1px; background-color: var(--color_border); width: 100%; }
 	.mpStyle .separatorRight > *, .mpStyle [class*="_separatorRight"] > * { border-right: 2px solid var(--color_border); }
 	.mpStyle .separatorRight > *, .mpStyle [class*="_separatorRight"] > :last-child { border-right: none; }
@@ -337,7 +343,7 @@
 	.mpStyle .pTB, .mpStyle [class*="_pTB"] { padding: var(--dMP) 0; }
 	.mpStyle .pTB_xs, .mpStyle [class*="pTB_xs"] { padding: var(--dMP_xs) 0; }
 	/**************/
-	.mpStyle .margin { margin: var(--dMP); }
+	div.mpStyle .margin, div.mpStyle [class*="_margin"] { margin: var(--dMP); }
 	div.mpStyle .mZero, div.mpStyle [class*="_mZero"], .mpStyle span[class*="_icon"] { margin: 0; }
 	div.mpStyle .mAuto, div.mpStyle [class*="_mAuto"] { margin: 0 auto; }
 	.mpStyle .mT, .mpStyle [class*="_mT"] { margin-top: var(--dMP); }
@@ -858,13 +864,14 @@
 	.mpStyle ul.mp_input_select_list li { padding: 10px; cursor: pointer; border-bottom: 1px solid var(--color_border); margin: 0; list-style-type: none; }
 	.mpStyle ul.mp_input_select_list li:last-child { border-bottom: none; }
 	.mpStyle ul.mp_input_select_list li:hover { background-color: #777; color: #FFF; }
-	.mpStyle ul.mp_input_select_list li span{margin: 0 var(--dMP_xs) 0 0;}
+	.mpStyle ul.mp_input_select_list li span {margin: 0 var(--dMP_xs) 0 0;}
 	/*****Form inline*******/
-	/*.mpStyle .inputInline { padding: var(--dMP); margin: var(--dMP) 0 0 0; }*/
-	.mpStyle .inputInline .mpForm{width: 100%;max-width: 100%;}
-	.mpStyle .inputInline .inputList { max-width: calc(20% - 10px); width: 100%; margin: 0; }
+	.mpStyle .inputInline .mpForm {width: 100%;max-width: 100%;}
+	.mpStyle .inputInline .inputList { width: 100%; margin: var(--dMP_xs) var(--dMP_xs) 0 0; }
+	.mpStyle .inputInline .inputList label{margin:0;}
+	.mpStyle .inputInline .inputList:last-child {margin: 0;}
 	/********Form Horizontal**************/
-	.mpStyle .inputHorizontal .mpForm { max-width: 500px; width: 100%; }
+	.mpStyle .inputHorizontal { max-width: 500px; width: 100%;margin: 0 auto; }
 	/**********Checkbox Radio*********/
 	div.mpStyle .customRadioLabel { font-size: var(--fs_h6); font-weight: var(--fw-medium); -webkit-flex-wrap: wrap; flex-wrap: wrap; }
 	div.mpStyle .customRadioLabel input[type="radio"] ~ .formControl,
@@ -891,7 +898,7 @@
 	.mpStyle .customCheckboxLabel { padding: 0 0 10px 0; cursor: pointer; font-weight: var(--fw-medium); }
 	.mpStyle .customCheckboxLabel input:checked ~ .customCheckbox::before { background: var(--d_color); }
 	/*******************/
-	div.mpStyle .selectCheckbox { min-width: 150px; padding: var(--dMP_xs); width: auto; border: 1px solid var(--color_border); cursor: pointer; }
+	div.mpStyle .selectCheckbox { min-width: 150px; padding: var(--dMP_xs); width: auto; border: 1px solid var(--color_border); cursor: pointer; white-space: normal !important;}
 	div.mpStyle .customCheckboxLabel input[type="checkbox"],
 	div.mpStyle .selectCheckbox input[type='checkbox'] { display: none; }
 	div.mpStyle .selectCheckbox .customCheckbox::before { border: none; background-color: transparent; }
@@ -956,7 +963,8 @@
 		.mpStyle .inputInline .inputList { max-width: calc(25% - 10px); }
 	}
 	@media only screen and (max-width: 1050px) {
-		.mpStyle .inputInline .inputList { max-width: calc(33.33% - 10px); }
+		.mpStyle .inputInline .mpForm {-webkit-flex-wrap: wrap;flex-wrap: wrap;}
+		.mpStyle .inputInline .inputList { max-width: calc(33.33% - 10px); -webkit-flex: inherit;flex: inherit;}
 	}
 	@media only screen and (max-width: 850px) {
 		.mpStyle .inputInline .inputList { max-width: calc(50% - 10px); }
@@ -1049,7 +1057,7 @@
 	.mpTabsNext .tabItemNext [class*="circleIcon"]::after { content: ""; right: 0; left: calc(50% + 20px); top: 20px; position: absolute; border-bottom: 1px solid var(--color_border); z-index: -1; width: 100%; }
 	.mpTabsNext .tabItemNext.active [class*="circleIcon"]::after { border-color: var(--color_theme); }
 	.mpTabsNext .tabItemNext:last-child [class*="circleIcon"]::after { border: none; width: 0; }
-	.mpStyle .tabsContentNext { position: relative; overflow: hidden; width: 100%; padding: var(--dMP); }
+	.mpStyle .tabsContentNext { position: relative; width: 100%; padding: var(--dMP); }
 	.tabsContentNext [data-tabs-next] { display: none; }
 	.tabsContentNext [data-tabs-next].active { display: block; }
 	.nextTab_prev_link {cursor: pointer;}
@@ -1068,7 +1076,7 @@
 	div.mp_faq_item .mp_faq_title {background-color: #FFF;border: 1px solid #DDD;border-radius: 5px;font-weight: normal;text-transform: none;}
 	div.mp_faq_item .mp_faq_title.active {border-color: var(--color_theme);border-radius: 5px 5px 0 0;background-color: var(--color_theme);color: var(--color_theme_alter); }
 	div.mp_faq_item .mp_faq_title span {padding: 10px;}
-	div.mp_faq_content {background-color: #FFF;padding: var(--dMP);border: 1px solid var(--color_theme);border-radius: 0 0 5px 5px;overflow: hidden;color: #606b7b;font-size: var(--fs_label);}
+	div.mp_faq_content {background-color: #FFF;padding: var(--dMP);border: 1px solid var(--color_theme);border-radius: 0 0 5px 5px;overflow: hidden;color: #606B7B;font-size: var(--fs_label);}
 	div.mp_faq_item div.superSlider {min-width: 300px;max-width: 50%; margin: 0 var(--dMP_xs) var(--dMP_xs) 0;float: left;}
 }
 /******************************************************************** Popup section ************************************************/
@@ -1182,7 +1190,7 @@
 	.mpStyle .col_9 { width: 75%; }
 	.mpStyle .col_10 { width: 83.33333333%; }
 	.mpStyle .col_11 { width: 91.66666667%; }
-	.mpStyle .col_12 { width: 100%; }
+	div.mpStyle .col_12 { width: 100%; }
 	/**********************/
 	@media only screen and (max-width: 1200px) {
 		.mpStyle .col_1_1200 { width: 8.3333333333%; }
@@ -1354,9 +1362,12 @@
 	div.mpStyle .textLight_2, div.mpStyle [class*='_textLight_2'] { color: var(--color_light_2); }
 	div.mpStyle .bgLight_2, div.mpStyle [class*='_bgLight_2'] { background-color: var(--color_light_2); }
 	div.mpStyle .btLight_2, div.mpStyle [class*='_btLight_2'] { background-color: var(--color_light_2); color: var(--color_info);}
+	div.mpStyle .textLight_3, div.mpStyle [class*='_textLight_3'] { color: var(--color_light_3); }
+	div.mpStyle .bgLight_3, div.mpStyle [class*='_bgLight_3'] { background-color: var(--color_light_3); }
+	div.mpStyle .btLight_3, div.mpStyle [class*='_btLight_3'] { background-color: var(--color_light_3); color: var(--color_info);}
 	/*****Gray*********/
-	div.mpStyle .textGray, div.mpStyle [class*='_textGray'] { color: gray; }
-	div.mpStyle .bgGray, div.mpStyle [class*='_bgGray'] { background-color: gray; }
+	div.mpStyle .textGray, div.mpStyle [class*='_textGray'] { color: rgb(128, 128, 128); }
+	div.mpStyle .bgGray, div.mpStyle [class*='_bgGray'] { background-color: rgb(128, 128, 128); }
 	/*****Black*********/
 	div.mpStyle .textBlack, div.mpStyle [class*='_textBlack'] { color: var(--color_black); }
 	div.mpStyle .bgBlack, div.mpStyle [class*='_bgBlack'] { background-color: var(--color_black);}
@@ -1382,9 +1393,12 @@
 	/*****Color_2*********/
 	div.mpStyle .textColor_2, div.mpStyle [class*='_textColor_2'] { color: var(--color_2); }
 	div.mpStyle .bgColor_2, div.mpStyle [class*='_bgColor_2'] { background-color: var(--color_2); }
-	/*****Color_2*********/
+	/*****Color_3*********/
 	div.mpStyle .textColor_3, div.mpStyle [class*='_textColor_3'] { color: #F2FFC3; }
 	div.mpStyle .bgColor_3, div.mpStyle [class*='_bgColor_3'] { background-color: #F2FFC3; }
+	/*****Color_4*********/
+	div.mpStyle .textColor_4, div.mpStyle [class*='_textColor_4'] { color: #1A1919; }
+	div.mpStyle .bgColor_4, div.mpStyle [class*='_bgColor_4'] { background-color: #1A1919; }
 }
 /******************************************************************** Icon Section************************************************/
 @media only screen and (min-width: 10px) {

@@ -17,9 +17,8 @@
 				add_filter('mp_settings_sec_fields', array($this, 'settings_sec_fields'), 10);
 			}
 			public function global_settings_menu() {
-				$label = MPTBM_Function::get_name();
 				$cpt = MPTBM_Function::get_cpt();
-				add_submenu_page('edit.php?post_type=' . $cpt, $label . esc_html__(' Settings', 'mptbm_plugin'), $label . esc_html__(' Settings', 'mptbm_plugin'), 'manage_options', 'mptbm_settings_page', array($this, 'settings_page'));
+				add_submenu_page('edit.php?post_type=' . $cpt, esc_html__('Global Settings', 'mptbm_plugin'), esc_html__('Global Settings', 'mptbm_plugin'), 'manage_options', 'mptbm_settings_page', array($this, 'settings_page'));
 			}
 			public function settings_page() {
 				$label = MPTBM_Function::get_name();
@@ -56,7 +55,7 @@
 					),
 					array(
 						'id' => 'mptbm_map_api_settings',
-						'title' => __('Map Api Settings', 'mptbm_plugin')
+						'title' => __('Google Map Settings', 'mptbm_plugin')
 					),
 					array(
 						'id' => 'mp_style_settings',
@@ -241,6 +240,29 @@
 							'desc'    => esc_html__( 'Please enter your Google Maps API key in this Options.', 'mptbm_plugin' ).'<a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',
 							'type'    => 'text',
 							'default' => ''
+						),
+						
+						array(
+							'name' => 'mp_latitude',
+							'label' => esc_html__('Your Location Latitude', 'mptbm_plugin'),
+							'desc' => esc_html__('Please type Your Location Latitude.This are mandatory for google map show. To find latitude please ', 'mptbm_plugin').'<a href="https://www.latlong.net/" target="_blank">'.esc_html__('Click Here', 'mptbm_plugin').'</a>',
+							'type' => 'text',
+							'default' => '23.81234828905659'
+						),
+						array(
+							'name' => 'mp_longitude',
+							'label' => esc_html__('Your Location Longitude', 'mptbm_plugin'),
+							'desc' => esc_html__('Please type Your Location Longitude .This are mandatory for google map show. To find latitude please ', 'mptbm_plugin').'<a href="https://www.latlong.net/" target="_blank">'.esc_html__('Click Here', 'mptbm_plugin').'</a>',
+							'type' => 'text',
+							'default' => '90.41069652669002'
+						),
+						array(
+							'name' => 'mp_country',
+							'label' => esc_html__('Country Location', 'mptbm_plugin'),
+							'desc' => esc_html__('Select your country Location.This are mandatory for google map show.', 'mptbm_plugin'),
+							'type' => 'select',
+							'default' => 'BD',
+							'options' => MP_Global_Function::get_country_list()
 						),
 					)),
 					'mp_style_settings' => apply_filters('filter_mp_style_settings', array(
