@@ -18,7 +18,7 @@
 			}
 			public function global_settings_menu() {
 				$cpt = MPTBM_Function::get_cpt();
-				add_submenu_page('edit.php?post_type=' . $cpt, esc_html__('Global Settings', 'mptbm_plugin'), esc_html__(' Settings', 'mptbm_plugin'), 'manage_options', 'mptbm_settings_page', array($this, 'settings_page'));
+				add_submenu_page('edit.php?post_type=' . $cpt, esc_html__('Global Settings', 'mptbm_plugin'), esc_html__('Global Settings', 'mptbm_plugin'), 'manage_options', 'mptbm_settings_page', array($this, 'settings_page'));
 			}
 			public function settings_page() {
 				$label = MPTBM_Function::get_name();
