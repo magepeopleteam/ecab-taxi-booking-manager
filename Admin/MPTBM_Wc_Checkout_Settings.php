@@ -40,6 +40,9 @@ if (!class_exists('MPTBM_Wc_Checkout_Default'))
 
         public function tab_content($contents)
         {
+            $check_order_additional_information_section = '';
+            $check_order_review_section = '';
+
             if(MPTBM_Wc_Checkout_Fields_Helper::hide_checkout_order_additional_information_section())
             {
                 $check_order_additional_information_section = 'checked';
