@@ -18,12 +18,12 @@
 				do_action('mptbm_transport_search', $params);
 				return ob_get_clean();
 			}
-			public function default_attribute($style = 'list', $show = 9, $price_based = 'dynamic') {
+			public function default_attribute() {
 				return array(
 					"cat" => "0",
 					"org" => "0",
-					"style" => $style,
-					"show" => $show,
+					"style" => 'list',
+					"show" => '9',
 					"pagination" => "yes",
 					"city" => "",
 					"country" => "",
@@ -31,7 +31,9 @@
 					'status' => '',
 					"pagination-style" => "load_more",
 					"column" => 3,
-					"price_based" => $price_based
+					"price_based" => 'dynamic',
+					'progressbar'=>'yes',
+					'form'=>'horizontal',
 				);
 			}
 		}

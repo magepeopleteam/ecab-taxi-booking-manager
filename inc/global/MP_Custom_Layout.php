@@ -58,7 +58,7 @@
 									<?php } ?>
 									
 									<?php for ($i = 0; $i < $total_page; $i++) { ?>
-										<button class="_mpBtn_xs <?php echo esc_html($i) == $active_page ? 'active_pagination' : ''; ?>" type="button" data-pagination="<?php echo esc_html($i); ?>"><?php echo esc_html($i + 1); ?></button>
+										<button class="_mpBtn_xs <?php echo esc_attr($i == $active_page ? 'active_pagination' : ''); ?>" type="button" data-pagination="<?php echo esc_attr($i); ?>"><?php echo esc_html($i + 1); ?></button>
 									<?php } ?>
 									
 									<?php if ($total_page > 5) { ?>

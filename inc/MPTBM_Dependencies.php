@@ -86,6 +86,7 @@
 					let mp_num_of_decimal = "<?php echo get_option('woocommerce_price_num_decimals', 2); ?>";
 					let mp_empty_image_url = "<?php echo esc_attr(MPTBM_PLUGIN_URL . '/assets/helper/images/no_image.png'); ?>";
 					let mp_date_format = "<?php echo esc_attr(MPTBM_Function::get_general_settings('date_format', 'D d M , yy')); ?>";
+					let mp_date_format_without_year ="<?php echo esc_attr(MPTBM_Function::get_general_settings('date_format_without_year', 'D d M')); ?>";
 					let mp_lat_lng = {
 						 lat: <?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings','mp_latitude', '23.81234828905659')); ?>,
 						lng: <?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings','mp_longitude', '90.41069652669002')); ?>

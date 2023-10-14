@@ -10,11 +10,14 @@
 	$price_based = $price_based ?? '';
 	$all_dates = MPTBM_Function::get_all_dates($price_based);
 	//echo '<pre>';print_r($all_dates);echo '</pre>';
-	$get_class = $price_based == 'manual' ? 'inputInline' : 'inputHorizontal';
+	$form_style = $form_style??'horizontal';
+	$form_style_class = $form_style=='horizontal'?'inputHorizontal':'inputInline';
+	$area_class=$price_based=='manual'?' ':'justifyBetween';
+	$area_class=$form_style != 'horizontal'?'mptbm_form_details_area fdColumn':$area_class;
 	if (sizeof($all_dates) > 0) {
 		?>
-		<div class="justifyBetween">
-			<div class="_dLayout mptbm_search_area <?php echo esc_attr($get_class); ?>">
+		<div class="<?php echo esc_attr($area_class);?> ">
+			<div class="_dLayout mptbm_search_area <?php echo esc_attr($form_style_class); ?> <?php echo esc_attr($price_based=='manual'?'mAuto':'');?>">
 				<h3><?php esc_html_e('Start Booking', 'mptbm_plugin'); ?></h3>
 				<div class="mpForm">
 					<input type="hidden" name="mptbm_price_based" value="<?php echo esc_attr($price_based); ?>"/>
@@ -70,7 +73,7 @@
 							<?php } ?>
 						</label>
 					</div>
-					<?php if ($price_based != 'manual') { ?>
+					<?php if ($form_style == 'horizontal') { ?>
 						<div class="divider"></div>
 					<?php } ?>
 					<div class="inputList">

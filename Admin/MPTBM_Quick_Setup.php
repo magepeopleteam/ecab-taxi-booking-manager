@@ -58,7 +58,9 @@
 					<?php
 				}
 				if (isset($_POST['install_and_active_woo_btn'])) {
-					echo '<div style="display:none">';
+					?>
+					<div style="display:none">
+					<?php
 					include_once(ABSPATH . 'wp-admin/includes/plugin-install.php');
 					include_once(ABSPATH . 'wp-admin/includes/file.php');
 					include_once(ABSPATH . 'wp-admin/includes/misc.php');
@@ -88,8 +90,8 @@
 					$woocommerce_plugin->install($api->download_link);
 					activate_plugin('woocommerce/woocommerce.php');
 					MPTBM_Plugin::on_activation_page_create();
-					echo '</div>';
 					?>
+					</div>
 					<script>
 						(function ($) {
 							"use strict";

@@ -26,7 +26,10 @@
 			}
 			public function transport_search($params) {
 				$price_based = $params['price_based'] ?: 'dynamic';
+				$progressbar = $params['progressbar'] ?: 'yes';
+				$form_style= $params['form'] ?: 'horizontal';
 				echo do_shortcode('[shop_messages]');
+				//echo '<pre>';print_r($params);echo '</pre>';
 				include(MPTBM_Function::template_path('registration/registration_layout.php'));
 			}
 			public function get_mptbm_map_search_result() {

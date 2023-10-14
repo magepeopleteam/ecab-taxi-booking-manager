@@ -86,11 +86,34 @@ function mp_load_date_picker(parent = jQuery('.mpStyle')) {
 	}).promise().done(function () {
 		parent.find(".date_type").datepicker({
 			dateFormat: mp_date_format,
+			//showButtonPanel: true,
 			autoSize: true,
 			changeMonth: true,
 			changeYear: true,
 			onSelect: function (dateString, data) {
-				let date = data.selectedYear + '-' + ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + ('0' + parseInt(data.selectedDay) ).slice(-2) ;
+				let date = data.selectedYear + '-' + ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + ('0' + parseInt(data.selectedDay)).slice(-2);
+				jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
+			},
+			// closeText: 'Clear Date',
+			// onClose: function (dateText, inst) {
+			// 	if (jQuery(this).hasClass('ui-datepicker-close')) {
+			// 		document.getElementById(this.id).reset();
+			// 	}
+			// }
+		});
+	});
+	parent.find(".date_type_without_year.hasDatepicker").each(function () {
+		jQuery(this).removeClass('hasDatepicker').attr('id', '').removeData('datepicker').unbind();
+	}).promise().done(function () {
+		parent.find(".date_type_without_year").datepicker({
+			dateFormat: mp_date_format_without_year,
+			//showButtonPanel: true,
+			autoSize: true,
+			changeMonth: true,
+			changeYear: false,
+			onSelect: function (dateString, data) {
+				//console.log(mp_date_format_without_year);
+				let date = ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + ('0' + parseInt(data.selectedDay)).slice(-2);
 				jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
 			}
 		});
@@ -301,10 +324,10 @@ function mp_all_content_change($this) {
 		let value = current.data('value');
 		let text = current.html();
 		parent.find('.mp_input_select_list').slideUp(250);
-		if(parent.find('input[type="hidden"]').length>0){
+		if (parent.find('input[type="hidden"]').length > 0) {
 			parent.find('input.formControl').val(text);
 			parent.find('input[type="hidden"]').val(value).trigger('change');
-		}else {
+		} else {
 			parent.find('input.formControl').val(value).trigger('change');
 		}
 	});
@@ -607,6 +630,11 @@ function mp_sticky_management() {
 	$(document).on('keyup change', '.mpStyle .mp_price_validation', function () {
 		let n = $(this).val();
 		$(this).val(n.replace(/[^\d.]/g, ''));
+		return true;
+	});
+	$(document).on('keyup change', '.mpStyle .mp_id_validation', function () {
+		let n = $(this).val();
+		$(this).val(n.replace(/[^\d_a-z]/g, ''));
 		return true;
 	});
 	$(document).on('keyup change', '.mpStyle .mp_name_validation', function () {

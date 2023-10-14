@@ -62,10 +62,10 @@
                                 <table>
                                     <thead>
                                     <tr>
-                                        <th><?php _e('Start Location', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
-                                        <th><?php _e('End Location', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
-                                        <th><?php _e('Price', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
-                                        <th class="_w_100"><?php _e('Action', 'mptbm_plugin'); ?></th>
+                                        <th><?php esc_html_e('Start Location', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
+                                        <th><?php esc_html_e('End Location', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
+                                        <th><?php esc_html_e('Price', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
+                                        <th class="_w_100"><?php esc_html_e('Action', 'mptbm_plugin'); ?></th>
                                     </tr>
                                     </thead>
                                     <tbody class="mp_sortable_area mp_item_insert">

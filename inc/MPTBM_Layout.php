@@ -14,7 +14,7 @@
 				?>
 				<label class="min_400 mptbm_post_id">
 					<select name="mptbm_id" class="formControl mp_select2" id="mptbm_post_id" required>
-						<option value="" selected><?php echo esc_html__('Select', 'mptbm_plugin') . ' ' . esc_html($label); ?></option>
+						<option value="" selected><?php esc_html_e('Select', 'mptbm_plugin') . ' ' . esc_html($label); ?></option>
 						<?php
 							$post_query = MP_Global_Function::query_post_type(MPTBM_Function::get_cpt());
 							$all_posts = $post_query->posts;
@@ -25,7 +25,7 @@
 									//$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
 									//$price_based_text = $price_based == 'manual' ? esc_html__('Manual', 'mptbm_plugin') : esc_html__('Dynamic', 'mptbm_plugin');
 									?>
-									<option value="<?php echo $post_id; ?>">
+									<option value="<?php echo esc_attr($post_id); ?>">
 										<?php echo get_the_title($post_id); ?>
 										<?php //echo esc_html($price_based_text) ?>
 									</option>

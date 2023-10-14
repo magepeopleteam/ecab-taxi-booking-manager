@@ -6,6 +6,7 @@
 	div.mptbm_distance_time h6 {font-size: var(--fs);color: var(--color_light_1);}
 	div.mptbm_distance_time strong {font-size: var(--fs);}
 	#mptbm_map_area { width: 100%; height: 100%; min-height: 200px;border-radius: 15px; }
+	div.mptbm_form_details_area #mptbm_map_area{min-height: 300px;}
 	div.mptbm_transport_summary,
 	div.mptbm_extra_service {display: none;}
 	div.mptbm_transport_search_area div[data-extra-service] {display: none;}
@@ -27,7 +28,7 @@
 	div.mptbm_transport_search_area .tabItemNext.active .circleTitle {font-weight: 600;color: #152C5B;}
 	div.mptbm_transport_search_area .tabItemNext [class*="circleIcon"]::after {top: 31px;border-color: #EAECEE;left: calc(50% + 31px);}
 	/*********************/
-	div.mptbm_transport_search_area .mptbm_search_area {padding: 40px;border-radius: var(--dBRL);margin: 0;}
+	div.mptbm_transport_search_area .mptbm_search_area {padding: 40px;border-radius: var(--dBRL);}
 	div.mptbm_transport_search_area .mptbm_search_area.inputHorizontal {max-width: 50%;}
 	div.mptbm_transport_search_area .mptbm_search_area h3 {text-transform: uppercase;color: #152C5B;}
 	div.mptbm_transport_search_area .mptbm_search_area label {font-weight: 400;color: #152C5B;}
@@ -38,6 +39,7 @@
 		-webkit-appearance: none;
 	}
 	div.mptbm_transport_search_area .mptbm_map_area {max-width: calc(50% - 30px);width: 50%;}
+	div.mptbm_form_details_area div.mptbm_map_area{max-width: 100%;width: 100%;}
 	div.mptbm_transport_search_area #mptbm_start_date.formControl {padding: var(--dMP_xs) 35px var(--dMP_xs) 60px;}
 	div.mptbm_transport_search_area div.mp_input_select .formControl {padding: var(--dMP_xs) 35px var(--dMP_xs) 60px;}
 	div.mptbm_transport_search_area .mptbm_left_icon { position: absolute; left: 1px; bottom: 1px; width: 45px !important; font-size: 25px; background-color: var(--color_theme); color: #FFF; border-radius: var(--dBR) 0 0 var(--dBR); height: 46px; margin: 0 !important;}
