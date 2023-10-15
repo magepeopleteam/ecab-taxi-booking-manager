@@ -135,7 +135,7 @@
 	div.mpStyle [class*="_fs_h5"] { font-size: var(--fs_h5); font-weight: var(--fw-medium); text-transform: inherit;}
 	div.mpStyle h6,
 	div.mpStyle [class*="_fs_h6"] { font-size: var(--fs_h6); font-weight: var(--fw-normal); text-transform: inherit;}
-	div.mpStyle label { font-size: var(--fs_label); font-weight: var(--fw-medium); }
+	div.mpStyle label,div.mpStyle [class*="_fs_label"]{ font-size: var(--fs_label); font-weight: var(--fw-medium); }
 	div.mpStyle .fs_50, div.mpStyle [class*="_fs_50"] {font-size: 50px;font-weight: var(--fw-medium);}
 }
 /******************************************************************** Flex Section ************************************************/
@@ -257,6 +257,7 @@
 	.mpStyle [class*="dButton"] { padding: 0 var(--dMP); min-width: var(--button_width); height: auto; min-height: var(--button_height); color: var(--color_button); background-color: var(--button_bg); }
 	.mpStyle [class*="dButton"] span { margin: 0 var(--dMP_xs) 0 0; }
 	.mpStyle .dButton, .mpStyle [class*="_dButton"] { color: var(--color_button); background-color: var(--button_bg); }
+	.mpStyle .dButton.mActive, .mpStyle [class*="_dButton"].mActive { color: var(--color_theme_alter); background-color: var(--color_theme); }
 	.mpStyle .dButton span, .mpStyle [class*="_dButton"] span { color: var(--color_button); }
 	/***/
 	.mpStyle .themeButton, .mpStyle [class*="_themeButton"] { background-color: var(--color_theme); color: var(--color_theme_alter); padding: var(--dMP_xs) var(--dMP); border: 2px solid var(--color_theme); }
@@ -346,6 +347,7 @@
 	div.mpStyle .margin, div.mpStyle [class*="_margin"] { margin: var(--dMP); }
 	div.mpStyle .mZero, div.mpStyle [class*="_mZero"], .mpStyle span[class*="_icon"] { margin: 0; }
 	div.mpStyle .mAuto, div.mpStyle [class*="_mAuto"] { margin: 0 auto; }
+	div.mpStyle .fullAuto, div.mpStyle [class*="_fullAuto"] { margin: auto; }
 	.mpStyle .mT, .mpStyle [class*="_mT"] { margin-top: var(--dMP); }
 	.mpStyle .mT_xs, .mpStyle [class*="_mT_xs"] { margin-top: var(--dMP_xs); }
 	.mpStyle .mT_25, .mpStyle [class*="_mT_25"] { margin-top: 25px; }
@@ -363,8 +365,9 @@
 	.mpStyle .mTB_xs, .mpStyle [class*="_mTB_xs"] { margin: var(--dMP_xs) 0; }
 	.mpStyle .mLR, .mpStyle [class*="_mLR"] { margin: 0 var(--dMP); }
 	.mpStyle .mLR_xs, .mpStyle [class*="_mLR_xs"] { margin: 0 var(--dMP_xs); }
+	.mpStyle .mTR_xs, .mpStyle [class*="_mTR_xs"] { margin: var(--dMP_xs)var(--dMP_xs) 0 0; }
 	/***************/
-	div.mpStyle .mp_zero { margin: 0; padding: 0; }
+	div.mpStyle .mp_zero ,div.mpStyle [class*="_mp_zero"]{ margin: 0; padding: 0; }
 	/***************/
 	.mpStyle .oAuto, .mpStyle [class*="_oAuto"] { overflow: auto; }
 	.mpStyle .ovAuto, .mpStyle [class*="_ovAuto"] { overflow: auto; }
@@ -821,7 +824,7 @@
 	.mpStyle .formControl:-webkit-autofill:active { -webkit-transition: color 9999s ease-out, background-color 9999s ease-out; transition: color 9999s ease-out, background-color 9999s ease-out; -webkit-transition-delay: 9999s; transition-delay: 9999s; }
 	div.mpStyle form { margin: 0; padding: 0; line-height: 1.25; }
 	.mpStyle label { position: relative; }
-	.mpStyle label span:not(.woocommerce-Price-currencySymbol) { margin: 0 var(--dMP_xs) 0 0;white-space: nowrap }
+	.mpStyle label>span{ white-space: nowrap }
 	/***************************/
 	.mpStyle .formControl::placeholder { color: #0005; }
 	.mpStyle .formControl:disabled { background-color: #DDD5; color: #FFF; }
@@ -833,6 +836,7 @@
 		-webkit-appearance: none; padding: var(--dMP_xs) 35px var(--dMP_xs) var(--dMP_xs);
 	}
 	div.mpStyle select.formControl:focus { background-color: var(--color_theme_aa); }
+	div.mpStyle .formControl.date_type_without_year,
 	div.mpStyle .formControl.date_type,
 	div.mpStyle .formControl[type='date'] {
 		background-image: url('../images/calendar.png');background-repeat: no-repeat; background-position: var(--dMP_xs) center; background-size: auto;
@@ -869,7 +873,7 @@
 	.mpStyle .inputInline .mpForm {width: 100%;max-width: 100%;}
 	.mpStyle .inputInline .inputList { width: 100%; margin: var(--dMP_xs) var(--dMP_xs) 0 0; }
 	.mpStyle .inputInline .inputList label{margin:0;}
-	.mpStyle .inputInline .inputList:last-child {margin: 0;}
+	.mpStyle .inputInline .inputList:last-child {margin-right:0;}
 	/********Form Horizontal**************/
 	.mpStyle .inputHorizontal { max-width: 500px; width: 100%;margin: 0 auto; }
 	/**********Checkbox Radio*********/
@@ -890,7 +894,7 @@
 	.mpStyle .customRadio.button_type::before,
 	.mpStyle .customRadio.button_type::after { display: none; }
 	/**********Checkbox Custom*********/
-	.mpStyle .customCheckbox { padding: 3px 0 0 30px; position: relative; line-height: 1; min-width: auto; }
+	.mpStyle .customCheckbox { padding: 3px 0 0 30px; position: relative; line-height: 1; min-width: auto; white-space: normal !important;}
 	.mpStyle .customCheckbox::before {
 		content: ""; position: absolute; left: 0; top: 0; height: 20px; width: 20px;
 		background-color: var(--color_theme_alter);
@@ -898,7 +902,7 @@
 	.mpStyle .customCheckboxLabel { padding: 0 0 10px 0; cursor: pointer; font-weight: var(--fw-medium); }
 	.mpStyle .customCheckboxLabel input:checked ~ .customCheckbox::before { background: var(--d_color); }
 	/*******************/
-	div.mpStyle .selectCheckbox { min-width: 150px; padding: var(--dMP_xs); width: auto; border: 1px solid var(--color_border); cursor: pointer; white-space: normal !important;}
+	div.mpStyle .selectCheckbox { min-width: 150px; padding: var(--dMP_xs); width: auto; border: 1px solid var(--color_border); cursor: pointer; }
 	div.mpStyle .customCheckboxLabel input[type="checkbox"],
 	div.mpStyle .selectCheckbox input[type='checkbox'] { display: none; }
 	div.mpStyle .selectCheckbox .customCheckbox::before { border: none; background-color: transparent; }
@@ -1041,6 +1045,7 @@
 	/******Tab next*********/
 	.mpStyle .mpTabsNext { }
 	.mpTabsNext .tabListsNext { display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; }
+	.mpTabsNext .tabListsNext.dNone{display:none;}
 	.mpTabsNext .tabItemNext {
 		position: relative; min-height: 80px;
 		display: -webkit-flex; display: flex;
@@ -1064,11 +1069,17 @@
 }
 /******************************************************************** Panel section ************************************************/
 @media only screen and (min-width: 10px) {
-	div.mpStyle .mpPanel { position: relative; border: 1px solid var(--color_border); border-radius: var(--dBR); }
-	div.mpStyle .mpPanelHeader { padding: 10px var(--dMP); background-color: #555; color: #FFF; }
+	div.mpStyle .mpPanel ,
+	div.mpStyle .mpPanel_xs{ position: relative; border: 1px solid var(--color_border); border-radius: var(--dBR); }
+	div.mpStyle .mpPanelHeader { padding: 10px var(--dMP); background-color: #555; color: #FFF;border-radius: var(--dBR) var(--dBR) 0 0; }
+
 	div.mpStyle .mpPanelHeader .panelTitle,
 	div.mpStyle .mpPanelHeader .panelTitle span { color: #FFF; }
-	div.mpStyle .mpPanelBody { padding: var(--dMP); background-color: var(--color_3); overflow-x: auto; }
+	div.mpStyle .mpPanelBody { padding: var(--dMP); background-color: var(--color_3); overflow-x: auto;border-radius: 0 0 var(--dBR) var(--dBR); }
+
+	div.mpStyle .mpPanel_xs .mpPanelHeader,
+	div.mpStyle .mpPanel_xs .mpPanelBody{padding: var(--dMP_xs); }
+	div.mpStyle .mpPanelBody.mp_zero{margin: 0;padding: 0;}
 }
 /******************************************************************** Faq section ************************************************/
 @media only screen and (min-width: 10px) {
@@ -1127,6 +1138,7 @@
 	div.mpStyle [class*="_h_200"] { height: 200px; }
 	/************************/
 	div.mpStyle [class*="_w_50"] { width: 50px; min-width: 50px; }
+	div.mpStyle [class*="_w_75"] { width: 75px; min-width: 75px; }
 	div.mpStyle [class*="_w_100"] { width: 100px; min-width: 100px; max-width: 100px;}
 	div.mpStyle [class*="_w_125"] { width: 125px; min-width: 125px; }
 	div.mpStyle [class*="_w_150"] { width: 150px; min-width: 150px; }
@@ -1365,11 +1377,14 @@
 	div.mpStyle .textLight_3, div.mpStyle [class*='_textLight_3'] { color: var(--color_light_3); }
 	div.mpStyle .bgLight_3, div.mpStyle [class*='_bgLight_3'] { background-color: var(--color_light_3); }
 	div.mpStyle .btLight_3, div.mpStyle [class*='_btLight_3'] { background-color: var(--color_light_3); color: var(--color_info);}
+	div.mpStyle .textLight_4, div.mpStyle [class*='_textLight_4'] { color: var(--color_light_4); }
+	div.mpStyle .bgLight_4, div.mpStyle [class*='_bgLight_4'] { background-color: var(--color_light_4); }
+	div.mpStyle .btLight_4, div.mpStyle [class*='_btLight_4'] { background-color: var(--color_light_4); color: var(--color_info);}
 	/*****Gray*********/
 	div.mpStyle .textGray, div.mpStyle [class*='_textGray'] { color: rgb(128, 128, 128); }
 	div.mpStyle .bgGray, div.mpStyle [class*='_bgGray'] { background-color: rgb(128, 128, 128); }
 	/*****Black*********/
-	div.mpStyle .textBlack, div.mpStyle [class*='_textBlack'] { color: var(--color_black); }
+	div.mpStyle .textBlack,	div.mpStyle a.textBlack, div.mpStyle [class*='_textBlack'], div.mpStyle a[class*='_textBlack'] { color: var(--color_black); }
 	div.mpStyle .bgBlack, div.mpStyle [class*='_bgBlack'] { background-color: var(--color_black);}
 	/*****yellow*********/
 	div.mpStyle .textYellow, div.textYellow, .mpStyle [class*='textYellow'] { color: var(--color_yellow); }

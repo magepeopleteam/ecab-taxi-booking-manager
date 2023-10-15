@@ -12,6 +12,8 @@
 	$date = $date ?? '';
 	$start_place = $start_place ?? '';
 	$end_place = $end_place ?? '';
+	$two_way = $two_way ?? 1;
+	$waiting_time = $waiting_time ?? 0;
 ?>
 	<div class="leftSidebar">
 		<div class="mp_sticky_area">
@@ -19,17 +21,27 @@
 				<div class="_dLayout_dFlex_fdColumn_btLight_2">
 					<h3><?php esc_html_e('SUMMERY', 'mptbm_plugin'); ?></h3>
 					<div class="dividerL"></div>
-					<h6 class="_mB_xs"><?php esc_html_e('Pick-Up Date', 'mptbm_plugin'); ?></h6>
+					<h6 class="_mB_xs"><?php esc_html_e('Pickup Date', 'mptbm_plugin'); ?></h6>
 					<p class="_textLight_1"><?php echo MP_Global_Function::date_format($date); ?></p>
 					<div class="dividerL"></div>
-					<h6 class="_mB_xs"><?php esc_html_e('Pick-Up Time', 'mptbm_plugin'); ?></h6>
+					<h6 class="_mB_xs"><?php esc_html_e('Pickup Time', 'mptbm_plugin'); ?></h6>
 					<p class="_textLight_1"><?php echo MP_Global_Function::date_format($date, 'time'); ?></p>
 					<div class="dividerL"></div>
-					<h6 class="_mB_xs"><?php esc_html_e('Pick-Up Location', 'mptbm_plugin'); ?></h6>
+					<h6 class="_mB_xs"><?php esc_html_e('Pickup Location', 'mptbm_plugin'); ?></h6>
 					<p class="_textLight_1"><?php echo esc_html($start_place); ?></p>
 					<div class="dividerL"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Drop-Off Location', 'mptbm_plugin'); ?></h6>
 					<p class="_textLight_1"><?php echo esc_html($end_place); ?></p>
+					<?php if($two_way>1){ ?>
+						<div class="dividerL"></div>
+						<h6 class="_mB_xs"><?php esc_html_e('Transfer Type', 'mptbm_plugin'); ?></h6>
+						<p class="_textLight_1"><?php esc_html_e('Return', 'mptbm_plugin'); ?></p>
+					<?php } ?>
+					<?php if($waiting_time>0){ ?>
+						<div class="dividerL"></div>
+						<h6 class="_mB_xs"><?php esc_html_e('Extra Waiting Hours', 'mptbm_plugin'); ?></h6>
+						<p class="_textLight_1"><?php echo esc_html($waiting_time); ?><?php esc_html_e('Hour', 'mptbm_plugin'); ?></p>
+					<?php } ?>
 					<div class="mptbm_transport_summary">
 						<div class="dividerL"></div>
 						<h6 class="_mB_xs"><?php echo esc_html($label) . ' ' . esc_html__(' Details', 'mptbm_plugin') ?></h6>

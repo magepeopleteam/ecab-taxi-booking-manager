@@ -16,11 +16,14 @@
 		$label = $label ?? MPTBM_Function::get_name();
 		$start_place = $start_place ?? MP_Global_Function::data_sanitize($_POST['start_place']);
 		$end_place = $end_place ?? MP_Global_Function::data_sanitize($_POST['end_place']);
+		$two_way = $two_way??1;
+		$waiting_time = $waiting_time??0;
+		
 		$location_exit = MPTBM_Function::location_exit($post_id, $start_place, $end_place);
 		if ($location_exit && $post_id) {
 			//$product_id = MP_Global_Function::get_post_info($post_id, 'link_wc_product');
 			$thumbnail = MP_Global_Function::get_image_url($post_id);
-			$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place);
+			$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place,$waiting_time,$two_way);
 			$wc_price = MP_Global_Function::wc_price($post_id, $price);
 			$raw_price = MP_Global_Function::price_convert_raw($wc_price);
 			$display_features = MP_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');

@@ -10,19 +10,23 @@
 	$price_based = $price_based ?? '';
 	$all_dates = MPTBM_Function::get_all_dates($price_based);
 	//echo '<pre>';print_r($all_dates);echo '</pre>';
-	$get_class = $price_based == 'manual' ? 'inputInline' : 'inputHorizontal';
+	$form_style = $form_style ?? 'horizontal';
+	$form_style_class = $form_style == 'horizontal' ? 'inputHorizontal' : 'inputInline';
+	$area_class = $price_based == 'manual' ? ' ' : 'justifyBetween';
+	$area_class = $form_style != 'horizontal' ? 'mptbm_form_details_area fdColumn' : $area_class;
 	if (sizeof($all_dates) > 0) {
+		$taxi_return = MPTBM_Function::get_general_settings('taxi_return', 'enable');
+		$waiting_time_check = MPTBM_Function::get_general_settings('taxi_waiting_time', 'enable');
 		?>
-		<div class="justifyBetween">
-			<div class="_dLayout mptbm_search_area <?php echo esc_attr($get_class); ?>">
-				<h3><?php esc_html_e('Start Booking', 'mptbm_plugin'); ?></h3>
+		<div class="<?php echo esc_attr($area_class); ?> ">
+			<div class="_dLayout mptbm_search_area <?php echo esc_attr($form_style_class); ?> <?php echo esc_attr($price_based == 'manual' ? 'mAuto' : ''); ?>">
 				<div class="mpForm">
 					<input type="hidden" name="mptbm_price_based" value="<?php echo esc_attr($price_based); ?>"/>
 					<input type="hidden" name="mptbm_post_id" value=""/>
 					<div class="inputList">
 						<label class="fdColumn">
 							<input type="hidden" id="mptbm_map_start_date" value=""/>
-							<span><?php esc_html_e('Pick-Up Date', 'mptbm_plugin'); ?></span>
+							<span><?php esc_html_e('Pickup Date', 'mptbm_plugin'); ?></span>
 							<input type="text" id="mptbm_start_date" class="formControl" placeholder="<?php esc_attr_e('Select Date', 'mptbm_plugin'); ?>" value="" readonly/>
 							<span class="far fa-calendar-alt mptbm_left_icon allCenter"></span>
 						</label>
@@ -30,7 +34,7 @@
 					<div class="inputList mp_input_select">
 						<input type="hidden" id="mptbm_map_start_time" value=""/>
 						<label class="fdColumn">
-							<span><?php esc_html_e('Pick-Up Time', 'mptbm_plugin'); ?></span>
+							<span><?php esc_html_e('Pickup Time', 'mptbm_plugin'); ?></span>
 							<input type="text" class="formControl" placeholder="<?php esc_html_e('Please Select Time', 'mptbm_plugin'); ?>" value="" readonly/>
 							<span class="far fa-clock mptbm_left_icon allCenter"></span>
 						</label>
@@ -42,7 +46,7 @@
 					</div>
 					<div class="inputList">
 						<label class="fdColumn ">
-							<span><i class="fas fa-map-marker-alt _textTheme_mR_xs"></i><?php esc_html_e('Pick-Up Location', 'mptbm_plugin'); ?></span>
+							<span><i class="fas fa-map-marker-alt _textTheme_mR_xs"></i><?php esc_html_e('Pickup Location', 'mptbm_plugin'); ?></span>
 							<?php if ($price_based == 'manual') { ?>
 								<?php $all_start_locations = MPTBM_Function::get_all_start_location(); ?>
 								<select id="mptbm_manual_start_place" class="formControl">
@@ -70,17 +74,51 @@
 							<?php } ?>
 						</label>
 					</div>
-					<?php if ($price_based != 'manual') { ?>
+				</div>
+				<div class="mpForm">
+					<?php if ($taxi_return == 'enable') { ?>
+						<div class="inputList">
+							<label class="fdColumn">
+								<span><?php esc_html_e('Transfer Type', 'mptbm_plugin'); ?></span>
+								<select class="formControl" name="mptbm_taxi_return">
+									<option value="1" selected><?php esc_html_e('One Way', 'mptbm_plugin'); ?></option>
+									<option value="2"><?php esc_html_e('Return', 'mptbm_plugin'); ?></option>
+								</select>
+							</label>
+						</div>
+					<?php } ?>
+					<?php if ($waiting_time_check == 'enable') { ?>
+						<div class="inputList">
+							<label class="fdColumn">
+								<span><?php esc_html_e('Extra Waiting Hours', 'mptbm_plugin'); ?></span>
+								<select class="formControl" name="mptbm_waiting_time">
+									<option value="" selected><?php esc_html_e('No Waiting', 'mptbm_plugin'); ?></option>
+									<option value="1"><?php esc_html_e('1 Hour', 'mptbm_plugin'); ?></option>
+									<option value="2"><?php esc_html_e('2 Hours', 'mptbm_plugin'); ?></option>
+									<option value="3"><?php esc_html_e('3 Hours', 'mptbm_plugin'); ?></option>
+									<option value="4"><?php esc_html_e('4 Hours', 'mptbm_plugin'); ?></option>
+									<option value="5"><?php esc_html_e('5 Hours', 'mptbm_plugin'); ?></option>
+									<option value="6"><?php esc_html_e('6 Hours', 'mptbm_plugin'); ?></option>
+								</select>
+							</label>
+						</div>
+					<?php } ?>
+					<?php if ($taxi_return != 'enable') { ?>
+						<div class="inputList"></div>
+					<?php } ?>
+					<?php if ($waiting_time_check != 'enable') { ?>
+						<div class="inputList"></div>
+					<?php } ?>
+					<div class="inputList"></div>
+					<?php if ($form_style == 'horizontal') { ?>
 						<div class="divider"></div>
 					<?php } ?>
 					<div class="inputList">
-						<div class="fdColumn justifyBetween fullHeight">
-							<span>&nbsp;</span>
-							<button type="button" class="_themeButton_fullWidth" id="mptbm_get_vehicle">
-								<span class="fas fa-search-location mR_xs"></span>
-								<?php esc_html_e('Search', 'mptbm_plugin'); ?>
-							</button>
-						</div>
+						<span>&nbsp;</span>
+						<button type="button" class="_themeButton_fullWidth" id="mptbm_get_vehicle">
+							<span class="fas fa-search-location mR_xs"></span>
+							<?php esc_html_e('Search', 'mptbm_plugin'); ?>
+						</button>
 					</div>
 				</div>
 			</div>

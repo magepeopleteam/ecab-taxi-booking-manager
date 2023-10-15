@@ -17,6 +17,8 @@
 				$distance_price = MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
 				$time_price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 				$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+				$waiting_time_check=MPTBM_Function::get_general_settings('taxi_waiting_time','enable');
+				$waiting_price = MP_Global_Function::get_post_info($post_id, 'mptbm_waiting_price');
 				?>
                 <div class="tabsItem" data-tabs="#mptbm_settings_pricing">
                     <h5><?php esc_html_e('Price Settings', 'mptbm_plugin'); ?></h5>
@@ -62,10 +64,10 @@
                                 <table>
                                     <thead>
                                     <tr>
-                                        <th><?php _e('Start Location', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
-                                        <th><?php _e('End Location', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
-                                        <th><?php _e('Price', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
-                                        <th class="_w_100"><?php _e('Action', 'mptbm_plugin'); ?></th>
+                                        <th><?php esc_html_e('Start Location', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
+                                        <th><?php esc_html_e('End Location', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
+                                        <th><?php esc_html_e('Price', 'mptbm_plugin'); ?><span class="textRequired">&nbsp;*</span></th>
+                                        <th class="_w_100"><?php esc_html_e('Action', 'mptbm_plugin'); ?></th>
                                     </tr>
                                     </thead>
                                     <tbody class="mp_sortable_area mp_item_insert">
@@ -82,6 +84,17 @@
 								<?php $this->hidden_manual_price_item(); ?>
                             </td>
                         </tr>
+                        <?php if($waiting_time_check=='enable'){ ?>
+	                        <tr>
+		                        <th> <?php esc_html_e('Waiting Time Price/Hour', 'mptbm_plugin'); ?> </th>
+		                        <td>
+			                        <label>
+				                        <input class="formControl mp_price_validation" name="mptbm_waiting_price" value="<?php echo esc_attr($waiting_price); ?>" type="text" placeholder="<?php esc_html_e('EX:10', 'mptbm_plugin'); ?>"/>
+			                        </label>
+		                        </td>
+		                        <td></td>
+	                        </tr>
+                        <?php } ?>
                         </tbody>
                     </table>
                 </div>
@@ -150,6 +163,8 @@
 						}
 					}
 					update_post_meta($post_id, 'mptbm_manual_price_info', $manual_price_infos);
+					$waiting_price = MP_Global_Function::get_submit_info('mptbm_waiting_price');
+					update_post_meta($post_id, 'mptbm_waiting_price', $waiting_price);
 				}
 			}
 		}
