@@ -107,6 +107,8 @@ function mptbmCreateMarker(place) {
 		let start_place;
 		let end_place;
 		let price_based = parent.find('[name="mptbm_price_based"]').val();
+		let two_way = parent.find('[name="mptbm_taxi_return"]').val();
+		let waiting_time = parent.find('[name="mptbm_waiting_time"]').val();
 		if (price_based === 'manual') {
 			start_place = document.getElementById('mptbm_manual_start_place');
 			end_place = document.getElementById('mptbm_manual_end_place');
@@ -142,6 +144,8 @@ function mptbmCreateMarker(place) {
 						"start_date": start_date,
 						"start_time": start_time,
 						"price_based": price_based,
+						"two_way": two_way,
+						"waiting_time": waiting_time,
 					},
 					beforeSend: function () {
 						//dLoader(target);
@@ -158,6 +162,16 @@ function mptbmCreateMarker(place) {
 				});
 			}
 		}
+	});
+	$(document).on("change", "#mptbm_map_start_date", function () {
+		let parent = $(this).closest('.mptbm_transport_search_area');
+		mptbm_content_refresh(parent);
+		parent.find('#mptbm_map_start_time').closest('.mp_input_select').find('input.formControl').trigger('click');
+	});
+	$(document).on("change", "#mptbm_map_start_time", function () {
+		let parent = $(this).closest('.mptbm_transport_search_area');
+		mptbm_content_refresh(parent);
+		parent.find('#mptbm_map_start_place').focus();
 	});
 	$(document).on("change", "#mptbm_manual_start_place", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
@@ -214,15 +228,13 @@ function mptbmCreateMarker(place) {
 			parent.find('#mptbm_map_start_place').focus();
 		}
 	});
-	$(document).on("change", "#mptbm_map_start_date", function () {
+	$(document).on("change", ".mptbm_transport_search_area [name='mptbm_taxi_return']", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
 		mptbm_content_refresh(parent);
-		parent.find('#mptbm_map_start_time').closest('.mp_input_select').find('input.formControl').trigger('click');
 	});
-	$(document).on("change", "#mptbm_map_start_time", function () {
+	$(document).on("change", ".mptbm_transport_search_area [name='mptbm_waiting_time']", function () {
 		let parent = $(this).closest('.mptbm_transport_search_area');
 		mptbm_content_refresh(parent);
-		parent.find('#mptbm_map_start_place').focus();
 	});
 }(jQuery));
 function mptbm_content_refresh(parent) {
@@ -357,6 +369,8 @@ function mptbm_price_calculation(parent) {
 		let target_checkout = parent.find('.mptbm_checkout_area');
 		let start_place = parent.find('[name="mptbm_start_place"]').val();
 		let end_place = parent.find('[name="mptbm_end_place"]').val();
+		let mptbm_waiting_time = parent.find('[name="mptbm_waiting_time"]').val();
+		let mptbm_taxi_return = parent.find('[name="mptbm_taxi_return"]').val();
 		let post_id = parent.find('[name="mptbm_post_id"]').val();
 		let date = parent.find('[name="mptbm_date"]').val();
 		let link_id = $(this).attr('data-wc_link_id');
@@ -383,6 +397,8 @@ function mptbm_price_calculation(parent) {
 					"link_id": link_id,
 					"mptbm_start_place": start_place,
 					"mptbm_end_place": end_place,
+					"mptbm_waiting_time": mptbm_waiting_time,
+					"mptbm_taxi_return": mptbm_taxi_return,
 					"mptbm_date": date,
 					"mptbm_extra_service": extra_service_name,
 					"mptbm_extra_service_qty": extra_service_qty,

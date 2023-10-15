@@ -102,6 +102,28 @@
 							)
 						),
 						array(
+							'name' => 'taxi_return',
+							'label' => esc_html__('Disable/ Enable Taxi Return', 'mptbm_plugin'),
+							'desc' => esc_html__('If you want to disable taxi return, please select disable. default enable', 'mptbm_plugin'),
+							'type' => 'select',
+							'default' => 'enable',
+							'options' => array(
+								'enable' => esc_html__('Enable', 'mptbm_plugin'),
+								'disable' => esc_html__('Disabled', 'mptbm_plugin')
+							)
+						),
+						array(
+							'name' => 'taxi_waiting_time',
+							'label' => esc_html__('Disable/ Enable Taxi Waiting Time', 'mptbm_plugin'),
+							'desc' => esc_html__('If you want to disable taxi Waiting Time, please select disable. default enable', 'mptbm_plugin'),
+							'type' => 'select',
+							'default' => 'enable',
+							'options' => array(
+								'enable' => esc_html__('Enable', 'mptbm_plugin'),
+								'disable' => esc_html__('Disabled', 'mptbm_plugin')
+							)
+						),
+						array(
 							'name' => 'date_format',
 							'label' => esc_html__('Date Picker Format', 'mptbm_plugin'),
 							'desc' => esc_html__('If you want to change Date Picker Format, please select format. Default  is D d M , yy.', 'mptbm_plugin'),

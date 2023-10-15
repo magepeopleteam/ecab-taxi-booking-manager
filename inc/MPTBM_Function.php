@@ -145,9 +145,10 @@
 				return $all_dates;
 			}
 			//*************Price*********************************//
-			public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = ''): string {
+			public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '',$waiting_time=0,$two_way=1) {
 				$price = '';
 				$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
+				$waiting_price=MP_Global_Function::get_post_info($post_id,'mptbm_waiting_price',0)*$waiting_time;
 				if ($price_based == 'distance') {
 					$price = MP_Global_Function::get_post_info($post_id, 'mptbm_km_price') * $distance / 1000;
 				}
@@ -168,6 +169,12 @@
 							}
 						}
 					}
+				}
+				if($two_way>1){
+					$price=$price*2;
+				}
+				if($waiting_time>0){
+					$price=$price+$waiting_price;
 				}
 				return $price;
 			}

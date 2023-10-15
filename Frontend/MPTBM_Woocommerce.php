@@ -31,14 +31,18 @@
 					$start_place = MP_Global_Function::get_submit_info('mptbm_start_place');
 					$end_place = MP_Global_Function::get_submit_info('mptbm_end_place');
 					$total_price = $this->get_cart_total_price($post_id);
+					$waiting_time = MP_Global_Function::get_submit_info('mptbm_waiting_time', 0);
+					$return = MP_Global_Function::get_submit_info('mptbm_taxi_return', 1);
 					$cart_item_data['mptbm_date'] = MP_Global_Function::get_submit_info('mptbm_date');
+					$cart_item_data['mptbm_taxi_return'] = $return;
+					$cart_item_data['mptbm_waiting_time'] = $waiting_time;
 					$cart_item_data['mptbm_start_place'] = wp_strip_all_tags($start_place);
 					$cart_item_data['mptbm_end_place'] = wp_strip_all_tags($end_place);
 					$cart_item_data['mptbm_distance'] = $distance;
 					$cart_item_data['mptbm_distance_text'] = $_COOKIE['mptbm_distance_text'] ?? '';
 					$cart_item_data['mptbm_duration'] = $duration;
 					$cart_item_data['mptbm_duration_text'] = $_COOKIE['mptbm_duration_text'] ?? '';
-					$cart_item_data['mptbm_base_price'] = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place);
+					$cart_item_data['mptbm_base_price'] = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $return);
 					$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info($post_id);
 					$cart_item_data['mptbm_tp'] = $total_price;
 					$cart_item_data['line_total'] = $total_price;
@@ -101,15 +105,23 @@
 					$duration = $values['mptbm_duration'] ?? '';
 					$duration_text = $values['mptbm_duration_text'] ?? '';
 					$base_price = $values['mptbm_base_price'] ?? '';
+					$return = $values['mptbm_taxi_return'] ?? '';
+					$waiting_time = $values['mptbm_waiting_time'] ?? '';
 					$extra_service = $values['mptbm_extra_service_info'] ?? [];
 					$price = $values['mptbm_tp'] ?? '';
-					$item->add_meta_data(esc_html__('Pick-Up Location ', 'mptbm_plugin'), $start_location);
+					$item->add_meta_data(esc_html__('Pickup Location ', 'mptbm_plugin'), $start_location);
 					$item->add_meta_data(esc_html__('Drop-Off Location ', 'mptbm_plugin'), $end_location);
 					$item->add_meta_data(esc_html__('Approximate Distance ', 'mptbm_plugin'), $distance_text);
 					$item->add_meta_data(esc_html__('Approximate Time ', 'mptbm_plugin'), $duration_text);
+					if ($return > 1) {
+						$item->add_meta_data(esc_html__('Transfer Type', 'mptbm_plugin'), esc_html__('Return ', 'mptbm_plugin'));
+					}
+					if ($waiting_time > 0) {
+						$item->add_meta_data(esc_html__('Extra Waiting Hours', 'mptbm_plugin'), $waiting_time . ' ' . esc_html__('Hour ', 'mptbm_plugin'));
+					}
 					$item->add_meta_data(esc_html__('Date ', 'mptbm_plugin'), MP_Global_Function::date_format($date));
 					$item->add_meta_data(esc_html__('Time ', 'mptbm_plugin'), MP_Global_Function::date_format($date, 'time'));
-					$item->add_meta_data(esc_html__('Price ', 'mptbm_plugin'), MP_Global_Function::wc_price( $post_id,$base_price));
+					$item->add_meta_data(esc_html__('Price ', 'mptbm_plugin'), MP_Global_Function::wc_price($post_id, $base_price));
 					if (sizeof($extra_service) > 0) {
 						$item->add_meta_data(esc_html__('Optional Service ', 'mptbm_plugin'), '');
 						foreach ($extra_service as $service) {
@@ -122,6 +134,8 @@
 					$item->add_meta_data('_mptbm_date', $date);
 					$item->add_meta_data('_mptbm_start_place', $start_location);
 					$item->add_meta_data('_mptbm_end_place', $end_location);
+					$item->add_meta_data('_mptbm_taxi_return', $return);
+					$item->add_meta_data('_mptbm_waiting_time', $waiting_time);
 					$item->add_meta_data('_mptbm_distance', $distance);
 					$item->add_meta_data('_mptbm_distance_text', $distance_text);
 					$item->add_meta_data('_mptbm_duration', $duration);
@@ -150,6 +164,10 @@
 								$start_place = $start_place ? MP_Global_Function::data_sanitize($start_place) : '';
 								$end_place = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_end_place');
 								$end_place = $end_place ? MP_Global_Function::data_sanitize($end_place) : '';
+								$waiting_time = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_waiting_time');
+								$waiting_time = $waiting_time ? MP_Global_Function::data_sanitize($waiting_time) : '';
+								$return = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_taxi_return');
+								$return = $return ? MP_Global_Function::data_sanitize($return) : '';
 								$distance = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_distance');
 								$distance = $distance ? MP_Global_Function::data_sanitize($distance) : '';
 								$duration = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_duration');
@@ -164,6 +182,8 @@
 								$data['mptbm_date'] = $date;
 								$data['mptbm_start_place'] = $start_place;
 								$data['mptbm_end_place'] = $end_place;
+								$data['mptbm_waiting_time'] = $waiting_time;
+								$data['mptbm_taxi_return'] = $return;
 								$data['mptbm_distance'] = $distance;
 								$data['mptbm_duration'] = $duration;
 								$data['mptbm_base_price'] = $base_price;
@@ -357,7 +377,9 @@
 				$duration = $_COOKIE['mptbm_duration'] ?? '';
 				$start_place = MP_Global_Function::get_submit_info('mptbm_start_place');
 				$end_place = MP_Global_Function::get_submit_info('mptbm_end_place');
-				$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place);
+				$waiting_time = MP_Global_Function::get_submit_info('mptbm_waiting_time', 0);
+				$return = MP_Global_Function::get_submit_info('mptbm_taxi_return', 1);
+				$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $return);
 				$wc_price = MP_Global_Function::wc_price($post_id, $price);
 				$raw_price = MP_Global_Function::price_convert_raw($wc_price);
 				$service_name = MP_Global_Function::get_submit_info('mptbm_extra_service', array());
