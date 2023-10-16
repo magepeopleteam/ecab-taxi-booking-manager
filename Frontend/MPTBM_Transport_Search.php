@@ -28,6 +28,7 @@
 				$price_based = $params['price_based'] ?: 'dynamic';
 				$progressbar = $params['progressbar'] ?: 'yes';
 				$form_style= $params['form'] ?: 'horizontal';
+				$map= $params['map'] ?: 'yes';
 				echo do_shortcode('[shop_messages]');
 				//echo '<pre>';print_r($params);echo '</pre>';
 				include(MPTBM_Function::template_path('registration/registration_layout.php'));
