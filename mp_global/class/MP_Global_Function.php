@@ -20,24 +20,44 @@
 				);
 				return new WP_Query($args);
 			}
-			public static function get_all_post_id($post_type, $show = -1, $page = 1): array {
-				return get_posts(array(
+			public static function get_all_post_id($post_type, $show = -1, $page = 1, $status = 'publish'): array {
+				$all_data = get_posts(array(
 					'fields' => 'ids',
 					'post_type' => $post_type,
 					'posts_per_page' => $show,
 					'paged' => $page,
-					'post_status' => 'publish'
+					'post_status' => $status
 				));
-			}
-			public static function get_taxonomy($name) {
-				return get_terms(array('taxonomy' => $name, 'hide_empty' => false));
+				return array_unique($all_data);
 			}
 			public static function get_post_info($post_id, $key, $default = '') {
 				$data = get_post_meta($post_id, $key, true) ?: $default;
 				return self::data_sanitize($data);
 			}
+			//***********************************//
+			public static function get_taxonomy($name) {
+				return get_terms(array('taxonomy' => $name, 'hide_empty' => false));
+			}
+			public static function get_term_meta($meta_id, $meta_key, $default = '') {
+				$data = get_term_meta($meta_id, $meta_key, true) ?: $default;
+				return self::data_sanitize($data);
+			}
+			public static function get_all_term_data($term_name, $value = 'name') {
+				$all_data = [];
+				$taxonomies = self::get_taxonomy($term_name);
+				if ($taxonomies && sizeof($taxonomies) > 0) {
+					foreach ($taxonomies as $taxonomy) {
+						$all_data[] = $taxonomy->$value;
+					}
+				}
+				return $all_data;
+			}
+			//***********************************//
 			public static function get_submit_info($key, $default = '') {
 				return self::data_sanitize($_POST[$key] ?? $default);
+			}
+			public static function get_submit_info_get_method($key, $default = '') {
+				return self::data_sanitize($_GET[$key] ?? $default);
 			}
 			public static function data_sanitize($data) {
 				$data = maybe_unserialize($data);
@@ -63,8 +83,23 @@
 				return $data;
 			}
 			//**************Date related*********************//
-			public static function date_picker_format($option, $key = 'date_format'): string {
-				$format = MP_Global_Function::get_settings($option, $key, 'D d M , yy');
+			public static function date_picker_format_without_year($key = 'date_format'): string {
+				$format = MP_Global_Function::get_settings('mp_global_settings', $key, 'D d M , yy');
+				$date_format = 'm-d';
+				$date_format = $format == 'yy/mm/dd' ? 'm/d' : $date_format;
+				$date_format = $format == 'yy-dd-mm' ? 'd-m' : $date_format;
+				$date_format = $format == 'yy/dd/mm' ? 'd/m' : $date_format;
+				$date_format = $format == 'dd-mm-yy' ? 'd-m' : $date_format;
+				$date_format = $format == 'dd/mm/yy' ? 'd/m' : $date_format;
+				$date_format = $format == 'mm-dd-yy' ? 'm-d' : $date_format;
+				$date_format = $format == 'mm/dd/yy' ? 'm/d' : $date_format;
+				$date_format = $format == 'd M , yy' ? 'j M' : $date_format;
+				$date_format = $format == 'D d M , yy' ? 'D j M' : $date_format;
+				$date_format = $format == 'M d , yy' ? 'M  j' : $date_format;
+				return $format == 'D M d , yy' ? 'D M  j' : $date_format;
+			}
+			public static function date_picker_format($key = 'date_format'): string {
+				$format = MP_Global_Function::get_settings('mp_global_settings', $key, 'D d M , yy');
 				$date_format = 'Y-m-d';
 				$date_format = $format == 'yy/mm/dd' ? 'Y/m/d' : $date_format;
 				$date_format = $format == 'yy-dd-mm' ? 'Y-d-m' : $date_format;
@@ -167,6 +202,19 @@
 			public static function sort_date($a, $b) {
 				return strtotime($a) - strtotime($b);
 			}
+			public static function sort_date_array($a, $b) {
+				$dateA = strtotime($a['time']);
+				$dateB = strtotime($b['time']);
+				if ($dateA == $dateB) {
+					return 0;
+				}
+				elseif ($dateA > $dateB) {
+					return 1;
+				}
+				else {
+					return -1;
+				}
+			}
 			//***********************************//
 			public static function get_settings($section, $key, $default = '') {
 				$options = get_option($section);
@@ -255,6 +303,10 @@
 				$display_suffix = get_option('woocommerce_price_display_suffix') ? get_option('woocommerce_price_display_suffix') : '';
 				return wc_price($return_price) . ' ' . $display_suffix;
 			}
+			public static function get_wc_raw_price($post_id, $price, $args = array()) {
+				$price = self::wc_price($post_id, $price, $args = array());
+				return self::price_convert_raw($price);
+			}
 			//***********************************//
 			public static function get_image_url($post_id = '', $image_id = '', $size = 'full') {
 				if ($post_id) {
@@ -327,13 +379,13 @@
 			}
 			public static function week_day(): array {
 				return [
-					'monday' => esc_html__('Monday', 'mage-eventpress'),
-					'tuesday' => esc_html__('Tuesday', 'mage-eventpress'),
-					'wednesday' => esc_html__('Wednesday', 'mage-eventpress'),
-					'thursday' => esc_html__('Thursday', 'mage-eventpress'),
-					'friday' => esc_html__('Friday', 'mage-eventpress'),
-					'saturday' => esc_html__('Saturday', 'mage-eventpress'),
-					'sunday' => esc_html__('Sunday', 'mage-eventpress'),
+					'monday' => esc_html__('Monday', 'mptbm_plugin'),
+					'tuesday' => esc_html__('Tuesday', 'mptbm_plugin'),
+					'wednesday' => esc_html__('Wednesday', 'mptbm_plugin'),
+					'thursday' => esc_html__('Thursday', 'mptbm_plugin'),
+					'friday' => esc_html__('Friday', 'mptbm_plugin'),
+					'saturday' => esc_html__('Saturday', 'mptbm_plugin'),
+					'sunday' => esc_html__('Sunday', 'mptbm_plugin'),
 				];
 			}
 			public static function get_plugin_data($data) {
@@ -473,7 +525,7 @@
 				return wp_kses($string, $allow_attr);
 			}
 			//***********************************//
-			public static function get_country_list(){
+			public static function get_country_list() {
 				return array(
 					'AF' => 'Afghanistan',
 					'AX' => 'Aland Islands',

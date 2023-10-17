@@ -61,7 +61,7 @@
 			}
 			//************************//
 			public static function get_general_settings($key, $default = '') {
-				return MP_Global_Function::get_settings('mptbm_general_settings', $key, $default);
+				return MP_Global_Function::get_settings('MPTBM_General_Settings', $key, $default);
 			}
 			public static function get_cpt(): string {
 				return 'mptbm_rent';
@@ -145,7 +145,7 @@
 				return $all_dates;
 			}
 			//*************Price*********************************//
-			public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '',$waiting_time=0,$two_way=1) {
+			public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '',$waiting_time=0,$two_way=1,$fixed_time=0) {
 				$price = '';
 				$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
 				$waiting_price=MP_Global_Function::get_post_info($post_id,'mptbm_waiting_price',0)*$waiting_time;
@@ -157,6 +157,9 @@
 				}
 				elseif ($price_based == 'distance_duration') {
 					$price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price') * $duration / 3600 + MP_Global_Function::get_post_info($post_id, 'mptbm_km_price') * $distance / 1000;
+				}
+				elseif ($price_based == 'fixed_hourly') {
+					$price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price')*$fixed_time;
 				}
 				else {
 					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);

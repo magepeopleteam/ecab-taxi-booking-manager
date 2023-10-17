@@ -14,6 +14,7 @@
 	$end_place = isset($_POST['end_place']) ? MP_Global_Function::data_sanitize($_POST['end_place']) : '';
 	$two_way = isset($_POST['two_way']) ? MP_Global_Function::data_sanitize($_POST['two_way']) : 1;
 	$waiting_time = isset($_POST['waiting_time']) ? MP_Global_Function::data_sanitize($_POST['waiting_time']) : 0;
+	$fixed_time = isset($_POST['fixed_time']) ? MP_Global_Function::data_sanitize($_POST['fixed_time']) : '';
 ?>
 	<div data-tabs-next="#mptbm_search_result" class="mptbm_map_search_result">
 		<input type="hidden" name="mptbm_post_id" value="" data-price=""/>
@@ -22,6 +23,7 @@
 		<input type="hidden" name="mptbm_date" value="<?php echo esc_attr($date); ?>"/>
 		<input type="hidden" name="mptbm_taxi_return" value="<?php echo esc_attr($two_way); ?>"/>
 		<input type="hidden" name="mptbm_waiting_time" value="<?php echo esc_attr($waiting_time); ?>"/>
+		<input type="hidden" name="mptbm_fixed_hours" value="<?php echo esc_attr($fixed_time); ?>"/>
 		<div class="mp_sticky_section">
 			<div class="flexWrap">
 				<?php include(MPTBM_Function::template_path('registration/summary.php')); ?>

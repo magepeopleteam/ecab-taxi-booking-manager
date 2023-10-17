@@ -30,22 +30,21 @@
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Status.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Guideline.php';
 				//****************Global settings************************//
-				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/global/MAGE_Setting_API.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/global/MPTBM_Settings_Global.php';
+				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Settings_Global.php';
 				//****************Taxi settings************************//
-				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/taxi/MPTBM_Settings.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/taxi/MPTBM_General_Settings.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/taxi/MPTBM_Price_Settings.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/taxi/MPTBM_Extra_Service.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/taxi/MPTBM_Date_Settings.php';
-				//require_once MPTBM_PLUGIN_DIR . '/Admin/settings/taxi/MPTBM_Gallery_Settings.php';
+				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Settings.php';
+				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_General_Settings.php';
+				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Price_Settings.php';
+				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Extra_Service.php';
+				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Date_Settings.php';
+				//require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Gallery_Settings.php';
 			}
 			public function add_dummy_data() {
 				new MPTBM_Dummy_Import();
 			}
 			//************Disable Gutenberg************************//
 			public function disable_gutenberg($current_status, $post_type) {
-				$user_status = MPTBM_Function::get_general_settings('disable_block_editor', 'yes');
+				$user_status = MP_Global_Function::get_settings('mp_global_settings', 'disable_block_editor', 'yes');
 				if ($post_type === MPTBM_Function::get_cpt() && $user_status == 'yes') {
 					return false;
 				}

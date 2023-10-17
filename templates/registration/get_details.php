@@ -116,7 +116,7 @@
 									<option value="6"><?php esc_html_e('6 Hours', 'mptbm_plugin'); ?></option>
 									<option value="7"><?php esc_html_e('7 Hours', 'mptbm_plugin'); ?></option>
 									<option value="8"><?php esc_html_e('8 Hours', 'mptbm_plugin'); ?></option>
-									<option value="9"><?php esc_html_e(' Hours', 'mptbm_plugin'); ?></option>
+									<option value="9"><?php esc_html_e('9 Hours', 'mptbm_plugin'); ?></option>
 									<option value="10"><?php esc_html_e('10 Hours', 'mptbm_plugin'); ?></option>
 									<option value="11"><?php esc_html_e('11 Hours', 'mptbm_plugin'); ?></option>
 									<option value="12"><?php esc_html_e('12 Hours', 'mptbm_plugin'); ?></option>

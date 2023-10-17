@@ -58,7 +58,7 @@
 									<?php } ?>
 									
 									<?php for ($i = 0; $i < $total_page; $i++) { ?>
-										<button class="_mpBtn_xs <?php echo esc_attr($i == $active_page ? 'active_pagination' : ''); ?>" type="button" data-pagination="<?php echo esc_attr($i); ?>"><?php echo esc_html($i + 1); ?></button>
+										<button class="_mpBtn_xs <?php echo esc_html($i) == $active_page ? 'active_pagination' : ''; ?>" type="button" data-pagination="<?php echo esc_html($i); ?>"><?php echo esc_html($i + 1); ?></button>
 									<?php } ?>
 									
 									<?php if ($total_page > 5) { ?>
@@ -140,6 +140,16 @@
 				<?php
 			}
 			/*****************************/
+			public static function bg_image($post_id='',$url='') {
+				$thumbnail = $post_id>0?MP_Global_Function::get_image_url($post_id):$url;
+				$post_url=$post_id>0?get_the_permalink($post_id):'';
+				?>
+				<div class="bg_image_area" data-href="<?php echo esc_attr($post_url); ?>" data-placeholder>
+					<div data-bg-image="<?php echo esc_attr($thumbnail); ?>"></div>
+				</div>
+				<?php
+			}
+			/*****************************/
 			public static function load_more_text($text = '', $length = 150) {
 				$text_length = strlen($text);
 				if ($text && $text_length > $length) {
@@ -160,29 +170,47 @@
 				}
 			}
 			/*****************************/
-			public static function qty_input($input_name, $price, $available_seat = 1, $default_qty = 0, $min_qty = 0, $max_qty = '') {
+			public static function qty_input($input_name, $price, $available_seat = 1, $default_qty = 0, $min_qty = 0, $max_qty = '', $input_type = '',$text='') {
 				$min_qty = max($default_qty, $min_qty);
 				if ($available_seat > $min_qty) {
-					?>
-					<div class="groupContent qtyIncDec">
-						<div class="decQty addonGroupContent">
-							<span class="fas fa-minus"></span>
+					if ($input_type != 'dropdown') {
+						?>
+						<div class="groupContent qtyIncDec">
+							<div class="decQty addonGroupContent">
+								<span class="fas fa-minus"></span>
+							</div>
+							<label>
+								<input type="text"
+									class="formControl inputIncDec mp_number_validation"
+									data-price="<?php echo esc_attr($price); ?>"
+									name="<?php echo esc_attr($input_name); ?>"
+									value="<?php echo esc_attr(max(0, $default_qty)); ?>"
+									min="<?php echo esc_attr($min_qty); ?>"
+									max="<?php echo esc_attr($max_qty > 0 ? $max_qty : $available_seat); ?>"
+								/>
+							</label>
+							<div class="incQty addonGroupContent">
+								<span class="fas fa-plus"></span>
+							</div>
 						</div>
+						<?php
+					}
+					else {
+						?>
 						<label>
-							<input type="text"
-								class="formControl inputIncDec mp_number_validation"
-								data-price="<?php echo esc_attr($price); ?>"
-								name="<?php echo esc_attr($input_name); ?>"
-								value="<?php echo esc_attr(max(0, $default_qty)); ?>"
-								min="<?php echo esc_attr($min_qty); ?>"
-								max="<?php echo esc_attr($max_qty > 0 ? $max_qty : $available_seat); ?>"
-							/>
+							<select name="<?php echo esc_attr($input_name); ?>" data-price="<?php echo esc_attr($price); ?>" class="formControl">
+								<option selected value="0"><?php echo esc_html__('Please select', 'mptbm_plugin').' '.$text; ?></option>
+								<?php
+									$max_total = $max_qty > 0 ? $max_qty : $available_seat;
+									$min_value=max(1,$min_qty);
+									for ($i = $min_value; $i <= $max_total; $i++) {
+										?>
+										<option value="<?php echo esc_html($i); ?>"> <?php echo esc_html($i).' '.$text; ; ?> </option>
+									<?php } ?>
+							</select>
 						</label>
-						<div class="incQty addonGroupContent">
-							<span class="fas fa-plus"></span>
-						</div>
-					</div>
-					<?php
+						<?php
+					}
 				}
 			}
 		}

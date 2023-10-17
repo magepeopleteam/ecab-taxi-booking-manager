@@ -109,6 +109,7 @@ function mptbmCreateMarker(place) {
 		let price_based = parent.find('[name="mptbm_price_based"]').val();
 		let two_way = parent.find('[name="mptbm_taxi_return"]').val();
 		let waiting_time = parent.find('[name="mptbm_waiting_time"]').val();
+		let fixed_time = parent.find('[name="mptbm_fixed_hours"]').val();
 		if (price_based === 'manual') {
 			start_place = document.getElementById('mptbm_manual_start_place');
 			end_place = document.getElementById('mptbm_manual_end_place');
@@ -146,6 +147,7 @@ function mptbmCreateMarker(place) {
 						"price_based": price_based,
 						"two_way": two_way,
 						"waiting_time": waiting_time,
+						"fixed_time": fixed_time,
 					},
 					beforeSend: function () {
 						//dLoader(target);
@@ -371,6 +373,7 @@ function mptbm_price_calculation(parent) {
 		let end_place = parent.find('[name="mptbm_end_place"]').val();
 		let mptbm_waiting_time = parent.find('[name="mptbm_waiting_time"]').val();
 		let mptbm_taxi_return = parent.find('[name="mptbm_taxi_return"]').val();
+		let mptbm_fixed_hours = parent.find('[name="mptbm_fixed_hours"]').val();
 		let post_id = parent.find('[name="mptbm_post_id"]').val();
 		let date = parent.find('[name="mptbm_date"]').val();
 		let link_id = $(this).attr('data-wc_link_id');
@@ -399,6 +402,7 @@ function mptbm_price_calculation(parent) {
 					"mptbm_end_place": end_place,
 					"mptbm_waiting_time": mptbm_waiting_time,
 					"mptbm_taxi_return": mptbm_taxi_return,
+					"mptbm_fixed_hours": mptbm_fixed_hours,
 					"mptbm_date": date,
 					"mptbm_extra_service": extra_service_name,
 					"mptbm_extra_service_qty": extra_service_qty,

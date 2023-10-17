@@ -7,6 +7,7 @@
 		die;
 	} // Cannot access pages directly
 	$post_id = $post_id ?? '';
+	$fixed_time = $fixed_time ?? 0;
 	$start_date = $start_date ?? MP_Global_Function::data_sanitize($_POST['start_date']);
 	$start_date = date('Y-m-d', strtotime($start_date));
 	$all_dates = MPTBM_Function::get_date($post_id);
@@ -23,7 +24,7 @@
 		if ($location_exit && $post_id) {
 			//$product_id = MP_Global_Function::get_post_info($post_id, 'link_wc_product');
 			$thumbnail = MP_Global_Function::get_image_url($post_id);
-			$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place,$waiting_time,$two_way);
+			$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place,$waiting_time,$two_way,$fixed_time);
 			$wc_price = MP_Global_Function::wc_price($post_id, $price);
 			$raw_price = MP_Global_Function::price_convert_raw($wc_price);
 			$display_features = MP_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');

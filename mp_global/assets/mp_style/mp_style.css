@@ -873,7 +873,7 @@
 	.mpStyle .inputInline .mpForm {width: 100%;max-width: 100%;}
 	.mpStyle .inputInline .inputList { width: 100%; margin: var(--dMP_xs) var(--dMP_xs) 0 0; }
 	.mpStyle .inputInline .inputList label{margin:0;}
-	.mpStyle .inputInline .inputList:last-child {margin-right:0;}
+	.mpStyle .inputInline .inputList:last-child {margin-right: 0;}
 	/********Form Horizontal**************/
 	.mpStyle .inputHorizontal { max-width: 500px; width: 100%;margin: 0 auto; }
 	/**********Checkbox Radio*********/
