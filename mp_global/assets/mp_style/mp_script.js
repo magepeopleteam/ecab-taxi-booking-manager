@@ -507,9 +507,18 @@ function mp_sticky_management() {
 		let currentTarget = $(this);
 		let value = currentTarget.val();
 		currentTarget.find('option').each(function () {
-			let target_id = $(this).data('option-target');
-			let target = $('[data-collapse="' + target_id + '"]');
-			target.slideUp('fast').removeClass('mActive');
+			if ($(this).attr('data-option-target-multi')) {
+				let target_ids = $(this).data('option-target-multi');
+				target_ids = target_ids.toString().split(" ");
+				target_ids.forEach(function (target_id) {
+					let target = $('[data-collapse="' + target_id + '"]');
+					target.slideUp(350).removeClass('mActive');
+				});
+			}else {
+				let target_id = $(this).data('option-target');
+				let target = $('[data-collapse="' + target_id + '"]');
+				target.slideUp('fast').removeClass('mActive');
+			}
 		}).promise().done(function () {
 			currentTarget.find('option').each(function () {
 				let current_value = $(this).val();

@@ -14,6 +14,7 @@
 	$end_place = $end_place ?? '';
 	$two_way = $two_way ?? 1;
 	$waiting_time = $waiting_time ?? 0;
+	$fixed_time = $fixed_time ?? '';
 ?>
 	<div class="leftSidebar">
 		<div class="mp_sticky_area">
@@ -40,7 +41,12 @@
 					<?php if($waiting_time>0){ ?>
 						<div class="dividerL"></div>
 						<h6 class="_mB_xs"><?php esc_html_e('Extra Waiting Hours', 'mptbm_plugin'); ?></h6>
-						<p class="_textLight_1"><?php echo esc_html($waiting_time); ?><?php esc_html_e('Hour', 'mptbm_plugin'); ?></p>
+						<p class="_textLight_1"><?php echo esc_html($waiting_time); ?>&nbsp;<?php esc_html_e('Hours', 'mptbm_plugin'); ?></p>
+					<?php } ?>
+					<?php if($fixed_time && $fixed_time>0){ ?>
+						<div class="dividerL"></div>
+						<h6 class="_mB_xs"><?php esc_html_e('Service Times', 'mptbm_plugin'); ?></h6>
+						<p class="_textLight_1"><?php echo esc_html($fixed_time); ?> &nbsp;<?php esc_html_e('Hours', 'mptbm_plugin'); ?></p>
 					<?php } ?>
 					<div class="mptbm_transport_summary">
 						<div class="dividerL"></div>

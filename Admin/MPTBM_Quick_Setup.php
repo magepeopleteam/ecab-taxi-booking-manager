@@ -9,17 +9,12 @@
 	if (!class_exists('MPTBM_Quick_Setup')) {
 		class MPTBM_Quick_Setup {
 			public function __construct() {
+
 				if (!class_exists('MPTBM_Dependencies')) {
 					add_action('admin_enqueue_scripts', array($this, 'add_admin_scripts'), 10, 1);
 				}
+
 				add_action('admin_menu', array($this, 'quick_setup_menu'));
-			}
-			public function add_admin_scripts() {
-				wp_enqueue_style('mp_plugin_global', MPTBM_PLUGIN_URL . '/assets/helper/mp_style/mp_style.css', array(), time());
-				wp_enqueue_script('mp_plugin_global', MPTBM_PLUGIN_URL . '/assets/helper/mp_style/mp_script.js', array('jquery'), time(), true);
-				wp_enqueue_script('mp_admin_settings', MPTBM_PLUGIN_URL . '/assets/admin/mp_admin_settings.js', array('jquery'), time(), true);
-				wp_enqueue_style('mp_admin_settings', MPTBM_PLUGIN_URL . '/assets/admin/mp_admin_settings.css', array(), time());
-				wp_enqueue_style('mp_font_awesome', '//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css', array(), '5.15.4');
 			}
 			public function quick_setup_menu() {
 				$status = MP_Global_Function::check_woocommerce();
@@ -107,14 +102,19 @@
 					<?php
 				}
 				if (isset($_POST['finish_quick_setup'])) {
-					$label = isset($_POST['mptbm_rent_label']) ? sanitize_text_field($_POST['mptbm_rent_label']) : 'Transportation';
-					$slug = isset($_POST['mptbm_rent_slug']) ? sanitize_text_field($_POST['mptbm_rent_slug']) : 'Transportation';
-					$general_settings_data = get_option('mptbm_basic_gen_settings');
+
+					$label = isset($_POST['mptbm_label']) ? sanitize_text_field($_POST['mptbm_label']) : 'Transportation';
+					$slug = isset($_POST['mptbm_slug']) ? sanitize_text_field($_POST['mptbm_slug']) : 'transportation';
+					$general_settings_data = get_option('MPTBM_General_Settings');
+
 					$update_general_settings_arr = [
 						'mptbm_rent_label' => $label,
 						'mptbm_rent_slug' => $slug
 					];
 					$new_general_settings_data = is_array($general_settings_data) ? array_replace($general_settings_data, $update_general_settings_arr) : $update_general_settings_arr;
+
+					update_option('MPTBM_General_Settings', $new_general_settings_data);
+
 					update_option('mptbm_basic_gen_settings', $new_general_settings_data);
 					update_option('mptbm_quick_setup_done', 'yes');
 					wp_redirect(admin_url('edit.php?post_type=mptbm_rent'));
@@ -203,8 +203,10 @@
 				<?php
 			}
 			public function setup_general_content() {
-				$label = MP_Global_Function::get_settings('mptbm_basic_gen_settings', 'mptbm_rent_label', 'Transportation');
-				$slug = MP_Global_Function::get_settings('mptbm_basic_gen_settings', 'mptbm_rent_slug', 'transportation');
+
+				$label = MP_Global_Function::get_settings('MPTBM_General_Settings', 'label', 'Transportation');
+				$slug = MP_Global_Function::get_settings('MPTBM_General_Settings', 'slug', 'transportation');
+
 				?>
 				<div data-tabs-next="#mptbm_qs_general">
 					<div class="section">

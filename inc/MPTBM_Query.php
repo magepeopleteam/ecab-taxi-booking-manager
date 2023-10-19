@@ -39,19 +39,24 @@
 					'value'=>'manual',
 					'compare'=>'=',
 				):'';
+				$price_based_5=$price_based=='fixed_hourly'?array(
+					'key'=>'mptbm_price_based',
+					'value'=>'fixed_hourly',
+					'compare'=>'=',
+				):'';
 				$args = array(
 					'post_type' => array(MPTBM_Function::get_cpt()),
 					'posts_per_page' => -1,
 					'post_status' => 'publish',
 					'meta_query'=>array(
 						'relation'=>'OR',
-						$price_based_1,$price_based_2,$price_based_3,$price_based_4
+						$price_based_1,$price_based_2,$price_based_3,$price_based_4,$price_based_5
 					)
 				);
 				return new WP_Query($args);
 			}
 			public static function query_all_service_sold($post_id, $date, $service_name = ''): WP_Query {
-				$_seat_booked_status = MPTBM_Function::get_general_settings('set_book_status', array('processing', 'completed'));
+				$_seat_booked_status = MP_Global_Function::get_settings('mp_global_settings', 'set_book_status', array('processing', 'completed'));
 				$seat_booked_status = !empty($_seat_booked_status) ? $_seat_booked_status : [];
 				$type_filter = !empty($type) ? array(
 					'key' => 'mptbm_service_name',

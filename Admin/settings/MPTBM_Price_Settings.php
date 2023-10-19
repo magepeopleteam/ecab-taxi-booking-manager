@@ -31,10 +31,11 @@
                                 <label>
                                     <select class="formControl" name="mptbm_price_based" data-collapse-target>
                                         <option disabled selected><?php esc_html_e('Please select ...', 'mptbm_plugin'); ?></option>
-                                        <option value="distance" data-option-target="#mp_distance" <?php echo esc_attr($price_based == 'distance' ? 'selected' : ''); ?>><?php esc_html_e('Distance', 'mptbm_plugin'); ?></option>
-                                        <option value="duration" data-option-target="#mp_duration" <?php echo esc_attr($price_based == 'duration' ? 'selected' : ''); ?>><?php esc_html_e('Duration/Time', 'mptbm_plugin'); ?></option>
-                                        <option value="distance_duration" data-option-target data-option-target-multi="#mp_distance #mp_duration" <?php echo esc_attr($price_based == 'distance_duration' ? 'selected' : ''); ?>><?php esc_html_e('Distance + Duration', 'mptbm_plugin'); ?></option>
-                                        <option value="manual" data-option-target="#mp_manual" <?php echo esc_attr($price_based == 'manual' ? 'selected' : ''); ?>><?php esc_html_e('Manual', 'mptbm_plugin'); ?></option>
+                                        <option value="distance" data-option-target data-option-target-multi="#mp_distance #mp_waiting_time" <?php echo esc_attr($price_based == 'distance' ? 'selected' : ''); ?>><?php esc_html_e('Distance as google map', 'mptbm_plugin'); ?></option>
+                                        <option value="duration" data-option-target data-option-target-multi="#mp_waiting_time #mp_duration" <?php echo esc_attr($price_based == 'duration' ? 'selected' : ''); ?>><?php esc_html_e('Duration/Time as google map', 'mptbm_plugin'); ?></option>
+                                        <option value="distance_duration" data-option-target data-option-target-multi="#mp_distance #mp_duration #mp_waiting_time" <?php echo esc_attr($price_based == 'distance_duration' ? 'selected' : ''); ?>><?php esc_html_e('Distance + Duration as google map', 'mptbm_plugin'); ?></option>
+                                        <option value="manual" data-option-target data-option-target-multi="#mp_waiting_time #mp_manual" <?php echo esc_attr($price_based == 'manual' ? 'selected' : ''); ?>><?php esc_html_e('Manual as fixed Location', 'mptbm_plugin'); ?></option>
+                                        <option value="fixed_hourly" data-option-target="#mp_duration" <?php echo esc_attr($price_based == 'fixed_hourly' ? 'selected' : ''); ?>><?php esc_html_e('Fixed Hourly', 'mptbm_plugin'); ?></option>
                                     </select>
                                 </label>
                             </td>
@@ -49,7 +50,7 @@
                             </td>
                             <td></td>
                         </tr>
-                        <tr data-collapse="#mp_duration" class="<?php echo esc_attr($price_based == 'duration' || $price_based == 'distance_duration' ? 'mActive' : ''); ?>">
+                        <tr data-collapse="#mp_duration" class="<?php echo esc_attr($price_based == 'duration' || $price_based == 'distance_duration' || $price_based == 'fixed_hourly'  ? 'mActive' : ''); ?>">
                             <th> <?php esc_html_e('Price/Hour', 'mptbm_plugin'); ?> </th>
                             <td>
                                 <label>
@@ -85,7 +86,7 @@
                             </td>
                         </tr>
                         <?php if($waiting_time_check=='enable'){ ?>
-	                        <tr>
+	                        <tr data-collapse="#mp_waiting_time" class="<?php echo esc_attr($price_based == 'duration' || $price_based == 'distance' || $price_based == 'distance_duration' ||  $price_based == 'manual' ? 'mActive' : ''); ?>">
 		                        <th> <?php esc_html_e('Waiting Time Price/Hour', 'mptbm_plugin'); ?> </th>
 		                        <td>
 			                        <label>

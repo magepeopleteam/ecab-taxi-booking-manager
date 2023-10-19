@@ -33,6 +33,7 @@
 					"column" => 3,
 					"price_based" => 'dynamic',
 					'progressbar'=>'yes',
+					'map'=>'yes',
 					'form'=>'horizontal',
 				);
 			}

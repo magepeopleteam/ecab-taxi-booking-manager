@@ -13,7 +13,7 @@
 				add_action('save_post', array($this, 'save_date_time_settings'), 99, 1);
 			}
 			public function date_settings($post_id) {
-				$date_format = MP_Global_Function::date_picker_format('mptbm_general_settings');
+				$date_format = MP_Global_Function::date_picker_format();
 				$now = date_i18n($date_format, strtotime(current_time('Y-m-d')));
 				$date_type = MP_Global_Function::get_post_info($post_id, 'mptbm_date_type', 'repeated');
 				?>
@@ -170,7 +170,7 @@
 				<?php
 			}
 			public function particular_date_item($name, $date = '') {
-				$date_format = MP_Global_Function::date_picker_format('mptbm_general_settings');
+				$date_format = MP_Global_Function::date_picker_format();
 				$now = date_i18n($date_format, strtotime(current_time('Y-m-d')));
 				$hidden_date = $date ? date('Y-m-d', strtotime($date)) : '';
 				$visible_date = $date ? date_i18n($date_format, strtotime($date)) : '';
