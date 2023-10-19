@@ -92,7 +92,7 @@
 							<label class="fdColumn">
 								<span><i class="far fa-clock _textTheme_mR_xs"></i><?php esc_html_e('Extra Waiting Hours', 'mptbm_plugin'); ?></span>
 								<select class="formControl" name="mptbm_waiting_time">
-									<option value="" selected><?php esc_html_e('No Waiting', 'mptbm_plugin'); ?></option>
+									<option value="0" selected><?php esc_html_e('No Waiting', 'mptbm_plugin'); ?></option>
 									<option value="1"><?php esc_html_e('1 Hour', 'mptbm_plugin'); ?></option>
 									<option value="2"><?php esc_html_e('2 Hours', 'mptbm_plugin'); ?></option>
 									<option value="3"><?php esc_html_e('3 Hours', 'mptbm_plugin'); ?></option>
