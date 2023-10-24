@@ -52,6 +52,8 @@
 				wp_enqueue_script('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.js', array('jquery'), time(), true);
 				wp_enqueue_style('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.css', array(), time());
 				do_action('add_mptbm_frontend_script');
+        wp_enqueue_style('mptbm_checkout_front_style', MPTBM_PLUGIN_URL . '/assets/checkout/front/css/mptbm-pro-checkout-front-style.css', array(), time());
+         wp_enqueue_script('mptbm_checkout_front_script', MPTBM_PLUGIN_URL . '/assets/checkout/front/js/mptbm-pro-checkout-front-script.js', array('jquery'), time(), true);
 			}
 			public function js_constant() {
 				?>

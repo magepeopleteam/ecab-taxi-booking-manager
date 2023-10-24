@@ -35,17 +35,19 @@
 				}
 				else {
 					require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Quick_Setup.php';
-					add_action('admin_notices', [$this, 'woocommerce_not_active']);
+					//add_action('admin_notices', [$this, 'woocommerce_not_active']);
 					add_action('activated_plugin', array($this, 'activation_redirect_setup'), 90, 1);
 				}
 			}
 			public function activation_redirect($plugin) {
-				if ($plugin == plugin_basename(__FILE__)) {
+				$mptbm_quick_setup_done = get_option('mptbm_quick_setup_done');
+				if ($plugin == plugin_basename(__FILE__) && $mptbm_quick_setup_done != 'yes') {
 					exit(wp_redirect(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_quick_setup')));
 				}
 			}
 			public function activation_redirect_setup($plugin) {
-				if ($plugin == plugin_basename(__FILE__)) {
+				$mptbm_quick_setup_done = get_option('mptbm_quick_setup_done');
+				if ($plugin == plugin_basename(__FILE__) && $mptbm_quick_setup_done != 'yes') {
 					exit(wp_redirect(admin_url('admin.php?post_type=mptbm_rent&page=mptbm_quick_setup')));
 				}
 			}
