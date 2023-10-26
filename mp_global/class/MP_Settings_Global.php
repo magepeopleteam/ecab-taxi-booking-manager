@@ -16,19 +16,19 @@
 				$sections = array(
 					array(
 						'id' => 'mp_global_settings',
-						'title' => esc_html__('Global Settings', 'mptbm_plugin')
+						'title' => esc_html__('Global Settings', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mp_slider_settings',
-						'title' => esc_html__('Slider Settings', 'mptbm_plugin')
+						'title' => esc_html__('Slider Settings', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mp_style_settings',
-						'title' => esc_html__('Style Settings', 'mptbm_plugin')
+						'title' => esc_html__('Style Settings', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mp_add_custom_css',
-						'title' => esc_html__('Custom CSS', 'mptbm_plugin')
+						'title' => esc_html__('Custom CSS', 'ecab-taxi-booking-manager')
 					)
 				);
 				return array_merge($default_sec, $sections);
@@ -39,35 +39,35 @@
 					'mp_global_settings' => apply_filters('filter_mp_global_settings', array(
 						array(
 							'name' => 'disable_block_editor',
-							'label' => esc_html__('Disable Block/Gutenberg Editor', 'mptbm_plugin'),
-							'desc' => esc_html__('If you want to disable WordPress\'s new Block/Gutenberg editor, please select Yes.', 'mptbm_plugin'),
+							'label' => esc_html__('Disable Block/Gutenberg Editor', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('If you want to disable WordPress\'s new Block/Gutenberg editor, please select Yes.', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'yes',
 							'options' => array(
-								'yes' => esc_html__('Yes', 'mptbm_plugin'),
-								'no' => esc_html__('No', 'mptbm_plugin')
+								'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+								'no' => esc_html__('No', 'ecab-taxi-booking-manager')
 							)
 						),
 						array(
 							'name' => 'set_book_status',
-							'label' => esc_html__('Seat Booked Status', 'mptbm_plugin'),
-							'desc' => esc_html__('Please Select when and which order status Seat Will be Booked/Reduced.', 'mptbm_plugin'),
+							'label' => esc_html__('Seat Booked Status', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please Select when and which order status Seat Will be Booked/Reduced.', 'ecab-taxi-booking-manager'),
 							'type' => 'multicheck',
 							'default' => array(
 								'processing' => 'processing',
 								'completed' => 'completed'
 							),
 							'options' => array(
-								'on-hold' => esc_html__('On Hold', 'mptbm_plugin'),
-								'pending' => esc_html__('Pending', 'mptbm_plugin'),
-								'processing' => esc_html__('Processing', 'mptbm_plugin'),
-								'completed' => esc_html__('Completed', 'mptbm_plugin'),
+								'on-hold' => esc_html__('On Hold', 'ecab-taxi-booking-manager'),
+								'pending' => esc_html__('Pending', 'ecab-taxi-booking-manager'),
+								'processing' => esc_html__('Processing', 'ecab-taxi-booking-manager'),
+								'completed' => esc_html__('Completed', 'ecab-taxi-booking-manager'),
 							)
 						),
 						array(
 							'name' => 'date_format',
-							'label' => esc_html__('Date Picker Format', 'mptbm_plugin'),
-							'desc' => esc_html__('If you want to change Date Picker Format, please select format. Default  is D d M , yy.', 'mptbm_plugin'),
+							'label' => esc_html__('Date Picker Format', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('If you want to change Date Picker Format, please select format. Default  is D d M , yy.', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'D d M , yy',
 							'options' => array(
@@ -87,8 +87,8 @@
 						),
 						array(
 							'name' => 'date_format_short',
-							'label' => esc_html__('Short Date  Format', 'mptbm_plugin'),
-							'desc' => esc_html__('If you want to change Short Date  Format, please select format. Default  is M , Y.', 'mptbm_plugin'),
+							'label' => esc_html__('Short Date  Format', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('If you want to change Short Date  Format, please select format. Default  is M , Y.', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'M , Y',
 							'options' => array(
@@ -114,205 +114,205 @@
 					'mp_slider_settings' => array(
 						array(
 							'name' => 'slider_type',
-							'label' => esc_html__('Slider Type', 'mptbm_plugin'),
-							'desc' => esc_html__('Please Select Slider Type Default Slider', 'mptbm_plugin'),
+							'label' => esc_html__('Slider Type', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please Select Slider Type Default Slider', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'slider',
 							'options' => array(
-								'slider' => esc_html__('Slider', 'mptbm_plugin'),
-								'single_image' => esc_html__('Post Thumbnail', 'mptbm_plugin')
+								'slider' => esc_html__('Slider', 'ecab-taxi-booking-manager'),
+								'single_image' => esc_html__('Post Thumbnail', 'ecab-taxi-booking-manager')
 							)
 						),
 						array(
 							'name' => 'slider_style',
-							'label' => esc_html__('Slider Style', 'mptbm_plugin'),
-							'desc' => esc_html__('Please Select Slider Style Default Style One', 'mptbm_plugin'),
+							'label' => esc_html__('Slider Style', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please Select Slider Style Default Style One', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'style_1',
 							'options' => array(
-								'style_1' => esc_html__('Style One', 'mptbm_plugin'),
-								'style_2' => esc_html__('Style Two', 'mptbm_plugin'),
+								'style_1' => esc_html__('Style One', 'ecab-taxi-booking-manager'),
+								'style_2' => esc_html__('Style Two', 'ecab-taxi-booking-manager'),
 							)
 						),
 						array(
 							'name' => 'indicator_visible',
-							'label' => esc_html__('Slider Indicator Visible?', 'mptbm_plugin'),
-							'desc' => esc_html__('Please Select Slider Indicator Visible or Not? Default ON', 'mptbm_plugin'),
+							'label' => esc_html__('Slider Indicator Visible?', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please Select Slider Indicator Visible or Not? Default ON', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'on',
 							'options' => array(
-								'on' => esc_html__('ON', 'mptbm_plugin'),
-								'off' => esc_html__('Off', 'mptbm_plugin')
+								'on' => esc_html__('ON', 'ecab-taxi-booking-manager'),
+								'off' => esc_html__('Off', 'ecab-taxi-booking-manager')
 							)
 						),
 						array(
 							'name' => 'indicator_type',
-							'label' => esc_html__('Slider Indicator Type', 'mptbm_plugin'),
-							'desc' => esc_html__('Please Select Slider Indicator Type Default Icon', 'mptbm_plugin'),
+							'label' => esc_html__('Slider Indicator Type', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please Select Slider Indicator Type Default Icon', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'icon',
 							'options' => array(
-								'icon' => esc_html__('Icon Indicator', 'mptbm_plugin'),
-								'image' => esc_html__('image Indicator', 'mptbm_plugin')
+								'icon' => esc_html__('Icon Indicator', 'ecab-taxi-booking-manager'),
+								'image' => esc_html__('image Indicator', 'ecab-taxi-booking-manager')
 							)
 						),
 						array(
 							'name' => 'showcase_visible',
-							'label' => esc_html__('Slider Showcase Visible?', 'mptbm_plugin'),
-							'desc' => esc_html__('Please Select Slider Showcase Visible or Not? Default ON', 'mptbm_plugin'),
+							'label' => esc_html__('Slider Showcase Visible?', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please Select Slider Showcase Visible or Not? Default ON', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'on',
 							'options' => array(
-								'on' => esc_html__('ON', 'mptbm_plugin'),
-								'off' => esc_html__('Off', 'mptbm_plugin')
+								'on' => esc_html__('ON', 'ecab-taxi-booking-manager'),
+								'off' => esc_html__('Off', 'ecab-taxi-booking-manager')
 							)
 						),
 						array(
 							'name' => 'showcase_position',
-							'label' => esc_html__('Slider Showcase Position', 'mptbm_plugin'),
-							'desc' => esc_html__('Please Select Slider Showcase Position Default Right', 'mptbm_plugin'),
+							'label' => esc_html__('Slider Showcase Position', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please Select Slider Showcase Position Default Right', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'right',
 							'options' => array(
-								'top' => esc_html__('At Top Position', 'mptbm_plugin'),
-								'right' => esc_html__('At Right Position', 'mptbm_plugin'),
-								'bottom' => esc_html__('At Bottom Position', 'mptbm_plugin'),
-								'left' => esc_html__('At Left Position', 'mptbm_plugin')
+								'top' => esc_html__('At Top Position', 'ecab-taxi-booking-manager'),
+								'right' => esc_html__('At Right Position', 'ecab-taxi-booking-manager'),
+								'bottom' => esc_html__('At Bottom Position', 'ecab-taxi-booking-manager'),
+								'left' => esc_html__('At Left Position', 'ecab-taxi-booking-manager')
 							)
 						),
 						array(
 							'name' => 'popup_image_indicator',
-							'label' => esc_html__('Slider Popup Image Indicator', 'mptbm_plugin'),
-							'desc' => esc_html__('Please Select Slider Popup Indicator Image ON or Off? Default ON', 'mptbm_plugin'),
+							'label' => esc_html__('Slider Popup Image Indicator', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please Select Slider Popup Indicator Image ON or Off? Default ON', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'on',
 							'options' => array(
-								'on' => esc_html__('ON', 'mptbm_plugin'),
-								'off' => esc_html__('Off', 'mptbm_plugin')
+								'on' => esc_html__('ON', 'ecab-taxi-booking-manager'),
+								'off' => esc_html__('Off', 'ecab-taxi-booking-manager')
 							)
 						),
 						array(
 							'name' => 'popup_icon_indicator',
-							'label' => esc_html__('Slider Popup Icon Indicator', 'mptbm_plugin'),
-							'desc' => esc_html__('Please Select Slider Popup Indicator Icon ON or Off? Default ON', 'mptbm_plugin'),
+							'label' => esc_html__('Slider Popup Icon Indicator', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please Select Slider Popup Indicator Icon ON or Off? Default ON', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'on',
 							'options' => array(
-								'on' => esc_html__('ON', 'mptbm_plugin'),
-								'off' => esc_html__('Off', 'mptbm_plugin')
+								'on' => esc_html__('ON', 'ecab-taxi-booking-manager'),
+								'off' => esc_html__('Off', 'ecab-taxi-booking-manager')
 							)
 						)
 					),
 					'mp_style_settings' => apply_filters('filter_mp_style_settings', array(
 						array(
 							'name' => 'theme_color',
-							'label' => esc_html__('Theme Color', 'mptbm_plugin'),
-							'desc' => esc_html__('Select Default Theme Color', 'mptbm_plugin'),
+							'label' => esc_html__('Theme Color', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Select Default Theme Color', 'ecab-taxi-booking-manager'),
 							'type' => 'color',
 							'default' => '#0793C9'
 						),
 						array(
 							'name' => 'theme_alternate_color',
-							'label' => esc_html__('Theme Alternate Color', 'mptbm_plugin'),
-							'desc' => esc_html__('Select Default Theme Alternate  Color that means, if background theme color then it will be text color.', 'mptbm_plugin'),
+							'label' => esc_html__('Theme Alternate Color', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Select Default Theme Alternate  Color that means, if background theme color then it will be text color.', 'ecab-taxi-booking-manager'),
 							'type' => 'color',
 							'default' => '#fff'
 						),
 						array(
 							'name' => 'default_text_color',
-							'label' => esc_html__('Default Text Color', 'mptbm_plugin'),
-							'desc' => esc_html__('Select Default Text  Color.', 'mptbm_plugin'),
+							'label' => esc_html__('Default Text Color', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Select Default Text  Color.', 'ecab-taxi-booking-manager'),
 							'type' => 'color',
 							'default' => '#000'
 						),
 						array(
 							'name' => 'default_font_size',
-							'label' => esc_html__('Default Font Size', 'mptbm_plugin'),
-							'desc' => esc_html__('Type Default Font Size(in PX Unit).', 'mptbm_plugin'),
+							'label' => esc_html__('Default Font Size', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Type Default Font Size(in PX Unit).', 'ecab-taxi-booking-manager'),
 							'type' => 'number',
 							'default' => '15'
 						),
 						array(
 							'name' => 'font_size_h1',
-							'label' => esc_html__('Font Size h1 Title', 'mptbm_plugin'),
-							'desc' => esc_html__('Type Font Size Main Title(in PX Unit).', 'mptbm_plugin'),
+							'label' => esc_html__('Font Size h1 Title', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Type Font Size Main Title(in PX Unit).', 'ecab-taxi-booking-manager'),
 							'type' => 'number',
 							'default' => '35'
 						),
 						array(
 							'name' => 'font_size_h2',
-							'label' => esc_html__('Font Size h2 Title', 'mptbm_plugin'),
-							'desc' => esc_html__('Type Font Size h2 Title(in PX Unit).', 'mptbm_plugin'),
+							'label' => esc_html__('Font Size h2 Title', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Type Font Size h2 Title(in PX Unit).', 'ecab-taxi-booking-manager'),
 							'type' => 'number',
 							'default' => '25'
 						),
 						array(
 							'name' => 'font_size_h3',
-							'label' => esc_html__('Font Size h3 Title', 'mptbm_plugin'),
-							'desc' => esc_html__('Type Font Size h3 Title(in PX Unit).', 'mptbm_plugin'),
+							'label' => esc_html__('Font Size h3 Title', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Type Font Size h3 Title(in PX Unit).', 'ecab-taxi-booking-manager'),
 							'type' => 'number',
 							'default' => '22'
 						),
 						array(
 							'name' => 'font_size_h4',
-							'label' => esc_html__('Font Size h4 Title', 'mptbm_plugin'),
-							'desc' => esc_html__('Type Font Size h4 Title(in PX Unit).', 'mptbm_plugin'),
+							'label' => esc_html__('Font Size h4 Title', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Type Font Size h4 Title(in PX Unit).', 'ecab-taxi-booking-manager'),
 							'type' => 'number',
 							'default' => '20'
 						),
 						array(
 							'name' => 'font_size_h5',
-							'label' => esc_html__('Font Size h5 Title', 'mptbm_plugin'),
-							'desc' => esc_html__('Type Font Size h5 Title(in PX Unit).', 'mptbm_plugin'),
+							'label' => esc_html__('Font Size h5 Title', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Type Font Size h5 Title(in PX Unit).', 'ecab-taxi-booking-manager'),
 							'type' => 'number',
 							'default' => '18'
 						),
 						array(
 							'name' => 'font_size_h6',
-							'label' => esc_html__('Font Size h6 Title', 'mptbm_plugin'),
-							'desc' => esc_html__('Type Font Size h6 Title(in PX Unit).', 'mptbm_plugin'),
+							'label' => esc_html__('Font Size h6 Title', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Type Font Size h6 Title(in PX Unit).', 'ecab-taxi-booking-manager'),
 							'type' => 'number',
 							'default' => '16'
 						),
 						array(
 							'name' => 'button_font_size',
-							'label' => esc_html__('Button Font Size ', 'mptbm_plugin'),
-							'desc' => esc_html__('Type Font Size Button(in PX Unit).', 'mptbm_plugin'),
+							'label' => esc_html__('Button Font Size ', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Type Font Size Button(in PX Unit).', 'ecab-taxi-booking-manager'),
 							'type' => 'number',
 							'default' => '18'
 						),
 						array(
 							'name' => 'button_color',
-							'label' => esc_html__('Button Text Color', 'mptbm_plugin'),
-							'desc' => esc_html__('Select Button Text  Color.', 'mptbm_plugin'),
+							'label' => esc_html__('Button Text Color', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Select Button Text  Color.', 'ecab-taxi-booking-manager'),
 							'type' => 'color',
 							'default' => '#FFF'
 						),
 						array(
 							'name' => 'button_bg',
-							'label' => esc_html__('Button Background Color', 'mptbm_plugin'),
-							'desc' => esc_html__('Select Button Background  Color.', 'mptbm_plugin'),
+							'label' => esc_html__('Button Background Color', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Select Button Background  Color.', 'ecab-taxi-booking-manager'),
 							'type' => 'color',
 							'default' => '#222'
 						),
 						array(
 							'name' => 'font_size_label',
-							'label' => esc_html__('Label Font Size ', 'mptbm_plugin'),
-							'desc' => esc_html__('Type Font Size Label(in PX Unit).', 'mptbm_plugin'),
+							'label' => esc_html__('Label Font Size ', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Type Font Size Label(in PX Unit).', 'ecab-taxi-booking-manager'),
 							'type' => 'number',
 							'default' => '18'
 						),
 						array(
 							'name' => 'warning_color',
-							'label' => esc_html__('Warning Color', 'mptbm_plugin'),
-							'desc' => esc_html__('Select Warning  Color.', 'mptbm_plugin'),
+							'label' => esc_html__('Warning Color', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Select Warning  Color.', 'ecab-taxi-booking-manager'),
 							'type' => 'color',
 							'default' => '#E67C30'
 						),
 						array(
 							'name' => 'section_bg',
-							'label' => esc_html__('Section Background color', 'mptbm_plugin'),
-							'desc' => esc_html__('Select Background  Color.', 'mptbm_plugin'),
+							'label' => esc_html__('Section Background color', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Select Background  Color.', 'ecab-taxi-booking-manager'),
 							'type' => 'color',
 							'default' => '#FAFCFE'
 						),
@@ -320,8 +320,8 @@
 					'mp_add_custom_css' => apply_filters('filter_mp_add_custom_css', array(
 						array(
 							'name' => 'custom_css',
-							'label' => esc_html__('Custom CSS', 'mptbm_plugin'),
-							'desc' => esc_html__('Write Your Custom CSS Code Here', 'mptbm_plugin'),
+							'label' => esc_html__('Custom CSS', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Write Your Custom CSS Code Here', 'ecab-taxi-booking-manager'),
 							'type' => 'textarea',
 						)
 					))

@@ -16,7 +16,7 @@
 			public function settings_meta() {
 				$label = MPTBM_Function::get_name();
 				$cpt = MPTBM_Function::get_cpt();
-				add_meta_box('mp_meta_box_panel', '<span class="fas fa-cogs"></span>' . $label . esc_html__(' Information Settings : ', 'mptbm_plugin') . get_the_title(get_the_id()), array($this, 'settings'), $cpt, 'normal', 'high');
+				add_meta_box('mp_meta_box_panel', '<span class="fas fa-cogs"></span>' . $label . esc_html__(' Information Settings : ', 'ecab-taxi-booking-manager') . get_the_title(get_the_id()), array($this, 'settings'), $cpt, 'normal', 'high');
 			}
 			//******************************//
 			public function settings() {
@@ -28,16 +28,16 @@
 					<div class="mpTabs leftTabs">
 						<ul class="tabLists">
 							<li data-tabs-target="#mptbm_general_info">
-								<span class="fas fa-tools"></span><?php esc_html_e('General Info', 'mptbm_plugin'); ?>
+								<span class="fas fa-tools"></span><?php esc_html_e('General Info', 'ecab-taxi-booking-manager'); ?>
 							</li>
 							<li data-tabs-target="#mptbm_settings_date">
-								<span class="fas fa-calendar-alt"></span><?php esc_html_e('Date', 'mptbm_plugin'); ?>
+								<span class="fas fa-calendar-alt"></span><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?>
 							</li>
 							<li data-tabs-target="#mptbm_settings_pricing">
-								<span class="fas fa-hand-holding-usd"></span><?php esc_html_e('Pricing', 'mptbm_plugin'); ?>
+								<span class="fas fa-hand-holding-usd"></span><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?>
 							</li>
 							<li data-tabs-target="#mptbm_settings_ex_service">
-								<span class="fas fa-hand-holding-usd"></span><?php esc_html_e('Extra Service', 'mptbm_plugin'); ?>
+								<span class="fas fa-hand-holding-usd"></span><?php esc_html_e('Extra Service', 'ecab-taxi-booking-manager'); ?>
 							</li>
 							<?php do_action('add_mptbm_settings_tab_after_ex_service'); ?>
 						</ul>
@@ -50,32 +50,32 @@
 			}
 			public static function description_array($key) {
 				$des = array(
-					'mptbm_display_faq' => esc_html__('Frequently Asked Questions about this tour that customers need to know', 'mptbm_plugin'),
-					'mptbm_display_why_choose_us' => esc_html__('Why choose us section, write a key feature list that tourist get Trust to book. you can switch it off.', 'mptbm_plugin'),
-					'why_chose_us' => esc_html__('Please add why to book feature list one by one.', 'mptbm_plugin'),
-					'mptbm_display_activities' => esc_html__('By default Activities type is ON but you can keep it off by switching this option', 'mptbm_plugin'),
-					'activities' => esc_html__('Add a list of tour activities for this tour.', 'mptbm_plugin'),
-					'mptbm_activity_name' => esc_html__('The name is how it appears on your site.', 'mptbm_plugin'),
-					'mptbm_activity_description' => esc_html__('The description is not prominent by default; however, some themes may show it.', 'mptbm_plugin'),
-					'mptbm_display_related' => esc_html__('Please select a related transport from this list.', 'mptbm_plugin'),
-					'mptbm_section_title_style' => esc_html__('By default Section title is style one', 'mptbm_plugin'),
-					'mptbm_ticketing_system' => esc_html__('By default, the ticket purchase system is open. Once you check the availability, you can choose the system that best suits your needs.', 'mptbm_plugin'),
-					'mptbm_display_seat_details' => esc_html__('By default Seat Info is ON but you can keep it off by switching this option', 'mptbm_plugin'),
-					'mptbm_display_get_question' => esc_html__('By default Display Get a Questions is ON but you can keep it off by switching this option', 'mptbm_plugin'),
-					'mptbm_display_sidebar' => esc_html__('By default Sidebar Widget is Off but you can keep it ON by switching this option', 'mptbm_plugin'),
-					'mptbm_display_duration' => esc_html__('By default Duration is ON but you can keep it off by switching this option', 'mptbm_plugin'),
-					'mptbm_contact_phone' => esc_html__('Please Enter contact phone no', 'mptbm_plugin'),
-					'mptbm_contact_text' => esc_html__('Please Enter Contact Section Text', 'mptbm_plugin'),
-					'mptbm_contact_email' => esc_html__('Please Enter contact phone email', 'mptbm_plugin'),
+					'mptbm_display_faq' => esc_html__('Frequently Asked Questions about this tour that customers need to know', 'ecab-taxi-booking-manager'),
+					'mptbm_display_why_choose_us' => esc_html__('Why choose us section, write a key feature list that tourist get Trust to book. you can switch it off.', 'ecab-taxi-booking-manager'),
+					'why_chose_us' => esc_html__('Please add why to book feature list one by one.', 'ecab-taxi-booking-manager'),
+					'mptbm_display_activities' => esc_html__('By default Activities type is ON but you can keep it off by switching this option', 'ecab-taxi-booking-manager'),
+					'activities' => esc_html__('Add a list of tour activities for this tour.', 'ecab-taxi-booking-manager'),
+					'mptbm_activity_name' => esc_html__('The name is how it appears on your site.', 'ecab-taxi-booking-manager'),
+					'mptbm_activity_description' => esc_html__('The description is not prominent by default; however, some themes may show it.', 'ecab-taxi-booking-manager'),
+					'mptbm_display_related' => esc_html__('Please select a related transport from this list.', 'ecab-taxi-booking-manager'),
+					'mptbm_section_title_style' => esc_html__('By default Section title is style one', 'ecab-taxi-booking-manager'),
+					'mptbm_ticketing_system' => esc_html__('By default, the ticket purchase system is open. Once you check the availability, you can choose the system that best suits your needs.', 'ecab-taxi-booking-manager'),
+					'mptbm_display_seat_details' => esc_html__('By default Seat Info is ON but you can keep it off by switching this option', 'ecab-taxi-booking-manager'),
+					'mptbm_display_get_question' => esc_html__('By default Display Get a Questions is ON but you can keep it off by switching this option', 'ecab-taxi-booking-manager'),
+					'mptbm_display_sidebar' => esc_html__('By default Sidebar Widget is Off but you can keep it ON by switching this option', 'ecab-taxi-booking-manager'),
+					'mptbm_display_duration' => esc_html__('By default Duration is ON but you can keep it off by switching this option', 'ecab-taxi-booking-manager'),
+					'mptbm_contact_phone' => esc_html__('Please Enter contact phone no', 'ecab-taxi-booking-manager'),
+					'mptbm_contact_text' => esc_html__('Please Enter Contact Section Text', 'ecab-taxi-booking-manager'),
+					'mptbm_contact_email' => esc_html__('Please Enter contact phone email', 'ecab-taxi-booking-manager'),
 					//================//
-					'display_mptbm_features' => esc_html__('By default slider is ON but you can keep it off by switching this option', 'mptbm_plugin'),
-					'display_mp_slider' => esc_html__('By default slider is ON but you can keep it off by switching this option', 'mptbm_plugin'),
-					'display_mptbm_extra_services' => esc_html__('By default Extra services is ON but you can keep it off by switching this option', 'mptbm_plugin'),
-					'mptbm_extra_services_global' => esc_html__('Please add your global extra service which add any transport', 'mptbm_plugin'),
-					'mptbm_extra_services_id' => esc_html__('Please select your global extra service', 'mptbm_plugin'),
+					'display_mptbm_features' => esc_html__('By default slider is ON but you can keep it off by switching this option', 'ecab-taxi-booking-manager'),
+					'display_mp_slider' => esc_html__('By default slider is ON but you can keep it off by switching this option', 'ecab-taxi-booking-manager'),
+					'display_mptbm_extra_services' => esc_html__('By default Extra services is ON but you can keep it off by switching this option', 'ecab-taxi-booking-manager'),
+					'mptbm_extra_services_global' => esc_html__('Please add your global extra service which add any transport', 'ecab-taxi-booking-manager'),
+					'mptbm_extra_services_id' => esc_html__('Please select your global extra service', 'ecab-taxi-booking-manager'),
 					//================//
-					'mp_slider_images' => esc_html__('Please upload images for gallery', 'mptbm_plugin'),
-					//''          => esc_html__( '', 'mptbm_plugin' ),
+					'mp_slider_images' => esc_html__('Please upload images for gallery', 'ecab-taxi-booking-manager'),
+					//''          => esc_html__( '', 'ecab-taxi-booking-manager' ),
 				);
 				$des = apply_filters('mptbm_filter_description_array', $des);
 				return $des[$key];

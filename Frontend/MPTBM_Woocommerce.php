@@ -82,7 +82,7 @@
 					$this->show_cart_item($cart_item, $post_id);
 					do_action('mptbm_show_cart_item', $cart_item, $post_id);
 				}
-				$item_data[] = array('key' => esc_html__('Booking Details ', 'mptbm_plugin'), 'value' => ob_get_clean());
+				$item_data[] = array('key' => esc_html__('Booking Details ', 'ecab-taxi-booking-manager'), 'value' => ob_get_clean());
 				return $item_data;
 			}
 			//**************//
@@ -112,28 +112,28 @@
 					$fixed_time = $values['mptbm_fixed_hours'] ?? 0;
 					$extra_service = $values['mptbm_extra_service_info'] ?? [];
 					$price = $values['mptbm_tp'] ?? '';
-					$item->add_meta_data(esc_html__('Pickup Location ', 'mptbm_plugin'), $start_location);
-					$item->add_meta_data(esc_html__('Drop-Off Location ', 'mptbm_plugin'), $end_location);
-					$item->add_meta_data(esc_html__('Approximate Distance ', 'mptbm_plugin'), $distance_text);
-					$item->add_meta_data(esc_html__('Approximate Time ', 'mptbm_plugin'), $duration_text);
+					$item->add_meta_data(esc_html__('Pickup Location ', 'ecab-taxi-booking-manager'), $start_location);
+					$item->add_meta_data(esc_html__('Drop-Off Location ', 'ecab-taxi-booking-manager'), $end_location);
+					$item->add_meta_data(esc_html__('Approximate Distance ', 'ecab-taxi-booking-manager'), $distance_text);
+					$item->add_meta_data(esc_html__('Approximate Time ', 'ecab-taxi-booking-manager'), $duration_text);
 					if ($return && $return > 1) {
-						$item->add_meta_data(esc_html__('Transfer Type', 'mptbm_plugin'), esc_html__('Return ', 'mptbm_plugin'));
+						$item->add_meta_data(esc_html__('Transfer Type', 'ecab-taxi-booking-manager'), esc_html__('Return ', 'ecab-taxi-booking-manager'));
 					}
 					if ($waiting_time && $waiting_time > 0) {
-						$item->add_meta_data(esc_html__('Extra Waiting Hours', 'mptbm_plugin'), $waiting_time . ' ' . esc_html__('Hour ', 'mptbm_plugin'));
+						$item->add_meta_data(esc_html__('Extra Waiting Hours', 'ecab-taxi-booking-manager'), $waiting_time . ' ' . esc_html__('Hour ', 'ecab-taxi-booking-manager'));
 					}
 					if ($fixed_time && $fixed_time > 0) {
-						$item->add_meta_data(esc_html__('Service Times', 'mptbm_plugin'), $fixed_time . ' ' . esc_html__('Hour ', 'mptbm_plugin'));
+						$item->add_meta_data(esc_html__('Service Times', 'ecab-taxi-booking-manager'), $fixed_time . ' ' . esc_html__('Hour ', 'ecab-taxi-booking-manager'));
 					}
-					$item->add_meta_data(esc_html__('Date ', 'mptbm_plugin'), MP_Global_Function::date_format($date));
-					$item->add_meta_data(esc_html__('Time ', 'mptbm_plugin'), MP_Global_Function::date_format($date, 'time'));
-					$item->add_meta_data(esc_html__('Price ', 'mptbm_plugin'), MP_Global_Function::wc_price($post_id, $base_price));
+					$item->add_meta_data(esc_html__('Date ', 'ecab-taxi-booking-manager'), MP_Global_Function::date_format($date));
+					$item->add_meta_data(esc_html__('Time ', 'ecab-taxi-booking-manager'), MP_Global_Function::date_format($date, 'time'));
+					$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), MP_Global_Function::wc_price($post_id, $base_price));
 					if (sizeof($extra_service) > 0) {
-						$item->add_meta_data(esc_html__('Optional Service ', 'mptbm_plugin'), '');
+						$item->add_meta_data(esc_html__('Optional Service ', 'ecab-taxi-booking-manager'), '');
 						foreach ($extra_service as $service) {
-							$item->add_meta_data(esc_html__('Services Name ', 'mptbm_plugin'), $service['service_name']);
-							$item->add_meta_data(esc_html__('Services Quantity ', 'mptbm_plugin'), $service['service_quantity']);
-							$item->add_meta_data(esc_html__('Price ', 'mptbm_plugin'), ' ( ' . MP_Global_Function::wc_price($post_id, $service['service_price']) . ' x ' . $service['service_quantity'] . ' ) = ' . MP_Global_Function::wc_price($post_id, ($service['service_price'] * $service['service_quantity'])));
+							$item->add_meta_data(esc_html__('Services Name ', 'ecab-taxi-booking-manager'), $service['service_name']);
+							$item->add_meta_data(esc_html__('Services Quantity ', 'ecab-taxi-booking-manager'), $service['service_quantity']);
+							$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), ' ( ' . MP_Global_Function::wc_price($post_id, $service['service_price']) . ' x ' . $service['service_quantity'] . ' ) = ' . MP_Global_Function::wc_price($post_id, ($service['service_price'] * $service['service_quantity'])));
 						}
 					}
 					$item->add_meta_data('_mptbm_id', $post_id);
@@ -257,74 +257,74 @@
 						<ul class="cart_list">
 							<li>
 								<span class="fas fa-map-marker-alt"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Pickup Location', 'mptbm_plugin'); ?> :</h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Pickup Location', 'ecab-taxi-booking-manager'); ?> :</h6>
 								<span><?php echo esc_html($start_location); ?></span>
 							</li>
 							<li>
 								<span class="fas fa-map-marker-alt"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Drop-Off Location', 'mptbm_plugin'); ?> :</h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Drop-Off Location', 'ecab-taxi-booking-manager'); ?> :</h6>
 								<span><?php echo esc_html($end_location); ?></span>
 							</li>
 							<li>
 								<span class="fas fa-route"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Approximate Distance', 'mptbm_plugin'); ?> : </h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Approximate Distance', 'ecab-taxi-booking-manager'); ?> : </h6>
 								<span><?php echo esc_html($cart_item['mptbm_distance_text']); ?></span>
 							</li>
 							<li>
 								<span class="far fa-clock"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Approximate Time', 'mptbm_plugin'); ?> : </h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Approximate Time', 'ecab-taxi-booking-manager'); ?> : </h6>
 								<span><?php echo esc_html($cart_item['mptbm_duration_text']); ?></span>
 							</li>
 							<?php if ($return && $return > 1) { ?>
 								<li>
-									<h6 class="_mR_xs"><?php esc_html_e('Transfer Type', 'mptbm_plugin'); ?> : </h6>
-									<span><?php esc_html_e('Return', 'mptbm_plugin'); ?></span>
+									<h6 class="_mR_xs"><?php esc_html_e('Transfer Type', 'ecab-taxi-booking-manager'); ?> : </h6>
+									<span><?php esc_html_e('Return', 'ecab-taxi-booking-manager'); ?></span>
 								</li>
 							<?php } ?>
 							<?php if ($waiting_time && $waiting_time > 0) { ?>
 								<li>
-									<h6 class="_mR_xs"><?php esc_html_e('Extra Waiting Hours', 'mptbm_plugin'); ?> : </h6>
-									<span><?php echo esc_html($waiting_time); ?> <?php esc_html_e('Hours', 'mptbm_plugin'); ?></span>
+									<h6 class="_mR_xs"><?php esc_html_e('Extra Waiting Hours', 'ecab-taxi-booking-manager'); ?> : </h6>
+									<span><?php echo esc_html($waiting_time); ?> <?php esc_html_e('Hours', 'ecab-taxi-booking-manager'); ?></span>
 								</li>
 							<?php } ?>
 							<?php if ($fixed_time && $fixed_time > 0) { ?>
 								<li>
-									<h6 class="_mR_xs"><?php esc_html_e('Service Times', 'mptbm_plugin'); ?> : </h6>
-									<span><?php echo esc_html($fixed_time); ?> <?php esc_html_e('Hours', 'mptbm_plugin'); ?></span>
+									<h6 class="_mR_xs"><?php esc_html_e('Service Times', 'ecab-taxi-booking-manager'); ?> : </h6>
+									<span><?php echo esc_html($fixed_time); ?> <?php esc_html_e('Hours', 'ecab-taxi-booking-manager'); ?></span>
 								</li>
 							<?php } ?>
 							<li>
 								<span class="far fa-calendar-alt"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Date', 'mptbm_plugin'); ?> : </h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?> : </h6>
 								<span><?php echo esc_html(MP_Global_Function::date_format($date)); ?></span>
 							</li>
 							<li>
 								<span class="far fa-clock"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Time : ', 'mptbm_plugin'); ?></h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Time : ', 'ecab-taxi-booking-manager'); ?></h6>
 								<span><?php echo esc_html(MP_Global_Function::date_format($date, 'time')); ?></span>
 							</li>
 							<li>
 								<span class="fa fa-tag"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Base Price : ', 'mptbm_plugin'); ?></h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Base Price : ', 'ecab-taxi-booking-manager'); ?></h6>
 								<span><?php echo MP_Global_Function::wc_price($post_id, $base_price); ?></span>
 							</li>
 						</ul>
 					</div>
 					<?php if (sizeof($extra_service) > 0) { ?>
-						<h5 class="_mB_xs"><?php esc_html_e('Extra Services', 'mptbm_plugin'); ?></h5>
+						<h5 class="_mB_xs"><?php esc_html_e('Extra Services', 'ecab-taxi-booking-manager'); ?></h5>
 						<?php foreach ($extra_service as $service) { ?>
 							<div class="dLayout_xs">
 								<ul class="cart_list">
 									<li>
-										<h6 class="_mR_xs"><?php esc_html_e('Name : ', 'mptbm_plugin'); ?></h6>
+										<h6 class="_mR_xs"><?php esc_html_e('Name : ', 'ecab-taxi-booking-manager'); ?></h6>
 										<span><?php echo esc_html($service['service_name']); ?></span>
 									</li>
 									<li>
-										<h6 class="_mR_xs"><?php esc_html_e('Quantity : ', 'mptbm_plugin'); ?></h6>
+										<h6 class="_mR_xs"><?php esc_html_e('Quantity : ', 'ecab-taxi-booking-manager'); ?></h6>
 										<span><?php echo esc_html($service['service_quantity']); ?></span>
 									</li>
 									<li>
-										<h6 class="_mR_xs"><?php esc_html_e('Price : ', 'mptbm_plugin'); ?></h6>
+										<h6 class="_mR_xs"><?php esc_html_e('Price : ', 'ecab-taxi-booking-manager'); ?></h6>
 										<span><?php echo ' ( ' . MP_Global_Function::wc_price($post_id, $service['service_price']) . ' x ' . $service['service_quantity'] . ' ) = ' . MP_Global_Function::wc_price($post_id, ($service['service_price'] * $service['service_quantity'])); ?></span>
 									</li>
 								</ul>
@@ -468,7 +468,7 @@
 					<div class="divider"></div>
 					<div class="justifyBetween">
 						<button type="button" class="_themeButton_min_200 mptbm_summary_prev">
-							<span>&larr; &nbsp;<?php esc_html_e('Previous', 'mptbm_plugin'); ?></span>
+							<span>&larr; &nbsp;<?php esc_html_e('Previous', 'ecab-taxi-booking-manager'); ?></span>
 						</button>
 						<div></div>
 					</div>

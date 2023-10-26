@@ -61,9 +61,9 @@
 						<?php } ?>
 						<div class="_min_150_mL_xs">
 							<h4 class="textCenter"> <?php echo MP_Global_Function::esc_html($wc_price); ?></h4>
-							<button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select" data-transport-name="<?php echo get_the_title($post_id); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-open-text="<?php esc_attr_e('Select Car', 'mptbm_plugin'); ?>" data-close-text="<?php esc_html_e('Selected', 'mptbm_plugin'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
+							<button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select" data-transport-name="<?php echo get_the_title($post_id); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
 								<span class="" data-icon></span>
-								<span data-text><?php esc_html_e('Select Car', 'mptbm_plugin'); ?></span>
+								<span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
 							</button>
 						</div>
 					</div>

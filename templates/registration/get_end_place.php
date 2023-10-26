@@ -12,13 +12,13 @@
     $end_locations = MPTBM_Function::get_end_location($start_place, $post_id);
     if (sizeof($end_locations) > 0) {
         ?>
-	    <span><i class="fas fa-map-marker-alt _textTheme_mR_xs"></i><?php esc_html_e('Drop-Off Location', 'mptbm_plugin'); ?></span>
+	    <span><i class="fas fa-map-marker-alt _textTheme_mR_xs"></i><?php esc_html_e('Drop-Off Location', 'ecab-taxi-booking-manager'); ?></span>
         <select class="formControl mptbm_map_end_place" id="mptbm_manual_end_place">
-            <option selected disabled><?php esc_html_e(' Select Destination Location', 'mptbm_plugin'); ?></option>
+            <option selected disabled><?php esc_html_e(' Select Destination Location', 'ecab-taxi-booking-manager'); ?></option>
             <?php foreach ($end_locations as $location) { ?>
                 <option value="<?php echo esc_attr($location); ?>"><?php echo esc_html($location); ?></option>
             <?php } ?>
         </select>
     <?php } else { ?>
-        <span class="fas fa-map-marker-alt"><?php esc_html_e(' Can not find any Destination Location', 'mptbm_plugin'); ?></span><?php
+        <span class="fas fa-map-marker-alt"><?php esc_html_e(' Can not find any Destination Location', 'ecab-taxi-booking-manager'); ?></span><?php
     }

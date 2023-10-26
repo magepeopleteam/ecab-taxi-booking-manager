@@ -32,22 +32,12 @@
 				//****************Global settings************************//
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Settings_Global.php';
 				//****************Taxi settings************************//
-
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_General_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Price_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Extra_Service.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Date_Settings.php';
 				//require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Gallery_Settings.php';
-
-				//****************Woocommerce Checkout*********************** */
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Settings.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Fields.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Billing.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Shipping.php';
-				//require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Account.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Order.php';
-
 			}
 			public function add_dummy_data() {
 				new MPTBM_Dummy_Import();
@@ -106,7 +96,7 @@
 			}
 			public function post_duplicator($actions, $post) {
 				if (current_user_can('edit_posts')) {
-					$actions['duplicate'] = '<a href="' . wp_nonce_url('admin.php?action=mptbm_rent_duplicate&post=' . $post->ID, basename(__FILE__), 'duplicate_nonce') . '" title="' . esc_html__('Duplicate Post', 'mptbm_plugin') . '" rel="permalink">' . esc_html__('Duplicate', 'mptbm_plugin') . '</a>';
+					$actions['duplicate'] = '<a href="' . wp_nonce_url('admin.php?action=mptbm_rent_duplicate&post=' . $post->ID, basename(__FILE__), 'duplicate_nonce') . '" title="' . esc_html__('Duplicate Post', 'ecab-taxi-booking-manager') . '" rel="permalink">' . esc_html__('Duplicate', 'ecab-taxi-booking-manager') . '</a>';
 				}
 				return $actions;
 			}

@@ -21,7 +21,7 @@
 				add_action( 'wp_ajax_nopriv_get_mptbm_ex_service', array( $this, 'get_mptbm_ex_service' ) );
 			}
 			public function mptbm_extra_service_meta() {
-				add_meta_box( 'mp_meta_box_panel', '<span class="dashicons dashicons-info"></span>' . esc_html__( 'Extra Services : ', 'mptbm_plugin' ) . get_the_title( get_the_id() ), array( $this, 'mptbm_extra_service' ), 'mptbm_extra_services', 'normal', 'high' );
+				add_meta_box( 'mp_meta_box_panel', '<span class="dashicons dashicons-info"></span>' . esc_html__( 'Extra Services : ', 'ecab-taxi-booking-manager' ) . get_the_title( get_the_id() ), array( $this, 'mptbm_extra_service' ), 'mptbm_extra_services', 'normal', 'high' );
 			}
 			public function mptbm_extra_service() {
 				$post_id        = get_the_id();
@@ -30,7 +30,7 @@
 				?>
 				<div class="mpStyle">
 					<div class="mptbm_extra_service_settings padding">
-						<h5><?php esc_html_e( 'Global Extra Service Settings', 'mptbm_plugin' ); ?></h5>
+						<h5><?php esc_html_e( 'Global Extra Service Settings', 'ecab-taxi-booking-manager' ); ?></h5>
 						<?php MPTBM_Settings::info_text( 'mptbm_extra_services_global' ); ?>
 						<div class="mp_settings_area mT">
 							<div class="divider"></div>
@@ -38,12 +38,12 @@
 								<table>
 									<thead>
 									<tr>
-										<th><span><?php esc_html_e( 'Service Icon', 'mptbm_plugin' ); ?></span></th>
-										<th><span><?php esc_html_e( 'Service Name', 'mptbm_plugin' ); ?></span></th>
-										<th><span><?php esc_html_e( 'Short description', 'mptbm_plugin' ); ?></span></th>
-										<th><span><?php esc_html_e( 'Service Price', 'mptbm_plugin' ); ?></span></th>
-										<th><span><?php esc_html_e( 'Qty Box Type', 'mptbm_plugin' ); ?></span></th>
-										<th><span><?php esc_html_e( 'Action', 'mptbm_plugin' ); ?></span></th>
+										<th><span><?php esc_html_e( 'Service Icon', 'ecab-taxi-booking-manager' ); ?></span></th>
+										<th><span><?php esc_html_e( 'Service Name', 'ecab-taxi-booking-manager' ); ?></span></th>
+										<th><span><?php esc_html_e( 'Short description', 'ecab-taxi-booking-manager' ); ?></span></th>
+										<th><span><?php esc_html_e( 'Service Price', 'ecab-taxi-booking-manager' ); ?></span></th>
+										<th><span><?php esc_html_e( 'Qty Box Type', 'ecab-taxi-booking-manager' ); ?></span></th>
+										<th><span><?php esc_html_e( 'Action', 'ecab-taxi-booking-manager' ); ?></span></th>
 									</tr>
 									</thead>
 									<tbody class="mp_sortable_area mp_item_insert">
@@ -57,7 +57,7 @@
 									</tbody>
 								</table>
 							</div>
-							<?php MP_Custom_Layout::add_new_button( esc_html__( 'Add Extra New Service', 'mptbm_plugin' ) ); ?>
+							<?php MP_Custom_Layout::add_new_button( esc_html__( 'Add Extra New Service', 'ecab-taxi-booking-manager' ) ); ?>
 							<?php do_action( 'add_mp_hidden_table', 'mptbm_extra_service_item' ); ?>
 						</div>
 					</div>
@@ -86,24 +86,24 @@
 					</td>
 					<td>
 						<label>
-							<input type="text" class="formControl mp_name_validation" name="service_name[]" placeholder="<?php esc_attr_e( 'EX: Driver', 'mptbm_plugin' ); ?>" value="<?php echo esc_attr( $service_name ); ?>"/>
+							<input type="text" class="formControl mp_name_validation" name="service_name[]" placeholder="<?php esc_attr_e( 'EX: Driver', 'ecab-taxi-booking-manager' ); ?>" value="<?php echo esc_attr( $service_name ); ?>"/>
 						</label>
 					</td>
 					<td>
 						<label>
-							<textarea class="formControl" name="extra_service_description[]" placeholder="<?php esc_attr_e( 'EX: Description', 'mptbm_plugin' ); ?>"><?php echo esc_html( $description ); ?></textarea>
+							<textarea class="formControl" name="extra_service_description[]" placeholder="<?php esc_attr_e( 'EX: Description', 'ecab-taxi-booking-manager' ); ?>"><?php echo esc_html( $description ); ?></textarea>
 						</label>
 					</td>
 					<td>
 						<label>
-							<input type="number" pattern="[0-9]*" step="0.01" class="formControl mp_price_validation" name="service_price[]" placeholder="<?php esc_attr_e( 'EX: 10', 'mptbm_plugin' ); ?>" value="<?php echo esc_attr( $service_price ); ?>"/>
+							<input type="number" pattern="[0-9]*" step="0.01" class="formControl mp_price_validation" name="service_price[]" placeholder="<?php esc_attr_e( 'EX: 10', 'ecab-taxi-booking-manager' ); ?>" value="<?php echo esc_attr( $service_price ); ?>"/>
 						</label>
 					</td>
 					<td>
 						<label>
 							<select name="service_qty_type[]" class='formControl'>
-								<option value="inputbox" <?php echo esc_attr( $input_type == 'inputbox' ? 'selected' : '' ); ?>><?php esc_html_e( 'Input Box', 'mptbm_plugin' ); ?></option>
-								<option value="dropdown" <?php echo esc_attr( $input_type == 'dropdown' ? 'selected' : '' ); ?>><?php esc_html_e( 'Dropdown List', 'mptbm_plugin' ); ?></option>
+								<option value="inputbox" <?php echo esc_attr( $input_type == 'inputbox' ? 'selected' : '' ); ?>><?php esc_html_e( 'Input Box', 'ecab-taxi-booking-manager' ); ?></option>
+								<option value="dropdown" <?php echo esc_attr( $input_type == 'dropdown' ? 'selected' : '' ); ?>><?php esc_html_e( 'Dropdown List', 'ecab-taxi-booking-manager' ); ?></option>
 							</select>
 						</label>
 					</td>
@@ -130,16 +130,16 @@
 				?>
 				<div class="tabsItem mptbm_extra_services_setting" data-tabs="#mptbm_settings_ex_service">
 					<h5 class="dFlex">
-						<span class="mR"><?php esc_html_e( 'On/Off Extra Service Settings', 'mptbm_plugin' ); ?></span>
+						<span class="mR"><?php esc_html_e( 'On/Off Extra Service Settings', 'ecab-taxi-booking-manager' ); ?></span>
 						<?php MP_Custom_Layout::switch_button( 'display_mptbm_extra_services', $checked ); ?>
 					</h5>
 					<?php MPTBM_Settings::info_text( 'display_mptbm_extra_services' ); ?>
 					<div data-collapse="#display_mptbm_extra_services" class="mp_settings_area mT <?php echo esc_attr( $active ); ?>">
 						<div class="divider"></div>
 						<label class="max_600">
-							<span class="max_300"><?php esc_html_e( 'Select extra option :', 'mptbm_plugin' ); ?></span> <select class="formControl" name="mptbm_extra_services_id">
-								<option value="" selected><?php esc_html_e( 'Select extra option', 'mptbm_plugin' ); ?></option>
-								<option value="<?php echo esc_attr( $post_id ); ?>" <?php echo esc_attr( $service_id == $post_id ? 'selected' : '' ); ?>><?php esc_html_e( 'Custom', 'mptbm_plugin' ); ?></option>
+							<span class="max_300"><?php esc_html_e( 'Select extra option :', 'ecab-taxi-booking-manager' ); ?></span> <select class="formControl" name="mptbm_extra_services_id">
+								<option value="" selected><?php esc_html_e( 'Select extra option', 'ecab-taxi-booking-manager' ); ?></option>
+								<option value="<?php echo esc_attr( $post_id ); ?>" <?php echo esc_attr( $service_id == $post_id ? 'selected' : '' ); ?>><?php esc_html_e( 'Custom', 'ecab-taxi-booking-manager' ); ?></option>
 								<?php if ( sizeof( $all_ex_services_id ) > 0 ) { ?>
 									<?php foreach ( $all_ex_services_id as $ex_services_id ) { ?>
 										<option value="<?php echo esc_attr( $ex_services_id ); ?>" <?php echo esc_attr( $service_id == $ex_services_id ? 'selected' : '' ); ?>><?php echo get_the_title( $ex_services_id ); ?></option>
@@ -164,12 +164,12 @@
 						<table>
 							<thead>
 							<tr>
-								<th><span><?php esc_html_e( 'Service Icon', 'mptbm_plugin' ); ?></span></th>
-								<th><span><?php esc_html_e( 'Service Name', 'mptbm_plugin' ); ?></span></th>
-								<th><span><?php esc_html_e( 'Short description', 'mptbm_plugin' ); ?></span></th>
-								<th><span><?php esc_html_e( 'Service Price', 'mptbm_plugin' ); ?></span></th>
-								<th><span><?php esc_html_e( 'Qty Box Type', 'mptbm_plugin' ); ?></span></th>
-								<th><span><?php esc_html_e( 'Action', 'mptbm_plugin' ); ?></span></th>
+								<th><span><?php esc_html_e( 'Service Icon', 'ecab-taxi-booking-manager' ); ?></span></th>
+								<th><span><?php esc_html_e( 'Service Name', 'ecab-taxi-booking-manager' ); ?></span></th>
+								<th><span><?php esc_html_e( 'Short description', 'ecab-taxi-booking-manager' ); ?></span></th>
+								<th><span><?php esc_html_e( 'Service Price', 'ecab-taxi-booking-manager' ); ?></span></th>
+								<th><span><?php esc_html_e( 'Qty Box Type', 'ecab-taxi-booking-manager' ); ?></span></th>
+								<th><span><?php esc_html_e( 'Action', 'ecab-taxi-booking-manager' ); ?></span></th>
 							</tr>
 							</thead>
 							<tbody class="mp_sortable_area mp_item_insert">
@@ -185,7 +185,7 @@
 					</div>
 					<?php
 					if ( $service_id == $post_id ) {
-						MP_Custom_Layout::add_new_button( esc_html__( 'Add Extra New Service', 'mptbm_plugin' ) );
+						MP_Custom_Layout::add_new_button( esc_html__( 'Add Extra New Service', 'ecab-taxi-booking-manager' ) );
 						do_action( 'add_mp_hidden_table', 'mptbm_extra_service_item' );
 					}
 				}
