@@ -258,7 +258,7 @@
 				}
 				$line_price = (float)$price * (int)$qty;
 				$return_price = $line_price;
-				if ($product->is_taxable()) {
+				if ($product && $product->is_taxable()) {
 					if (!wc_prices_include_tax()) {
 						$tax_rates = WC_Tax::get_rates($product->get_tax_class());
 						$taxes = WC_Tax::calc_tax($line_price, $tax_rates);
@@ -392,13 +392,13 @@
 			}
 			public static function week_day(): array {
 				return [
-					'monday' => esc_html__('Monday', 'mptbm_plugin'),
-					'tuesday' => esc_html__('Tuesday', 'mptbm_plugin'),
-					'wednesday' => esc_html__('Wednesday', 'mptbm_plugin'),
-					'thursday' => esc_html__('Thursday', 'mptbm_plugin'),
-					'friday' => esc_html__('Friday', 'mptbm_plugin'),
-					'saturday' => esc_html__('Saturday', 'mptbm_plugin'),
-					'sunday' => esc_html__('Sunday', 'mptbm_plugin'),
+					'monday' => esc_html__('Monday', 'ecab-taxi-booking-manager'),
+					'tuesday' => esc_html__('Tuesday', 'ecab-taxi-booking-manager'),
+					'wednesday' => esc_html__('Wednesday', 'ecab-taxi-booking-manager'),
+					'thursday' => esc_html__('Thursday', 'ecab-taxi-booking-manager'),
+					'friday' => esc_html__('Friday', 'ecab-taxi-booking-manager'),
+					'saturday' => esc_html__('Saturday', 'ecab-taxi-booking-manager'),
+					'sunday' => esc_html__('Sunday', 'ecab-taxi-booking-manager'),
 				];
 			}
 			public static function get_plugin_data($data) {

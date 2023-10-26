@@ -67,7 +67,7 @@
 				return 'mptbm_rent';
 			}
 			public static function get_name() {
-				return self::get_general_settings('label', esc_html__('Transportation', 'mptbm_plugin'));
+				return self::get_general_settings('label', esc_html__('Transportation', 'ecab-taxi-booking-manager'));
 			}
 			public static function get_slug() {
 				return self::get_general_settings('slug', 'transportation');
@@ -76,13 +76,13 @@
 				return self::get_general_settings('icon', 'dashicons-car');
 			}
 			public static function get_category_label() {
-				return self::get_general_settings('category_label', esc_html__('Category', 'mptbm_plugin'));
+				return self::get_general_settings('category_label', esc_html__('Category', 'ecab-taxi-booking-manager'));
 			}
 			public static function get_category_slug() {
 				return self::get_general_settings('category_slug', 'transportation-category');
 			}
 			public static function get_organizer_label() {
-				return self::get_general_settings('organizer_label', esc_html__('Organizer', 'mptbm_plugin'));
+				return self::get_general_settings('organizer_label', esc_html__('Organizer', 'ecab-taxi-booking-manager'));
 			}
 			public static function get_organizer_slug() {
 				return self::get_general_settings('organizer_slug', 'transportation-organizer');

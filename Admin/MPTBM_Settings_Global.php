@@ -18,13 +18,13 @@
 			}
 			public function global_settings_menu() {
 				$cpt = MPTBM_Function::get_cpt();
-				add_submenu_page('edit.php?post_type=' . $cpt, esc_html__('Global Settings', 'mptbm_plugin'), esc_html__('Global Settings', 'mptbm_plugin'), 'manage_options', 'mptbm_settings_page', array($this, 'settings_page'));
+				add_submenu_page('edit.php?post_type=' . $cpt, esc_html__('Global Settings', 'ecab-taxi-booking-manager'), esc_html__('Global Settings', 'ecab-taxi-booking-manager'), 'manage_options', 'mptbm_settings_page', array($this, 'settings_page'));
 			}
 			public function settings_page() {
 				$label = MPTBM_Function::get_name();
 				?>
 				<div class="mp_settings_panel_header">
-					<?php echo esc_html($label . esc_html__(' Global Settings', 'mptbm_plugin')); ?>
+					<?php echo esc_html($label . esc_html__(' Global Settings', 'ecab-taxi-booking-manager')); ?>
 				</div>
 				<div class="mp_settings_panel">
 					<?php $this->settings_api->show_navigation(); ?>
@@ -50,11 +50,11 @@
 				$sections = array(
 					array(
 						'id' => 'MPTBM_General_Settings',
-						'title' => $label.' '.esc_html__('Settings', 'mptbm_plugin')
+						'title' => $label.' '.esc_html__('Settings', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mptbm_map_api_settings',
-						'title' => esc_html__('Google Map Settings', 'mptbm_plugin')
+						'title' => esc_html__('Google Map Settings', 'ecab-taxi-booking-manager')
 					)
 				);
 				return array_merge($default_sec, $sections);
@@ -66,109 +66,109 @@
 					'MPTBM_General_Settings' => apply_filters('filter_mptbm_general_settings', array(
 						array(
 							'name' => 'taxi_return',
-							'label' => esc_html__('Disable/ Enable Taxi Return', 'mptbm_plugin'),
-							'desc' => esc_html__('If you want to disable taxi return, please select disable. default enable', 'mptbm_plugin'),
+							'label' => esc_html__('Disable/ Enable Taxi Return', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('If you want to disable taxi return, please select disable. default enable', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'enable',
 							'options' => array(
-								'enable' => esc_html__('Enable', 'mptbm_plugin'),
-								'disable' => esc_html__('Disabled', 'mptbm_plugin')
+								'enable' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+								'disable' => esc_html__('Disabled', 'ecab-taxi-booking-manager')
 							)
 						),
 						array(
 							'name' => 'taxi_waiting_time',
-							'label' => esc_html__('Disable/ Enable Taxi Waiting Time', 'mptbm_plugin'),
-							'desc' => esc_html__('If you want to disable taxi Waiting Time, please select disable. default enable', 'mptbm_plugin'),
+							'label' => esc_html__('Disable/ Enable Taxi Waiting Time', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('If you want to disable taxi Waiting Time, please select disable. default enable', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'enable',
 							'options' => array(
-								'enable' => esc_html__('Enable', 'mptbm_plugin'),
-								'disable' => esc_html__('Disabled', 'mptbm_plugin')
+								'enable' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+								'disable' => esc_html__('Disabled', 'ecab-taxi-booking-manager')
 							)
 						),
 						array(
 							'name' => 'payment_system',
-							'label' => esc_html__('Payment System', 'mptbm_plugin'),
-							'desc' => esc_html__('Please Select Payment System.', 'mptbm_plugin'),
+							'label' => esc_html__('Payment System', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please Select Payment System.', 'ecab-taxi-booking-manager'),
 							'type' => 'multicheck',
 							'default' => array(
 								'direct_order' => 'direct_order',
 								'woocommerce' => 'woocommerce'
 							),
 							'options' => array(
-								'direct_order' => esc_html__('Pay on service', 'mptbm_plugin'),
-								'woocommerce' => esc_html__('woocommerce Payment', 'mptbm_plugin'),
+								'direct_order' => esc_html__('Pay on service', 'ecab-taxi-booking-manager'),
+								'woocommerce' => esc_html__('woocommerce Payment', 'ecab-taxi-booking-manager'),
 							)
 						),
 						array(
 							'name' => 'direct_book_status',
-							'label' => esc_html__('Pay on service Booked Status', 'mptbm_plugin'),
-							'desc' => esc_html__('Please Select when and which order status service Will be Booked/Reduced in Pay on service.', 'mptbm_plugin'),
+							'label' => esc_html__('Pay on service Booked Status', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please Select when and which order status service Will be Booked/Reduced in Pay on service.', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'completed',
 							'options' => array(
-								'pending' => esc_html__('Pending', 'mptbm_plugin'),
-								'completed' => esc_html__('completed', 'mptbm_plugin')
+								'pending' => esc_html__('Pending', 'ecab-taxi-booking-manager'),
+								'completed' => esc_html__('completed', 'ecab-taxi-booking-manager')
 							)
 						),
 						array(
 							'name' => 'label',
-							'label' => $label . ' ' . esc_html__('Label', 'mptbm_plugin'),
-							'desc' => esc_html__('If you like to change the label in the dashboard menu, you can change it here.', 'mptbm_plugin'),
+							'label' => $label . ' ' . esc_html__('Label', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('If you like to change the label in the dashboard menu, you can change it here.', 'ecab-taxi-booking-manager'),
 							'type' => 'text',
 							'default' => 'Transportation'
 						),
 						array(
 							'name' => 'slug',
-							'label' => $label . ' ' . esc_html__('Slug', 'mptbm_plugin'),
-							'desc' => esc_html__('Please enter the slug name you want. Remember, after changing this slug; you need to flush permalink; go to', 'mptbm_plugin') . '<strong>' . esc_html__('Settings-> Permalinks', 'mptbm_plugin') . '</strong> ' . esc_html__('hit the Save Settings button.', 'mptbm_plugin'),
+							'label' => $label . ' ' . esc_html__('Slug', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please enter the slug name you want. Remember, after changing this slug; you need to flush permalink; go to', 'ecab-taxi-booking-manager') . '<strong>' . esc_html__('Settings-> Permalinks', 'ecab-taxi-booking-manager') . '</strong> ' . esc_html__('hit the Save Settings button.', 'ecab-taxi-booking-manager'),
 							'type' => 'text',
 							'default' => 'transportation'
 						),
 						array(
 							'name' => 'icon',
-							'label' => $label . ' ' . esc_html__('Icon', 'mptbm_plugin'),
-							'desc' => esc_html__('If you want to change the  icon in the dashboard menu, you can change it from here, and the Dashboard icon only supports the Dashicons, So please go to ', 'mptbm_plugin') . '<a href=https://developer.wordpress.org/resource/dashicons/#calendar-alt target=_blank>' . esc_html__('Dashicons Library.', 'mptbm_plugin') . '</a>' . esc_html__('and copy your icon code and paste it here.', 'mptbm_plugin'),
+							'label' => $label . ' ' . esc_html__('Icon', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('If you want to change the  icon in the dashboard menu, you can change it from here, and the Dashboard icon only supports the Dashicons, So please go to ', 'ecab-taxi-booking-manager') . '<a href=https://developer.wordpress.org/resource/dashicons/#calendar-alt target=_blank>' . esc_html__('Dashicons Library.', 'ecab-taxi-booking-manager') . '</a>' . esc_html__('and copy your icon code and paste it here.', 'ecab-taxi-booking-manager'),
 							'type' => 'text',
 							'default' => 'dashicons-car'
 						),
 						array(
 							'name' => 'category_label',
-							'label' => $label . ' ' . esc_html__('Category Label', 'mptbm_plugin'),
-							'desc' => esc_html__('If you want to change the  category label in the dashboard menu, you can change it here.', 'mptbm_plugin'),
+							'label' => $label . ' ' . esc_html__('Category Label', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('If you want to change the  category label in the dashboard menu, you can change it here.', 'ecab-taxi-booking-manager'),
 							'type' => 'text',
 							'default' => 'Category'
 						),
 						array(
 							'name' => 'category_slug',
-							'label' => $label . ' ' . esc_html__('Category Slug', 'mptbm_plugin'),
-							'desc' => esc_html__('Please enter the slug name you want for category. Remember after change this slug you need to flush permalink, Just go to  ', 'mptbm_plugin') . '<strong>' . esc_html__('Settings-> Permalinks', 'mptbm_plugin') . '</strong> ' . esc_html__('hit the Save Settings button.', 'mptbm_plugin'),
+							'label' => $label . ' ' . esc_html__('Category Slug', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please enter the slug name you want for category. Remember after change this slug you need to flush permalink, Just go to  ', 'ecab-taxi-booking-manager') . '<strong>' . esc_html__('Settings-> Permalinks', 'ecab-taxi-booking-manager') . '</strong> ' . esc_html__('hit the Save Settings button.', 'ecab-taxi-booking-manager'),
 							'type' => 'text',
 							'default' => 'transportation-category'
 						),
 						array(
 							'name' => 'organizer_label',
-							'label' => $label . ' ' . esc_html__('Organizer Label', 'mptbm_plugin'),
-							'desc' => esc_html__('If you want to change the  category label in the dashboard menu you can change here', 'mptbm_plugin'),
+							'label' => $label . ' ' . esc_html__('Organizer Label', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('If you want to change the  category label in the dashboard menu you can change here', 'ecab-taxi-booking-manager'),
 							'type' => 'text',
 							'default' => 'Organizer'
 						),
 						array(
 							'name' => 'organizer_slug',
-							'label' => $label . ' ' . esc_html__('Organizer Slug', 'mptbm_plugin'),
-							'desc' => esc_html__('Please enter the slug name you want for the  organizer. Remember, after changing this slug, you need to flush the permalinks. Just go to ', 'mptbm_plugin') . '<strong>' . esc_html__('Settings-> Permalinks', 'mptbm_plugin') . '</strong> ' . esc_html__('hit the Save Settings button.', 'mptbm_plugin'),
+							'label' => $label . ' ' . esc_html__('Organizer Slug', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please enter the slug name you want for the  organizer. Remember, after changing this slug, you need to flush the permalinks. Just go to ', 'ecab-taxi-booking-manager') . '<strong>' . esc_html__('Settings-> Permalinks', 'ecab-taxi-booking-manager') . '</strong> ' . esc_html__('hit the Save Settings button.', 'ecab-taxi-booking-manager'),
 							'type' => 'text',
 							'default' => 'transportation-organizer'
 						),
 						array(
 							'name' => 'expire',
-							'label' => $label . ' ' . esc_html__('Expired  Visibility', 'mptbm_plugin'),
-							'desc' => esc_html__('If you want to visible expired  ?, please select ', 'mptbm_plugin') . '<strong> ' . esc_html__('Yes', 'mptbm_plugin') . '</strong>' . esc_html__('or to make it hidden, select', 'mptbm_plugin') . '<strong> ' . esc_html__('No', 'mptbm_plugin') . '</strong>' . esc_html__('. Default is', 'mptbm_plugin') . '<strong>' . esc_html__('No', 'mptbm_plugin') . '</strong>',
+							'label' => $label . ' ' . esc_html__('Expired  Visibility', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('If you want to visible expired  ?, please select ', 'ecab-taxi-booking-manager') . '<strong> ' . esc_html__('Yes', 'ecab-taxi-booking-manager') . '</strong>' . esc_html__('or to make it hidden, select', 'ecab-taxi-booking-manager') . '<strong> ' . esc_html__('No', 'ecab-taxi-booking-manager') . '</strong>' . esc_html__('. Default is', 'ecab-taxi-booking-manager') . '<strong>' . esc_html__('No', 'ecab-taxi-booking-manager') . '</strong>',
 							'type' => 'select',
 							'default' => 'no',
 							'options' => array(
-								'yes' => esc_html__('Yes', 'mptbm_plugin'),
-								'no' => esc_html__('No', 'mptbm_plugin')
+								'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+								'no' => esc_html__('No', 'ecab-taxi-booking-manager')
 							)
 						),
 						
@@ -176,30 +176,30 @@
 					'mptbm_map_api_settings' => apply_filters('filter_mptbm_map_api_settings', array(
 						array(
 							'name'    => 'gmap_api_key',
-							'label'   => esc_html__( 'Google MAP API', 'mptbm_plugin' ),
-							'desc'    => esc_html__( 'Please enter your Google Maps API key in this Options.', 'mptbm_plugin' ).'<a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',
+							'label'   => esc_html__( 'Google MAP API', 'ecab-taxi-booking-manager' ),
+							'desc'    => esc_html__( 'Please enter your Google Maps API key in this Options.', 'ecab-taxi-booking-manager' ).'<a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',
 							'type'    => 'text',
 							'default' => ''
 						),
 						
 						array(
 							'name' => 'mp_latitude',
-							'label' => esc_html__('Your Location Latitude', 'mptbm_plugin'),
-							'desc' => esc_html__('Please type Your Location Latitude.This are mandatory for google map show. To find latitude please ', 'mptbm_plugin').'<a href="https://www.latlong.net/" target="_blank">'.esc_html__('Click Here', 'mptbm_plugin').'</a>',
+							'label' => esc_html__('Your Location Latitude', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please type Your Location Latitude.This are mandatory for google map show. To find latitude please ', 'ecab-taxi-booking-manager').'<a href="https://www.latlong.net/" target="_blank">'.esc_html__('Click Here', 'ecab-taxi-booking-manager').'</a>',
 							'type' => 'text',
 							'default' => '23.81234828905659'
 						),
 						array(
 							'name' => 'mp_longitude',
-							'label' => esc_html__('Your Location Longitude', 'mptbm_plugin'),
-							'desc' => esc_html__('Please type Your Location Longitude .This are mandatory for google map show. To find latitude please ', 'mptbm_plugin').'<a href="https://www.latlong.net/" target="_blank">'.esc_html__('Click Here', 'mptbm_plugin').'</a>',
+							'label' => esc_html__('Your Location Longitude', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please type Your Location Longitude .This are mandatory for google map show. To find latitude please ', 'ecab-taxi-booking-manager').'<a href="https://www.latlong.net/" target="_blank">'.esc_html__('Click Here', 'ecab-taxi-booking-manager').'</a>',
 							'type' => 'text',
 							'default' => '90.41069652669002'
 						),
 						array(
 							'name' => 'mp_country',
-							'label' => esc_html__('Country Location', 'mptbm_plugin'),
-							'desc' => esc_html__('Select your country Location.This are mandatory for google map show.', 'mptbm_plugin'),
+							'label' => esc_html__('Country Location', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Select your country Location.This are mandatory for google map show.', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'BD',
 							'options' => MP_Global_Function::get_country_list()

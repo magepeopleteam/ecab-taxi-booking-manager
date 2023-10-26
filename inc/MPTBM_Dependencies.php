@@ -18,7 +18,7 @@
 			}
 			public function language_load(): void {
 				$plugin_dir = basename(dirname(__DIR__)) . "/languages/";
-				load_plugin_textdomain('mptbm_plugin', false, $plugin_dir);
+				load_plugin_textdomain('ecab-taxi-booking-manager', false, $plugin_dir);
 			}
 			private function load_file(): void {
 				require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Function.php';
@@ -47,24 +47,23 @@
 			public function frontend_enqueue() {
 				$this->global_enqueue();
 				wp_enqueue_script('wc-checkout');
+				//
 				wp_enqueue_style('mptbm_style', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_style.css', array(), time());
 				wp_enqueue_script('mptbm_script', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_script.js', array('jquery'), time(), true);
 				wp_enqueue_script('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.js', array('jquery'), time(), true);
 				wp_enqueue_style('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.css', array(), time());
 				do_action('add_mptbm_frontend_script');
-        wp_enqueue_style('mptbm_checkout_front_style', MPTBM_PLUGIN_URL . '/assets/checkout/front/css/mptbm-pro-checkout-front-style.css', array(), time());
-         wp_enqueue_script('mptbm_checkout_front_script', MPTBM_PLUGIN_URL . '/assets/checkout/front/js/mptbm-pro-checkout-front-script.js', array('jquery'), time(), true);
+				
 			}
 			public function js_constant() {
 				?>
 				<script type="text/javascript">
 					let mp_lat_lng = {
-						 lat: <?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings','mp_latitude', '23.81234828905659')); ?>,
-						lng: <?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings','mp_longitude', '90.41069652669002')); ?>
-						//lng: 90.41069652669002
+						lat: <?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_latitude', '23.81234828905659')); ?>,
+						lng: <?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_longitude', '90.41069652669002')); ?>
 					};
 					const mp_map_options = {
-						componentRestrictions: {country: "<?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings','mp_country', 'BD')); ?>"},
+						componentRestrictions: {country: "<?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'BD')); ?>"},
 						fields: ["address_components", "geometry"],
 						types: ["address"],
 					}
@@ -74,7 +73,7 @@
 			public function map_api_not_active() {
 				$gm_api_url = 'https://developers.google.com/maps/documentation/javascript/get-api-key';
 				$label = MPTBM_Function::get_name();
-				printf('<div class="error" style="background:red; color:#fff;"><p>%s</p></div>', __('You Must Add Google Map Api key for E-cab taxi booking manager, Because It is dependent on Google Map. Please enter your Google Maps API key in Plugin Options.<strong style="font-size: 17px;">' . $label . '>' . $label . ' Settings>Map Api Settings</strong> <a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>'));
+				printf('<div class="error" style="background:red; color:#fff;"><p>%s</p></div>', esc_html__('You Must Add Google Map Api key for E-cab taxi booking manager, Because It is dependent on Google Map. Please enter your Google Maps API key in Plugin Options.<strong style="font-size: 17px;">' . $label . '>' . $label . ' Settings>Map Api Settings</strong> <a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>'));
 			}
 		}
 		new MPTBM_Dependencies();

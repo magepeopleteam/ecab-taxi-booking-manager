@@ -42,7 +42,7 @@
 							else {
 								?>
 								<div class="_dLayout_mT_bgWarning" data-placeholder>
-									<h3><?php esc_html_e('No Transport Available !', 'mptbm_plugin'); ?></h3>
+									<h3><?php esc_html_e('No Transport Available !', 'ecab-taxi-booking-manager'); ?></h3>
 								</div>
 							<?php } ?>
 						<div class="mptbm_extra_service"></div>
