@@ -1030,7 +1030,7 @@
 		-webkit-align-items: center; align-items: center;
 		-webkit-flex-wrap: nowrap; flex-wrap: nowrap;
 		position: relative; text-align: left; cursor: pointer;
-		padding: var(--dMP_xs); color: var(--d_color);
+		padding: var(--dMP_xs) var(--dMP); color: var(--d_color);
 	}
 	.mpStyle [data-tabs-target]:hover { font-weight: var(--fw-medium); border-color: var(--color_theme); color: var(--color_theme) }
 	.mpStyle [data-tabs-target].active { font-weight: var(--fw-medium); background-color: var(--color_theme); color: var(--color_theme_alter); }

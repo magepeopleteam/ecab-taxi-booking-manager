@@ -26,8 +26,8 @@
 				$linked_id = MP_Global_Function::get_post_info($product_id, 'link_mptbm_id', $product_id);
 				$post_id = is_string(get_post_status($linked_id)) ? $linked_id : $product_id;
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
-					$distance = $_COOKIE['mptbm_distance'] ?? '';
-					$duration = $_COOKIE['mptbm_duration'] ?? '';
+					$distance = isset($_COOKIE['mptbm_distance']) ?absint($_COOKIE['mptbm_distance']): '';
+					$duration = isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '';
 					$start_place = MP_Global_Function::get_submit_info('mptbm_start_place');
 					$end_place = MP_Global_Function::get_submit_info('mptbm_end_place');
 					$total_price = $this->get_cart_total_price($post_id);
@@ -40,10 +40,10 @@
 					$cart_item_data['mptbm_start_place'] = wp_strip_all_tags($start_place);
 					$cart_item_data['mptbm_end_place'] = wp_strip_all_tags($end_place);
 					$cart_item_data['mptbm_distance'] = $distance;
-					$cart_item_data['mptbm_distance_text'] = $_COOKIE['mptbm_distance_text'] ?? '';
+					$cart_item_data['mptbm_distance_text'] = isset($_COOKIE['mptbm_distance_text']) ?sanitize_text_field($_COOKIE['mptbm_distance_text']): '';
 					$cart_item_data['mptbm_duration'] = $duration;
 					$cart_item_data['mptbm_fixed_hours'] = $fixed_hour;
-					$cart_item_data['mptbm_duration_text'] = $_COOKIE['mptbm_duration_text'] ?? '';
+					$cart_item_data['mptbm_duration_text'] = isset($_COOKIE['mptbm_duration_text']) ?sanitize_text_field($_COOKIE['mptbm_duration_text']): '';
 					$cart_item_data['mptbm_base_price'] = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $return, $fixed_hour);
 					$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info($post_id);
 					$cart_item_data['mptbm_tp'] = $total_price;
@@ -404,8 +404,8 @@
 				return $extra_service;
 			}
 			public function get_cart_total_price($post_id) {
-				$distance = $_COOKIE['mptbm_distance'] ?? '';
-				$duration = $_COOKIE['mptbm_duration'] ?? '';
+				$distance = isset($_COOKIE['mptbm_distance']) ?absint($_COOKIE['mptbm_distance']): '';
+				$duration = isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '';
 				$start_place = MP_Global_Function::get_submit_info('mptbm_start_place');
 				$end_place = MP_Global_Function::get_submit_info('mptbm_end_place');
 				$waiting_time = MP_Global_Function::get_submit_info('mptbm_waiting_time', 0);
@@ -452,7 +452,7 @@
 			}
 			/****************************/
 			public function mptbm_add_to_cart() {
-				$link_id = MP_Global_Function::data_sanitize($_POST['link_id']);
+				$link_id = absint($_POST['link_id']);
 				$product_id = apply_filters('woocommerce_add_to_cart_product_id', $link_id);
 				$quantity = 1;
 				$passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity);

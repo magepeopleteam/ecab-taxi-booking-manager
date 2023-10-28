@@ -8,15 +8,15 @@
 	} // Cannot access pages directly
 	$post_id = $post_id ?? '';
 	$fixed_time = $fixed_time ?? 0;
-	$start_date = $start_date ?? MP_Global_Function::data_sanitize($_POST['start_date']);
+	$start_date = $start_date ?? sanitize_text_field($_POST['start_date']);
 	$start_date = date('Y-m-d', strtotime($start_date));
 	$all_dates = MPTBM_Function::get_date($post_id);
 	if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
-		$distance = $distance ?? $_COOKIE['mptbm_distance'];
-		$duration = $duration ?? $_COOKIE['mptbm_duration'];
+		$distance = $distance ?? (isset($_COOKIE['mptbm_distance']) ?absint($_COOKIE['mptbm_distance']): '');
+		$duration = $duration ?? (isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '');
 		$label = $label ?? MPTBM_Function::get_name();
-		$start_place = $start_place ?? MP_Global_Function::data_sanitize($_POST['start_place']);
-		$end_place = $end_place ?? MP_Global_Function::data_sanitize($_POST['end_place']);
+		$start_place = $start_place ?? sanitize_text_field($_POST['start_place']);
+		$end_place = $end_place ?? sanitize_text_field($_POST['end_place']);
 		$two_way = $two_way??1;
 		$waiting_time = $waiting_time??0;
 		
@@ -60,7 +60,7 @@
 							<div></div>
 						<?php } ?>
 						<div class="_min_150_mL_xs">
-							<h4 class="textCenter"> <?php echo MP_Global_Function::esc_html($wc_price); ?></h4>
+							<h4 class="textCenter"> <?php echo wc_price($raw_price); ?></h4>
 							<button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select" data-transport-name="<?php echo get_the_title($post_id); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
 								<span class="" data-icon></span>
 								<span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>

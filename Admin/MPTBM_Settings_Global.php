@@ -23,12 +23,18 @@
 			public function settings_page() {
 				$label = MPTBM_Function::get_name();
 				?>
-				<div class="mp_settings_panel_header">
-					<?php echo esc_html($label . esc_html__(' Global Settings', 'ecab-taxi-booking-manager')); ?>
-				</div>
-				<div class="mp_settings_panel">
-					<?php $this->settings_api->show_navigation(); ?>
-					<?php $this->settings_api->show_forms(); ?>
+				<div class="mpStyle mp_global_settings">
+					<div class="_dShadow_6 mpPanel">
+						<div class="mpPanelHeader"><?php echo esc_html($label . esc_html__(' Global Settings', 'ecab-taxi-booking-manager')); ?></div>
+						<div class="mpPanelBody mp_zero">
+							<div class="mpTabs leftTabs">
+								<?php $this->settings_api->show_navigation(); ?>
+								<div class="tabsContent">
+									<?php $this->settings_api->show_forms(); ?>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 				<?php
 			}
@@ -50,7 +56,7 @@
 				$sections = array(
 					array(
 						'id' => 'MPTBM_General_Settings',
-						'title' => $label.' '.esc_html__('Settings', 'ecab-taxi-booking-manager')
+						'title' => $label . ' ' . esc_html__('Settings', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mptbm_map_api_settings',
@@ -171,28 +177,26 @@
 								'no' => esc_html__('No', 'ecab-taxi-booking-manager')
 							)
 						),
-						
 					)),
 					'mptbm_map_api_settings' => apply_filters('filter_mptbm_map_api_settings', array(
 						array(
-							'name'    => 'gmap_api_key',
-							'label'   => esc_html__( 'Google MAP API', 'ecab-taxi-booking-manager' ),
-							'desc'    => esc_html__( 'Please enter your Google Maps API key in this Options.', 'ecab-taxi-booking-manager' ).'<a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',
-							'type'    => 'text',
+							'name' => 'gmap_api_key',
+							'label' => esc_html__('Google MAP API', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Please enter your Google Maps API key in this Options.', 'ecab-taxi-booking-manager') . '<a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',
+							'type' => 'text',
 							'default' => ''
 						),
-						
 						array(
 							'name' => 'mp_latitude',
 							'label' => esc_html__('Your Location Latitude', 'ecab-taxi-booking-manager'),
-							'desc' => esc_html__('Please type Your Location Latitude.This are mandatory for google map show. To find latitude please ', 'ecab-taxi-booking-manager').'<a href="https://www.latlong.net/" target="_blank">'.esc_html__('Click Here', 'ecab-taxi-booking-manager').'</a>',
+							'desc' => esc_html__('Please type Your Location Latitude.This are mandatory for google map show. To find latitude please ', 'ecab-taxi-booking-manager') . '<a href="https://www.latlong.net/" target="_blank">' . esc_html__('Click Here', 'ecab-taxi-booking-manager') . '</a>',
 							'type' => 'text',
 							'default' => '23.81234828905659'
 						),
 						array(
 							'name' => 'mp_longitude',
 							'label' => esc_html__('Your Location Longitude', 'ecab-taxi-booking-manager'),
-							'desc' => esc_html__('Please type Your Location Longitude .This are mandatory for google map show. To find latitude please ', 'ecab-taxi-booking-manager').'<a href="https://www.latlong.net/" target="_blank">'.esc_html__('Click Here', 'ecab-taxi-booking-manager').'</a>',
+							'desc' => esc_html__('Please type Your Location Longitude .This are mandatory for google map show. To find latitude please ', 'ecab-taxi-booking-manager') . '<a href="https://www.latlong.net/" target="_blank">' . esc_html__('Click Here', 'ecab-taxi-booking-manager') . '</a>',
 							'type' => 'text',
 							'default' => '90.41069652669002'
 						),

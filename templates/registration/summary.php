@@ -6,8 +6,8 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly
-	$distance = $distance ?? $_COOKIE['mptbm_distance'];
-	$duration = $duration ?? $_COOKIE['mptbm_duration'];
+	$distance = $distance ?? (isset($_COOKIE['mptbm_distance']) ?absint($_COOKIE['mptbm_distance']): '');
+	$duration = $duration ?? (isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '');
 	$label = $label ?? MPTBM_Function::get_name();
 	$date = $date ?? '';
 	$start_place = $start_place ?? '';

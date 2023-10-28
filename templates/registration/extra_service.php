@@ -6,9 +6,9 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly
-	$post_id = MP_Global_Function::data_sanitize($_POST['post_id']);
+	$post_id = absint($_POST['post_id']);
 	if ($post_id && $post_id > 0) {
-		$link_wc_product = MP_Global_Function::get_post_info($post_id, 'link_wc_product');
+		$link_wc_product = absint($post_id, 'link_wc_product');
 		$display_extra_services = MP_Global_Function::get_post_info($post_id, 'display_mptbm_extra_services', 'on');
 		$service_id = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_services_id', $post_id);
 		$extra_services = MP_Global_Function::get_post_info($service_id, 'mptbm_extra_service_infos', []);
@@ -40,7 +40,7 @@
 									<?php if ($service_icon) { ?>
 										<span class="<?php echo esc_attr($service_icon); ?>"></span>
 									<?php } ?>
-									<?php echo MP_Global_Function::esc_html($service_name); ?>
+									<?php echo esc_html($service_name); ?>
 									<sub class="textTheme"> &nbsp;&nbsp;<?php echo wc_price($service_price); ?></sub>
 								</h4>
 								<div class="_equalChild">

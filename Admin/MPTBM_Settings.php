@@ -41,7 +41,7 @@
 							</li>
 							<?php do_action('add_mptbm_settings_tab_after_ex_service'); ?>
 						</ul>
-						<div class="tabsContent tab-content">
+						<div class="tabsContent">
 							<?php do_action('add_mptbm_settings_tab_content', $post_id); ?>
 						</div>
 					</div>
@@ -92,7 +92,7 @@
 				}
 			}
 			public function save_settings($post_id) {
-				if (!isset($_POST['mptbm_transportation_type_nonce']) || !wp_verify_nonce($_POST['mptbm_transportation_type_nonce'], 'mptbm_transportation_type_nonce') && defined('DOING_AUTOSAVE') && DOING_AUTOSAVE && !current_user_can('edit_post', $post_id)) {
+				if (!isset($_POST['mptbm_transportation_type_nonce']) || !wp_verify_nonce(sanitize_text_field( wp_unslash ($_POST['mptbm_transportation_type_nonce'])), 'mptbm_transportation_type_nonce') && defined('DOING_AUTOSAVE') && DOING_AUTOSAVE && !current_user_can('edit_post', $post_id)) {
 					return;
 				}
 				do_action('mptbm_settings_save', $post_id);
