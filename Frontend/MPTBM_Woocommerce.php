@@ -26,25 +26,28 @@
 				$linked_id = MP_Global_Function::get_post_info($product_id, 'link_mptbm_id', $product_id);
 				$post_id = is_string(get_post_status($linked_id)) ? $linked_id : $product_id;
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
-					$distance = isset($_COOKIE['mptbm_distance']) ?absint($_COOKIE['mptbm_distance']): '';
-					$duration = isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '';
+					$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';
+					$duration = isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '';
 					$start_place = MP_Global_Function::get_submit_info('mptbm_start_place');
 					$end_place = MP_Global_Function::get_submit_info('mptbm_end_place');
 					$total_price = $this->get_cart_total_price($post_id);
 					$waiting_time = MP_Global_Function::get_submit_info('mptbm_waiting_time', 0);
 					$return = MP_Global_Function::get_submit_info('mptbm_taxi_return', 1);
 					$fixed_hour = MP_Global_Function::get_submit_info('mptbm_fixed_hours', 0);
+					$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $return, $fixed_hour);
+					$wc_price = MP_Global_Function::wc_price($post_id, $price);
+					$raw_price = MP_Global_Function::price_convert_raw($wc_price);
 					$cart_item_data['mptbm_date'] = MP_Global_Function::get_submit_info('mptbm_date');
 					$cart_item_data['mptbm_taxi_return'] = $return;
 					$cart_item_data['mptbm_waiting_time'] = $waiting_time;
 					$cart_item_data['mptbm_start_place'] = wp_strip_all_tags($start_place);
 					$cart_item_data['mptbm_end_place'] = wp_strip_all_tags($end_place);
 					$cart_item_data['mptbm_distance'] = $distance;
-					$cart_item_data['mptbm_distance_text'] = isset($_COOKIE['mptbm_distance_text']) ?sanitize_text_field($_COOKIE['mptbm_distance_text']): '';
+					$cart_item_data['mptbm_distance_text'] = isset($_COOKIE['mptbm_distance_text']) ? sanitize_text_field($_COOKIE['mptbm_distance_text']) : '';
 					$cart_item_data['mptbm_duration'] = $duration;
 					$cart_item_data['mptbm_fixed_hours'] = $fixed_hour;
-					$cart_item_data['mptbm_duration_text'] = isset($_COOKIE['mptbm_duration_text']) ?sanitize_text_field($_COOKIE['mptbm_duration_text']): '';
-					$cart_item_data['mptbm_base_price'] = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $return, $fixed_hour);
+					$cart_item_data['mptbm_duration_text'] = isset($_COOKIE['mptbm_duration_text']) ? sanitize_text_field($_COOKIE['mptbm_duration_text']) : '';
+					$cart_item_data['mptbm_base_price'] = $raw_price;
 					$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info($post_id);
 					$cart_item_data['mptbm_tp'] = $total_price;
 					$cart_item_data['line_total'] = $total_price;
@@ -76,13 +79,13 @@
 				return $thumbnail;
 			}
 			public function get_item_data($item_data, $cart_item) {
-				ob_start();
 				$post_id = array_key_exists('mptbm_id', $cart_item) ? $cart_item['mptbm_id'] : 0;
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
+					ob_start();
 					$this->show_cart_item($cart_item, $post_id);
 					do_action('mptbm_show_cart_item', $cart_item, $post_id);
+					$item_data[] = array('key' => esc_html__('Booking Details ', 'ecab-taxi-booking-manager'), 'value' => ob_get_clean());
 				}
-				$item_data[] = array('key' => esc_html__('Booking Details ', 'ecab-taxi-booking-manager'), 'value' => ob_get_clean());
 				return $item_data;
 			}
 			//**************//
@@ -125,15 +128,15 @@
 					if ($fixed_time && $fixed_time > 0) {
 						$item->add_meta_data(esc_html__('Service Times', 'ecab-taxi-booking-manager'), $fixed_time . ' ' . esc_html__('Hour ', 'ecab-taxi-booking-manager'));
 					}
-					$item->add_meta_data(esc_html__('Date ', 'ecab-taxi-booking-manager'), MP_Global_Function::date_format($date));
-					$item->add_meta_data(esc_html__('Time ', 'ecab-taxi-booking-manager'), MP_Global_Function::date_format($date, 'time'));
-					$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), MP_Global_Function::wc_price($post_id, $base_price));
+					$item->add_meta_data(esc_html__('Date ', 'ecab-taxi-booking-manager'), esc_html(MP_Global_Function::date_format($date)));
+					$item->add_meta_data(esc_html__('Time ', 'ecab-taxi-booking-manager'), esc_html(MP_Global_Function::date_format($date, 'time')));
+					$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), esc_html(wc_price($base_price)));
 					if (sizeof($extra_service) > 0) {
 						$item->add_meta_data(esc_html__('Optional Service ', 'ecab-taxi-booking-manager'), '');
 						foreach ($extra_service as $service) {
 							$item->add_meta_data(esc_html__('Services Name ', 'ecab-taxi-booking-manager'), $service['service_name']);
 							$item->add_meta_data(esc_html__('Services Quantity ', 'ecab-taxi-booking-manager'), $service['service_quantity']);
-							$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), ' ( ' . MP_Global_Function::wc_price($post_id, $service['service_price']) . ' x ' . $service['service_quantity'] . ' ) = ' . MP_Global_Function::wc_price($post_id, ($service['service_price'] * $service['service_quantity'])));
+							$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), esc_html(' ( ' . wc_price($service['service_price']) . ' x ' . $service['service_quantity'] . ' ) = ' . wc_price($service['service_price'] * $service['service_quantity'])));
 						}
 					}
 					$item->add_meta_data('_mptbm_id', $post_id);
@@ -267,35 +270,35 @@
 							</li>
 							<li>
 								<span class="fas fa-route"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Approximate Distance', 'ecab-taxi-booking-manager'); ?> : </h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Approximate Distance', 'ecab-taxi-booking-manager'); ?> :</h6>
 								<span><?php echo esc_html($cart_item['mptbm_distance_text']); ?></span>
 							</li>
 							<li>
 								<span class="far fa-clock"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Approximate Time', 'ecab-taxi-booking-manager'); ?> : </h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Approximate Time', 'ecab-taxi-booking-manager'); ?> :</h6>
 								<span><?php echo esc_html($cart_item['mptbm_duration_text']); ?></span>
 							</li>
 							<?php if ($return && $return > 1) { ?>
 								<li>
-									<h6 class="_mR_xs"><?php esc_html_e('Transfer Type', 'ecab-taxi-booking-manager'); ?> : </h6>
+									<h6 class="_mR_xs"><?php esc_html_e('Transfer Type', 'ecab-taxi-booking-manager'); ?> :</h6>
 									<span><?php esc_html_e('Return', 'ecab-taxi-booking-manager'); ?></span>
 								</li>
 							<?php } ?>
 							<?php if ($waiting_time && $waiting_time > 0) { ?>
 								<li>
-									<h6 class="_mR_xs"><?php esc_html_e('Extra Waiting Hours', 'ecab-taxi-booking-manager'); ?> : </h6>
-									<span><?php echo esc_html($waiting_time); ?> <?php esc_html_e('Hours', 'ecab-taxi-booking-manager'); ?></span>
+									<h6 class="_mR_xs"><?php esc_html_e('Extra Waiting Hours', 'ecab-taxi-booking-manager'); ?> :</h6>
+									<span><?php echo esc_html($waiting_time); ?><?php esc_html_e('Hours', 'ecab-taxi-booking-manager'); ?></span>
 								</li>
 							<?php } ?>
 							<?php if ($fixed_time && $fixed_time > 0) { ?>
 								<li>
-									<h6 class="_mR_xs"><?php esc_html_e('Service Times', 'ecab-taxi-booking-manager'); ?> : </h6>
-									<span><?php echo esc_html($fixed_time); ?> <?php esc_html_e('Hours', 'ecab-taxi-booking-manager'); ?></span>
+									<h6 class="_mR_xs"><?php esc_html_e('Service Times', 'ecab-taxi-booking-manager'); ?> :</h6>
+									<span><?php echo esc_html($fixed_time); ?><?php esc_html_e('Hours', 'ecab-taxi-booking-manager'); ?></span>
 								</li>
 							<?php } ?>
 							<li>
 								<span class="far fa-calendar-alt"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?> : </h6>
+								<h6 class="_mR_xs"><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?> :</h6>
 								<span><?php echo esc_html(MP_Global_Function::date_format($date)); ?></span>
 							</li>
 							<li>
@@ -306,7 +309,7 @@
 							<li>
 								<span class="fa fa-tag"></span>
 								<h6 class="_mR_xs"><?php esc_html_e('Base Price : ', 'ecab-taxi-booking-manager'); ?></h6>
-								<span><?php echo MP_Global_Function::wc_price($post_id, $base_price); ?></span>
+								<span><?php echo esc_html(wc_price($base_price)); ?></span>
 							</li>
 						</ul>
 					</div>
@@ -325,7 +328,7 @@
 									</li>
 									<li>
 										<h6 class="_mR_xs"><?php esc_html_e('Price : ', 'ecab-taxi-booking-manager'); ?></h6>
-										<span><?php echo ' ( ' . MP_Global_Function::wc_price($post_id, $service['service_price']) . ' x ' . $service['service_quantity'] . ' ) = ' . MP_Global_Function::wc_price($post_id, ($service['service_price'] * $service['service_quantity'])); ?></span>
+										<span><?php echo esc_html(' ( ' . wc_price($service['service_price']) . ' x ' . $service['service_quantity'] . ' ) = ' . wc_price($service['service_price'] * $service['service_quantity'])); ?></span>
 									</li>
 								</ul>
 							</div>
@@ -394,9 +397,12 @@
 				if (sizeof($service_name) > 0) {
 					for ($i = 0; $i < count($service_name); $i++) {
 						if ($service_name[$i] && $service_quantity[$i] > 0) {
+							$price = MPTBM_Function::get_extra_service_price_by_name($post_id, $service_name[$i]);
+							$wc_price = MP_Global_Function::wc_price($post_id, $price);
+							$raw_price = MP_Global_Function::price_convert_raw($wc_price);
 							$extra_service[$i]['service_name'] = $service_name[$i];
 							$extra_service[$i]['service_quantity'] = $service_quantity[$i];
-							$extra_service[$i]['service_price'] = MPTBM_Function::get_extra_service_price_by_name($post_id, $service_name[$i]);
+							$extra_service[$i]['service_price'] = $raw_price;
 							$extra_service[$i]['mptbm_date'] = $start_date ?? '';
 						}
 					}
@@ -404,8 +410,8 @@
 				return $extra_service;
 			}
 			public function get_cart_total_price($post_id) {
-				$distance = isset($_COOKIE['mptbm_distance']) ?absint($_COOKIE['mptbm_distance']): '';
-				$duration = isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '';
+				$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';
+				$duration = isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '';
 				$start_place = MP_Global_Function::get_submit_info('mptbm_start_place');
 				$end_place = MP_Global_Function::get_submit_info('mptbm_end_place');
 				$waiting_time = MP_Global_Function::get_submit_info('mptbm_waiting_time', 0);
@@ -428,7 +434,8 @@
 						}
 					}
 				}
-				return $raw_price;
+				$wc_price = MP_Global_Function::wc_price($post_id, $raw_price);
+				return MP_Global_Function::price_convert_raw($wc_price);
 			}
 			public static function add_cpt_data($cpt_name, $title, $meta_data = array(), $status = 'publish', $cat = array()) {
 				$new_post = array(

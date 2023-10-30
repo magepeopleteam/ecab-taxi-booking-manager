@@ -26,7 +26,7 @@
 									//$price_based_text = $price_based == 'manual' ? esc_html__('Manual', 'ecab-taxi-booking-manager') : esc_html__('Dynamic', 'ecab-taxi-booking-manager');
 									?>
 									<option value="<?php echo esc_attr($post_id); ?>">
-										<?php echo get_the_title($post_id); ?>
+										<?php echo esc_html(get_the_title($post_id)); ?>
 										<?php //echo esc_html($price_based_text) ?>
 									</option>
 									<?php

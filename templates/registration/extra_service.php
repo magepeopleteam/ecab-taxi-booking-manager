@@ -23,6 +23,8 @@
 					$service_image = array_key_exists('service_image', $service) ? $service['service_image'] : '';
 					$service_name = array_key_exists('service_name', $service) ? $service['service_name'] : '';
 					$service_price = array_key_exists('service_price', $service) ? $service['service_price'] : 0;
+					$wc_price = MP_Global_Function::wc_price($post_id, $service_price);
+					$service_price = MP_Global_Function::price_convert_raw($wc_price);
 					$description = array_key_exists('extra_service_description', $service) ? $service['extra_service_description'] : '';
 					$ex_unique_id = '#ex_service_' . uniqid();
 					?>
@@ -41,7 +43,7 @@
 										<span class="<?php echo esc_attr($service_icon); ?>"></span>
 									<?php } ?>
 									<?php echo esc_html($service_name); ?>
-									<sub class="textTheme"> &nbsp;&nbsp;<?php echo wc_price($service_price); ?></sub>
+									<sub class="textTheme"> &nbsp;&nbsp;<?php echo esc_html(wc_price($service_price)); ?></sub>
 								</h4>
 								<div class="_equalChild">
 									<div class="_mR_xs">

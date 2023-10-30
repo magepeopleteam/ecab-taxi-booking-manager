@@ -93,11 +93,11 @@
 				if (MP_Global_Function::check_woocommerce() == 1) {
 					?>
 					<script type="text/javascript">
-						mp_currency_symbol = "<?php echo get_woocommerce_currency_symbol(); ?>";
-						mp_currency_position = "<?php echo get_option('woocommerce_currency_pos'); ?>";
-						mp_currency_decimal = "<?php echo wc_get_price_decimal_separator(); ?>";
-						mp_currency_thousands_separator = "<?php echo wc_get_price_thousand_separator(); ?>";
-						mp_num_of_decimal = "<?php echo get_option('woocommerce_price_num_decimals', 2); ?>";
+						mp_currency_symbol = "<?php echo esc_attr(get_woocommerce_currency_symbol()); ?>";
+						mp_currency_position = "<?php echo esc_attr(get_option('woocommerce_currency_pos')); ?>";
+						mp_currency_decimal = "<?php echo esc_attr(wc_get_price_decimal_separator()); ?>";
+						mp_currency_thousands_separator = "<?php echo esc_attr(wc_get_price_thousand_separator()); ?>";
+						mp_num_of_decimal = "<?php echo esc_attr(get_option('woocommerce_price_num_decimals', 2)); ?>";
 					</script>
 					<?php
 				}
@@ -107,7 +107,7 @@
 				ob_start();
 				?>
 				<style>
-					<?php echo $custom_css; ?>
+					<?php echo esc_attr($custom_css); ?>
 				</style>
 				<?php
 				echo ob_get_clean();
