@@ -44,7 +44,7 @@
 			}
 			//************Disable Gutenberg************************//
 			public function disable_gutenberg($current_status, $post_type) {
-				$user_status = MP_Global_Function::get_settings('mp_global_settings', 'disable_block_editor', 'yes');
+				$user_status = MPTBM_Global_Function::get_settings('mp_global_settings', 'disable_block_editor', 'yes');
 				if ($post_type === MPTBM_Function::get_cpt() && $user_status == 'yes') {
 					return false;
 				}

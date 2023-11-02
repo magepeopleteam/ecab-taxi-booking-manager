@@ -28,7 +28,7 @@
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Frontend.php';
 			}
 			public function global_enqueue() {
-				$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
+				$api_key = MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
 				if ($api_key) {
 					wp_enqueue_script('mptbm_map', 'https://maps.googleapis.com/maps/api/js?libraries=places&amp;language=en&amp;key=' . $api_key, array('jquery'), time(), true);
 				}
@@ -59,11 +59,11 @@
 				?>
 				<script type="text/javascript">
 					let mp_lat_lng = {
-						lat: <?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_latitude', '23.81234828905659')); ?>,
-						lng: <?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_longitude', '90.41069652669002')); ?>
+						lat: <?php echo esc_attr(MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'mp_latitude', '23.81234828905659')); ?>,
+						lng: <?php echo esc_attr(MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'mp_longitude', '90.41069652669002')); ?>
 					};
 					const mp_map_options = {
-						componentRestrictions: {country: "<?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'BD')); ?>"},
+						componentRestrictions: {country: "<?php echo esc_attr(MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'BD')); ?>"},
 						fields: ["address_components", "geometry"],
 						types: ["address"],
 					}
@@ -73,7 +73,10 @@
 			public function map_api_not_active() {
 				$gm_api_url = 'https://developers.google.com/maps/documentation/javascript/get-api-key';
 				$label = MPTBM_Function::get_name();
-				printf('<div class="error" style="background:red; color:#fff;"><p>%s</p></div>', esc_html__('You Must Add Google Map Api key for E-cab taxi booking manager, Because It is dependent on Google Map. Please enter your Google Maps API key in Plugin Options.<strong style="font-size: 17px;">' . $label . '>' . $label . ' Settings>Map Api Settings</strong> <a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>'));
+				$text_1=esc_html__('You Must Add Google Map Api key for E-cab taxi booking manager, Because It is dependent on Google Map. Please enter your Google Maps API key in Plugin Options.','');
+				$text_2=$label.'>'.$label.' '.esc_html__('Settings>Map Api Settings','');
+				$text_4=esc_html__('Click Here to get google api key','');
+				printf('<div class="error" style="background:red; color:#fff;"><p>%1$s<strong style="font-size: 17px;">%2$s</strong><a class="btn button" href="%3$s" target="_blank">%4$s</a></p></div>',$text_1,$text_2,$gm_api_url,$text_4);
 			}
 		}
 		new MPTBM_Dependencies();

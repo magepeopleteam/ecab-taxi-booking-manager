@@ -23,10 +23,10 @@
 					<h3><?php esc_html_e('SUMMERY', 'ecab-taxi-booking-manager'); ?></h3>
 					<div class="dividerL"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Pickup Date', 'ecab-taxi-booking-manager'); ?></h6>
-					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date)); ?></p>
+					<p class="_textLight_1"><?php echo esc_html(MPTBM_Global_Function::date_format($date)); ?></p>
 					<div class="dividerL"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Pickup Time', 'ecab-taxi-booking-manager'); ?></h6>
-					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date, 'time')); ?></p>
+					<p class="_textLight_1"><?php echo esc_html(MPTBM_Global_Function::date_format($date, 'time')); ?></p>
 					<div class="dividerL"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Pickup Location', 'ecab-taxi-booking-manager'); ?></h6>
 					<p class="_textLight_1"><?php echo esc_html($start_place); ?></p>

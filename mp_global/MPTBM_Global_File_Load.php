@@ -6,8 +6,8 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly.
-	if (!class_exists('MP_Global_File_Load')) {
-		class MP_Global_File_Load {
+	if (!class_exists('MPTBM_Global_File_Load')) {
+		class MPTBM_Global_File_Load {
 			public function __construct() {
 				$this->define_constants();
 				$this->load_global_file();
@@ -25,13 +25,13 @@
 				}
 			}
 			public function load_global_file() {
-				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MP_Global_Function.php';
-				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MP_Global_Style.php';
-				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MP_Custom_Layout.php';
-				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MP_Custom_Slider.php';
-				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MP_Select_Icon_image.php';
-				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MAGE_Setting_API.php';
-				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MP_Settings_Global.php';
+				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MPTBM_Global_Function.php';
+				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MPTBM_Global_Style.php';
+				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MPTBM_Custom_Layout.php';
+				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MPTBM_Custom_Slider.php';
+				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MPTBM_Select_Icon_image.php';
+				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MPTBM_Setting_API.php';
+				require_once MP_GLOBAL_PLUGIN_DIR . '/class/MPTBM_Setting_Global.php';
 			}
 			public function global_enqueue() {
 				wp_enqueue_script('jquery');
@@ -86,11 +86,11 @@
 					let mp_num_of_decimal = "";
 					let mp_ajax_url = "<?php echo admin_url('admin-ajax.php'); ?>";
 					let mp_empty_image_url = "<?php echo esc_attr(MP_GLOBAL_PLUGIN_URL . '/assets/images/no_image.png'); ?>";
-					let mp_date_format = "<?php echo esc_attr(MP_Global_Function::get_settings('mp_global_settings', 'date_format', 'D d M , yy')); ?>";
-					let mp_date_format_without_year = "<?php echo esc_attr(MP_Global_Function::get_settings('mp_global_settings', 'date_format_without_year', 'D d M')); ?>";
+					let mp_date_format = "<?php echo esc_attr(MPTBM_Global_Function::get_settings('mp_global_settings', 'date_format', 'D d M , yy')); ?>";
+					let mp_date_format_without_year = "<?php echo esc_attr(MPTBM_Global_Function::get_settings('mp_global_settings', 'date_format_without_year', 'D d M')); ?>";
 				</script>
 				<?php
-				if (MP_Global_Function::check_woocommerce() == 1) {
+				if (MPTBM_Global_Function::check_woocommerce() == 1) {
 					?>
 					<script type="text/javascript">
 						mp_currency_symbol = "<?php echo esc_attr(get_woocommerce_currency_symbol()); ?>";
@@ -103,7 +103,7 @@
 				}
 			}
 			public function custom_css() {
-				$custom_css = MP_Global_Function::get_settings('mp_add_custom_css', 'custom_css');
+				$custom_css = MPTBM_Global_Function::get_settings('mp_add_custom_css', 'custom_css');
 				ob_start();
 				?>
 				<style>
@@ -113,5 +113,5 @@
 				echo ob_get_clean();
 			}
 		}
-		new MP_Global_File_Load();
+		new MPTBM_Global_File_Load();
 	}

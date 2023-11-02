@@ -6,9 +6,9 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly.
-	if (!class_exists('MP_Select_Icon_image')) {
+	if (!class_exists('MPTBM_Select_Icon_image')) {
 		$GLOBALS['mp_icon_popup_exit'] = false;
-		class MP_Select_Icon_image {
+		class MPTBM_Select_Icon_image {
 			public function __construct() {
 				add_action('mp_input_add_icon', array($this, 'load_icon'), 10, 2);
 				add_action('mp_add_single_image', array($this, 'add_single_image'), 10, 2);
@@ -109,7 +109,7 @@
 				<?php
 			}
 			public function add_multi_image($name, $images) {
-				$images = is_array($images) ? MP_Global_Function::array_to_string($images) : $images;
+				$images = is_array($images) ? MPTBM_Global_Function::array_to_string($images) : $images;
 				?>
 				<div class="mp_multi_image_area">
 					<input type="hidden" class="mp_multi_image_value" name="<?php echo esc_attr($name); ?>" value="<?php echo  esc_attr($images); ?>"/>
@@ -121,7 +121,7 @@
 									?>
 									<div class="mp_multi_image_item" data-image-id="<?php echo esc_attr($image); ?>">
 										<span class="fas fa-times circleIcon_xs mp_remove_multi_image"></span>
-										<img src="<?php echo esc_attr(MP_Global_Function::get_image_url('', $image, 'medium')); ?>" alt="<?php echo esc_attr($image); ?>"/>
+										<img src="<?php echo esc_attr(MPTBM_Global_Function::get_image_url('', $image, 'medium')); ?>" alt="<?php echo esc_attr($image); ?>"/>
 									</div>
 									<?php
 								}
@@ -150,7 +150,7 @@
 						<span class="fas fa-times mp_remove_icon mp_icon_remove" title="<?php esc_html_e('Remove Icon', 'ecab-taxi-booking-manager'); ?>"></span>
 					</div>
 					<div class="mp_image_item <?php echo esc_attr($image_class); ?>">
-						<img class="" src="<?php echo esc_attr(MP_Global_Function::get_image_url('', $image, 'medium')); ?>" alt="">
+						<img class="" src="<?php echo esc_attr(MPTBM_Global_Function::get_image_url('', $image, 'medium')); ?>" alt="">
 						<span class="fas fa-times mp_remove_icon mp_image_remove" title="<?php esc_html_e('Remove Image', 'ecab-taxi-booking-manager'); ?>"></span>
 					</div>
 					<div class="mp_add_icon_image_button_area <?php echo esc_attr($button_active_class); ?>">
@@ -1909,5 +1909,5 @@
 				];
 			}
 		}
-		new MP_Select_Icon_image();
+		new MPTBM_Select_Icon_image();
 	}

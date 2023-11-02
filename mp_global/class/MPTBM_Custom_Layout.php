@@ -6,8 +6,8 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly.
-	if (!class_exists('MP_Custom_Layout')) {
-		class MP_Custom_Layout {
+	if (!class_exists('MPTBM_Custom_Layout')) {
+		class MPTBM_Custom_Layout {
 			public function __construct() {
 				add_action('add_mp_hidden_table', array($this, 'hidden_table'), 10, 2);
 				add_action('add_mp_pagination_section', array($this, 'pagination'), 10, 3);
@@ -105,11 +105,14 @@
 				<?php
 			}
 			/*****************************/
-			public static function add_new_button($button_text, $class = 'mp_add_item', $button_class = '_themeButton_xs_mT_xs', $icon_class = 'fas fa-plus-square') {
+			public static function add_new_button($button_text, $class = '', $button_class = '', $icon_class = '', $change_input_name = '') {
+				$class = $class ?: 'mp_add_item';
+				$button_class = $button_class ?: '_themeButton_xs_mT_xs';
+				$icon_class = $icon_class ?: 'fas fa-plus-square';
 				?>
 				<button class="<?php echo esc_attr($button_class . ' ' . $class); ?>" type="button">
 					<span class="<?php echo esc_attr($icon_class); ?>"></span>
-					<span class="mL_xs"><?php echo esc_html($button_text); ?></span>
+					<span class="mL_xs" data-input-change="<?php echo esc_attr($change_input_name); ?>"><?php echo esc_html($button_text); ?></span>
 				</button>
 				<?php
 			}
@@ -140,9 +143,9 @@
 				<?php
 			}
 			/*****************************/
-			public static function bg_image($post_id='',$url='') {
-				$thumbnail = $post_id>0?MP_Global_Function::get_image_url($post_id):$url;
-				$post_url=$post_id>0?get_the_permalink($post_id):'';
+			public static function bg_image($post_id = '', $url = '') {
+				$thumbnail = $post_id > 0 ? MPTBM_Global_Function::get_image_url($post_id) : $url;
+				$post_url = $post_id > 0 ? get_the_permalink($post_id) : '';
 				?>
 				<div class="bg_image_area" data-href="<?php echo sanitize_url($post_url); ?>" data-placeholder>
 					<div data-bg-image="<?php echo sanitize_url($thumbnail); ?>"></div>
@@ -170,7 +173,7 @@
 				}
 			}
 			/*****************************/
-			public static function qty_input($input_name, $price, $available_seat = 1, $default_qty = 0, $min_qty = 0, $max_qty = '', $input_type = '',$text='') {
+			public static function qty_input($input_name, $price, $available_seat = 1, $default_qty = 0, $min_qty = 0, $max_qty = '', $input_type = '', $text = '') {
 				$min_qty = max($default_qty, $min_qty);
 				if ($available_seat > $min_qty) {
 					if ($input_type != 'dropdown') {
@@ -199,13 +202,13 @@
 						?>
 						<label>
 							<select name="<?php echo esc_attr($input_name); ?>" data-price="<?php echo esc_attr($price); ?>" class="formControl">
-								<option selected value="0"><?php echo esc_html__('Please select', 'ecab-taxi-booking-manager').' '.$text; ?></option>
+								<option selected value="0"><?php echo esc_html__('Please select', 'ecab-taxi-booking-manager') . ' ' . $text; ?></option>
 								<?php
 									$max_total = $max_qty > 0 ? $max_qty : $available_seat;
-									$min_value=max(1,$min_qty);
+									$min_value = max(1, $min_qty);
 									for ($i = $min_value; $i <= $max_total; $i++) {
 										?>
-										<option value="<?php echo esc_html($i); ?>"> <?php echo esc_html($i).' '.$text; ; ?> </option>
+										<option value="<?php echo esc_html($i); ?>"> <?php echo esc_html($i) . ' ' . $text;; ?> </option>
 									<?php } ?>
 							</select>
 						</label>
@@ -214,5 +217,5 @@
 				}
 			}
 		}
-		new MP_Custom_Layout();
+		new MPTBM_Custom_Layout();
 	}

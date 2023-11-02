@@ -25,7 +25,7 @@
 			}
 			public function mptbm_extra_service() {
 				$post_id        = get_the_id();
-				$extra_services = MP_Global_Function::get_post_info( $post_id, 'mptbm_extra_service_infos', array() );
+				$extra_services = MPTBM_Global_Function::get_post_info( $post_id, 'mptbm_extra_service_infos', array() );
 				wp_nonce_field( 'mptbm_extra_service_nonce', 'mptbm_extra_service_nonce' );
 				?>
 				<div class="mpStyle">
@@ -57,7 +57,7 @@
 									</tbody>
 								</table>
 							</div>
-							<?php MP_Custom_Layout::add_new_button( esc_html__( 'Add Extra New Service', 'ecab-taxi-booking-manager' ) ); ?>
+							<?php MPTBM_Custom_Layout::add_new_button( esc_html__( 'Add Extra New Service', 'ecab-taxi-booking-manager' ) ); ?>
 							<?php do_action( 'add_mp_hidden_table', 'mptbm_extra_service_item' ); ?>
 						</div>
 					</div>
@@ -107,7 +107,7 @@
 							</select>
 						</label>
 					</td>
-					<td><?php MP_Custom_Layout::move_remove_button(); ?></td>
+					<td><?php MPTBM_Custom_Layout::move_remove_button(); ?></td>
 				</tr>
 				<?php
 			}
@@ -122,8 +122,8 @@
 			}
 			//**************************************//
 			public function ex_service_settings( $post_id ) {
-				$display            = MP_Global_Function::get_post_info( $post_id, 'display_mptbm_extra_services', 'on' );
-				$service_id         = MP_Global_Function::get_post_info( $post_id, 'mptbm_extra_services_id', $post_id );
+				$display            = MPTBM_Global_Function::get_post_info( $post_id, 'display_mptbm_extra_services', 'on' );
+				$service_id         = MPTBM_Global_Function::get_post_info( $post_id, 'mptbm_extra_services_id', $post_id );
 				$active             = $display == 'off' ? '' : 'mActive';
 				$checked            = $display == 'off' ? '' : 'checked';
 				$all_ex_services_id = MPTBM_Query::query_post_id( 'mptbm_extra_services' );
@@ -131,7 +131,7 @@
 				<div class="tabsItem mptbm_extra_services_setting" data-tabs="#mptbm_settings_ex_service">
 					<h5 class="dFlex">
 						<span class="mR"><?php esc_html_e( 'On/Off Extra Service Settings', 'ecab-taxi-booking-manager' ); ?></span>
-						<?php MP_Custom_Layout::switch_button( 'display_mptbm_extra_services', $checked ); ?>
+						<?php MPTBM_Custom_Layout::switch_button( 'display_mptbm_extra_services', $checked ); ?>
 					</h5>
 					<?php MPTBM_Settings::info_text( 'display_mptbm_extra_services' ); ?>
 					<div data-collapse="#display_mptbm_extra_services" class="mp_settings_area mT <?php echo esc_attr( $active ); ?>">
@@ -158,7 +158,7 @@
 			}
 			public function ex_service_table( $service_id, $post_id ) {
 				if ( $service_id && $post_id ) {
-					$extra_services = MP_Global_Function::get_post_info( $service_id, 'mptbm_extra_service_infos', [] );
+					$extra_services = MPTBM_Global_Function::get_post_info( $service_id, 'mptbm_extra_service_infos', [] );
 					?>
 					<div class="_ovAuto_mT_xs">
 						<table>
@@ -185,16 +185,16 @@
 					</div>
 					<?php
 					if ( $service_id == $post_id ) {
-						MP_Custom_Layout::add_new_button( esc_html__( 'Add Extra New Service', 'ecab-taxi-booking-manager' ) );
+						MPTBM_Custom_Layout::add_new_button( esc_html__( 'Add Extra New Service', 'ecab-taxi-booking-manager' ) );
 						do_action( 'add_mp_hidden_table', 'mptbm_extra_service_item' );
 					}
 				}
 			}
 			public function save_ex_service( $post_id ) {
 				if ( get_post_type( $post_id ) == MPTBM_Function::get_cpt() ) {
-					$display = MP_Global_Function::get_submit_info( 'display_mptbm_extra_services' ) ? 'on' : 'off';
+					$display = MPTBM_Global_Function::get_submit_info( 'display_mptbm_extra_services' ) ? 'on' : 'off';
 					update_post_meta( $post_id, 'display_mptbm_extra_services', $display );
-					$ex_id = MP_Global_Function::get_submit_info( 'mptbm_extra_services_id', $post_id);
+					$ex_id = MPTBM_Global_Function::get_submit_info( 'mptbm_extra_services_id', $post_id);
 					update_post_meta( $post_id, 'mptbm_extra_services_id', $ex_id );
 					if ( $ex_id == $post_id ) {
 						$extra_service_data = $this->ex_service_data( $post_id );
@@ -204,11 +204,11 @@
 			}
 			public function ex_service_data( $post_id ) {
 				$new_extra_service         = array();
-				$extra_icon                = MP_Global_Function::get_submit_info( 'service_icon', array() );
-				$extra_names               = MP_Global_Function::get_submit_info( 'service_name', array() );
-				$extra_price               = MP_Global_Function::get_submit_info( 'service_price', array() );
-				$extra_qty_type            = MP_Global_Function::get_submit_info( 'service_qty_type', array() );
-				$extra_service_description = MP_Global_Function::get_submit_info( 'extra_service_description', array() );
+				$extra_icon                = MPTBM_Global_Function::get_submit_info( 'service_icon', array() );
+				$extra_names               = MPTBM_Global_Function::get_submit_info( 'service_name', array() );
+				$extra_price               = MPTBM_Global_Function::get_submit_info( 'service_price', array() );
+				$extra_qty_type            = MPTBM_Global_Function::get_submit_info( 'service_qty_type', array() );
+				$extra_service_description = MPTBM_Global_Function::get_submit_info( 'extra_service_description', array() );
 				$extra_count               = count( $extra_names );
 				for ( $i = 0; $i < $extra_count; $i ++ ) {
 					if ( $extra_names[ $i ] && $extra_price[ $i ] >= 0 ) {

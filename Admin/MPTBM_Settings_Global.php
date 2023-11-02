@@ -10,7 +10,7 @@
 		class MPTBM_Settings_Global {
 			protected $settings_api;
 			public function __construct() {
-				$this->settings_api = new MAGE_Setting_API;
+				$this->settings_api = new MPTBM_Setting_API;
 				add_action('admin_menu', array($this, 'global_settings_menu'));
 				add_action('admin_init', array($this, 'admin_init'));
 				add_filter('mp_settings_sec_reg', array($this, 'settings_sec_reg'), 10);
@@ -55,11 +55,13 @@
 				$label = MPTBM_Function::get_name();
 				$sections = array(
 					array(
-						'id' => 'MPTBM_General_Settings',
+						'id' => 'mptbm_general_settings',
+						'icon' => 'fas fa-sliders-h',
 						'title' => $label . ' ' . esc_html__('Settings', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mptbm_map_api_settings',
+						'icon' => 'fab fa-google',
 						'title' => esc_html__('Google Map Settings', 'ecab-taxi-booking-manager')
 					)
 				);
@@ -69,7 +71,7 @@
 				$gm_api_url = 'https://developers.google.com/maps/documentation/javascript/get-api-key';
 				$label = MPTBM_Function::get_name();
 				$settings_fields = array(
-					'MPTBM_General_Settings' => apply_filters('filter_mptbm_general_settings', array(
+					'mptbm_general_settings' => apply_filters('filter_mptbm_general_settings', array(
 						array(
 							'name' => 'taxi_return',
 							'label' => esc_html__('Disable/ Enable Taxi Return', 'ecab-taxi-booking-manager'),
@@ -206,7 +208,7 @@
 							'desc' => esc_html__('Select your country Location.This are mandatory for google map show.', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'BD',
-							'options' => MP_Global_Function::get_country_list()
+							'options' => MPTBM_Global_Function::get_country_list()
 						),
 					)),
 				);

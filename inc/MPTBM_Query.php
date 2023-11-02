@@ -56,7 +56,7 @@
 				return new WP_Query($args);
 			}
 			public static function query_all_service_sold($post_id, $date, $service_name = ''): WP_Query {
-				$_seat_booked_status = MP_Global_Function::get_settings('mp_global_settings', 'set_book_status', array('processing', 'completed'));
+				$_seat_booked_status = MPTBM_Global_Function::get_settings('mp_global_settings', 'set_book_status', array('processing', 'completed'));
 				$seat_booked_status = !empty($_seat_booked_status) ? $_seat_booked_status : [];
 				$type_filter = !empty($type) ? array(
 					'key' => 'mptbm_service_name',
