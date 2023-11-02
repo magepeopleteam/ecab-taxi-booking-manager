@@ -46,11 +46,11 @@ providing a convenient way for customers to book rides online. Whether you run a
 
 = Disclaimer =
 
-This plugin utilizes Google APIs, and you should be aware of the following:
+This plugin utilizes Google MAP APIs, and you should be aware of the following:
 
-1. Usage of Google APIs is subject to Google's Terms of Service. Please review Google's terms and policies at https://policies.google.com/terms.
-2. You may need to create and configure a Google API project in the Google Developer Console and obtain API keys or credentials.
-3. Be aware that usage of some Google APIs may involve additional costs, and you are responsible for any associated fees.
+1. Usage of Google MAP APIs is subject to Google's Terms of Service. Please review Google's terms and policies at https://policies.google.com/terms.
+2. You may need to create and configure a Google API project in the Google Developer Console and obtain MAP API keys or credentials.
+3. Be aware that usage of some Google MAP APIs may involve additional costs, and you are responsible for any associated fees.
 
 By using this plugin, you agree to comply with Google's terms and policies and take full responsibility for any costs or usage-related matters.
 
