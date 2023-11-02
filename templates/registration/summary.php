@@ -6,8 +6,8 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly
-	$distance = $distance ?? $_COOKIE['mptbm_distance'];
-	$duration = $duration ?? $_COOKIE['mptbm_duration'];
+	$distance = $distance ?? (isset($_COOKIE['mptbm_distance']) ?absint($_COOKIE['mptbm_distance']): '');
+	$duration = $duration ?? (isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '');
 	$label = $label ?? MPTBM_Function::get_name();
 	$date = $date ?? '';
 	$start_place = $start_place ?? '';
@@ -23,10 +23,10 @@
 					<h3><?php esc_html_e('SUMMERY', 'ecab-taxi-booking-manager'); ?></h3>
 					<div class="dividerL"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Pickup Date', 'ecab-taxi-booking-manager'); ?></h6>
-					<p class="_textLight_1"><?php echo MP_Global_Function::date_format($date); ?></p>
+					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date)); ?></p>
 					<div class="dividerL"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Pickup Time', 'ecab-taxi-booking-manager'); ?></h6>
-					<p class="_textLight_1"><?php echo MP_Global_Function::date_format($date, 'time'); ?></p>
+					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date, 'time')); ?></p>
 					<div class="dividerL"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Pickup Location', 'ecab-taxi-booking-manager'); ?></h6>
 					<p class="_textLight_1"><?php echo esc_html($start_place); ?></p>

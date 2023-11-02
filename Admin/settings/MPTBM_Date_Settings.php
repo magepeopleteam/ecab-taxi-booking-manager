@@ -29,7 +29,7 @@
 								<span class="fas fa-calendar-alt"></span><?php esc_html_e('Off Days & Dates', 'ecab-taxi-booking-manager'); ?>
 							</li>
 						</ul>
-						<div class="tabsContent tab-content">
+						<div class="tabsContent">
 							<div class="tabsItem" data-tabs="#mptbm_date_time_general">
 								<table>
 									<tbody>

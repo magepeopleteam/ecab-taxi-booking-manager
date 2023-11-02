@@ -30,6 +30,20 @@
 				));
 				return array_unique($all_data);
 			}
+			public static function user_role_exists($role) {
+				if (!empty($role)) {
+					return $GLOBALS['wp_roles']->is_role($role);
+				}
+				return false;
+			}
+			public static function get_users_by_role($role, $order_by='user_nicename', $order='ASC') {
+				$args = array(
+					'role' => $role,
+					'orderby' => $order_by,
+					'order' => $order
+				);
+				return get_users($args);
+			}
 			public static function get_post_info($post_id, $key, $default = '') {
 				$data = get_post_meta($post_id, $key, true) ?: $default;
 				return self::data_sanitize($data);

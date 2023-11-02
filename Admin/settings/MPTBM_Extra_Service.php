@@ -112,7 +112,7 @@
 				<?php
 			}
 			public function save_ex_service_settings( $post_id ) {
-				if ( ! isset( $_POST['mptbm_extra_service_nonce'] ) || ! wp_verify_nonce( $_POST['mptbm_extra_service_nonce'], 'mptbm_extra_service_nonce' ) && defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE && ! current_user_can( 'edit_post', $post_id ) ) {
+				if ( ! isset( $_POST['mptbm_extra_service_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash ( $_POST['mptbm_extra_service_nonce'])), 'mptbm_extra_service_nonce' ) && defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE && ! current_user_can( 'edit_post', $post_id ) ) {
 					return;
 				}
 				if ( get_post_type( $post_id ) == 'mptbm_extra_services' ) {
@@ -222,8 +222,8 @@
 				return apply_filters( 'filter_mptbm_extra_service_data', $new_extra_service, $post_id );
 			}
 			public function get_mptbm_ex_service() {
-				$post_id    = isset($_REQUEST['post_id']) ?MP_Global_Function::data_sanitize($_REQUEST['post_id']): '';
-				$service_id = isset($_REQUEST['ex_id']) ?MP_Global_Function::data_sanitize($_REQUEST['ex_id']): '';
+				$post_id    = isset($_REQUEST['post_id']) ?absint($_REQUEST['post_id']): '';
+				$service_id = isset($_REQUEST['ex_id']) ?absint($_REQUEST['ex_id']): '';
 				$this->ex_service_table( $service_id, $post_id );
 				die();
 			}

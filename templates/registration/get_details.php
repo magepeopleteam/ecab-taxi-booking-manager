@@ -9,7 +9,7 @@
 	$price_based = $price_based ?? '';
 	$map = $map ?? 'yes';
 	$all_dates = MPTBM_Function::get_all_dates($price_based);
-	//echo '<pre>';print_r($all_dates);echo '</pre>';
+	//echo '<pre>';print_r(wp_styles());echo '</pre>';
 	$form_style = $form_style ?? 'horizontal';
 	$form_style_class = $form_style == 'horizontal' ? 'inputHorizontal' : 'inputInline';
 	$area_class = $price_based == 'manual' ? ' ' : 'justifyBetween';
@@ -40,7 +40,7 @@
 						</label>
 						<ul class="mp_input_select_list">
 							<?php for ($i = 0; $i <= 23.5; $i = $i + 0.5) { ?>
-								<li data-value="<?php echo esc_attr($i); ?>"><?php echo MP_Global_Function::date_format(date('H:i', $i * 3600), 'time'); ?></li>
+								<li data-value="<?php echo esc_attr($i); ?>"><?php echo esc_html(MP_Global_Function::date_format(date('H:i', $i * 3600), 'time')); ?></li>
 							<?php } ?>
 						</ul>
 					</div>

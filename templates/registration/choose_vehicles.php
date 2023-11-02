@@ -7,14 +7,14 @@
 		die;
 	} // Cannot access pages directly
 	$label = MPTBM_Function::get_name();
-	$start_date = isset($_POST['start_date']) ? MP_Global_Function::data_sanitize($_POST['start_date']) : '';
-	$start_time = isset($_POST['start_time']) ? MP_Global_Function::data_sanitize($_POST['start_time']) * 3600 : '';
+	$start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : '';
+	$start_time = isset($_POST['start_time']) ? absint($_POST['start_time']) * 3600 : '';
 	$date = $start_date && $start_time ? date('Y-m-d', strtotime($start_date)) . ' ' . date('H:i', $start_time) : '';
-	$start_place = isset($_POST['start_place']) ? MP_Global_Function::data_sanitize($_POST['start_place']) : '';
-	$end_place = isset($_POST['end_place']) ? MP_Global_Function::data_sanitize($_POST['end_place']) : '';
-	$two_way = isset($_POST['two_way']) ? MP_Global_Function::data_sanitize($_POST['two_way']) : 1;
-	$waiting_time = isset($_POST['waiting_time']) ? MP_Global_Function::data_sanitize($_POST['waiting_time']) : 0;
-	$fixed_time = isset($_POST['fixed_time']) ? MP_Global_Function::data_sanitize($_POST['fixed_time']) : '';
+	$start_place = isset($_POST['start_place']) ? sanitize_text_field($_POST['start_place']) : '';
+	$end_place = isset($_POST['end_place']) ? sanitize_text_field($_POST['end_place']) : '';
+	$two_way = isset($_POST['two_way']) ? absint($_POST['two_way']) : 1;
+	$waiting_time = isset($_POST['waiting_time']) ? absint($_POST['waiting_time']) : 0;
+	$fixed_time = isset($_POST['fixed_time']) ? absint($_POST['fixed_time']) : '';
 ?>
 	<div data-tabs-next="#mptbm_search_result" class="mptbm_map_search_result">
 		<input type="hidden" name="mptbm_post_id" value="" data-price=""/>
@@ -30,7 +30,7 @@
 				<div class="mainSection ">
 					<div class="mp_sticky_depend_area fdColumn">
 						<?php
-							$price_based = MP_Global_Function::data_sanitize($_POST['price_based']);
+							$price_based = sanitize_text_field($_POST['price_based']);
 							$all_posts = MPTBM_Query::query_transport_list($price_based);
 							if ($all_posts->found_posts > 0) {
 								$posts = $all_posts->posts;

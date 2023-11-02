@@ -56,7 +56,7 @@
 				if (!(isset($_GET['post']) || isset($_POST['post']) || (isset($_REQUEST['action']) && 'mptbm_rent_duplicate' == $_REQUEST['action']))) {
 					wp_die('No post to duplicate has been supplied!');
 				}
-				if (!isset($_GET['duplicate_nonce']) || !wp_verify_nonce($_GET['duplicate_nonce'], basename(__FILE__))) {
+				if (!isset($_GET['duplicate_nonce']) || !wp_verify_nonce(sanitize_text_field( wp_unslash ($_GET['duplicate_nonce'])), basename(__FILE__))) {
 					return;
 				}
 				$post_id = (isset($_GET['post']) ? absint($_GET['post']) : absint($_POST['post']));

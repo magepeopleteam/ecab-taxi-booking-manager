@@ -3,7 +3,7 @@ Contributors: magepeopleteam
 Author URI : https://mage-people.com
 Tags: Taxi, Cab, distance & fare calculator, Travel agency, woocommerce booking, google map
 Requires at least: 5.3
-Stable tag: 1.0
+Stable tag: 1.0.0
 Version: 1.0.0
 Tested up to: 6.2
 WC requires at least: 3.0

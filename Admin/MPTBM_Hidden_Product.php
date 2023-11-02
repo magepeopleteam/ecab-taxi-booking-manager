@@ -39,7 +39,7 @@
 			}
 			public function run_link_product_on_save($post_id) {
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
-					if (!isset($_POST['mptbm_nonce']) || !wp_verify_nonce($_POST['mptbm_nonce'], 'mptbm_nonce')) {
+					if (!isset($_POST['mptbm_nonce']) || !wp_verify_nonce(sanitize_text_field( wp_unslash ($_POST['mptbm_nonce'])), 'mptbm_nonce')) {
 						return;
 					}
 					if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {

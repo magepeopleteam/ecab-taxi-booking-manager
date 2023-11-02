@@ -6,9 +6,9 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly
-	$start_place = MP_Global_Function::data_sanitize( $_POST['start_place']);
-    $price_based = MP_Global_Function::data_sanitize($_POST['price_based']);
-    $post_id = MP_Global_Function::data_sanitize($_POST['post_id']);
+	$start_place = sanitize_text_field( $_POST['start_place']);
+    $price_based = sanitize_text_field($_POST['price_based']);
+    $post_id = absint($_POST['post_id']);
     $end_locations = MPTBM_Function::get_end_location($start_place, $post_id);
     if (sizeof($end_locations) > 0) {
         ?>
