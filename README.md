@@ -13,7 +13,7 @@ License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 	
-Ecab Taxi Booking Manager for WooCommerce displays the total distance between two locations and calculate fare.
+Ecab Taxi Booking Manager for WooCommerce displays the total distance between two locations and calculates the fare.
 
 == Description ==
 
@@ -24,13 +24,13 @@ providing a convenient way for customers to book rides online. Whether you run a
 ###  Key Features
 ➡User-Friendly Interface: The plugin boasts a user-friendly interface that makes it easy for both administrators and customers to manage taxi bookings effortlessly.
 
-➡Real-Time Availability: Customers can check taxi availability in real-time and book rides instantly.
+➡Real-Time Availability: Customers can check taxi availability in real time and book rides instantly.
 
 ➡Flexible Booking Options: Offer options for immediate pickups or pre-scheduled rides, providing customers with flexibility.
 
 ➡Fare Calculation: Automatic fare calculation based on distance, time, or any custom criteria you define.
 
-➡Customizable Rates: Set up custom rate plans, allowing you to tailor pricing based on different zones, distance, or other factors.
+➡Customizable Rates: Set up custom rate plans, allowing you to tailor pricing based on different zones, distances, or other factors.
 
 ➡Multiple Payment Gateways: Seamlessly integrate with popular payment gateways, offering secure and diverse payment options for customers.
 
@@ -42,6 +42,17 @@ providing a convenient way for customers to book rides online. Whether you run a
 
 ➡ [View Live  Demo For Business Event](https://taxi.mage-people.com/)
 👉 [Plugin Documentation](https://docs.mage-people.com/ecab-taxi-booking-manager/)
+
+
+= Disclaimer =
+
+This plugin utilizes Google APIs, and you should be aware of the following:
+
+1. Usage of Google APIs is subject to Google's Terms of Service. Please review Google's terms and policies at https://policies.google.com/terms.
+2. You may need to create and configure a Google API project in the Google Developer Console and obtain API keys or credentials.
+3. Be aware that usage of some Google APIs may involve additional costs, and you are responsible for any associated fees.
+
+By using this plugin, you agree to comply with Google's terms and policies and take full responsibility for any costs or usage-related matters.
 
 
 
