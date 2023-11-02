@@ -13,12 +13,12 @@
 				add_action('mptbm_settings_save', [$this, 'save_price_settings'], 10, 1);
 			}
 			public function price_settings($post_id) {
-				$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
-				$distance_price = MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
-				$time_price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
-				$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+				$price_based = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_price_based');
+				$distance_price = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_km_price');
+				$time_price = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
+				$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 				$waiting_time_check=MPTBM_Function::get_general_settings('taxi_waiting_time','enable');
-				$waiting_price = MP_Global_Function::get_post_info($post_id, 'mptbm_waiting_price');
+				$waiting_price = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_waiting_price');
 				?>
                 <div class="tabsItem" data-tabs="#mptbm_settings_pricing">
                     <h5><?php esc_html_e('Price Settings', 'ecab-taxi-booking-manager'); ?></h5>
@@ -81,7 +81,7 @@
 									?>
                                     </tbody>
                                 </table>
-								<?php MP_Custom_Layout::add_new_button(esc_html__('Add New Price', 'ecab-taxi-booking-manager')); ?>
+								<?php MPTBM_Custom_Layout::add_new_button(esc_html__('Add New Price', 'ecab-taxi-booking-manager')); ?>
 								<?php $this->hidden_manual_price_item(); ?>
                             </td>
                         </tr>
@@ -135,23 +135,23 @@
                         </label>
                     </td>
                     <td>
-						<?php MP_Custom_Layout::move_remove_button(); ?>
+						<?php MPTBM_Custom_Layout::move_remove_button(); ?>
                     </td>
                 </tr>
 				<?php
 			}
 			public function save_price_settings($post_id) {
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
-					$price_based = MP_Global_Function::get_submit_info('mptbm_price_based');
+					$price_based = MPTBM_Global_Function::get_submit_info('mptbm_price_based');
 					update_post_meta($post_id, 'mptbm_price_based', $price_based);
-					$distance_price = MP_Global_Function::get_submit_info('mptbm_km_price', 0);
+					$distance_price = MPTBM_Global_Function::get_submit_info('mptbm_km_price', 0);
 					update_post_meta($post_id, 'mptbm_km_price', $distance_price);
-					$hour_price = MP_Global_Function::get_submit_info('mptbm_hour_price', 0);
+					$hour_price = MPTBM_Global_Function::get_submit_info('mptbm_hour_price', 0);
 					update_post_meta($post_id, 'mptbm_hour_price', $hour_price);
 					$manual_price_infos = array();
-					$start_location = MP_Global_Function::get_submit_info('mptbm_manual_start_location', array());
-					$end_location = MP_Global_Function::get_submit_info('mptbm_manual_end_location', array());
-					$manual_price = MP_Global_Function::get_submit_info('mptbm_manual_price', array());
+					$start_location = MPTBM_Global_Function::get_submit_info('mptbm_manual_start_location', array());
+					$end_location = MPTBM_Global_Function::get_submit_info('mptbm_manual_end_location', array());
+					$manual_price = MPTBM_Global_Function::get_submit_info('mptbm_manual_price', array());
 					if (sizeof($start_location) > 1 && sizeof($end_location) > 1 && sizeof($manual_price) > 0) {
 						$count = 0;
 						foreach ($start_location as $key => $location) {
@@ -164,7 +164,7 @@
 						}
 					}
 					update_post_meta($post_id, 'mptbm_manual_price_info', $manual_price_infos);
-					$waiting_price = MP_Global_Function::get_submit_info('mptbm_waiting_price');
+					$waiting_price = MPTBM_Global_Function::get_submit_info('mptbm_waiting_price');
 					update_post_meta($post_id, 'mptbm_waiting_price', $waiting_price);
 				}
 			}

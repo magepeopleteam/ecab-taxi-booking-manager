@@ -6,8 +6,8 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly.
-	if (!class_exists('MP_Settings_Global')) {
-		class MP_Settings_Global {
+	if (!class_exists('MPTBM_Setting_Global')) {
+		class MPTBM_Setting_Global {
 			public function __construct() {
 				add_filter('mp_settings_sec_reg', array($this, 'settings_sec_reg'), 20, 1);
 				add_filter('mp_settings_sec_fields', array($this, 'settings_sec_fields'), 20, 1);
@@ -16,18 +16,22 @@
 				$sections = array(
 					array(
 						'id' => 'mp_global_settings',
+						'icon' => 'fas fa-globe',
 						'title' => esc_html__('Global Settings', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mp_slider_settings',
+						'icon' => 'fas fa-photo-video',
 						'title' => esc_html__('Slider Settings', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mp_style_settings',
+						'icon' => 'fas fa-drafting-compass',
 						'title' => esc_html__('Style Settings', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mp_add_custom_css',
+						'icon' => 'far fa-file-code',
 						'title' => esc_html__('Custom CSS', 'ecab-taxi-booking-manager')
 					)
 				);
@@ -329,5 +333,5 @@
 				return array_merge($default_fields, $settings_fields);
 			}
 		}
-		new MP_Settings_Global();
+		new MPTBM_Setting_Global();
 	}

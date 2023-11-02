@@ -14,10 +14,10 @@
 				add_action('mptbm_settings_save', [$this, 'save_general_settings']);
 			}
 			public function general_settings($post_id) {
-				$display_features = MP_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');
+				$display_features = MPTBM_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');
 				$active = $display_features == 'off' ? '' : 'mActive';
 				$checked = $display_features == 'off' ? '' : 'checked';
-				$all_features = MP_Global_Function::get_post_info($post_id, 'mptbm_features');
+				$all_features = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_features');
 				if (!$all_features) {
 					$all_features = array(
 						array(
@@ -65,7 +65,7 @@
                     <div class="mp_settings_area">
                         <h5 class="dFlex">
                             <span class="mR"><?php esc_html_e('On/Off Feature', 'ecab-taxi-booking-manager'); ?></span>
-							<?php MP_Custom_Layout::switch_button('display_mptbm_features', $checked); ?>
+							<?php MPTBM_Custom_Layout::switch_button('display_mptbm_features', $checked); ?>
                         </h5>
 						<?php MPTBM_Settings::info_text('display_mptbm_features'); ?>
                         <div class="divider"></div>
@@ -92,7 +92,7 @@
                                 </tbody>
                             </table>
                             <div class="divider"></div>
-							<?php MP_Custom_Layout::add_new_button(esc_html__('Add New Item', 'ecab-taxi-booking-manager')); ?>
+							<?php MPTBM_Custom_Layout::add_new_button(esc_html__('Add New Item', 'ecab-taxi-booking-manager')); ?>
 							
 							<?php do_action('add_mp_hidden_table', 'add_hidden_mptbm_features_item'); ?>
                         </div>
@@ -118,19 +118,19 @@
                             <input class="formControl mp_name_validation" name="mptbm_features_text[]" value="<?php echo esc_attr($text); ?>"/>
                         </label>
                     </td>
-                    <td><?php MP_Custom_Layout::move_remove_button(); ?></td>
+                    <td><?php MPTBM_Custom_Layout::move_remove_button(); ?></td>
                 </tr>
 				<?php
 			}
 			public function save_general_settings($post_id) {
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 					$all_features = [];
-					$display_features = MP_Global_Function::get_submit_info('display_mptbm_features') ? 'on' : 'off';
+					$display_features = MPTBM_Global_Function::get_submit_info('display_mptbm_features') ? 'on' : 'off';
 					update_post_meta($post_id, 'display_mptbm_features', $display_features);
-					$features_label = MP_Global_Function::get_submit_info('mptbm_features_label', array());
+					$features_label = MPTBM_Global_Function::get_submit_info('mptbm_features_label', array());
 					if (sizeof($features_label) > 0) {
-						$features_text = MP_Global_Function::get_submit_info('mptbm_features_text', array());
-						$features_icon = MP_Global_Function::get_submit_info('mptbm_features_icon_image', array());
+						$features_text = MPTBM_Global_Function::get_submit_info('mptbm_features_text', array());
+						$features_icon = MPTBM_Global_Function::get_submit_info('mptbm_features_icon_image', array());
 						$count = 0;
 						foreach ($features_label as $label) {
 							if ($label) {

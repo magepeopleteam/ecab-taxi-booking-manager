@@ -12,7 +12,7 @@
 				add_action('admin_menu', array($this, 'quick_setup_menu'));
 			}
 			public function quick_setup_menu() {
-				$status = MP_Global_Function::check_woocommerce();
+				$status = MPTBM_Global_Function::check_woocommerce();
 				if ($status == 1) {
 					add_submenu_page('edit.php?post_type=mptbm_rent', esc_html__('Quick Setup', 'ecab-taxi-booking-manager'), '<span style="color:#10dd10">' . esc_html__('Quick Setup', 'ecab-taxi-booking-manager') . '</span>', 'manage_options', 'mptbm_quick_setup', array($this, 'quick_setup'));
 					add_submenu_page('mptbm_rent', esc_html__('Quick Setup', 'ecab-taxi-booking-manager'), '<span style="color:#10dd10">' . esc_html__('Quick Setup', 'ecab-taxi-booking-manager') . '</span>', 'manage_options', 'mptbm_quick_setup', array($this, 'quick_setup'));
@@ -23,7 +23,7 @@
 				}
 			}
 			public function quick_setup() {
-				$status = MP_Global_Function::check_woocommerce();
+				$status = MPTBM_Global_Function::check_woocommerce();
 				if (isset($_POST['active_woo_btn'])) {
 					?>
 					<script>
@@ -99,13 +99,13 @@
 				if (isset($_POST['finish_quick_setup'])) {
 					$label = isset($_POST['mptbm_label']) ? sanitize_text_field($_POST['mptbm_label']) : 'Transportation';
 					$slug = isset($_POST['mptbm_slug']) ? sanitize_text_field($_POST['mptbm_slug']) : 'transportation';
-					$general_settings_data = get_option('MPTBM_General_Settings');
+					$general_settings_data = get_option('mptbm_general_settings');
 					$update_general_settings_arr = [
 						'mptbm_rent_label' => $label,
 						'mptbm_rent_slug' => $slug
 					];
 					$new_general_settings_data = is_array($general_settings_data) ? array_replace($general_settings_data, $update_general_settings_arr) : $update_general_settings_arr;
-					update_option('MPTBM_General_Settings', $new_general_settings_data);
+					update_option('mptbm_general_settings', $new_general_settings_data);
 					update_option('mptbm_basic_gen_settings', $new_general_settings_data);
 					update_option('mptbm_quick_setup_done', 'yes');
 					wp_redirect(admin_url('edit.php?post_type=mptbm_rent'));
@@ -163,7 +163,7 @@
 				<?php
 			}
 			public function setup_welcome_content() {
-				$status = MP_Global_Function::check_woocommerce();
+				$status = MPTBM_Global_Function::check_woocommerce();
 				?>
 				<div data-tabs-next="#mptbm_qs_welcome">
 					<h2><?php esc_html_e('Transportation Booking Manager For Woocommerce Plugin', 'ecab-taxi-booking-manager'); ?></h2>
@@ -194,8 +194,8 @@
 				<?php
 			}
 			public function setup_general_content() {
-				$label = MP_Global_Function::get_settings('MPTBM_General_Settings', 'label', 'Transportation');
-				$slug = MP_Global_Function::get_settings('MPTBM_General_Settings', 'slug', 'transportation');
+				$label = MPTBM_Global_Function::get_settings('mptbm_general_settings', 'label', 'Transportation');
+				$slug = MPTBM_Global_Function::get_settings('mptbm_general_settings', 'slug', 'transportation');
 				?>
 				<div data-tabs-next="#mptbm_qs_general">
 					<div class="section">

@@ -6,8 +6,8 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly.
-	if (!class_exists('MP_Global_Function')) {
-		class MP_Global_Function {
+	if (!class_exists('MPTBM_Global_Function')) {
+		class MPTBM_Global_Function {
 			public function __construct() {
 				add_action('mp_load_date_picker_js', [$this, 'date_picker_js'], 10, 2);
 			}
@@ -98,7 +98,7 @@
 			}
 			//**************Date related*********************//
 			public static function date_picker_format_without_year($key = 'date_format'): string {
-				$format = MP_Global_Function::get_settings('mp_global_settings', $key, 'D d M , yy');
+				$format = MPTBM_Global_Function::get_settings('mp_global_settings', $key, 'D d M , yy');
 				$date_format = 'm-d';
 				$date_format = $format == 'yy/mm/dd' ? 'm/d' : $date_format;
 				$date_format = $format == 'yy-dd-mm' ? 'd-m' : $date_format;
@@ -113,7 +113,7 @@
 				return $format == 'D M d , yy' ? 'D M  j' : $date_format;
 			}
 			public static function date_picker_format($key = 'date_format'): string {
-				$format = MP_Global_Function::get_settings('mp_global_settings', $key, 'D d M , yy');
+				$format = MPTBM_Global_Function::get_settings('mp_global_settings', $key, 'D d M , yy');
 				$date_format = 'Y-m-d';
 				$date_format = $format == 'yy/mm/dd' ? 'Y/m/d' : $date_format;
 				$date_format = $format == 'yy-dd-mm' ? 'Y-d-m' : $date_format;
@@ -376,9 +376,9 @@
 				return $value ?? '';
 			}
 			public static function check_product_in_cart($post_id) {
-				$status = MP_Global_Function::check_woocommerce();
+				$status = MPTBM_Global_Function::check_woocommerce();
 				if ($status == 1) {
-					$product_id = MP_Global_Function::get_post_info($post_id, 'link_wc_product');
+					$product_id = MPTBM_Global_Function::get_post_info($post_id, 'link_wc_product');
 					foreach (WC()->cart->get_cart() as $cart_item) {
 						if ($cart_item['product_id'] == $product_id) {
 							return true;
@@ -802,5 +802,5 @@
 				);
 			}
 		}
-		new MP_Global_Function();
+		new MPTBM_Global_Function();
 	}

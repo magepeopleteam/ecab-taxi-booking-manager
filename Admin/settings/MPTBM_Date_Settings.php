@@ -13,9 +13,9 @@
 				add_action('save_post', array($this, 'save_date_time_settings'), 99, 1);
 			}
 			public function date_settings($post_id) {
-				$date_format = MP_Global_Function::date_picker_format();
+				$date_format = MPTBM_Global_Function::date_picker_format();
 				$now = date_i18n($date_format, strtotime(current_time('Y-m-d')));
-				$date_type = MP_Global_Function::get_post_info($post_id, 'mptbm_date_type', 'repeated');
+				$date_type = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_date_type', 'repeated');
 				?>
 				<div class="tabsItem" data-tabs="#mptbm_settings_date">
 					<h5><?php esc_html_e('Date Settings', 'ecab-taxi-booking-manager'); ?></h5>
@@ -53,7 +53,7 @@
 											<div class="mp_settings_area">
 												<div class="mp_item_insert mp_sortable_area">
 													<?php
-														$particular_date_lists = MP_Global_Function::get_post_info($post_id, 'mptbm_particular_dates', array());
+														$particular_date_lists = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_particular_dates', array());
 														if (sizeof($particular_date_lists)) {
 															foreach ($particular_date_lists as $particular_date) {
 																if ($particular_date) {
@@ -63,7 +63,7 @@
 														}
 													?>
 												</div>
-												<?php MP_Custom_Layout::add_new_button(esc_html__('Add New Particular date', 'ecab-taxi-booking-manager')); ?>
+												<?php MPTBM_Custom_Layout::add_new_button(esc_html__('Add New Particular date', 'ecab-taxi-booking-manager')); ?>
 												<div class="mp_hidden_content">
 													<div class="mp_hidden_item">
 														<?php $this->particular_date_item('mptbm_particular_dates[]'); ?>
@@ -73,11 +73,11 @@
 										</td>
 									</tr>
 									<?php
-										$repeated_start_date = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_start_date');
+										$repeated_start_date = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_repeated_start_date');
 										$hidden_repeated_start_date = $repeated_start_date ? date('Y-m-d', strtotime($repeated_start_date)) : '';
 										$visible_repeated_start_date = $repeated_start_date ? date_i18n($date_format, strtotime($repeated_start_date)) : '';
-										$repeated_after = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
-										$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 10);
+										$repeated_after = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
+										$active_days = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_active_days', 10);
 									?>
 									<tr data-collapse="#mp_repeated" class="<?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
 										<th>
@@ -122,8 +122,8 @@
 										<th><?php esc_html_e('Off Day', 'ecab-taxi-booking-manager'); ?></th>
 										<td colspan="2">
 											<?php
-												$off_days = MP_Global_Function::get_post_info($post_id, 'mptbm_off_days');
-												$days = MP_Global_Function::week_day();
+												$off_days = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_off_days');
+												$days = MPTBM_Global_Function::week_day();
 												$off_day_array = explode(',', $off_days);
 											?>
 											<div class="groupCheckBox">
@@ -143,7 +143,7 @@
 											<div class="mp_settings_area">
 												<div class="mp_item_insert mp_sortable_area">
 													<?php
-														$off_day_lists = MP_Global_Function::get_post_info($post_id, 'mptbm_off_dates', array());
+														$off_day_lists = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_off_dates', array());
 														if (sizeof($off_day_lists)) {
 															foreach ($off_day_lists as $off_day) {
 																if ($off_day) {
@@ -153,7 +153,7 @@
 														}
 													?>
 												</div>
-												<?php MP_Custom_Layout::add_new_button(esc_html__('Add New Off date', 'ecab-taxi-booking-manager')); ?>
+												<?php MPTBM_Custom_Layout::add_new_button(esc_html__('Add New Off date', 'ecab-taxi-booking-manager')); ?>
 												<div class="mp_hidden_content">
 													<div class="mp_hidden_item">
 														<?php $this->particular_date_item('mptbm_off_dates[]'); ?>
@@ -170,7 +170,7 @@
 				<?php
 			}
 			public function particular_date_item($name, $date = '') {
-				$date_format = MP_Global_Function::date_picker_format();
+				$date_format = MPTBM_Global_Function::date_picker_format();
 				$now = date_i18n($date_format, strtotime(current_time('Y-m-d')));
 				$hidden_date = $date ? date('Y-m-d', strtotime($date)) : '';
 				$visible_date = $date ? date_i18n($date_format, strtotime($date)) : '';
@@ -181,7 +181,7 @@
 							<input type="hidden" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($hidden_date); ?>"/>
 							<input value="<?php echo esc_attr($visible_date); ?>" class="formControl date_type" placeholder="<?php echo esc_attr($now); ?>"/>
 						</label>
-						<?php MP_Custom_Layout::move_remove_button(); ?>
+						<?php MPTBM_Custom_Layout::move_remove_button(); ?>
 					</div>
 					<div class="divider"></div>
 				</div>
@@ -191,10 +191,10 @@
 			public function save_date_time_settings($post_id) {
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 					//************************************//
-					$mptbm_date_type = MP_Global_Function::get_submit_info('mptbm_date_type');
+					$mptbm_date_type = MPTBM_Global_Function::get_submit_info('mptbm_date_type');
 					update_post_meta($post_id, 'mptbm_date_type', $mptbm_date_type);
 					//**********************//
-					$particular_dates = MP_Global_Function::get_submit_info('mptbm_particular_dates', array());
+					$particular_dates = MPTBM_Global_Function::get_submit_info('mptbm_particular_dates', array());
 					$particular = array();
 					if (sizeof($particular_dates) > 0) {
 						foreach ($particular_dates as $particular_date) {
@@ -205,18 +205,18 @@
 					}
 					update_post_meta($post_id, 'mptbm_particular_dates', $particular);
 					//*************************//
-					$repeated_start_date = MP_Global_Function::get_submit_info('mptbm_repeated_start_date');
+					$repeated_start_date = MPTBM_Global_Function::get_submit_info('mptbm_repeated_start_date');
 					$repeated_start_date = $repeated_start_date ? date('Y-m-d', strtotime($repeated_start_date)) : '';
 					update_post_meta($post_id, 'mptbm_repeated_start_date', $repeated_start_date);
-					$repeated_after = MP_Global_Function::get_submit_info('mptbm_repeated_after', 1);
+					$repeated_after = MPTBM_Global_Function::get_submit_info('mptbm_repeated_after', 1);
 					update_post_meta($post_id, 'mptbm_repeated_after', $repeated_after);
-					$active_days = MP_Global_Function::get_submit_info('mptbm_active_days');
+					$active_days = MPTBM_Global_Function::get_submit_info('mptbm_active_days');
 					update_post_meta($post_id, 'mptbm_active_days', $active_days);
 					//**********************//
-					$off_days = MP_Global_Function::get_submit_info('mptbm_off_days', array());
+					$off_days = MPTBM_Global_Function::get_submit_info('mptbm_off_days', array());
 					update_post_meta($post_id, 'mptbm_off_days', $off_days);
 					//**********************//
-					$off_dates = MP_Global_Function::get_submit_info('mptbm_off_dates', array());
+					$off_dates = MPTBM_Global_Function::get_submit_info('mptbm_off_dates', array());
 					$_off_dates = array();
 					if (sizeof($off_dates) > 0) {
 						foreach ($off_dates as $off_date) {

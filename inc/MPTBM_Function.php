@@ -44,7 +44,7 @@
 			}
 			public static function details_template_path(): string {
 				$tour_id = get_the_id();
-				$template_name = MP_Global_Function::get_post_info($tour_id, 'mptbm_theme_file', 'default.php');
+				$template_name = MPTBM_Global_Function::get_post_info($tour_id, 'mptbm_theme_file', 'default.php');
 				$file_name = 'themes/' . $template_name;
 				$dir = MPTBM_PLUGIN_DIR . '/templates/' . $file_name;
 				if (!file_exists($dir)) {
@@ -61,7 +61,7 @@
 			}
 			//************************//
 			public static function get_general_settings($key, $default = '') {
-				return MP_Global_Function::get_settings('MPTBM_General_Settings', $key, $default);
+				return MPTBM_Global_Function::get_settings('mptbm_general_settings', $key, $default);
 			}
 			public static function get_cpt(): string {
 				return 'mptbm_rent';
@@ -91,24 +91,24 @@
 			//*************Date*********************************//
 			public static function get_date($post_id, $expire = false) {
 				$now = current_time('Y-m-d');
-				$date_type = MP_Global_Function::get_post_info($post_id, 'mptbm_date_type', 'repeated');
+				$date_type = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_date_type', 'repeated');
 				$all_dates = [];
-				$off_days = MP_Global_Function::get_post_info($post_id, 'mptbm_off_days');
+				$off_days = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_off_days');
 				$all_off_days = explode(',', $off_days);
-				$all_off_dates = MP_Global_Function::get_post_info($post_id, 'mptbm_off_dates', array());
+				$all_off_dates = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_off_dates', array());
 				$off_dates = [];
 				foreach ($all_off_dates as $off_date) {
 					$off_dates[] = date('Y-m-d', strtotime($off_date));
 				}
 				if ($date_type == 'repeated') {
-					$start_date = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_start_date', $now);
+					$start_date = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_repeated_start_date', $now);
 					if (strtotime($now) >= strtotime($start_date) && !$expire) {
 						$start_date = $now;
 					}
-					$repeated_after = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
-					$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 10) - 1;
+					$repeated_after = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
+					$active_days = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_active_days', 10) - 1;
 					$end_date = date('Y-m-d', strtotime($start_date . ' +' . $active_days . ' day'));
-					$dates = MP_Global_Function::date_separate_period($start_date, $end_date, $repeated_after);
+					$dates = MPTBM_Global_Function::date_separate_period($start_date, $end_date, $repeated_after);
 					foreach ($dates as $date) {
 						$date = $date->format('Y-m-d');
 						$day = strtolower(date('l', strtotime($date)));
@@ -118,7 +118,7 @@
 					}
 				}
 				else {
-					$particular_date_lists = MP_Global_Function::get_post_info($post_id, 'mptbm_particular_dates', array());
+					$particular_date_lists = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_particular_dates', array());
 					if (sizeof($particular_date_lists)) {
 						foreach ($particular_date_lists as $particular_date) {
 							if ($particular_date && ($expire || strtotime($now) <= strtotime($particular_date)) && !in_array($particular_date, $off_dates) && !in_array($particular_date, $all_off_days)) {
@@ -141,28 +141,28 @@
 					}
 				}
 				$all_dates = array_unique($all_dates);
-				usort($all_dates, "MP_Global_Function::sort_date");
+				usort($all_dates, "MPTBM_Global_Function::sort_date");
 				return $all_dates;
 			}
 			//*************Price*********************************//
 			public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '',$waiting_time=0,$two_way=1,$fixed_time=0) {
 				$price = '';
-				$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
-				$waiting_price=MP_Global_Function::get_post_info($post_id,'mptbm_waiting_price',0)*$waiting_time;
+				$price_based = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_price_based');
+				$waiting_price=MPTBM_Global_Function::get_post_info($post_id,'mptbm_waiting_price',0)*$waiting_time;
 				if ($price_based == 'distance') {
-					$price = MP_Global_Function::get_post_info($post_id, 'mptbm_km_price') * $distance / 1000;
+					$price = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_km_price') * $distance / 1000;
 				}
 				elseif ($price_based == 'duration') {
-					$price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price') * $duration / 3600;
+					$price = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_hour_price') * $duration / 3600;
 				}
 				elseif ($price_based == 'distance_duration') {
-					$price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price') * $duration / 3600 + MP_Global_Function::get_post_info($post_id, 'mptbm_km_price') * $distance / 1000;
+					$price = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_hour_price') * $duration / 3600 + MPTBM_Global_Function::get_post_info($post_id, 'mptbm_km_price') * $distance / 1000;
 				}
 				elseif ($price_based == 'fixed_hourly') {
-					$price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price')*$fixed_time;
+					$price = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_hour_price')*$fixed_time;
 				}
 				else {
-					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+					$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 					if (sizeof($manual_prices) > 0) {
 						foreach ($manual_prices as $manual_price) {
 							$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
@@ -182,9 +182,9 @@
 				return $price;
 			}
 			public static function get_extra_service_price_by_name($post_id, $service_name) {
-				$display_extra_services = MP_Global_Function::get_post_info($post_id, 'display_mptbm_extra_services', 'on');
-				$service_id = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_services_id', $post_id);
-				$extra_services = MP_Global_Function::get_post_info($service_id, 'mptbm_extra_service_infos', []);
+				$display_extra_services = MPTBM_Global_Function::get_post_info($post_id, 'display_mptbm_extra_services', 'on');
+				$service_id = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_extra_services_id', $post_id);
+				$extra_services = MPTBM_Global_Function::get_post_info($service_id, 'mptbm_extra_service_infos', []);
 				$price = 0;
 				if ($display_extra_services == 'on' && is_array($extra_services) && sizeof($extra_services) > 0) {
 					foreach ($extra_services as $service) {
@@ -198,9 +198,9 @@
 			}
 			//************Location*******************//
 			public static function location_exit($post_id, $start_place, $destination_place) {
-				$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
+				$price_based = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_price_based');
 				if ($price_based == 'manual') {
-					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+					$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 					if (sizeof($manual_prices) > 0) {
 						$exit = 0;
 						foreach ($manual_prices as $manual_price) {
@@ -219,7 +219,7 @@
 			public static function get_all_start_location($post_id = '') {
 				$all_location = [];
 				if ($post_id && $post_id > 0) {
-					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+					$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 					if (sizeof($manual_prices) > 0) {
 						foreach ($manual_prices as $manual_price) {
 							$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
@@ -235,7 +235,7 @@
 						$posts = $all_posts->posts;
 						foreach ($posts as $post) {
 							$post_id = $post->ID;
-							$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+							$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 							if (sizeof($manual_prices) > 0) {
 								foreach ($manual_prices as $manual_price) {
 									$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
@@ -252,7 +252,7 @@
 			public static function get_end_location($start_place, $post_id = '') {
 				$all_location = [];
 				if ($post_id && $post_id > 0) {
-					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+					$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 					if (sizeof($manual_prices) > 0) {
 						foreach ($manual_prices as $manual_price) {
 							$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
@@ -269,7 +269,7 @@
 						$posts = $all_posts->posts;
 						foreach ($posts as $post) {
 							$post_id = $post->ID;
-							$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+							$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 							if (sizeof($manual_prices) > 0) {
 								foreach ($manual_prices as $manual_price) {
 									$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
