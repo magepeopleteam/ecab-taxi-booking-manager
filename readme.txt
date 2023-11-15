@@ -1,9 +1,9 @@
 === Ecab Taxi Booking Manager for WooCommerce ===
 Contributors: magepeopleteam
 Author URI : https://mage-people.com
-Tags: Taxi, Cab, distance & fare calculator, Travel agency, woocommerce booking, google map
+Tags: Taxi, Cab, distance & fare calculator,Travel agency, Woocommerce booking, google map
 Requires at least: 5.3
-Stable tag: 1.0.0
+Stable tag: 1.0
 Version: 1.0.0
 Tested up to: 6.2
 WC requires at least: 3.0
@@ -13,7 +13,7 @@ License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 	
-Ecab Taxi Booking Manager for WooCommerce displays the total distance between two locations and calculates fare.
+Ecab Taxi Booking Manager for WooCommerce displays the total distance between two locations and calculates the fare.
 
 == Description ==
 
@@ -30,18 +30,31 @@ providing a convenient way for customers to book rides online. Whether you run a
 
 ➡Fare Calculation: Automatic fare calculation based on distance, time, or any custom criteria you define.
 
-➡Customizable Rates: Set up custom rate plans, allowing you to tailor the pricing based on different zones, distances, or other factors.
+➡Customizable Rates: Set up custom rate plans, allowing you to tailor pricing based on different zones, distances, or other factors.
 
 ➡Multiple Payment Gateways: Seamlessly integrate with popular payment gateways, offering secure and diverse payment options for customers.
 
 ➡Booking Management: Efficiently manage all taxi bookings from your WordPress dashboard, with the ability to view, modify, or cancel bookings as needed.
 
-➡Google MAP API: Google map API integrated for route map.
+➡Google MAP API: Google map api integrated for route map.
 
 ➡Responsive Design: The plugin is designed to be fully responsive, offering a smooth booking experience across various devices.
 
 ➡ [View Live  Demo For Business Event](https://taxi.mage-people.com/)
 👉 [Plugin Documentation](https://docs.mage-people.com/ecab-taxi-booking-manager/)
+
+
+**Third-Party Service:**
+This plugin relies on the Google Maps API, a service provided by Google, Inc. It is used for displaying Google Maps and finding distance. Please note that your usage of this plugin constitutes acceptance of Google's terms and policies.
+
+**Link to Google Maps API:**
+For more information about the Google Maps API, visit: [Google Maps API Link](https://developers.google.com/maps/documentation/javascript/get-api-key)
+
+**Terms of Use:**
+Review the Google Maps API terms of use: [Google Maps API Terms of Use Link](https://developers.google.com/maps/terms-20180207)
+
+**Privacy Policy:**
+Understand how Google handles your data through the Maps API: [Google Privacy Policy Link](https://policies.google.com/privacy)
 
 
 
@@ -56,7 +69,13 @@ Once installed, click "Activate" to enable the Ecab Taxi Booking Manager WordPre
 
 == Frequently Asked Questions ==
 
-= Q.Is Ecab Taxi Manager for WooCommerce Free? =
+= Q.Is an API key required? =
+Yes, you need to obtain a Google Maps API key. Follow the instructions in the plugin settings to set up and enter your API key.
+
+= Q.How do I get a Google Maps API key? =
+Visit the [Google Cloud Console](https://console.cloud.google.com/), create a project, enable the Google Maps JavaScript API, and generate an API key.
+
+= Is Ecab Taxi Manager for WooCommerce Free? =
 A. Yes! Ecab Taxi Manager for WooCommerce is free.
 
 You can check the demo of this plugin from here:
@@ -66,10 +85,12 @@ You can check the demo of this plugin from here:
 A. Yes! Here is the [Online Documentation](https://docs.mage-people.com/ecab-taxi-booking-manager/).
  
 = Q.I installed correctly but 404 error what can I do?  =
-A. You need to Re-save permalink settings it will solve the 404. if still does not work that means your permalink not working, or you may have httaccess problem or you have server permission problem. 
+A. You need to Re-save permalink settings it will solve the 404. if still does not work that means your permalink not working, or you may have an access problem or you have a server permission problem. 
 
 = Q.How its work? =
-A. Woocommerce Events Manager one of the simple event plugins for WordPress which is based on Woocommerce. Its work as an individual event and its payment functionality handle with woocommerce so there are no worries about the payment gateway you can use every payment gateway which is support woocommerce. The interesting part is the event post type is completely different there is no connection with woocommerce product so if you can sell anything from woocommerce product. 
+A. Woocommerce Events Manager is one of the simple event plugins for WordPress which is based on Woocommerce. It works as an individual event and its payment functionality is handled with WooCommerce so there are no worries about the payment gateway you can use every payment gateway that supports WooCommerce. The interesting part is the event post type is completely different there is no connection with WooCommerce products so you can sell anything from WooCommerce products. 
 
 
+== Legal Protection ==
 
+This transparency is crucial for legal protection. By using this plugin, you acknowledge and accept the reliance on the Google Maps API. Review the terms of use and privacy policy for both this plugin and the Google Maps API to ensure a comprehensive understanding of the services and how your data is handled.
