@@ -43,7 +43,7 @@
 										<span class="<?php echo esc_attr($service_icon); ?>"></span>
 									<?php } ?>
 									<?php echo esc_html($service_name); ?>
-									<sub class="textTheme"> &nbsp;&nbsp;<?php echo wc_price($service_price); ?></sub>
+									<sub class="textTheme"> &nbsp;&nbsp;<?php echo wc_price(esc_html($service_price)); ?></sub>
 								</h4>
 								<div class="_equalChild">
 									<div class="_mR_xs">

@@ -142,16 +142,16 @@
 			}
 			public function save_price_settings($post_id) {
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
-					$price_based = MPTBM_Global_Function::get_submit_info('mptbm_price_based');
+					$price_based = isset($_POST['mptbm_price_based']) ? sanitize_text_field($_POST['mptbm_price_based']) : '';
 					update_post_meta($post_id, 'mptbm_price_based', $price_based);
-					$distance_price = MPTBM_Global_Function::get_submit_info('mptbm_km_price', 0);
+					$distance_price = isset($_POST['mptbm_km_price']) ? sanitize_text_field($_POST['mptbm_km_price']) : 0;
 					update_post_meta($post_id, 'mptbm_km_price', $distance_price);
-					$hour_price = MPTBM_Global_Function::get_submit_info('mptbm_hour_price', 0);
+					$hour_price = isset($_POST['mptbm_hour_price']) ? sanitize_text_field($_POST['mptbm_hour_price']) : 0;
 					update_post_meta($post_id, 'mptbm_hour_price', $hour_price);
 					$manual_price_infos = array();
-					$start_location = MPTBM_Global_Function::get_submit_info('mptbm_manual_start_location', array());
-					$end_location = MPTBM_Global_Function::get_submit_info('mptbm_manual_end_location', array());
-					$manual_price = MPTBM_Global_Function::get_submit_info('mptbm_manual_price', array());
+					$start_location = isset($_POST['mptbm_manual_start_location']) ? array_map('sanitize_text_field',$_POST['mptbm_manual_start_location']) : [];
+					$end_location = isset($_POST['mptbm_manual_end_location']) ? array_map('sanitize_text_field',$_POST['mptbm_manual_end_location']) : [];
+					$manual_price = isset($_POST['mptbm_manual_price']) ? array_map('sanitize_text_field',$_POST['mptbm_manual_price']) : [];
 					if (sizeof($start_location) > 1 && sizeof($end_location) > 1 && sizeof($manual_price) > 0) {
 						$count = 0;
 						foreach ($start_location as $key => $location) {
@@ -164,7 +164,7 @@
 						}
 					}
 					update_post_meta($post_id, 'mptbm_manual_price_info', $manual_price_infos);
-					$waiting_price = MPTBM_Global_Function::get_submit_info('mptbm_waiting_price');
+					$waiting_price = isset($_POST['mptbm_waiting_price']) ? sanitize_text_field($_POST['mptbm_waiting_price']) : '';
 					update_post_meta($post_id, 'mptbm_waiting_price', $waiting_price);
 				}
 			}

@@ -67,22 +67,10 @@
 				return $all_data;
 			}
 			//***********************************//
-			public static function get_submit_info($key, $default = '') {
-				return self::data_sanitize($_POST[$key] ?? $default);
-			}
-			public static function get_submit_info_get_method($key, $default = '') {
-				return self::data_sanitize($_GET[$key] ?? $default);
-			}
 			public static function data_sanitize($data) {
 				$data = maybe_unserialize($data);
 				if (is_string($data)) {
-					$data = maybe_unserialize($data);
-					if (is_array($data)) {
-						$data = self::data_sanitize($data);
-					}
-					else {
-						$data = sanitize_text_field(stripslashes(strip_tags($data)));
-					}
+					$data = sanitize_text_field(stripslashes(strip_tags($data)));
 				}
 				elseif (is_array($data)) {
 					foreach ($data as &$value) {
@@ -394,16 +382,7 @@
 				return null;
 			}
 			//***********************************//
-			public static function all_tax_list(): array {
-				global $wpdb;
-				$table_name = $wpdb->prefix . 'wc_tax_rate_classes';
-				$result = $wpdb->get_results("SELECT * FROM $table_name");
-				$tax_list = [];
-				foreach ($result as $tax) {
-					$tax_list[$tax->slug] = $tax->name;
-				}
-				return $tax_list;
-			}
+
 			public static function week_day(): array {
 				return [
 					'monday' => esc_html__('Monday', 'ecab-taxi-booking-manager'),

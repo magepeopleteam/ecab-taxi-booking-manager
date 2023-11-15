@@ -71,7 +71,7 @@
 				<?php
 			}
 			public function map_api_not_active() {
-				$gm_api_url = 'https://developers.google.com/maps/documentation/javascript/get-api-key';
+				$gm_api_url = '';
 				$label = MPTBM_Function::get_name();
 				$text_1=esc_html__('You Must Add Google Map Api key for E-cab taxi booking manager, Because It is dependent on Google Map. Please enter your Google Maps API key in Plugin Options.','');
 				$text_2=$label.'>'.$label.' '.esc_html__('Settings>Map Api Settings','');

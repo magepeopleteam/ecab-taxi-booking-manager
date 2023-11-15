@@ -79,11 +79,11 @@
 						--color_active: #0E6BB7;
 						--color_section: <?php echo esc_attr($section_bg); ?>;
 						--color_theme: <?php echo esc_attr($theme_color); ?>;
-						--color_theme_ee: <?php echo esc_attr($theme_color).'ee'; ?>;
-						--color_theme_cc: <?php echo esc_attr($theme_color).'cc'; ?>;
-						--color_theme_aa: <?php echo esc_attr($theme_color).'aa'; ?>;
-						--color_theme_88: <?php echo esc_attr($theme_color).'88'; ?>;
-						--color_theme_77: <?php echo esc_attr($theme_color).'77'; ?>;
+						--color_theme_ee: <?php echo esc_attr($theme_color).esc_attr('ee'); ?>;
+						--color_theme_cc: <?php echo esc_attr($theme_color).esc_attr('cc'); ?>;
+						--color_theme_aa: <?php echo esc_attr($theme_color).esc_attr('aa'); ?>;
+						--color_theme_88: <?php echo esc_attr($theme_color).esc_attr('88'); ?>;
+						--color_theme_77: <?php echo esc_attr($theme_color).esc_attr('77'); ?>;
 						--color_theme_alter: <?php echo esc_attr($alternate_color); ?>;
 						--color_warning: <?php echo esc_attr($warning_color); ?>;
 						--color_black: #000;

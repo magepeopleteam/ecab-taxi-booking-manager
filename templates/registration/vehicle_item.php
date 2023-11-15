@@ -60,7 +60,7 @@
 							<div></div>
 						<?php } ?>
 						<div class="_min_150_mL_xs">
-							<h4 class="textCenter"> <?php echo wc_price($raw_price); ?></h4>
+							<h4 class="textCenter"> <?php echo wc_price(esc_html($raw_price)); ?></h4>
 							<button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
 								<span class="" data-icon></span>
 								<span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>

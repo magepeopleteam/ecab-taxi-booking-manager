@@ -125,12 +125,12 @@
 			public function save_general_settings($post_id) {
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 					$all_features = [];
-					$display_features = MPTBM_Global_Function::get_submit_info('display_mptbm_features') ? 'on' : 'off';
+					$display_features = isset($_POST['display_mptbm_features']) && sanitize_text_field($_POST['display_mptbm_features'])? 'on' : 'off';
 					update_post_meta($post_id, 'display_mptbm_features', $display_features);
-					$features_label = MPTBM_Global_Function::get_submit_info('mptbm_features_label', array());
+					$features_label = isset($_POST['mptbm_features_label']) ? array_map('sanitize_text_field',$_POST['mptbm_features_label']) : [];
 					if (sizeof($features_label) > 0) {
-						$features_text = MPTBM_Global_Function::get_submit_info('mptbm_features_text', array());
-						$features_icon = MPTBM_Global_Function::get_submit_info('mptbm_features_icon_image', array());
+						$features_text = isset($_POST['mptbm_features_text']) ? array_map('sanitize_text_field',$_POST['mptbm_features_text']) : [];
+						$features_icon = isset($_POST['mptbm_features_icon_image']) ? array_map('sanitize_text_field',$_POST['mptbm_features_icon_image']) : [];
 						$count = 0;
 						foreach ($features_label as $label) {
 							if ($label) {

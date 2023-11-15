@@ -64,14 +64,18 @@
 												</li>
 												<?php foreach ($icons as $key => $icon) { ?>
 													<li data-icon-menu="<?php echo esc_attr($key); ?>">
-														<?php echo esc_html($icon['title']) . '&nbsp;(<strong>' . sizeof($icon['icon']) . '</strong>)'; ?>
+														<?php echo esc_html($icon['title']); ?>
+														&nbsp;(<strong><?php echo esc_html(sizeof($icon['icon'])); ?></strong>)
 													</li>
 												<?php } ?>
 											</ul>
 											<div class="popup_all_icon">
 												<?php foreach ($icons as $key => $icon) { ?>
 													<div class="popupTabItem" data-icon-list="<?php echo esc_attr($key); ?>" data-icon-title="<?php echo esc_attr($icon['title']); ?>">
-														<h5 class="textTheme"><?php echo esc_html($icon['title']) . '&nbsp;(<strong>' . sizeof($icon['icon']) . '</strong>)'; ?></h5>
+														<h5 class="textTheme">
+															<?php echo esc_html($icon['title']); ?>
+															&nbsp;(<strong><?php echo esc_html(sizeof($icon['icon'])); ?></strong>)
+														</h5>
 														<div class="divider"></div>
 														<div class="itemIconArea">
 															<?php foreach ($icon['icon'] as $icon => $item) { ?>

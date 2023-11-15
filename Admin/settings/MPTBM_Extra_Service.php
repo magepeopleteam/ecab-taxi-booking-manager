@@ -192,9 +192,9 @@
 			}
 			public function save_ex_service( $post_id ) {
 				if ( get_post_type( $post_id ) == MPTBM_Function::get_cpt() ) {
-					$display = MPTBM_Global_Function::get_submit_info( 'display_mptbm_extra_services' ) ? 'on' : 'off';
+					$display = isset($_POST['display_mptbm_extra_services']) && sanitize_text_field($_POST['display_mptbm_extra_services'])? 'on' : 'off';
 					update_post_meta( $post_id, 'display_mptbm_extra_services', $display );
-					$ex_id = MPTBM_Global_Function::get_submit_info( 'mptbm_extra_services_id', $post_id);
+					$ex_id = isset($_POST['mptbm_extra_services_id']) ? sanitize_text_field($_POST['mptbm_extra_services_id']) : $post_id;
 					update_post_meta( $post_id, 'mptbm_extra_services_id', $ex_id );
 					if ( $ex_id == $post_id ) {
 						$extra_service_data = $this->ex_service_data( $post_id );
@@ -204,11 +204,11 @@
 			}
 			public function ex_service_data( $post_id ) {
 				$new_extra_service         = array();
-				$extra_icon                = MPTBM_Global_Function::get_submit_info( 'service_icon', array() );
-				$extra_names               = MPTBM_Global_Function::get_submit_info( 'service_name', array() );
-				$extra_price               = MPTBM_Global_Function::get_submit_info( 'service_price', array() );
-				$extra_qty_type            = MPTBM_Global_Function::get_submit_info( 'service_qty_type', array() );
-				$extra_service_description = MPTBM_Global_Function::get_submit_info( 'extra_service_description', array() );
+				$extra_icon                =  isset($_POST['service_icon']) ? array_map('sanitize_text_field',$_POST['service_icon']) : [];
+				$extra_names               =  isset($_POST['service_name']) ? array_map('sanitize_text_field',$_POST['service_name']) : [];
+				$extra_price               =  isset($_POST['service_price']) ? array_map('sanitize_text_field',$_POST['service_price']) : [];
+				$extra_qty_type            =  isset($_POST['service_qty_type']) ? array_map('sanitize_text_field',$_POST['service_qty_type']) : [];
+				$extra_service_description =  isset($_POST['extra_service_description']) ? array_map('sanitize_textarea_field',$_POST['extra_service_description']) : [];
 				$extra_count               = count( $extra_names );
 				for ( $i = 0; $i < $extra_count; $i ++ ) {
 					if ( $extra_names[ $i ] && $extra_price[ $i ] >= 0 ) {
