@@ -44,15 +44,17 @@ providing a convenient way for customers to book rides online. Whether you run a
 👉 [Plugin Documentation](https://docs.mage-people.com/ecab-taxi-booking-manager/)
 
 
-= Disclaimer =
+**Third-Party Service:**
+This plugin relies on the Google Maps API, a service provided by Google, Inc. It is used for displaying Google Maps and finding distance. Please note that your usage of this plugin constitutes acceptance of Google's terms and policies.
 
-This plugin utilizes Google MAP APIs, and you should be aware of the following:
+**Link to Google Maps API:**
+For more information about the Google Maps API, visit: [Google Maps API Link](https://developers.google.com/maps/documentation/javascript/get-api-key)
 
-1. Usage of Google MAP APIs is subject to Google's Terms of Service. Please review Google's terms and policies at https://policies.google.com/terms.
-2. You may need to create and configure a Google API project in the Google Developer Console and obtain MAP API keys or credentials.
-3. Be aware that usage of some Google MAP APIs may involve additional costs, and you are responsible for any associated fees.
+**Terms of Use:**
+Review the Google Maps API terms of use: [Google Maps API Terms of Use Link](https://developers.google.com/maps/terms-20180207)
 
-By using this plugin, you agree to comply with Google's terms and policies and take full responsibility for any costs or usage-related matters.
+**Privacy Policy:**
+Understand how Google handles your data through the Maps API: [Google Privacy Policy Link](https://policies.google.com/privacy)
 
 
 
@@ -67,7 +69,13 @@ Once installed, click "Activate" to enable the Ecab Taxi Booking Manager WordPre
 
 == Frequently Asked Questions ==
 
-= Q.Is Ecab Taxi Manager for WooCommerce Free? =
+= Q.Is an API key required? =
+Yes, you need to obtain a Google Maps API key. Follow the instructions in the plugin settings to set up and enter your API key.
+
+= Q.How do I get a Google Maps API key? =
+Visit the [Google Cloud Console](https://console.cloud.google.com/), create a project, enable the Google Maps JavaScript API, and generate an API key.
+
+= Is Ecab Taxi Manager for WooCommerce Free? =
 A. Yes! Ecab Taxi Manager for WooCommerce is free.
 
 You can check the demo of this plugin from here:
@@ -80,6 +88,9 @@ A. Yes! Here is the [Online Documentation](https://docs.mage-people.com/ecab-tax
 A. You need to Re-save permalink settings it will solve the 404. if still does not work that means your permalink not working, or you may have an access problem or you have a server permission problem. 
 
 = Q.How its work? =
-A. Woocommerce Events Manager one of the simple event plugin for WordPress which is based on Woocommerce. Its work as an individual event and its payment functionality handle with woocommerce so there are no worries about payment gateway you can use every payment gateway which is support woocommerce. The interesting part is the event post type is completely different there is no connection with woocommerce product so if you can sell anything from woocommerce product. 
+A. Woocommerce Events Manager is one of the simple event plugins for WordPress which is based on Woocommerce. It works as an individual event and its payment functionality is handled with WooCommerce so there are no worries about the payment gateway you can use every payment gateway that supports WooCommerce. The interesting part is the event post type is completely different there is no connection with WooCommerce products so you can sell anything from WooCommerce products. 
 
 
+== Legal Protection ==
+
+This transparency is crucial for legal protection. By using this plugin, you acknowledge and accept the reliance on the Google Maps API. Review the terms of use and privacy policy for both this plugin and the Google Maps API to ensure a comprehensive understanding of the services and how your data is handled.
