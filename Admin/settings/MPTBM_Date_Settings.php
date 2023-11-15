@@ -191,10 +191,10 @@
 			public function save_date_time_settings($post_id) {
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 					//************************************//
-					$mptbm_date_type = MPTBM_Global_Function::get_submit_info('mptbm_date_type');
+					$mptbm_date_type = isset($_POST['mptbm_date_type']) ? sanitize_text_field($_POST['mptbm_date_type']) : '';
 					update_post_meta($post_id, 'mptbm_date_type', $mptbm_date_type);
 					//**********************//
-					$particular_dates = MPTBM_Global_Function::get_submit_info('mptbm_particular_dates', array());
+					$particular_dates = isset($_POST['mptbm_particular_dates']) ? array_map('sanitize_text_field',$_POST['mptbm_particular_dates']) : [];
 					$particular = array();
 					if (sizeof($particular_dates) > 0) {
 						foreach ($particular_dates as $particular_date) {
@@ -205,18 +205,18 @@
 					}
 					update_post_meta($post_id, 'mptbm_particular_dates', $particular);
 					//*************************//
-					$repeated_start_date = MPTBM_Global_Function::get_submit_info('mptbm_repeated_start_date');
+					$repeated_start_date =  isset($_POST['mptbm_repeated_start_date']) ? sanitize_text_field($_POST['mptbm_repeated_start_date']) : '';
 					$repeated_start_date = $repeated_start_date ? date('Y-m-d', strtotime($repeated_start_date)) : '';
 					update_post_meta($post_id, 'mptbm_repeated_start_date', $repeated_start_date);
-					$repeated_after = MPTBM_Global_Function::get_submit_info('mptbm_repeated_after', 1);
+					$repeated_after = isset($_POST['mptbm_repeated_after']) ? sanitize_text_field($_POST['mptbm_repeated_after']) : '';
 					update_post_meta($post_id, 'mptbm_repeated_after', $repeated_after);
-					$active_days = MPTBM_Global_Function::get_submit_info('mptbm_active_days');
+					$active_days = isset($_POST['mptbm_active_days']) ? sanitize_text_field($_POST['mptbm_active_days']) : '';
 					update_post_meta($post_id, 'mptbm_active_days', $active_days);
 					//**********************//
-					$off_days = MPTBM_Global_Function::get_submit_info('mptbm_off_days', array());
+					$off_days = isset($_POST['mptbm_off_days']) ? array_map('sanitize_text_field',$_POST['mptbm_off_days']) : [];
 					update_post_meta($post_id, 'mptbm_off_days', $off_days);
 					//**********************//
-					$off_dates = MPTBM_Global_Function::get_submit_info('mptbm_off_dates', array());
+					$off_dates = isset($_POST['mptbm_off_dates']) ? array_map('sanitize_text_field',$_POST['mptbm_off_dates']) : [];
 					$_off_dates = array();
 					if (sizeof($off_dates) > 0) {
 						foreach ($off_dates as $off_date) {

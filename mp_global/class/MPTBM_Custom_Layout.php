@@ -147,8 +147,8 @@
 				$thumbnail = $post_id > 0 ? MPTBM_Global_Function::get_image_url($post_id) : $url;
 				$post_url = $post_id > 0 ? get_the_permalink($post_id) : '';
 				?>
-				<div class="bg_image_area" data-href="<?php echo sanitize_url($post_url); ?>" data-placeholder>
-					<div data-bg-image="<?php echo sanitize_url($thumbnail); ?>"></div>
+				<div class="bg_image_area" data-href="<?php echo esc_url($post_url); ?>" data-placeholder>
+					<div data-bg-image="<?php echo esc_url($thumbnail); ?>"></div>
 				</div>
 				<?php
 			}
