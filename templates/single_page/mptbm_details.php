@@ -7,7 +7,7 @@
 	the_post();
 	do_action( 'mptbm_single_page_before_wrapper' );
 	if ( post_password_required() ) {
-		echo get_the_password_form(); // WPCS: XSS ok.
+		echo wp_kses_post(get_the_password_form()); // WPCS: XSS ok.
 	} else {
 		do_action( 'woocommerce_before_single_product' );
 		$post_id                   = get_the_id();

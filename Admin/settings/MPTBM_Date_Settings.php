@@ -189,6 +189,9 @@
 			}
 			/*************************************/
 			public function save_date_time_settings($post_id) {
+				if (!isset($_POST['mptbm_transportation_type_nonce']) || !wp_verify_nonce(sanitize_text_field( wp_unslash ($_POST['mptbm_transportation_type_nonce'])), 'mptbm_transportation_type_nonce') && defined('DOING_AUTOSAVE') && DOING_AUTOSAVE && !current_user_can('edit_post', $post_id)) {
+					return;
+				}
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 					//************************************//
 					$mptbm_date_type = isset($_POST['mptbm_date_type']) ? sanitize_text_field($_POST['mptbm_date_type']) : '';

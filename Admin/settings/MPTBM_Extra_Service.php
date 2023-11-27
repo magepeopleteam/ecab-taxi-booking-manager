@@ -10,12 +10,12 @@
 		class MPTBM_Extra_Service {
 			public function __construct() {
 				add_action( 'add_meta_boxes', array( $this, 'mptbm_extra_service_meta' ) );
-				add_action( 'save_post', array( $this, 'save_ex_service_settings' ), 99, 1 );
+				add_action( 'save_post', array( $this, 'save_ex_service_settings' ));
 				//********************//
 				add_action( 'mptbm_extra_service_item', array( $this, 'extra_service_item' ) );
 				//****************************//
-				add_action( 'add_mptbm_settings_tab_content', [ $this, 'ex_service_settings' ], 10, 1 );
-				add_action( 'mptbm_settings_save', [ $this, 'save_ex_service' ] );
+				add_action( 'add_mptbm_settings_tab_content', [ $this, 'ex_service_settings' ] );
+				add_action( 'save_post', [ $this, 'save_ex_service' ] );
 				//*******************//
 				add_action( 'wp_ajax_get_mptbm_ex_service', array( $this, 'get_mptbm_ex_service' ) );
 				add_action( 'wp_ajax_nopriv_get_mptbm_ex_service', array( $this, 'get_mptbm_ex_service' ) );
@@ -191,6 +191,9 @@
 				}
 			}
 			public function save_ex_service( $post_id ) {
+				if (!isset($_POST['mptbm_transportation_type_nonce']) || !wp_verify_nonce(sanitize_text_field( wp_unslash ($_POST['mptbm_transportation_type_nonce'])), 'mptbm_transportation_type_nonce') && defined('DOING_AUTOSAVE') && DOING_AUTOSAVE && !current_user_can('edit_post', $post_id)) {
+					return;
+				}
 				if ( get_post_type( $post_id ) == MPTBM_Function::get_cpt() ) {
 					$display = isset($_POST['display_mptbm_extra_services']) && sanitize_text_field($_POST['display_mptbm_extra_services'])? 'on' : 'off';
 					update_post_meta( $post_id, 'display_mptbm_extra_services', $display );

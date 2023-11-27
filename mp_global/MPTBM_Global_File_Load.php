@@ -20,8 +20,8 @@
 				if (!defined('MPTBM_GLOBAL_PLUGIN_DIR')) {
 					define('MPTBM_GLOBAL_PLUGIN_DIR', dirname(__FILE__));
 				}
-				if (!defined('MP_GLOBAL_PLUGIN_URL')) {
-					define('MP_GLOBAL_PLUGIN_URL', plugins_url() . '/' . plugin_basename(dirname(__FILE__)));
+				if (!defined('MPTBM_GLOBAL_PLUGIN_URL')) {
+					define('MPTBM_GLOBAL_PLUGIN_URL', plugins_url() . '/' . plugin_basename(dirname(__FILE__)));
 				}
 			}
 			public function load_global_file() {
@@ -37,14 +37,14 @@
 				wp_enqueue_script('jquery');
 				wp_enqueue_script('jquery-ui-core');
 				wp_enqueue_script('jquery-ui-datepicker');
-				wp_enqueue_style('mp_jquery_ui', MP_GLOBAL_PLUGIN_URL . '/assets/jquery-ui.min.css', array(), '1.13.2');
-				wp_enqueue_style('mp_font_awesome', MP_GLOBAL_PLUGIN_URL . '/assets/font_awesome/all.min.css', array(), '5.15.4');
-				//wp_enqueue_script('mp_font_awesome', MP_GLOBAL_PLUGIN_URL . '/assets/font_awesome/all.min.js', array(), '5.15.4');
-				wp_enqueue_style('mp_select_2', MP_GLOBAL_PLUGIN_URL . '/assets/select_2/select2.min.css', array(), '4.0.13');
-				wp_enqueue_script('mp_select_2', MP_GLOBAL_PLUGIN_URL . '/assets/select_2/select2.min.js', array(), '4.0.13');
+				wp_enqueue_style('mp_jquery_ui', MPTBM_GLOBAL_PLUGIN_URL . '/assets/jquery-ui.min.css', array(), '1.13.2');
+				wp_enqueue_style('mp_font_awesome', MPTBM_GLOBAL_PLUGIN_URL . '/assets/font_awesome/all.min.css', array(), '5.15.4');
+				//wp_enqueue_script('mp_font_awesome', MPTBM_GLOBAL_PLUGIN_URL . '/assets/font_awesome/all.min.js', array(), '5.15.4');
+				wp_enqueue_style('mp_select_2', MPTBM_GLOBAL_PLUGIN_URL . '/assets/select_2/select2.min.css', array(), '4.0.13');
+				wp_enqueue_script('mp_select_2', MPTBM_GLOBAL_PLUGIN_URL . '/assets/select_2/select2.min.js', array(), '4.0.13');
 				
-				wp_enqueue_style('mp_plugin_global', MP_GLOBAL_PLUGIN_URL . '/assets/mp_style/mp_style.css', array(), time());
-				wp_enqueue_script('mp_plugin_global', MP_GLOBAL_PLUGIN_URL . '/assets/mp_style/mp_script.js', array('jquery'), time(), true);
+				wp_enqueue_style('mp_plugin_global', MPTBM_GLOBAL_PLUGIN_URL . '/assets/mp_style/mp_style.css', array(), time());
+				wp_enqueue_script('mp_plugin_global', MPTBM_GLOBAL_PLUGIN_URL . '/assets/mp_style/mp_script.js', array('jquery'), time(), true);
 			}
 			public function admin_enqueue() {
 				$this->global_enqueue();
@@ -59,10 +59,10 @@
 				//wp_enqueue_script('jquery-ui-accordion');
 				//loading Time picker
 				//=====================//
-				wp_enqueue_script('form-field-dependency', MP_GLOBAL_PLUGIN_URL . '/assets/admin/form-field-dependency.js', array('jquery'), null, false);
+				wp_enqueue_script('form-field-dependency', MPTBM_GLOBAL_PLUGIN_URL . '/assets/admin/form-field-dependency.js', array('jquery'), null, false);
 				// admin setting global
-				wp_enqueue_script('mp_admin_settings', MP_GLOBAL_PLUGIN_URL . '/assets/admin/mp_admin_settings.js', array('jquery'), time(), true);
-				wp_enqueue_style('mp_admin_settings', MP_GLOBAL_PLUGIN_URL . '/assets/admin/mp_admin_settings.css', array(), time());
+				wp_enqueue_script('mp_admin_settings', MPTBM_GLOBAL_PLUGIN_URL . '/assets/admin/mp_admin_settings.js', array('jquery'), time(), true);
+				wp_enqueue_style('mp_admin_settings', MPTBM_GLOBAL_PLUGIN_URL . '/assets/admin/mp_admin_settings.css', array(), time());
 			}
 			public function frontend_enqueue() {
 				$this->global_enqueue();
@@ -82,20 +82,20 @@
 					let mp_currency_decimal = "";
 					let mp_currency_thousands_separator = "";
 					let mp_num_of_decimal = "";
-					let mp_ajax_url = "<?php echo admin_url('admin-ajax.php'); ?>";
-					let mp_empty_image_url = "<?php echo esc_attr(MP_GLOBAL_PLUGIN_URL . '/assets/images/no_image.png'); ?>";
-					let mp_date_format = "<?php echo esc_attr(MPTBM_Global_Function::get_settings('mp_global_settings', 'date_format', 'D d M , yy')); ?>";
-					let mp_date_format_without_year = "<?php echo esc_attr(MPTBM_Global_Function::get_settings('mp_global_settings', 'date_format_without_year', 'D d M')); ?>";
+					let mp_ajax_url = "<?php echo esc_js(admin_url('admin-ajax.php')); ?>";
+					let mp_empty_image_url = "<?php echo esc_js(MPTBM_GLOBAL_PLUGIN_URL . '/assets/images/no_image.png'); ?>";
+					let mp_date_format = "<?php echo esc_js(MPTBM_Global_Function::get_settings('mp_global_settings', 'date_format', 'D d M , yy')); ?>";
+					let mp_date_format_without_year = "<?php echo esc_js(MPTBM_Global_Function::get_settings('mp_global_settings', 'date_format_without_year', 'D d M')); ?>";
 				</script>
 				<?php
 				if (MPTBM_Global_Function::check_woocommerce() == 1) {
 					?>
 					<script type="text/javascript">
-						mp_currency_symbol = "<?php echo esc_attr(get_woocommerce_currency_symbol()); ?>";
-						mp_currency_position = "<?php echo esc_attr(get_option('woocommerce_currency_pos')); ?>";
-						mp_currency_decimal = "<?php echo esc_attr(wc_get_price_decimal_separator()); ?>";
-						mp_currency_thousands_separator = "<?php echo esc_attr(wc_get_price_thousand_separator()); ?>";
-						mp_num_of_decimal = "<?php echo esc_attr(get_option('woocommerce_price_num_decimals', 2)); ?>";
+						mp_currency_symbol = "<?php echo esc_js(get_woocommerce_currency_symbol()); ?>";
+						mp_currency_position = "<?php echo esc_js(get_option('woocommerce_currency_pos')); ?>";
+						mp_currency_decimal = "<?php echo esc_js(wc_get_price_decimal_separator()); ?>";
+						mp_currency_thousands_separator = "<?php echo esc_js(wc_get_price_thousand_separator()); ?>";
+						mp_num_of_decimal = "<?php echo esc_js(get_option('woocommerce_price_num_decimals', 2)); ?>";
 					</script>
 					<?php
 				}

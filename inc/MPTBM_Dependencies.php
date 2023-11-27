@@ -59,11 +59,11 @@
 				?>
 				<script type="text/javascript">
 					let mp_lat_lng = {
-						lat: <?php echo esc_attr(MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'mp_latitude', '23.81234828905659')); ?>,
-						lng: <?php echo esc_attr(MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'mp_longitude', '90.41069652669002')); ?>
+						lat: <?php echo esc_js(MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'mp_latitude', '23.81234828905659')); ?>,
+						lng: <?php echo esc_js(MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'mp_longitude', '90.41069652669002')); ?>
 					};
 					const mp_map_options = {
-						componentRestrictions: {country: "<?php echo esc_attr(MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'BD')); ?>"},
+						componentRestrictions: {country: "<?php echo esc_js(MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'BD')); ?>"},
 						fields: ["address_components", "geometry"],
 						types: ["address"],
 					}

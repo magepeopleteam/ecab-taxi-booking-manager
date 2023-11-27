@@ -11,7 +11,7 @@
 			public function __construct() {
 				add_action('add_mptbm_settings_tab_content', [$this, 'general_settings']);
 				add_action('add_hidden_mptbm_features_item', [$this, 'features_item']);
-				add_action('mptbm_settings_save', [$this, 'save_general_settings']);
+				add_action('save_post', [$this, 'save_general_settings']);
 			}
 			public function general_settings($post_id) {
 				$display_features = MPTBM_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');
@@ -123,6 +123,9 @@
 				<?php
 			}
 			public function save_general_settings($post_id) {
+				if (!isset($_POST['mptbm_transportation_type_nonce']) || !wp_verify_nonce(sanitize_text_field( wp_unslash ($_POST['mptbm_transportation_type_nonce'])), 'mptbm_transportation_type_nonce') && defined('DOING_AUTOSAVE') && DOING_AUTOSAVE && !current_user_can('edit_post', $post_id)) {
+					return;
+				}
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 					$all_features = [];
 					$display_features = isset($_POST['display_mptbm_features']) && sanitize_text_field($_POST['display_mptbm_features'])? 'on' : 'off';
