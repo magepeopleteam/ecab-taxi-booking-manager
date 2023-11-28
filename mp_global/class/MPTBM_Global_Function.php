@@ -166,7 +166,6 @@ if ( ! class_exists( 'MPTBM_Global_Function' ) ) {
 						<?php foreach ($dates as $date) { ?>
                         availableDates.push('<?php echo esc_js( date( 'j-n-Y', strtotime( $date ) ) ); ?>');
 						<?php } ?>
-                        console.log(availableDates);
                         let dmy = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
                         if (jQuery.inArray(dmy, availableDates) !== -1) {
                             return [true, "", "Available"];

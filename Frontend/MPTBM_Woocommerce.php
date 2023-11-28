@@ -470,8 +470,8 @@
 					ob_start();
 					?>
 					<div class="dLayout woocommerce-page">
-						<?php do_shortcode('[woocommerce_checkout]'); ?>
-						<?php // do_action('woocommerce_ajax_checkout'); ?>
+						<?php echo do_shortcode('[woocommerce_checkout]'); ?>
+						<?php  //do_action('woocommerce_ajax_checkout'); ?>
 					</div>
 					<div class="divider"></div>
 					<div class="justifyBetween">
