@@ -25,7 +25,7 @@
 
 			public function quick_setup() {
 				$status = MPTBM_Global_Function::check_woocommerce();
-				if (isset( $_POST['mptbm_transportation_quick_setup_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mptbm_transportation_quick_setup_nonce'] ) ), 'mptbm_transportation_quick_setup_nonce' ) && defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+				if (isset( $_POST['mptbm_transportation_quick_setup_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mptbm_transportation_quick_setup_nonce'] ) ), 'mptbm_transportation_quick_setup_nonce' ) && defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE && current_user_can('manage_options')) {
 					if ( isset( $_POST['active_woo_btn'] ) ) {
 						?>
                         <script>
