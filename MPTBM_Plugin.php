@@ -6,6 +6,8 @@
 	 * Version: 1.0.0
 	 * Author: MagePeople Team
 	 * Author URI: http://www.mage-people.com/
+   	 * License: GPL v2 or later
+ 	 * License URI: https://www.gnu.org/licenses/gpl-2.0.html
 	 * Text Domain: ecab-taxi-booking-manager
 	 * Domain Path: /languages/
 	 * WC requires at least: 3.0.9
