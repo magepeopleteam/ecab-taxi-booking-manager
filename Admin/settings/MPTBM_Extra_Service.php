@@ -142,7 +142,7 @@
 								<option value="<?php echo esc_attr( $post_id ); ?>" <?php echo esc_attr( $service_id == $post_id ? 'selected' : '' ); ?>><?php esc_html_e( 'Custom', 'ecab-taxi-booking-manager' ); ?></option>
 								<?php if ( sizeof( $all_ex_services_id ) > 0 ) { ?>
 									<?php foreach ( $all_ex_services_id as $ex_services_id ) { ?>
-										<option value="<?php echo esc_attr( $ex_services_id ); ?>" <?php echo esc_attr( $service_id == $ex_services_id ? 'selected' : '' ); ?>><?php echo get_the_title( $ex_services_id ); ?></option>
+										<option value="<?php echo esc_attr( $ex_services_id ); ?>" <?php echo esc_attr( $service_id == $ex_services_id ? 'selected' : '' ); ?>><?php echo esc_html(get_the_title( $ex_services_id )); ?></option>
 									<?php } ?>
 								<?php } ?>
 							</select>
