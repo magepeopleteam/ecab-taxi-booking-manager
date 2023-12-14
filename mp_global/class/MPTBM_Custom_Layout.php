@@ -202,13 +202,13 @@
 						?>
 						<label>
 							<select name="<?php echo esc_attr($input_name); ?>" data-price="<?php echo esc_attr($price); ?>" class="formControl">
-								<option selected value="0"><?php echo esc_html__('Please select', 'ecab-taxi-booking-manager') . ' ' . $text; ?></option>
+								<option selected value="0"><?php echo esc_html__('Please select', 'ecab-taxi-booking-manager') . ' ' . esc_html($text); ?></option>
 								<?php
 									$max_total = $max_qty > 0 ? $max_qty : $available_seat;
 									$min_value = max(1, $min_qty);
 									for ($i = $min_value; $i <= $max_total; $i++) {
 										?>
-										<option value="<?php echo esc_html($i); ?>"> <?php echo esc_html($i) . ' ' . $text;; ?> </option>
+										<option value="<?php echo esc_html($i); ?>"> <?php echo esc_html($i . ' ' . $text); ?> </option>
 									<?php } ?>
 							</select>
 						</label>

@@ -130,13 +130,13 @@
 					}
 					$item->add_meta_data(esc_html__('Date ', 'ecab-taxi-booking-manager'), esc_html(MPTBM_Global_Function::date_format($date)));
 					$item->add_meta_data(esc_html__('Time ', 'ecab-taxi-booking-manager'), esc_html(MPTBM_Global_Function::date_format($date, 'time')));
-					$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), wc_price(esc_html($base_price)));
+					$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), wp_kses_post(wc_price($base_price)));
 					if (sizeof($extra_service) > 0) {
 						$item->add_meta_data(esc_html__('Optional Service ', 'ecab-taxi-booking-manager'), '');
 						foreach ($extra_service as $service) {
 							$item->add_meta_data(esc_html__('Services Name ', 'ecab-taxi-booking-manager'), $service['service_name']);
 							$item->add_meta_data(esc_html__('Services Quantity ', 'ecab-taxi-booking-manager'), $service['service_quantity']);
-							$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), esc_html(' ( ') . wc_price(esc_html($service['service_price'])) . esc_html(' X ') . esc_html($service['service_quantity']) . esc_html(') = ') . wc_price(esc_html($service['service_price'] * $service['service_quantity'])));
+							$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), esc_html(' ( ') . wp_kses_post(wc_price($service['service_price'])) . esc_html(' X ') . esc_html($service['service_quantity']) . esc_html(') = ') . wp_kses_post(wc_price($service['service_price'] * $service['service_quantity'])));
 						}
 					}
 					$item->add_meta_data('_mptbm_id', $post_id);
@@ -309,7 +309,7 @@
 							<li>
 								<span class="fa fa-tag"></span>
 								<h6 class="_mR_xs"><?php esc_html_e('Base Price : ', 'ecab-taxi-booking-manager'); ?></h6>
-								<span><?php echo wc_price(esc_html($base_price)); ?></span>
+								<span><?php echo wp_kses_post(wc_price($base_price)); ?></span>
 							</li>
 						</ul>
 					</div>
@@ -328,7 +328,7 @@
 									</li>
 									<li>
 										<h6 class="_mR_xs"><?php esc_html_e('Price : ', 'ecab-taxi-booking-manager'); ?></h6>
-										<span><?php echo esc_html(' ( ') . wc_price(esc_html($service['service_price'])) . esc_html(' X '). esc_html($service['service_quantity']) . esc_html(' ) =') . wc_price(esc_html($service['service_price'] * $service['service_quantity'])); ?></span>
+										<span><?php echo esc_html(' ( ') . wp_kses_post(wc_price($service['service_price'])) . esc_html(' X '). esc_html($service['service_quantity']) . esc_html(' ) =') . wp_kses_post(wc_price($service['service_price'] * $service['service_quantity'])); ?></span>
 									</li>
 								</ul>
 							</div>
@@ -470,8 +470,8 @@
 					ob_start();
 					?>
 					<div class="dLayout woocommerce-page">
-						<?php do_shortcode('[woocommerce_checkout]'); ?>
-						<?php // do_action('woocommerce_ajax_checkout'); ?>
+						<?php echo do_shortcode('[woocommerce_checkout]'); ?>
+						<?php  //do_action('woocommerce_ajax_checkout'); ?>
 					</div>
 					<div class="divider"></div>
 					<div class="justifyBetween">

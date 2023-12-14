@@ -27,7 +27,7 @@
 							</div>
 							<p>
 								<span class="textTheme ex_service_qty">x1</span>&nbsp;|&nbsp;
-								<span class="textTheme"><?php echo wc_price(esc_html($service_price)); ?></span>
+								<span class="textTheme"><?php echo wp_kses_post(wc_price($service_price)); ?></span>
 							</p>
 						</div>
 					</div>

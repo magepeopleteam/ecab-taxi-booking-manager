@@ -5,7 +5,7 @@ Tags: Taxi, Cab, distance & fare calculator,Travel agency, Woocommerce booking, 
 Requires at least: 5.3
 Stable tag: 1.0
 Version: 1.0.0
-Tested up to: 6.2
+Tested up to: 6.4
 WC requires at least: 3.0
 WC tested up to: 6.5
 Requires PHP: 7.0

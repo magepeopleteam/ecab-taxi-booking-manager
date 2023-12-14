@@ -10,7 +10,7 @@
 		class MPTBM_Price_Settings {
 			public function __construct() {
 				add_action('add_mptbm_settings_tab_content', [$this, 'price_settings'], 10, 1);
-				add_action('mptbm_settings_save', [$this, 'save_price_settings'], 10, 1);
+				add_action('save_post', [$this, 'save_price_settings'], 10, 1);
 			}
 			public function price_settings($post_id) {
 				$price_based = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_price_based');
@@ -141,6 +141,9 @@
 				<?php
 			}
 			public function save_price_settings($post_id) {
+				if (!isset($_POST['mptbm_transportation_type_nonce']) || !wp_verify_nonce(sanitize_text_field( wp_unslash ($_POST['mptbm_transportation_type_nonce'])), 'mptbm_transportation_type_nonce') && defined('DOING_AUTOSAVE') && DOING_AUTOSAVE && !current_user_can('edit_post', $post_id)) {
+					return;
+				}
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 					$price_based = isset($_POST['mptbm_price_based']) ? sanitize_text_field($_POST['mptbm_price_based']) : '';
 					update_post_meta($post_id, 'mptbm_price_based', $price_based);
