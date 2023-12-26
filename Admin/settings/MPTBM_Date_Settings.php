@@ -216,10 +216,10 @@
 					$active_days = isset($_POST['mptbm_active_days']) ? sanitize_text_field($_POST['mptbm_active_days']) : '';
 					update_post_meta($post_id, 'mptbm_active_days', $active_days);
 					//**********************//
-					$off_days = isset($_POST['mptbm_off_days']) ? array_map('sanitize_text_field',$_POST['mptbm_off_days']) : [];
+					$off_days = isset($_POST['mptbm_off_days']) && is_array($_POST['mptbm_off_days']) ? array_map('sanitize_text_field',$_POST['mptbm_off_days']) : [];
 					update_post_meta($post_id, 'mptbm_off_days', $off_days);
 					//**********************//
-					$off_dates = isset($_POST['mptbm_off_dates']) ? array_map('sanitize_text_field',$_POST['mptbm_off_dates']) : [];
+					$off_dates = isset($_POST['mptbm_off_dates']) && is_array($_POST['mptbm_off_dates']) ? array_map('sanitize_text_field',$_POST['mptbm_off_dates']) : [];
 					$_off_dates = array();
 					if (sizeof($off_dates) > 0) {
 						foreach ($off_dates as $off_date) {
