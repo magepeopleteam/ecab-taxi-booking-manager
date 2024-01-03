@@ -76,7 +76,7 @@ if ( ! class_exists( 'MPTBM_Dependencies' ) ) {
 		}
 
 		public function map_api_not_active() {
-			$gm_api_url = '';
+			$gm_api_url = admin_url('edit.php?post_type=mptbm_rent&page=mptbm_settings_page');
 			$label      = MPTBM_Function::get_name();
 			?>
             <div class="error" style="background:red; color:#fff;">
