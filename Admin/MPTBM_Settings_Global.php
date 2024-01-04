@@ -62,7 +62,7 @@
 					array(
 						'id' => 'mptbm_map_api_settings',
 						'icon' => 'fab fa-google',
-						'title' => esc_html__('Google Map Settings', 'ecab-taxi-booking-manager')
+						'title' => esc_html__('Google Map API Settings', 'ecab-taxi-booking-manager')
 					)
 				);
 				return array_merge($default_sec, $sections);
