@@ -24,8 +24,8 @@
 				?>
 				<input type="hidden" name="mptbm_post_id" value="<?php echo esc_attr($post_id); ?>"/>
 				<div class="mpStyle">
-					<div class="mpTabs leftTabs">
-						<ul class="tabLists">
+					<div class="mpTabs leftTabs bg-sky-light p-1 d-flex justify-content-between">
+						<ul class="tabLists sidebar w-20">
 							<li data-tabs-target="#mptbm_general_info">
 								<span class="fas fa-tools"></span><?php esc_html_e('General Info', 'ecab-taxi-booking-manager'); ?>
 							</li>
@@ -40,7 +40,7 @@
 							</li>
 							<?php do_action('add_mptbm_settings_tab_after_ex_service'); ?>
 						</ul>
-						<div class="tabsContent">
+						<div class="tabsContent p-0 m-0 ms-2 w-80">
 							<?php do_action('add_mptbm_settings_tab_content', $post_id); ?>
 						</div>
 					</div>
