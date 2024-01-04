@@ -18,18 +18,18 @@
 				$date_type = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_date_type', 'repeated');
 				?>
 				<div class="tabsItem" data-tabs="#mptbm_settings_date">
-					<h5><?php esc_html_e('Date Settings', 'ecab-taxi-booking-manager'); ?></h5>
-					<div class="divider"></div>
-					<div class="mpTabs tabBorder">
+					<h2 class="h4 text-primary my-1 p-0"><?php esc_html_e('Date Settings', 'ecab-taxi-booking-manager'); ?></h2>
+					
+					<div class="mpTabs tabBorder component">
 						<ul class="tabLists">
-							<li data-tabs-target="#mptbm_date_time_general">
+							<li class="nav-item" data-tabs-target="#mptbm_date_time_general">
 								<span class="fas fa-home"></span><?php esc_html_e('General', 'ecab-taxi-booking-manager'); ?>
 							</li>
-							<li data-tabs-target="#mptbm_date_time_off_day">
+							<li class="nav-item" data-tabs-target="#mptbm_date_time_off_day">
 								<span class="fas fa-calendar-alt"></span><?php esc_html_e('Off Days & Dates', 'ecab-taxi-booking-manager'); ?>
 							</li>
 						</ul>
-						<div class="tabsContent">
+						<div class="tabsContent p-0 compoent my-1">
 							<div class="tabsItem" data-tabs="#mptbm_date_time_general">
 								<table>
 									<tbody>
