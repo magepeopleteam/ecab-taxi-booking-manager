@@ -60,19 +60,24 @@
 				}
 				?>
                 <div class="tabsItem" data-tabs="#mptbm_general_info">
-                    <h5><?php esc_html_e('General Information Settings', 'ecab-taxi-booking-manager'); ?></h5>
-                    <div class="divider"></div>
+                    <h2 class="h4 text-primary my-1 p-0"><?php esc_html_e('General Information Settings', 'ecab-taxi-booking-manager'); ?></h2>
+                 
                     <div class="mp_settings_area">
-                        <h5 class="dFlex">
-                            <span class="mR"><?php esc_html_e('On/Off Feature', 'ecab-taxi-booking-manager'); ?></span>
-							<?php MPTBM_Custom_Layout::switch_button('display_mptbm_features', $checked); ?>
-                        </h5>
-						<?php MPTBM_Settings::info_text('display_mptbm_features'); ?>
-                        <div class="divider"></div>
-                        <div data-collapse="#display_mptbm_features" class="<?php echo esc_attr($active); ?>">
+						<section class="component d-flex justify-content-between align-items-center mb-2">
+							<div class="w-100 d-flex justify-content-between align-items-center">
+								<label for=""><?php esc_html_e('On/Off Feature', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"><span><?php MPTBM_Settings::info_text('display_mptbm_features'); ?></span></i></label>
+								<div class=" d-flex justify-content-between">
+									<?php MPTBM_Custom_Layout::switch_button('display_mptbm_features', $checked); ?>
+								</div>
+							</div>
+						</section>
+
+
+
+                        <div data-collapse="#display_mptbm_features" class="component <?php echo esc_attr($active); ?>">
                             <table>
                                 <thead>
-                                <tr>
+                                <tr class="bg-dark">
                                     <th class="_w_150"><?php esc_html_e('Icon/Image', 'ecab-taxi-booking-manager'); ?></th>
                                     <th><?php esc_html_e('Label', 'ecab-taxi-booking-manager'); ?></th>
                                     <th><?php esc_html_e('Text', 'ecab-taxi-booking-manager'); ?></th>
@@ -91,7 +96,7 @@
 								?>
                                 </tbody>
                             </table>
-                            <div class="divider"></div>
+                            <div class="my-2"></div>
 							<?php MPTBM_Custom_Layout::add_new_button(esc_html__('Add New Item', 'ecab-taxi-booking-manager')); ?>
 							
 							<?php do_action('add_mp_hidden_table', 'add_hidden_mptbm_features_item'); ?>
@@ -107,18 +112,18 @@
 				$image = array_key_exists('image', $features) ? $features['image'] : '';
 				?>
                 <tr class="mp_remove_area">
-                    <td><?php do_action('mp_add_icon_image', 'mptbm_features_icon_image[]', $icon, $image); ?></td>
-                    <td>
+                    <td valign="middle"><?php do_action('mp_add_icon_image', 'mptbm_features_icon_image[]', $icon, $image); ?></td>
+                    <td valign="middle">
                         <label>
                             <input class="formControl mp_name_validation" name="mptbm_features_label[]" value="<?php echo esc_attr($label); ?>"/>
                         </label>
                     </td>
-                    <td>
+                    <td valign="middle">
                         <label>
                             <input class="formControl mp_name_validation" name="mptbm_features_text[]" value="<?php echo esc_attr($text); ?>"/>
                         </label>
                     </td>
-                    <td><?php MPTBM_Custom_Layout::move_remove_button(); ?></td>
+                    <td valign="middle"><?php MPTBM_Custom_Layout::move_remove_button(); ?></td>
                 </tr>
 				<?php
 			}

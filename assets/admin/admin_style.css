@@ -915,7 +915,9 @@
 #mp_meta_box_panel .postbox-header .handle-actions {
   margin-top: 0;
 }
-#mp_meta_box_panel .postbox-header .handle-actions .handle-order-higher, #mp_meta_box_panel .postbox-header .handle-actions .handle-order-lower, #mp_meta_box_panel .postbox-header .handle-actions .toggle-indicator {
+#mp_meta_box_panel .postbox-header .handle-actions .handle-order-higher,
+#mp_meta_box_panel .postbox-header .handle-actions .handle-order-lower,
+#mp_meta_box_panel .postbox-header .handle-actions .toggle-indicator {
   color: var(--mpl-white);
 }
 
@@ -938,31 +940,42 @@
   .mpStyle .tabsContent {
     overflow: visible;
   }
-  .mpStyle .navy_blueButton, .mpStyle [class*=_navy_blueButton] {
+  .mpStyle .navy_blueButton,
+  .mpStyle [class*=_navy_blueButton] {
     background-color: var(--mpl-primary);
     color: var(--mpl-white);
     padding: 0.75em;
     border: 2px solid var(--mpl-primary);
   }
-  .mpStyle .navy_blueButton:hover, .mpStyle [class*=_navy_blueButton]:hover {
+  .mpStyle .navy_blueButton:hover,
+  .mpStyle [class*=_navy_blueButton]:hover {
     background-color: var(--mpl-white);
     color: var(--mpl-primary);
     border-color: var(--mpl-primary);
   }
-  .mpStyle .navy_blueButton:hover span, .mpStyle [class*=_navy_blueButton]:hover span {
+  .mpStyle .navy_blueButton:hover span,
+  .mpStyle [class*=_navy_blueButton]:hover span {
     color: var(--mpl-primary);
   }
-  .mpStyle .warningButton, .mpStyle [class*=_warningButton] {
+  div.mp_add_icon_image_area div.mp_icon_item {
+    padding: 0.5em;
+    background-color: var(--color_light);
+    font-size: 1.4rem;
+  }
+  .mpStyle .warningButton,
+  .mpStyle [class*=_warningButton] {
     background-color: var(--mpl-yellow);
     color: var(--mpl-white);
     padding: 0.75em;
     border: 2px solid var(--mpl-yellow);
   }
-  .mpStyle .warningButton:hover, .mpStyle [class*=_warningButton]:hover {
+  .mpStyle .warningButton:hover,
+  .mpStyle [class*=_warningButton]:hover {
     background-color: var(--mpl-white);
     color: var(--mpl-yellow);
   }
-  .mpStyle .warningButton:hover span, .mpStyle [class*=_warningButton]:hover span {
+  .mpStyle .warningButton:hover span,
+  .mpStyle [class*=_warningButton]:hover span {
     color: var(--mpl-yellow);
   }
   div.mpStyle select.formControl:focus {
@@ -1007,7 +1020,7 @@
     color: var(--mpl-white);
   }
   .mp_settings_panel .metabox-holder {
-    background: #FFF;
+    background: #fff;
     padding: 0;
     margin: 0;
     width: calc(100% - 300px);
@@ -1050,6 +1063,9 @@
     padding-top: 0px;
     padding-bottom: 0.5em;
   }
+  #mp_meta_box_panel table tr:nth-child(2n) {
+    background-color: var(--mpl-light);
+  }
 }
 .ppof-settings .form-wrapper {
   margin-left: 250px;
@@ -1063,19 +1079,24 @@
   font-weight: 500;
   padding: 8px 0;
 }
-#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs .description, #mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs .description {
+#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs .description,
+#mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs .description {
   margin: 0;
   padding: 0.75em 0;
   font-family: ubuntu;
   font-size: 1rem;
 }
-#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table, #mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table {
+#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table,
+#mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table {
   border-collapse: separate;
   border-spacing: 0 1.5em;
   border: 0px solid;
   margin: 0;
 }
-#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr th, #mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td, #mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr th, #mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td {
+#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr th,
+#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td,
+#mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr th,
+#mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td {
   background-color: var(--mpl-white);
   background-color: var(--mpl-white);
   border-radius: 0.25rem;
@@ -1083,24 +1104,39 @@
   margin-bottom: 1.5em;
   width: 50%;
 }
-#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td, #mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td {
+#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td,
+#mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td {
   text-align: right;
 }
-#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td label, #mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td label {
+#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td label,
+#mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td label {
   display: block;
   text-align: right;
 }
-#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td input, #mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td input {
+#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td input,
+#mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td input {
   border-radius: 0.25rem;
 }
-#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td input.select2-search__field, #mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td input.select2-search__field {
+#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td input.select2-search__field,
+#mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td input.select2-search__field {
   border: 0;
 }
-#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td input#mep_disable_ticket_time, #mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td input#mep_disable_ticket_time {
+#mp_meta_box_panel .tab-content-ttbm_date_config_meta_boxs table.form-table tr td input#mep_disable_ticket_time,
+#mp_meta_box_panel .tab-content-ttbm_tax_meta_boxs table.form-table tr td input#mep_disable_ticket_time {
   margin-right: 0.5em;
 }
-#mp_meta_box_panel .form-wrap.form-builder h1, #mp_meta_box_panel .form-wrap.form-builder h2, #mp_meta_box_panel .form-wrap.form-builder h3, #mp_meta_box_panel .form-wrap.form-builder h4, #mp_meta_box_panel .form-wrap.form-builder h5, #mp_meta_box_panel .form-wrap.form-builder h6,
-#mp_meta_box_panel .form-wrap.form-builder .h1, #mp_meta_box_panel .form-wrap.form-builder .h2, #mp_meta_box_panel .form-wrap.form-builder .h3, #mp_meta_box_panel .form-wrap.form-builder .h4, #mp_meta_box_panel .form-wrap.form-builder .h5, #mp_meta_box_panel .form-wrap.form-builder .h6 {
+#mp_meta_box_panel .form-wrap.form-builder h1,
+#mp_meta_box_panel .form-wrap.form-builder h2,
+#mp_meta_box_panel .form-wrap.form-builder h3,
+#mp_meta_box_panel .form-wrap.form-builder h4,
+#mp_meta_box_panel .form-wrap.form-builder h5,
+#mp_meta_box_panel .form-wrap.form-builder h6,
+#mp_meta_box_panel .form-wrap.form-builder .h1,
+#mp_meta_box_panel .form-wrap.form-builder .h2,
+#mp_meta_box_panel .form-wrap.form-builder .h3,
+#mp_meta_box_panel .form-wrap.form-builder .h4,
+#mp_meta_box_panel .form-wrap.form-builder .h5,
+#mp_meta_box_panel .form-wrap.form-builder .h6 {
   color: var(--mpl-dark);
 }
 #mp_meta_box_panel .form-wrap.form-builder .frmb li {
