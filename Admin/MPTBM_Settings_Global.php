@@ -27,9 +27,11 @@
 					<div class="_dShadow_6 mpPanel">
 						<div class="mpPanelHeader"><?php echo esc_html($label).' ' . esc_html__(' Global Settings', 'ecab-taxi-booking-manager'); ?></div>
 						<div class="mpPanelBody mp_zero">
-							<div class="mpTabs leftTabs">
-								<?php $this->settings_api->show_navigation(); ?>
-								<div class="tabsContent">
+							<div class="mpTabs leftTabs bg-sky-light p-1 d-flex justify-content-between">
+								<aside class="sidebar w-20">
+									<?php $this->settings_api->show_navigation(); ?>
+								</aside>
+								<div class="tabsContent m-0 ms-2 w-80">
 									<?php $this->settings_api->show_forms(); ?>
 								</div>
 							</div>

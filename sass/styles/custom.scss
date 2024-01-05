@@ -20,6 +20,9 @@
     border-bottom: 0px solid $color-light;
   }
 
+  div.mp_global_settings .tabLists {
+    border-right: 0 solid var(--color_border);
+  }
   .leftTabs > .tabLists {
     -webkit-flex-flow: column;
     flex-flow: column;
