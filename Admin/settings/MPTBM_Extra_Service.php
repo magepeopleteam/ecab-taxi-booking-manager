@@ -136,7 +136,7 @@
 						<section  class="mp_settings_area mT <?php echo esc_attr( $active ); ?>">
 							<div class="component d-flex justify-content-between align-items-center mb-2">
 								<div class="w-100 d-flex justify-content-between align-items-center">
-									<label for=""><?php esc_html_e( 'Select extra option :', 'ecab-taxi-booking-manager' ); ?> <i class="fas fa-question-circle tool-tips">,<span><?php MPTBM_Settings::info_text( 'mptbm_extra_services_id' ); ?></span></i></label>
+									<label for=""><?php esc_html_e( 'Select extra option :', 'ecab-taxi-booking-manager' ); ?> <i class="fas fa-question-circle tool-tips"><span><?php MPTBM_Settings::info_text( 'mptbm_extra_services_id' ); ?></span></i></label>
 									<div class=" d-flex justify-content-between">
 										<select class="formControl" name="mptbm_extra_services_id">
 											<option value="" selected><?php esc_html_e( 'Select extra option', 'ecab-taxi-booking-manager' ); ?></option>

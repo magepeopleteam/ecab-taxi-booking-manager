@@ -83,10 +83,7 @@
 				$data = self::description_array($key);
 				if ($data) {
 					?>
-					<i class="info_text">
-						<span class="fas fa-info-circle"></span>
-						<?php echo esc_html($data); ?>
-					</i>
+					<?php echo esc_html($data); ?>
 					<?php
 				}
 			}
