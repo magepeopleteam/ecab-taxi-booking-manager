@@ -62,13 +62,13 @@
 					array(
 						'id' => 'mptbm_map_api_settings',
 						'icon' => 'fab fa-google',
-						'title' => esc_html__('Google Map Settings', 'ecab-taxi-booking-manager')
+						'title' => esc_html__('Google Map API Settings', 'ecab-taxi-booking-manager')
 					)
 				);
 				return array_merge($default_sec, $sections);
 			}
 			public function settings_sec_fields($default_fields): array {
-				$gm_api_url = '';
+				$gm_api_url = 'https://developers.google.com/maps/documentation/javascript/get-api-key';
 				$label = MPTBM_Function::get_name();
 				$settings_fields = array(
 					'mptbm_general_settings' => apply_filters('filter_mptbm_general_settings', array(
