@@ -171,15 +171,15 @@
 				$hidden_date = $date ? date('Y-m-d', strtotime($date)) : '';
 				$visible_date = $date ? date_i18n($date_format, strtotime($date)) : '';
 				?>
-				<div class="mp_remove_area">
-					<div class="justifyBetween">
+				<div class="mp_remove_area my-1">
+					<div class="justifyBetween bg-light p-1">
 						<label class="col_8">
 							<input type="hidden" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($hidden_date); ?>"/>
 							<input value="<?php echo esc_attr($visible_date); ?>" class="formControl date_type" placeholder="<?php echo esc_attr($now); ?>"/>
 						</label>
 						<?php MPTBM_Custom_Layout::move_remove_button(); ?>
 					</div>
-					<div class="divider"></div>
+
 				</div>
 				<?php
 			}
