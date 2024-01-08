@@ -48,7 +48,6 @@ providing a convenient way for customers to book rides online. Whether you run a
 This plugin relies on the Google Maps API, a service provided by Google, Inc. It is used for displaying Google Maps and finding distance. Please note that your usage of this plugin constitutes acceptance of Google's terms and policies.
 
 **Link to Google Maps API:**
-For more information about the Google Maps API, visit: [Google Maps API Link](https://developers.google.com/maps/documentation/javascript/get-api-key) & [Google Map](https://maps.googleapis.com/maps/api/)
 
 **Terms of Use:**
 Review the Google Maps API terms of use: [Google Maps API Terms of Use Link](https://developers.google.com/maps/terms-20180207)
