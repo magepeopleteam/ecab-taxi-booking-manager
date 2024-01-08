@@ -111,7 +111,7 @@
 				$icon_class = $icon_class ?: 'fas fa-plus-square';
 				?>
 				<button class="<?php echo esc_attr($button_class . ' ' . $class); ?>" type="button">
-					<span class="<?php echo esc_attr($icon_class); ?>"></span>
+					<span class="pe-1 <?php echo esc_attr($icon_class); ?>"></span>
 					<span class="mL_xs" data-input-change="<?php echo esc_attr($change_input_name); ?>"><?php echo esc_html($button_text); ?></span>
 				</button>
 				<?php

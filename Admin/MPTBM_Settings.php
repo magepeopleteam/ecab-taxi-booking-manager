@@ -27,16 +27,16 @@
 					<div class="mpTabs leftTabs bg-sky-light p-1 d-flex justify-content-between">
 						<ul class="tabLists sidebar w-20">
 							<li class="nav-item" data-tabs-target="#mptbm_general_info">
-								<span class="fas fa-tools"></span><?php esc_html_e('General Info', 'ecab-taxi-booking-manager'); ?>
+								<span class="pe-1 fas fa-tools"></span><?php esc_html_e('General Info', 'ecab-taxi-booking-manager'); ?>
 							</li>
 							<li class="nav-item" data-tabs-target="#mptbm_settings_date">
-								<span class="fas fa-calendar-alt"></span><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?>
+								<span class="pe-1 fas fa-calendar-alt"></span><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?>
 							</li>
 							<li class="nav-item" data-tabs-target="#mptbm_settings_pricing">
-								<span class="fas fa-hand-holding-usd"></span><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?>
+								<span class="pe-1 fas fa-hand-holding-usd"></span><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?>
 							</li>
 							<li class="nav-item" data-tabs-target="#mptbm_settings_ex_service">
-								<span class="fas fa-hand-holding-usd"></span><?php esc_html_e('Extra Service', 'ecab-taxi-booking-manager'); ?>
+								<span class="pe-1 fas fa-hand-holding-usd"></span><?php esc_html_e('Extra Service', 'ecab-taxi-booking-manager'); ?>
 							</li>
 							<?php do_action('add_mptbm_settings_tab_after_ex_service'); ?>
 						</ul>
