@@ -1,0 +1,289 @@
+@charset "utf-8";
+
+/******************************************************************** Shadow content ************************************************/
+@media only screen and (min-width: 10px) 
+{
+
+	/******************************************************************** Checkout Form ************************************************/
+	.mpStyles .checkout .custom-form-container
+	{
+        display: flex;
+        justify-content: left;
+        align-items: center;
+		/* padding-top: 5em; */
+        /* height: 100vh; */
+    }
+
+    .mpStyles .checkout .custom-form 
+	{
+        min-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f4f4f4;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+	.mpStyles .checkout .custom-form h2
+	{
+		text-align: center;
+	}
+
+    .mpStyles .checkout .custom-form label 
+	{
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .mpStyles .checkout .custom-form input[type="text"],
+    .mpStyles .checkout .custom-form input[type="email"],
+    .mpStyles .checkout .custom-form select,
+    .mpStyles .checkout .custom-form textarea 
+	{
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+
+    .mpStyles .checkout .custom-form textarea 
+	{
+        resize: vertical;
+    }
+
+	.mpStyles .checkout .custom-form input[type="radio"],
+    .mpStyles .checkout .custom-form input[type="checkbox"] 
+	{
+        margin-right: 5px;
+    }
+
+    .mpStyles .checkout .custom-form button 
+	{
+        background-color: #0073cc;
+		color: white;
+		margin: 10px 10px 10px 0;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 3px;
+    }
+
+	/******************************************************************** Checkout Tab List ************************************************/
+
+	.mpStyles .checkout .tab-container 
+	{
+		display: flex;
+		padding: 20px;
+	}
+
+	.mpStyles .checkout .tab-menu 
+	{
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		background-color: #d5d9dc;
+		border-right: 3px solid #02223b;
+	}
+
+	.mpStyles .checkout .tab-menu h3
+	{
+		font-weight: bold;
+		text-align: center;
+	}
+
+	.mpStyles .checkout .tab-item 
+	{
+		font-size: 16px;
+		padding: 10px 20px;
+		cursor: pointer;
+		color: #666;
+		transition: color 0.3s ease-in-out;
+	}
+
+	.mpStyles .checkout .tab-item:hover 
+	{
+		color: #333;
+	}
+
+	.mpStyles .checkout .tab-item.active 
+	{
+		color: #fff;
+		background-color: #333;
+	}
+
+	.mpStyles .checkout .tab-content-container 
+	{
+		flex-grow: 1;
+	}
+
+	.mpStyles .checkout .tab-content 
+	{
+		display: none;
+		padding: 20px;
+		background-color: #f8f8f8;
+	}
+
+	.mpStyles .checkout .tab-content.active 
+	{
+		display: block;
+		background-color: #d5d9dc;
+	}
+
+	.mpStyles .checkout .text-switch-button 
+	{
+		display: inline;		
+	}
+
+	.mpStyles .checkout .hl 
+	{
+		display: flex;
+		height: 3px;
+		background-color: #02223b;
+		margin: 10px 0;
+	}
+
+	.mpStyles .checkout .tab-container .action-button 
+	{
+        display: flex;
+		justify-content: right;
+        align-items: right;
+		
+    }
+
+    .mpStyles .checkout .tab-container .action-button .button 
+	{
+        display: flex;
+        align-items: center;
+		min-height: 26px;
+        cursor: pointer; 
+		background-color: #0073cc;
+		color: white;
+		margin: 10px;
+		border-radius: 5px;
+    }
+
+    .mpStyles .checkout .tab-container .action-button .dashicons 
+	{
+        margin-right: 5px;
+    }
+
+	/********************************************************* Modal ***************************/
+	
+    .mpStyles .checkout .modal 
+	{
+        display: none;
+        position: absolute;
+		z-index: 1;
+		background-color: rgba(0, 0, 0, 0.4);        
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+		
+    }
+
+    .mpStyles .checkout .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        position: relative;
+    }
+
+    .mpStyles .checkout .close {
+        position: absolute;
+        top: 0;
+        right: 10px;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+	/*----------------------------------------------------------------*/
+	
+    .mpStyles .checkout .custom-var-attr-section .option-row
+	{
+		display: flex;
+		justify-content: center;
+		align-items: center;
+    }
+
+	.mpStyles .checkout .custom-var-attr-section .option-row .action-plus,
+	.mpStyles .checkout .custom-var-attr-section .option-row .action-minus,
+	.mpStyles .checkout .custom-var-attr-section .option-row .action-move
+	{
+		text-decoration: none;
+	}
+
+	/*****************************************************************/
+	.mpStyles .checkout .checkout-disabled
+	{
+		color: red;
+	}
+
+	/*.......................Switch Button..............................*/
+	.mpStyles .checkout .switch 
+	{
+		position: relative;
+		display: inline-block;
+		width: 60px;
+		height: 34px;
+	}
+
+	.mpStyles .checkout .switch input 
+	{
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	.mpStyles .checkout .slider 
+	{
+		position: absolute;
+		cursor: pointer;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #ccc;
+		-webkit-transition: .4s;
+		transition: .4s;
+		border-radius: 34px;
+	}
+
+	.mpStyles .checkout .slider:before 
+	{
+		position: absolute;
+		content: "";
+		height: 26px;
+		width: 26px;
+		left: 4px;
+		bottom: 4px;
+		background-color: white;
+		-webkit-transition: .4s;
+		transition: .4s;
+		border-radius: 50%;
+	}
+
+	.mpStyles .checkout input:checked + .slider 
+	{
+		background-color: #2196F3;
+	}
+
+	.mpStyles .checkout input:focus + .slider 
+	{
+		box-shadow: 0 0 1px #2196F3;
+	}
+
+	.mpStyles .checkout input:checked + .slider:before 
+	{
+		-webkit-transform: translateX(26px);
+		-ms-transform: translateX(26px);
+		transform: translateX(26px);
+	}
+
+
+}
