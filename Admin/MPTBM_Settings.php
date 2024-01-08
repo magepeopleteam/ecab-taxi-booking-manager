@@ -24,23 +24,23 @@
 				?>
 				<input type="hidden" name="mptbm_post_id" value="<?php echo esc_attr($post_id); ?>"/>
 				<div class="mpStyle">
-					<div class="mpTabs leftTabs">
-						<ul class="tabLists">
-							<li data-tabs-target="#mptbm_general_info">
-								<span class="fas fa-tools"></span><?php esc_html_e('General Info', 'ecab-taxi-booking-manager'); ?>
+					<div class="mpTabs leftTabs bg-sky-light p-1 d-flex justify-content-between">
+						<ul class="tabLists sidebar w-20">
+							<li class="nav-item" data-tabs-target="#mptbm_general_info">
+								<span class="pe-1 fas fa-tools"></span><?php esc_html_e('General Info', 'ecab-taxi-booking-manager'); ?>
 							</li>
-							<li data-tabs-target="#mptbm_settings_date">
-								<span class="fas fa-calendar-alt"></span><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?>
+							<li class="nav-item" data-tabs-target="#mptbm_settings_date">
+								<span class="pe-1 fas fa-calendar-alt"></span><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?>
 							</li>
-							<li data-tabs-target="#mptbm_settings_pricing">
-								<span class="fas fa-hand-holding-usd"></span><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?>
+							<li class="nav-item" data-tabs-target="#mptbm_settings_pricing">
+								<span class="pe-1 fas fa-hand-holding-usd"></span><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?>
 							</li>
-							<li data-tabs-target="#mptbm_settings_ex_service">
-								<span class="fas fa-hand-holding-usd"></span><?php esc_html_e('Extra Service', 'ecab-taxi-booking-manager'); ?>
+							<li class="nav-item" data-tabs-target="#mptbm_settings_ex_service">
+								<span class="pe-1 fas fa-hand-holding-usd"></span><?php esc_html_e('Extra Service', 'ecab-taxi-booking-manager'); ?>
 							</li>
 							<?php do_action('add_mptbm_settings_tab_after_ex_service'); ?>
 						</ul>
-						<div class="tabsContent">
+						<div class="tabsContent p-0 m-0 ms-2 w-80">
 							<?php do_action('add_mptbm_settings_tab_content', $post_id); ?>
 						</div>
 					</div>
@@ -83,10 +83,7 @@
 				$data = self::description_array($key);
 				if ($data) {
 					?>
-					<i class="info_text">
-						<span class="fas fa-info-circle"></span>
-						<?php echo esc_html($data); ?>
-					</i>
+					<?php echo esc_html($data); ?>
 					<?php
 				}
 			}

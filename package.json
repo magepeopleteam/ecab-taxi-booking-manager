@@ -1,0 +1,19 @@
+{
+  "name": "ecab-taxi-booking-manager",
+  "version": "1.0.0",
+  "description": "=== Ecab Taxi Booking Manager for WooCommerce === Contributors: magepeopleteam Author URI : https://mage-people.com Tags: Taxi, Cab, distance & fare calculator,Travel agency, Woocommerce booking, google map Requires at least: 5.3 Stable tag: 1.0 Version: 1.0.0 Tested up to: 6.2 WC requires at least: 3.0 WC tested up to: 6.5 Requires PHP: 7.0 License: GPLv2 or later License URI: http://www.gnu.org/licenses/gpl-2.0.html",
+  "main": "index.js",
+  "scripts": {
+    "start": "sass --watch sass/main.scss assets/admin/admin_style.css"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/magepeopleteam/Ecab-Taxi-Booking-Manager.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/magepeopleteam/Ecab-Taxi-Booking-Manager/issues"
+  },
+  "homepage": "https://github.com/magepeopleteam/Ecab-Taxi-Booking-Manager#readme"
+}

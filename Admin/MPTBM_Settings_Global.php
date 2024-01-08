@@ -27,9 +27,11 @@
 					<div class="_dShadow_6 mpPanel">
 						<div class="mpPanelHeader"><?php echo esc_html($label).' ' . esc_html__(' Global Settings', 'ecab-taxi-booking-manager'); ?></div>
 						<div class="mpPanelBody mp_zero">
-							<div class="mpTabs leftTabs">
-								<?php $this->settings_api->show_navigation(); ?>
-								<div class="tabsContent">
+							<div class="mpTabs leftTabs bg-sky-light p-1 d-flex justify-content-between">
+								<aside class="sidebar w-20">
+									<?php $this->settings_api->show_navigation(); ?>
+								</aside>
+								<div class="tabsContent m-0 ms-2 w-80">
 									<?php $this->settings_api->show_forms(); ?>
 								</div>
 							</div>
@@ -184,7 +186,7 @@
 						array(
 							'name' => 'gmap_api_key',
 							'label' => esc_html__('Google MAP API', 'ecab-taxi-booking-manager'),
-							'desc' => esc_html__('Please enter your Google Maps API key in this Options.', 'ecab-taxi-booking-manager') . '<a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',
+							'desc' => esc_html__('Please enter your Google Maps API key in this Options.', 'ecab-taxi-booking-manager') . '<a class="" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',
 							'type' => 'text',
 							'default' => ''
 						),
