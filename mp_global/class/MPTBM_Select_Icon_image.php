@@ -145,7 +145,7 @@
 				$value = $image ?: $icon;
 				$button_active_class = $icon || $image ? 'dNone' : '';
 				?>
-				<div class="mp_add_icon_image_area fdColumn">
+				<div class="mp_add_icon_image_area w-100">
 					<input type="hidden" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($value); ?>"/>
 					<div class="mp_icon_item <?php echo esc_attr($icon_class); ?>">
 						<div class="allCenter">
@@ -157,12 +157,12 @@
 						<img class="" src="<?php echo esc_attr(MPTBM_Global_Function::get_image_url('', $image, 'medium')); ?>" alt="">
 						<span class="fas fa-times mp_remove_icon mp_image_remove" title="<?php esc_html_e('Remove Image', 'ecab-taxi-booking-manager'); ?>"></span>
 					</div>
-					<div class="mp_add_icon_image_button_area <?php echo esc_attr($button_active_class); ?>">
-						<div class="flexEqual">
-							<button class="_mpBtn_xs mp_image_add" type="button">
-								<span class="fas fa-images"></span><?php esc_html_e('Image', 'ecab-taxi-booking-manager'); ?></button>
-							<button class="_mpBtn_xs mp_icon_add" type="button" data-target-popup="#mp_add_icon_popup">
-								<span class="fas fa-plus"></span><?php esc_html_e('Icon', 'ecab-taxi-booking-manager'); ?></button>
+					<div class="mp_add_icon_image_button_area p-1 <?php echo esc_attr($button_active_class); ?>">
+						<div class="d-flex flex-column justify-content-between align-items-center">
+							<button class="btn mp_image_add my-1" type="button">
+								<span class="fas fa-images pe-1"></span><?php esc_html_e('Image', 'ecab-taxi-booking-manager'); ?></button>
+							<button class="btn mp_icon_add my-1" type="button" data-target-popup="#mp_add_icon_popup">
+								<span class="fas fa-plus pe-1"></span><?php esc_html_e('Icon', 'ecab-taxi-booking-manager'); ?></button>
 						</div>
 					</div>
 				</div>

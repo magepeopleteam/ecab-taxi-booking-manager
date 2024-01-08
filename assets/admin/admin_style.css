@@ -978,7 +978,6 @@
   div.mp_add_icon_image_area {
     border: 1px solid var(--mpl-dark);
     position: relative;
-    max-width: 70px;
   }
   .mpStyle .navy_blueButton,
   .mpStyle [class*=_navy_blueButton] {
