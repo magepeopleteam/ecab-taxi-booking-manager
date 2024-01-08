@@ -186,7 +186,7 @@
 						array(
 							'name' => 'gmap_api_key',
 							'label' => esc_html__('Google MAP API', 'ecab-taxi-booking-manager'),
-							'desc' => esc_html__('Please enter your Google Maps API key in this Options.', 'ecab-taxi-booking-manager') . '<a class="btn button" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',
+							'desc' => esc_html__('Please enter your Google Maps API key in this Options.', 'ecab-taxi-booking-manager') . '<a class="" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',
 							'type' => 'text',
 							'default' => ''
 						),
