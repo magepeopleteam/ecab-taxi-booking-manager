@@ -107,7 +107,7 @@
 			/*****************************/
 			public static function add_new_button($button_text, $class = '', $button_class = '', $icon_class = '', $change_input_name = '') {
 				$class = $class ?: 'mp_add_item';
-				$button_class = $button_class ?: '_themeButton_xs_mT_xs';
+				$button_class = $button_class ?: 'btn';
 				$icon_class = $icon_class ?: 'fas fa-plus-square';
 				?>
 				<button class="<?php echo esc_attr($button_class . ' ' . $class); ?>" type="button">
