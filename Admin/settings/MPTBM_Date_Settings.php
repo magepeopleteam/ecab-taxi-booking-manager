@@ -23,10 +23,10 @@
 					<div class="mpTabs tabBorder component">
 						<ul class="tabLists">
 							<li class="nav-item" data-tabs-target="#mptbm_date_time_general">
-								<span class="fas fa-home"></span><?php esc_html_e('General', 'ecab-taxi-booking-manager'); ?>
+								<span class="fas fa-home pe-1"></span><?php esc_html_e('General', 'ecab-taxi-booking-manager'); ?>
 							</li>
 							<li class="nav-item" data-tabs-target="#mptbm_date_time_off_day">
-								<span class="fas fa-calendar-alt"></span><?php esc_html_e('Off Days & Dates', 'ecab-taxi-booking-manager'); ?>
+								<span class="fas fa-calendar-alt pe-1"></span><?php esc_html_e('Off Days & Dates', 'ecab-taxi-booking-manager'); ?>
 							</li>
 						</ul>
 						<div class="tabsContent p-0 compoent my-1">
@@ -137,7 +137,7 @@
 										<label for=""><?php esc_html_e('Off Dates', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"></i></label>
 										<div class=" d-flex justify-content-between">
 											<div class="mp_settings_area">
-												<div class="mp_item_insert mp_sortable_area">
+												<div class="mp_item_insert mp_sortable_area mb-1">
 													<?php
 														$off_day_lists = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_off_dates', array());
 														if (sizeof($off_day_lists)) {
