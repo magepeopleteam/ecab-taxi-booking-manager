@@ -148,7 +148,7 @@
 					<?php } ?>
 				</div>
 			</div>
-			<?php if ($price_based != 'manual' || $map == 'yes' || $price_based != 'fixed_hourly') { ?>
+			<?php if ($price_based == 'distance' || $map == 'yes' || $price_based == 'duration' || $price_based == 'distance_duration') { ?>
 				<div class="mptbm_map_area fdColumn">
 					<div class="fullHeight">
 						<div id="mptbm_map_area"></div>

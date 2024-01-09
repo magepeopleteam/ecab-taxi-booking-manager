@@ -9,8 +9,8 @@
 	if (!class_exists('MPTBM_Setting_Global')) {
 		class MPTBM_Setting_Global {
 			public function __construct() {
-				add_filter('mp_settings_sec_reg', array($this, 'settings_sec_reg'), 20, 1);
-				add_filter('mp_settings_sec_fields', array($this, 'settings_sec_fields'), 20, 1);
+				add_filter('mp_settings_sec_reg', array($this, 'settings_sec_reg'),20);
+				add_filter('mp_settings_sec_fields', array($this, 'settings_sec_fields'),20);
 			}
 			public function settings_sec_reg($default_sec): array {
 				$sections = array(
