@@ -25,10 +25,13 @@
 				add_action('wp_ajax_nopriv_get_mptbm_extra_service_summary', [$this, 'get_mptbm_extra_service_summary']);
 			}
 			public function transport_search($params) {
+				$display_map = MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'enable');
 				$price_based = $params['price_based'] ?: 'dynamic';
+				$price_based = $display_map == 'disable' ? 'manual' : $price_based;
 				$progressbar = $params['progressbar'] ?: 'yes';
 				$form_style= $params['form'] ?: 'horizontal';
 				$map= $params['map'] ?: 'yes';
+				$map = $display_map == 'disable' ? 'no' : $map;
 				ob_start();
 				do_shortcode('[shop_messages]');
 				echo ob_get_clean();

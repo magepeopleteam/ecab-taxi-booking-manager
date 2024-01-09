@@ -25,7 +25,7 @@
 				?>
 				<div class="mpStyle mp_global_settings">
 					<div class="_dShadow_6 mpPanel">
-						<div class="mpPanelHeader"><?php echo esc_html($label).' ' . esc_html__(' Global Settings', 'ecab-taxi-booking-manager'); ?></div>
+						<div class="mpPanelHeader"><?php echo esc_html($label) . ' ' . esc_html__(' Global Settings', 'ecab-taxi-booking-manager'); ?></div>
 						<div class="mpPanelBody mp_zero">
 							<div class="mpTabs leftTabs bg-sky-light p-1 d-flex justify-content-between">
 								<aside class="sidebar w-20">
@@ -57,14 +57,14 @@
 				$label = MPTBM_Function::get_name();
 				$sections = array(
 					array(
-						'id' => 'mptbm_general_settings',
-						'icon' => 'fas fa-sliders-h',
-						'title' => $label . ' ' . esc_html__('Settings', 'ecab-taxi-booking-manager')
-					),
-					array(
 						'id' => 'mptbm_map_api_settings',
 						'icon' => 'fab fa-google',
 						'title' => esc_html__('Google Map API Settings', 'ecab-taxi-booking-manager')
+					),
+					array(
+						'id' => 'mptbm_general_settings',
+						'icon' => 'fas fa-sliders-h',
+						'title' => $label . ' ' . esc_html__('Settings', 'ecab-taxi-booking-manager')
 					)
 				);
 				return array_merge($default_sec, $sections);
@@ -183,6 +183,17 @@
 						),
 					)),
 					'mptbm_map_api_settings' => apply_filters('filter_mptbm_map_api_settings', array(
+						array(
+							'name' => 'display_map',
+							'label' => esc_html__('Pricing system based on google map', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('If you want to disable Pricing system based on google map, please select Without google map. default Google map', 'ecab-taxi-booking-manager'),
+							'type' => 'select',
+							'default' => 'enable',
+							'options' => array(
+								'enable' => esc_html__('Google map', 'ecab-taxi-booking-manager'),
+								'disable' => esc_html__('Without google map', 'ecab-taxi-booking-manager')
+							)
+						),
 						array(
 							'name' => 'gmap_api_key',
 							'label' => esc_html__('Google MAP API', 'ecab-taxi-booking-manager'),
