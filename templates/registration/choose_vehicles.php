@@ -8,13 +8,13 @@
 	} // Cannot access pages directly
 	$label = MPTBM_Function::get_name();
 	$start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : '';
-	$start_time = isset($_POST['start_time']) ? absint($_POST['start_time']) * 3600 : '';
+	$start_time = isset($_POST['start_time']) ? sanitize_text_field($_POST['start_time']) * 3600 : '';
 	$date = $start_date && $start_time ? date('Y-m-d', strtotime($start_date)) . ' ' . date('H:i', $start_time) : '';
 	$start_place = isset($_POST['start_place']) ? sanitize_text_field($_POST['start_place']) : '';
 	$end_place = isset($_POST['end_place']) ? sanitize_text_field($_POST['end_place']) : '';
 	$two_way = isset($_POST['two_way']) ? absint($_POST['two_way']) : 1;
-	$waiting_time = isset($_POST['waiting_time']) ? absint($_POST['waiting_time']) : 0;
-	$fixed_time = isset($_POST['fixed_time']) ? absint($_POST['fixed_time']) : '';
+	$waiting_time = isset($_POST['waiting_time']) ? sanitize_text_field($_POST['waiting_time']) : 0;
+	$fixed_time = isset($_POST['fixed_time']) ? sanitize_text_field($_POST['fixed_time']) : '';
 ?>
 	<div data-tabs-next="#mptbm_search_result" class="mptbm_map_search_result">
 		<input type="hidden" name="mptbm_post_id" value="" data-price=""/>
