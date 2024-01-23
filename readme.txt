@@ -13,7 +13,7 @@ License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 	
-Ecab Taxi Booking Manager is wordpress plugin for online Taxi Reservation system, Whether you run a taxi agency or provide airport to hotel services, our user-friendly Plugin allows you to easily list taxis and manage rentals
+Ecab Taxi Booking Manager is a WordPress plugin for online Taxi Reservation systems, Whether you run a taxi agency or provide airport to hotel services, our user-friendly Plugin allows you to easily list taxis and manage rentals
 
 == Description ==
 
@@ -23,8 +23,6 @@ providing a convenient way for customers to book rides online. Whether you run a
 
 ###  Key Features
 ➡User-Friendly Interface: The plugin boasts a user-friendly interface that makes it easy for both administrators and customers to manage taxi bookings effortlessly.
-
-➡Real-Time Availability: Customers can check taxi availability in real time and book rides instantly.
 
 ➡Flexible Booking Options: Offer options for immediate pickups or pre-scheduled rides, providing customers with flexibility.
 
@@ -40,7 +38,7 @@ providing a convenient way for customers to book rides online. Whether you run a
 
 ➡Responsive Design: The plugin is designed to be fully responsive, offering a smooth booking experience across various devices.
 
-➡ [View Live  Demo For Business Event](https://taxi.mage-people.com/)
+➡ [View Live Taxi Booking Demo](https://taxi.mage-people.com/)
 👉 [Plugin Documentation](https://docs.mage-people.com/ecab-taxi-booking-manager/)
 
 
