@@ -1,6 +1,6 @@
 === Ecab Taxi Booking Manager for WooCommerce ===
 Contributors: magepeopleteam
-Author URI : https://mage-people.com
+Author URI: https://mage-people.com
 Tags: Taxi, Cab, distance & fare calculator,Travel agency, Woocommerce booking, google map
 Requires at least: 5.3
 Stable tag: 1.0
@@ -13,7 +13,7 @@ License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 	
-Ecab Taxi Booking Manager for WooCommerce displays the total distance between two locations and calculates the fare.
+Ecab Taxi Booking Manager is wordpress plugin for online Taxi Reservation system, Whether you run a taxi agency or provide airport to hotel services, our user-friendly Plugin allows you to easily list taxis and manage rentals
 
 == Description ==
 
