@@ -1,11 +1,11 @@
 === Ecab Taxi Booking Manager for WooCommerce ===
 Contributors: magepeopleteam
-Author URI: https://mage-people.com
+Author URI : https://mage-people.com
 Tags: Taxi, Cab, distance & fare calculator,Travel agency, Woocommerce booking, google map
 Requires at least: 5.3
-Stable tag: 1.0
-Version: 1.0.0
-Tested up to: 6.4
+Stable tag: 1.0.3
+Version: 1.0.3
+Tested up to: 6.2
 WC requires at least: 3.0
 WC tested up to: 6.5
 Requires PHP: 7.0
@@ -13,7 +13,7 @@ License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 	
-Ecab Taxi Booking Manager is a WordPress plugin for online Taxi Reservation systems, Whether you run a taxi agency or provide airport to hotel services, our user-friendly Plugin allows you to easily list taxis and manage rentals
+Ecab Online Taxi Booking Manager Efficiently manage your taxi bookings and fares with Ecab Taxi Booking Manager for WooCommerce. Perfect for travel agencies and taxi rental services, this plugin displays the distance between locations and calculates the fare seamlessly. Save time and improve customer satisfaction with Ecab - the ultimate Taxi Booking Manager.
 
 == Description ==
 
@@ -22,23 +22,31 @@ providing a convenient way for customers to book rides online. Whether you run a
 
 
 ###  Key Features
-➡User-Friendly Interface: The plugin boasts a user-friendly interface that makes it easy for both administrators and customers to manage taxi bookings effortlessly.
+## 🤝 User-Friendly Interface: 
+The plugin boasts a user-friendly interface that makes it easy for both administrators and customers to manage taxi bookings effortlessly.
 
-➡Flexible Booking Options: Offer options for immediate pickups or pre-scheduled rides, providing customers with flexibility.
+## ⏱ Flexible Booking Options: 
+Offer options for immediate pickups or pre-scheduled rides, providing customers with flexibility.
 
-➡Fare Calculation: Automatic fare calculation based on distance, time, or any custom criteria you define.
+## 💵 Fare Calculation: 
+Automatic fare calculation based on distance, time, or any custom criteria you define.
 
-➡Customizable Rates: Set up custom rate plans, allowing you to tailor pricing based on different zones, distances, or other factors.
+## 📰 Customizable Rates: 
+Set up custom rate plans, allowing you to tailor pricing based on different zones, distances, or other factors.
 
-➡Multiple Payment Gateways: Seamlessly integrate with popular payment gateways, offering secure and diverse payment options for customers.
+## 💰 Multiple Payment Gateways: 
+Seamlessly integrates with popular payment gateways, offering secure and diverse payment options for customers.
 
-➡Booking Management: Efficiently manage all taxi bookings from your WordPress dashboard, with the ability to view, modify, or cancel bookings as needed.
+## 🤹Booking Management: 
+Efficiently manage all taxi bookings from your WordPress dashboard, with the ability to view, modify, or cancel bookings as needed.
 
-➡Google MAP API: Google map api integrated for route map.
+## 🗺 Google MAP API: 
+Google map API integrated for route map.
 
-➡Responsive Design: The plugin is designed to be fully responsive, offering a smooth booking experience across various devices.
+## 💦Responsive Design: 
+The plugin is designed to be fully responsive, offering a smooth booking experience across various devices.
 
-➡ [View Live Taxi Booking Demo](https://taxi.mage-people.com/)
+🧶 [View Live  Taxi Booking Demo](https://taxi.mage-people.com/)
 👉 [Plugin Documentation](https://docs.mage-people.com/ecab-taxi-booking-manager/)
 
 
@@ -46,6 +54,7 @@ providing a convenient way for customers to book rides online. Whether you run a
 This plugin relies on the Google Maps API, a service provided by Google, Inc. It is used for displaying Google Maps and finding distance. Please note that your usage of this plugin constitutes acceptance of Google's terms and policies.
 
 **Link to Google Maps API:**
+For more information about the Google Maps API, visit: [Google Maps API Link](https://developers.google.com/maps/documentation/javascript/get-api-key)
 
 **Terms of Use:**
 Review the Google Maps API terms of use: [Google Maps API Terms of Use Link](https://developers.google.com/maps/terms-20180207)
