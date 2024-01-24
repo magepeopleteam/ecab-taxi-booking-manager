@@ -46,7 +46,7 @@ Google map API integrated for route map.
 ## 💦Responsive Design: 
 The plugin is designed to be fully responsive, offering a smooth booking experience across various devices.
 
-➡ [View Live  Taxi Booking Demo](https://taxi.mage-people.com/)
+🧶 [View Live  Taxi Booking Demo](https://taxi.mage-people.com/)
 👉 [Plugin Documentation](https://docs.mage-people.com/ecab-taxi-booking-manager/)
 
 
