@@ -22,25 +22,31 @@ providing a convenient way for customers to book rides online. Whether you run a
 
 
 ###  Key Features
-➡User-Friendly Interface: The plugin boasts a user-friendly interface that makes it easy for both administrators and customers to manage taxi bookings effortlessly.
+## 🤝 User-Friendly Interface: 
+The plugin boasts a user-friendly interface that makes it easy for both administrators and customers to manage taxi bookings effortlessly.
 
-➡Real-Time Availability: Customers can check taxi availability in real time and book rides instantly.
+## ⏱ Flexible Booking Options: 
+Offer options for immediate pickups or pre-scheduled rides, providing customers with flexibility.
 
-➡Flexible Booking Options: Offer options for immediate pickups or pre-scheduled rides, providing customers with flexibility.
+## 💵 Fare Calculation: 
+Automatic fare calculation based on distance, time, or any custom criteria you define.
 
-➡Fare Calculation: Automatic fare calculation based on distance, time, or any custom criteria you define.
+## 📰 Customizable Rates: 
+Set up custom rate plans, allowing you to tailor pricing based on different zones, distances, or other factors.
 
-➡Customizable Rates: Set up custom rate plans, allowing you to tailor pricing based on different zones, distances, or other factors.
+## 💰 Multiple Payment Gateways: 
+Seamlessly integrates with popular payment gateways, offering secure and diverse payment options for customers.
 
-➡Multiple Payment Gateways: Seamlessly integrate with popular payment gateways, offering secure and diverse payment options for customers.
+## 🤹Booking Management: 
+Efficiently manage all taxi bookings from your WordPress dashboard, with the ability to view, modify, or cancel bookings as needed.
 
-➡Booking Management: Efficiently manage all taxi bookings from your WordPress dashboard, with the ability to view, modify, or cancel bookings as needed.
+## 🗺 Google MAP API: 
+Google map API integrated for route map.
 
-➡Google MAP API: Google map api integrated for route map.
+## 💦Responsive Design: 
+The plugin is designed to be fully responsive, offering a smooth booking experience across various devices.
 
-➡Responsive Design: The plugin is designed to be fully responsive, offering a smooth booking experience across various devices.
-
-➡ [View Live  Demo For Business Event](https://taxi.mage-people.com/)
+➡ [View Live  Taxi Booking Demo](https://taxi.mage-people.com/)
 👉 [Plugin Documentation](https://docs.mage-people.com/ecab-taxi-booking-manager/)
 
 
