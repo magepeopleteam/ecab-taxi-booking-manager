@@ -13,7 +13,7 @@ License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 	
-Ecab Taxi Booking Manager for WooCommerce displays the total distance between two locations and calculates the fare.
+Ecab Online Taxi Booking Manager Efficiently manage your taxi bookings and fares with Ecab Taxi Booking Manager for WooCommerce. Perfect for travel agencies and taxi rental services, this plugin displays the distance between locations and calculates the fare seamlessly. Save time and improve customer satisfaction with Ecab - the ultimate Taxi Booking Manager.
 
 == Description ==
 
