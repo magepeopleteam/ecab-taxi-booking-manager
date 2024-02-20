@@ -1794,8 +1794,7 @@
 		z-index: 1111;
 	}
 	div.mpStyle .mp_sticky_on_scroll {width: 100%;}
-	div.mpStyle .mp_sticky_area.stickyFixed {display: flex;
-		align-items: end;height: 100%;}
+	div.mpStyle .mp_sticky_area.stickyFixed {display: flex; align-items: end;height: 100%;}
 }
 /******************************************************************** Form section ************************************************/
 @media only screen and (min-width: 10px) {
