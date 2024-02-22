@@ -206,10 +206,10 @@
 								$data['mptbm_user_id'] = $user_id;
 								$data['mptbm_tp'] = $price;
 								$data['mptbm_service_info'] = $service_info;
-								$data['mptbm_billing_name'] = $order_meta['_billing_first_name'][0] . ' ' . $order_meta['_billing_last_name'][0];
-								$data['mptbm_billing_email'] = $order_meta['_billing_email'][0];
-								$data['mptbm_billing_phone'] = $order_meta['_billing_phone'][0];
-								$data['mptbm_billing_address'] = $order_meta['_billing_address_1'][0] . ' ' . $order_meta['_billing_address_2'][0];
+								$data['mptbm_billing_name'] = (array_key_exists('_billing_first_name',$order_meta)?$order_meta['_billing_first_name'][0]:'') . ' ' . (array_key_exists('_billing_last_name',$order_meta)?$order_meta['_billing_last_name'][0]:'');
+								$data['mptbm_billing_email'] = (array_key_exists('_billing_email',$order_meta)?$order_meta['_billing_email'][0]:'');
+								$data['mptbm_billing_phone'] = (array_key_exists('_billing_phone',$order_meta)?$order_meta['_billing_phone'][0]:'');
+								$data['mptbm_billing_address'] = (array_key_exists('_billing_address_1',$order_meta)?$order_meta['_billing_address_1'][0]:'') . ' ' . (array_key_exists('_billing_address_2',$order_meta)?$order_meta['_billing_address_2'][0]:'');
 								$booking_data = apply_filters('add_mptbm_booking_data', $data, $post_id);
 								self::add_cpt_data('mptbm_booking', $booking_data['mptbm_billing_name'], $booking_data);
 								if (sizeof($service_info) > 0) {
