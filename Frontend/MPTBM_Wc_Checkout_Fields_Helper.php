@@ -334,6 +334,7 @@
                 add_action('woocommerce_before_order_details', array($this, 'order_details'), 99,1);
                 add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'order_details'), 99,1);
                 add_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'order_details'), 99,1);
+                //add_filter('woocommerce_available_payment_gateways', array($this, 'custom_filter_payment_gateways'),10);
 
             }
 
