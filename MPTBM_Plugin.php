@@ -10,8 +10,6 @@
  	 * License URI: https://www.gnu.org/licenses/gpl-2.0.html
 	 * Text Domain: ecab-taxi-booking-manager
 	 * Domain Path: /languages/
-	 * WC requires at least: 3.0.9
-	 * WC tested up to: 8.5.2
 	 */
 	if (!defined('ABSPATH')) {
 		die;
