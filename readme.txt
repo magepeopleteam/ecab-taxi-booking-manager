@@ -29,55 +29,55 @@ Let's take a look at the key features that make the plugin more acceptable in it
 
 ## Key Features:
 
-### 🤝 User-Friendly Interface
+**🤝 User-Friendly Interface**
 Enjoy a user-friendly interface that simplifies taxi booking management for administrators and customers.
 
-### ⏱ Flexible Booking Options 
+**⏱ Flexible Booking Options** 
 Provide customers with the flexibility to choose immediate pickups or pre-scheduled rides according to their preferences.
 
-### 💵 Fare Calculation 
+**💵 Fare Calculation** 
 Automatic fare calculation based on distance, time, or any custom criteria you define.
 
-### 📰 Customizable Rates
+**📰 Customizable Rates**
 Set up custom rate plans, allowing you to tailor pricing based on different zones, distances, or other factors.
 
-### 💰 Multiple Payment Gateways
+**💰 Multiple Payment Gateways**
 Easily integrate with popular payment gateways to offer secure and diverse payment options for customers.
 
-### 🤹 Booking Management
+**🤹 Booking Management**
 Efficiently manage all taxi bookings from your WordPress dashboard, with the ability to view, modify, or cancel bookings as needed.
 
-### 🗺 Google Maps API 
+**🗺 Google Maps API** 
 Google Maps API is integrated for route mapping, enhancing the navigation experience for both customers and drivers.
 
-### 💦 Responsive Design 
+**💦 Responsive Design** 
 The plugin is designed to be fully responsive, offering a smooth booking experience across various devices.
 
 
-### 📧 Email Customization
+**📧 Email Customization**
 Receive order confirmations and deliver PDF receipts easily after successful payments with dual email functions.
 
 
-### 🛒 Customize Checkout
+**🛒 Customize Checkout**
 Transform your checkout page effortlessly, collecting rider details and departure information while enhancing functionality and appearance.
 Most of your basic business needs will be covered with the action of the above features but when your business requires more dynamic solutions in terms of meeting the business need and functionality then the pro features will be handy for you.
 
 
 ## Pro Features (Available in Pro Version):
 
-### 🛒 Customizable Checkout Field
+**🛒 Customizable Checkout Field**
 Add, edit, or delete necessary fields for personal information collection before boarding a car or taxi cab, ensuring all needed data is securely stored.
 
-### 🛒 WooCommerce Custom Checkout Integration 
+**🛒 WooCommerce Custom Checkout Integration** 
 Create unique checkout experiences for customers, offering payment methods, order notes, discounts, and special deals without coding.
 
-### 🎟️ Ticket Confirmation In PDF Format 
+**🎟️ Ticket Confirmation In PDF Format** 
 Automatically generate PDF tickets or invoices after bookings, providing customers with convenient and secure invoices for accounting purposes.
 
-### 📍 API For Autocomplete Of Google Addresses
+**📍 API For Autocomplete Of Google Addresses**
 Enhance the booking experience with auto-suggestive address suggestions for customers during the booking process.
 
-### ⏳ Wait Time Option With Extra Payment
+**⏳ Wait Time Option With Extra Payment**
 Offer extra waiting time for users with convenient pricing, ensuring a smooth traveling journey.
 
 
