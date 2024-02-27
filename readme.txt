@@ -3,8 +3,8 @@ Contributors: magepeopleteam
 Author URI : https://mage-people.com
 Tags: Taxi, Cab, Taxi Booking, Hire Car, Taxi Rental
 Requires at least: 5.3
-Stable tag: 1.0.3
-Version: 1.0.3
+Stable tag: 1.0.4
+Version: 1.0.4
 Tested up to: 6.2
 Requires PHP: 7.0
 License: GPLv2 or later
