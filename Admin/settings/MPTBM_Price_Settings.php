@@ -13,6 +13,7 @@
 				add_action('save_post', [$this, 'save_price_settings'], 10, 1);
 			}
 			public function price_settings($post_id) {
+				$initial_price = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_initial_price');
 				$display_map = MPTBM_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'enable');
 				$price_based = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_price_based');
 				$price_based = $display_map == 'disable' ? 'manual' : $price_based;
@@ -35,7 +36,15 @@
 					<h2 class="h4 text-primary my-1 p-0"><?php esc_html_e('Price Settings', 'ecab-taxi-booking-manager'); ?></h2>
 					<section class="component d-flex justify-content-between align-items-center mb-2">
 						<div class="w-100 d-flex justify-content-between align-items-center">
-							<label for=""><?php esc_html_e('Pricing based on', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"></i></label>
+							<label for=""><?php esc_html_e('Initial Price', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"><span><?php MPTBM_Settings::info_text( 'mptbm_initial_price' ); ?></span></i></label>
+							<div class=" d-flex justify-content-between">
+								<input class="formControl mp_price_validation" name="mptbm_initial_price" value="<?php echo esc_attr($initial_price); ?>" type="text" placeholder="<?php esc_html_e('EX:10', 'ecab-taxi-booking-manager'); ?>"/>
+							</div>
+						</div>
+					</section>
+					<section class="component d-flex justify-content-between align-items-center mb-2">
+						<div class="w-100 d-flex justify-content-between align-items-center">
+							<label for=""><?php esc_html_e('Pricing based on', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"><span><?php MPTBM_Settings::info_text( 'mptbm_price_based' ); ?></span></i></label>
 							<div class=" d-flex _fdColumn flexEnd">
 								<select class="formControl" name="mptbm_price_based" data-collapse-target>
 									<option disabled selected><?php esc_html_e('Please select ...', 'ecab-taxi-booking-manager'); ?></option>
@@ -53,7 +62,7 @@
 					</section>
 					<section class="component d-flex justify-content-between align-items-center mb-2" data-collapse="#mp_distance" class="<?php echo esc_attr($price_based == 'distance' || $price_based == 'distance_duration' ? 'mActive' : ''); ?>">
 						<div class="w-100 d-flex justify-content-between align-items-center">
-							<label for=""><?php esc_html_e('Price/KM', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"></i></label>
+							<label for=""><?php esc_html_e('Price/KM', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"><span><?php MPTBM_Settings::info_text( 'mptbm_km_price' ); ?></span></i></label>
 							<div class=" d-flex justify-content-between">
 								<input class="formControl mp_price_validation" name="mptbm_km_price" value="<?php echo esc_attr($distance_price); ?>" type="text" placeholder="<?php esc_html_e('EX:10', 'ecab-taxi-booking-manager'); ?>"/>
 							</div>
@@ -61,7 +70,7 @@
 					</section>
 					<section class="component d-flex justify-content-between align-items-center mb-2" data-collapse="#mp_duration" class="<?php echo esc_attr($price_based == 'duration' || $price_based == 'distance_duration' || $price_based == 'fixed_hourly' ? 'mActive' : ''); ?>">
 						<div class="w-100 d-flex justify-content-between align-items-center">
-							<label for=""><?php esc_html_e('Price/Hour', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"></i></label>
+							<label for=""><?php esc_html_e('Price/Hour', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"><span><?php MPTBM_Settings::info_text( 'mptbm_hour_price' ); ?></span></i></label>
 							<div class=" d-flex justify-content-between">
 								<input class="formControl mp_price_validation" name="mptbm_hour_price" value="<?php echo esc_attr($time_price); ?>" type="text" placeholder="<?php esc_html_e('EX:10', 'ecab-taxi-booking-manager'); ?>"/>
 							</div>
@@ -99,7 +108,7 @@
 					<?php if ($waiting_time_check == 'enable') { ?>
 						<section class="component d-flex justify-content-between align-items-center mb-2" data-collapse="#mp_waiting_time" class="<?php echo esc_attr($price_based == 'duration' || $price_based == 'distance' || $price_based == 'distance_duration' || $price_based == 'manual' ? 'mActive' : ''); ?>">
 							<div class="w-100 d-flex justify-content-between align-items-center">
-								<label for=""><?php esc_html_e('Waiting Time Price/Hour', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"></i></label>
+								<label for=""><?php esc_html_e('Waiting Time Price/Hour', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"><span><?php MPTBM_Settings::info_text( 'mptbm_waiting_price' ); ?></span></i></label>
 								<div class=" d-flex justify-content-between">
 									<input class="formControl mp_price_validation" name="mptbm_waiting_price" value="<?php echo esc_attr($waiting_price); ?>" type="text" placeholder="<?php esc_html_e('EX:10', 'ecab-taxi-booking-manager'); ?>"/>
 								</div>
@@ -153,6 +162,8 @@
 					return;
 				}
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
+					$initial_price = isset($_POST['mptbm_initial_price']) ? sanitize_text_field($_POST['mptbm_initial_price']) : '';
+					update_post_meta($post_id, 'mptbm_initial_price', $initial_price);
 					$price_based = isset($_POST['mptbm_price_based']) ? sanitize_text_field($_POST['mptbm_price_based']) : '';
 					update_post_meta($post_id, 'mptbm_price_based', $price_based);
 					$distance_price = isset($_POST['mptbm_km_price']) ? sanitize_text_field($_POST['mptbm_km_price']) : 0;

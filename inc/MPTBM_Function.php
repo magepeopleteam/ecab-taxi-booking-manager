@@ -147,6 +147,7 @@
 			//*************Price*********************************//
 			public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '',$waiting_time=0,$two_way=1,$fixed_time=0) {
 				$price = '';
+				$initial_price = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_initial_price');
 				$price_based = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_price_based');
 				$waiting_price=MPTBM_Global_Function::get_post_info($post_id,'mptbm_waiting_price',0)*$waiting_time;
 				if ($price_based == 'distance') {
@@ -178,6 +179,9 @@
 				}
 				if($waiting_time>0){
 					$price=$price+$waiting_price;
+				}
+				if($initial_price>0){
+					$price=$price+$initial_price;
 				}
 				return $price;
 			}
