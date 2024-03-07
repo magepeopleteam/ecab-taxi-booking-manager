@@ -122,6 +122,8 @@
 					if ($return && $return > 1) {
 						$item->add_meta_data(esc_html__('Transfer Type', 'ecab-taxi-booking-manager'), esc_html__('Return ', 'ecab-taxi-booking-manager'));
 					}
+					
+					
 					if ($waiting_time && $waiting_time > 0) {
 						$item->add_meta_data(esc_html__('Extra Waiting Hours', 'ecab-taxi-booking-manager'), $waiting_time . ' ' . esc_html__('Hour ', 'ecab-taxi-booking-manager'));
 					}
