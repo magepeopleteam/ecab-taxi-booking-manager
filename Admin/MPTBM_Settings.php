@@ -75,6 +75,12 @@
 					//================//
 					'mp_slider_images' => esc_html__('Please upload images for gallery', 'ecab-taxi-booking-manager'),
 					//''          => esc_html__( '', 'ecab-taxi-booking-manager' ),
+					//================//
+					'mptbm_initial_price'=> esc_html__('The initial price that will be added as the starting price', 'ecab-taxi-booking-manager'),
+					'mptbm_price_based'=> esc_html__('This is a price calculation model, price will vary based on your choice', 'ecab-taxi-booking-manager'),
+					'mptbm_km_price'=> esc_html__('Set Price per KM', 'ecab-taxi-booking-manager'),
+					'mptbm_hour_price'=> esc_html__('Set Price per Hour', 'ecab-taxi-booking-manager'),
+					'mptbm_waiting_price'=> esc_html__('Set waiting price per hour', 'ecab-taxi-booking-manager'),
 				);
 				$des = apply_filters('mptbm_filter_description_array', $des);
 				return $des[$key];

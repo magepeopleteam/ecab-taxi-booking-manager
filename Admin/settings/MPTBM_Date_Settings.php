@@ -6,12 +6,90 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly.
+
 	if (!class_exists('MPTBM_Date_Settings')) {
 		class MPTBM_Date_Settings {
 			public function __construct() {
 				add_action('add_mptbm_settings_tab_content', [$this, 'date_settings']);
 				add_action('save_post', array($this, 'save_date_time_settings'), 99, 1);
 			}
+			public function default_text($day) {
+				if ($day == 'default') {
+					esc_html_e('Please select', 'ecab-taxi-booking-manager');
+				}
+				else {
+					esc_html_e('Default', 'ecab-taxi-booking-manager');
+				}
+			}
+			public function time_slot($time, $stat_time = '', $end_time = '') {
+				if ($stat_time >= 0 || $stat_time == '') {
+					$time_count = $stat_time == '' ? 0 : $stat_time;
+					$end_time = $end_time != '' ? $end_time : 23.5;
+					for ($i = $time_count; $i <= $end_time; $i = $i + 0.5) {
+						if ($stat_time == 'yes' || $i > $time_count) {
+							?>
+							<option value="<?php echo esc_attr($i); ?>" <?php echo esc_attr($time != '' && $time == $i ? 'selected' : ''); ?>><?php echo date_i18n('h:i A', $i * 3600); ?></option>
+							<?php
+						}
+					}
+				}
+			}
+			
+			public function end_time_slot($post_id, $day, $start_time) {
+				$end_name = 'mptbm_' . $day . '_end_time';
+				$default_end_time = $day == 'default' ? 18 : '';
+				$end_time = MPTBM_Global_Function::get_post_info($post_id, $end_name, $default_end_time);
+				?>
+				<label>
+					<select class="formControl " name="<?php echo esc_attr($end_name); ?>">
+						<?php if ($start_time == '') { ?>
+							<option value="" selected><?php $this->default_text($day); ?></option>
+						<?php } ?>
+						<?php $this->time_slot($end_time, $start_time); ?>
+					</select>
+				</label>
+				<?php
+			}
+			/*************************************/
+			public function get_mptbm_end_time_slot() {
+				$post_id = isset($_REQUEST['post_id']) ? MPTBM_Global_Function::data_sanitize($_REQUEST['post_id']) : '';
+				$day = isset($_REQUEST['day_name']) ? MPTBM_Global_Function::data_sanitize($_REQUEST['day_name']) : '';
+				$start_time = isset($_REQUEST['start_time']) ? MPTBM_Global_Function::data_sanitize($_REQUEST['start_time']) : '';
+				$this->end_time_slot($post_id, $day, $start_time);
+				die();
+			}
+			public function time_slot_tr($post_id, $day) {
+				$start_name = 'mptbm_' . $day . '_start_time';
+				$default_start_time = $day == 'default' ? 10 : '';
+				$start_time = MPTBM_Global_Function::get_post_info($post_id, $start_name, $default_start_time);
+				$end_name = 'mptbm_' . $day . '_end_time';
+				$default_end_time = $day == 'default' ? 18 : '';
+				$end_time = MPTBM_Global_Function::get_post_info($post_id, $end_name, $default_end_time);
+				?>
+				<tr>
+					<th style="text-transform: capitalize;"><?php echo esc_html($day); ?></th>
+					<td class="mptbm_start_time" data-day-name="<?php echo esc_attr($day); ?>">
+						<?php //echo '<pre>'; print_r( $start_time );echo '</pre>'; ?>
+						<label>
+							<select class="formControl" name="<?php echo esc_attr($start_name); ?>">
+								<option value="" <?php echo esc_attr($start_time == '' ? 'selected' : ''); ?>>
+									<?php $this->default_text($day); ?>
+								</option>
+								<?php $this->time_slot($start_time); ?>
+							</select>
+						</label>
+					</td>
+					<td class="textCenter">
+						<strong><?php esc_html_e('To', 'ecab-taxi-booking-manager'); ?></strong>
+					</td>
+					<td class="mptbm_end_time">
+						<?php $this->end_time_slot($post_id, $day, $start_time); ?>
+					</td>
+					
+				</tr>
+				<?php
+			}
+			
 			public function date_settings($post_id) {
 				$date_format = MPTBM_Global_Function::date_picker_format();
 				$now = date_i18n($date_format, strtotime(current_time('Y-m-d')));
@@ -25,12 +103,16 @@
 							<li class="nav-item" data-tabs-target="#mptbm_date_time_general">
 								<span class="fas fa-home pe-1"></span><?php esc_html_e('General', 'ecab-taxi-booking-manager'); ?>
 							</li>
+							<li class="nav-item" data-tabs-target="#mptbm_date_time_schedule">
+								<span class="fas fa-clock pe-1"></span><?php esc_html_e('Schedule', 'ecab-taxi-booking-manager'); ?>
+							</li>
 							<li class="nav-item" data-tabs-target="#mptbm_date_time_off_day">
 								<span class="fas fa-calendar-alt pe-1"></span><?php esc_html_e('Off Days & Dates', 'ecab-taxi-booking-manager'); ?>
 							</li>
 						</ul>
 						<div class="tabsContent p-0 compoent my-1">
 							<div class="tabsItem" data-tabs="#mptbm_date_time_general">
+							
 								<section class="component d-flex justify-content-between align-items-center mb-2">
 									<div class="w-100 d-flex justify-content-between align-items-center">
 										<label for=""><?php esc_html_e('Date Type', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span> <i class="fas fa-question-circle tool-tips"></i></label>
@@ -44,7 +126,7 @@
 									</div>
 								</section>
 								
-								<section data-collapse="#mp_particular" class="component d-flex justify-content-between align-items-center mb-2 <?php echo esc_attr($date_type == 'particular' ? 'mActive' : ''); ?>">
+								<section data-collapse="#mp_particular" style="display:none" class="component d-flex justify-content-between align-items-center mb-2 <?php echo esc_attr($date_type == 'particular' ? 'mActive' : ''); ?>">
 									<div class="w-100 d-flex justify-content-between align-items-center">
 										<label for=""><?php esc_html_e('Particular Dates', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"></i></label>
 										<div class=" d-flex justify-content-between">
@@ -108,13 +190,34 @@
 									</div>
 								</section>
 							</div>
-
+							<div class="tabsItem" data-tabs="#mptbm_date_time_schedule">
+								<table>
+									<thead>
+									<tr>
+										<th><?php esc_html_e('Day', 'ecab-taxi-booking-manager'); ?></th>
+										<th><?php esc_html_e('Start Time', 'ecab-taxi-booking-manager'); ?></th>
+										<th><?php esc_html_e('To', 'ecab-taxi-booking-manager'); ?></th>
+										<th><?php esc_html_e('End Time', 'ecab-taxi-booking-manager'); ?></th>
+										
+									</tr>
+									</thead>
+									<tbody>
+									<?php $this->time_slot_tr($post_id, 'default');
+									$days = MPTBM_Global_Function::week_day();
+									foreach ($days as $key => $day) {
+										$this->time_slot_tr($post_id, $key);
+									}
+									?>
+									</tbody>
+								</table>
+							</div>
 							<div class="tabsItem" data-tabs="#mptbm_date_time_off_day">
 								<section data-collapse="#mp_repeated" class="component d-flex justify-content-between align-items-center mb-2 <?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
 									<div class="w-100 d-flex justify-content-between align-items-center">
 										<label for=""><?php esc_html_e('Off Day', 'ecab-taxi-booking-manager'); ?> <i class="fas fa-question-circle tool-tips"></i></label>
 										<div class="d-flex justify-content-between align-items-center">
 											<?php
+												
 												$off_days = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_off_days');
 												$days = MPTBM_Global_Function::week_day();
 												$off_day_array = explode(',', $off_days);
@@ -212,8 +315,14 @@
 					$active_days = isset($_POST['mptbm_active_days']) ? sanitize_text_field($_POST['mptbm_active_days']) : '';
 					update_post_meta($post_id, 'mptbm_active_days', $active_days);
 					//**********************//
-					$off_days = isset($_POST['mptbm_off_days']) && is_array($_POST['mptbm_off_days']) ? array_map('sanitize_text_field',$_POST['mptbm_off_days']) : [];
-					update_post_meta($post_id, 'mptbm_off_days', $off_days);
+					if(isset($_POST['mptbm_off_days'])){
+						$off_days_arr = explode(',', $_POST['mptbm_off_days']);
+						$off_days = is_array($off_days_arr) ? array_map('sanitize_text_field',$off_days_arr) : [];
+						$off_days = implode(',', $off_days);
+						
+						update_post_meta($post_id, 'mptbm_off_days', $off_days);
+					}
+					
 					//**********************//
 					$off_dates = isset($_POST['mptbm_off_dates']) && is_array($_POST['mptbm_off_dates']) ? array_map('sanitize_text_field',$_POST['mptbm_off_dates']) : [];
 					$_off_dates = array();
@@ -225,7 +334,47 @@
 						}
 					}
 					update_post_meta($post_id, 'mptbm_off_dates', $_off_dates);
+					$this->save_schedule($post_id, 'default');
+					$days = MPTBM_Global_Function::week_day();
+					foreach ($days as $key => $day) {
+						$this->save_schedule($post_id, $key);
+					}
+					
 				}
+			}
+			public  function get_submit_info($key, $default = '') {
+				return $this->data_sanitize($_POST[$key] ?? $default);
+			}
+			public function data_sanitize($data) {
+				$data = maybe_unserialize($data);
+				if (is_string($data)) {
+					$data = maybe_unserialize($data);
+					if (is_array($data)) {
+						$data = $this->data_sanitize($data);
+					}
+					else {
+						$data = sanitize_text_field(stripslashes(strip_tags($data)));
+					}
+				}
+				elseif (is_array($data)) {
+					foreach ($data as &$value) {
+						if (is_array($value)) {
+							$value = $this->data_sanitize($value);
+						}
+						else {
+							$value = sanitize_text_field(stripslashes(strip_tags($value)));
+						}
+					}
+				}
+				return $data;
+			}
+			public function save_schedule($post_id, $day) {
+				$start_name = 'mptbm_' . $day . '_start_time';
+				$start_time = $this->get_submit_info($start_name);
+				update_post_meta($post_id, $start_name, $start_time);
+				$end_name = 'mptbm_' . $day . '_end_time';
+				$end_time = $this->get_submit_info($end_name);
+				update_post_meta($post_id, $end_name, $end_time);
 			}
 		}
 		new MPTBM_Date_Settings();
