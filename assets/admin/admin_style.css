@@ -137,20 +137,6 @@
   }
 }
 
-@font-face {
-  font-display: swap;
-  font-family: "ubuntu";
-  font-style: normal;
-  font-weight: 300;
-  src: url("../fonts/Ubuntu-Regular.woff") format("woff");
-}
-@font-face {
-  font-display: swap;
-  font-family: "ubuntuBold";
-  font-style: normal;
-  font-weight: 500;
-  src: url("../fonts/Ubuntu-Bold.woff") format("woff");
-}
 #mp_meta_box_panel .p-0, .mp_global_settings .p-0 {
   padding: 0em;
 }
@@ -1322,6 +1308,23 @@ div.mpStyle span.mp_remove_multi_image {
 
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
   padding: 5px;
+}
+
+#mp_meta_box_panel .tabBorder .nav-item {
+  background-color: var(--mpl-gray);
+  border-radius: 0;
+}
+#mp_meta_box_panel .tabBorder .nav-item:hover {
+  color: var(--mpl-secondary);
+  font-weight: normal;
+}
+#mp_meta_box_panel .tabBorder .nav-item.active {
+  background-color: var(--mpl-primary);
+  font-weight: normal;
+}
+#mp_meta_box_panel .tabBorder .nav-item.active:hover {
+  color: var(--mpl-white);
+  font-weight: normal;
 }
 
 /*# sourceMappingURL=admin_style.css.map */

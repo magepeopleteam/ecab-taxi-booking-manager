@@ -42,7 +42,6 @@
   div.mp_add_icon_image_area {
     border: 1px solid $color-dark;
     position: relative;
-
   }
   .mpStyle .navy_blueButton,
   .mpStyle [class*="_navy_blueButton"] {
@@ -387,4 +386,24 @@ div.mpStyle span.mp_remove_multi_image {
   .select2-selection--multiple
   .select2-selection__choice__remove {
   padding: 5px;
+}
+#mp_meta_box_panel {
+  .tabBorder {
+    .nav-item {
+      background-color: $color-gray;
+      border-radius: 0;
+      &:hover {
+        color: $color-secondary;
+        font-weight: normal;
+      }
+      &.active {
+        background-color: $color-primary;
+        font-weight: normal;
+        &:hover {
+          color: $color-white;
+            font-weight: normal;
+        }
+      }
+    }
+  }
 }
