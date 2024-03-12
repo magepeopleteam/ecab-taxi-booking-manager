@@ -147,7 +147,9 @@
 			//*************Price*********************************//
 			public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '',$waiting_time=0,$two_way=1,$fixed_time=0) {
 				$price = '';
+				$initial_price = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_initial_price');
 				$price_based = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_price_based');
+				
 				$waiting_price=MPTBM_Global_Function::get_post_info($post_id,'mptbm_waiting_price',0)*$waiting_time;
 				if ($price_based == 'distance') {
 					$price = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_km_price') * $distance / 1000;
@@ -163,6 +165,10 @@
 				}
 				else {
 					$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+					$term_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
+					
+					$manual_prices = array_merge($manual_prices, $term_prices);
+					
 					if (sizeof($manual_prices) > 0) {
 						foreach ($manual_prices as $manual_price) {
 							$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
@@ -178,6 +184,9 @@
 				}
 				if($waiting_time>0){
 					$price=$price+$waiting_price;
+				}
+				if($initial_price>0){
+					$price=$price+$initial_price;
 				}
 				return $price;
 			}
@@ -201,6 +210,8 @@
 				$price_based = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_price_based');
 				if ($price_based == 'manual') {
 					$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+					$terms_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
+					$manual_prices = array_merge($manual_prices, $terms_prices);
 					if (sizeof($manual_prices) > 0) {
 						$exit = 0;
 						foreach ($manual_prices as $manual_price) {
@@ -220,6 +231,7 @@
 				$all_location = [];
 				if ($post_id && $post_id > 0) {
 					$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+					$terms_location_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_terms_start_location', []);
 					if (sizeof($manual_prices) > 0) {
 						foreach ($manual_prices as $manual_price) {
 							$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
@@ -236,9 +248,18 @@
 						foreach ($posts as $post) {
 							$post_id = $post->ID;
 							$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+							$terms_location_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
 							if (sizeof($manual_prices) > 0) {
 								foreach ($manual_prices as $manual_price) {
 									$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
+									if ($start_location) {
+										$all_location[] = $start_location;
+									}
+								}
+							}
+							if (sizeof($terms_location_prices) > 0) {
+								foreach ($terms_location_prices as $terms_location_price) {
+									$start_location = array_key_exists('start_location', $terms_location_price) ? $terms_location_price['start_location'] : '';
 									if ($start_location) {
 										$all_location[] = $start_location;
 									}
@@ -270,10 +291,20 @@
 						foreach ($posts as $post) {
 							$post_id = $post->ID;
 							$manual_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+							$terms_location_prices = MPTBM_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
 							if (sizeof($manual_prices) > 0) {
 								foreach ($manual_prices as $manual_price) {
 									$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
 									$end_location = array_key_exists('end_location', $manual_price) ? $manual_price['end_location'] : '';
+									if ($start_location && $end_location && $start_location == $start_place) {
+										$all_location[] = $end_location;
+									}
+								}
+							}
+							if (sizeof($terms_location_prices) > 0) {
+								foreach ($terms_location_prices as $terms_location_price) {
+									$start_location = array_key_exists('start_location', $terms_location_price) ? $terms_location_price['start_location'] : '';
+									$end_location = array_key_exists('end_location', $terms_location_price) ? $terms_location_price['end_location'] : '';
 									if ($start_location && $end_location && $start_location == $start_place) {
 										$all_location[] = $end_location;
 									}

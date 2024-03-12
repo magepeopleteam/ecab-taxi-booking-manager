@@ -53,7 +53,7 @@
 									<option selected disabled><?php esc_html_e(' Select Pick-Up Location', 'ecab-taxi-booking-manager'); ?></option>
 									<?php if (sizeof($all_start_locations) > 0) { ?>
 										<?php foreach ($all_start_locations as $start_location) { ?>
-											<option value="<?php echo esc_attr($start_location); ?>"><?php echo esc_html($start_location); ?></option>
+											<option class="textCapitalize" value="<?php echo esc_attr($start_location); ?>"><?php echo esc_html($start_location); ?></option>
 										<?php } ?>
 									<?php } ?>
 								</select>
@@ -67,10 +67,10 @@
 							<span><i class="fas fa-map-marker-alt _textTheme_mR_xs"></i><?php esc_html_e('Drop-Off Location', 'ecab-taxi-booking-manager'); ?></span>
 							<?php if ($price_based == 'manual') { ?>
 								<select class="formControl mptbm_map_end_place" id="mptbm_manual_end_place">
-									<option selected disabled><?php esc_html_e(' Select Destination Location', 'ecab-taxi-booking-manager'); ?></option>
+									<option  class="textCapitalize" selected disabled><?php esc_html_e(' Select Destination Location', 'ecab-taxi-booking-manager'); ?></option>
 								</select>
 							<?php } else { ?>
-								<input type="text" id="mptbm_map_end_place" class="formControl" placeholder="<?php esc_html_e(' Enter Drop-Off Location', 'ecab-taxi-booking-manager'); ?>" value=""/>
+								<input class="textCapitalize" type="text" id="mptbm_map_end_place" class="formControl" placeholder="<?php esc_html_e(' Enter Drop-Off Location', 'ecab-taxi-booking-manager'); ?>" value=""/>
 							<?php } ?>
 						</label>
 					</div>

@@ -73,6 +73,30 @@
 					'has_archive' => false,  // it shouldn't have archive page
 					'rewrite' => false,
 				);
+				$taxonomy_labels = array(
+					'name' => esc_html__('Locations', 'ecab-taxi-booking-manager'),
+					'singular_name' => esc_html__('Location', 'ecab-taxi-booking-manager'),
+					'menu_name' => esc_html__('Locations', 'ecab-taxi-booking-manager'),
+					'all_items' => esc_html__('All Locations', 'ecab-taxi-booking-manager'),
+					'edit_item' => esc_html__('Edit Location', 'ecab-taxi-booking-manager'),
+					'view_item' => esc_html__('View Location', 'ecab-taxi-booking-manager'),
+					'update_item' => esc_html__('Update Location', 'ecab-taxi-booking-manager'),
+					'add_new_item' => esc_html__('Add New Location', 'ecab-taxi-booking-manager'),
+					'new_item_name' => esc_html__('New Location Name', 'ecab-taxi-booking-manager'),
+					'search_items' => esc_html__('Search Locations', 'ecab-taxi-booking-manager'),
+				);
+			
+				$taxonomy_args = array(
+					'hierarchical' => false,
+					'labels' => $taxonomy_labels,
+					'show_ui' => true,
+					'show_in_rest' => true,
+					'query_var' => true,
+					'rewrite' => array('slug' => 'locations'),  // Adjust the slug as needed
+					'meta_box_cb' => false,
+				);
+			
+				register_taxonomy('locations', $cpt, $taxonomy_args);
 				register_post_type('mptbm_extra_services', $ex_args);
 			}
 		}

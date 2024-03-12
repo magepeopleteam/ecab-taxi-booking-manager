@@ -18,9 +18,11 @@
 				$plugin_active = MPTBM_Global_Function::check_plugin('ecab-taxi-booking-manager', 'MPTBM_Plugin.php');
 				if ($count_existing_event == 0 && $plugin_active == 1 && $dummy_post_inserted != 'yes') {
 					$this->add_post($this->dummy_cpt());
+					$this->dummy_taxonomy();
 					flush_rewrite_rules();
 					update_option('mptbm_dummy_already_inserted', 'yes');
 				}
+				
 			}
 			public static function add_post($dummy_cpt) {
 				if (array_key_exists('custom_post', $dummy_cpt)) {
@@ -62,6 +64,25 @@
 						}
 					}
 				}
+			}
+			public function dummy_taxonomy(): array {
+				$taxonomy_data = array(
+					'locations' => array(
+						'Dhaka',
+						'Chittagong',
+						'Sylhet',
+						'Rajshahi'
+					),
+					
+				);
+			
+				foreach ($taxonomy_data as $taxonomy => $terms) {
+					foreach ($terms as $term) {
+						wp_insert_term($term, $taxonomy);
+					}
+				}
+			
+				return $taxonomy_data;
 			}
 			public function dummy_cpt(): array {
 				return [
@@ -157,33 +178,6 @@
 									'mptbm_price_based' => 'distance',
 									'mptbm_km_price' => 1.2,
 									'mptbm_hour_price' => 10,
-									'mptbm_manual_price_info' => [
-										0 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Khulna',
-											'price' => 150,
-										],
-										1 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Rajshahi',
-											'price' => 200,
-										],
-										2 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Shylet',
-											'price' => 170,
-										],
-										4 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Chattogram',
-											'price' => 250,
-										],
-										5 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Feni',
-											'price' => 150,
-										],
-									],
 									'display_mptbm_extra_services' => 'on',
 									'mptbm_extra_services_id' => '',
 									//faq_settings
@@ -219,6 +213,9 @@
 									],
 									//gallery_settings
 									'mp_slider_images' => [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+									//date_settings
+									'mptbm_default_start_time'=> '0.5',
+									'mptbm_default_end_time'=> '23.5',
 									//extras_settings
 									'mptbm_display_contact' => 'on',
 									'mptbm_email' => 'example.gmail.com',
@@ -272,33 +269,6 @@
 									'mptbm_price_based' => 'distance',
 									'mptbm_km_price' => 1.2,
 									'mptbm_hour_price' => 10,
-									'mptbm_manual_price_info' => [
-										0 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Khulna',
-											'price' => 150,
-										],
-										1 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Rajshahi',
-											'price' => 200,
-										],
-										2 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Shylet',
-											'price' => 170,
-										],
-										4 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Chattogram',
-											'price' => 250,
-										],
-										5 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Feni',
-											'price' => 150,
-										],
-									],
 									//Extra Services
 									'display_mptbm_extra_services' => 'on',
 									'mptbm_extra_services_id' => '',
@@ -333,6 +303,9 @@
 										1 => 'Enjoy a taste of Las Vegas glitz at the mind-bending magic show',
 										2 => 'Watch as Gerry McCambridge performs comedy and magic',
 									],
+									//date_settings
+									'mptbm_default_start_time'=> '0.5',
+									'mptbm_default_end_time'=> '23.5',
 									//gallery_settings
 									'mp_slider_images' => [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
 									//extras_settings
@@ -388,33 +361,6 @@
 									'mptbm_price_based' => 'distance',
 									'mptbm_km_price' => 1.2,
 									'mptbm_hour_price' => 10,
-									'mptbm_manual_price_info' => [
-										0 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Khulna',
-											'price' => 150,
-										],
-										1 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Rajshahi',
-											'price' => 200,
-										],
-										2 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Shylet',
-											'price' => 170,
-										],
-										4 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Chattogram',
-											'price' => 250,
-										],
-										5 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Feni',
-											'price' => 150,
-										],
-									],
 									//Extra Services
 									'display_mptbm_extra_services' => 'on',
 									'mptbm_extra_services_id' => '',
@@ -451,6 +397,9 @@
 									],
 									//gallery_settings
 									'mp_slider_images' => [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+									//date_settings
+									'mptbm_default_start_time'=> '0.5',
+									'mptbm_default_end_time'=> '23.5',
 									//extras_settings
 									'mptbm_display_contact' => 'on',
 									'mptbm_email' => 'example.gmail.com',
@@ -504,33 +453,6 @@
 									'mptbm_price_based' => 'distance',
 									'mptbm_km_price' => 1.2,
 									'mptbm_hour_price' => 10,
-									'mptbm_manual_price_info' => [
-										0 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Khulna',
-											'price' => 150,
-										],
-										1 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Rajshahi',
-											'price' => 200,
-										],
-										2 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Shylet',
-											'price' => 170,
-										],
-										4 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Chattogram',
-											'price' => 250,
-										],
-										5 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Feni',
-											'price' => 150,
-										],
-									],
 									//Extra Services
 									'display_mptbm_extra_services' => 'on',
 									'mptbm_extra_services_id' => '',
@@ -567,6 +489,9 @@
 									],
 									//gallery_settings
 									'mp_slider_images' => [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+									//date_settings
+									'mptbm_default_start_time'=> '0.5',
+									'mptbm_default_end_time'=> '23.5',
 									//extras_settings
 									'mptbm_display_contact' => 'on',
 									'mptbm_email' => 'example.gmail.com',
@@ -620,33 +545,6 @@
 									'mptbm_price_based' => 'distance',
 									'mptbm_km_price' => 1.2,
 									'mptbm_hour_price' => 10,
-									'mptbm_manual_price_info' => [
-										0 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Khulna',
-											'price' => 150,
-										],
-										1 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Rajshahi',
-											'price' => 200,
-										],
-										2 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Shylet',
-											'price' => 170,
-										],
-										4 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Chattogram',
-											'price' => 250,
-										],
-										5 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Feni',
-											'price' => 150,
-										],
-									],
 									'display_mptbm_extra_services' => 'on',
 									'mptbm_extra_services_id' => '',
 									//faq_settings
@@ -682,6 +580,9 @@
 									],
 									//gallery_settings
 									'mp_slider_images' => [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+									//date_settings
+									'mptbm_default_start_time'=> '0.5',
+									'mptbm_default_end_time'=> '23.5',
 									//extras_settings
 									'mptbm_display_contact' => 'on',
 									'mptbm_email' => 'example.gmail.com',
@@ -735,33 +636,6 @@
 									'mptbm_price_based' => 'distance',
 									'mptbm_km_price' => 1.2,
 									'mptbm_hour_price' => 10,
-									'mptbm_manual_price_info' => [
-										0 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Khulna',
-											'price' => 150,
-										],
-										1 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Rajshahi',
-											'price' => 200,
-										],
-										2 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Shylet',
-											'price' => 170,
-										],
-										4 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Chattogram',
-											'price' => 250,
-										],
-										5 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Feni',
-											'price' => 150,
-										],
-									],
 									'display_mptbm_extra_services' => 'on',
 									'mptbm_extra_services_id' => '',
 									//faq_settings
@@ -797,6 +671,9 @@
 									],
 									//gallery_settings
 									'mp_slider_images' => [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+									//date_settings
+									'mptbm_default_start_time'=> '0.5',
+									'mptbm_default_end_time'=> '23.5',
 									//extras_settings
 									'mptbm_display_contact' => 'on',
 									'mptbm_email' => 'example.gmail.com',
@@ -850,33 +727,6 @@
 									'mptbm_price_based' => 'distance',
 									'mptbm_km_price' => 1.2,
 									'mptbm_hour_price' => 10,
-									'mptbm_manual_price_info' => [
-										0 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Khulna',
-											'price' => 150,
-										],
-										1 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Rajshahi',
-											'price' => 200,
-										],
-										2 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Shylet',
-											'price' => 170,
-										],
-										4 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Chattogram',
-											'price' => 250,
-										],
-										5 => [
-											'start_location' => 'Dhaka',
-											'end_location' => 'Feni',
-											'price' => 150,
-										],
-									],
 									'display_mptbm_extra_services' => 'on',
 									'mptbm_extra_services_id' => '',
 									//faq_settings
@@ -912,6 +762,9 @@
 									],
 									//gallery_settings
 									'mp_slider_images' => [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+									//date_settings
+									'mptbm_default_start_time'=> '0.5',
+									'mptbm_default_end_time'=> '23.5',
 									//extras_settings
 									'mptbm_display_contact' => 'on',
 									'mptbm_email' => 'example.gmail.com',

@@ -6,11 +6,13 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly
+	
 	$post_id = $post_id ?? '';
 	$fixed_time = $fixed_time ?? 0;
 	$start_date = $start_date ?? sanitize_text_field($_POST['start_date']);
 	$start_date = date('Y-m-d', strtotime($start_date));
 	$all_dates = MPTBM_Function::get_date($post_id);
+	
 	if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
 		$distance = $distance ?? (isset($_COOKIE['mptbm_distance']) ?absint($_COOKIE['mptbm_distance']): '');
 		$duration = $duration ?? (isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '');
@@ -21,6 +23,7 @@
 		$waiting_time = $waiting_time??0;
 		
 		$location_exit = MPTBM_Function::location_exit($post_id, $start_place, $end_place);
+		
 		if ($location_exit && $post_id) {
 			//$product_id = MPTBM_Global_Function::get_post_info($post_id, 'link_wc_product');
 			$thumbnail = MPTBM_Global_Function::get_image_url($post_id);

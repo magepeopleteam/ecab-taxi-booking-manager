@@ -15,6 +15,7 @@
 				add_action('admin_init', array($this, 'admin_init'));
 				add_filter('mp_settings_sec_reg', array($this, 'settings_sec_reg'), 10);
 				add_filter('mp_settings_sec_fields', array($this, 'settings_sec_fields'), 10);
+
 			}
 			public function global_settings_menu() {
 				$cpt = MPTBM_Function::get_cpt();
@@ -39,7 +40,9 @@
 					</div>
 				</div>
 				<?php
+				
 			}
+			
 			public function admin_init() {
 				$this->settings_api->set_sections($this->get_settings_sections());
 				$this->settings_api->set_fields($this->get_settings_fields());
@@ -227,6 +230,7 @@
 				);
 				return array_merge($default_fields, $settings_fields);
 			}
+			
 		}
 		new  MPTBM_Settings_Global();
 	}
