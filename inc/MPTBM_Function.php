@@ -35,7 +35,7 @@ if (!class_exists('MPTBM_Function')) {
 			foreach ($dir as $filename) {
 				if (is_file($filename)) {
 					$file = basename($filename);
-					$name = str_replace("?>", "", strip_tags(file_get_contents($filename, false, null, 24, 16)));
+					$name = str_replace("?>", "", wp_strip_all_tags(file_get_contents($filename, false, null, 24, 16)));
 					$names[$file] = $name;
 				}
 			}

@@ -18,7 +18,7 @@ unset($_SESSION['custom_content']);
 get_header();
 ?>
 <script type="text/javascript">
-    var httpReferrer = "<?php echo isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : ''; ?>";
+    var httpReferrer = "<?php echo isset($_SERVER['HTTP_REFERER']) ? esc_url($_SERVER['HTTP_REFERER']) : ''; ?>";
     document.cookie = "httpReferrer=" + httpReferrer + ";path=/";
 </script>
 <main role="main" id="maincontent" class="middle-align mptbm-show-search-result">

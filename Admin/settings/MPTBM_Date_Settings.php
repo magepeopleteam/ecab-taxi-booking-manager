@@ -98,19 +98,19 @@
 				?>
 				<div class="tabsItem" data-tabs="#mptbm_settings_date">
 					<h2><?php esc_html_e('Date Settings', 'ecab-taxi-booking-manager'); ?></h2>
-					<p><?php _e('Here you can configure date.', 'ecab-taxi-booking-manager'); ?></p>
+					<p><?php esc_html_e('Here you can configure date.', 'ecab-taxi-booking-manager'); ?></p>
 					<!-- General Date config -->
 					<section class="bg-light">
 						<div>
-							<label><?php _e('General Date Configuration', 'ecab-taxi-booking-manager'); ?></label>
-							<span><?php _e('Here you can configure general date', 'ecab-taxi-booking-manager'); ?></span>
+							<label><?php esc_html_e('General Date Configuration', 'ecab-taxi-booking-manager'); ?></label>
+							<span><?php esc_html_e('Here you can configure general date', 'ecab-taxi-booking-manager'); ?></span>
 						</div>
 					</section>
 					
 					<section>
 						<div>
 							<label><?php esc_html_e('Date Type', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></label>
-							<span><?php _e('Here you can configure general date', 'ecab-taxi-booking-manager'); ?></span>
+							<span><?php esc_html_e('Here you can configure general date', 'ecab-taxi-booking-manager'); ?></span>
 						</div>
 						<select class="formControl" name="mptbm_date_type" data-collapse-target required>
 							<option disabled selected><?php esc_html_e('Please select ...', 'ecab-taxi-booking-manager'); ?></option>
@@ -197,8 +197,8 @@
 					
 					<section class="bg-light" style="margin-top: 20px;">
 						<div>
-							<label><?php _e('Schedule Date Configuration', 'ecab-taxi-booking-manager'); ?></label>
-							<span><?php _e('Here you can configure Schedule date.', 'ecab-taxi-booking-manager'); ?></span>
+							<label><?php esc_html_e('Schedule Date Configuration', 'ecab-taxi-booking-manager'); ?></label>
+							<span><?php esc_html_e('Here you can configure Schedule date.', 'ecab-taxi-booking-manager'); ?></span>
 						</div>
 					</section>
 					<section>
@@ -226,8 +226,8 @@
 					
 					<section class="bg-light" style="margin-top: 20px;">
 						<div>
-							<label><?php _e('Off Days & Dates Configuration', 'ecab-taxi-booking-manager'); ?></label>
-							<span><?php _e('Here you can configure Off Days & Dates.', 'ecab-taxi-booking-manager'); ?></span>
+							<label><?php esc_html_e('Off Days & Dates Configuration', 'ecab-taxi-booking-manager'); ?></label>
+							<span><?php esc_html_e('Here you can configure Off Days & Dates.', 'ecab-taxi-booking-manager'); ?></span>
 						</div>
 					</section>
 

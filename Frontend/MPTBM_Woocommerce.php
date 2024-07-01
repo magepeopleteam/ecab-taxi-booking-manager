@@ -607,7 +607,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			if ($passed_validation && WC()->cart->add_to_cart($product_id, $quantity) && 'publish' === $product_status) {
 				$checkout_system = MP_Global_Function::get_settings('mptbm_general_settings', 'single_page_checkout', 'no');
 				if ($checkout_system == 'yes') {
-					echo wc_get_checkout_url();
+					echo esc_url( wc_get_checkout_url() );
 				} else {
 					?>
                     <div class="dLayout woocommerce-page">
@@ -625,7 +625,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					<?php
 				}
 			}
-			echo ob_get_clean();
+			echo esc_html(ob_get_clean());
 			die();
 		}
 	}

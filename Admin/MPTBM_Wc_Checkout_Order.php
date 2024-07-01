@@ -42,7 +42,7 @@
 								<?php $status = '';
 								$status = (isset($checkout_field['disabled']) && $checkout_field['disabled'] == '1') ? '' : 'checked'; ?>
                                 <tr>
-                                    <input id="<?php echo esc_attr(esc_html($key)) ?>" type="hidden" name="<?php echo esc_attr(esc_html($key)) ?>" value="<?php echo esc_attr(esc_html(json_encode(array('name' => $key, 'attributes' => $checkout_field)))) ?>"/>
+                                    <input id="<?php echo esc_attr(esc_html($key)) ?>" type="hidden" name="<?php echo esc_attr(esc_html($key)) ?>" value="<?php echo esc_attr(esc_html(wp_json_encode(array('name' => $key, 'attributes' => $checkout_field)))) ?>"/>
                                     <td><?php echo esc_html($key); ?></td>
                                     <td><?php echo esc_html(isset($checkout_field['label']) ? $checkout_field['label'] : ''); ?></td>
                                     <td><?php echo esc_html(isset($checkout_field['type']) ? $checkout_field['type'] : ''); ?></td>

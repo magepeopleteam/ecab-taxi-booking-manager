@@ -29,7 +29,7 @@
 			public function mptbm_rent_custom_column($columns,$post_id){
 				switch($columns){
 					case 'mptbm_price_based':
-						$mptbm_price_based = esc_html__(get_post_meta($post_id,'mptbm_price_based',true));
+						$mptbm_price_based = esc_html(get_post_meta($post_id, 'mptbm_price_based', true));
 						$item_price_based = [
 							'distance' => 'Distance as google map',
 							'duration' => 'Duration/Time as google map',

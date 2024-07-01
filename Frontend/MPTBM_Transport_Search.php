@@ -36,7 +36,7 @@
 				$map = $display_map == 'disable' ? 'no' : $map;
 				ob_start();
 				do_shortcode('[shop_messages]');
-				echo ob_get_clean();
+				echo esc_html(ob_get_clean());
 				//echo '<pre>';print_r($params);echo '</pre>';
 				include(MPTBM_Function::template_path('registration/registration_layout.php'));
 			}

@@ -434,7 +434,7 @@
 				foreach ($fields as $key => $field) {
 					?>
                     <p class="form-row form-row-wide <?php echo esc_attr(esc_html(isset($field['required']) && $field['required'] == '1' ? ' validate-required ' : '')); ?> <?php echo esc_attr(esc_html(isset($field['validate']) && is_array($field['validate']) && count($field['validate']) ? implode(' validate-', $field['validate']) : '')); ?>" id="<?php echo esc_attr(esc_html($key . '_field')); ?>" data-priority="<?php echo esc_attr(esc_html(isset($field['priority']) ? $field['priority'] : '')); ?>">
-                        <label for="<?php echo esc_attr(esc_html($key)); ?>"><?php echo $field['label']; ?><?php echo isset($field['required']) && $field['required'] == '1' ? ' <abbr class="required" title="required">*</abbr>' : ''; ?></label>
+                        <label for="<?php echo esc_attr(esc_html($key)); ?>"><?php esc_html($field['label']); ?><?php echo isset($field['required']) && $field['required'] == '1' ? ' <abbr class="required" title="required">*</abbr>' : ''; ?></label>
                         <span class="woocommerce-input-wrapper">
                     <input type="file" id="<?php echo esc_attr(esc_html($key . '_file')); ?>" name="<?php echo esc_attr(esc_html($key . '_file')); ?>" <?php echo esc_attr(esc_html(isset($field['required']) && $field['required'] == '1' ? 'required' : '')); ?> accept=".jpe?g,.png,.pdf"/>
                     <input type="hidden" id="<?php echo esc_attr(esc_html($key)); ?>" name="<?php echo esc_attr(esc_html($key)); ?>" <?php echo esc_attr(esc_html(isset($field['required']) && $field['required'] == '1' ? 'required' : '')); ?> value=""/>
@@ -551,8 +551,8 @@
 								$field_name = esc_attr($name);
 								?>
                                 <p class="form-field form-field-wide">
-                                    <strong><?php echo $field_label; ?></strong>
-                                    <label for="<?php echo $field_name; ?>"><?php echo $key_value; ?></label>
+                                    <strong><?php echo  esc_html($field_label); ?></strong>
+                                    <label for="<?php echo esc_attr($field_name); ?>"><?php echo esc_html($key_value); ?></label>
                                 </p>
 							<?php endforeach; ?>
                         </div>
@@ -577,13 +577,13 @@
 								$file_type = wp_check_filetype($key_value, $this->allowed_mime_types);
 								?>
                                 <p class="form-field form-field-wide">
-                                    <strong><?php echo $field_label; ?></strong>
+                                    <strong><?php echo  esc_html($field_label); ?></strong>
 									<?php if (in_array($file_extension, $this->allowed_extensions) && $file_type['type']) : ?>
 										<?php if ($file_extension !== 'pdf') : ?>
-                                            <img src="<?php echo $key_value; ?>" alt="<?php echo $field_name; ?> image" width="100" height="100">
-                                            <a class="button button-tiny button-primary" href="<?php echo $key_value; ?>" download>Download</a>
-										<?php else : ?>
-                                            <a class="button button-tiny button-primary" href="<?php echo $key_value; ?>" download>Download PDF</a>
+											<img src="<?php echo esc_url($key_value); ?>" alt="<?php echo esc_attr($field_name); ?> image" width="100" height="100">
+											<a class="button button-tiny button-primary" href="<?php echo esc_url($key_value); ?>" download>Download</a>
+											<?php else : ?>
+                                            <a class="button button-tiny button-primary" href="<?php echo  esc_url($key_value); ?>" download>Download PDF</a>
 										<?php endif; ?>
 									<?php endif; ?>
                                 </p>
