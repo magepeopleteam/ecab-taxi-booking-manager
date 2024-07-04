@@ -46,6 +46,14 @@ if (!class_exists('MPTBM_Function')) {
 			return apply_filters('filter_mptbm_details_template', $name);
 		}
 
+		public static function get_feature_bag($post_id){
+			return get_post_meta($post_id, "mptbm_maximum_bag", 0);
+		}
+
+		public static function get_feature_passenger($post_id){
+			return get_post_meta($post_id, "mptbm_maximum_passenger", 0);
+		}
+
 		public static function get_schedule($post_id)
 		{
 			$days = MP_Global_Function::week_day();
@@ -71,6 +79,11 @@ if (!class_exists('MPTBM_Function')) {
 				$schedule['default'] = [$default_start_time, $default_end_time];
 			}
 			return $schedule;
+		}
+
+		public static function get_max_bag_number($post_id){
+			$bag_number = get_post_meta($post_id, "mptbm_maximum_bag", true);
+			return $bag_number;
 		}
 
 		public static function details_template_path(): string
@@ -168,7 +181,7 @@ if (!class_exists('MPTBM_Function')) {
 					$start_date = $now;
 				}
 				$repeated_after = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
-				$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 10) - 1;
+				$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 60) - 1;
 				$end_date = date('Y-m-d', strtotime($start_date . ' +' . $active_days . ' day'));
 				$dates = MP_Global_Function::date_separate_period($start_date, $end_date, $repeated_after);
 				foreach ($dates as $date) {

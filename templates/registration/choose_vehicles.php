@@ -357,6 +357,16 @@ if (MP_Global_Function::get_settings("mptbm_general_settings", "enable_filter_vi
     $feature_passenger_number = isset($_POST["feature_passenger_number"]) ? sanitize_text_field($_POST["feature_passenger_number"]) : "";
     $feature_bag_number = isset($_POST["feature_bag_number"]) ? sanitize_text_field($_POST["feature_bag_number"]) : "";
 }
+$mptbm_bags = [];
+$mptbm_passengers = [];
+$mptbm_all_transport_id = MP_Global_Function::get_all_post_id('mptbm_rent');
+foreach ($mptbm_all_transport_id as $key => $value) {
+	array_push($mptbm_bags, MPTBM_Function::get_feature_bag($value));
+	array_push($mptbm_passengers, MPTBM_Function::get_feature_passenger($value));
+}
+$mptbm_bags =  max($mptbm_bags);
+$mptbm_passengers = max($mptbm_passengers);
+ 
 ?>
 <div data-tabs-next="#mptbm_search_result" class="mptbm_map_search_result">
 	<input type="hidden" name="mptbm_post_id" value="" data-price="" />
@@ -386,16 +396,11 @@ if (MP_Global_Function::get_settings("mptbm_general_settings", "enable_filter_vi
 						<span><i class="fas fa-users _textTheme_mR_xs"></i><?php esc_html_e("Number Of Passengers", "ecab-taxi-booking-manager"); ?></span>
 							<label>
 								<select id ="mptbm_passenger_number" class="formControl" name="mptbm_passenger_number">
-									<option value="1" ><?php esc_html_e("1", "ecab-taxi-booking-manager"); ?></option>
-									<option value="2" ><?php esc_html_e("2", "ecab-taxi-booking-manager"); ?></option>
-									<option value="3" ><?php esc_html_e("3", "ecab-taxi-booking-manager"); ?></option>
-									<option value="4" ><?php esc_html_e("4", "ecab-taxi-booking-manager"); ?></option>
-									<option value="5" ><?php esc_html_e("5", "ecab-taxi-booking-manager"); ?></option>
-									<option value="6" ><?php esc_html_e("6", "ecab-taxi-booking-manager"); ?></option>
-									<option value="7" ><?php esc_html_e("7", "ecab-taxi-booking-manager"); ?></option>
-									<option value="8" ><?php esc_html_e("8", "ecab-taxi-booking-manager"); ?></option>
-									<option value="9" ><?php esc_html_e("9", "ecab-taxi-booking-manager"); ?></option>
-									<option value="10" ><?php esc_html_e("10", "ecab-taxi-booking-manager"); ?></option>
+								<?php
+                                    for ($i = 1; $i <= $mptbm_passengers[0]; $i++) {
+                                        echo '<option value="' . esc_html($i) . '">' .  esc_html($i) . '</option>';
+                                    }
+                                ?>
 								</select>
 								
 							</label>
@@ -404,18 +409,12 @@ if (MP_Global_Function::get_settings("mptbm_general_settings", "enable_filter_vi
 						<span><i class="fa  fa-shopping-bag _textTheme_mR_xs"></i><?php esc_html_e("Number Of Bags", "ecab-taxi-booking-manager"); ?></span>
 							<label>
 								<select id ="mptbm_shopping_number" class="formControl" name="mptbm_shopping_number">
-									<option value="1" ><?php esc_html_e("1", "ecab-taxi-booking-manager"); ?></option>
-									<option value="2" ><?php esc_html_e("2", "ecab-taxi-booking-manager"); ?></option>
-									<option value="3" ><?php esc_html_e("3", "ecab-taxi-booking-manager"); ?></option>
-									<option value="4" ><?php esc_html_e("4", "ecab-taxi-booking-manager"); ?></option>
-									<option value="5" ><?php esc_html_e("5", "ecab-taxi-booking-manager"); ?></option>
-									<option value="6" ><?php esc_html_e("6", "ecab-taxi-booking-manager"); ?></option>
-									<option value="7" ><?php esc_html_e("7", "ecab-taxi-booking-manager"); ?></option>
-									<option value="8" ><?php esc_html_e("8", "ecab-taxi-booking-manager"); ?></option>
-									<option value="9" ><?php esc_html_e("9", "ecab-taxi-booking-manager"); ?></option>
-									<option value="10" ><?php esc_html_e("10", "ecab-taxi-booking-manager"); ?></option>
+                                    <?php
+                                        for ($i = 1; $i <= $mptbm_bags[0]; $i++) {
+                                            echo '<option value="' . esc_html($i) . '">' .  esc_html($i) . '</option>';
+                                        }
+                                    ?>
 								</select>
-								
 							</label>
 						</div>
 						
