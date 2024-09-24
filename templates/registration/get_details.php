@@ -171,7 +171,9 @@ if (sizeof($all_dates) > 0) {
 								<span><i class="fas fa-exchange-alt _textTheme_mR_xs"></i><?php esc_html_e('Transfer Type', 'ecab-taxi-booking-manager'); ?></span>
 								<select class="formControl" name="mptbm_taxi_return" id="mptbm_taxi_return" data-collapse-target>
 									<option value="1" selected><?php esc_html_e('One Way', 'ecab-taxi-booking-manager'); ?></option>
-									<option data-option-target="#different_date_return" value="2"><?php esc_html_e('Return', 'ecab-taxi-booking-manager'); ?></option>
+									<?php if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_return_in_different_date') == 'yes') { ?>
+							                    <option data-option-target="#different_date_return" value="2"><?php esc_html_e('Return', 'ecab-taxi-booking-manager'); ?></option>
+							                <?php } ?>
 								</select>
 							</label>
 						</div>
