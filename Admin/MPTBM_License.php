@@ -21,7 +21,7 @@
 					<th colspan="3"><?php esc_html_e('No Need','tour-booking-manager'); ?></th>
 					<th class="textSuccess"><?php esc_html_e('Active','tour-booking-manager'); ?></th>
 					<td colspan="2"></td>
-				</tr>
+				</tr> 
 				<?php
 				do_action('mptbm_addon_list');
 			}

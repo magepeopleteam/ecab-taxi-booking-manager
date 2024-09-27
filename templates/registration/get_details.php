@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) {
 	die;
 } // Cannot access pages directly
 $km_or_mile = MP_Global_Function::get_settings('mp_global_settings', 'km_or_mile', 'km');
+
 $price_based = $price_based ?? '';
 $map = $map ?? 'yes';
 $all_dates = MPTBM_Function::get_all_dates($price_based);
@@ -334,7 +335,7 @@ if (sizeof($all_dates) > 0) {
 
 				// Translators comment to explain the placeholder
 				/* translators: %s: transportation label */
-				$translated_string = __("No %s configured for this price setting", 'ecab-taxi-booking-manager');
+				$translated_string = __("No %s configured for this price setting", 'your-text-domain');
 				
 				$formatted_string = sprintf($translated_string, $transportaion_label);
 				echo esc_html($formatted_string);

@@ -19,7 +19,6 @@
 				if ($count_existing_event == 0 && $plugin_active == 1 && $dummy_post_inserted != 'yes') {
 					$this->add_post($this->dummy_cpt());
 					$this->dummy_taxonomy();
-					$this->driver_status();
 					flush_rewrite_rules();
 					update_option('mptbm_dummy_already_inserted', 'yes');
 				}
@@ -85,33 +84,6 @@
 			
 				return $taxonomy_data;
 			}
-
-			public function driver_status(): array {
-				$taxonomy_data = array(
-					'mptbm_service_status' => array(
-						'Accepted',
-						'Arrived',
-						'Canceled',
-						'Near Pickup Location',
-						'On the way',
-						'Trip Completed',
-						'Trip Started',
-					),
-					
-				);
-
-				foreach ($taxonomy_data as $taxonomy => $terms) {
-					if (!taxonomy_exists($taxonomy_data)) {
-						continue;
-					}
-					foreach ($terms as $term) {
-						wp_insert_term($term, $taxonomy);
-					}
-				}
-			
-				return $taxonomy_data;
-			}
-
 			public function dummy_cpt(): array {
 				return [
 					'custom_post' => [

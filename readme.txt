@@ -4,7 +4,7 @@ Author URI : https://mage-people.com
 Tags: Taxi, Cab, Taxi Booking, Hire Car, Taxi Rental
 Requires at least: 5.3
 Stable tag: trunk
-Tested up to: 6.5.4
+Tested up to: 6.6
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -144,11 +144,16 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
-= 1.4.6 =
+
+= 1.1.0 =
+1. Security Issue Fixed.
+
+= 1.0.9 =
 1. Manual Pricing Slug is fixed
 2. Fixed Hourly Responsive issue Fixed
 3. KM to mile feature added
-= 1.4.5 =
+
+= 1.0.5 =
 1. Geo Fence fixed and intercity with extra pricing added for pro version 
 2. Return Time and date added
 3. Filter by bag and passenger added

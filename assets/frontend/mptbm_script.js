@@ -29,6 +29,13 @@
                 passengerComparisonNumber = parseInt(parts[2], 10); // Index 2 for feature passenger number
                 bagComparisonNumber = parseInt(parts[5], 10); // Index 5 for feature bag number
                 post_id = parseInt(parts[8], 10); // Index 8 for ID
+
+                console.log(
+                  "Feature Passenger Number:",
+                  passengerComparisonNumber
+                );
+                console.log("Feature Bag Number:", bagComparisonNumber);
+                console.log("ID:", post_id);
               }
             });
 

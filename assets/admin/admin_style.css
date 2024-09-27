@@ -472,12 +472,6 @@ div.mp_global_settings .mpPanel .mpPanelBody .mpTabs .tabLists {
   div.mpStyle .mp_sticky_area.mpSticky {
     position: relative;
   }
-  div.mpStyle span.selection {
-    height: auto;
-  }
-  div.mpStyle span.select2-container.select2 {
-    height: auto;
-  }
 }
 
 /*# sourceMappingURL=admin_style.css.map */

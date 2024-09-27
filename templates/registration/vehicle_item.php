@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 } // Cannot access pages directly
 
 $post_id = $post_id ?? '';
-$original_price_based = $price_based ?? '';
+
 if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_filter_via_features') == 'yes') {
     $max_passenger = MP_Global_Function::get_post_info($post_id, 'mptbm_maximum_passenger');
     $max_bag = MP_Global_Function::get_post_info($post_id, 'mptbm_maximum_bag');
@@ -37,11 +37,16 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
     $end_place = $end_place ?? isset($_POST['end_place']) ? sanitize_text_field($_POST['end_place']) : '';
     $two_way = $two_way ?? 1;
     $waiting_time = $waiting_time ?? 0;
+
     $location_exit = MPTBM_Function::location_exit($post_id, $start_place, $end_place);
     if ($location_exit && $post_id) {
         //$product_id = MP_Global_Function::get_post_info($post_id, 'link_wc_product');
         $thumbnail = MP_Global_Function::get_image_url($post_id);
-        $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time, $original_price_based);
+        $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time);
+
+
+
+
         $wc_price = MP_Global_Function::wc_price($post_id, $price);
         $raw_price = MP_Global_Function::price_convert_raw($wc_price);
         $display_features = MP_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');
@@ -85,8 +90,6 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                         </button>
                     </div>
                 </div>
-                <!-- poro feature used this hook for showing driver's data -->
-                <?php do_action('mptbm_booking_item_after_feature',$post_id); ?>
             </div>
         </div>
 <?php
