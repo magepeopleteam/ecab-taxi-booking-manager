@@ -275,6 +275,7 @@
 			//***********************************//
 			public static function price_convert_raw($price) {
 				$price = wp_strip_all_tags($price);
+				$price = str_replace(get_option('woocommerce_price_display_suffix'), '', $price);
 				$price = str_replace(get_woocommerce_currency_symbol(), '', $price);
 				$price = str_replace(wc_get_price_thousand_separator(), 't_s', $price);
 				$price = str_replace(wc_get_price_decimal_separator(), 'd_s', $price);

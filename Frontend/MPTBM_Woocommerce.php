@@ -38,8 +38,11 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$fixed_hour = isset($_POST['mptbm_fixed_hours']) ? sanitize_text_field($_POST['mptbm_fixed_hours']) : 0;
 				$total_price = $this->get_cart_total_price($post_id);
 				$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $return, $fixed_hour);
+				echo '<pre>';print_r($price);echo '</pre>';
 				$wc_price = MP_Global_Function::wc_price($post_id, $price);
+				echo '<pre>';print_r($wc_price);echo '</pre>';
 				$raw_price = MP_Global_Function::price_convert_raw($wc_price);
+				echo '<pre>';print_r($raw_price);echo '</pre>';
 				$cart_item_data['mptbm_date'] = isset($_POST['mptbm_date']) ? sanitize_text_field($_POST['mptbm_date']) : '';
 				$cart_item_data['mptbm_taxi_return'] = $return;
 				$cart_item_data['mptbm_waiting_time'] = $waiting_time;
@@ -64,7 +67,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$cart_item_data = apply_filters('mptbm_add_cart_item', $cart_item_data, $post_id);
 			}
 			$cart_item_data['mptbm_id'] = $post_id;
-			//echo '<pre>';print_r($cart_item_data);echo '</pre>';die();
+			echo '<pre>';print_r($cart_item_data);echo '</pre>';die();
 			return $cart_item_data;
 		}
 		public function before_calculate_totals($cart_object)
