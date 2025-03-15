@@ -17,6 +17,8 @@
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Transport_Search.php';
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Woocommerce.php';
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Wc_Checkout_Fields_Helper.php';
+				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Ride_History.php';
+				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Notifications.php';
 			}
 			public function load_single_template($template): string {
 				global $post;

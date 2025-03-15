@@ -117,11 +117,42 @@ if (!class_exists('MPTBM_Function')) {
 
 		public static function template_path($file_name): string
 		{
-			$template_path = get_stylesheet_directory() . '/mptbm_templates/';
-			$default_dir = MPTBM_PLUGIN_DIR . '/templates/';
-			$dir = is_dir($template_path) ? $template_path : $default_dir;
-			$file_path = $dir . $file_name;
-			return locate_template(array('mptbm_templates/' . $file_name)) ? $file_path : $default_dir . $file_name;
+			// Debug information
+			if (WP_DEBUG) {
+				error_log('MPTBM Template Path: Looking for ' . $file_name);
+			}
+
+			// Define possible template locations
+			$locations = array(
+				get_stylesheet_directory() . '/mptbm_templates/' . $file_name,
+				get_stylesheet_directory() . '/mptbm_templates/registration/' . $file_name,
+				MPTBM_PLUGIN_DIR . '/templates/' . $file_name,
+				MPTBM_PLUGIN_DIR . '/templates/registration/' . $file_name
+			);
+
+			// Debug information
+			if (WP_DEBUG) {
+				error_log('MPTBM Template Path: Checking locations: ' . print_r($locations, true));
+			}
+
+			// Check each location
+			foreach ($locations as $location) {
+				if (file_exists($location)) {
+					if (WP_DEBUG) {
+						error_log('MPTBM Template Path: Found template at ' . $location);
+					}
+					return $location;
+				}
+			}
+
+			// If no template is found, return the default location
+			$default_location = MPTBM_PLUGIN_DIR . '/templates/registration/' . $file_name;
+			
+			if (WP_DEBUG) {
+				error_log('MPTBM Template Path: No template found, using default: ' . $default_location);
+			}
+			
+			return $default_location;
 		}
 		//************************//
 		public static function get_general_settings($key, $default = '')
@@ -511,6 +542,62 @@ if (!class_exists('MPTBM_Function')) {
 				}
 			}
 			return array_unique($all_location);
+		}
+		public static function get_vehicle_availability($post_id, $start_date, $end_date = '') {
+			$total_quantity = (int)MP_Global_Function::get_post_info($post_id, 'mptbm_vehicle_quantity', 1);
+			$booked_quantity = 0;
+			
+			// Get all bookings for this vehicle
+			$args = array(
+				'post_type' => 'shop_order',
+				'post_status' => array('wc-completed', 'wc-processing'),
+				'posts_per_page' => -1,
+				'meta_query' => array(
+					array(
+						'key' => 'mptbm_post_id',
+						'value' => $post_id,
+						'compare' => '='
+					)
+				)
+			);
+			
+			$orders = get_posts($args);
+			
+			foreach ($orders as $order) {
+				$order_start_date = get_post_meta($order->ID, 'mptbm_date', true);
+				$order_end_date = get_post_meta($order->ID, 'mptbm_map_return_date', true);
+				
+				// Check if dates overlap
+				if (self::dates_overlap($start_date, $end_date, $order_start_date, $order_end_date)) {
+					$booked_quantity++;
+				}
+			}
+			
+			$available_quantity = $total_quantity - $booked_quantity;
+			return array(
+				'total' => $total_quantity,
+				'booked' => $booked_quantity,
+				'available' => $available_quantity
+			);
+		}
+		
+		private static function dates_overlap($start1, $end1, $start2, $end2) {
+			// If no end dates provided, just compare start dates
+			if (empty($end1) && empty($end2)) {
+				return $start1 == $start2;
+			}
+			
+			// If only one end date provided, use start date as end date for the other
+			$end1 = empty($end1) ? $start1 : $end1;
+			$end2 = empty($end2) ? $start2 : $end2;
+			
+			// Convert to timestamps for comparison
+			$start1 = strtotime($start1);
+			$end1 = strtotime($end1);
+			$start2 = strtotime($start2);
+			$end2 = strtotime($end2);
+			
+			return ($start1 <= $end2) && ($end1 >= $start2);
 		}
 	}
 	new MPTBM_Function();

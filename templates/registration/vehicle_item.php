@@ -50,6 +50,28 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
         $raw_price = MP_Global_Function::price_convert_raw($wc_price);
         $display_features = MP_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');
         $all_features = MP_Global_Function::get_post_info($post_id, 'mptbm_features');
+        
+        // Check vehicle availability
+        $return_date = isset($_POST['return_date']) ? sanitize_text_field($_POST['return_date']) : '';
+        $total_quantity = get_post_meta($post_id, 'mptbm_vehicle_quantity', true) ?: 1;
+
+        // Get booked count from MPTBM_Availability class
+        $booked_count = 0;
+        if (class_exists('MPTBM_Availability')) {
+            $booked_count = MPTBM_Availability::get_booked_count($post_id, $start_date);
+            if (!empty($return_date)) {
+                // For return date, we need to check separately to avoid double counting
+                $return_booked = MPTBM_Availability::get_booked_count($post_id, $return_date);
+                // Take the maximum of the two counts to avoid exceeding the actual quantity
+                $booked_count = max($booked_count, $return_booked);
+            }
+        }
+
+        $availability = array(
+            'total' => $total_quantity,
+            'booked' => $booked_count,
+            'available' => max(0, $total_quantity - $booked_count)
+        );
 ?>
 
         <div class="_dLayout_dFlex mptbm_booking_item  <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" data-placeholder>
@@ -83,10 +105,37 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                     <?php } ?>
                     <div class="_min_150_mL_xs">
                         <h4 class="textCenter"> <?php echo wp_kses_post(wc_price($raw_price)); ?></h4>
-                        <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
-                            <span class="" data-icon></span>
-                            <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
-                        </button>
+                        <?php
+                            // Calculate availability percentage
+                            $availability_percentage = ($availability['available'] / $availability['total']) * 100;
+                            $availability_class = '';
+
+                            // Add class for low availability (less than 20%)
+                            if ($availability_percentage > 0 && $availability_percentage <= 20) {
+                                $availability_class = 'low-availability';
+                            }
+                        ?>
+
+                        <?php if ($availability['available'] > 0) { ?>
+                            <div class="availability-info">
+                                <small class="text-success <?php echo esc_attr($availability_class); ?>">
+                                    <?php echo sprintf(esc_html__('%d of %d vehicles available', 'ecab-taxi-booking-manager'), $availability['available'], $availability['total']); ?>
+                                </small>
+                            </div>
+                            <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
+                                <span class="" data-icon></span>
+                                <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
+                            </button>
+                        <?php } else { ?>
+                            <div class="availability-info">
+                                <small class="text-danger">
+                                    <?php echo sprintf(esc_html__('Fully Booked (0 of %d available)', 'ecab-taxi-booking-manager'), $availability['total']); ?>
+                                </small>
+                            </div>
+                            <button type="button" class="_mpBtn_xs_w_150" disabled>
+                                <span data-text><?php esc_html_e('Not Available', 'ecab-taxi-booking-manager'); ?></span>
+                            </button>
+                        <?php } ?>
                     </div>
                 </div>
                 <!-- poro feature used this hook for showing driver's data -->

@@ -206,10 +206,12 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 == Changelog ==
 = 1.2.3 =
-1. Google calendar integration added
-2. Woocommerce order analytics added
-3. Rest Api documentation added
-= 1.2.2 = 
+1. Ride History feature added with custom design
+2. Browser Notifications system added for booking updates
+3. Google calendar integration added
+4. Woocommerce order analytics added
+5. Rest Api documentation added
+= 1.2.2 =
 1. Gutenberg block added for booking form
 2. Elementor widget added for booking form
 = 1.2.1 =
