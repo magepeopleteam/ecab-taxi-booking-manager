@@ -1,6 +1,9 @@
  /******************************************************************** ************************************************/
 @media only screen and (min-width: 10px) {
 	div.mptbm_transport_search_area {width: 100%;max-width: 1200px;}
+	div.mpStyle span.select2-container span.select2-selection__rendered{
+		margin-left: 15% !important;
+	}
 	div.mptbm_transport_search_area div.tabsContentNext {padding: 0; margin: 30px 0 0 0; }
 	/* div.mptbm_transport_search_area div.mptbm_distance_time { margin: var(--dmp) 0 0 0; } */
 	div.mptbm_distance_time h6 {font-size: var(--fs);color: var(--d_color);}

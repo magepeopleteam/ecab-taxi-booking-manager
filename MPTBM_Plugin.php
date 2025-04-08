@@ -244,6 +244,22 @@ if (!class_exists('MPTBM_Plugin')) {
          * Enqueue frontend assets
          */
         public function enqueue_frontend_assets() {
+            // Enqueue Select2 CSS and JS
+            wp_enqueue_style(
+                'select2',
+                'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',
+                array(),
+                '4.1.0'
+            );
+            
+            wp_enqueue_script(
+                'select2',
+                'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js',
+                array('jquery'),
+                '4.1.0',
+                true
+            );
+
             if (is_checkout()) {
                 wp_enqueue_style(
                     'mptbm-file-upload',
