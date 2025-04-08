@@ -178,7 +178,7 @@ if (sizeof($all_dates) > 0) {
 						<?php if ($price_based == 'manual') {
 						?>
 							<?php $all_start_locations = MPTBM_Function::get_all_start_location(); ?>
-							<select id="mptbm_manual_start_place" class="mptbm_manual_start_place formControl">
+							<select id="mptbm_manual_start_place" class="mptbm_manual_start_place formControl select2-search">
 								<option selected disabled><?php esc_html_e(' Select Pick-Up Location', 'ecab-taxi-booking-manager'); ?></option>
 								<?php if (sizeof($all_start_locations) > 0) { ?>
 									<?php foreach ($all_start_locations as $start_location) { ?>
@@ -190,7 +190,7 @@ if (sizeof($all_dates) > 0) {
 							<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php esc_html_e('Enter Pick-Up Location', 'ecab-taxi-booking-manager'); ?>" value="" />
 							
 						<?php } ?>
-						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
+						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter" style="position: absolute;top: 20% !important;"></i>
 					</label>
 				</div>
 				<?php
@@ -211,7 +211,7 @@ if (sizeof($all_dates) > 0) {
 						<?php } else { ?>
 							<input class="formControl textCapitalize" type="text" id="mptbm_map_end_place" class="formControl" placeholder="<?php esc_html_e(' Enter Drop-Off Location', 'ecab-taxi-booking-manager'); ?>" value="" />
 						<?php } ?>
-						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
+						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter" style="position: absolute;top: 20% !important;"></i>
 					</label>
 				</div>
 				<?php

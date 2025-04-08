@@ -141,8 +141,23 @@ function mptbm_map_area_init() {
 }
 (function ($) {
     "use strict";
+    
+    // Function to initialize select2 for location dropdowns
+    function initSelect2ForLocations() {
+        $('.select2-search').select2({
+            width: '100%',
+            placeholder: function() {
+                return $(this).data('placeholder');
+            },
+            allowClear: false,
+        });
+    }
+    
     $(document).ready(function () {
         $(".mpStyle ul.mp_input_select_list").hide();
+
+        // Initialize select2 for location dropdowns
+        initSelect2ForLocations();
 
         if ($("#mptbm_map_area").length > 0) {
             mptbm_map_area_init();
@@ -547,6 +562,8 @@ function mptbm_map_area_init() {
                             .promise()
                             .done(function () {
                                 dLoaderRemove(target.closest(".mptbm_search_area"));
+                                // Reinitialize select2 for the drop-off location dropdown
+                                initSelect2ForLocations();
                             });
                     },
                     error: function (response) {
