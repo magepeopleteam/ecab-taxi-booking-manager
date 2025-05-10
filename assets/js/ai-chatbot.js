@@ -12,6 +12,7 @@ jQuery(document).ready(function($) {
     // Chat state
     let conversationHistory = [];
     let isOpen = false;
+    let isWaitingForResponse = false; // Track if waiting for response
     
     // Load saved history if available
     if (chatbot.data('history')) {
@@ -80,6 +81,9 @@ jQuery(document).ready(function($) {
                     if (!response.success) {
                         console.error('Error clearing chat history', response);
                     }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error clearing chat history', status, error);
                 }
             });
         }
@@ -117,25 +121,31 @@ jQuery(document).ready(function($) {
     // Send message function
     function sendMessage() {
         const message = inputField.val().trim();
+        if (message === '') return;
+
+        // Disable input and show loading
+        isWaitingForResponse = true;
+        inputField.prop('disabled', true);
+        sendButton.prop('disabled', true);
         
-        if (!message) return;
-        
-        // Add user message to chat
+        // Add user message to UI
         addUserMessage(message);
         
-        // Clear input field
+        // Clear input
         inputField.val('');
         
-        // Save message to history
-        conversationHistory.push({
-            role: 'user',
-            content: message
-        });
-        
-        // Add typing indicator
-        const typingIndicator = $('<div class="mptbm-chatbot-message bot typing"><div class="mptbm-chatbot-bubble">' + mptbmAIChatbot.i18n.typing + '</div></div>');
+        // Create loading indicator
+        const typingIndicator = $('<div class="mptbm-chatbot-message bot typing"><div class="mptbm-chatbot-bubble">' + 
+                                  (mptbmAIChatbot.i18n.typing || 'Thinking...') + 
+                                  '<span class="mptbm-chatbot-loading"><span></span><span></span><span></span></span></div></div>');
         messagesContainer.append(typingIndicator);
         scrollToBottom();
+        
+        // Save message to conversation history
+        conversationHistory.push({
+            role: 'user', 
+            content: message
+        });
         
         // Send message to server
         $.ajax({
@@ -147,39 +157,66 @@ jQuery(document).ready(function($) {
                 message: message,
                 history: JSON.stringify(conversationHistory)
             },
+            timeout: 60000, // 60 second timeout
             success: function(response) {
                 // Remove typing indicator
                 typingIndicator.remove();
                 
-                if (response.success) {
-                    // Add bot response
-                    addBotMessage(response.data.response);
+                if (response.success && response.data) {
+                    // Add AI response to UI
+                    addBotMessage(response.data);
                     
-                    // Update conversation history
-                    conversationHistory = response.data.history;
+                    // Save response to conversation history
+                    conversationHistory.push({
+                        role: 'assistant', 
+                        content: response.data
+                    });
                 } else {
-                    // Show detailed error message
-                    let errorMessage = mptbmAIChatbot.i18n.error;
-                    if (response.data && typeof response.data === 'string') {
-                        errorMessage = 'Error: ' + response.data;
+                    // Handle error
+                    let errorMessage = 'Something went wrong. Please try again.';
+                    if (response.data) {
+                        errorMessage = response.data;
                     }
-                    addBotMessage(errorMessage);
-                    console.error('AI Chatbot Error:', response.data);
+                    addBotMessage(errorMessage, true, true); // true for scrolling, true for error
                 }
+                
+                // Enable input
+                isWaitingForResponse = false;
+                inputField.prop('disabled', false);
+                sendButton.prop('disabled', false);
+                inputField.focus();
             },
-            error: function(xhr, status, error) {
+            error: function(jqXHR, textStatus, errorThrown) {
                 // Remove typing indicator
                 typingIndicator.remove();
                 
-                // Show detailed error message if available
-                let errorMessage = mptbmAIChatbot.i18n.error;
-                if (xhr.responseJSON && xhr.responseJSON.data) {
-                    errorMessage = 'Error: ' + xhr.responseJSON.data;
-                } else if (error) {
-                    errorMessage = 'Error: ' + error;
+                // Display specific error message based on status
+                let errorMessage = 'An error occurred while connecting to the chatbot.';
+                
+                if (jqXHR.status === 0) {
+                    errorMessage = 'Network error. Please check your internet connection.';
+                } else if (jqXHR.status === 404) {
+                    errorMessage = 'The chatbot endpoint was not found.';
+                } else if (jqXHR.status === 500) {
+                    errorMessage = 'Server error. The chatbot service is currently unavailable.';
+                } else if (textStatus === 'timeout') {
+                    errorMessage = 'Request timed out. The server took too long to respond.';
+                } else if (textStatus === 'abort') {
+                    errorMessage = 'Request was aborted.';
+                } else if (errorThrown) {
+                    errorMessage = 'Error: ' + errorThrown;
                 }
-                addBotMessage(errorMessage);
-                console.error('AI Chatbot AJAX Error:', status, error, xhr.responseText);
+                
+                console.error('AJAX Error:', textStatus, errorThrown, jqXHR);
+                
+                // Add error message to chat
+                addBotMessage(errorMessage, true, true); // true for scrolling, true for error
+                
+                // Enable input
+                isWaitingForResponse = false;
+                inputField.prop('disabled', false);
+                sendButton.prop('disabled', false);
+                inputField.focus();
             }
         });
     }
@@ -192,14 +229,30 @@ jQuery(document).ready(function($) {
     }
     
     // Add bot message to chat
-    function addBotMessage(message, scroll = true) {
-        const messageElement = $('<div class="mptbm-chatbot-message bot"><div class="mptbm-chatbot-bubble">' + formatMessage(message) + '</div></div>');
+    function addBotMessage(message, scroll = true, isError = false) {
+        const messageClass = isError ? 'mptbm-chatbot-message bot error' : 'mptbm-chatbot-message bot';
+        const messageElement = $('<div class="' + messageClass + '"><div class="mptbm-chatbot-bubble">' + formatMessage(message) + '</div></div>');
         messagesContainer.append(messageElement);
         if (scroll) scrollToBottom();
+        
+        // If error, don't add to conversation history
+        if (!isError) {
+            // Add to conversation history if not already in history
+            if (conversationHistory.length === 0 || 
+                conversationHistory[conversationHistory.length - 1].role !== 'assistant' ||
+                conversationHistory[conversationHistory.length - 1].content !== message) {
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: message
+                });
+            }
+        }
     }
     
     // Format message with markdown-like formatting
     function formatMessage(message) {
+        if (!message) return '';
+        
         // Escape HTML
         let formatted = message.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         

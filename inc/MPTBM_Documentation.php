@@ -1852,12 +1852,12 @@ if (!class_exists('MPTBM_Documentation')) {
                 <h3><?php _e('Support Channels', 'ecab-taxi-booking-manager'); ?></h3>
                 <ul>
                     <li><?php _e('<strong>Email Support:</strong> support@mage-people.com', 'ecab-taxi-booking-manager'); ?></li>
-                    <li><?php _e('<strong>Support Ticket:</strong> <a href="https://mage-people.com/submit-ticket/" target="_blank">https://mage-people.com/submit-ticket/</a>', 'ecab-taxi-booking-manager'); ?></li>
+                    <li><?php _e('<strong>Support Ticket:</strong> <a href="https://mage-people.com/support-desk/" target="_blank">https://mage-people.com/support-desk</a>', 'ecab-taxi-booking-manager'); ?></li>
                     <li><?php _e('<strong>WordPress.org Forums:</strong> <a href="https://wordpress.org/support/plugin/ecab-taxi-booking-manager/" target="_blank">Plugin Support Forum</a>', 'ecab-taxi-booking-manager'); ?></li>
                 </ul>
                 
                 <div class="mptbm-doc-note">
-                    <p><?php _e('<strong>Support Hours:</strong> Monday to Friday, 9 AM to 5 PM GMT. Response time is typically 24-48 business hours.', 'ecab-taxi-booking-manager'); ?></p>
+                    <p><?php _e('<strong>Support Hours:</strong> Monday to Friday, 6 AM to 2:45 PM GMT. Response time is typically 24-48 business hours.', 'ecab-taxi-booking-manager'); ?></p>
                 </div>
             </div>
             <?php

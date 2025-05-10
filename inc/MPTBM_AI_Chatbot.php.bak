@@ -29,11 +29,7 @@ if (!class_exists('MPTBM_AI_Chatbot')) {
             add_action('wp_footer', array($this, 'render_chat_widget'));
             
             // Register AJAX handlers
-            add_action('wp_ajax_mptbm_ai_chat_message', array($this, 'handle_chat_message'));
-            add_action('wp_ajax_nopriv_mptbm_ai_chat_message', array($this, 'handle_chat_message'));
-            add_action('wp_ajax_mptbm_test_ai_api_key', array($this, 'test_ai_api_key'));
-            add_action('wp_ajax_mptbm_clear_chat_history', array($this, 'clear_chat_history'));
-            add_action('wp_ajax_nopriv_mptbm_clear_chat_history', array($this, 'clear_chat_history'));
+            $this->setup_ajax_handlers();
             
             // New feature: Voice input
             add_action('wp_ajax_mptbm_process_voice_input', array($this, 'process_voice_input'));
@@ -3046,154 +3042,6 @@ Format the response as structured data in this exact JSON format:
         }
         
         /**
-         * Process analytics data for charts and statistics
-         */
-        private function process_analytics_data($data) {
-            // Initialize statistics
-            $total_conversations = 0;
-            $total_messages = count($data);
-            $unique_sessions = array();
-            $unique_users = array();
-            $intents = array();
-            $sentiments = array();
-            $conversations_by_date = array();
-            $message_lengths = array();
-            $response_lengths = array();
-            $has_booking_refs = 0;
-            
-            // Calculate average response time
-            $total_response_time = 0;
-            $response_time_count = 0;
-            
-            // Calculate daily message counts
-            foreach ($data as $item) {
-                // Track unique sessions
-                if (isset($item['session_id']) && !in_array($item['session_id'], $unique_sessions)) {
-                    $unique_sessions[] = $item['session_id'];
-                }
-                
-                // Track unique users
-                if (isset($item['user_id']) && $item['user_id'] > 0 && !in_array($item['user_id'], $unique_users)) {
-                    $unique_users[] = $item['user_id'];
-                }
-                
-                // Track intents
-                if (isset($item['intent'])) {
-                    if (!isset($intents[$item['intent']])) {
-                        $intents[$item['intent']] = 0;
-                    }
-                    $intents[$item['intent']]++;
-                }
-                
-                // Track sentiments
-                if (isset($item['sentiment'])) {
-                    if (!isset($sentiments[$item['sentiment']])) {
-                        $sentiments[$item['sentiment']] = 0;
-                    }
-                    $sentiments[$item['sentiment']]++;
-                }
-                
-                // Track messages by date
-                if (isset($item['timestamp'])) {
-                    $date = date('Y-m-d', strtotime($item['timestamp']));
-                    if (!isset($conversations_by_date[$date])) {
-                        $conversations_by_date[$date] = 0;
-                    }
-                    $conversations_by_date[$date]++;
-                }
-                
-                // Track message lengths
-                if (isset($item['user_message'])) {
-                    $message_lengths[] = mb_strlen($item['user_message']);
-                }
-                
-                if (isset($item['ai_response'])) {
-                    $response_lengths[] = mb_strlen($item['ai_response']);
-                }
-                
-                // Track booking references
-                if (isset($item['has_booking_ref']) && $item['has_booking_ref']) {
-                    $has_booking_refs++;
-                }
-                
-                // Track response time
-                if (isset($item['response_time']) && $item['response_time'] > 0) {
-                    $total_response_time += $item['response_time'];
-                    $response_time_count++;
-                }
-            }
-            
-            // Calculate averages
-            $avg_message_length = count($message_lengths) > 0 ? array_sum($message_lengths) / count($message_lengths) : 0;
-            $avg_response_length = count($response_lengths) > 0 ? array_sum($response_lengths) / count($response_lengths) : 0;
-            $avg_response_time = $response_time_count > 0 ? $total_response_time / $response_time_count : 0;
-            
-            // Extract common phrases
-            $common_phrases = $this->extract_common_phrases($data);
-            
-            // Prepare data for time series chart
-            $time_series_data = array();
-            $all_dates = $this->get_date_range(array_keys($conversations_by_date));
-            foreach ($all_dates as $date) {
-                $time_series_data[] = array(
-                    'date' => $date,
-                    'count' => isset($conversations_by_date[$date]) ? $conversations_by_date[$date] : 0
-                );
-            }
-            
-            // Prepare intent and sentiment data for charts
-            $intent_chart_data = array();
-            foreach ($intents as $intent => $count) {
-                $intent_chart_data[] = array(
-                    'intent' => $intent,
-                    'count' => $count
-                );
-            }
-            
-            $sentiment_chart_data = array();
-            foreach ($sentiments as $sentiment => $count) {
-                $sentiment_chart_data[] = array(
-                    'sentiment' => $sentiment,
-                    'count' => $count
-                );
-            }
-            
-            // Ensure we have default values for any potentially missing data
-            if (empty($intent_chart_data)) {
-                $intent_chart_data = array(
-                    array('intent' => 'other', 'count' => 0)
-                );
-            }
-            
-            if (empty($sentiment_chart_data)) {
-                $sentiment_chart_data = array(
-                    array('sentiment' => 'neutral', 'count' => 0)
-                );
-            }
-            
-            if (empty($time_series_data)) {
-                $time_series_data = array(
-                    array('date' => date('Y-m-d'), 'count' => 0)
-                );
-            }
-            
-            // Return processed data
-            return array(
-                'total_conversations' => count($unique_sessions),
-                'total_messages' => $total_messages,
-                'unique_users' => count($unique_users),
-                'avg_message_length' => round($avg_message_length, 1),
-                'avg_response_length' => round($avg_response_length, 1),
-                'avg_response_time' => round($avg_response_time, 2),
-                'booking_reference_rate' => $total_messages > 0 ? round(($has_booking_refs / $total_messages) * 100, 1) : 0,
-                'time_series_data' => $time_series_data,
-                'intent_data' => $intent_chart_data,
-                'sentiment_data' => $sentiment_chart_data,
-                'common_phrases' => $common_phrases
-            );
-        }
-        
-        /**
          * Update session statistics
          */
         private function update_session_stats($session_id) {
@@ -3274,31 +3122,28 @@ Format the response as structured data in this exact JSON format:
          * Analyze message sentiment
          */
         private function analyze_message_sentiment($message) {
-            $message = strtolower($message);
-            
-            // Define sentiment patterns
-            $sentiment_patterns = array(
-                'positive' => array('great', 'good', 'excellent', 'thanks', 'thank you', 'awesome', 'love', 'happy', 'pleased', 'best'),
-                'negative' => array('bad', 'terrible', 'awful', 'horrible', 'poor', 'worst', 'hate', 'disappointed', 'frustrating', 'upset', 'not working'),
-                'neutral' => array('ok', 'okay', 'fine', 'alright', 'average', 'when', 'what', 'how', 'where', 'who')
+            // Simple keyword-based sentiment analysis
+            $sentiment_keywords = array(
+                'positive' => array('good', 'great', 'excellent', 'awesome', 'love', 'nice', 'thank', 'thanks', 'happy', 'pleased', 'wonderful', 'appreciate', 'perfect', 'fantastic'),
+                'negative' => array('bad', 'poor', 'terrible', 'awful', 'hate', 'unhappy', 'angry', 'upset', 'disappointed', 'frustrat', 'annoying', 'complain', 'problem', 'difficult', 'not working', 'error', 'issue'),
+                'neutral' => array('how', 'what', 'where', 'when', 'who', 'which', 'help', 'need', 'want', 'look', 'find', 'book', 'reserve', 'schedule', 'price', 'cost', 'location', 'available')
             );
             
-            // Check for each sentiment
-            $matches = array();
-            foreach ($sentiment_patterns as $sentiment => $patterns) {
-                $matches[$sentiment] = 0;
-                foreach ($patterns as $pattern) {
-                    if (stripos($message, $pattern) !== false) {
-                        $matches[$sentiment]++;
-                    }
-                }
-            }
+            // Convert message to lowercase for case-insensitive matching
+            $message = strtolower($message);
             
-            // Find the sentiment with the most matches
+            // Count matches for each sentiment category
             $max_matches = 0;
             $detected_sentiment = 'neutral'; // Default sentiment
             
-            foreach ($matches as $sentiment => $count) {
+            foreach ($sentiment_keywords as $sentiment => $keywords) {
+                $count = 0;
+                foreach ($keywords as $keyword) {
+                    if (strpos($message, $keyword) !== false) {
+                        $count++;
+                    }
+                }
+                
                 if ($count > $max_matches) {
                     $max_matches = $count;
                     $detected_sentiment = $sentiment;
@@ -3819,6 +3664,368 @@ Format the response as structured data in this exact JSON format:
                 require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
                 dbDelta($sql);
             }
+        }
+        
+        /**
+         * Register AJAX handlers
+         */
+        private function setup_ajax_handlers() {
+            add_action('wp_ajax_mptbm_ai_chat_message', array($this, 'handle_chat_message'));
+            add_action('wp_ajax_nopriv_mptbm_ai_chat_message', array($this, 'handle_chat_message'));
+            
+            // Register analytics AJAX handler
+            add_action('wp_ajax_mptbm_ai_chatbot_analytics', array($this, 'handle_analytics_request'));
+        }
+        
+        /**
+         * Handle analytics AJAX request
+         */
+        public function handle_analytics_request() {
+            // Check nonce
+            if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mptbm_chatbot_nonce')) {
+                wp_send_json_error('Invalid security token.');
+                return;
+            }
+            
+            // Check if user has permission
+            if (!current_user_can('manage_options')) {
+                wp_send_json_error('You do not have permission to access analytics.');
+                return;
+            }
+            
+            // Get date range
+            $start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : date('Y-m-d', strtotime('-30 days'));
+            $end_date = isset($_POST['end_date']) ? sanitize_text_field($_POST['end_date']) : date('Y-m-d');
+            
+            // Convert date format if needed
+            $start_date = date('Y-m-d', strtotime($start_date));
+            $end_date = date('Y-m-d', strtotime($end_date));
+            
+            // Process and return analytics data
+            $analytics_data = $this->process_analytics_data($start_date, $end_date);
+            
+            // Send the response
+            wp_send_json_success($analytics_data);
+        }
+        
+        /**
+         * Process analytics data
+         */
+        private function process_analytics_data($start_date, $end_date) {
+            // Get stored analytics data
+            $analytics_data = get_option('mptbm_ai_chatbot_analytics', array());
+            
+            // Filter data by date range
+            $filtered_data = array();
+            foreach ($analytics_data as $item) {
+                if (isset($item['timestamp'])) {
+                    $date = date('Y-m-d', $item['timestamp']);
+                    if ($date >= $start_date && $date <= $end_date) {
+                        $filtered_data[] = $item;
+                    }
+                }
+            }
+            
+            // If no data is available, return empty response
+            if (empty($filtered_data)) {
+                return array();
+            }
+            
+            // Calculate basic metrics
+            $conversation_count = count($filtered_data);
+            $message_count = 0;
+            $unique_users = array();
+            $booking_intent_count = 0;
+            
+            foreach ($filtered_data as $item) {
+                // Count user and bot messages
+                $message_count++;
+                
+                // Track unique users
+                if (isset($item['user_id'])) {
+                    $unique_users[$item['user_id']] = 1;
+                }
+                
+                // Count booking intents
+                if (isset($item['intent']) && strtolower($item['intent']) === 'booking') {
+                    $booking_intent_count++;
+                }
+            }
+            
+            // Calculate booking rate
+            $booking_rate = $conversation_count > 0 ? round(($booking_intent_count / $conversation_count) * 100) : 0;
+            
+            // Prepare time series data (conversations by date)
+            $time_series_data = $this->get_time_series_data($filtered_data, $start_date, $end_date);
+            
+            // Prepare intent distribution
+            $intent_data = $this->get_intent_distribution($filtered_data);
+            
+            // Prepare sentiment analysis
+            $sentiment_data = $this->get_sentiment_distribution($filtered_data);
+            
+            // Calculate response metrics
+            $metrics = $this->calculate_response_metrics($filtered_data);
+            
+            // Get common questions
+            $common_questions = $this->extract_common_phrases($filtered_data);
+            
+            // Get training opportunities
+            $training_data = $this->get_training_opportunities($filtered_data);
+            
+            // Return the analyzed data
+            return array(
+                'total_conversations' => $conversation_count,
+                'total_messages' => $message_count,
+                'unique_users' => count($unique_users),
+                'booking_rate' => $booking_rate,
+                'time_series' => $time_series_data,
+                'intents' => $intent_data,
+                'sentiments' => $sentiment_data,
+                'metrics' => $metrics,
+                'common_questions' => $common_questions,
+                'training' => $training_data
+            );
+        }
+        
+        /**
+         * Get time series data (conversations by date)
+         */
+        private function get_time_series_data($data, $start_date, $end_date) {
+            // Create array with all dates in range
+            $time_series = array();
+            $current = strtotime($start_date);
+            $end = strtotime($end_date);
+            
+            while ($current <= $end) {
+                $date = date('Y-m-d', $current);
+                $time_series[$date] = 0;
+                $current = strtotime('+1 day', $current);
+            }
+            
+            // Count conversations per day
+            foreach ($data as $item) {
+                if (isset($item['timestamp'])) {
+                    $date = date('Y-m-d', $item['timestamp']);
+                    if (isset($time_series[$date])) {
+                        $time_series[$date]++;
+                    }
+                }
+            }
+            
+            // Format for chart.js
+            $formatted_data = array();
+            foreach ($time_series as $date => $count) {
+                $formatted_data[] = array(
+                    'date' => $date,
+                    'count' => $count
+                );
+            }
+            
+            return $formatted_data;
+        }
+        
+        /**
+         * Get intent distribution
+         */
+        private function get_intent_distribution($data) {
+            $intents = array();
+            
+            // Count intents
+            foreach ($data as $item) {
+                if (isset($item['intent']) && !empty($item['intent'])) {
+                    $intent = strtolower($item['intent']);
+                    if (!isset($intents[$intent])) {
+                        $intents[$intent] = 0;
+                    }
+                    $intents[$intent]++;
+                }
+            }
+            
+            // If no intents found, return empty array
+            if (empty($intents)) {
+                return array();
+            }
+            
+            // Format for chart.js
+            $formatted_data = array();
+            foreach ($intents as $intent => $count) {
+                $formatted_data[] = array(
+                    'intent' => $intent,
+                    'count' => $count
+                );
+            }
+            
+            // Sort by count (descending)
+            usort($formatted_data, function($a, $b) {
+                return $b['count'] - $a['count'];
+            });
+            
+            return $formatted_data;
+        }
+        
+        /**
+         * Get sentiment distribution
+         */
+        private function get_sentiment_distribution($data) {
+            $sentiments = array(
+                'positive' => 0,
+                'neutral' => 0,
+                'negative' => 0
+            );
+            
+            // Count sentiments
+            foreach ($data as $item) {
+                if (isset($item['sentiment']) && !empty($item['sentiment'])) {
+                    $sentiment = strtolower($item['sentiment']);
+                    if (isset($sentiments[$sentiment])) {
+                        $sentiments[$sentiment]++;
+                    }
+                }
+            }
+            
+            // Format for chart.js
+            $formatted_data = array();
+            foreach ($sentiments as $sentiment => $count) {
+                if ($count > 0) {
+                    $formatted_data[] = array(
+                        'sentiment' => $sentiment,
+                        'count' => $count
+                    );
+                }
+            }
+            
+            // If no sentiments found, return empty array
+            if (empty($formatted_data)) {
+                return array();
+            }
+            
+            return $formatted_data;
+        }
+        
+        /**
+         * Calculate response metrics
+         */
+        private function calculate_response_metrics($data) {
+            $total_user_message_length = 0;
+            $total_bot_message_length = 0;
+            $total_response_time = 0;
+            $count = 0;
+            
+            foreach ($data as $item) {
+                // Track message lengths
+                if (isset($item['user_message'])) {
+                    $total_user_message_length += strlen($item['user_message']);
+                }
+                
+                if (isset($item['bot_message'])) {
+                    $total_bot_message_length += strlen($item['bot_message']);
+                }
+                
+                // Track response times
+                if (isset($item['response_time'])) {
+                    $total_response_time += $item['response_time'];
+                    $count++;
+                }
+            }
+            
+            // Calculate averages
+            $avg_user_message_length = count($data) > 0 ? round($total_user_message_length / count($data)) : 0;
+            $avg_bot_message_length = count($data) > 0 ? round($total_bot_message_length / count($data)) : 0;
+            $avg_response_time = $count > 0 ? round(($total_response_time / $count), 2) : 0;
+            
+            return array(
+                'avg_message_length' => $avg_user_message_length,
+                'avg_response_length' => $avg_bot_message_length,
+                'avg_response_time' => $avg_response_time
+            );
+        }
+        
+        /**
+         * Extract common phrases from messages
+         */
+        private function extract_common_phrases($data) {
+            // Get all user messages
+            $messages = array();
+            foreach ($data as $item) {
+                if (isset($item['user_message']) && !empty($item['user_message'])) {
+                    $messages[] = strtolower($item['user_message']);
+                }
+            }
+            
+            // If no messages, return empty array
+            if (empty($messages)) {
+                return array();
+            }
+            
+            // Process messages to find common questions
+            $common_questions = array();
+            $question_patterns = array(
+                '/how\s.*\?/i',
+                '/what\s.*\?/i',
+                '/where\s.*\?/i',
+                '/when\s.*\?/i',
+                '/why\s.*\?/i',
+                '/can\s.*\?/i',
+                '/do\s.*\?/i',
+                '/does\s.*\?/i',
+                '/is\s.*\?/i',
+                '/are\s.*\?/i'
+            );
+            
+            foreach ($messages as $message) {
+                foreach ($question_patterns as $pattern) {
+                    if (preg_match($pattern, $message, $matches)) {
+                        $question = trim($matches[0]);
+                        if (!isset($common_questions[$question])) {
+                            $common_questions[$question] = 0;
+                        }
+                        $common_questions[$question]++;
+                    }
+                }
+            }
+            
+            // Format for display
+            $formatted_questions = array();
+            foreach ($common_questions as $question => $count) {
+                if (strlen($question) > 5) { // Filter out very short questions
+                    $formatted_questions[] = array(
+                        'text' => $question,
+                        'count' => $count
+                    );
+                }
+            }
+            
+            // Sort by count (descending)
+            usort($formatted_questions, function($a, $b) {
+                return $b['count'] - $a['count'];
+            });
+            
+            // Return top 10 questions
+            return array_slice($formatted_questions, 0, 10);
+        }
+        
+        /**
+         * Get training opportunities
+         */
+        private function get_training_opportunities($data) {
+            // Get intent distribution
+            $intent_data = $this->get_intent_distribution($data);
+            
+            // Get sentiment distribution
+            $sentiment_data = $this->get_sentiment_distribution($data);
+            
+            // Get common questions
+            $common_questions = $this->extract_common_phrases($data);
+            
+            // Identify intents that need improvement (those with high volume)
+            $top_intents = array_slice($intent_data, 0, 3);
+            
+            return array(
+                'top_intents' => $top_intents,
+                'sentiment_analysis' => $sentiment_data,
+                'common_questions' => $common_questions
+            );
         }
     }
     

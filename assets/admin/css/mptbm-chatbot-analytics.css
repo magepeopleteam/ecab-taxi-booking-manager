@@ -1,0 +1,313 @@
+/**
+ * E-Cab AI Chatbot Analytics Dashboard Styles
+ */
+
+/* Dashboard Container */
+.mptbm-analytics-dashboard {
+    max-width: 1400px;
+    margin: 20px 0;
+    color: #444;
+}
+
+.mptbm-analytics-dashboard h1 {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e5e5e5;
+    color: #23282d;
+}
+
+/* Date Range Controls */
+.mptbm-date-range {
+    background: #fff;
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.mptbm-date-range form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.date-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+}
+
+.date-inputs label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.date-inputs input[type="date"] {
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.quick-ranges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Loading Overlay */
+.mptbm-loading-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 4px;
+    text-align: center;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
+.mptbm-loading-overlay .spinner {
+    float: none;
+    margin: 0 auto 10px;
+}
+
+/* Analytics Content */
+.mptbm-analytics-content {
+    position: relative;
+}
+
+/* Summary Cards */
+.mptbm-analytics-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    background: #f0f6fc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-icon .dashicons {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    color: #2271b1;
+}
+
+.card-content {
+    flex: 1;
+}
+
+.card-content h3 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #646970;
+}
+
+.card-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1d2327;
+}
+
+/* Analytics Grid */
+.mptbm-analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+@media (max-width: 1200px) {
+    .mptbm-analytics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .full-width {
+        grid-column: span 1;
+    }
+}
+
+/* Analytics Cards */
+.analytics-card {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+}
+
+.analytics-card h3 {
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f1;
+    font-size: 16px;
+    color: #1d2327;
+}
+
+/* Chart Containers */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Metrics Table */
+.metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.metrics-table tr {
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.metrics-table tr:last-child {
+    border-bottom: none;
+}
+
+.metrics-table td {
+    padding: 12px 0;
+}
+
+.metrics-table td:first-child {
+    color: #646970;
+}
+
+.metrics-table td:last-child {
+    font-weight: 500;
+    text-align: right;
+    color: #1d2327;
+}
+
+/* Common Phrases */
+.common-phrases-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.common-phrases-list li {
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: #f0f7fc;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.phrase-text {
+    font-weight: 500;
+}
+
+.phrase-count {
+    color: #646970;
+    font-size: 12px;
+}
+
+/* Training Opportunities */
+#training-opportunities ul {
+    margin-left: 20px;
+}
+
+#training-opportunities .actions {
+    margin-top: 16px;
+}
+
+/* No Data */
+.no-data {
+    text-align: center;
+    color: #646970;
+    padding: 20px 0;
+}
+
+/* Loading Placeholders */
+.loading-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+}
+
+.loading-placeholder .spinner {
+    float: none;
+    margin: 0 0 10px 0;
+}
+
+/* Error Notices */
+.notice-error {
+    margin: 0 0 20px 0;
+}
+
+/* Add these styles to the end of the file */
+
+.no-data-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: #777;
+    font-size: 14px;
+    text-align: center;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.no-data-message p {
+    margin: 0;
+    padding: 20px;
+}
+
+.mptbm-admin-actions {
+    margin: 15px 0;
+    text-align: right;
+}
+
+.mptbm-admin-actions button {
+    margin-left: 5px;
+}
+
+.notice p {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#generate-sample-data, #reset-analytics {
+    margin-left: 10px;
+} 

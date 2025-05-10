@@ -296,6 +296,19 @@
     color: var(--primary-color);
 }
 
+/* Add styles for error messages */
+.mptbm-chatbot-message.bot.error .mptbm-chatbot-bubble {
+    background-color: #fff2f2;
+    border: 1px solid #ffcaca;
+    color: #d32f2f;
+}
+
+/* Add a subtle error icon to error messages */
+.mptbm-chatbot-message.bot.error .mptbm-chatbot-bubble::before {
+    content: "⚠️";
+    margin-right: 6px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
     .mptbm-chatbot-container {
