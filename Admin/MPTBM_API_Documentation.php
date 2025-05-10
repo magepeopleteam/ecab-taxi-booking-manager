@@ -206,7 +206,7 @@ if (!class_exists('MPTBM_API_Documentation')) {
                         <!-- Create Booking -->
                         <div class="endpoint-details">
                             <h4>Create Booking</h4>
-                            <p><strong>Endpoint:</strong> <code>POST /wp-json/mptbm/v1/booking</code></p>
+                            <p><strong>Endpoint:</strong> <code>POST /wp-json/mptbm/v1/bookings</code></p>
                             <p><strong>Authentication Required:</strong> Yes</p>
                             
                             <div class="parameters">
@@ -245,8 +245,89 @@ if (!class_exists('MPTBM_API_Documentation')) {
                                             <td>Yes</td>
                                             <td>Date of booking (YYYY-MM-DD format)</td>
                                         </tr>
+                                        <tr>
+                                            <td>booking_time</td>
+                                            <td>string</td>
+                                            <td>Yes</td>
+                                            <td>Time of booking (HH:MM format)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>customer_name</td>
+                                            <td>string</td>
+                                            <td>Yes</td>
+                                            <td>Customer's name</td>
+                                        </tr>
+                                        <tr>
+                                            <td>customer_email</td>
+                                            <td>string</td>
+                                            <td>Yes</td>
+                                            <td>Customer's email address</td>
+                                        </tr>
+                                        <tr>
+                                            <td>customer_phone</td>
+                                            <td>string</td>
+                                            <td>No</td>
+                                            <td>Customer's phone number</td>
+                                        </tr>
+                                        <tr>
+                                            <td>return</td>
+                                            <td>boolean</td>
+                                            <td>No</td>
+                                            <td>Whether return journey is required</td>
+                                        </tr>
+                                        <tr>
+                                            <td>return_date</td>
+                                            <td>string</td>
+                                            <td>No</td>
+                                            <td>Return date (YYYY-MM-DD format)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>return_time</td>
+                                            <td>string</td>
+                                            <td>No</td>
+                                            <td>Return time (HH:MM format)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>passengers</td>
+                                            <td>integer</td>
+                                            <td>No</td>
+                                            <td>Number of passengers</td>
+                                        </tr>
+                                        <tr>
+                                            <td>bags</td>
+                                            <td>integer</td>
+                                            <td>No</td>
+                                            <td>Number of bags</td>
+                                        </tr>
+                                        <tr>
+                                            <td>extra_services</td>
+                                            <td>array</td>
+                                            <td>No</td>
+                                            <td>IDs of extra services</td>
+                                        </tr>
                                     </tbody>
                                 </table>
+                            </div>
+
+                            <div class="example-response">
+                                <h4>Example Response</h4>
+                                <pre>
+{
+    "id": 123,
+    "title": "Booking: Downtown to Airport on 2023-05-15",
+    "status": "publish",
+    "date_created": "2023-05-10T14:30:45",
+    "pickup_location": "Downtown",
+    "dropoff_location": "Airport",
+    "journey_date": "2023-05-15",
+    "journey_time": "14:00",
+    "return": false,
+    "passengers": 2,
+    "bags": 1,
+    "total_price": "75.00",
+    "currency": "$"
+}
+                                </pre>
                             </div>
                         </div>
 
@@ -260,15 +341,284 @@ if (!class_exists('MPTBM_API_Documentation')) {
                         <!-- Update Booking -->
                         <div class="endpoint-details">
                             <h4>Update Booking</h4>
-                            <p><strong>Endpoint:</strong> <code>PUT /wp-json/mptbm/v1/booking/{id}</code></p>
+                            <p><strong>Endpoint:</strong> <code>PUT /wp-json/mptbm/v1/bookings/{id}</code></p>
                             <p><strong>Authentication Required:</strong> Yes</p>
+                            
+                            <div class="parameters">
+                                <h4>Parameters</h4>
+                                <p>Same parameters as Create Booking. All parameters are optional for update.</p>
+                            </div>
+
+                            <div class="example-response">
+                                <h4>Example Response</h4>
+                                <p>Same as Create Booking response</p>
+                            </div>
                         </div>
 
                         <!-- Delete Booking -->
                         <div class="endpoint-details">
                             <h4>Delete Booking</h4>
-                            <p><strong>Endpoint:</strong> <code>DELETE /wp-json/mptbm/v1/booking/{id}</code></p>
+                            <p><strong>Endpoint:</strong> <code>DELETE /wp-json/mptbm/v1/bookings/{id}</code></p>
                             <p><strong>Authentication Required:</strong> Yes</p>
+                            
+                            <div class="example-response">
+                                <h4>Example Response</h4>
+                                <pre>
+{
+    "message": "Booking deleted successfully",
+    "id": 123
+}
+                                </pre>
+                            </div>
+                        </div>
+
+                        <!-- Calculate Price -->
+                        <div class="endpoint-details">
+                            <h4>Calculate Price</h4>
+                            <p><strong>Endpoint:</strong> <code>POST /wp-json/mptbm/v1/calculate-price</code></p>
+                            <p><strong>Authentication Required:</strong> Yes</p>
+                            
+                            <div class="parameters">
+                                <h4>Parameters</h4>
+                                <table class="wp-list-table widefat fixed striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Type</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>transport_id</td>
+                                            <td>integer</td>
+                                            <td>Yes</td>
+                                            <td>ID of the transport service</td>
+                                        </tr>
+                                        <tr>
+                                            <td>start_location</td>
+                                            <td>string</td>
+                                            <td>Yes</td>
+                                            <td>Pickup location</td>
+                                        </tr>
+                                        <tr>
+                                            <td>end_location</td>
+                                            <td>string</td>
+                                            <td>Yes</td>
+                                            <td>Drop-off location</td>
+                                        </tr>
+                                        <tr>
+                                            <td>booking_date</td>
+                                            <td>string</td>
+                                            <td>Yes</td>
+                                            <td>Date of booking (YYYY-MM-DD format)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>return</td>
+                                            <td>boolean</td>
+                                            <td>No</td>
+                                            <td>Whether return journey is required</td>
+                                        </tr>
+                                        <tr>
+                                            <td>extra_services</td>
+                                            <td>array</td>
+                                            <td>No</td>
+                                            <td>IDs of extra services</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="example-response">
+                                <h4>Example Response</h4>
+                                <pre>
+{
+    "base_price": 65.00,
+    "extra_price": 10.00,
+    "total_price": 75.00,
+    "currency": "$"
+}
+                                </pre>
+                            </div>
+                        </div>
+
+                        <!-- Create Order -->
+                        <div class="endpoint-details">
+                            <h4>Create Order</h4>
+                            <p><strong>Endpoint:</strong> <code>POST /wp-json/mptbm/v1/orders</code></p>
+                            <p><strong>Authentication Required:</strong> Yes</p>
+                            
+                            <div class="parameters">
+                                <h4>Parameters</h4>
+                                <table class="wp-list-table widefat fixed striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Type</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>booking_id</td>
+                                            <td>integer</td>
+                                            <td>Yes</td>
+                                            <td>ID of the booking to create an order for</td>
+                                        </tr>
+                                        <tr>
+                                            <td>payment_method</td>
+                                            <td>string</td>
+                                            <td>Yes</td>
+                                            <td>Payment method (direct_order or woocommerce)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>customer_id</td>
+                                            <td>integer</td>
+                                            <td>No</td>
+                                            <td>Customer user ID (if available)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="example-response">
+                                <h4>Example Response (Direct Order)</h4>
+                                <pre>
+{
+    "message": "Order created successfully",
+    "order_id": 456,
+    "payment_method": "direct_order"
+}
+                                </pre>
+                                <h4>Example Response (WooCommerce)</h4>
+                                <pre>
+{
+    "message": "WooCommerce order created successfully",
+    "order_id": 789,
+    "payment_method": "woocommerce",
+    "payment_url": "https://yoursite.com/checkout/?order_id=789"
+}
+                                </pre>
+                            </div>
+                        </div>
+
+                        <!-- Update Order -->
+                        <div class="endpoint-details">
+                            <h4>Update Order</h4>
+                            <p><strong>Endpoint:</strong> <code>PUT /wp-json/mptbm/v1/orders/{id}</code></p>
+                            <p><strong>Authentication Required:</strong> Yes</p>
+                            
+                            <div class="parameters">
+                                <h4>Parameters</h4>
+                                <table class="wp-list-table widefat fixed striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Type</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>status</td>
+                                            <td>string</td>
+                                            <td>No</td>
+                                            <td>Order status (pending, processing, completed, etc.)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="example-response">
+                                <h4>Example Response</h4>
+                                <pre>
+{
+    "message": "Order updated successfully",
+    "order_id": 456,
+    "payment_method": "direct_order"
+}
+                                </pre>
+                            </div>
+                        </div>
+
+                        <!-- Create Customer -->
+                        <div class="endpoint-details">
+                            <h4>Create Customer</h4>
+                            <p><strong>Endpoint:</strong> <code>POST /wp-json/mptbm/v1/customers</code></p>
+                            <p><strong>Authentication Required:</strong> Yes</p>
+                            
+                            <div class="parameters">
+                                <h4>Parameters</h4>
+                                <table class="wp-list-table widefat fixed striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Type</th>
+                                            <th>Required</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>name</td>
+                                            <td>string</td>
+                                            <td>Yes</td>
+                                            <td>Customer's name</td>
+                                        </tr>
+                                        <tr>
+                                            <td>email</td>
+                                            <td>string</td>
+                                            <td>Yes</td>
+                                            <td>Customer's email address</td>
+                                        </tr>
+                                        <tr>
+                                            <td>phone</td>
+                                            <td>string</td>
+                                            <td>No</td>
+                                            <td>Customer's phone number</td>
+                                        </tr>
+                                        <tr>
+                                            <td>address</td>
+                                            <td>string</td>
+                                            <td>No</td>
+                                            <td>Customer's address</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="example-response">
+                                <h4>Example Response</h4>
+                                <pre>
+{
+    "id": 42,
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "phone": "123-456-7890",
+    "address": "123 Main St, Anytown, USA"
+}
+                                </pre>
+                            </div>
+                        </div>
+
+                        <!-- Update Customer -->
+                        <div class="endpoint-details">
+                            <h4>Update Customer</h4>
+                            <p><strong>Endpoint:</strong> <code>PUT /wp-json/mptbm/v1/customers/{id}</code></p>
+                            <p><strong>Authentication Required:</strong> Yes</p>
+                            
+                            <div class="parameters">
+                                <h4>Parameters</h4>
+                                <p>Same parameters as Create Customer. All parameters are optional for update.</p>
+                            </div>
+
+                            <div class="example-response">
+                                <h4>Example Response</h4>
+                                <p>Same as Create Customer response</p>
+                            </div>
                         </div>
                     </div>
 
