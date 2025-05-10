@@ -403,9 +403,9 @@ if (sizeof($all_dates) > 0) {
 			<div class="_dLayout mptbm_distance_time">
 				<div class="_equalChild_separatorRight">
 					<div class="_dFlex_pR_xs">
-						<h1 class="_mR">
+						<h3 class="_mR">
 							<span class="fas fa-route textTheme"></span>
-						</h1>
+						</h3>
 						<div class="fdColumn">
 							<h6><?php esc_html_e('TOTAL DISTANCE', 'ecab-taxi-booking-manager'); ?></h6>
 							<?php if ($km_or_mile != 'km') { ?>
@@ -416,9 +416,9 @@ if (sizeof($all_dates) > 0) {
 						</div>
 					</div>
 					<div class="dFlex">
-						<h1 class="_mLR">
+						<h3 class="_mLR">
 							<span class="fas fa-clock textTheme"></span>
-						</h1>
+						</h3>
 						<div class="fdColumn">
 							<h6><?php esc_html_e('TOTAL TIME', 'ecab-taxi-booking-manager'); ?></h6>
 							<strong class="mptbm_total_time"><?php esc_html_e('0 Hour', 'ecab-taxi-booking-manager'); ?></strong>

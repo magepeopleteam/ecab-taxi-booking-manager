@@ -36,6 +36,9 @@ if (!class_exists('MPTBM_Plugin')) {
             if (!defined('MPTBM_PLUGIN_URL')) {
                 define('MPTBM_PLUGIN_URL', plugins_url() . '/' . plugin_basename(dirname(__FILE__)));
             }
+            if (!defined('MPTBM_PLUGIN_FILE')) {
+                define('MPTBM_PLUGIN_FILE', __FILE__);
+            }
             if (!defined('MPTBM_PLUGIN_DATA')) {
                 // define('MPTBM_PLUGIN_DATA', get_plugin_data(__FILE__));
             }
@@ -62,7 +65,10 @@ if (!class_exists('MPTBM_Plugin')) {
                 require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Dependencies.php';
                 require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Geo_Lib.php';
                 require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Rest_Api.php';
-                require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_API_Documentation.php';
+                require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_SEO_Support.php';
+                require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_AI_Chatbot.php';
+                require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Chatbot_Dashboard.php';
+                require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Documentation.php';
 				
 
                 // Load Block Editor Integration
@@ -77,6 +83,11 @@ if (!class_exists('MPTBM_Plugin')) {
             } else {
                 require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Quick_Setup.php';
                 add_action('activated_plugin', array($this, 'activation_redirect_setup'), 90, 1);
+            }
+
+            // Load custom API implementation
+            if (file_exists(dirname(__FILE__) . '/Admin/settings/mptbm_api.php')) {
+                include_once dirname(__FILE__) . '/Admin/settings/mptbm_api.php';
             }
         }
 

@@ -56,7 +56,8 @@ The plugin is designed to be fully responsive, offering a smooth booking experie
 🛠 Gutenberg & Elementor Support
 Easily add booking forms using the Site Editor (Gutenberg) block or an Elementor widget, providing seamless customization for different page builders.
 
-
+**🤖 AI-Powered Chatbot**
+Provide instant assistance to customers with an intelligent chatbot that answers questions about your taxi services, pricing, and booking process. Supports multiple AI providers (OpenAI, Claude, Gemini).
 
 **📍 API For Autocomplete Of Google Addresses**
 Enhance the booking experience with auto-suggestive address suggestions for customers during the booking process.
@@ -209,6 +210,11 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 1.2.7 =
+1. AI Chatbot integration with OpenAI, Claude and Gemini support
+2. SEO improvements with better heading structure
+3. Minor bug fixes and improvements
+
 = 1.2.6 =
 1. Added dependency for pro version 
 2. Minor issues solved

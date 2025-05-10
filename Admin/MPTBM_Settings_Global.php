@@ -73,6 +73,11 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					'id' => 'mptbm_general_settings',
 					'icon' => 'fas fa-sliders-h',
 					'title' => $label . ' ' . esc_html__('Settings', 'ecab-taxi-booking-manager')
+				),
+				array(
+					'id' => 'mptbm_rest_api_settings',
+					'icon' => 'fas fa-code',
+					'title' => esc_html__('REST API Settings', 'ecab-taxi-booking-manager')
 				)
 			);
 			return array_merge($default_sec, $sections);
@@ -352,6 +357,83 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					)
 				)),
+				'mptbm_rest_api_settings' => apply_filters('filter_mptbm_rest_api_settings', array(
+					array(
+						'name' => 'enable_rest_api',
+						'label' => esc_html__('Enable Rest API', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('If you want to enable the REST API for external integrations, please select On. Default is Off.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'off',
+						'options' => array(
+							'on' => esc_html__('On', 'ecab-taxi-booking-manager'),
+							'off' => esc_html__('Off', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
+						'name' => 'api_authentication',
+						'label' => esc_html__('API Authentication', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Choose the authentication method for the REST API', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'application_passwords',
+						'options' => array(
+							'application_passwords' => esc_html__('Application Passwords', 'ecab-taxi-booking-manager'),
+							'basic_auth' => esc_html__('Basic Auth', 'ecab-taxi-booking-manager'),
+							'api_key' => esc_html__('API Key', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
+						'name' => 'api_rate_limit',
+						'label' => esc_html__('API Rate Limit', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Number of requests allowed per minute (0 for unlimited)', 'ecab-taxi-booking-manager'),
+						'type' => 'number',
+						'default' => '60'
+					),
+					array(
+						'name' => 'api_keys',
+						'label' => esc_html__('API Keys', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Manage API keys for external applications to authenticate with the API.', 'ecab-taxi-booking-manager'),
+						'type' => 'text_html',
+						'value' => '<div id="mptbm-api-keys-wrapper">
+							<button type="button" id="mptbm-generate-key-btn" class="button button-primary">
+								<span class="dashicons dashicons-plus"></span>' . esc_html__('Generate New API Key', 'ecab-taxi-booking-manager') . '
+							</button>
+							<div id="mptbm-key-form" style="display:none;">
+								<h4>' . esc_html__('Generate API Key', 'ecab-taxi-booking-manager') . '</h4>
+								<p>
+									<label style="display:block; margin-bottom:5px;"><strong>' . esc_html__('Description:', 'ecab-taxi-booking-manager') . '</strong></label>
+									<input type="text" id="mptbm-api-key-description" class="regular-text" style="width:100%;" placeholder="' . esc_attr__('My Application', 'ecab-taxi-booking-manager') . '">
+								</p>
+								<p class="description">' . esc_html__('Give this API key a descriptive name so you can identify it later.', 'ecab-taxi-booking-manager') . '</p>
+								<p>
+									<button type="button" id="mptbm-generate-api-key" class="button button-primary">' . esc_html__('Generate Key', 'ecab-taxi-booking-manager') . '</button>
+									<button type="button" id="mptbm-cancel-api-key" class="button">' . esc_html__('Cancel', 'ecab-taxi-booking-manager') . '</button>
+								</p>
+							</div>
+							<div id="mptbm-api-keys-table"></div>
+						</div>'
+					),
+					array(
+						'name' => 'api_debug_mode',
+						'label' => esc_html__('Debug Mode', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Enable detailed error messages in API responses. Not recommended for production.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'off',
+						'options' => array(
+							'on' => esc_html__('On', 'ecab-taxi-booking-manager'),
+							'off' => esc_html__('Off', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
+						'name' => 'api_documentation_link',
+						'label' => esc_html__('API Documentation', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Access complete API documentation including endpoints, authentication methods, and examples.', 'ecab-taxi-booking-manager'),
+						'type' => 'text_html',
+						'value' => '<a href="' . esc_url(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_documentation&tab=api')) . '" class="button button-secondary api-docs-button" target="_blank">
+							<span class="dashicons dashicons-media-document" style="margin-top:4px;"></span> 
+							' . esc_html__('View API Documentation', 'ecab-taxi-booking-manager') . '
+						</a>'
+					)
+				))
 			);
 
 			return array_merge($default_fields, $settings_fields);

@@ -46,37 +46,6 @@
 				$settings_fields = array(
 					'mp_global_settings' => apply_filters('filter_mp_global_settings', array(
 						array(
-							'name' => 'enable_rest_api',
-							'label' => esc_html__('Enable Rest API', 'ecab-taxi-booking-manager'),
-							'type' => 'select',
-							'default' => 'off',
-							'options' => array(
-								'on' => esc_html__('On', 'ecab-taxi-booking-manager'),
-								'off' => esc_html__('Off', 'ecab-taxi-booking-manager')
-							)
-						),
-						array(
-							'name' => 'api_authentication_type',
-							'label' => esc_html__('API Authentication', 'ecab-taxi-booking-manager'),
-							'desc' => esc_html__('Choose the authentication method for the REST API', 'ecab-taxi-booking-manager'),
-							'type' => 'select',
-							'default' => 'application_password',
-							'options' => array(
-								'none' => esc_html__('No Authentication', 'ecab-taxi-booking-manager'),
-								'application_password' => esc_html__('Application Passwords', 'ecab-taxi-booking-manager'),
-								'jwt' => esc_html__('JWT Authentication', 'ecab-taxi-booking-manager')
-							)
-						),
-						array(
-							'name' => 'api_rate_limit',
-							'label' => esc_html__('API Rate Limit', 'ecab-taxi-booking-manager'),
-							'desc' => esc_html__('Number of requests allowed per minute (0 for unlimited)', 'ecab-taxi-booking-manager'),
-							'type' => 'number',
-							'default' => '60',
-							'min' => '0',
-							'max' => '1000'
-						),
-						array(
 							'name' => 'disable_block_editor',
 							'label' => esc_html__('Disable Block/Gutenberg Editor', 'ecab-taxi-booking-manager'),
 							'desc' => esc_html__('If you want to disable WordPress\'s new Block/Gutenberg editor, please select Yes.', 'ecab-taxi-booking-manager'),
