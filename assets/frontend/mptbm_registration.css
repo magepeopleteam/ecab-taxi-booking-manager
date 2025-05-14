@@ -252,3 +252,139 @@ div.mptbm_transport_search_area button.mptbm_transport_select:hover{
   .mp_quantity_input:focus {
 	outline: none;
   }
+
+/* Exact filter styling to match image */
+.filter-box {
+    background-color: white;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+	border: 1px solid #dddddd;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.filter-title {
+    color: #444;
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0 0 20px 0;
+	
+}
+
+.filter-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.filter-item {
+    flex: 1;
+    margin-right: 15px;
+}
+
+.filter-item:last-child {
+    margin-right: 0;
+}
+
+.filter-label {
+    display: block;
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 5px;
+    font-weight: 400;
+}
+
+.filter-icon-dollar {
+    color: #FF3366;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.filter-icon-people::before {
+    content: '\f0c0';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 5px;
+    color: #666;
+}
+
+.filter-icon-bag::before {
+    content: '\f290';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 5px;
+    color: #666;
+}
+
+.filter-box select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    color: #444;
+    font-size: 14px;
+    appearance: none;
+    background-image: url('../../mp_global/assets/images/arrow_down.png');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+}
+
+.filter-buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.btn-apply, .btn-reset {
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border: none;
+}
+
+.btn-apply {
+    background-color: #3366FF;
+    color: white;
+}
+
+.btn-reset {
+    background-color: #f1f1f1;
+    color: #444;
+    border: 1px solid #ddd;
+}
+
+.filter-icon-filter::before {
+    content: '\f0b0';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 5px;
+}
+
+.filter-icon-reset::before {
+    content: '\f2f9';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 5px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+    }
+    
+    .filter-item {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+}
+
+/* Hide filtered items */
+.mptbm_filter_hidden {
+    display: none !important;
+}

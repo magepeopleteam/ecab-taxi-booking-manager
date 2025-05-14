@@ -146,7 +146,11 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
         $all_features = MP_Global_Function::get_post_info($post_id, 'mptbm_features');
 ?>
        
-        <div class="_dLayout_dFlex mptbm_booking_item  <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" data-placeholder>
+        <div class="_dLayout_dFlex mptbm_booking_item  <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" 
+            data-placeholder 
+            data-price="<?php echo esc_attr($raw_price); ?>" 
+            data-passengers="<?php echo esc_attr($max_passenger); ?>" 
+            data-bags="<?php echo esc_attr($max_bag); ?>">
             <div class="_max_200_mR">
                 <div class="bg_image_area"  data-placeholder>
                     <div data-bg-image="<?php echo esc_attr($thumbnail); ?>"></div>

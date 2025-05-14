@@ -238,4 +238,3 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 6. Location taxonomy added for manual pricing 
 7. Manual Pricing Slug issue fixed
 8. Fixed Hourly Responsive issue Fixed
-

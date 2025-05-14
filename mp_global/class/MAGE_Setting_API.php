@@ -73,6 +73,7 @@
 							'min' => isset($option['min']) ? $option['min'] : '',
 							'max' => isset($option['max']) ? $option['max'] : '',
 							'step' => isset($option['step']) ? $option['step'] : '',
+							'value' => isset($option['value']) ? $option['value'] : '',
 						);
 						$label .= $this->get_field_description($args);
 						add_settings_field("{$section}[{$name}]", $label, $callback, $section, $section, $args);
@@ -273,6 +274,34 @@
 					<?php
 				}
 			}
+			function callback_raw_html($args) {
+				if (!empty($args['desc'])) {
+					?>
+					<i class="info_text">
+						<span class="fas fa-info-circle"></span>
+						<?php echo esc_html($args['desc']); ?>
+					</i>
+					<?php
+				}
+				
+				if (!empty($args['value'])) {
+					echo $args['value'];
+				}
+			}
+			function callback_action($args) {
+				if (!empty($args['desc'])) {
+					?>
+					<i class="info_text">
+						<span class="fas fa-info-circle"></span>
+						<?php echo esc_html($args['desc']); ?>
+					</i>
+					<?php
+				}
+				
+				if (!empty($args['action'])) {
+					do_action($args['action']);
+				}
+			}
 			function callback_wysiwyg($args) {
 				$value = MP_Global_Function::get_settings($args['section'], $args['id'], $args['std']);
 				?>
@@ -307,6 +336,12 @@
 					<input type="password" name="<?php echo esc_attr($name); ?>" class="formControl" value="<?php echo esc_attr($value); ?>" placeholder="<?php echo esc_attr($placeholder); ?>"/>
 				</label>
 				<?php
+			}
+			function callback_text_html($args) {
+				// Just output the HTML value directly without escaping
+				if (!empty($args['value'])) {
+					echo $args['value'];
+				}
 			}
 			function callback_color($args) {
 				$value = MP_Global_Function::get_settings($args['section'], $args['id'], $args['std']);

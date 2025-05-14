@@ -272,8 +272,8 @@ function mptbm_map_area_init() {
                                 data: {
                                     action: actionValue,
                                     start_place: start_place.value,
-                                    start_place_coordinates: startCoordinates,
-                                    end_place_coordinates: endCoordinates,
+                                    start_place_coordinates: JSON.stringify(startCoordinates),
+                                    end_place_coordinates: JSON.stringify(endCoordinates),
                                     end_place: end_place.value,
                                     start_date: start_date,
                                     start_time: start_time,
@@ -298,7 +298,12 @@ function mptbm_map_area_init() {
                                         });
                                 },
                                 error: function (response) {
-                                    console.log(response);
+                                    console.log('AJAX Error:', response);
+                                    dLoaderRemove(parent.find(".tabsContentNext"));
+                                    if (response.status === 500) {
+                                        // Show a user-friendly error message instead of just failing silently
+                                        target.append('<div class="mptbm_error_message">Sorry, there was a server error. Please try again or contact support if the issue persists.</div>');
+                                    }
                                 },
                             });
                         } else {
@@ -309,8 +314,8 @@ function mptbm_map_area_init() {
                                 data: {
                                     action: actionValue,
                                     start_place: start_place.value,
-                                    start_place_coordinates: startCoordinates,
-                                    end_place_coordinates: endCoordinates,
+                                    start_place_coordinates: JSON.stringify(startCoordinates),
+                                    end_place_coordinates: JSON.stringify(endCoordinates),
                                     end_place: end_place.value,
                                     start_date: start_date,
                                     start_time: start_time,
@@ -331,7 +336,12 @@ function mptbm_map_area_init() {
                                     window.location.href = cleanedURL; // Redirect to the URL received from the server
                                 },
                                 error: function (response) {
-                                    console.log(response);
+                                    console.log('AJAX Error:', response);
+                                    dLoaderRemove(target);
+                                    if (response.status === 500) {
+                                        // Show a user-friendly error message instead of just failing silently
+                                        alert('Sorry, there was a server error processing your request. Please try again or contact support if the issue persists.');
+                                    }
                                 },
                             });
                         }
@@ -374,7 +384,12 @@ function mptbm_map_area_init() {
                                     });
                             },
                             error: function (response) {
-                                console.log(response);
+                                console.log('AJAX Error:', response);
+                                dLoaderRemove(parent.find(".tabsContentNext"));
+                                if (response.status === 500) {
+                                    // Show a user-friendly error message instead of just failing silently
+                                    target.append('<div class="mptbm_error_message">Sorry, there was a server error. Please try again or contact support if the issue persists.</div>');
+                                }
                             },
                         });
                     } else {
@@ -405,7 +420,12 @@ function mptbm_map_area_init() {
                                 window.location.href = cleanedURL; // Redirect to the URL received from the server
                             },
                             error: function (response) {
-                                console.log(response);
+                                console.log('AJAX Error:', response);
+                                dLoaderRemove(target);
+                                if (response.status === 500) {
+                                    // Show a user-friendly error message instead of just failing silently
+                                    alert('Sorry, there was a server error processing your request. Please try again or contact support if the issue persists.');
+                                }
                             },
                         });
                     }
@@ -738,7 +758,12 @@ function mptbm_price_calculation(parent) {
                         checkAndToggleBookNowButton(parent);
                     },
                     error: function (response) {
-                        console.log(response);
+                        console.log('AJAX Error:', response);
+                        dLoaderRemove(parent.find('.tabsContentNext'));
+                        if (response.status === 500) {
+                            // Show a user-friendly error message instead of just failing silently
+                            target_extra_service.append('<div class="mptbm_error_message">Sorry, there was a server error. Please try again or contact support if the issue persists.</div>');
+                        }
                     }
                 }).promise().done(function () {
                     $.ajax({
@@ -766,7 +791,12 @@ function mptbm_price_calculation(parent) {
                             });
                         },
                         error: function (response) {
-                            console.log(response);
+                            console.log('AJAX Error:', response);
+                            dLoaderRemove(parent.find('.tabsContentNext'));
+                            if (response.status === 500) {
+                                // Show a user-friendly error message instead of just failing silently
+                                target_extra_service.append('<div class="mptbm_error_message">Sorry, there was a server error. Please try again or contact support if the issue persists.</div>');
+                            }
                         }
                     });
                 });
@@ -936,7 +966,12 @@ function mptbm_price_calculation(parent) {
                     }
                 },
                 error: function (response) {
-                    console.log(response);
+                    console.log('AJAX Error:', response);
+                    dLoaderRemove(parent.find('.tabsContentNext'));
+                    if (response.status === 500) {
+                        // Show a user-friendly error message instead of just failing silently
+                        target_checkout.append('<div class="mptbm_error_message">Sorry, there was a server error. Please try again or contact support if the issue persists.</div>');
+                    }
                 }
             });
         }
@@ -1005,7 +1040,12 @@ function mptbm_price_calculation(parent) {
                     mptbm_map_area_init();
                 },
                 error: function (response) {
-                    console.log(response);
+                    console.log('AJAX Error:', response);
+                    dLoaderRemove(parent.find('.tabsContentNext'));
+                    if (response.status === 500) {
+                        // Show a user-friendly error message instead of just failing silently
+                        $("#" + tab_id).append('<div class="mptbm_error_message">Sorry, there was a server error. Please try again or contact support if the issue persists.</div>');
+                    }
                 },
             });
         });

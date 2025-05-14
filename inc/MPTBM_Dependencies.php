@@ -30,6 +30,7 @@ if (!class_exists('MPTBM_Dependencies')) {
             require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Layout.php';
             require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Admin.php';
             require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Frontend.php';
+            require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Chatbot_Analytics.php'; 
         }
         public function global_enqueue()
         {
@@ -67,7 +68,14 @@ if (!class_exists('MPTBM_Dependencies')) {
             //
             wp_enqueue_style('mptbm_style', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_style.css', array(), time());
             wp_enqueue_script('mptbm_script', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_script.js', array('jquery'), time(), true);
-            wp_enqueue_script('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.js', array('jquery'), time(), true);
+            
+            // Make sure geolib is explicitly enqueued for the frontend before registration.js
+            $api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
+            if ($api_key) {
+                wp_enqueue_script('mptbm_geoLib', MPTBM_PLUGIN_URL . '/assets/admin/geolib.js', array('jquery'), time(), true);
+            }
+            
+            wp_enqueue_script('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.js', array('jquery', 'mptbm_geoLib'), time(), true);
             wp_enqueue_style('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.css', array(), time());
             
             // Font Awesome for template icons

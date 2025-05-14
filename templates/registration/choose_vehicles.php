@@ -13,6 +13,30 @@ $schedule = [];
 
 
 function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $start_place_coordinates, $end_place_coordinates) {
+    // Validate inputs
+    $post_id = absint($post_id);
+    $operation_area_id = absint($operation_area_id);
+    
+    // Ensure coordinates are properly formatted
+    if (!is_array($start_place_coordinates) || !isset($start_place_coordinates['latitude']) || !isset($start_place_coordinates['longitude'])) {
+        return;
+    }
+    
+    if (!is_array($end_place_coordinates) || !isset($end_place_coordinates['latitude']) || !isset($end_place_coordinates['longitude'])) {
+        return;
+    }
+    
+    // Sanitize coordinates
+    $start_place_coordinates['latitude'] = is_numeric($start_place_coordinates['latitude']) ? 
+        (float) $start_place_coordinates['latitude'] : 0;
+    $start_place_coordinates['longitude'] = is_numeric($start_place_coordinates['longitude']) ? 
+        (float) $start_place_coordinates['longitude'] : 0;
+    
+    $end_place_coordinates['latitude'] = is_numeric($end_place_coordinates['latitude']) ? 
+        (float) $end_place_coordinates['latitude'] : 0;
+    $end_place_coordinates['longitude'] = is_numeric($end_place_coordinates['longitude']) ? 
+        (float) $end_place_coordinates['longitude'] : 0;
+        
     $operation_area_type = get_post_meta($operation_area_id, "mptbm-operation-type", true);
 
     if ($operation_area_type === "fixed-operation-area-type") {
@@ -30,13 +54,21 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
         }
         ?>
         <script>
-            var operation_area_coordinates = <?php echo wp_json_encode($operation_area_coordinates); ?>;
-            var post_id = <?php echo wp_json_encode($post_id); ?>;
-            var start_place_coordinates = <?php echo wp_json_encode($start_place_coordinates); ?>;
-            var end_place_coordinates = <?php echo wp_json_encode($end_place_coordinates); ?>;
-            var startInArea = geolib.isPointInPolygon(start_place_coordinates, operation_area_coordinates);
-            var endInArea = geolib.isPointInPolygon(end_place_coordinates, operation_area_coordinates);
-            if (startInArea && endInArea) {
+            var operation_area_coordinates = <?php echo wp_json_encode(array_map('sanitize_text_field', $operation_area_coordinates)); ?>;
+            var post_id = <?php echo absint($post_id); ?>;
+            var start_place_coordinates = <?php echo wp_json_encode(array_map('sanitize_text_field', $start_place_coordinates)); ?>;
+            var end_place_coordinates = <?php echo wp_json_encode(array_map('sanitize_text_field', $end_place_coordinates)); ?>;
+            if (typeof geolib !== 'undefined') {
+                var startInArea = geolib.isPointInPolygon(start_place_coordinates, operation_area_coordinates);
+                var endInArea = geolib.isPointInPolygon(end_place_coordinates, operation_area_coordinates);
+                if (startInArea && endInArea) {
+                    var selectorClass = `.mptbm_booking_item_${post_id}`;
+                    jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
+                    document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                }
+            } else {
+                console.error('Geolib library is not loaded. Please check if the script is properly enqueued.');
+                // Fall back to showing the transport option anyway to prevent blocking the user
                 var selectorClass = `.mptbm_booking_item_${post_id}`;
                 jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
                 document.cookie = selectorClass + '=' + selectorClass + ";path=/";
@@ -73,6 +105,11 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
         $new_start_place_coordinates[] = $start_place_coordinates["latitude"] . " " . $start_place_coordinates["longitude"];
         $new_end_place_coordinates[] = $end_place_coordinates["latitude"] . " " . $end_place_coordinates["longitude"];
 
+        // Check if pointLocation class exists before using it
+        if (!class_exists('pointLocation')) {
+            require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Geo_Lib.php';
+        }
+        
         $pointLocation = new pointLocation();
         $startInAreaOne = $pointLocation->pointInPolygon($new_start_place_coordinates[0], $operation_area_coordinates_one) !== "outside";
         $endInAreaOne = $pointLocation->pointInPolygon($new_end_place_coordinates[0], $operation_area_coordinates_one) !== "outside";
@@ -97,7 +134,7 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                 }
                 ?>
                 <script>
-                    var post_id = <?php echo wp_json_encode($post_id); ?>;
+                    var post_id = <?php echo absint($post_id); ?>;
                     var selectorClass = `.mptbm_booking_item_${post_id}`;
                     jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
@@ -105,7 +142,7 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                 <?php session_write_close();
             } elseif ($startInAreaOne == "true" && $endInAreaOne == "true") { ?>
                 <script>
-                    var post_id = <?php echo wp_json_encode($post_id); ?>;
+                    var post_id = <?php echo absint($post_id); ?>;
                     var selectorClass = `.mptbm_booking_item_${post_id}`;
                     jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
@@ -124,7 +161,7 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                 }
                 ?>
                 <script>
-                    var post_id = <?php echo wp_json_encode($post_id); ?>;
+                    var post_id = <?php echo absint($post_id); ?>;
                     var selectorClass = `.mptbm_booking_item_${post_id}`;
                     jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
@@ -142,7 +179,7 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                 }
                 ?>
                 <script>
-                    var post_id = <?php echo wp_json_encode($post_id); ?>;
+                    var post_id = <?php echo absint($post_id); ?>;
                     var selectorClass = `.mptbm_booking_item_${post_id}`;
                     jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
@@ -191,17 +228,25 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                         }
                         ?>
                         <script>
-                            var operation_area_coordinates = <?php echo wp_json_encode($operation_area_coordinates); ?>;
-                            var post_id = <?php echo wp_json_encode($post_id); ?>;
-                            var start_place_coordinates = <?php echo wp_json_encode($start_place_coordinates); ?>;
-                            var end_place_coordinates = <?php echo wp_json_encode($end_place_coordinates); ?>;
-                            var startInArea = geolib.isPointInPolygon(start_place_coordinates, operation_area_coordinates);
-                            var endInArea = geolib.isPointInPolygon(end_place_coordinates, operation_area_coordinates);
-                            if (startInArea && endInArea) {
+                            var operation_area_coordinates = <?php echo wp_json_encode(array_map('sanitize_text_field', $operation_area_coordinates)); ?>;
+                            var post_id = <?php echo absint($post_id); ?>;
+                            var start_place_coordinates = <?php echo wp_json_encode(array_map('sanitize_text_field', $start_place_coordinates)); ?>;
+                            var end_place_coordinates = <?php echo wp_json_encode(array_map('sanitize_text_field', $end_place_coordinates)); ?>;
+                            if (typeof geolib !== 'undefined') {
+                                var startInArea = geolib.isPointInPolygon(start_place_coordinates, operation_area_coordinates);
+                                var endInArea = geolib.isPointInPolygon(end_place_coordinates, operation_area_coordinates);
+                                if (startInArea && endInArea) {
+                                    var selectorClass = `.mptbm_booking_item_${post_id}`;
+                                    jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
+                                    document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                                    <?php $is_in_any_area = true; ?>
+                                }
+                            } else {
+                                console.error('Geolib library is not loaded. Please check if the script is properly enqueued.');
+                                // Fall back to showing the transport option anyway to prevent blocking the user
                                 var selectorClass = `.mptbm_booking_item_${post_id}`;
                                 jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
                                 document.cookie = selectorClass + '=' + selectorClass + ";path=/";
-                                <?php $is_in_any_area = true; ?>
                             }
                         </script>
                         <?php
@@ -211,7 +256,7 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
             if (!$is_in_any_area) {
                 ?>
                 <script>
-                    var post_id = <?php echo wp_json_encode($post_id); ?>;
+                    var post_id = <?php echo absint($post_id); ?>;
                     var selectorClass = `.mptbm_booking_item_${post_id}`;
                     jQuery(selectorClass).addClass('mptbm_booking_item_hidden');
                 </script>
@@ -224,7 +269,7 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
     } else {
         ?>
         <script>
-            var post_id = <?php echo wp_json_encode($post_id); ?>;
+            var post_id = <?php echo absint($post_id); ?>;
             var selectorClass = `.mptbm_booking_item_${post_id}`;
             jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
             var vehicaleItemClass = `.mptbm_booking_item_${post_id}`;
@@ -366,8 +411,23 @@ if ($date && $start_time !== "") {
 }
 
 $start_place = isset($_POST["start_place"]) ? sanitize_text_field($_POST["start_place"]) : "";
-$start_place_coordinates = $_POST["start_place_coordinates"];
-$end_place_coordinates = $_POST["end_place_coordinates"];
+$start_place_coordinates = isset($_POST["start_place_coordinates"]) ? $_POST["start_place_coordinates"] : array();
+$end_place_coordinates = isset($_POST["end_place_coordinates"]) ? $_POST["end_place_coordinates"] : array();
+
+// If the coordinates are passed as strings, convert them to arrays
+if (is_string($start_place_coordinates)) {
+    $start_place_coordinates = json_decode(wp_unslash($start_place_coordinates), true) ?: array();
+}
+if (is_string($end_place_coordinates)) {
+    $end_place_coordinates = json_decode(wp_unslash($end_place_coordinates), true) ?: array();
+}
+
+// Ensure we have arrays with sanitized values
+$start_place_coordinates = is_array($start_place_coordinates) ? 
+    array_map('sanitize_text_field', $start_place_coordinates) : array();
+$end_place_coordinates = is_array($end_place_coordinates) ? 
+    array_map('sanitize_text_field', $end_place_coordinates) : array();
+
 $end_place = isset($_POST["end_place"]) ? sanitize_text_field($_POST["end_place"]) : "";
 $two_way = isset($_POST["two_way"]) ? absint($_POST["two_way"]) : 1;
 $waiting_time = isset($_POST["waiting_time"]) ? sanitize_text_field($_POST["waiting_time"]) : 0;
@@ -448,55 +508,78 @@ $mptbm_passengers = max($mptbm_passengers);
 				<div class="mp_sticky_depend_area fdColumn">
 				<!-- Filter area start -->
 				<?php if (MP_Global_Function::get_settings("mptbm_general_settings", "enable_filter_via_features") == "yes") { ?>
-				<div class="_dLayout_dFlex_fdColumn_btLight_2 mptbm-filter-feature">
-					<div class="mptbm-filter-feature-input">
-						<span><i class="fas fa-users _textTheme_mR_xs"></i><?php esc_html_e("Number Of Passengers", "ecab-taxi-booking-manager"); ?></span>
-                        <label>
-								<select id ="mptbm_passenger_number" class="formControl" name="mptbm_passenger_number">
-								<?php
-                                    for ($i = 0; $i <= $mptbm_passengers[0]; $i++) {
-                                        echo '<option value="' . esc_html($i) . '">' .  esc_html($i) . '</option>';
-                                    }
-                                ?>
-								</select>
-								
-							</label>
-						</div>
-						<div class="mptbm-filter-feature-input">
-						<span><i class="fa  fa-shopping-bag _textTheme_mR_xs"></i><?php esc_html_e("Number Of Bags", "ecab-taxi-booking-manager"); ?></span>
-                        <label>
-								<select id ="mptbm_shopping_number" class="formControl" name="mptbm_shopping_number">
-                                    <?php
-                                        for ($i = 0; $i <= $mptbm_bags[0]; $i++) {
-                                            echo '<option value="' . esc_html($i) . '">' .  esc_html($i) . '</option>';
-                                        }
-                                    ?>
-								</select>
-							</label>
+				<div class="filter-box">
+					<h5 class="filter-title" style = " margin-bottom: 10px;" ><?php esc_html_e('Filter Options', 'ecab-taxi-booking-manager'); ?></h5>
+					
+					<div class="filter-row">
+						<div class="filter-item">
+							<div class="filter-label">
+								<span class="filter-icon-dollar">$</span> <?php esc_html_e('Sort by Price', 'ecab-taxi-booking-manager'); ?>
+							</div>
+							<select id="mptbm_price_sort" name="mptbm_price_sort">
+								<option value="high_to_low"><?php esc_html_e('Price: High to Low', 'ecab-taxi-booking-manager'); ?></option>
+								<option value="low_to_high"><?php esc_html_e('Price: Low to High', 'ecab-taxi-booking-manager'); ?></option>
+							</select>
 						</div>
 						
+						<div class="filter-item">
+							<div class="filter-label">
+								<span class="filter-icon-people"></span> <?php esc_html_e('Number Of Passengers', 'ecab-taxi-booking-manager'); ?>
+							</div>
+							<select id="mptbm_passenger_number" name="mptbm_passenger_number">
+								<option value="">Any</option>
+								<?php
+									for ($i = 1; $i <= $mptbm_passengers[0]; $i++) {
+										echo '<option value="' . esc_html($i) . '">' .  esc_html($i) . '</option>';
+									}
+								?>
+							</select>
+						</div>
+						
+						<div class="filter-item">
+							<div class="filter-label">
+								<span class="filter-icon-bag"></span> <?php esc_html_e('Number Of Bags', 'ecab-taxi-booking-manager'); ?>
+							</div>
+							<select id="mptbm_shopping_number" name="mptbm_shopping_number">
+								<option value="">Any</option>
+								<?php
+									for ($i = 1; $i <= $mptbm_bags[0]; $i++) {
+										echo '<option value="' . esc_html($i) . '">' .  esc_html($i) . '</option>';
+									}
+								?>
+							</select>
+						</div>
 					</div>
-				<?php
-} ?>
+					
+					<div class="filter-buttons">
+						<button type="button" id="mptbm_apply_filters" class="btn-apply">
+							<span class="filter-icon-filter"></span><?php esc_html_e('Apply Filters', 'ecab-taxi-booking-manager'); ?>
+						</button>
+						<button type="button" id="mptbm_reset_filters" class="btn-reset">
+							<span class="filter-icon-reset"></span><?php esc_html_e('Reset', 'ecab-taxi-booking-manager'); ?>
+						</button>
+					</div>
+				</div>
+				<?php } ?>
 				<!-- Filter area end -->
 					<?php
 
-$all_posts = MPTBM_Query::query_transport_list($price_based);
- 
-if ($all_posts->found_posts > 0) {
-    $posts = $all_posts->posts;
-    $vehicle_item_count = 0;
-    foreach ($posts as $post) {
-        $post_id = $post->ID;
-        $check_schedule = wptbm_get_schedule($post_id, $days_name, $start_date,$start_time_schedule, $return_time_schedule, $start_place_coordinates, $end_place_coordinates, $price_based);
-        
-        if ($check_schedule) {
-            $vehicle_item_count = $vehicle_item_count + 1;
-            include MPTBM_Function::template_path("registration/vehicle_item.php");
-        }
-    }
-} else {
-?>
+                $all_posts = MPTBM_Query::query_transport_list($price_based);
+                
+                if ($all_posts->found_posts > 0) {
+                    $posts = $all_posts->posts;
+                    $vehicle_item_count = 0;
+                    foreach ($posts as $post) {
+                        $post_id = $post->ID;
+                        $check_schedule = wptbm_get_schedule($post_id, $days_name, $start_date,$start_time_schedule, $return_time_schedule, $start_place_coordinates, $end_place_coordinates, $price_based);
+                        
+                        if ($check_schedule) {
+                            $vehicle_item_count = $vehicle_item_count + 1;
+                            include MPTBM_Function::template_path("registration/vehicle_item.php");
+                        }
+                    }
+                } else {
+            ?>
 						<div class="_dLayout_mT_bgWarning">
 							<h3><?php esc_html_e("No Transport Available !", "ecab-taxi-booking-manager"); ?></h3>
 						</div>
@@ -504,19 +587,113 @@ if ($all_posts->found_posts > 0) {
 }
 ?>
 					<script>
-						jQuery(document).ready(function () {
+						jQuery(document).ready(function ($) {
+							// Check if geo-fence has hidden all transports
 							var allHidden = true;
-							jQuery(".mptbm_booking_item").each(function() {
-								if (!jQuery(this).hasClass("mptbm_booking_item_hidden")) {
+							$(".mptbm_booking_item").each(function() {
+								if (!$(this).hasClass("mptbm_booking_item_hidden")) {
 									allHidden = false;
 									return false; // Exit the loop early if any item is not hidden
 								}
 							});
 
-							// If all items have the hidden class, log them
 							if (allHidden) {
-								jQuery('.geo-fence-no-transport').show(300);
+								$('.geo-fence-no-transport').show(300);
 							}
+
+							// Apply filters when button is clicked
+							$('#mptbm_apply_filters').on('click', function() {
+								filterVehicles();
+							});
+							
+							// Reset filters
+							$('#mptbm_reset_filters').on('click', function() {
+								// Reset filter values
+								$('#mptbm_price_sort').val('high_to_low');
+								$('#mptbm_passenger_number').val('');
+								$('#mptbm_shopping_number').val('');
+								
+								// Reset visibility
+								$('.mptbm_booking_item').removeClass('mptbm_filter_hidden');
+								$('.geo-fence-no-transport').hide();
+								
+								// Restore original order
+								filterVehicles();
+							});
+							
+							function filterVehicles() {
+								// Get filter values - escape values for security
+								var priceSort = $.trim($('#mptbm_price_sort').val());
+								var passengerNum = parseInt($('#mptbm_passenger_number').val()) || 0;
+								var bagNum = parseInt($('#mptbm_shopping_number').val()) || 0;
+								
+								// Validate inputs to prevent injection attacks
+								if (priceSort !== 'high_to_low' && priceSort !== 'low_to_high') {
+									priceSort = 'high_to_low'; // Default to safe value
+								}
+								
+								// Ensure numbers are positive integers
+								passengerNum = Math.max(0, passengerNum);
+								bagNum = Math.max(0, bagNum);
+								
+								// Reset visibility first (only for items that are not hidden by geo-fence)
+								$('.mptbm_booking_item').not('.mptbm_booking_item_hidden').removeClass('mptbm_filter_hidden');
+								
+								// Apply passenger filter
+								if (passengerNum > 0) {
+									$('.mptbm_booking_item').not('.mptbm_booking_item_hidden').each(function() {
+										var maxPassengers = parseInt($(this).attr('data-passengers')) || 0;
+										if (maxPassengers < passengerNum) {
+											$(this).addClass('mptbm_filter_hidden');
+										}
+									});
+								}
+								
+								// Apply bag filter
+								if (bagNum > 0) {
+									$('.mptbm_booking_item').not('.mptbm_booking_item_hidden').not('.mptbm_filter_hidden').each(function() {
+										var maxBags = parseInt($(this).attr('data-bags')) || 0;
+										if (maxBags < bagNum) {
+											$(this).addClass('mptbm_filter_hidden');
+										}
+									});
+								}
+								
+								// Apply price sorting
+								var $items = $('.mptbm_booking_item').not('.mptbm_booking_item_hidden').not('.mptbm_filter_hidden');
+								var $container = $items.parent();
+								
+								// Sort items by price - ensure proper numeric parsing
+								$items.sort(function(a, b) {
+									var priceA = parseFloat($(a).attr('data-price')) || 0;
+									var priceB = parseFloat($(b).attr('data-price')) || 0;
+									
+									// Ensure valid numbers
+									priceA = isNaN(priceA) ? 0 : priceA;
+									priceB = isNaN(priceB) ? 0 : priceB;
+									
+									if (priceSort === 'high_to_low') {
+										return priceB - priceA;
+									} else {
+										return priceA - priceB;
+									}
+								});
+								
+								// Reappend in new order
+								$items.detach().appendTo($container);
+								
+								// Check if any items are visible
+								var visibleItems = $('.mptbm_booking_item').not('.mptbm_booking_item_hidden').not('.mptbm_filter_hidden');
+								
+								if (visibleItems.length === 0) {
+									$('.geo-fence-no-transport').show(300);
+								} else {
+									$('.geo-fence-no-transport').hide();
+								}
+							}
+							
+							// Initial sort on page load
+							filterVehicles();
 						});
 					</script>
 					<div class="geo-fence-no-transport">
