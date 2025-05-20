@@ -236,6 +236,15 @@ if (!class_exists('MPTBM_Function')) {
 				set_transient('mptbm_custom_price_message_' . $post_id, $custom_message, HOUR_IN_SECONDS);
 				return 0;
 			}
+			  // Check if mptbm_distance_tier_enabled Distance Tier Pricing addon is active and apply tier pricing if available
+			  if (class_exists('MPTBM_Distance_Tier_Pricing')) {
+				$tier_price = MPTBM_Distance_Tier_Pricing::calculate_tier_price(
+					$post_id, $distance, $duration, $start_place, $destination_place, $waiting_time, $two_way, $fixed_time
+				);
+				if ($tier_price !== false) {
+					return $tier_price;
+				}
+			}
 
 			$price = 0.0;  // Initialize price as a float
 
