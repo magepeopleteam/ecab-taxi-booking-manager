@@ -19,12 +19,19 @@ if (!class_exists('MPTBM_Plugin')) {
     {
         public function __construct()
         {
+            // Set anti-cache constants as early as possible
+            if (!defined('DONOTCACHEPAGE')) define('DONOTCACHEPAGE', true);
+            if (!defined('DONOTCACHEOBJECT')) define('DONOTCACHEOBJECT', true);
+            if (!defined('DONOTCACHEDB')) define('DONOTCACHEDB', true);
+            if (!defined('DONOTMINIFY')) define('DONOTMINIFY', true);
+
             $this->load_plugin();
 
             add_filter('theme_page_templates', array($this, 'mptbm_on_activation_template_create'), 10, 3);
             add_filter('template_include', array($this, 'mptbm_change_page_template'), 99);
             add_action('admin_init', array($this, 'wptbm_assign_template_to_page'));
             add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
+
         }
 
         private function load_plugin(): void

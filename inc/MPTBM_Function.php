@@ -222,6 +222,20 @@ if (!class_exists('MPTBM_Function')) {
 		//*************Price*********************************//
 		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0)
 		{
+			// Anti-cache logic: prevent caching of price output
+			if (!headers_sent()) {
+				header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+				header('Pragma: no-cache');
+				header('Expires: 0');
+			}
+			if (function_exists('nocache_headers')) {
+				nocache_headers();
+			}
+			if (!defined('DONOTCACHEPAGE')) define('DONOTCACHEPAGE', true);
+			if (!defined('DONOTCACHEOBJECT')) define('DONOTCACHEOBJECT', true);
+			if (!defined('DONOTCACHEDB')) define('DONOTCACHEDB', true);
+			if (!defined('DONOTMINIFY')) define('DONOTMINIFY', true);
+	
 			// Get price display type
 			$price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
 			
