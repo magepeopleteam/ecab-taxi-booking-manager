@@ -592,6 +592,81 @@ if (!class_exists('MPTBM_Function')) {
 			}
 			return array_unique($all_location);
 		}
+		// Default ECAB Taxi Booking checkout fields
+		public static function get_default_checkout_fields() {
+			return [
+				'flight_no' => [
+					'label' => __('Flight No', 'ecab-taxi-booking-manager'),
+					'type' => 'text',
+					'required' => false,
+					'show' => true,
+					'placeholder' => __('Enter your flight number', 'ecab-taxi-booking-manager'),
+				],
+				'passport_no' => [
+					'label' => __('Passport No', 'ecab-taxi-booking-manager'),
+					'type' => 'text',
+					'required' => false,
+					'show' => true,
+					'placeholder' => __('Enter your passport number', 'ecab-taxi-booking-manager'),
+				],
+				'pickup_location' => [
+					'label' => __('Pickup Location', 'ecab-taxi-booking-manager'),
+					'type' => 'text',
+					'required' => true,
+					'show' => true,
+					'placeholder' => __('Enter pickup location', 'ecab-taxi-booking-manager'),
+				],
+				'dropoff_location' => [
+					'label' => __('Drop-off Location', 'ecab-taxi-booking-manager'),
+					'type' => 'text',
+					'required' => true,
+					'show' => true,
+					'placeholder' => __('Enter drop-off location', 'ecab-taxi-booking-manager'),
+				],
+				'pickup_datetime' => [
+					'label' => __('Pickup Date & Time', 'ecab-taxi-booking-manager'),
+					'type' => 'datetime-local',
+					'required' => true,
+					'show' => true,
+					'placeholder' => __('Select pickup date and time', 'ecab-taxi-booking-manager'),
+				],
+				'num_passengers' => [
+					'label' => __('Number of Passengers', 'ecab-taxi-booking-manager'),
+					'type' => 'number',
+					'required' => true,
+					'show' => true,
+					'placeholder' => __('Enter number of passengers', 'ecab-taxi-booking-manager'),
+				],
+				'luggage_details' => [
+					'label' => __('Luggage Details', 'ecab-taxi-booking-manager'),
+					'type' => 'text',
+					'required' => false,
+					'show' => true,
+					'placeholder' => __('Enter luggage details', 'ecab-taxi-booking-manager'),
+				],
+				'contact_phone' => [
+					'label' => __('Contact Phone', 'ecab-taxi-booking-manager'),
+					'type' => 'text',
+					'required' => true,
+					'show' => true,
+					'placeholder' => __('Enter contact phone', 'ecab-taxi-booking-manager'),
+				],
+				'special_instructions' => [
+					'label' => __('Special Instructions', 'ecab-taxi-booking-manager'),
+					'type' => 'textarea',
+					'required' => false,
+					'show' => true,
+					'placeholder' => __('Any special instructions?', 'ecab-taxi-booking-manager'),
+				],
+				'email_address' => [
+					'label' => __('Email Address', 'ecab-taxi-booking-manager'),
+					'type' => 'email',
+					'required' => true,
+					'show' => true,
+					'placeholder' => __('Enter your email address', 'ecab-taxi-booking-manager'),
+				],
+			];
+		}
 	}
 	new MPTBM_Function();
 }
