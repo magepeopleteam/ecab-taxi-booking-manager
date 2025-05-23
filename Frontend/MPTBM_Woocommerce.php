@@ -836,6 +836,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 		public function render_custom_checkout_fields($checkout) {
 			$settings = get_option('mptbm_checkout_fields_settings', array());
 			$fields = isset($settings['fields']) ? $settings['fields'] : array();
+			// Always sort fields by 'order' before rendering
+			uasort($fields, function($a, $b) {
+				return ($a['order'] ?? 0) <=> ($b['order'] ?? 0);
+			});
 			$logic = array();
 			foreach ($fields as $key => $field) {
 				if (!empty($field['conditional']['field'])) {
