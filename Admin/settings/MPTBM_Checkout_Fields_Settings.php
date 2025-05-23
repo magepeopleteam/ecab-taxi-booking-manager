@@ -120,6 +120,10 @@ if (!class_exists('MPTBM_Checkout_Fields_Settings')) {
             wp_nonce_field('mptbm_checkout_fields_save', 'mptbm_checkout_fields_nonce');
             echo '<ul id="mptbm-fields-list" class="mptbm-sortable">';
             $field_index = 0;
+            // Always sort fields by 'order' before rendering
+            uasort($fields, function($a, $b) {
+                return ($a['order'] ?? 0) <=> ($b['order'] ?? 0);
+            });
             foreach ($fields as $field) {
                 echo '<li class="mptbm-field-row" data-id="' . esc_attr((string)($field['id'] ?? '')) . '">';
                 echo '<input type="hidden" name="field_id[]" value="' . esc_attr((string)($field['id'] ?? '')) . '">';
