@@ -54,6 +54,15 @@
 						<p class="_textLight_1 mptbm_map_end_place"><?php echo esc_html($end_place); ?></p>
 					<?php } ?>
 					
+					<?php if($price_based != 'manual'){ ?>
+						<div class="dividerL"></div>
+						<h6 class="_mB_xs"><?php esc_html_e('Total Distance', 'ecab-taxi-booking-manager'); ?></h6>
+						<p class="_textLight_1"><?php echo esc_html(isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : ''); ?></p>
+						<div class="dividerL"></div>
+						<h6 class="_mB_xs"><?php esc_html_e('Total Time', 'ecab-taxi-booking-manager'); ?></h6>
+						<p class="_textLight_1"><?php echo esc_html(isset($_COOKIE['mptbm_duration_text']) ? $_COOKIE['mptbm_duration_text'] : ''); ?></p>
+					<?php } ?>
+					
 					<?php if($two_way>1){ 
 						?>
 						<div class="dividerL"></div>
