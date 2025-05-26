@@ -182,10 +182,17 @@
 					$max_passenger = isset($_POST['mptbm_maximum_passenger']) ? sanitize_text_field($_POST['mptbm_maximum_passenger']) : '';
 					$max_bag = isset($_POST['mptbm_maximum_bag']) ? sanitize_text_field($_POST['mptbm_maximum_bag']) : '';
 					
+<<<<<<< HEAD
 					// Save maximum passenger and bag
 					update_post_meta($post_id, 'mptbm_maximum_passenger', $max_passenger);
 					update_post_meta($post_id, 'mptbm_maximum_bag', $max_bag);
 					
+=======
+						// Save maximum passenger and bag
+						update_post_meta($post_id, 'mptbm_maximum_passenger', $max_passenger);
+						update_post_meta($post_id, 'mptbm_maximum_bag', $max_bag);
+						
+>>>>>>> ef32067 ( checkout ui fixed)
 					// Save inventory settings
 					$enable_inventory = isset($_POST['mptbm_enable_inventory']) && sanitize_text_field($_POST['mptbm_enable_inventory']) ? 'yes' : 'no';
 					update_post_meta($post_id, 'mptbm_enable_inventory', $enable_inventory);
