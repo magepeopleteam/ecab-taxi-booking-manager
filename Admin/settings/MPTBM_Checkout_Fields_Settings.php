@@ -132,8 +132,8 @@ if (!class_exists('MPTBM_Checkout_Fields_Settings')) {
                 echo '<strong>' . esc_html((string)($field['label'] ?? '')) . '</strong> (' . esc_html((string)($field['type'] ?? '')) . ') ';
                 echo '<label><input type="checkbox" name="show['.$field_index.']" value="1"' . checked(($field['show'] ?? 0), 1, false) . '> ' . esc_html__('Show', 'ecab-taxi-booking-manager') . '</label> ';
                 echo '<label><input type="checkbox" name="required['.$field_index.']" value="1"' . checked(($field['required'] ?? 0), 1, false) . '> ' . esc_html__('Required', 'ecab-taxi-booking-manager') . '</label> ';
-                echo '<input type="text" name="label[]" value="' . esc_attr((string)($field['label'] ?? '')) . '" placeholder="Label" style="width:120px;"> ';
-                echo '<input type="text" name="placeholder[]" value="' . esc_attr((string)($field['placeholder'] ?? '')) . '" placeholder="Placeholder" style="width:150px;"> ';
+                echo '<input type="text" name="label[]" value="' . esc_attr((string)($field['label'] ?? '')) . '" placeholder="Label" style="width:180px;"> ';
+                echo '<input type="text" name="placeholder[]" value="' . esc_attr((string)($field['placeholder'] ?? '')) . '" placeholder="Placeholder" style="width:180px;"> ';
                 if ($is_pro && !($field['default'] ?? false) && in_array(($field['type'] ?? ''), array('select', 'checkbox', 'radio'))) {
                     echo '<input type="text" name="options[]" value="' . esc_attr((string)($field['options'] ?? '')) . '" placeholder="Options (comma separated)" style="width:180px;"> ';
                 } else if ($is_pro && !($field['default'] ?? false)) {
