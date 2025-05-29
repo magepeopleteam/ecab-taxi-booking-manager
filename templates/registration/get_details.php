@@ -404,7 +404,9 @@ if (sizeof($all_dates) > 0) {
 				<div class="_equalChild_separatorRight">
 					<div class="_dFlex_pR_xs">
 						<h1 class="_mR">
-							<span class="fas fa-route textTheme"></span>
+							<span class="_mR">
+								<span class="fas fa-route textTheme"></span>
+							</span>
 						</h1>
 						<div class="fdColumn">
 							<h6><?php esc_html_e('TOTAL DISTANCE', 'ecab-taxi-booking-manager'); ?></h6>
@@ -417,7 +419,9 @@ if (sizeof($all_dates) > 0) {
 					</div>
 					<div class="dFlex">
 						<h1 class="_mLR">
-							<span class="fas fa-clock textTheme"></span>
+							<span class="_mLR">
+								<span class="fas fa-clock textTheme"></span>
+							</span>
 						</h1>
 						<div class="fdColumn">
 							<h6><?php esc_html_e('TOTAL TIME', 'ecab-taxi-booking-manager'); ?></h6>

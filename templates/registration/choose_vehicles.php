@@ -148,26 +148,6 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
                 </script>
                 <?php session_write_close();
-            } elseif ($startInAreaOne == "true" && $endInAreaOne == "true") {
-                // Show transport when both start and end are in area one
-                ?>
-                <script>
-                    var post_id = <?php echo wp_json_encode($post_id); ?>;
-                    var selectorClass = `.mptbm_booking_item_${post_id}`;
-                    jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
-                    document.cookie = selectorClass + '=' + selectorClass + ";path=/";
-                </script>
-                <?php
-            } elseif ($startInAreaTwo == "true" && $endInAreaTwo == "true") {
-                // Show transport when both start and end are in area two
-                ?>
-                <script>
-                    var post_id = <?php echo wp_json_encode($post_id); ?>;
-                    var selectorClass = `.mptbm_booking_item_${post_id}`;
-                    jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
-                    document.cookie = selectorClass + '=' + selectorClass + ";path=/";
-                </script>
-                <?php
             }
         }
     }
