@@ -100,13 +100,7 @@ if (sizeof($all_dates) > 0) {
 	$waiting_time_check = MPTBM_Function::get_general_settings('taxi_waiting_time', 'enable');
 
 	// Check if Pro plugin is active
-	$pro_active = false;
-	if (function_exists('is_plugin_active')) {
-		include_once(ABSPATH . 'wp-admin/includes/plugin.php');
-		$pro_active = is_plugin_active('ecab-taxi-booking-manager-pro/MPTBM_Plugin_Pro.php');
-	} elseif (class_exists('MPTBM_Settings_Global_Pro')) {
-		$pro_active = true;
-	}
+	$pro_active = class_exists('MPTBM_Dependencies_Pro');
 	// Get settings only if Pro is active
 	$search_filter_settings = $pro_active ? get_option('mptbm_search_filter_settings', array()) : array();
 	$enable_max_passenger_filter = isset($search_filter_settings['enable_max_passenger_filter']) ? $search_filter_settings['enable_max_passenger_filter'] : 'no';
