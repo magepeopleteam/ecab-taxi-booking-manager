@@ -98,6 +98,32 @@ if (sizeof($all_dates) > 0) {
 	$interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time', '30');
 	$interval_hours = $interval_time / 60;
 	$waiting_time_check = MPTBM_Function::get_general_settings('taxi_waiting_time', 'enable');
+
+	// Check if Pro plugin is active
+	$pro_active = false;
+	if (function_exists('is_plugin_active')) {
+		include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+		$pro_active = is_plugin_active('ecab-taxi-booking-manager-pro/MPTBM_Plugin_Pro.php');
+	} elseif (class_exists('MPTBM_Settings_Global_Pro')) {
+		$pro_active = true;
+	}
+	// Get settings only if Pro is active
+	$search_filter_settings = $pro_active ? get_option('mptbm_search_filter_settings', array()) : array();
+	$enable_max_passenger_filter = isset($search_filter_settings['enable_max_passenger_filter']) ? $search_filter_settings['enable_max_passenger_filter'] : 'no';
+	$enable_max_bag_filter = isset($search_filter_settings['enable_max_bag_filter']) ? $search_filter_settings['enable_max_bag_filter'] : 'no';
+
+	// Use actual meta keys for dropdowns
+	$mptbm_bags = [];
+	$mptbm_passengers = [];
+	$mptbm_all_transport_id = MP_Global_Function::get_all_post_id('mptbm_rent');
+	foreach ($mptbm_all_transport_id as $post_id) {
+		$bag = (int) get_post_meta($post_id, 'mptbm_maximum_bag', true);
+		$passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
+		if ($bag > 0) $mptbm_bags[] = $bag;
+		if ($passenger > 0) $mptbm_passengers[] = $passenger;
+	}
+	$max_bag = !empty($mptbm_bags) ? max($mptbm_bags) : 1;
+	$max_passenger = !empty($mptbm_passengers) ? max($mptbm_passengers) : 1;
 ?>	
 	<div class="<?php echo esc_attr($area_class); ?> ">
 	
@@ -203,14 +229,6 @@ if (sizeof($all_dates) > 0) {
 						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
 					</label>
 				</div>
-				<?php
-				if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page')) {
-				?>
-					<a href="<?php echo MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page') ?>" class="mptbm_find_location_btn"><?php esc_html_e('Click here', 'ecab-taxi-booking-manager'); ?></a>
-					<?php esc_html_e('If you are not able to find your desired location', 'ecab-taxi-booking-manager'); ?>
-				<?php
-				}
-				?>
 				<div class="inputList">
 					<label class="fdColumn mptbm_manual_end_place">
 						<span><?php esc_html_e('Drop-Off Location', 'ecab-taxi-booking-manager'); ?></span>
@@ -224,6 +242,41 @@ if (sizeof($all_dates) > 0) {
 						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
 					</label>
 				</div>
+				<?php
+				if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page')) {
+				?>
+					<a href="<?php echo MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page') ?>" class="mptbm_find_location_btn"><?php esc_html_e('Click here', 'ecab-taxi-booking-manager'); ?></a>
+					<?php esc_html_e('If you are not able to find your desired location', 'ecab-taxi-booking-manager'); ?>
+				<?php
+				}
+				?>
+				<?php if ($pro_active && $enable_max_passenger_filter === 'yes'): ?>
+				<div class="inputList mp_input_select">
+					<label class="fdColumn">
+						<span><?php esc_html_e('Maximum Passenger', 'ecab-taxi-booking-manager'); ?></span>
+						<select id="mptbm_max_passenger" class="formControl" name="mptbm_max_passenger">
+							<?php for ($i = 1; $i <= $max_passenger; $i++) { ?>
+								<option value="<?php echo esc_attr($i); ?>"><?php echo esc_html($i); ?></option>
+							<?php } ?>
+						</select>
+						<span class="fas fa-users mptbm_left_icon allCenter"></span>
+					</label>
+				</div>
+				<?php endif; ?>
+				<?php if ($pro_active && $enable_max_bag_filter === 'yes'): ?>
+				<div class="inputList mp_input_select">
+					<label class="fdColumn">
+						<span><?php esc_html_e('Maximum Bag', 'ecab-taxi-booking-manager'); ?></span>
+						<select id="mptbm_max_bag" class="formControl" name="mptbm_max_bag">
+							<?php for ($i = 0; $i <= $max_bag; $i++) { ?>
+								<option value="<?php echo esc_attr($i); ?>"><?php echo esc_html($i); ?></option>
+							<?php } ?>
+						</select>
+						<span class="fa fa-shopping-bag mptbm_left_icon allCenter"></span>
+					</label>
+				</div>
+				<?php endif; ?>
+			
 				<?php
 				if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page')) {
 				?>

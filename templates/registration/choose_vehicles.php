@@ -445,6 +445,10 @@ foreach ($mptbm_all_transport_id as $key => $value) {
 }
 $mptbm_bags =  max($mptbm_bags);
 $mptbm_passengers = max($mptbm_passengers);
+
+$selected_max_passenger = isset($_POST['mptbm_max_passenger']) ? intval($_POST['mptbm_max_passenger']) : 0;
+$selected_max_bag = isset($_POST['mptbm_max_bag']) ? intval($_POST['mptbm_max_bag']) : 0;
+error_log('DEBUG: Selected max_passenger=' . $selected_max_passenger . ', max_bag=' . $selected_max_bag);
 ?>
 <div data-tabs-next="#mptbm_search_result" class="mptbm_map_search_result">
 	<input type="hidden" name="mptbm_post_id" value="" data-price="" />
@@ -508,6 +512,17 @@ if ($all_posts->found_posts > 0) {
     $vehicle_item_count = 0;
     foreach ($posts as $post) {
         $post_id = $post->ID;
+        $taxi_max_passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
+        $taxi_max_bag = (int) get_post_meta($post_id, 'mptbm_maximum_bag', true);
+        // error_log('DEBUG: Taxi ' . $post_id . ' max_passenger=' . $taxi_max_passenger . ', max_bag=' . $taxi_max_bag);
+        if (
+            ($selected_max_passenger && $taxi_max_passenger < $selected_max_passenger) ||
+            ($selected_max_bag && $taxi_max_bag < $selected_max_bag)
+        ) {
+            // error_log('DEBUG: Taxi ' . $post_id . ' SKIPPED by filter');
+            continue; // Skip this taxi, it doesn't meet the filter
+        }
+        // error_log('DEBUG: Taxi ' . $post_id . ' INCLUDED');
         $check_schedule = wptbm_get_schedule($post_id, $days_name, $start_date,$start_time_schedule, $return_time_schedule, $start_place_coordinates, $end_place_coordinates, $price_based);
         
         if ($check_schedule) {

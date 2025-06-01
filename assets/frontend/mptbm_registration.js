@@ -183,6 +183,13 @@ function mptbm_map_area_init() {
         if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1 && price_based != 'fixed_hourly') {
             return_date = return_target_date.val();
             return_time = return_target_time.val();
+            // Fix for return_time conversion
+            let selectedReturnTimeElement = parent.find("#mptbm_map_return_time").closest(".mp_input_select").find("li[data-value='" + return_time + "']");
+            if (selectedReturnTimeElement.length) {
+                return_time = selectedReturnTimeElement.attr('data-time');
+                let [r_hours, r_minutes] = return_time.split('.');
+                return_time = parseFloat(r_hours) + (parseFloat(r_minutes) / 60);
+            }
         } else {
             return_date = start_date;
             return_time = 'Not applicable';
@@ -194,7 +201,7 @@ function mptbm_map_area_init() {
             start_time = selectedTimeElement.attr('data-time');
             // Convert the time to a proper format
             let [hours, minutes] = start_time.split('.');
-            start_time = parseFloat(hours) + (parseFloat(minutes) / 100);
+            start_time = parseFloat(hours) + (parseFloat(minutes) / 60);
         }
         
         if (!start_date) {
@@ -284,6 +291,8 @@ function mptbm_map_area_init() {
                                     return_date: return_date,
                                     return_time: return_time,
                                     mptbm_passengers: parent.find('#mptbm_passengers').val(),
+                                    mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
+                                    mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 },
                                 beforeSend: function () {
                                     //dLoader(target);
@@ -322,6 +331,8 @@ function mptbm_map_area_init() {
                                     return_time: return_time,
                                     mptbm_enable_view_search_result_page: mptbm_enable_view_search_result_page,
                                     mptbm_passengers: parent.find('#mptbm_passengers').val(),
+                                    mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
+                                    mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 },
                                 beforeSend: function () {
                                     dLoader(target);
@@ -360,6 +371,8 @@ function mptbm_map_area_init() {
                                 return_date: return_date,
                                 return_time: return_time,
                                 mptbm_passengers: parent.find('#mptbm_passengers').val(),
+                                mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
+                                mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                             },
                             beforeSend: function () {
                                 //dLoader(target);
@@ -396,6 +409,8 @@ function mptbm_map_area_init() {
                                 return_time: return_time,
                                 mptbm_enable_view_search_result_page: mptbm_enable_view_search_result_page,
                                 mptbm_passengers: parent.find('#mptbm_passengers').val(),
+                                mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
+                                mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                             },
                             beforeSend: function () {
                                 dLoader(target);
@@ -905,6 +920,8 @@ function mptbm_price_calculation(parent) {
                     mptbm_extra_service: extra_service_name,
                     mptbm_extra_service_qty: extra_service_qty,
                     mptbm_passengers: parent.find('#mptbm_passengers').val(),
+                    mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
+                    mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                 },
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));
