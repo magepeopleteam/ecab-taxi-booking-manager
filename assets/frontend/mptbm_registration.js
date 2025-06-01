@@ -629,7 +629,6 @@ function mptbm_content_refresh(parent) {
 }
 //=======================//
 function mptbm_price_calculation(parent) {
-    
     let target_summary = parent.find(".mptbm_transport_summary");
     let total = 0;
     let post_id = parseInt(parent.find('[name="mptbm_post_id"]').val());
@@ -650,9 +649,10 @@ function mptbm_price_calculation(parent) {
             }
         });
     }
-    target_summary
-        .find(".mptbm_product_total_price")
-        .html(mp_price_format(total));
+    var el = target_summary.find(".mptbm_product_total_price");
+    el.html(mp_price_format(total));
+    // Force reflow for iOS Safari only (safe for all browsers)
+    el.hide().show(0);
 }
 (function ($) {
     
