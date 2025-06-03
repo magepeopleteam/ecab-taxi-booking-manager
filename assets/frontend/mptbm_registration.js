@@ -996,7 +996,8 @@ function mptbm_price_calculation(parent) {
         }
         $('.mptb-tabs li').click(function () {
             var tab_id = $(this).attr('mptbm-data-tab');
-
+            var form_style = $(this).attr('mptbm-data-form-style');
+            var map = $(this).attr('mptbm-data-map');
             // Remove existing template before inserting the new one
             $('.mptb-tab-content').empty().removeClass('current');
             $('.mptbm-hide-gif').css('display', 'block');
@@ -1010,7 +1011,9 @@ function mptbm_price_calculation(parent) {
                 url: mp_ajax_url, // WordPress AJAX URL
                 data: {
                     action: "load_get_details_page",
-                    tab_id: tab_id
+                    tab_id: tab_id,
+                    form_style: form_style,
+                    map: map
                 },
                 beforeSend: function () {
                     $("#" + tab_id).html('<p>Loading...</p>'); // Show loading message
