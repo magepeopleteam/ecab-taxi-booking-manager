@@ -44,7 +44,9 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 					$tabs_array = explode(',', $tabs);
 					$valid_tabs = ['distance' => 'distance', 'hourly' => 'hourly', 'manual' => 'flat-rate']; // Mapping to correct tab names
 					$available_tabs = array_intersect_key($valid_tabs, array_flip($tabs_array)); // Filter valid tabs
-					$first_tab = key($available_tabs); 
+					$first_tab = key($available_tabs);
+					$form_style = $form_style ?: 'horizontal';
+					$map = $map ?: 'yes';
 					if($first_tab == 'hourly'){
 						$price_based = 'fixed_hourly';
 					}else if($first_tab == 'manual'){
@@ -55,6 +57,7 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 					<div class="mptb-tab-container">
 						<ul class="mptb-tabs">
 							<?php foreach ($available_tabs as $key => $tab_name) { ?>
+
 								<li class="tab-link <?php echo ($key === $first_tab) ? 'current' : ''; ?>" mptbm-data-tab="<?php echo $tab_name; ?>">
 									<?php
 									if ($tab_name === 'distance') {
@@ -67,6 +70,7 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 										echo ucfirst(str_replace('-', ' ', $tab_name));
 									}
 									?>
+
 								</li>
 							<?php } ?>
 						</ul>

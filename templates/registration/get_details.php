@@ -282,6 +282,41 @@ if (sizeof($all_dates) > 0) {
 				<?php
 				}
 				?>
+				<?php if ($pro_active && $enable_max_passenger_filter === 'yes'): ?>
+				<div class="inputList mp_input_select">
+					<label class="fdColumn">
+						<span><?php esc_html_e('Maximum Passenger', 'ecab-taxi-booking-manager'); ?></span>
+						<select id="mptbm_max_passenger" class="formControl" name="mptbm_max_passenger">
+							<?php for ($i = 1; $i <= $max_passenger; $i++) { ?>
+								<option value="<?php echo esc_attr($i); ?>"><?php echo esc_html($i); ?></option>
+							<?php } ?>
+						</select>
+						<span class="fas fa-users mptbm_left_icon allCenter"></span>
+					</label>
+				</div>
+				<?php endif; ?>
+				<?php if ($pro_active && $enable_max_bag_filter === 'yes'): ?>
+				<div class="inputList mp_input_select">
+					<label class="fdColumn">
+						<span><?php esc_html_e('Maximum Bag', 'ecab-taxi-booking-manager'); ?></span>
+						<select id="mptbm_max_bag" class="formControl" name="mptbm_max_bag">
+							<?php for ($i = 0; $i <= $max_bag; $i++) { ?>
+								<option value="<?php echo esc_attr($i); ?>"><?php echo esc_html($i); ?></option>
+							<?php } ?>
+						</select>
+						<span class="fa fa-shopping-bag mptbm_left_icon allCenter"></span>
+					</label>
+				</div>
+				<?php endif; ?>
+			
+				<?php
+				if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page')) {
+				?>
+					<a href="<?php echo MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page') ?>" class="mptbm_find_location_btn"><?php esc_html_e('Click here', 'ecab-taxi-booking-manager'); ?></a>
+					<?php esc_html_e('If you are not able to find your desired location', 'ecab-taxi-booking-manager'); ?>
+				<?php
+				}
+				?>
 			</div>
 			<div class="mpForm">
 				<?php if ($taxi_return == 'enable' && $price_based != 'fixed_hourly') { ?>
