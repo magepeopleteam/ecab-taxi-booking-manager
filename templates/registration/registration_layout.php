@@ -1,4 +1,7 @@
 <?php
+if (!function_exists('mptbm_get_translation')) {
+	require_once dirname(__DIR__, 2) . '/inc/mptbm-translation-helper.php';
+}
 /*
 * @Author 		engr.sumonazma@gmail.com
 * Copyright: 	mage-people.com
@@ -17,21 +20,21 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 					<span class="mp_zero" data-icon></span>
 					<span class="mp_zero" data-text>1</span>
 				</h4>
-				<h6 class="circleTitle" data-class><?php esc_html_e('Enter Ride Details', 'ecab-taxi-booking-manager'); ?></h6>
+				<h6 class="circleTitle" data-class><?php echo mptbm_get_translation('enter_ride_details_label', __('Enter Ride Details', 'ecab-taxi-booking-manager')); ?></h6>
 			</div>
 			<div data-tabs-target-next="#mptbm_search_result" class="tabItemNext" data-open-text="2" data-close-text="" data-open-icon="" data-close-icon="fas fa-check" data-add-class="success">
 				<h4 class="circleIcon" data-class>
 					<span class="mp_zero" data-icon></span>
 					<span class="mp_zero" data-text>2</span>
 				</h4>
-				<h6 class="circleTitle" data-class><?php esc_html_e('Choose a vehicle', 'ecab-taxi-booking-manager'); ?></h6>
+				<h6 class="circleTitle" data-class><?php echo mptbm_get_translation('choose_a_vehicle_label', __('Choose a vehicle', 'ecab-taxi-booking-manager')); ?></h6>
 			</div>
 			<div data-tabs-target-next="#mptbm_order_summary" class="tabItemNext" data-open-text="3" data-close-text="" data-open-icon="" data-close-icon="fas fa-check" data-add-class="success">
 				<h4 class="circleIcon" data-class>
 					<span class="mp_zero" data-icon></span>
 					<span class="mp_zero" data-text>3</span>
 				</h4>
-				<h6 class="circleTitle" data-class><?php esc_html_e('Place Order', 'ecab-taxi-booking-manager'); ?></h6>
+				<h6 class="circleTitle" data-class><?php echo mptbm_get_translation('place_order_label', __('Place Order', 'ecab-taxi-booking-manager')); ?></h6>
 			</div>
 		</div>
 		<div class="tabsContentNext">
@@ -54,8 +57,20 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 					<div class="mptb-tab-container">
 						<ul class="mptb-tabs">
 							<?php foreach ($available_tabs as $key => $tab_name) { ?>
-								<li class="tab-link <?php echo ($key === $first_tab) ? 'current' : ''; ?>" mptbm-data-tab="<?php echo $tab_name; ?>" mptbm-data-form-style="<?php echo $form_style; ?>" mptbm-data-map="<?php echo $map; ?>">
-									<?php echo ucfirst(str_replace('-', ' ', $tab_name)); ?>
+
+								<li class="tab-link <?php echo ($key === $first_tab) ? 'current' : ''; ?>" mptbm-data-tab="<?php echo $tab_name; ?>">
+									<?php
+									if ($tab_name === 'distance') {
+										echo mptbm_get_translation('distance_tab_label', __('Distance', 'ecab-taxi-booking-manager'));
+									} elseif ($tab_name === 'hourly') {
+										echo mptbm_get_translation('hourly_tab_label', __('Hourly', 'ecab-taxi-booking-manager'));
+									} elseif ($tab_name === 'flat-rate') {
+										echo mptbm_get_translation('flat_rate_tab_label', __('Flat rate', 'ecab-taxi-booking-manager'));
+									} else {
+										echo ucfirst(str_replace('-', ' ', $tab_name));
+									}
+									?>
+
 								</li>
 							<?php } ?>
 						</ul>
