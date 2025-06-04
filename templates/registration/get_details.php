@@ -18,6 +18,8 @@ $price_based = $price_based ?? '';
 set_transient('original_price_based', $price_based);
 
 $map = $map ?? 'yes';
+$map = strtolower($map); // Normalize the value to lowercase
+
 $all_dates = MPTBM_Function::get_all_dates($price_based);
 $form_style = $form_style ?? 'horizontal';
 $form_style_class = $form_style == 'horizontal' ? 'inputHorizontal' : 'inputInline';
@@ -402,7 +404,7 @@ if (sizeof($all_dates) > 0) {
 					<div class="inputList mp_input_select">
 						<label class="fdColumn">
 							<span><?php echo mptbm_get_translation('extra_waiting_hours_label', __('Extra Waiting Hours', 'ecab-taxi-booking-manager')); ?></span>
-							<select class="formControl" name="mptbm_waiting_time">
+							<select class="formControl" name="mptbm_waiting_time" id="mptbm_waiting_time">
 								<option value="0" selected><?php echo mptbm_get_translation('no_waiting_label', __('No Waiting', 'ecab-taxi-booking-manager')); ?></option>
 								<option value="1"><?php echo mptbm_get_translation('one_hour_label', __('1 Hour', 'ecab-taxi-booking-manager')); ?></option>
 								<option value="2"><?php echo mptbm_get_translation('two_hours_label', __('2 Hours', 'ecab-taxi-booking-manager')); ?></option>
@@ -475,7 +477,7 @@ if (sizeof($all_dates) > 0) {
 		</div>
 		<?php $map_key = get_option('mptbm_map_api_settings',true);?>
 		<span class="mptbm-map-warning" style="display:none"><?php _e('Google Map Authentication Failed! Please contact site admin.','ecab-taxi-booking-manager'); ?></span>
-		<div class="mptbm_map_area fdColumn" style="display: <?php echo ($price_based != 'manual' && $map == 'yes') ? 'block' : 'none'; ?>;">
+		<div class="mptbm_map_area fdColumn" style="display: <?php echo ($price_based != 'manual' && $map === 'yes') ? 'block' : 'none'; ?>;">
 			<div class="fullHeight">
 				<?php if(!empty($map_key['gmap_api_key'])): ?>
 					<div id="mptbm_map_area"></div>

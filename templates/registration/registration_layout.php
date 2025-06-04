@@ -58,7 +58,7 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 						<ul class="mptb-tabs">
 							<?php foreach ($available_tabs as $key => $tab_name) { ?>
 
-								<li class="tab-link <?php echo ($key === $first_tab) ? 'current' : ''; ?>" mptbm-data-tab="<?php echo $tab_name; ?>">
+								<li class="tab-link <?php echo ($key === $first_tab) ? 'current' : ''; ?>" mptbm-data-tab="<?php echo $tab_name; ?>" mptbm-data-map="<?php echo $map; ?>" mptbm-data-form-style="<?php echo $form_style; ?>">
 									<?php
 									if ($tab_name === 'distance') {
 										echo mptbm_get_translation('distance_tab_label', __('Distance', 'ecab-taxi-booking-manager'));

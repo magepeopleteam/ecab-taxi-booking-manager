@@ -998,13 +998,14 @@ function mptbm_price_calculation(parent) {
             var tab_id = $(this).attr('mptbm-data-tab');
             var form_style = $(this).attr('mptbm-data-form-style');
             var map = $(this).attr('mptbm-data-map');
+            
             // Remove existing template before inserting the new one
             $('.mptb-tab-content').empty().removeClass('current');
             $('.mptbm-hide-gif').css('display', 'block');
             // Mark the clicked tab as active
             $('.mptb-tabs li').removeClass('current');
             $(this).addClass('current');
-
+            
             // AJAX call to load the template
             $.ajax({
                 type: "POST",

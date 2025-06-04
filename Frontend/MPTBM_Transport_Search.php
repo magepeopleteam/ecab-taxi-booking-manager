@@ -49,17 +49,14 @@
 				if (isset($_POST['tab_id'])) {
 					$tab_id = sanitize_text_field($_POST['tab_id']); // Sanitize input
 					$form_style = sanitize_text_field($_POST['form_style']);
-					$display_map = sanitize_text_field($_POST['map']);
-					
+					$map = sanitize_text_field($_POST['map']); // Changed from $display_map to $map
 					// Include the correct template based on the tab
 					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate') {
 						ob_start(); // Start output buffering
 						if($tab_id === 'distance'){
 							$price_based = 'dynamic';
-							
 						}else if($tab_id === 'hourly'){
 							$price_based = 'fixed_hourly';
-							
 						}else{
 							$price_based = 'manual';
 							$form_style = 'inline';
