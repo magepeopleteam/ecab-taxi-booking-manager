@@ -17,7 +17,13 @@
 	$fixed_time = $fixed_time ?? '';
 	$return_date_time = $return_date_time ?? '';
 	$price_based = $price_based ?? '';
+	$post_id = $summary_post_id ?? '';
 	
+	// Get price display type and custom message if post_id is available
+	if ($post_id) {
+		$price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
+		$custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
+	}
 ?>
 	<div class="leftSidebar">
 		<div class="">
@@ -95,7 +101,11 @@
 								<span class="fas fa-check-square _textTheme_mR_xs"></span>
 								<span class="mptbm_product_name"></span>
 							</div>
-							<span class="mptbm_product_price _textTheme"></span>
+							<?php if (isset($price_display_type) && $price_display_type === 'custom_message' && !empty($custom_message)): ?>
+								<span class="mptbm_product_price _textTheme"><?php echo wp_kses_post($custom_message); ?></span>
+							<?php else: ?>
+								<span class="mptbm_product_price _textTheme"></span>
+							<?php endif; ?>
 						</div>
 						<div class="mptbm_extra_service_summary"></div>
 						<div class="dividerL"></div>

@@ -679,9 +679,19 @@ function mptbm_price_calculation(parent) {
         var transportPrice = parseFloat($(`.mptbm_transport_select[data-post-id="${postId}"]`).attr('data-transport-price'));
         var $summary = $searchArea.find('.mptbm_transport_summary');
     
-        $summary.find('.mptbm_product_price').html(
-            'x' + updatedVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span>' + mp_price_format(transportPrice * updatedVal)
-        );
+        // Check if there's a custom message
+        let customMessage = $parent.find('.mptbm-custom-price-message').html();
+        if (customMessage) {
+            // If there's a custom message, show it with quantity
+            $summary.find('.mptbm_product_price').html(
+                'x' + updatedVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span>' + customMessage
+            );
+        } else {
+            // If no custom message, show price as before
+            $summary.find('.mptbm_product_price').html(
+                'x' + updatedVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span>' + mp_price_format(transportPrice * updatedVal)
+            );
+        }
     
         // 🧠 Update the data-price dynamically if needed
         $searchArea.find('[name="mptbm_post_id"]').attr('data-price', transportPrice * updatedVal);
@@ -730,9 +740,21 @@ function mptbm_price_calculation(parent) {
                 target_summary.find('.mptbm_product_name').html(transport_name);
                 let quantityInput = parent.find(`.mp_quantity_input[data-post-id="${post_id}"]`);
                 let quantityVal = quantityInput.length ? parseInt(quantityInput.val()) || 1 : 1;
-                target_summary.find('.mptbm_product_price').html(
-                    'x' + quantityVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span> ' + mp_price_format(transport_price * quantityVal)
-                );
+
+                // Check if there's a custom message
+                let customMessage = $this.closest('.mptbm_booking_item').find('.mptbm-custom-price-message').html();
+                if (customMessage) {
+                    // If there's a custom message, show it with quantity
+                    target_summary.find('.mptbm_product_price').html(
+                        'x' + quantityVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span> ' + customMessage
+                    );
+                } else {
+                    // If no custom message, show price as before
+                    target_summary.find('.mptbm_product_price').html(
+                        'x' + quantityVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span> ' + mp_price_format(transport_price * quantityVal)
+                    );
+                }
+
                 $this.addClass('active_select');
                 mp_all_content_change($this);
                 parent.find('[name="mptbm_post_id"]').val(post_id).attr('data-price', transport_price).promise().done(function () {

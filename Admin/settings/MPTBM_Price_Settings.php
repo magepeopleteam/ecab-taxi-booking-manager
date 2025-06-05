@@ -190,7 +190,7 @@ if (!class_exists('MPTBM_Price_Settings')) {
 						<?php $this->hidden_manual_price_item($location_terms); ?>
 					</div>
 				</section>
-				<?php if (class_exists('MPTBM_Plugin_Pro')) { ?>
+				
 				<section>
 					<label class="label">
 						<div>
@@ -204,7 +204,7 @@ if (!class_exists('MPTBM_Price_Settings')) {
 						</select>
 					</label>
 				</section>
-				<?php } ?>
+				
 				<section data-collapse="#custom_message_section" class="<?php echo esc_attr($price_display_type == 'custom_message' ? 'mActive' : ''); ?>">
 					<label class="label">
 						<div>

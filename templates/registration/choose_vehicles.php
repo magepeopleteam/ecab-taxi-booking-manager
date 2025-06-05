@@ -326,8 +326,6 @@ $start_date = isset($_POST["start_date"]) ? sanitize_text_field($_POST["start_da
 $start_time_schedule = isset($_POST["start_time"]) ? sanitize_text_field($_POST["start_time"]) : "";
 $start_time = isset($_POST["start_time"]) ? sanitize_text_field($_POST["start_time"]) : "";
 
-$start_time = isset($_POST["start_time"]) ? sanitize_text_field($_POST["start_time"]) : "";
-
 // Define unique keys for each transient
 $transient_key_schedule = 'start_time_schedule_transient';
 $transient_key_date = 'start_date_transient';
@@ -527,6 +525,27 @@ if ($all_posts->found_posts > 0) {
         
         if ($check_schedule) {
             $vehicle_item_count = $vehicle_item_count + 1;
+            $price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
+            $custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
+            
+            // Get the price
+            $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time);
+            
+            // Only skip display if price is 0 and we're not in zero or custom message mode
+            if (!$price && $price_display_type === 'normal') {
+                continue;
+            }
+            
+            // Handle price display
+            if ($price_display_type === 'custom_message' && $custom_message) {
+                $price_display = '<div class="mptbm-custom-price-message" style="font-size: 15px;">' . wp_kses_post($custom_message) . '</div>';
+                $raw_price = 0; // Set raw price to 0 for custom message
+            } else {
+                $wc_price = MP_Global_Function::wc_price($post_id, $price);
+                $raw_price = MP_Global_Function::price_convert_raw($wc_price);
+                $price_display = $wc_price;
+            }
+            
             include MPTBM_Function::template_path("registration/vehicle_item.php");
         }
     }

@@ -248,7 +248,13 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					}
 					$item->add_meta_data(esc_html__('Transport Quantity', 'ecab-taxi-booking-manager'), $transport_quantity);
 				}
-				$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), wp_kses_post(wc_price($base_price)));
+				$price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type');
+				if ($price_display_type === 'custom_message') {
+					$custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message');
+					$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), esc_html($custom_message));
+				} else {
+					$item->add_meta_data(esc_html__('Price ', 'ecab-taxi-booking-manager'), wp_kses_post(wc_price($base_price)));
+				}
 				if (sizeof($extra_service) > 0) {
 					$item->add_meta_data(esc_html__('Optional Service ', 'ecab-taxi-booking-manager'), '');
 					foreach ($extra_service as $service) {
@@ -621,7 +627,15 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						<li>
 							<span class="fa fa-tag"></span>
 							<h6 class="_mR_xs"><?php esc_html_e('Base Price : ', 'ecab-taxi-booking-manager'); ?></h6>
-							<span><?php echo wp_kses_post(wc_price($base_price)); ?></span>
+							<?php 
+							$price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type');
+							if ($price_display_type === 'custom_message') {
+								$custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message');
+								echo esc_html($custom_message);
+							} else {
+								echo wp_kses_post(wc_price($base_price));
+							}
+							?>
 						</li>
 						<?php
 						// Display transport quantity

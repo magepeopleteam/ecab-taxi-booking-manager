@@ -125,16 +125,11 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
 
         // Get price display type and custom message
         $price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
-        $custom_message = get_transient('mptbm_custom_price_message_' . $post_id);
+        $custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
 
-        // Only skip display if price is 0 and we're not in zero or custom message mode
-        if (!$price && $price_display_type === 'normal') {
-            return false;
-        }
-
-        // Handle price display
+        // Handle price display based on display type
         if ($price_display_type === 'custom_message' && $custom_message) {
-            $price_display = '<div class="mptbm-custom-price-message" style=" font-size: 15px; ">' . wp_kses_post($custom_message) . '</div>';
+            $price_display = '<div class="mptbm-custom-price-message">' . wp_kses_post($custom_message) . '</div>';
             $raw_price = 0; // Set raw price to 0 for custom message
         } else {
             $wc_price = MP_Global_Function::wc_price($post_id, $price);
@@ -205,7 +200,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                         }
                         ?>
                         </div>
-                        <h4 class="textCenter" style="clear:right;"> <?php echo wp_kses_post(wc_price($raw_price)); ?></h4>
+                        <h4 class="textCenter" style="clear:right;"> <?php echo wp_kses_post($price_display); ?></h4>
                         
                         <?php if (class_exists('MPTBM_Plugin_Pro')) { 
                             if ($enable_inventory == 'yes' && $available_quantity > 1) { ?>
