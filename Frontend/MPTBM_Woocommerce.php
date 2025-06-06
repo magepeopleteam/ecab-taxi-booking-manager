@@ -838,12 +838,34 @@ if (!class_exists('MPTBM_Woocommerce')) {
 		}
 
 		public function render_custom_checkout_fields($checkout) {
+			// Load fields from both admin settings and pro addon
 			$settings = get_option('mptbm_checkout_fields_settings', array());
-			$fields = isset($settings['fields']) ? $settings['fields'] : array();
-			// Always sort fields by 'order' before rendering
+			$fields_admin = isset($settings['fields']) ? $settings['fields'] : array();
+
+			// Pro addon fields
+			$fields_pro = array();
+			$pro_options = get_option('mptbm_custom_checkout_fields', array());
+			if (is_array($pro_options)) {
+				foreach ($pro_options as $section => $section_fields) {
+					if (is_array($section_fields)) {
+						foreach ($section_fields as $key => $field) {
+							// Only include if not deleted and not disabled
+							if ((empty($field['deleted']) || $field['deleted'] !== 'deleted') && (empty($field['disabled']) || $field['disabled'] !== '1')) {
+								$fields_pro[$key] = $field;
+							}
+						}
+					}
+				}
+			}
+
+			// Merge fields, pro fields override admin if same key
+			$fields = array_merge($fields_admin, $fields_pro);
+
+			// Always sort fields by 'order' before rendering (if available)
 			uasort($fields, function($a, $b) {
 				return ($a['order'] ?? 0) <=> ($b['order'] ?? 0);
 			});
+
 			$logic = array();
 			foreach ($fields as $key => $field) {
 				if (!empty($field['conditional']['field'])) {
@@ -855,7 +877,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			foreach ($fields as $key => $field) {
 				if (empty($field['show'])) continue;
 				$label = $field['label'];
-				$placeholder = $field['placeholder'];
+				$placeholder = $field['placeholder'] ?? '';
 				$type = $field['type'];
 				$value = $checkout->get_value($key);
 				$required = !empty($field['required']);
@@ -869,22 +891,28 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				} elseif ($type === 'textarea') {
 					echo '<textarea name="' . esc_attr($key) . '" id="' . esc_attr($field_id) . '" class="input-text" placeholder="' . esc_attr($placeholder) . '" ' . ($required ? 'required' : '') . '>' . esc_textarea($value) . '</textarea>';
 				} elseif ($type === 'select') {
-					$options = isset($field['options']) ? array_map('trim', explode(',', $field['options'])) : array();
+					$options = isset($field['options']) ? (is_array($field['options']) ? $field['options'] : array_map('trim', explode(',', $field['options']))) : array();
 					echo '<select name="' . esc_attr($key) . '" id="' . esc_attr($field_id) . '" class="input-select" ' . ($required ? 'required' : '') . '>';
 					echo '<option value="">' . esc_html__('Select', 'ecab-taxi-booking-manager') . '</option>';
-					foreach ($options as $opt) {
-						echo '<option value="' . esc_attr($opt) . '"' . selected($value, $opt, false) . '>' . esc_html($opt) . '</option>';
+					foreach ($options as $opt_key => $opt_val) {
+						$opt = is_array($field['options']) ? $opt_key : $opt_val;
+						$opt_label = is_array($field['options']) ? $opt_val : $opt_val;
+						echo '<option value="' . esc_attr($opt) . '"' . selected($value, $opt, false) . '>' . esc_html($opt_label) . '</option>';
 					}
 					echo '</select>';
 				} elseif ($type === 'checkbox') {
-					$options = isset($field['options']) ? array_map('trim', explode(',', $field['options'])) : array();
-					foreach ($options as $opt) {
-						echo '<label><input type="checkbox" name="' . esc_attr($key) . '[]" value="' . esc_attr($opt) . '"' . (is_array($value) && in_array($opt, $value) ? ' checked' : '') . '> ' . esc_html($opt) . '</label> ';
+					$options = isset($field['options']) ? (is_array($field['options']) ? $field['options'] : array_map('trim', explode(',', $field['options']))) : array();
+					foreach ($options as $opt_key => $opt_val) {
+						$opt = is_array($field['options']) ? $opt_key : $opt_val;
+						$opt_label = is_array($field['options']) ? $opt_val : $opt_val;
+						echo '<label><input type="checkbox" name="' . esc_attr($key) . '[]" value="' . esc_attr($opt) . '"' . (is_array($value) && in_array($opt, $value) ? ' checked' : '') . '> ' . esc_html($opt_label) . '</label> ';
 					}
 				} elseif ($type === 'radio') {
-					$options = isset($field['options']) ? array_map('trim', explode(',', $field['options'])) : array();
-					foreach ($options as $opt) {
-						echo '<label><input type="radio" name="' . esc_attr($key) . '" value="' . esc_attr($opt) . '"' . ($value == $opt ? ' checked' : '') . '> ' . esc_html($opt) . '</label> ';
+					$options = isset($field['options']) ? (is_array($field['options']) ? $field['options'] : array_map('trim', explode(',', $field['options']))) : array();
+					foreach ($options as $opt_key => $opt_val) {
+						$opt = is_array($field['options']) ? $opt_key : $opt_val;
+						$opt_label = is_array($field['options']) ? $opt_val : $opt_val;
+						echo '<label><input type="radio" name="' . esc_attr($key) . '" value="' . esc_attr($opt) . '"' . ($value == $opt ? ' checked' : '') . '> ' . esc_html($opt_label) . '</label> ';
 					}
 				} elseif ($type === 'file') {
 					$upload_nonce = wp_create_nonce('mptbm_file_upload');

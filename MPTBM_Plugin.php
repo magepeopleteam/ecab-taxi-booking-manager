@@ -74,6 +74,9 @@ if (!class_exists('MPTBM_Plugin')) {
                 // Load Elementor Integration
                 add_action('elementor/widgets/register', array($this, 'register_elementor_widget'));
                 add_action('elementor/elements/categories_registered', array($this, 'add_elementor_widget_category'));
+
+                // Always load the checkout fields helper on frontend
+                require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Wc_Checkout_Fields_Helper.php';
             } else {
                 require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Quick_Setup.php';
                 add_action('activated_plugin', array($this, 'activation_redirect_setup'), 90, 1);
