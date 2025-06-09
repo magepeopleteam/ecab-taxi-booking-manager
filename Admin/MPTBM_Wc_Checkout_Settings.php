@@ -23,11 +23,15 @@
 			public function tab_content($contents) {
 				$check_order_additional_information_section='';
 				$check_order_review_section='';
+				$check_disable_custom_checkout='';
 				if (MPTBM_Wc_Checkout_Fields_Helper::hide_checkout_order_additional_information_section()) {
 					$check_order_additional_information_section = 'checked';
 				}
 				if (MPTBM_Wc_Checkout_Fields_Helper::hide_checkout_order_review_section()) {
 					$check_order_review_section = 'checked';
+				}
+				if (MPTBM_Wc_Checkout_Fields_Helper::disable_custom_checkout_system()) {
+					$check_disable_custom_checkout = 'checked';
 				}
 				?>
                 <div class="tab-content" id="mptbm_wc_checkout_settings">
@@ -38,6 +42,10 @@
                             <input type="hidden" name="action" value="mptbm_wc_checkout_settings"/>
                             <table class="wc_gateways wp-list-table widefat striped">
                                 <tbody>
+                                <tr>
+                                    <td><label for="disable_custom_checkout_system"><span class="span-checkout-setting">Disable Custom Checkout System</span></label></td>
+                                    <td><?php MPTBM_Wc_Checkout_Fields::switch_button('disable_custom_checkout_system', 'checkoutSettingsSwitchButton', 'disable_custom_checkout_system', $check_disable_custom_checkout, null); ?></td>
+                                </tr>
                                 <tr>
                                     <td><label for="hide_checkout_order_additional_information"><span class="span-checkout-setting">Hide Order Additional Information Section</span></label></td>
                                     <td><?php MPTBM_Wc_Checkout_Fields::switch_button('hide_checkout_order_additional_information', 'checkoutSettingsSwitchButton', 'hide_checkout_order_additional_information', $check_order_additional_information_section, null); ?></td>
@@ -66,12 +74,14 @@
 				$action = isset($_POST['action']) ? sanitize_text_field($_POST['action']) : null;
 				if (isset($action) && $action == 'mptbm_wc_checkout_settings') {
 					if (check_admin_referer('mptbm_wc_checkout_settings', 'mptbm_wc_checkout_settings_nonce')) {
+						$disable_custom_checkout_system = isset($_POST['disable_custom_checkout_system']) ? sanitize_text_field($_POST['disable_custom_checkout_system']) : null;
 						$hide_checkout_order_additional_information = isset($_POST['hide_checkout_order_additional_information']) ? sanitize_text_field($_POST['hide_checkout_order_additional_information']) : null;
 						$hide_checkout_order_review = isset($_POST['hide_checkout_order_review']) ? sanitize_text_field($_POST['hide_checkout_order_review']) : null;
 						$options = get_option('mptbm_custom_checkout_fields');
 						if (!is_array($options)) {
 							$options = array();
 						}
+						$options['disable_custom_checkout_system'] = $disable_custom_checkout_system;
 						$options['hide_checkout_order_additional_information'] = $hide_checkout_order_additional_information;
 						$options['hide_checkout_order_review'] = $hide_checkout_order_review;
 						update_option('mptbm_custom_checkout_fields', $options);

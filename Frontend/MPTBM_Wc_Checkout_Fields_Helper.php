@@ -382,6 +382,12 @@
 					return true;
 				}
 			}
+			public static function disable_custom_checkout_system() {
+				if ((is_array(self::$settings_options) && ((array_key_exists('disable_custom_checkout_system', self::$settings_options) && self::$settings_options['disable_custom_checkout_system'] == 'on')))) {
+					return true;
+				}
+				return false;
+			}
 			public static function check_deleted_field($key, $name) {
 				if ((isset(self::$settings_options[$key][$name]) && (isset(self::$settings_options[$key][$name]['deleted']) && self::$settings_options[$key][$name]['deleted'] == 'deleted'))) {
 					return true;
@@ -471,6 +477,10 @@
 				}
 			}
 			function save_custom_checkout_fields_to_order($order_id, $data) {
+				// Check if custom checkout system is disabled
+				if (self::disable_custom_checkout_system()) {
+					return; // Don't save any custom checkout fields
+				}
 					
 				$checkout_key_fields = $this->get_checkout_fields_for_checkout();				
 				foreach ($checkout_key_fields as $key => $checkout_fields) {
@@ -614,6 +624,11 @@
 				}
 			}
 			function order_details($order_id) {
+				// Check if custom checkout system is disabled
+				if (self::disable_custom_checkout_system()) {
+					return; // Don't display any custom checkout fields in admin
+				}
+				
 				$order = wc_get_order($order_id);
 				$checkout_fields = $this->get_checkout_fields_for_checkout();
 				$billing_fields = $checkout_fields['billing'];
@@ -723,6 +738,11 @@
 			 * Inject merged default and custom fields into WooCommerce checkout
 			 */
 			public function inject_checkout_fields($fields) {
+				// Check if custom checkout system is disabled
+				if (self::disable_custom_checkout_system()) {
+					return $fields; // Return original WooCommerce fields without any modifications
+				}
+				
 				// Get default fields
 				$default = self::woocommerce_default_checkout_fields();
 				// Get custom fields from admin/pro
@@ -757,6 +777,10 @@
 			 * Output file fields for a given section on the checkout page
 			 */
 			public function output_file_fields_for_section($section) {
+				// Check if custom checkout system is disabled
+				if (self::disable_custom_checkout_system()) {
+					return; // Don't output any custom file fields
+				}
 				
 				$all_fields = $this->inject_checkout_fields([]);
 				
