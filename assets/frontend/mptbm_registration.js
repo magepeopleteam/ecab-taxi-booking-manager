@@ -206,7 +206,7 @@ function mptbm_map_area_init() {
         
         if (!start_date) {
             target_date.trigger("click");
-        } else if (!start_time) {
+        } else if (start_time === undefined || start_time === null || start_time === '') {
             parent
                 .find("#mptbm_map_start_time")
                 .closest(".mp_input_select")
@@ -216,7 +216,7 @@ function mptbm_map_area_init() {
             if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1) {
                 return_target_date.trigger("click");
             }
-        } else if (!return_time) {
+        } else if (return_time === undefined || return_time === null || return_time === '') {
             if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1) {
                 parent
                     .find("#mptbm_map_return_time")
@@ -269,7 +269,10 @@ function mptbm_map_area_init() {
                     getCoordinatesAsync(start_place.value),
                     getCoordinatesAsync(end_place.value)
                 ).done(function (startCoordinates, endCoordinates) {
-                    if (start_place.value && end_place.value && start_date && start_time && return_date && return_time) {
+                    if (start_place.value && end_place.value && start_date && 
+                        (start_time !== undefined && start_time !== null && start_time !== '') && 
+                        return_date && 
+                        (return_time !== undefined && return_time !== null && return_time !== '')) {
                         let actionValue;
                         if (!mptbm_enable_view_search_result_page) {
                             actionValue = "get_mptbm_map_search_result";
@@ -356,7 +359,10 @@ function mptbm_map_area_init() {
                 });
             } else {
 
-                if (start_place.value && end_place.value && start_date && start_time && return_date && return_time) {
+                if (start_place.value && end_place.value && start_date && 
+                    (start_time !== undefined && start_time !== null && start_time !== '') && 
+                    return_date && 
+                    (return_time !== undefined && return_time !== null && return_time !== '')) {
 
                     let actionValue;
                     if (!mptbm_enable_view_search_result_page) {
