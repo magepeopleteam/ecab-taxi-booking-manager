@@ -20,264 +20,283 @@
 			public function __construct() {
 				$this->error = new WP_Error();
 				$this->init();
-				// Always inject our fields, even if Pro is active
-				add_filter('woocommerce_checkout_fields', array($this, 'inject_checkout_fields'), 1);
-
+				
+				// Check if custom checkout system is disabled
+				if (self::disable_custom_checkout_system()) {
+					// If disabled, don't add any filters or actions that modify checkout
+					return;
+				}
+				
+				// Always inject our fields, even if Pro is active - use high priority to run last
+				add_filter('woocommerce_checkout_fields', array($this, 'inject_checkout_fields'), 999);
+				
 				// Render file fields after WooCommerce fields in each section
 				add_action('woocommerce_after_checkout_billing_form', function() { $this->output_file_fields_for_section('billing'); });
 				add_action('woocommerce_after_checkout_shipping_form', function() { $this->output_file_fields_for_section('shipping'); });
 				add_action('woocommerce_after_checkout_order_form', function() { $this->output_file_fields_for_section('order'); });
+				
+				// Add CSS for hidden fields
+				add_action('wp_head', array($this, 'add_hidden_field_css'));
 			}
 			public static function woocommerce_default_checkout_fields() {
-				return array
-				(
-					"billing" => array(
-						"billing_first_name" => array(
-							"label" => __("First name",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-first"
+				// Use a static variable to cache the fields once translations are available
+				static $cached_fields = null;
+				
+				if ($cached_fields === null) {
+					$cached_fields = array
+					(
+						"billing" => array(
+							"billing_first_name" => array(
+								"label" => __("First name",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-first"
+								),
+								"autocomplete" => "given-name",
+								"priority" => "10",
 							),
-							"autocomplete" => "given-name",
-							"priority" => "10",
+							"billing_last_name" => array(
+								"label" => __("Last name",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-last"
+								),
+								"autocomplete" => "family-name",
+								"priority" => "20",
+							),
+							"billing_company" => array(
+								"label" => __("Company name",'ecab-taxi-booking-manager'),
+								"class" => array(
+									"0" => "form-row-wide",
+								),
+								"autocomplete" => "organization",
+								"priority" => "30",
+								"required" => '',
+							),
+							"billing_country" => array(
+								"type" => "country",
+								"label" => __("Country / Region",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field",
+									"2" => "update_totals_on_change",
+								),
+								"autocomplete" => "country",
+								"priority" => "40",
+							),
+							"billing_address_1" => array(
+								"label" => __("Street address",'ecab-taxi-booking-manager'),
+								"placeholder" => __("House number and street name",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field"
+								),
+								"autocomplete" => "address-line1",
+								"priority" => "50"
+							),
+							"billing_address_2" => array(
+								"label" => __("Apartment, suite, unit, etc.",'ecab-taxi-booking-manager'),
+								"label_class" => array(
+									"0" => "screen-reader-text",
+								),
+								"placeholder" => __("Apartment, suite, unit, etc. (optional)",'ecab-taxi-booking-manager'),
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field"
+								),
+								"autocomplete" => "address-line2",
+								"priority" => "60",
+								"required" => "",
+							),
+							"billing_city" => array(
+								"label" => __("Town / City",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field",
+								),
+								"autocomplete" => "address-level2",
+								"priority" => "70",
+							),
+							"billing_state" => array(
+								"type" => "state",
+								"label" => __("State / County",'ecab-taxi-booking-manager'),
+								"required" => "",
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field"
+								),
+								"validate" => array(
+									"0" => "state"
+								),
+								"autocomplete" => "address-level1",
+								"priority" => "80",
+								"country_field" => "billing_country",
+								"country" => "AF"
+							),
+							"billing_postcode" => array(
+								"label" => __("Postcode / ZIP",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field"
+								),
+								"validate" => array(
+									"0" => "postcode",
+								),
+								"autocomplete" => "postal-code",
+								"priority" => "90"
+							),
+							"billing_phone" => array(
+								"label" => __("Phone",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"type" => "tel",
+								"class" => array(
+									"0" => "form-row-wide",
+								),
+								"validate" => array(
+									"0" => "phone",
+								),
+								"autocomplete" => "tel",
+								"priority" => "100"
+							),
+							'billing_email' => array(
+								"label" => __("Email address",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"type" => "email",
+								"class" => array(
+									"0" => "form-row-wide",
+								),
+								"validate" => array(
+									"0" => "email",
+								),
+								"autocomplete" => "email username",
+								"priority" => "110",
+							)
 						),
-						"billing_last_name" => array(
-							"label" => __("Last name",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-last"
+						'shipping' => array(
+							'shipping_first_name' => array(
+								"label" => __("First name",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-first",
+								),
+								"autocomplete" => "given-name",
+								"priority" => "10",
 							),
-							"autocomplete" => "family-name",
-							"priority" => "20",
+							"shipping_last_name" => array(
+								"label" => __("Last name",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-last",
+								),
+								"autocomplete" => "family-name",
+								"priority" => "20",
+							),
+							"shipping_company" => array(
+								"label" => __("Company name",'ecab-taxi-booking-manager'),
+								"class" => array(
+									"0" => "form-row-wide",
+								),
+								"autocomplete" => "organization",
+								"priority" => "30",
+								"required" => "",
+							),
+							"shipping_country" => array(
+								"type" => "country",
+								"label" => __("Country / Region",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field",
+									"2" => "update_totals_on_change",
+								),
+								"autocomplete" => "country",
+								"priority" => "40",
+							),
+							"shipping_address_1" => array(
+								"label" => __("Street address",'ecab-taxi-booking-manager'),
+								"placeholder" => __("House number and street name",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field"
+								),
+								"autocomplete" => "address-line1",
+								"priority" => "50"
+							),
+							"shipping_address_2" => array(
+								"label" => __("Apartment, suite, unit, etc.",'ecab-taxi-booking-manager'),
+								"label_class" => array(
+									"0" => "screen-reader-text",
+								),
+								"placeholder" => __("Apartment, suite, unit, etc. (optional)",'ecab-taxi-booking-manager'),
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field"
+								),
+								"autocomplete" => "address-line2",
+								"priority" => "60",
+								"required" => "",
+							),
+							"shipping_city" => array(
+								"label" => __("Town / City",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field",
+								),
+								"autocomplete" => "address-level2",
+								"priority" => "70",
+							),
+							"shipping_state" => array(
+								"type" => "state",
+								"label" => __("State / County",'ecab-taxi-booking-manager'),
+								"required" => "",
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field"
+								),
+								"validate" => array(
+									"0" => "state"
+								),
+								"autocomplete" => "address-level1",
+								"priority" => "80",
+								"country_field" => "shipping_country",
+								"country" => "AF",
+							),
+							"shipping_postcode" => array(
+								"label" => __("Postcode / ZIP",'ecab-taxi-booking-manager'),
+								"required" => "1",
+								"class" => array(
+									"0" => "form-row-wide",
+									"1" => "address-field"
+								),
+								"validate" => array(
+									"0" => "postcode",
+								),
+								"autocomplete" => "postal-code",
+								"priority" => "90",
+							),
 						),
-						"billing_company" => array(
-							"label" => __("Company name",'ecab-taxi-booking-manager'),
-							"class" => array(
-								"0" => "form-row-wide",
+						'order' => array(
+							'order_comments' => array(
+								"type" => "textarea",
+								"label" => __("Order notes",'ecab-taxi-booking-manager'),
+								"placeholder" => __("Notes about your order, e.g. special notes for delivery.",'ecab-taxi-booking-manager'),
+								"class" => array(
+									"0" => "notes",
+								),
+								"priority" => "",
+								"required" => "",
 							),
-							"autocomplete" => "organization",
-							"priority" => "30",
-							"required" => '',
 						),
-						"billing_country" => array(
-							"type" => "country",
-							"label" => __("Country / Region",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field",
-								"2" => "update_totals_on_change",
-							),
-							"autocomplete" => "country",
-							"priority" => "40",
-						),
-						"billing_address_1" => array(
-							"label" => __("Street address",'ecab-taxi-booking-manager'),
-							"placeholder" => __("House number and street name",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field"
-							),
-							"autocomplete" => "address-line1",
-							"priority" => "50"
-						),
-						"billing_address_2" => array(
-							"label" => __("Apartment, suite, unit, etc.",'ecab-taxi-booking-manager'),
-							"label_class" => array(
-								"0" => "screen-reader-text",
-							),
-							"placeholder" => __("Apartment, suite, unit, etc. (optional)",'ecab-taxi-booking-manager'),
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field"
-							),
-							"autocomplete" => "address-line2",
-							"priority" => "60",
-							"required" => "",
-						),
-						"billing_city" => array(
-							"label" => __("Town / City",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field",
-							),
-							"autocomplete" => "address-level2",
-							"priority" => "70",
-						),
-						"billing_state" => array(
-							"type" => "state",
-							"label" => __("State / County",'ecab-taxi-booking-manager'),
-							"required" => "",
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field"
-							),
-							"validate" => array(
-								"0" => "state"
-							),
-							"autocomplete" => "address-level1",
-							"priority" => "80",
-							"country_field" => "billing_country",
-							"country" => "AF"
-						),
-						"billing_postcode" => array(
-							"label" => __("Postcode / ZIP",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field"
-							),
-							"validate" => array(
-								"0" => "postcode",
-							),
-							"autocomplete" => "postal-code",
-							"priority" => "90"
-						),
-						"billing_phone" => array(
-							"label" => __("Phone",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"type" => "tel",
-							"class" => array(
-								"0" => "form-row-wide",
-							),
-							"validate" => array(
-								"0" => "phone",
-							),
-							"autocomplete" => "tel",
-							"priority" => "100"
-						),
-						'billing_email' => array(
-							"label" => __("Email address",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"type" => "email",
-							"class" => array(
-								"0" => "form-row-wide",
-							),
-							"validate" => array(
-								"0" => "email",
-							),
-							"autocomplete" => "email username",
-							"priority" => "110",
-						)
-					),
-					'shipping' => array(
-						'shipping_first_name' => array(
-							"label" => __("First name",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-first",
-							),
-							"autocomplete" => "given-name",
-							"priority" => "10",
-						),
-						"shipping_last_name" => array(
-							"label" => __("Last name",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-last",
-							),
-							"autocomplete" => "family-name",
-							"priority" => "20",
-						),
-						"shipping_company" => array(
-							"label" => __("Company name",'ecab-taxi-booking-manager'),
-							"class" => array(
-								"0" => "form-row-wide",
-							),
-							"autocomplete" => "organization",
-							"priority" => "30",
-							"required" => "",
-						),
-						"shipping_country" => array(
-							"type" => "country",
-							"label" => __("Country / Region",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field",
-								"2" => "update_totals_on_change",
-							),
-							"autocomplete" => "country",
-							"priority" => "40",
-						),
-						"shipping_address_1" => array(
-							"label" => __("Street address",'ecab-taxi-booking-manager'),
-							"placeholder" =>__( "House number and street name",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field",
-							),
-							"autocomplete" => "address-line1",
-							"priority" => "50",
-						),
-						"shipping_address_2" => array(
-							"label" => __("Apartment, suite, unit, etc.",'ecab-taxi-booking-manager'),
-							"label_class" => array(
-								"0" => "screen-reader-text",
-							),
-							"placeholder" => __("Apartment, suite, unit, etc. (optional)",'ecab-taxi-booking-manager'),
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field",
-							),
-							"autocomplete" => "address-line2",
-							"priority" => "60",
-							"required" => "",
-						),
-						"shipping_city" => array(
-							"label" => __("Town / City",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field",
-							),
-							"autocomplete" => "address-level2",
-							"priority" => "70"
-						),
-						"shipping_state" => array(
-							"type" => "state",
-							"label" => __("State / County",'ecab-taxi-booking-manager'),
-							"required" => "",
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field",
-							),
-							"validate" => array(
-								"0" => "state",
-							),
-							"autocomplete" => "address-level1",
-							"priority" => "80",
-							"country_field" => "shipping_country",
-							"country" => "AF",
-						),
-						"shipping_postcode" => array(
-							"label" => __("Postcode / ZIP",'ecab-taxi-booking-manager'),
-							"required" => "1",
-							"class" => array(
-								"0" => "form-row-wide",
-								"1" => "address-field"
-							),
-							"validate" => array(
-								"0" => "postcode",
-							),
-							"autocomplete" => "postal-code",
-							"priority" => "90",
-						),
-					),
-					"order" => array(
-						"order_comments" => array(
-							"type" => "textarea",
-							"class" => array(
-								"0" => "notes",
-							),
-							"label" => __("Order notes",'ecab-taxi-booking-manager'),
-							"placeholder" => __("Notes about your order, e.g. special notes for delivery.",'ecab-taxi-booking-manager'),
-						)
-					),
-				);
+					);
+				}
+				
+				return $cached_fields;
 			}
 			public function init() {
 				self::$settings_options = get_option('mptbm_custom_checkout_fields');
@@ -289,12 +308,15 @@
 					"pdf" => "application/pdf"
 				);
 
-				// Remove Pro check, always inject fields
-				// (No need to add woocommerce_checkout_fields filter here)
-				add_action('woocommerce_checkout_update_order_meta', array($this, 'save_custom_checkout_fields_to_order'), 99, 2);
-				add_action('woocommerce_before_order_details', array($this, 'order_details'), 99, 1);
-				add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'order_details'), 99, 1);
-				add_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'order_details'), 99, 1);
+				// Only add checkout-related actions if custom checkout system is not disabled
+				if (!self::disable_custom_checkout_system()) {
+					// Remove Pro check, always inject fields
+					// (No need to add woocommerce_checkout_fields filter here)
+					add_action('woocommerce_checkout_update_order_meta', array($this, 'save_custom_checkout_fields_to_order'), 99, 2);
+					add_action('woocommerce_before_order_details', array($this, 'order_details'), 99, 1);
+					add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'order_details'), 99, 1);
+					add_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'order_details'), 99, 1);
+				}
 			}
 			public static function get_checkout_fields_for_list() {
 				$fields = array();
@@ -477,10 +499,6 @@
 				}
 			}
 			function save_custom_checkout_fields_to_order($order_id, $data) {
-				// Check if custom checkout system is disabled
-				if (self::disable_custom_checkout_system()) {
-					return; // Don't save any custom checkout fields
-				}
 					
 				$checkout_key_fields = $this->get_checkout_fields_for_checkout();				
 				foreach ($checkout_key_fields as $key => $checkout_fields) {
@@ -624,11 +642,6 @@
 				}
 			}
 			function order_details($order_id) {
-				// Check if custom checkout system is disabled
-				if (self::disable_custom_checkout_system()) {
-					return; // Don't display any custom checkout fields in admin
-				}
-				
 				$order = wc_get_order($order_id);
 				$checkout_fields = $this->get_checkout_fields_for_checkout();
 				$billing_fields = $checkout_fields['billing'];
@@ -738,27 +751,97 @@
 			 * Inject merged default and custom fields into WooCommerce checkout
 			 */
 			public function inject_checkout_fields($fields) {
-				// Check if custom checkout system is disabled
-				if (self::disable_custom_checkout_system()) {
-					return $fields; // Return original WooCommerce fields without any modifications
-				}
-				
 				// Get default fields
 				$default = self::woocommerce_default_checkout_fields();
 				// Get custom fields from admin/pro
 				$custom = get_option('mptbm_custom_checkout_fields', array());
+				
+				// Core WooCommerce fields that should not be completely removed
+				$core_fields = array(
+					'billing' => array('billing_first_name', 'billing_last_name', 'billing_email', 'billing_phone'),
+					'shipping' => array('shipping_first_name', 'shipping_last_name'),
+					'order' => array()
+				);
+				
 				// Merge for each section
 				foreach (['billing','shipping','order'] as $section) {
 					$section_fields = isset($default[$section]) ? $default[$section] : array();
 					if (isset($custom[$section]) && is_array($custom[$section])) {
 						foreach ($custom[$section] as $key => $field) {
-							if ((empty($field['deleted']) || $field['deleted'] !== 'deleted') && (empty($field['disabled']) || $field['disabled'] !== '1')) {
-								$section_fields[$key] = $field;
+							if ((empty($field['deleted']) || $field['deleted'] !== 'deleted')) {
+								if ((empty($field['disabled']) || $field['disabled'] !== '1')) {
+									// Field is enabled, merge custom settings with default field
+									if (isset($section_fields[$key])) {
+										// Merge custom settings with existing default field, but preserve important defaults
+										$merged_field = array_merge($section_fields[$key], $field);
+										
+										// Preserve important default values if custom field has empty values
+										foreach (['type', 'autocomplete'] as $important_key) {
+											if (isset($section_fields[$key][$important_key]) && 
+												(!isset($field[$important_key]) || $field[$important_key] === '')) {
+												$merged_field[$important_key] = $section_fields[$key][$important_key];
+											}
+										}
+										
+										// Handle required field properly - use custom setting when available
+										if (isset($field['required'])) {
+											// Custom setting exists, use it (could be '1', '', or '0')
+											$merged_field['required'] = ($field['required'] === '1') ? true : false;
+										} else {
+											// No custom setting, keep default
+											$merged_field['required'] = isset($section_fields[$key]['required']) ? $section_fields[$key]['required'] : false;
+										}
+										
+										// Ensure validate array is properly handled
+										if (isset($field['validate']) && is_array($field['validate']) && 
+											isset($field['validate'][0]) && $field['validate'][0] === '') {
+											if (isset($section_fields[$key]['validate'])) {
+												$merged_field['validate'] = $section_fields[$key]['validate'];
+											}
+										}
+										
+										$section_fields[$key] = $merged_field;
+									} else {
+										// It's a completely new custom field
+										// Handle required field for new custom fields
+										if (isset($field['required'])) {
+											$field['required'] = ($field['required'] === '1') ? true : false;
+										}
+										$section_fields[$key] = $field;
+									}
+								} else {
+									// Field is disabled
+									if (in_array($key, $core_fields[$section])) {
+										// For core fields, keep them but mark as not required and hidden via CSS
+										$section_fields[$key] = array_merge($section_fields[$key] ?? array(), $field);
+										$section_fields[$key]['required'] = false;
+										
+										// Handle class as array
+										$existing_classes = isset($section_fields[$key]['class']) ? $section_fields[$key]['class'] : array();
+										if (!is_array($existing_classes)) {
+											$existing_classes = array($existing_classes);
+										}
+										$existing_classes[] = 'mptbm-hidden-field';
+										$section_fields[$key]['class'] = $existing_classes;
+									} else {
+										// For custom fields, remove them completely
+										unset($section_fields[$key]);
+									}
+								}
 							} else {
+								// Field is deleted, remove it
 								unset($section_fields[$key]);
 							}
 						}
 					}
+					
+					// Ensure core fields are always present with default values if missing
+					foreach ($core_fields[$section] as $core_field) {
+						if (!isset($section_fields[$core_field]) && isset($default[$section][$core_field])) {
+							$section_fields[$core_field] = $default[$section][$core_field];
+						}
+					}
+					
 					// Remove file fields from the array so WooCommerce doesn't render them
 					foreach ($section_fields as $k => $f) {
 						if (isset($f['type']) && $f['type'] === 'file') {
@@ -771,16 +854,68 @@
 					});
 					$fields[$section] = $section_fields;
 				}
+				
+				// Force ensure these critical fields are properly structured and present
+				$critical_fields = ['billing_first_name', 'billing_last_name', 'billing_phone', 'billing_email'];
+				foreach ($critical_fields as $critical_field) {
+					if (!isset($fields['billing'][$critical_field])) {
+						if (isset($default['billing'][$critical_field])) {
+							$fields['billing'][$critical_field] = $default['billing'][$critical_field];
+						}
+					} else {
+						// Ensure the field has the minimum required structure
+						$field = &$fields['billing'][$critical_field];
+						
+						// Ensure it's not marked as deleted or disabled improperly
+						if (isset($field['deleted']) && $field['deleted'] === 'deleted') {
+							unset($field['deleted']);
+						}
+						
+						if (isset($field['disabled']) && $field['disabled'] === '1') {
+							$field['disabled'] = '';
+						}
+						
+						// Ensure required structure with proper defaults
+						if (!isset($field['label']) || $field['label'] === '') {
+							$field['label'] = $default['billing'][$critical_field]['label'];
+						}
+						if (!isset($field['type']) || $field['type'] === '') {
+							$field['type'] = $default['billing'][$critical_field]['type'] ?? 'text';
+						}
+						// Handle required field - keep custom setting if it exists, otherwise use default
+						if (!isset($field['required'])) {
+							$field['required'] = $default['billing'][$critical_field]['required'];
+						} else {
+							// Ensure boolean value
+							$field['required'] = ($field['required'] === '1' || $field['required'] === true) ? true : false;
+						}
+						if (!isset($field['class']) || !is_array($field['class'])) {
+							$field['class'] = $default['billing'][$critical_field]['class'];
+						}
+						if (!isset($field['priority']) || $field['priority'] === '') {
+							$field['priority'] = $default['billing'][$critical_field]['priority'];
+						}
+						if (!isset($field['autocomplete']) || $field['autocomplete'] === '') {
+							$field['autocomplete'] = $default['billing'][$critical_field]['autocomplete'];
+						}
+						// Fix validate array if it's empty or malformed
+						if (!isset($field['validate']) || 
+							(is_array($field['validate']) && count($field['validate']) === 1 && $field['validate'][0] === '')) {
+							if (isset($default['billing'][$critical_field]['validate'])) {
+								$field['validate'] = $default['billing'][$critical_field]['validate'];
+							} else {
+								unset($field['validate']); // Remove empty validate array
+							}
+						}
+					}
+				}
+				
 				return $fields;
 			}
 			/**
 			 * Output file fields for a given section on the checkout page
 			 */
 			public function output_file_fields_for_section($section) {
-				// Check if custom checkout system is disabled
-				if (self::disable_custom_checkout_system()) {
-					return; // Don't output any custom file fields
-				}
 				
 				$all_fields = $this->inject_checkout_fields([]);
 				
@@ -811,20 +946,28 @@
 					));
 				}
 			}
+			// Add CSS for hidden fields
+			public function add_hidden_field_css() {
+				?>
+				<style>
+				.mptbm-hidden-field {
+					display: none;
+				}
+				</style>
+				<?php
+			}
 		}
-		new MPTBM_Wc_Checkout_Fields_Helper();
-		add_action('wp_enqueue_scripts', array('MPTBM_Wc_Checkout_Fields_Helper', 'enqueue_file_upload_js'));
-		// Register AJAX actions outside the class
-		add_action('wp_ajax_mptbm_file_upload', array('MPTBM_Wc_Checkout_Fields_Helper', 'ajax_file_upload'));
-		add_action('wp_ajax_nopriv_mptbm_file_upload', array('MPTBM_Wc_Checkout_Fields_Helper', 'ajax_file_upload'));
-		// Temporary debug: show all meta for the current order in admin
-		add_action('admin_notices', function() {
-			if (!is_admin() || !current_user_can('manage_woocommerce')) return;
-			global $pagenow, $post;
-			if ($pagenow === 'post.php' && isset($_GET['post']) && get_post_type($_GET['post']) === 'shop_order') {
-				$order_id = intval($_GET['post']);
-				$all_meta = get_post_meta($order_id);
-				echo '<div class="notice notice-info"><pre style="max-height:300px;overflow:auto;"><strong>Order Meta Debug (Order ID: ' . esc_html($order_id) . '):</strong>\n' . esc_html(print_r($all_meta, true)) . '</pre></div>';
+		
+		// Initialize the class after 'init' to ensure textdomain is loaded
+		add_action('init', function() {
+			$instance = new MPTBM_Wc_Checkout_Fields_Helper();
+			
+			// Only add these if custom checkout system is not disabled
+			if (!MPTBM_Wc_Checkout_Fields_Helper::disable_custom_checkout_system()) {
+				add_action('wp_enqueue_scripts', array('MPTBM_Wc_Checkout_Fields_Helper', 'enqueue_file_upload_js'));
+				// Register AJAX actions outside the class
+				add_action('wp_ajax_mptbm_file_upload', array('MPTBM_Wc_Checkout_Fields_Helper', 'ajax_file_upload'));
+				add_action('wp_ajax_nopriv_mptbm_file_upload', array('MPTBM_Wc_Checkout_Fields_Helper', 'ajax_file_upload'));
 			}
 		});
 	}

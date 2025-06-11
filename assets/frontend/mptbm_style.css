@@ -25,4 +25,10 @@
   text-transform: capitalize;
 }
 
+/* Hide disabled core WooCommerce fields */
+.woocommerce .checkout .form-row.mptbm-hidden-field,
+.woocommerce-checkout .form-row.mptbm-hidden-field {
+    display: none !important;
+}
+
 
