@@ -361,7 +361,7 @@ if ($start_time !== "") {
                 
             
         }else {
-            $minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 10 to convert to minutes
+            $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 10 to convert to minutes
         }
         
     } else {
@@ -372,7 +372,7 @@ if ($start_time !== "") {
     $hours = 0;
     $minutes = 0;
 }
-
+ 
 // Format hours and minutes
 $start_time_formatted = sprintf('%02d:%02d', $hours, $minutes);
 

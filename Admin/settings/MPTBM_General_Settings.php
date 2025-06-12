@@ -19,6 +19,7 @@
 				$display_features = MP_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');
 				$features_active = $display_features == 'off' ? '' : 'mActive';
 				$features_checked = $display_features == 'off' ? '' : 'checked';
+				$extra_info = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_info', '');
 				$all_features = MP_Global_Function::get_post_info($post_id, 'mptbm_features');
 				if (!$all_features) {
 					$all_features = array(
@@ -73,6 +74,15 @@
 									<span class="desc"><?php MPTBM_Settings::info_text('mptbm_maximum_bag'); ?></span>
 								</div>
 								<input class="formControl mp_price_validation" name="mptbm_maximum_bag" value="<?php echo esc_attr($max_bag); ?>" type="text" placeholder="<?php esc_html_e('EX:4', 'ecab-taxi-booking-manager'); ?>" />
+							</label>
+						</section>
+						<section>
+							<label class="label">
+								<div>
+									<h6><?php esc_html_e('Extra Info', 'ecab-taxi-booking-manager'); ?></h6>
+									<span class="desc"><?php esc_html_e('Add any additional information about this vehicle that you want to display to customers', 'ecab-taxi-booking-manager'); ?></span>
+								</div>
+								<textarea class="formControl" name="mptbm_extra_info" rows="4" placeholder="<?php esc_html_e('Enter additional information about this vehicle...', 'ecab-taxi-booking-manager'); ?>"><?php echo esc_textarea($extra_info); ?></textarea>
 							</label>
 						</section>
 						<?php if (class_exists('MPTBM_Plugin_Pro')) { ?>
@@ -181,10 +191,12 @@
 					$all_features = [];
 					$max_passenger = isset($_POST['mptbm_maximum_passenger']) ? sanitize_text_field($_POST['mptbm_maximum_passenger']) : '';
 					$max_bag = isset($_POST['mptbm_maximum_bag']) ? sanitize_text_field($_POST['mptbm_maximum_bag']) : '';
+					$extra_info = isset($_POST['mptbm_extra_info']) ? sanitize_textarea_field($_POST['mptbm_extra_info']) : '';
 					
 					// Save maximum passenger and bag
 					update_post_meta($post_id, 'mptbm_maximum_passenger', $max_passenger);
 					update_post_meta($post_id, 'mptbm_maximum_bag', $max_bag);
+					update_post_meta($post_id, 'mptbm_extra_info', $extra_info);
 					
 					// Save inventory settings
 					$enable_inventory = isset($_POST['mptbm_enable_inventory']) && sanitize_text_field($_POST['mptbm_enable_inventory']) ? 'yes' : 'no';
