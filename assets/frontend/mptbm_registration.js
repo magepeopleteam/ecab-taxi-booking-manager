@@ -199,9 +199,7 @@ function mptbm_map_area_init() {
         let selectedTimeElement = parent.find("#mptbm_map_start_time").closest(".mp_input_select").find("li[data-value='" + start_time + "']");
         if (selectedTimeElement.length) {
             start_time = selectedTimeElement.attr('data-time');
-            // Convert the time to a proper format
-            let [hours, minutes] = start_time.split('.');
-            start_time = parseFloat(hours) + (parseFloat(minutes) / 60);
+            
         }
         
         if (!start_date) {
@@ -256,6 +254,7 @@ function mptbm_map_area_init() {
                 });
             }
             // Define a function to get the coordinates asynchronously and return a Deferred object
+            
             function getCoordinatesAsync(address) {
                 var deferred = $.Deferred();
                 getGeometryLocation(address, function (coordinates) {
@@ -645,6 +644,21 @@ function mptbm_map_area_init() {
         }
     );
 })(jQuery);
+
+// Add this test to verify jQuery and event handlers are working
+jQuery(document).ready(function($) {
+    console.log('MPTBM Registration JS loaded - jQuery working');
+    
+    // Test if info buttons exist
+    setTimeout(function() {
+        var infoButtons = $('.mptbm-info-button');
+        console.log('Info buttons found:', infoButtons.length);
+        if (infoButtons.length > 0) {
+            console.log('Info buttons are present in DOM');
+        }
+    }, 1000);
+});
+
 function mptbm_content_refresh(parent) {
     parent.find('[name="mptbm_post_id"]').val("");
     parent.find(".mptbm_map_search_result").remove();
@@ -1098,7 +1112,52 @@ function mptbm_price_calculation(parent) {
         });
     });
 
+    // Handle extra info toggle functionality
+    $(document).on('click', '.mptbm-info-button', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Info button clicked!'); // Debug log
+        
+        var $button = $(this);
+        var postId = $button.data('post-id');
+        var $vehicleWrapper = $button.closest('.mptbm-vehicle-wrapper');
+        var $content = $vehicleWrapper.find('.mptbm-extra-info-content[data-post-id="' + postId + '"]');
+        var $icon = $button.find('i');
+        
+        console.log('Post ID:', postId); // Debug log
+        console.log('Vehicle wrapper found:', $vehicleWrapper.length); // Debug log
+        console.log('Content found:', $content.length); // Debug log
+        
+        // Close other open info panels
+        $('.mptbm-extra-info-content').not($content).slideUp(200);
+        $('.mptbm-info-button').not($button).css('background', 'var(--color_theme)').find('i').removeClass('fa-times').addClass('fa-info');
+        
+        if ($content.length > 0) {
+            $content.slideToggle(300, function() {
+                if ($content.is(':visible')) {
+                    $button.css('background', '#dc3545'); // Red when open
+                    $icon.removeClass('fa-info').addClass('fa-times');
+                } else {
+                    $button.css('background', 'var(--color_theme)');
+                    $icon.removeClass('fa-times').addClass('fa-info');
+                }
+            });
+        } else {
+            console.log('No content found for post ID:', postId); // Debug log
+        }
+    });
+    
+    // Close info panels when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.mptbm-button-container, .mptbm-extra-info-content').length) {
+            $('.mptbm-extra-info-content').slideUp(200);
+            $('.mptbm-info-button').css('background', 'var(--color_theme)').find('i').removeClass('fa-times').addClass('fa-info');
+        }
+    });
+
 }(jQuery));
+
 function gm_authFailure() {
     var warning = jQuery('.mptbm-map-warning').html();
     jQuery('#mptbm_map_area').html('<div class="mptbm-map-warning"><h6>' + warning + '</h6></div>');

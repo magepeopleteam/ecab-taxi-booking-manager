@@ -309,9 +309,10 @@ if (sizeof($all_dates) > 0) {
 					if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_return_in_different_date') == 'yes') {
 					?>
 						<div class="inputList" data-collapse="#different_date_return">
+							
 							<label class="fdColumn">
 								<input type="hidden" id="mptbm_map_return_date" value="" />
-								<span><i class="fas fa-calendar-alt _textTheme_mR_xs"></i><?php echo mptbm_get_translation('return_date_label', __('Return Date', 'ecab-taxi-booking-manager')); ?></span>
+								<span><?php echo mptbm_get_translation('return_date_label', __('Return Date', 'ecab-taxi-booking-manager')); ?></span>
 								<input type="text" id="mptbm_return_date" class="formControl" placeholder="<?php echo mptbm_get_translation('select_date_label', __('Select Date', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
 								<span class="far fa-calendar-alt mptbm_left_icon allCenter"></span>
 							</label>
@@ -319,7 +320,7 @@ if (sizeof($all_dates) > 0) {
 						<div class="inputList mp_input_select" data-collapse="#different_date_return">
 							<input type="hidden" id="mptbm_map_return_time" value="" />
 							<label class="fdColumn">
-								<span><i class="far fa-clock _textTheme_mR_xs"></i><?php echo mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')); ?></span>
+								<span><?php echo mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')); ?></span>
 								<input type="text" class="formControl" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
 								<span class="far fa-clock mptbm_left_icon allCenter"></span>
 							</label>

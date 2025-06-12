@@ -69,6 +69,7 @@
 				wp_die(); // End AJAX call
 			}
 			public function get_mptbm_map_search_result() {
+				
 					$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';
 					$duration = isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '';
 					// if ($distance && $duration) {

@@ -31,4 +31,50 @@
     display: none !important;
 }
 
+/* Custom CSS for taxi booking manager */
+
+/* Prevent price and currency symbol from breaking into separate lines */
+.mptbm_list_details h4,
+.mptbm_product_total_price,
+.mptbm_product_price,
+.woocommerce-Price-amount,
+.amount {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    display: inline-block;
+}
+
+/* Ensure currency symbols stay with price numbers */
+.woocommerce-Price-currencySymbol {
+    white-space: nowrap !important;
+}
+
+/* Mobile-specific price styling */
+@media only screen and (max-width: 768px) {
+    .mptbm_list_details h4 {
+        font-size: 20px !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+    }
+    
+    /* Container for price to allow horizontal scrolling if needed */
+    .mptbm_list_details ._min_150_mL_xs {
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+}
+
+/* For very small screens, keep it readable */
+@media only screen and (max-width: 480px) {
+    .mptbm_list_details h4 {
+        font-size: 18px !important;
+    }
+}
+
+/* Hide fields that are disabled but need to be hidden */
+.mptbm-hidden-field {
+    display: none !important;
+}
+
 

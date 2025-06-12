@@ -261,6 +261,17 @@ if (!class_exists('MPTBM_Settings_Global')) {
 							'no' => esc_html__('No', 'ecab-taxi-booking-manager')
 						)
 					),
+					array(
+						'name' => 'show_summary_mobile',
+						'label' => esc_html__('Show Summary in Mobile Version', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Select yes if you want to show the summary section in mobile devices. Default is Yes', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'yes',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no' => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
 					// array(
 					// 	'name' => 'show_number_of_passengers',
 					// 	'label' => esc_html__('Show Number of Passengers', 'ecab-taxi-booking-manager'),

@@ -24,7 +24,18 @@
 		$price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
 		$custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
 	}
+	
+	// Check if summary should be shown in mobile
+	$show_summary_mobile = MP_Global_Function::get_settings('mptbm_general_settings', 'show_summary_mobile', 'yes');
+	$is_mobile = wp_is_mobile();
+	$show_summary = true;
+	
+	// Hide summary if it's mobile and setting is set to 'no'
+	if ($is_mobile && $show_summary_mobile === 'no') {
+		$show_summary = false;
+	}
 ?>
+	<?php if ($show_summary): ?>
 	<div class="leftSidebar">
 		<div class="">
 			<div class="mp_sticky_on_scroll">
@@ -122,4 +133,5 @@
 			</div>
 		</div>
 	</div>
+	<?php endif; ?>
 <?php
