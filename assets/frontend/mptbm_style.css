@@ -76,5 +76,21 @@
 .mptbm-hidden-field {
     display: none !important;
 }
+.woocommerce-page form .form-row .select2-container .select2-selection--single .select2-selection__rendered
+ {
+     padding: 8px !important;
+}
 
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    margin-left: 3px  !important;
+    margin-top: 8px  !important;
+}
+
+.woocommerce-input-wrapper .select2-container--default .select2-selection--single {
+    background-color: #fff;
+    /* border: 1px solid #aaa; */
+    border-radius: 4px;
+    height: 46px;
+    padding: 0;
+}
 

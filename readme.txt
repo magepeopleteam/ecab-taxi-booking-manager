@@ -4,7 +4,7 @@ Author URI : https://mage-people.com
 Tags: Taxi Service, Chauffeur Service, Ride Booking, Cab Booking, Transportation
 Requires at least: 5.3
 Stable tag: trunk
-Tested up to: 6.7.1
+Tested up to: 6.8.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -105,6 +105,9 @@ You can set quantity of transport with interval of booking time for that transpo
 
 **⏰ [Peak Hour Addon](https://mage-people.com/product/taxi-peak-hour-pricing-addon/)**
 Set peak hour pricing by date range and specific time range
+
+**🚗 [Distance Based Tier Pricing Addon](https://mage-people.com/product/distance-based-tier-pricing-for-e-cab)**
+Add distance-based tiered pricing to your E-Cab rides. Automatically adjust fares by trip length for flexible and fair ride costs.
 
 **≣ Comprehensive Order List Section
 View and manage all bookings in a detailed order list
@@ -209,6 +212,12 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 1.3.0 =
+1. Added checkout disable field to disable all checkout field from this plugin
+2. 0 priced transport can be booked now
+3. Multi pricing tabs improved
+4. Api improved
+5. Transport filter improved
 = 1.2.6 =
 1. Added dependency for pro version 
 2. Minor issues solved
@@ -238,4 +247,5 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 6. Location taxonomy added for manual pricing 
 7. Manual Pricing Slug issue fixed
 8. Fixed Hourly Responsive issue Fixed
+
 
