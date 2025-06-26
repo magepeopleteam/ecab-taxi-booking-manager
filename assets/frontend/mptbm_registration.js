@@ -1069,7 +1069,7 @@ function mptbm_price_calculation(parent) {
                 'border-top-left-radius': 'var(--dbrl)',
                 'border-bottom-left-radius': 'var(--dbrl)'
             });
-            $tabs.eq(2).css({
+            $tabs.last().css({
                 'border-top-right-radius': 'var(--dbrl)',
                 'border-bottom-right-radius': 'var(--dbrl)'
             });

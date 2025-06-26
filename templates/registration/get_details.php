@@ -9,6 +9,9 @@ if (!function_exists('mptbm_get_translation')) {
 if (!defined('ABSPATH')) {
 	die;
 } // Cannot access pages directly
+
+
+
 delete_transient('original_price_based');
 $restrict_search_country = MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country_restriction', 'no');
 
@@ -123,6 +126,7 @@ if (sizeof($all_dates) > 0) {
 	}
 	$max_bag = !empty($mptbm_bags) ? max($mptbm_bags) : 1;
 	$max_passenger = !empty($mptbm_passengers) ? max($mptbm_passengers) : 1;
+	
 ?>	
 	<div class="<?php echo esc_attr($area_class); ?> ">
 	
