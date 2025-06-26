@@ -462,117 +462,7 @@ if (!class_exists('MPTBM_Function')) {
 					}
 				}
 
-				// Apply Weather-based pricing if enabled
-				$weather_pricing_enabled = get_post_meta($post_id, 'mptbm_weather_pricing_enabled', true);
-				
-				if ($weather_pricing_enabled === 'on') {
-					$weather_api_key = get_post_meta($post_id, 'mptbm_weather_api_key', true);
-					
-					if (!empty($weather_api_key)) {
-						// Get pickup coordinates
-						$pickup_lat = get_transient('pickup_lat_transient');
-						$pickup_lng = get_transient('pickup_lng_transient');
-						
-						// If transients not available, try to get from session or POST data
-						if (empty($pickup_lat) || empty($pickup_lng)) {
-							if (isset($_SESSION['pickup_lat']) && isset($_SESSION['pickup_lng'])) {
-								$pickup_lat = $_SESSION['pickup_lat'];
-								$pickup_lng = $_SESSION['pickup_lng'];
-							} elseif (isset($_POST['pickup_lat']) && isset($_POST['pickup_lng'])) {
-								$pickup_lat = sanitize_text_field($_POST['pickup_lat']);
-								$pickup_lng = sanitize_text_field($_POST['pickup_lng']);
-							}
-						}
-						
-						if (!empty($pickup_lat) && !empty($pickup_lng)) {
-							$weather_condition = self::get_weather_condition_for_pricing($pickup_lat, $pickup_lng, $weather_api_key);
-							
-							// Get weather settings for this post
-							$weather_settings = get_post_meta($post_id, 'mptbm_weather_pricing_settings', true);
-							
-							if (!empty($weather_condition)) {
-								if (is_array($weather_settings) && isset($weather_settings[$weather_condition]) && 
-									$weather_settings[$weather_condition]['status'] === 'active') {
-									
-									$weather_multiplier = floatval($weather_settings[$weather_condition]['multiplier']);
-									$weather_adjustment = ($original_price * ($weather_multiplier / 100));
-									$price += $weather_adjustment;
-								}
-							}
-						}
-					}
-				}
-
-				// Apply Traffic-based pricing if enabled
-				$traffic_pricing_enabled = get_post_meta($post_id, 'mptbm_traffic_pricing_enabled', true);
-
-				
-				if ($traffic_pricing_enabled === 'on') {
-					// Get Google Maps API key from global settings
-					$google_api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key', '');
-
-					
-					if (!empty($google_api_key)) {
-						// Get pickup and drop coordinates
-						$pickup_lat = get_transient('mptbm_pickup_lat');
-						$pickup_lng = get_transient('mptbm_pickup_lng');
-						$drop_lat = get_transient('mptbm_drop_lat');
-						$drop_lng = get_transient('mptbm_drop_lng');
-
-						// Fallback to session if transients are empty
-						if (empty($pickup_lat) || empty($pickup_lng) || empty($drop_lat) || empty($drop_lng)) {
-							$pickup_lat = isset($_SESSION['pickup_lat']) ? $_SESSION['pickup_lat'] : '';
-							$pickup_lng = isset($_SESSION['pickup_lng']) ? $_SESSION['pickup_lng'] : '';
-							$drop_lat = isset($_SESSION['drop_lat']) ? $_SESSION['drop_lat'] : '';
-							$drop_lng = isset($_SESSION['drop_lng']) ? $_SESSION['drop_lng'] : '';
-						}
-
-						// Final fallback to POST data
-						if (empty($pickup_lat) || empty($pickup_lng) || empty($drop_lat) || empty($drop_lng)) {
-							$pickup_lat = isset($_POST['pickup_lat']) ? $_POST['pickup_lat'] : (isset($_POST['latitude']) ? $_POST['latitude'] : '');
-							$pickup_lng = isset($_POST['pickup_lng']) ? $_POST['pickup_lng'] : (isset($_POST['longitude']) ? $_POST['longitude'] : '');
-							$drop_lat = isset($_POST['drop_lat']) ? $_POST['drop_lat'] : '';
-							$drop_lng = isset($_POST['drop_lng']) ? $_POST['drop_lng'] : '';
-						}
-
-						
-						if (!empty($pickup_lat) && !empty($pickup_lng) && !empty($drop_lat) && !empty($drop_lng)) {
-							// Call traffic API
-							$traffic_result = self::get_traffic_condition_for_pricing($pickup_lat, $pickup_lng, $drop_lat, $drop_lng, $google_api_key);
-
-							
-							if (!empty($traffic_result['condition'])) {
-								// Get traffic pricing settings for this post
-								$traffic_pricing_settings = get_post_meta($post_id, 'mptbm_traffic_pricing_settings', true);
-								if (empty($traffic_pricing_settings)) {
-									$traffic_pricing_settings = array();
-								}
-
-								
-								$traffic_condition = $traffic_result['condition'];
-								$condition_data = isset($traffic_pricing_settings[$traffic_condition]) ? $traffic_pricing_settings[$traffic_condition] : array();
-
-								
-								// Check if this traffic condition is active and has a price multiplier
-								if (isset($condition_data['status']) && $condition_data['status'] === 'active' && isset($condition_data['price_multiplier'])) {
-									$price_multiplier = floatval($condition_data['price_multiplier']);
-									$duration_multiplier = isset($condition_data['duration_multiplier']) ? floatval($condition_data['duration_multiplier']) : 1.0;
-									$traffic_multiplier = $traffic_result['multiplier'];
-
-									
-									// Check if actual traffic multiplier meets the required threshold
-									if ($traffic_multiplier >= $duration_multiplier) {
-										// Apply traffic price adjustment
-										$traffic_adjustment = ($price * $price_multiplier) / 100;
-										$old_price = $price;
-										$price += $traffic_adjustment;
-
-									}
-								}
-							}
-						}
-					}
-				}
+				// Weather and Traffic pricing is now handled by the filter below to avoid double application
 			}
 
 			if (isset($_SESSION['geo_fence_post_' . $post_id])) {
@@ -587,6 +477,52 @@ if (!class_exists('MPTBM_Function')) {
 			}
 
 			session_write_close();
+
+			// Apply filters for dynamic pricing (weather, traffic, etc.) if addons are available
+			if (has_filter('mptbm_calculate_price')) {
+				$extra_data = array();
+				
+				// Try to get coordinates from various sources for weather/traffic pricing
+				$pickup_lat = get_transient('mptbm_pickup_lat') ?: get_transient('pickup_lat_transient');
+				$pickup_lng = get_transient('mptbm_pickup_lng') ?: get_transient('pickup_lng_transient');
+				$drop_lat = get_transient('mptbm_drop_lat') ?: get_transient('drop_lat_transient');
+				$drop_lng = get_transient('mptbm_drop_lng') ?: get_transient('drop_lng_transient');
+				
+				// Fallback to session data
+				if (empty($pickup_lat) || empty($pickup_lng)) {
+					$pickup_lat = isset($_SESSION['pickup_lat']) ? $_SESSION['pickup_lat'] : '';
+					$pickup_lng = isset($_SESSION['pickup_lng']) ? $_SESSION['pickup_lng'] : '';
+				}
+				if (empty($drop_lat) || empty($drop_lng)) {
+					$drop_lat = isset($_SESSION['drop_lat']) ? $_SESSION['drop_lat'] : '';
+					$drop_lng = isset($_SESSION['drop_lng']) ? $_SESSION['drop_lng'] : '';
+				}
+				
+				// Final fallback to POST data (for AJAX requests)
+				if (empty($pickup_lat) || empty($pickup_lng)) {
+					$pickup_lat = isset($_POST['origin_lat']) ? $_POST['origin_lat'] : (isset($_POST['pickup_lat']) ? $_POST['pickup_lat'] : '');
+					$pickup_lng = isset($_POST['origin_lng']) ? $_POST['origin_lng'] : (isset($_POST['pickup_lng']) ? $_POST['pickup_lng'] : '');
+				}
+				if (empty($drop_lat) || empty($drop_lng)) {
+					$drop_lat = isset($_POST['dest_lat']) ? $_POST['dest_lat'] : (isset($_POST['drop_lat']) ? $_POST['drop_lat'] : '');
+					$drop_lng = isset($_POST['dest_lng']) ? $_POST['dest_lng'] : (isset($_POST['drop_lng']) ? $_POST['drop_lng'] : '');
+				}
+				
+				if (!empty($pickup_lat) && !empty($pickup_lng)) {
+					$extra_data['origin_lat'] = floatval($pickup_lat);
+					$extra_data['origin_lng'] = floatval($pickup_lng);
+				}
+				if (!empty($drop_lat) && !empty($drop_lng)) {
+					$extra_data['dest_lat'] = floatval($drop_lat);
+					$extra_data['dest_lng'] = floatval($drop_lng);
+				}
+				
+				$selected_start_date = get_transient('start_date_transient') ?: '';
+				$selected_start_time = get_transient('start_time_schedule_transient') ?: '';
+				
+				$price = apply_filters('mptbm_calculate_price', $price, $post_id, $selected_start_date, $selected_start_time, $extra_data);
+			}
+
 			return $price;
 		}
 
@@ -876,8 +812,6 @@ if (!class_exists('MPTBM_Function')) {
 				$condition = 'high_wind';
 			}
 			
-
-			
 			// Cache the result for 15 minutes
 			set_transient($cache_key, $condition, 15 * MINUTE_IN_SECONDS);
 			
@@ -895,8 +829,9 @@ if (!class_exists('MPTBM_Function')) {
 		 * @return array Traffic condition data
 		 */
 		public static function get_traffic_condition_for_pricing($origin_lat, $origin_lng, $dest_lat, $dest_lng, $google_api_key) {
-			
+						
 			if (empty($google_api_key) || empty($origin_lat) || empty($origin_lng) || empty($dest_lat) || empty($dest_lng)) {
+				// error_log("[MPTBM Traffic API] Missing required parameters - aborting");
 				return array('condition' => '', 'multiplier' => 1.0);
 			}
 			
@@ -904,6 +839,7 @@ if (!class_exists('MPTBM_Function')) {
 			$cache_key = 'traffic_data_' . md5($origin_lat . $origin_lng . $dest_lat . $dest_lng);
 			$cached_data = get_transient($cache_key);
 			if ($cached_data !== false) {
+				// error_log("[MPTBM Traffic API] Using cached data: " . print_r($cached_data, true));
 				return $cached_data;
 			}
 			
@@ -912,18 +848,36 @@ if (!class_exists('MPTBM_Function')) {
 			$url_with_traffic = "https://maps.googleapis.com/maps/api/directions/json?{$base_params}&departure_time=now&traffic_model=best_guess";
 			$url_without_traffic = "https://maps.googleapis.com/maps/api/directions/json?{$base_params}";
 			
+			// error_log("[MPTBM Traffic API] URL with traffic: " . substr($url_with_traffic, 0, 100) . "...");
+			// error_log("[MPTBM Traffic API] URL without traffic: " . substr($url_without_traffic, 0, 100) . "...");
+			
 			// Get both responses
 			$response_with_traffic = wp_remote_get($url_with_traffic);
 			$response_without_traffic = wp_remote_get($url_without_traffic);
 			
-			if (is_wp_error($response_with_traffic) || is_wp_error($response_without_traffic)) {
+			if (is_wp_error($response_with_traffic)) {
+				// error_log("[MPTBM Traffic API] Error with traffic request: " . $response_with_traffic->get_error_message());
 				return array('condition' => '', 'multiplier' => 1.0);
 			}
 			
-			$data_with_traffic = json_decode(wp_remote_retrieve_body($response_with_traffic), true);
-			$data_without_traffic = json_decode(wp_remote_retrieve_body($response_without_traffic), true);
+			if (is_wp_error($response_without_traffic)) {
+				// error_log("[MPTBM Traffic API] Error without traffic request: " . $response_without_traffic->get_error_message());
+				return array('condition' => '', 'multiplier' => 1.0);
+			}
+			
+			$body_with_traffic = wp_remote_retrieve_body($response_with_traffic);
+			$body_without_traffic = wp_remote_retrieve_body($response_without_traffic);
+			
+			// error_log("[MPTBM Traffic API] Response with traffic: " . substr($body_with_traffic, 0, 200) . "...");
+				// error_log("[MPTBM Traffic API] Response without traffic: " . substr($body_without_traffic, 0, 200) . "...");
+			
+			$data_with_traffic = json_decode($body_with_traffic, true);
+			$data_without_traffic = json_decode($body_without_traffic, true);
 			
 			if (!isset($data_with_traffic['routes'][0]['legs'][0]) || !isset($data_without_traffic['routes'][0]['legs'][0])) {
+				// error_log("[MPTBM Traffic API] Invalid API response structure");
+					// error_log("[MPTBM Traffic API] With traffic status: " . (isset($data_with_traffic['status']) ? $data_with_traffic['status'] : 'unknown'));
+					// error_log("[MPTBM Traffic API] Without traffic status: " . (isset($data_without_traffic['status']) ? $data_without_traffic['status'] : 'unknown'));
 				return array('condition' => '', 'multiplier' => 1.0);
 			}
 			
@@ -932,8 +886,12 @@ if (!class_exists('MPTBM_Function')) {
 									$data_with_traffic['routes'][0]['legs'][0]['duration']['value'];
 			$duration_without_traffic = $data_without_traffic['routes'][0]['legs'][0]['duration']['value'];
 			
+			// error_log("[MPTBM Traffic API] Duration with traffic: {$duration_with_traffic}s");
+				// error_log("[MPTBM Traffic API] Duration without traffic: {$duration_without_traffic}s");
+			
 			// Calculate traffic multiplier
 			$traffic_multiplier = $duration_with_traffic / $duration_without_traffic;
+			// error_log("[MPTBM Traffic API] Calculated traffic multiplier: $traffic_multiplier");
 			
 			// Determine traffic condition
 			$condition = '';
@@ -951,6 +909,8 @@ if (!class_exists('MPTBM_Function')) {
 				'condition' => $condition,
 				'multiplier' => $traffic_multiplier
 			);
+			
+			// error_log("[MPTBM Traffic API] Final result: " . print_r($result, true));
 			
 			// Cache the result for 5 minutes
 			set_transient($cache_key, $result, 300);

@@ -60,6 +60,43 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$waiting_time = isset($_POST['mptbm_waiting_time']) ? sanitize_text_field($_POST['mptbm_waiting_time']) : 0;
 				$return = isset($_POST['mptbm_taxi_return']) ? sanitize_text_field($_POST['mptbm_taxi_return']) : 1;
 				$fixed_hour = isset($_POST['mptbm_fixed_hours']) ? sanitize_text_field($_POST['mptbm_fixed_hours']) : 0;
+				
+				// Store date, time, and coordinates in transients for dynamic pricing
+				$booking_date = isset($_POST['mptbm_date']) ? sanitize_text_field($_POST['mptbm_date']) : '';
+				$booking_time = isset($_POST['mptbm_time']) ? sanitize_text_field($_POST['mptbm_time']) : '';
+				$pickup_lat = isset($_POST['pickup_lat']) ? sanitize_text_field($_POST['pickup_lat']) : '';
+				$pickup_lng = isset($_POST['pickup_lng']) ? sanitize_text_field($_POST['pickup_lng']) : '';
+				$drop_lat = isset($_POST['drop_lat']) ? sanitize_text_field($_POST['drop_lat']) : '';
+				$drop_lng = isset($_POST['drop_lng']) ? sanitize_text_field($_POST['drop_lng']) : '';
+				
+				if (!empty($booking_date)) {
+					set_transient('start_date_transient', $booking_date, HOUR_IN_SECONDS);
+				}
+				if (!empty($booking_time)) {
+					set_transient('start_time_schedule_transient', $booking_time, HOUR_IN_SECONDS);
+				}
+				if (!empty($pickup_lat) && !empty($pickup_lng)) {
+					set_transient('mptbm_pickup_lat', $pickup_lat, HOUR_IN_SECONDS);
+					set_transient('mptbm_pickup_lng', $pickup_lng, HOUR_IN_SECONDS);
+				}
+				if (!empty($drop_lat) && !empty($drop_lng)) {
+					set_transient('mptbm_drop_lat', $drop_lat, HOUR_IN_SECONDS);
+					set_transient('mptbm_drop_lng', $drop_lng, HOUR_IN_SECONDS);
+				}
+				
+				// Also store in session as backup
+				if (session_status() === PHP_SESSION_NONE) {
+					session_start();
+				}
+				if (!empty($pickup_lat) && !empty($pickup_lng)) {
+					$_SESSION['pickup_lat'] = $pickup_lat;
+					$_SESSION['pickup_lng'] = $pickup_lng;
+				}
+				if (!empty($drop_lat) && !empty($drop_lng)) {
+					$_SESSION['drop_lat'] = $drop_lat;
+					$_SESSION['drop_lng'] = $drop_lng;
+				}
+				
 				// Calculate single-unit transport price
 				$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $return, $fixed_hour);
 				$wc_price = MP_Global_Function::wc_price($post_id, $price);
