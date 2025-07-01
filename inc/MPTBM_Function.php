@@ -434,7 +434,10 @@ if (!class_exists('MPTBM_Function')) {
 				}
 
 				// Apply Day-based discount if enabled and no date-range discount was applied
-				if ($day_discount_enabled === 'on' && !empty($selected_start_date) && !$date_range_matched) {
+				// Check if addon is handling both date-time and day-based discounts
+				$skip_day_discount = apply_filters('mptbm_skip_day_discount_when_both_enabled', false, $post_id);
+				
+				if ($day_discount_enabled === 'on' && !empty($selected_start_date) && !$date_range_matched && !$skip_day_discount) {
 					$day_of_week = strtolower(date('l', strtotime($selected_start_date)));
 					
 					// Get day-based discounts

@@ -76,6 +76,12 @@ if (!class_exists('MPTBM_Dependencies')) {
             // No transport templates styles
             wp_enqueue_style('mptbm-no-transport-templates', MPTBM_PLUGIN_URL . '/assets/frontend/css/no-transport-templates.css', array(), time());
             
+            // Enqueue selectWoo (searchable dropdown) if WooCommerce is active
+            if (function_exists('WC')) {
+                wp_enqueue_script('selectWoo');
+                wp_enqueue_style('select2');
+            }
+            
             do_action('add_mptbm_frontend_script');
         }
         public function js_constant()
