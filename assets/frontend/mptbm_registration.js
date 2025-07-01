@@ -183,13 +183,13 @@ function mptbm_map_area_init() {
         if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1 && price_based != 'fixed_hourly') {
             return_date = return_target_date.val();
             return_time = return_target_time.val();
-            // Fix for return_time conversion
+            
+            // Get the actual time from the data-time attribute (consistent with start_time)
             let selectedReturnTimeElement = parent.find("#mptbm_map_return_time").closest(".mp_input_select").find("li[data-value='" + return_time + "']");
             if (selectedReturnTimeElement.length) {
                 return_time = selectedReturnTimeElement.attr('data-time');
-                let [r_hours, r_minutes] = return_time.split('.');
-                return_time = parseFloat(r_hours) + (parseFloat(r_minutes) / 60);
             }
+            
         } else {
             return_date = start_date;
             return_time = 'Not applicable';
@@ -1069,7 +1069,7 @@ function mptbm_price_calculation(parent) {
                 'border-top-left-radius': 'var(--dbrl)',
                 'border-bottom-left-radius': 'var(--dbrl)'
             });
-            $tabs.eq(2).css({
+            $tabs.last().css({
                 'border-top-right-radius': 'var(--dbrl)',
                 'border-bottom-right-radius': 'var(--dbrl)'
             });

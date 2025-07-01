@@ -9,6 +9,9 @@ if (!function_exists('mptbm_get_translation')) {
 if (!defined('ABSPATH')) {
 	die;
 } // Cannot access pages directly
+
+
+
 delete_transient('original_price_based');
 $restrict_search_country = MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country_restriction', 'no');
 
@@ -123,6 +126,7 @@ if (sizeof($all_dates) > 0) {
 	}
 	$max_bag = !empty($mptbm_bags) ? max($mptbm_bags) : 1;
 	$max_passenger = !empty($mptbm_passengers) ? max($mptbm_passengers) : 1;
+	
 ?>	
 	<div class="<?php echo esc_attr($area_class); ?> ">
 	
@@ -318,55 +322,60 @@ if (sizeof($all_dates) > 0) {
 							</label>
 						</div>
 						<div class="inputList mp_input_select" data-collapse="#different_date_return">
-							<input type="hidden" id="mptbm_map_return_time" value="" />
-							<label class="fdColumn">
-								<span><?php echo mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')); ?></span>
-								<input type="text" class="formControl" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
-								<span class="far fa-clock mptbm_left_icon allCenter"></span>
-							</label>
-							<ul class="return_time_list-no-dsiplay" style="display:none">
-								<?php
+						<input type="hidden" id="mptbm_map_return_time" value="" />
+	<label class="fdColumn">
+		<span><?php echo mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')); ?></span>
+		<input type="text" id="mptbm_return_time" class="formControl" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
+		<span class="far fa-clock mptbm_left_icon allCenter"></span>
+	</label>
 
-								for ($i = $min_minutes; $i <= $max_minutes; $i += $interval_time) {
+	<ul class="mp_input_select_list return_time_list">
+		<?php
+		for ($i = $min_minutes; $i <= $max_minutes; $i += $interval_time) {
 
-									// Calculate hours and minutes
-									$hours = floor($i / 60);
-									$minutes = $i % 60;
+			// Calculate hours and minutes
+			$hours = floor($i / 60);
+			$minutes = $i % 60;
 
-									// Generate the data-value as hours + fraction (minutes / 100)
-									$data_value = $hours + ($minutes / 100);
+			// Generate the data-value as hours + fraction (minutes / 100)
+			$data_value = $hours + ($minutes / 100);
 
-									// Format the time for display
-									$time_formatted = sprintf('%02d:%02d', $hours, $minutes);
+			// Format the time for display
+			$time_formatted = sprintf('%02d:%02d', $hours, $minutes);
 
-									// Add a data-time attribute with the properly formatted time
-									$data_time = sprintf('%02d.%02d', $hours, $minutes);
+			// Add a data-time attribute with the properly formatted time
+			$data_time = sprintf('%02d.%02d', $hours, $minutes);
 
-								?>
-									<li data-value="<?php echo esc_attr($data_value); ?>" data-time="<?php echo esc_attr($data_time); ?>"><?php echo esc_html(MP_Global_Function::date_format($time_formatted, 'time')); ?></li>
-								<?php } ?>
-							</ul>
-							<ul class="mp_input_select_list return_time_list">
-								<?php
-								for ($i = $min_minutes; $i <= $max_minutes; $i += $interval_time) {
+			// Ensure the data-value is properly formatted
+			$data_value = sprintf('%.2f', $data_value);
+		?>
+			<li data-value="<?php echo esc_attr($data_value); ?>" data-time="<?php echo esc_attr($data_time); ?>"><?php echo esc_html(MP_Global_Function::date_format($time_formatted, 'time')); ?></li>
+		<?php } ?>
+	</ul>
 
-									// Calculate hours and minutes
-									$hours = floor($i / 60);
-									$minutes = $i % 60;
+	<ul class="return_time_list-no-dsiplay" style="display:none">
+		<?php
+		for ($i = $min_minutes; $i <= $max_minutes; $i += $interval_time) {
 
-									// Generate the data-value as hours + fraction (minutes / 100)
-									$data_value = $hours + ($minutes / 100);
+			// Calculate hours and minutes
+			$hours = floor($i / 60);
+			$minutes = $i % 60;
 
-									// Format the time for display
-									$time_formatted = sprintf('%02d:%02d', $hours, $minutes);
+			// Generate the data-value as hours + fraction (minutes / 100)
+			$data_value = $hours + ($minutes / 100);
 
-									// Add a data-time attribute with the properly formatted time
-									$data_time = sprintf('%02d.%02d', $hours, $minutes);
+			// Format the time for display
+			$time_formatted = sprintf('%02d:%02d', $hours, $minutes);
 
-								?>
-									<li data-value="<?php echo esc_attr($data_value); ?>" data-time="<?php echo esc_attr($data_time); ?>"><?php echo esc_html(MP_Global_Function::date_format($time_formatted, 'time')); ?></li>
-								<?php } ?>
-							</ul>
+			// Add a data-time attribute with the properly formatted time
+			$data_time = sprintf('%02d.%02d', $hours, $minutes);
+
+			// Ensure the data-value is properly formatted
+			$data_value = sprintf('%.2f', $data_value);
+		?>
+			<li data-value="<?php echo esc_attr($data_value); ?>" data-time="<?php echo esc_attr($data_time); ?>"><?php echo esc_html(MP_Global_Function::date_format($time_formatted, 'time')); ?></li>
+		<?php } ?>
+	</ul>
 						</div>
 					<?php
 					}

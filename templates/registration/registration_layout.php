@@ -41,51 +41,87 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 			<div data-tabs-next="#mptbm_pick_up_details" class="active mptbm_pick_up_details">
 				<?php
 				if ($tab == 'yes') {
+					
 					$tabs_array = explode(',', $tabs);
-					$valid_tabs = ['distance' => 'distance', 'hourly' => 'hourly', 'manual' => 'flat-rate']; // Mapping to correct tab names
-					$available_tabs = array_intersect_key($valid_tabs, array_flip($tabs_array)); // Filter valid tabs
+
+					$valid_tabs = [
+						'distance' => 'distance',
+						'hourly'   => 'hourly',
+						'manual'   => 'flat-rate',
+					];
+					$valid_tabs = apply_filters('mptbm_register_valid_tabs', $valid_tabs);
+					
+
+					// ✅ Build available_tabs in the order of $tabs_array
+					$available_tabs = [];
+					foreach ($tabs_array as $tab_key) {
+						$tab_key = trim($tab_key); // In case of whitespace
+						if (isset($valid_tabs[$tab_key])) {
+							$available_tabs[$tab_key] = $valid_tabs[$tab_key];
+						}
+					}
+
+					
+
+					
+
 					$first_tab = key($available_tabs);
 					$form_style = $form_style ?: 'horizontal';
 					$map = $map ?: 'yes';
-					if($first_tab == 'hourly'){
+
+					if ($first_tab == 'hourly') {
 						$price_based = 'fixed_hourly';
-					}else if($first_tab == 'manual'){
+					} else if ($first_tab == 'manual') {
 						$price_based = 'manual';
-						$form_style = 'inline';
+						//$form_style = 'inline';
 					}
+					
 				?>
 					<div class="mptb-tab-container">
-						<ul class="mptb-tabs">
-							<?php foreach ($available_tabs as $key => $tab_name) { ?>
+					<ul class="mptb-tabs">
+						<?php foreach ($available_tabs as $key => $tab_name) { ?>
+							<li class="tab-link <?php echo ($key === $first_tab) ? 'current' : ''; ?>"
+								mptbm-data-tab="<?php echo $tab_name; ?>"
+								mptbm-data-map="<?php echo $map; ?>"
+								mptbm-data-form-style="<?php echo $form_style; ?>">
 
-								<li class="tab-link <?php echo ($key === $first_tab) ? 'current' : ''; ?>" mptbm-data-tab="<?php echo $tab_name; ?>" mptbm-data-map="<?php echo $map; ?>" mptbm-data-form-style="<?php echo $form_style; ?>">
-									<?php
-									if ($tab_name === 'distance') {
-										echo mptbm_get_translation('distance_tab_label', __('Distance', 'ecab-taxi-booking-manager'));
-									} elseif ($tab_name === 'hourly') {
-										echo mptbm_get_translation('hourly_tab_label', __('Hourly', 'ecab-taxi-booking-manager'));
-									} elseif ($tab_name === 'flat-rate') {
-										echo mptbm_get_translation('flat_rate_tab_label', __('Flat rate', 'ecab-taxi-booking-manager'));
-									} else {
-										echo ucfirst(str_replace('-', ' ', $tab_name));
-									}
-									?>
+								<?php
+								$label = '';
+								if ($tab_name === 'distance') {
+									$label = mptbm_get_translation('distance_tab_label', __('Distance', 'ecab-taxi-booking-manager'));
+								} elseif ($tab_name === 'hourly') {
+									$label = mptbm_get_translation('hourly_tab_label', __('Hourly', 'ecab-taxi-booking-manager'));
+								} elseif ($tab_name === 'flat-rate') {
+									$label = mptbm_get_translation('flat_rate_tab_label', __('Flat rate', 'ecab-taxi-booking-manager'));
+								}else {
+									$label = ucfirst(str_replace('-', ' ', $tab_name));
+								}
 
-								</li>
-							<?php } ?>
-						</ul>
-
+								// Apply a dynamic filter for external customization
+								echo apply_filters("mptbm_tab_label_{$tab_name}", $label, $tab_name);
+								?>
+							</li>
+						<?php } ?>
+					</ul>
+						
 						<?php foreach ($available_tabs as $key => $tab_name) { ?>
 							<div id="<?php echo $tab_name; ?>" class="mptb-tab-content <?php echo ($key === $first_tab) ? 'current' : ''; ?>">
-								<?php if ($key === $first_tab) { ?>
-									<?php include MPTBM_Function::template_path('registration/get_details.php'); ?>
-								<?php } ?>
+							
+								<?php if ($key === $first_tab && $first_tab != 'custom') { ?>
+										
+										<?php include MPTBM_Function::template_path('registration/get_details.php'); ?>
+									<?php } else { ?>
+										
+										<?php do_action('mptbm_render_' . $tab_name); ?>
+									<?php } ?>
 							</div>
+							
 						<?php } ?>
 						<div class="mptbm-hide-gif mptbm-gif">
 							<img src="<?php echo plugin_dir_url(dirname(__DIR__)) . 'assets/images/loader.gif'; ?>" class="mptb-tabs-loader" />
 						</div>
 					</div>
+					
 				<?php } else { ?>
 					<div data-tabs-next="#mptbm_pick_up_details" class="active mptbm_pick_up_details">
 						<?php include MPTBM_Function::template_path('registration/get_details.php'); ?>

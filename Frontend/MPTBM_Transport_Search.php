@@ -51,17 +51,23 @@
 					$form_style = sanitize_text_field($_POST['form_style']);
 					$map = sanitize_text_field($_POST['map']); // Changed from $display_map to $map
 					// Include the correct template based on the tab
-					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate') {
+					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate' || $tab_id === 'custom') {
 						ob_start(); // Start output buffering
+						
 						if($tab_id === 'distance'){
 							$price_based = 'dynamic';
+							include MPTBM_Function::template_path('registration/get_details.php');
 						}else if($tab_id === 'hourly'){
 							$price_based = 'fixed_hourly';
-						}else{
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'flat-rate'){
 							$price_based = 'manual';
 							$form_style = 'inline';
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'custom'){
+							do_action('mptbm_render_custom');
 						}
-						include MPTBM_Function::template_path('registration/get_details.php');
+						
 						$content = ob_get_clean(); // Get the template output
 						echo $content;
 					}
@@ -69,6 +75,7 @@
 				wp_die(); // End AJAX call
 			}
 			public function get_mptbm_map_search_result() {
+					
 				
 					$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';
 					$duration = isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '';
