@@ -94,9 +94,12 @@
 								</div>
 								<?php 
 								$enable_inventory = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_inventory', 'no');
+								$enable_seat_plan = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_seat_plan', 'no');
 								$inventory_checked = $enable_inventory == 'yes' ? 'checked' : '';
 								?>
-								<?php MP_Custom_Layout::switch_button('mptbm_enable_inventory', $inventory_checked); ?>
+								<div class="mptbm_inventory_switch_container <?php echo esc_attr($enable_seat_plan == 'yes' ? 'disabled' : ''); ?>">
+									<?php MP_Custom_Layout::switch_button('mptbm_enable_inventory', $inventory_checked); ?>
+								</div>
 							</label>
 						</section>
 						<section data-collapse="#mptbm_enable_inventory" class="<?php echo esc_attr($enable_inventory == 'yes' ? 'mActive' : ''); ?>">
@@ -117,6 +120,90 @@
 											<span class="desc"><?php esc_html_e('Set the interval time between bookings in minutes', 'ecab-taxi-booking-manager'); ?></span>
 										</div>
 										<input class="formControl mp_price_validation" name="mptbm_booking_interval_time" value="<?php echo esc_attr(MP_Global_Function::get_post_info($post_id, 'mptbm_booking_interval_time', 0)); ?>" type="number" min="0" placeholder="<?php esc_html_e('EX:30', 'ecab-taxi-booking-manager'); ?>" />
+									</label>
+								</section>
+							</div>
+						</section>
+						<section>
+							<label class="label">
+								<div>
+									<h6><?php esc_html_e('Enable Seat Plan', 'ecab-taxi-booking-manager'); ?></h6>
+									<span class="desc"><?php esc_html_e('Enable seat planning for this vehicle (only available when inventory is disabled)', 'ecab-taxi-booking-manager'); ?></span>
+								</div>
+								<?php 
+								$seat_plan_checked = $enable_seat_plan == 'yes' ? 'checked' : '';
+								?>
+								<div class="mptbm_seat_plan_switch_container <?php echo esc_attr($enable_inventory == 'yes' ? 'disabled' : ''); ?>">
+									<?php MP_Custom_Layout::switch_button('mptbm_enable_seat_plan', $seat_plan_checked); ?>
+								</div>
+							</label>
+						</section>
+						<section data-collapse="#mptbm_enable_seat_plan" class="<?php echo esc_attr($enable_seat_plan == 'yes' && $enable_inventory == 'no' ? 'mActive' : ''); ?>">
+							<div class="mp_settings_area">
+								<section>
+									<label class="label">
+										<div>
+											<h6><?php esc_html_e('Seat Type', 'ecab-taxi-booking-manager'); ?></h6>
+											<span class="desc"><?php esc_html_e('Choose the type of seat plan configuration', 'ecab-taxi-booking-manager'); ?></span>
+										</div>
+										<?php 
+										$seat_type = MP_Global_Function::get_post_info($post_id, 'mptbm_seat_type', 'without_seat_plan');
+										?>
+										<select class="formControl" name="mptbm_seat_type" data-collapse-target>
+											<option value="with_seat_plan" <?php selected($seat_type, 'with_seat_plan'); ?> data-option-target="#with_seat_plan"><?php esc_html_e('With Seat Plan', 'ecab-taxi-booking-manager'); ?></option>
+											<option value="without_seat_plan" <?php selected($seat_type, 'without_seat_plan'); ?> data-option-target="#without_seat_plan"><?php esc_html_e('Without Seat Plan', 'ecab-taxi-booking-manager'); ?></option>
+										</select>
+									</label>
+								</section>
+								<section data-collapse="#with_seat_plan" class="<?php echo esc_attr($seat_type == 'with_seat_plan' ? 'mActive' : ''); ?>">
+									<div class="mp_settings_area">
+										<section>
+											<label class="label">
+												<div>
+													<h6><?php esc_html_e('Seat Rows', 'ecab-taxi-booking-manager'); ?></h6>
+													<span class="desc"><?php esc_html_e('Enter the number of seat rows in this vehicle', 'ecab-taxi-booking-manager'); ?></span>
+												</div>
+												<input class="formControl mp_price_validation" name="mptbm_seat_rows" id="mptbm_seat_rows" value="<?php echo esc_attr(MP_Global_Function::get_post_info($post_id, 'mptbm_seat_rows', 2)); ?>" type="number" min="1" max="10" placeholder="<?php esc_html_e('EX: 2', 'ecab-taxi-booking-manager'); ?>" />
+											</label>
+										</section>
+										<section>
+											<label class="label">
+												<div>
+													<h6><?php esc_html_e('Seat Columns', 'ecab-taxi-booking-manager'); ?></h6>
+													<span class="desc"><?php esc_html_e('Enter the number of seat columns per row in this vehicle', 'ecab-taxi-booking-manager'); ?></span>
+												</div>
+												<input class="formControl mp_price_validation" name="mptbm_seat_columns" id="mptbm_seat_columns" value="<?php echo esc_attr(MP_Global_Function::get_post_info($post_id, 'mptbm_seat_columns', 2)); ?>" type="number" min="1" max="10" placeholder="<?php esc_html_e('EX: 2', 'ecab-taxi-booking-manager'); ?>" />
+											</label>
+										</section>
+										<section>
+											<label class="label">
+												<div>
+													<h6><?php esc_html_e('Seat Layout Preview', 'ecab-taxi-booking-manager'); ?></h6>
+													<span class="desc"><?php esc_html_e('Visual representation of the seat arrangement', 'ecab-taxi-booking-manager'); ?></span>
+												</div>
+												<div id="seat-layout-preview" class="seat-layout-preview">
+													<!-- Seat layout will be generated here by JavaScript -->
+												</div>
+											</label>
+										</section>
+									</div>
+								</section>
+								<section data-collapse="#without_seat_plan" class="<?php echo esc_attr($seat_type == 'without_seat_plan' ? 'mActive' : ''); ?>">
+									<label class="label">
+										<div>
+											<h6><?php esc_html_e('Total Seat', 'ecab-taxi-booking-manager'); ?></h6>
+											<span class="desc"><?php esc_html_e('Enter the total number of seats available in this vehicle', 'ecab-taxi-booking-manager'); ?></span>
+										</div>
+										<input class="formControl mp_price_validation" name="mptbm_total_seat" value="<?php echo esc_attr(MP_Global_Function::get_post_info($post_id, 'mptbm_total_seat', 1)); ?>" type="number" min="1" placeholder="<?php esc_html_e('EX:4', 'ecab-taxi-booking-manager'); ?>" />
+									</label>
+								</section>
+								<section>
+									<label class="label">
+										<div>
+											<h6><?php esc_html_e('Seat Plan Buffer Time (minutes)', 'ecab-taxi-booking-manager'); ?></h6>
+											<span class="desc"><?php esc_html_e('Set the buffer time (in minutes) before and after each booking when seats should remain reserved. This prevents overlapping bookings and ensures proper turnaround time between trips.', 'ecab-taxi-booking-manager'); ?></span>
+										</div>
+										<input class="formControl mp_price_validation" name="mptbm_seat_plan_buffer_time" value="<?php echo esc_attr(MP_Global_Function::get_post_info($post_id, 'mptbm_seat_plan_buffer_time', 30)); ?>" type="number" min="0" max="300" placeholder="<?php esc_html_e('EX: 30', 'ecab-taxi-booking-manager'); ?>" />
 									</label>
 								</section>
 							</div>
@@ -159,6 +246,7 @@
 						</section>
                     </div>
                 </div>
+
 				<?php
 			}
 			public function features_item($features = array()) {
@@ -198,20 +286,83 @@
 					update_post_meta($post_id, 'mptbm_maximum_bag', $max_bag);
 					update_post_meta($post_id, 'mptbm_extra_info', $extra_info);
 					
-					// Save inventory settings
+					// Handle mutually exclusive inventory and seat plan settings
 					$enable_inventory = isset($_POST['mptbm_enable_inventory']) && sanitize_text_field($_POST['mptbm_enable_inventory']) ? 'yes' : 'no';
+					$enable_seat_plan = isset($_POST['mptbm_enable_seat_plan']) && sanitize_text_field($_POST['mptbm_enable_seat_plan']) ? 'yes' : 'no';
+					
+					// Ensure mutual exclusivity - if both are enabled, prioritize the one being set
+					if ($enable_inventory == 'yes' && $enable_seat_plan == 'yes') {
+						// If both are being enabled, we need to check which one was changed
+						// For simplicity, let's prioritize inventory in this case
+						$enable_seat_plan = 'no';
+					}
+					
+					// Save inventory settings
 					update_post_meta($post_id, 'mptbm_enable_inventory', $enable_inventory);
 					
-					// Only save quantity and interval time if inventory is enabled
 					if ($enable_inventory == 'yes') {
 						$quantity = isset($_POST['mptbm_quantity']) ? absint($_POST['mptbm_quantity']) : 1;
 						$booking_interval_time = isset($_POST['mptbm_booking_interval_time']) ? absint($_POST['mptbm_booking_interval_time']) : 0;
 						update_post_meta($post_id, 'mptbm_quantity', $quantity);
 						update_post_meta($post_id, 'mptbm_booking_interval_time', $booking_interval_time);
+						
+						// If inventory is enabled, force disable seat plan
+						update_post_meta($post_id, 'mptbm_enable_seat_plan', 'no');
+						update_post_meta($post_id, 'mptbm_seat_type', 'without_seat_plan');
+						update_post_meta($post_id, 'mptbm_total_seat', 1);
 					} else {
 						// If inventory is disabled, set default values
 						update_post_meta($post_id, 'mptbm_quantity', 1);
 						update_post_meta($post_id, 'mptbm_booking_interval_time', 0);
+					}
+					
+					// Save seat plan settings
+					update_post_meta($post_id, 'mptbm_enable_seat_plan', $enable_seat_plan);
+					
+					if ($enable_seat_plan == 'yes') {
+						// If seat plan is enabled, force disable inventory
+						update_post_meta($post_id, 'mptbm_enable_inventory', 'no');
+						update_post_meta($post_id, 'mptbm_quantity', 1);
+						update_post_meta($post_id, 'mptbm_booking_interval_time', 0);
+						
+						// Save seat plan specific settings
+						$seat_type = isset($_POST['mptbm_seat_type']) ? sanitize_text_field($_POST['mptbm_seat_type']) : 'without_seat_plan';
+						update_post_meta($post_id, 'mptbm_seat_type', $seat_type);
+						
+						if ($seat_type == 'with_seat_plan') {
+							// Save seat rows and columns for visual seat plan
+							$seat_rows = isset($_POST['mptbm_seat_rows']) ? absint($_POST['mptbm_seat_rows']) : 2;
+							$seat_columns = isset($_POST['mptbm_seat_columns']) ? absint($_POST['mptbm_seat_columns']) : 2;
+							
+							// Validate ranges
+							$seat_rows = max(1, min(10, $seat_rows));
+							$seat_columns = max(1, min(10, $seat_columns));
+							
+							update_post_meta($post_id, 'mptbm_seat_rows', $seat_rows);
+							update_post_meta($post_id, 'mptbm_seat_columns', $seat_columns);
+							
+							// Calculate total seats based on rows and columns
+							$calculated_total_seat = $seat_rows * $seat_columns;
+							update_post_meta($post_id, 'mptbm_total_seat', $calculated_total_seat);
+						} elseif ($seat_type == 'without_seat_plan') {
+							$total_seat = isset($_POST['mptbm_total_seat']) ? absint($_POST['mptbm_total_seat']) : 1;
+							update_post_meta($post_id, 'mptbm_total_seat', $total_seat);
+							
+							// Clear seat layout fields when not using visual seat plan
+							update_post_meta($post_id, 'mptbm_seat_rows', 2);
+							update_post_meta($post_id, 'mptbm_seat_columns', 2);
+						}
+						
+						// Save seat plan buffer time (applies to all seat plan types)
+						$seat_plan_buffer_time = isset($_POST['mptbm_seat_plan_buffer_time']) ? absint($_POST['mptbm_seat_plan_buffer_time']) : 30;
+						update_post_meta($post_id, 'mptbm_seat_plan_buffer_time', $seat_plan_buffer_time);
+					} else {
+						// If seat plan is disabled, reset seat plan settings
+						update_post_meta($post_id, 'mptbm_seat_type', 'without_seat_plan');
+						update_post_meta($post_id, 'mptbm_total_seat', 1);
+						update_post_meta($post_id, 'mptbm_seat_plan_buffer_time', 30);
+						update_post_meta($post_id, 'mptbm_seat_rows', 2);
+						update_post_meta($post_id, 'mptbm_seat_columns', 2);
 					}
 					
 					$display_features = isset($_POST['display_mptbm_features']) && sanitize_text_field($_POST['display_mptbm_features'])? 'on' : 'off';

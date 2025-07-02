@@ -480,4 +480,111 @@ div.mp_global_settings .mpPanel .mpPanelBody .mpTabs .tabLists {
   }
 }
 
+/* Seat Layout Preview Styles */
+.seat-layout-preview {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  background: #f9f9f9;
+  margin-top: 10px;
+}
+
+.seat-layout-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.seat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.row-label {
+  font-weight: bold;
+  min-width: 60px;
+  color: #666;
+  font-size: 12px;
+}
+
+.seat {
+  width: 40px;
+  height: 40px;
+  background: var(--mptbm-primary);
+  border: 2px solid var(--mptbm-primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  opacity: 0.9;
+}
+
+.seat:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.seat-number {
+  color: var(--mptbm-white);
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.seat-layout-info {
+  background: var(--mptbm-white);
+  padding: 15px;
+  border-radius: 6px;
+  border-left: 4px solid var(--mptbm-primary);
+}
+
+.seat-layout-info p {
+  margin: 5px 0;
+  color: #333;
+}
+
+.seat-layout-error {
+  color: #d32f2f;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .seat {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .seat-number {
+    font-size: 10px;
+  }
+  
+  .row-label {
+    min-width: 50px;
+    font-size: 11px;
+  }
+}
+
+/* Disabled switch containers for mutual exclusivity */
+.mptbm_inventory_switch_container.disabled,
+.mptbm_seat_plan_switch_container.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.mptbm_inventory_switch_container.disabled .switch_button,
+.mptbm_seat_plan_switch_container.disabled .switch_button {
+  opacity: 0.5;
+}
+
 /*# sourceMappingURL=admin_style.css.map */

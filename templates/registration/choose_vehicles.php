@@ -173,7 +173,129 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
     }
 }
 
-
+/**
+ * Check seat availability based on buffer time and existing bookings
+ * 
+ * LOGIC EXPLANATION:
+ * - Existing booking: 10:30 AM, Buffer: 30 minutes
+ * - Buffer range: 10:00 AM (before) to 11:00 AM (after)
+ * - New booking at 10:00 AM: ✅ Can book remaining seats (service hasn't started)
+ * - New booking at 10:30 AM: ✅ Can book remaining seats (exact same time allowed)
+ * - New booking at 10:31 AM: ❌ Service already started (completely blocked)
+ * 
+ * @param int $post_id Transport ID
+ * @param string $booking_datetime Requested booking datetime (Y-m-d H:i format)
+ * @return array ['available' => int, 'total' => int, 'is_available' => bool]
+ */
+function mptbm_check_seat_availability_with_buffer($post_id, $booking_datetime) {
+    // Get seat plan settings
+    $enable_seat_plan = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_seat_plan', 'no');
+    $enable_inventory = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_inventory', 'no');
+    
+    // Only apply buffer time for seat plans (not inventory management)
+    if ($enable_seat_plan !== 'yes' || $enable_inventory === 'yes') {
+        return ['available' => 1, 'total' => 1, 'is_available' => true];
+    }
+    
+    // Get buffer time and total seats
+    $buffer_time_minutes = (int) MP_Global_Function::get_post_info($post_id, 'mptbm_seat_plan_buffer_time', 30);
+    $total_seats = (int) MP_Global_Function::get_post_info($post_id, 'mptbm_total_seat', 1);
+    
+    // Convert booking datetime to timestamp
+    $booking_timestamp = strtotime($booking_datetime);
+    if (!$booking_timestamp) {
+        return ['available' => $total_seats, 'total' => $total_seats, 'is_available' => true];
+    }
+    
+    // Get all existing bookings for this transport
+    global $wpdb;
+    
+    // Use WooCommerce order items table (correct location for transport data)
+    $orders = $wpdb->get_results($wpdb->prepare("
+        SELECT DISTINCT p.ID as order_id, p.post_status
+        FROM {$wpdb->posts} p
+        INNER JOIN {$wpdb->prefix}woocommerce_order_items oi ON p.ID = oi.order_id
+        INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oi.order_item_id = oim.order_item_id
+        WHERE (p.post_type = 'shop_order' OR p.post_type = 'shop_order_placehold')
+        AND p.post_status IN ('wc-processing', 'wc-completed', 'wc-on-hold', 'wc-pending', 'draft', 'publish', 'processing', 'completed', 'on-hold', 'pending')
+        AND oim.meta_key = '_mptbm_id'
+        AND (oim.meta_value = %d OR oim.meta_value = %s)
+    ", $post_id, $post_id));
+    
+    $booked_seats_before = 0; // Seats booked before the new booking time
+    $booked_seats_same_time = 0; // Seats booked at the exact same time
+    $service_already_started = false; // Flag to check if any service has started
+    
+    foreach ($orders as $order_data) {
+        $order = wc_get_order($order_data->order_id);
+        if (!$order) continue;
+        
+        foreach ($order->get_items() as $item) {
+            $item_transport_id = $item->get_meta('_mptbm_id', true);
+            if ($item_transport_id != $post_id) continue;
+            
+            // Get booking datetime from order
+            $existing_booking_date = $item->get_meta('_mptbm_date', true);
+            if (!$existing_booking_date) continue;
+            
+            $existing_timestamp = strtotime($existing_booking_date);
+            if (!$existing_timestamp) continue;
+            
+            // Get the number of seats booked in this order
+            $transport_quantity = (int) $item->get_meta('_mptbm_transport_quantity', true);
+            if (!$transport_quantity) {
+                $transport_quantity = $item->get_quantity();
+            }
+            
+            // Calculate buffer ranges for existing booking
+            $existing_buffer_start = $existing_timestamp - ($buffer_time_minutes * 60);
+            $existing_buffer_end = $existing_timestamp + ($buffer_time_minutes * 60);
+            
+            // Check if new booking time falls after any existing booking start time (service already started)
+            if ($booking_timestamp > $existing_timestamp && $booking_timestamp <= $existing_buffer_end) {
+                $service_already_started = true;
+                break; // No need to check further, completely out of stock
+            }
+            
+            // Check if new booking is at the exact same time as existing booking
+            if ($booking_timestamp == $existing_timestamp) {
+                $booked_seats_same_time += $transport_quantity;
+            }
+            // Check if new booking time conflicts with buffer before existing booking
+            elseif ($booking_timestamp >= $existing_buffer_start && $booking_timestamp < $existing_timestamp) {
+                $booked_seats_before += $transport_quantity;
+            }
+        }
+        
+        // Break early if service has already started
+        if ($service_already_started) {
+            break;
+        }
+    }
+    
+    // If service has already started, completely out of stock
+    if ($service_already_started) {
+        return [
+            'available' => 0,
+            'total' => $total_seats,
+            'is_available' => false,
+            'booked_in_buffer' => $total_seats,
+            'service_started' => true
+        ];
+    }
+    
+    // Calculate available seats considering bookings before AND at the same time as the new booking
+    $total_booked_seats = $booked_seats_before + $booked_seats_same_time;
+    $available_seats = max(0, $total_seats - $total_booked_seats);
+    
+    return [
+        'available' => $available_seats,
+        'total' => $total_seats,
+        'is_available' => $available_seats > 0,
+        'booked_in_buffer' => $total_booked_seats,
+        'service_started' => false
+    ];
+}
 
 function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_schedule, $return_time_schedule, $start_place_coordinates, $end_place_coordinates, $price_based) {
     
@@ -453,7 +575,6 @@ $mptbm_passengers = max($mptbm_passengers);
 
 $selected_max_passenger = isset($_POST['mptbm_max_passenger']) ? intval($_POST['mptbm_max_passenger']) : 0;
 $selected_max_bag = isset($_POST['mptbm_max_bag']) ? intval($_POST['mptbm_max_bag']) : 0;
-error_log('DEBUG: Selected max_passenger=' . $selected_max_passenger . ', max_bag=' . $selected_max_bag);
 ?>
 <div data-tabs-next="#mptbm_search_result" class="mptbm_map_search_result">
 	<input type="hidden" name="mptbm_post_id" value="" data-price="" />
@@ -519,21 +640,21 @@ if ($all_posts->found_posts > 0) {
         $post_id = $post->ID;
         $taxi_max_passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
         $taxi_max_bag = (int) get_post_meta($post_id, 'mptbm_maximum_bag', true);
-        // error_log('DEBUG: Taxi ' . $post_id . ' max_passenger=' . $taxi_max_passenger . ', max_bag=' . $taxi_max_bag);
         if (
             ($selected_max_passenger && $taxi_max_passenger < $selected_max_passenger) ||
             ($selected_max_bag && $taxi_max_bag < $selected_max_bag)
         ) {
-            // error_log('DEBUG: Taxi ' . $post_id . ' SKIPPED by filter');
             continue; // Skip this taxi, it doesn't meet the filter
         }
-        // error_log('DEBUG: Taxi ' . $post_id . ' INCLUDED');
         $check_schedule = wptbm_get_schedule($post_id, $days_name, $start_date,$start_time_schedule, $return_time_schedule, $start_place_coordinates, $end_place_coordinates, $price_based);
         
         if ($check_schedule) {
             $vehicle_item_count = $vehicle_item_count + 1;
             $price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
             $custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
+            
+            // Check seat availability with buffer time
+            $seat_availability = mptbm_check_seat_availability_with_buffer($post_id, $date);
             
             // Get the price
             $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time);
@@ -551,6 +672,37 @@ if ($all_posts->found_posts > 0) {
                 $wc_price = MP_Global_Function::wc_price($post_id, $price);
                 $raw_price = MP_Global_Function::price_convert_raw($wc_price);
                 $price_display = $wc_price;
+            }
+            
+            // Check if this is a seat plan and if seats are available
+            $enable_seat_plan = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_seat_plan', 'no');
+            $enable_inventory = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_inventory', 'no');
+            $is_seat_plan = ($enable_seat_plan === 'yes' && $enable_inventory !== 'yes');
+            
+            // Skip vehicles with seat plan enabled when it's a return trip
+            if ($is_seat_plan && $two_way == 2) {
+                continue; // Skip this vehicle for return trips
+            }
+            
+            // Set availability status for the vehicle item
+            $availability_status = 'available'; // default
+            $availability_message = '';
+            
+            if ($is_seat_plan && !$seat_availability['is_available']) {
+                if (isset($seat_availability['service_started']) && $seat_availability['service_started']) {
+                    $availability_status = 'service_started';
+                    $availability_message = esc_html__('Service Booked', 'ecab-taxi-booking-manager');
+                } else {
+                    $availability_status = 'out_of_stock';
+                    $availability_message = esc_html__('Out of Stock', 'ecab-taxi-booking-manager');
+                }
+            } elseif ($is_seat_plan && $seat_availability['available'] < $seat_availability['total']) {
+                $availability_status = 'limited_seats';
+                $availability_message = sprintf(
+                    esc_html__('%d of %d seats available', 'ecab-taxi-booking-manager'),
+                    $seat_availability['available'],
+                    $seat_availability['total']
+                );
             }
             
             include MPTBM_Function::template_path("registration/vehicle_item.php");

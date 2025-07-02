@@ -975,6 +975,26 @@ function mptbm_price_calculation(parent) {
                     count++;
                 }
             });
+            // Collect seat plan data if available
+            let seatData = {};
+            let seatDisplayData = {};
+            
+            // Look for seat number inputs for this vehicle
+            let seatNumbersInput = parent.find(`.mptbm-selected-seat-numbers[data-post-id="${post_id}"]`);
+            let seatDisplayInput = parent.find(`input[name="vehicle_seat_display_names[${post_id}]"]`);
+            
+            if (seatNumbersInput.length > 0) {
+                seatData[post_id] = seatNumbersInput.val();
+    
+            }
+            
+            if (seatDisplayInput.length > 0) {
+                seatDisplayData[post_id] = seatDisplayInput.val();
+
+            }
+            
+            
+            
             $.ajax({
                 type: 'POST',
                 url: mp_ajax_url,
@@ -996,6 +1016,8 @@ function mptbm_price_calculation(parent) {
                     mptbm_passengers: parent.find('#mptbm_passengers').val(),
                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                    vehicle_seat_numbers: seatData,
+                    vehicle_seat_display_names: seatDisplayData,
                 },
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));
@@ -1117,7 +1139,7 @@ function mptbm_price_calculation(parent) {
         e.preventDefault();
         e.stopPropagation();
         
-        console.log('Info button clicked!'); // Debug log
+
         
         var $button = $(this);
         var postId = $button.data('post-id');
@@ -1125,9 +1147,7 @@ function mptbm_price_calculation(parent) {
         var $content = $vehicleWrapper.find('.mptbm-extra-info-content[data-post-id="' + postId + '"]');
         var $icon = $button.find('i');
         
-        console.log('Post ID:', postId); // Debug log
-        console.log('Vehicle wrapper found:', $vehicleWrapper.length); // Debug log
-        console.log('Content found:', $content.length); // Debug log
+
         
         // Close other open info panels
         $('.mptbm-extra-info-content').not($content).slideUp(200);
@@ -1143,8 +1163,6 @@ function mptbm_price_calculation(parent) {
                     $icon.removeClass('fa-times').addClass('fa-info');
                 }
             });
-        } else {
-            console.log('No content found for post ID:', postId); // Debug log
         }
     });
     

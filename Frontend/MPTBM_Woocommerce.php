@@ -46,12 +46,34 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			add_action('wp_ajax_nopriv_mptbm_file_upload', array($this, 'ajax_file_upload'));
 		}
 
-		public function add_cart_item_data($cart_item_data, $product_id)
-		{
-			$quantity = isset($_POST['transport_quantity']) ? sanitize_text_field($_POST['transport_quantity']) : 1;
-			$cart_item_data['mptbm_transport_quantity'] = $quantity;
-			$linked_id = MP_Global_Function::get_post_info($product_id, 'link_mptbm_id', $product_id);
-			$post_id = is_string(get_post_status($linked_id)) ? $linked_id : $product_id;
+			public function add_cart_item_data($cart_item_data, $product_id)
+	{
+		$quantity = isset($_POST['transport_quantity']) ? sanitize_text_field($_POST['transport_quantity']) : 1;
+		$cart_item_data['mptbm_transport_quantity'] = $quantity;
+		
+		// Get the correct transport post ID first
+		$linked_id = MP_Global_Function::get_post_info($product_id, 'link_mptbm_id', $product_id);
+		$post_id = is_string(get_post_status($linked_id)) ? $linked_id : $product_id;
+		
+		// Handle seat plan data
+		$seat_numbers = isset($_POST['vehicle_seat_numbers']) ? $_POST['vehicle_seat_numbers'] : array();
+		$seat_display_names = isset($_POST['vehicle_seat_display_names']) ? $_POST['vehicle_seat_display_names'] : array();
+		
+		if (!empty($seat_numbers) && is_array($seat_numbers)) {
+			foreach ($seat_numbers as $transport_post_id => $seats) {
+				if ($transport_post_id == $post_id && !empty($seats)) {
+					$cart_item_data['mptbm_seat_numbers'] = sanitize_text_field($seats);
+				}
+			}
+		}
+		
+		if (!empty($seat_display_names) && is_array($seat_display_names)) {
+			foreach ($seat_display_names as $transport_post_id => $display_seats) {
+				if ($transport_post_id == $post_id && !empty($display_seats)) {
+					$cart_item_data['mptbm_seat_display_names'] = sanitize_text_field($display_seats);
+				}
+			}
+		}
 			if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 				$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';
 				$duration = isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '';
@@ -180,7 +202,23 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$extra_service = $values['mptbm_extra_service_info'] ?? [];
 				$price = isset($values['mptbm_tp']) ? $values['mptbm_tp'] : '';
 				$transport_quantity = isset($values['mptbm_transport_quantity']) ? $values['mptbm_transport_quantity'] : 1;
-				$item->set_quantity( $transport_quantity );
+				$seat_numbers = isset($values['mptbm_seat_numbers']) ? $values['mptbm_seat_numbers'] : '';
+				$seat_display_names = isset($values['mptbm_seat_display_names']) ? $values['mptbm_seat_display_names'] : '';
+				
+				// Check if this is a seat plan booking or inventory management
+				$enable_seat_plan = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_seat_plan', 'no');
+				$enable_inventory = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_inventory', 'no');
+				$is_seat_plan = ($enable_seat_plan == 'yes' && $enable_inventory == 'no');
+				$is_inventory_enabled = ($enable_inventory == 'yes');
+				
+				// Set product quantity based on booking type
+				if ($is_inventory_enabled) {
+					// For inventory management: each quantity = separate vehicle booking
+					$item->set_quantity( $transport_quantity );
+				} else {
+					// For seat plans and regular bookings: always 1 booking
+					$item->set_quantity( 1 );
+				}
 				$item->add_meta_data(esc_html__('Pickup Location ', 'ecab-taxi-booking-manager'), $start_location);
 				$item->add_meta_data(esc_html__('Drop-Off Location ', 'ecab-taxi-booking-manager'), $end_location);
 				$price_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
@@ -197,7 +235,18 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				}
 				$item->add_meta_data(esc_html__('Date ', 'ecab-taxi-booking-manager'), esc_html(MP_Global_Function::date_format($date)));
 				$item->add_meta_data(esc_html__('Time ', 'ecab-taxi-booking-manager'), esc_html(MP_Global_Function::date_format($date, 'time')));
-				$item->add_meta_data(esc_html__('Transport Quantity ', 'ecab-taxi-booking-manager'), $transport_quantity);
+				
+				// Show quantity meta data for seat plans and regular bookings (not for inventory management)
+				if (!$is_inventory_enabled && $transport_quantity > 1) {
+					$quantity_label = $is_seat_plan ? esc_html__('Seat Quantity', 'ecab-taxi-booking-manager') : esc_html__('Transport Quantity', 'ecab-taxi-booking-manager');
+					$item->add_meta_data($quantity_label, $transport_quantity);
+				}
+				
+				// Add selected seat numbers for visual seat plan
+				if ($is_seat_plan && !empty($seat_display_names)) {
+					$item->add_meta_data(esc_html__('Selected Seats', 'ecab-taxi-booking-manager'), $seat_display_names);
+				}
+				
 				// Add passenger count to order meta only if the setting is enabled
 				$show_passengers = MP_Global_Function::get_settings('mptbm_general_settings', 'show_number_of_passengers', 'no');
 				if ($show_passengers === 'yes') {
@@ -246,7 +295,6 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						$item->add_meta_data('_mptbm_return_date', $return_date);
 						$item->add_meta_data('_mptbm_return_time', $return_time);
 					}
-					$item->add_meta_data(esc_html__('Transport Quantity', 'ecab-taxi-booking-manager'), $transport_quantity);
 				}
 				$price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type');
 				if ($price_display_type === 'custom_message') {
@@ -334,6 +382,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$item->add_meta_data('_mptbm_tp', $price);
 				$item->add_meta_data('_mptbm_service_info', $extra_service);
 				$item->add_meta_data('_mptbm_transport_quantity', $transport_quantity);
+				$item->add_meta_data('_mptbm_seat_numbers', $seat_numbers);
+				$item->add_meta_data('_mptbm_seat_display_names', $seat_display_names);
 
 				do_action('mptbm_checkout_create_order_line_item', $item, $values);
 			}
@@ -418,6 +468,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							$price = $price ? MP_Global_Function::data_sanitize($price) : [];
 							$transport_quantity = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_transport_quantity');
 							$quantity = $transport_quantity ? MP_Global_Function::data_sanitize($transport_quantity) : 1;
+							$seat_numbers = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_seat_numbers');
+							$seat_display_names = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_seat_display_names');
 							
 							// Add meta array data to the $data array
 							$data = array_merge($meta_array, [
@@ -441,8 +493,12 @@ if (!class_exists('MPTBM_Woocommerce')) {
 								'mptbm_billing_email' => $order->get_billing_email(),
 								'mptbm_billing_phone' => $order->get_billing_phone(),
 								'mptbm_target_pickup_interval_time' => MPTBM_Function::get_general_settings('mptbm_pickup_interval_time', '30'),
-								'mptbm_transport_quantity' => $quantity
+								'mptbm_transport_quantity' => $quantity,
+								'mptbm_seat_numbers' => $seat_numbers ? MP_Global_Function::data_sanitize($seat_numbers) : '',
+								'mptbm_seat_display_names' => $seat_display_names ? MP_Global_Function::data_sanitize($seat_display_names) : ''
 							]);
+							
+
 
 							// Only add passenger count if the setting is enabled
 							$show_passengers = MP_Global_Function::get_settings('mptbm_general_settings', 'show_number_of_passengers', 'no');
@@ -638,14 +694,29 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							?>
 						</li>
 						<?php
-						// Display transport quantity
+						// Display transport quantity or seat quantity based on vehicle settings
 						$transport_quantity = isset($cart_item['mptbm_transport_quantity']) ? absint($cart_item['mptbm_transport_quantity']) : 1;
+						
+						// Check if this vehicle has seat plan enabled (and inventory disabled)
+						$enable_seat_plan = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_seat_plan', 'no');
+						$enable_inventory = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_inventory', 'no');
+						$is_seat_plan = ($enable_seat_plan == 'yes' && $enable_inventory == 'no');
 						?>
 						<li>
-							<span class="fas fa-car"></span>
-							<h6 class="_mR_xs"><?php esc_html_e('Transport Quantity', 'ecab-taxi-booking-manager'); ?> :</h6>
+							<span class="fas fa-<?php echo $is_seat_plan ? 'couch' : 'car'; ?>"></span>
+							<h6 class="_mR_xs"><?php echo $is_seat_plan ? esc_html__('Seat Quantity', 'ecab-taxi-booking-manager') : esc_html__('Transport Quantity', 'ecab-taxi-booking-manager'); ?> :</h6>
 							<span><?php echo esc_html($transport_quantity); ?></span>
 						</li>
+						<?php 
+						// Show selected seat numbers for visual seat plan
+						if ($is_seat_plan && isset($cart_item['mptbm_seat_display_names']) && !empty($cart_item['mptbm_seat_display_names'])) { 
+						?>
+						<li>
+							<span class="fas fa-couch"></span>
+							<h6 class="_mR_xs"><?php esc_html_e('Selected Seats', 'ecab-taxi-booking-manager'); ?> :</h6>
+							<span><?php echo esc_html($cart_item['mptbm_seat_display_names']); ?></span>
+						</li>
+						<?php } ?>
 						<?php do_action('mptbm_cart_item_display', $cart_item, $post_id); ?>
 					</ul>
 				</div>
@@ -786,12 +857,13 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				'post_type' => $cpt_name
 			);
 
-			$post_id = wp_insert_post($new_post);
-			if (sizeof($meta_data) > 0) {
-				foreach ($meta_data as $key => $value) {
-					update_post_meta($post_id, $key, $value);
-				}
+					$post_id = wp_insert_post($new_post);
+		
+		if (sizeof($meta_data) > 0) {
+			foreach ($meta_data as $key => $value) {
+				update_post_meta($post_id, $key, $value);
 			}
+		}
 			if ($cpt_name == 'mptbm_booking') {
 				$mptbm_pin = $meta_data['mptbm_user_id'] . $meta_data['mptbm_order_id'] . $meta_data['mptbm_id'] . $post_id;
 				update_post_meta($post_id, 'mptbm_pin', $mptbm_pin);
@@ -800,10 +872,47 @@ if (!class_exists('MPTBM_Woocommerce')) {
 		/****************************/
 		public function mptbm_add_to_cart()
 		{
-			$quantity = isset($_POST['transport_quantity']) ? sanitize_text_field($_POST['transport_quantity']) : 1;
-			$link_id = absint($_POST['link_id']);
-			$product_id = apply_filters('woocommerce_add_to_cart_product_id', $link_id);
-			$passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity);
+					$quantity = isset($_POST['transport_quantity']) ? sanitize_text_field($_POST['transport_quantity']) : 1;
+		$link_id = absint($_POST['link_id']);
+		$product_id = apply_filters('woocommerce_add_to_cart_product_id', $link_id);
+			
+					// Validate seat plan data if present
+		if (isset($_POST['vehicle_seat_numbers']) && !empty($_POST['vehicle_seat_numbers'])) {
+			$seat_numbers = $_POST['vehicle_seat_numbers'];
+			$seat_display_names = isset($_POST['vehicle_seat_display_names']) ? $_POST['vehicle_seat_display_names'] : array();
+				
+				// Check if selected seats are still available
+				foreach ($seat_numbers as $post_id => $seats) {
+					if (!empty($seats) && $post_id == $link_id) {
+										$seat_array = explode(',', $seats);
+				$start_date = isset($_POST['mptbm_date']) ? sanitize_text_field($_POST['mptbm_date']) : '';
+				$start_time = isset($_POST['start_time']) ? sanitize_text_field($_POST['start_time']) : '';
+				
+				if ($start_date && $start_time) {
+					// Check if any selected seats are already booked
+					$booked_seats = $this->get_booked_seats($post_id, $start_date, $start_time);
+					$conflicting_seats = array_intersect($seat_array, $booked_seats);
+							
+							if (!empty($conflicting_seats)) {
+								wc_add_notice(__('Some selected seats are no longer available. Please refresh and select different seats.', 'ecab-taxi-booking-manager'), 'error');
+								wp_send_json_error(['error' => 'seats_no_longer_available']);
+								return;
+							}
+						}
+					}
+							}
+		}
+			
+			// Check if inventory management is enabled for this transport
+			$linked_id = MP_Global_Function::get_post_info($product_id, 'link_mptbm_id', $product_id);
+			$post_id = is_string(get_post_status($linked_id)) ? $linked_id : $product_id;
+			$enable_inventory = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_inventory', 'no');
+			$is_inventory_enabled = ($enable_inventory == 'yes');
+			
+			// Use correct quantity based on booking type
+			$wc_quantity = $is_inventory_enabled ? $quantity : 1;
+			
+			$passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $wc_quantity);
 			$product_status = get_post_status($product_id);
 
 			// Prevent multiple taxi bookings in the cart
@@ -820,7 +929,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			}
 
 			ob_start();
-			if ($passed_validation && WC()->cart->add_to_cart($product_id, $quantity) && 'publish' === $product_status) {
+			if ($passed_validation && WC()->cart->add_to_cart($product_id, $wc_quantity) && 'publish' === $product_status) {
 				$checkout_system = MP_Global_Function::get_settings('mptbm_general_settings', 'single_page_checkout', 'yes');
 				if ($checkout_system == 'yes') {
 					echo wc_get_checkout_url();
@@ -838,15 +947,23 @@ if (!class_exists('MPTBM_Woocommerce')) {
 		}
 		/**
 		 * Override order-item quantity HTML with transport quantity meta.
+		 * This function shows correct quantity for inventory management bookings.
 		 *
 		 * @param string       $quantity_html Original quantity HTML.
 		 * @param WC_Order_Item $item Order item instance.
 		 * @return string Modified quantity HTML.
 		 */
 		public function filter_order_item_quantity($quantity_html, $item) {
-			$transport_quantity = $item->get_meta('mptbm_transport_quantity', true);
-			if ($transport_quantity && absint($transport_quantity) > 0) {
-				return ' <strong class="product-quantity">&times;&nbsp;' . absint($transport_quantity) . '</strong>';
+			// Only override for inventory management bookings
+			$post_id = $item->get_meta('_mptbm_id', true);
+			if ($post_id) {
+				$enable_inventory = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_inventory', 'no');
+				if ($enable_inventory == 'yes') {
+					$transport_quantity = $item->get_meta('_mptbm_transport_quantity', true);
+					if ($transport_quantity && absint($transport_quantity) > 0) {
+						return ' <strong class="product-quantity">&times;&nbsp;' . absint($transport_quantity) . '</strong>';
+					}
+				}
 			}
 			return $quantity_html;
 		}
@@ -1110,6 +1227,63 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				wp_send_json_error(array('message' => $upload['error']));
 			}
 			wp_send_json_success(array('url' => $upload['url'], 'name' => basename($upload['file'])));
+		}
+		
+		/**
+		 * Get booked seats for a specific transport, date, and time
+		 * Used for preventing double booking
+		 */
+			private function get_booked_seats($post_id, $start_date, $start_time) {
+		$booked_seats = array();
+		
+		// Format the time properly for comparison
+		$hours = floor($start_time);
+		$minutes = ($start_time - $hours) * 60;
+		$formatted_time = sprintf('%02d:%02d', $hours, $minutes);
+		$booking_datetime = $start_date . ' ' . $formatted_time;
+		
+		// Get seat plan buffer time
+		$buffer_time = MP_Global_Function::get_post_info($post_id, 'mptbm_seat_plan_buffer_time', 30);
+		
+		// Calculate buffer range
+		$booking_timestamp = strtotime($booking_datetime);
+		$buffer_start = $booking_timestamp - ($buffer_time * 60);
+		$buffer_end = $booking_timestamp + ($buffer_time * 60);
+			
+			// Query existing bookings within buffer time
+			$booking_query = new WP_Query([
+				'post_type' => 'mptbm_booking',
+				'posts_per_page' => -1,
+				'meta_query' => [
+					[
+						'key' => 'mptbm_id',
+						'value' => $post_id,
+						'compare' => '='
+					]
+				]
+			]);
+					
+		if ($booking_query->have_posts()) {
+			while ($booking_query->have_posts()) {
+				$booking_query->the_post();
+				$booking_id = get_the_ID();
+				$existing_datetime = get_post_meta($booking_id, 'mptbm_date', true);
+				$existing_timestamp = strtotime($existing_datetime);
+				
+				// Check if this booking falls within buffer range
+				if ($existing_timestamp >= $buffer_start && $existing_timestamp <= $buffer_end) {
+					$existing_seat_numbers = get_post_meta($booking_id, 'mptbm_seat_numbers', true);
+					
+					if ($existing_seat_numbers) {
+						$seat_array = explode(',', $existing_seat_numbers);
+						$booked_seats = array_merge($booked_seats, $seat_array);
+					}
+				}
+			}
+		}
+		wp_reset_postdata();
+			
+			return $booked_seats;
 		}
 	}
 	new MPTBM_Woocommerce();

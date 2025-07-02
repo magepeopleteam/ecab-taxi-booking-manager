@@ -1,15 +1,13 @@
 jQuery(document).ready(function($){
 	$('form.checkout').on('change', 'input[type="file"][data-mptbm-file-upload]', function(e){
 		var $input = $(this);
-		var file = this.files[0];
-		console.log('MPTBM JS DEBUG: File selected for upload:', file);
+		        var file = this.files[0];
 		if (!file) return;
 		var formData = new FormData();
 		formData.append('action', 'mptbm_file_upload');
 		formData.append('nonce', mptbmFileUpload.nonce);
 		formData.append('file', file);
 		$input.prop('disabled', true);
-		console.log('MPTBM JS DEBUG: Starting AJAX upload...');
 		$.ajax({
 			url: mptbmFileUpload.ajax_url,
 			type: 'POST',
@@ -25,7 +23,6 @@ jQuery(document).ready(function($){
 						hidden = $('<input type="hidden" name="'+$input.attr('name')+'_url" />').insertAfter($input);
 					}
 					hidden.val(resp.data.url);
-					console.log('MPTBM JS DEBUG: Hidden field set:', hidden.attr('name'), hidden.val());
 					// Show preview/link
 					var preview = $input.siblings('.mptbm-file-preview');
 					if(preview.length === 0){
@@ -50,7 +47,6 @@ jQuery(document).ready(function($){
 			var $input = $(this);
 			var hidden = $input.siblings('input[type="hidden"][name="'+$input.attr('name')+'_url"]');
 			if($input.val() && (!hidden.length || !hidden.val())){
-				console.log('MPTBM JS DEBUG: Hidden field missing or empty for', $input.attr('name'));
 				missing = true;
 			}
 		});

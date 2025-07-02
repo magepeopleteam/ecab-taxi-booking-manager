@@ -88,13 +88,8 @@ if (!class_exists('MPTBM_CPT')) {
 				$prev_value = $service_status_default;
 			}
 
-			// Debug previous and new values
-			error_log("Previous value: " . $prev_value);
-			error_log("New value: " . $meta_value);
-
 			// Check if meta is being updated
 			if (update_post_meta($post_id, $meta_key, $meta_value)) {
-				error_log("Meta updated successfully");
 
 				// Continue with the email logic
 				$from_email = get_option('woocommerce_email_from_address');
@@ -120,7 +115,6 @@ if (!class_exists('MPTBM_CPT')) {
 				wp_mail($driver_admin_email, $subject, $content, $headers);
 				wp_send_json_success(__('success', 'mptbm_plugin_pro'));
 			} else {
-				error_log("Meta update failed or value did not change");
 				wp_send_json_error(__('Meta update failed', 'mptbm_plugin_pro'));
 			}
 
