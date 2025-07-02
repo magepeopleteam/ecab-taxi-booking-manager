@@ -1184,3 +1184,31 @@ function gm_authFailure() {
 function mptbm_is_ios() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
+
+// Enable search in Drop-Off and Pickup Location dropdowns using selectWoo if available
+jQuery(document).ajaxComplete(function() {
+    if (typeof jQuery.fn.selectWoo !== 'undefined') {
+        // Drop-Off Location
+        jQuery('.mptbm_map_end_place').each(function() {
+            if (!jQuery(this).hasClass('select2-hidden-accessible')) {
+                jQuery(this).selectWoo({
+                    width: '100%',
+                    placeholder: jQuery(this).find('option[selected]').text() || 'Select Destination Location',
+                    allowClear: true
+                });
+            }
+        });
+        // Pickup Location (manual mode)
+        jQuery('.mptbm_manual_start_place').each(function() {
+            if (!jQuery(this).hasClass('select2-hidden-accessible')) {
+                jQuery(this).selectWoo({
+                    width: '100%',
+                    placeholder: jQuery(this).find('option[selected]').text() || 'Select Pick-Up Location',
+                    allowClear: true
+                });
+            }
+        });
+    }
+});
+
+

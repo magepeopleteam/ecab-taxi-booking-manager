@@ -506,9 +506,48 @@ if ($date && $start_time !== "") {
 }
 
 $start_place = isset($_POST["start_place"]) ? sanitize_text_field($_POST["start_place"]) : "";
-$start_place_coordinates = $_POST["start_place_coordinates"];
-$end_place_coordinates = $_POST["end_place_coordinates"];
+$start_place_coordinates = isset($_POST["start_place_coordinates"]) ? $_POST["start_place_coordinates"] : "";
+$end_place_coordinates = isset($_POST["end_place_coordinates"]) ? $_POST["end_place_coordinates"] : "";
 $end_place = isset($_POST["end_place"]) ? sanitize_text_field($_POST["end_place"]) : "";
+
+
+
+// Parse and store coordinates for weather and traffic pricing
+if (!empty($start_place_coordinates)) {
+    // Handle both array and JSON string formats
+    if (is_array($start_place_coordinates)) {
+        $start_coords = $start_place_coordinates;
+    } else {
+        $start_coords = json_decode($start_place_coordinates, true);
+    }
+    
+    if (is_array($start_coords) && ((isset($start_coords['lat']) && isset($start_coords['lng'])) || (isset($start_coords['latitude']) && isset($start_coords['longitude'])))) {
+        // Handle both lat/lng and latitude/longitude formats
+        $lat = isset($start_coords['lat']) ? $start_coords['lat'] : $start_coords['latitude'];
+        $lng = isset($start_coords['lng']) ? $start_coords['lng'] : $start_coords['longitude'];
+        
+        set_transient('pickup_lat_transient', floatval($lat), HOUR_IN_SECONDS);
+        set_transient('pickup_lng_transient', floatval($lng), HOUR_IN_SECONDS);
+    }
+}
+
+if (!empty($end_place_coordinates)) {
+    // Handle both array and JSON string formats
+    if (is_array($end_place_coordinates)) {
+        $end_coords = $end_place_coordinates;
+    } else {
+        $end_coords = json_decode($end_place_coordinates, true);
+    }
+    
+    if (is_array($end_coords) && ((isset($end_coords['lat']) && isset($end_coords['lng'])) || (isset($end_coords['latitude']) && isset($end_coords['longitude'])))) {
+        // Handle both lat/lng and latitude/longitude formats
+        $lat = isset($end_coords['lat']) ? $end_coords['lat'] : $end_coords['latitude'];
+        $lng = isset($end_coords['lng']) ? $end_coords['lng'] : $end_coords['longitude'];
+        
+        set_transient('drop_lat_transient', floatval($lat), HOUR_IN_SECONDS);
+        set_transient('drop_lng_transient', floatval($lng), HOUR_IN_SECONDS);
+    }
+}
 $two_way = isset($_POST["two_way"]) ? absint($_POST["two_way"]) : 1;
 $waiting_time = isset($_POST["waiting_time"]) ? sanitize_text_field($_POST["waiting_time"]) : 0;
 $fixed_time = isset($_POST["fixed_time"]) ? sanitize_text_field($_POST["fixed_time"]) : "";
