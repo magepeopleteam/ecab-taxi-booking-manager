@@ -1167,30 +1167,93 @@ function mptbm_is_ios() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
-// Enable search in Drop-Off and Pickup Location dropdowns using selectWoo if available
+// Enable search functionality for dropdowns while preserving original design
+function addCustomSearchToDropdowns() {
+    // Add search to Pickup Location dropdown
+    jQuery('.mptbm_manual_start_place').each(function() {
+        if (!jQuery(this).prev('.mptbm-dropdown-search').length) {
+            addSearchToDropdown(jQuery(this), 'Search Pickup Location...');
+        }
+    });
+    
+    // Add search to Drop-Off Location dropdown  
+    jQuery('.mptbm_map_end_place').each(function() {
+        if (!jQuery(this).prev('.mptbm-dropdown-search').length) {
+            addSearchToDropdown(jQuery(this), 'Search Destination Location...');
+        }
+    });
+}
+
+function addSearchToDropdown($select, placeholder) {
+    // Store original options
+    var originalOptions = $select.find('option').clone();
+    
+    // Create search input
+    var $searchInput = jQuery('<input type="text" class="mptbm-dropdown-search formControl" placeholder="' + placeholder + '" style="margin-bottom: 5px; border: 1px solid #ddd; border-radius: 5px; padding: 10px 15px; font-size: 14px; width: 100%; box-sizing: border-box;">');
+    
+    // Insert search input before select
+    $select.before($searchInput);
+    
+    // Search functionality
+    $searchInput.on('input', function() {
+        var searchTerm = jQuery(this).val().toLowerCase();
+        
+        // Clear current options except first one (placeholder)
+        $select.find('option:not(:first)').remove();
+        
+        // Filter and add matching options
+        originalOptions.each(function() {
+            var $option = jQuery(this);
+            var optionText = $option.text().toLowerCase();
+            
+            if ($option.val() === '' || optionText.includes(searchTerm)) {
+                $select.append($option.clone());
+            }
+        });
+    });
+    
+    // Reset search when dropdown changes
+    $select.on('change', function() {
+        if (jQuery(this).val() !== '') {
+            $searchInput.val('');
+        }
+    });
+    
+    // Hide search input initially, show when dropdown is focused
+    $searchInput.hide();
+    
+    $select.on('focus click', function() {
+        $searchInput.show().focus();
+    });
+    
+    // Hide search input when clicking outside
+    jQuery(document).on('click', function(e) {
+        if (!jQuery(e.target).closest($select.parent()).length) {
+            $searchInput.hide();
+        }
+    });
+}
+
+// Initialize custom search on document ready
+jQuery(document).ready(function() {
+    addCustomSearchToDropdowns();
+});
+
+// Initialize after AJAX content loads
 jQuery(document).ajaxComplete(function() {
-    if (typeof jQuery.fn.selectWoo !== 'undefined') {
-        // Drop-Off Location
-        jQuery('.mptbm_map_end_place').each(function() {
-            if (!jQuery(this).hasClass('select2-hidden-accessible')) {
-                jQuery(this).selectWoo({
-                    width: '100%',
-                    placeholder: jQuery(this).find('option[selected]').text() || 'Select Destination Location',
-                    allowClear: true
-                });
-            }
-        });
-        // Pickup Location (manual mode)
-        jQuery('.mptbm_manual_start_place').each(function() {
-            if (!jQuery(this).hasClass('select2-hidden-accessible')) {
-                jQuery(this).selectWoo({
-                    width: '100%',
-                    placeholder: jQuery(this).find('option[selected]').text() || 'Select Pick-Up Location',
-                    allowClear: true
-                });
-            }
-        });
+    setTimeout(addCustomSearchToDropdowns, 100);
+});
+
+// Initialize after tab content loads (manual booking form)
+jQuery(document).on('DOMNodeInserted', function(e) {
+    if (jQuery(e.target).find('.mptbm_manual_start_place, .mptbm_map_end_place').length) {
+        setTimeout(addCustomSearchToDropdowns, 200);
     }
+});
+
+// Remove the old selectWoo CSS since we're not using it anymore
+jQuery(document).ready(function() {
+    jQuery('#mptbm-selectwoo-fix').remove();
 });
 
 
