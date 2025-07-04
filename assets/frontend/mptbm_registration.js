@@ -1053,23 +1053,13 @@ function mptbm_price_calculation(parent) {
         if (count === 1) {
             // If only one element, apply radius to all sides
             $tabs.eq(0).css('border-radius', 'var(--dbrl)');
-        } else if (count === 2) {
-            // If two elements, apply left radius to first and right radius to second
-            $tabs.eq(0).css({
-                'border-top-left-radius': 'var(--dbrl)',
-                'border-bottom-left-radius': 'var(--dbrl)'
-            });
-            $tabs.eq(1).css({
-                'border-top-right-radius': 'var(--dbrl)',
-                'border-bottom-right-radius': 'var(--dbrl)'
-            });
-        } else if (count >= 3) {
+        } else if (count >= 2) {
             // If three or more, apply left radius to first and right radius to third
             $tabs.eq(0).css({
                 'border-top-left-radius': 'var(--dbrl)',
                 'border-bottom-left-radius': 'var(--dbrl)'
             });
-            $tabs.eq(2).css({
+            $tabs.last().css({
                 'border-top-right-radius': 'var(--dbrl)',
                 'border-bottom-right-radius': 'var(--dbrl)'
             });
