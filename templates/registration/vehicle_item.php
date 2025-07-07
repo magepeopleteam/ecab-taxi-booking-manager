@@ -185,21 +185,21 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                                         $post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time
                                     );
                                     $savings = $regular_price - $price;
-                                    $savings_percentage = ($savings / $regular_price) * 100;
-                                    if ($savings > 0) {
+                                    $savings_percentage = ($regular_price > 0) ? (($savings / $regular_price) * 100) : 0;
+                               
                                     ?>
                                     <div class="mptbm-tier-pricing-savings-ticket">
                                         <span class="mptbm-tier-pricing-savings-ticket-amount">
-                                            <?php echo wp_kses_post(wc_price($savings)); ?>
+                                            <?php echo wp_kses_post(wc_price(abs($savings))); ?>
                                         </span>
                                         <span class="mptbm-tier-pricing-savings-ticket-label">
-                                            Save
+                                            <?php echo ($savings > 0) ? 'Save' : 'Extra'; ?>
                                         </span>
                                         <span class="mptbm-tier-pricing-savings-ticket-percent">
-                                            (<?php echo round($savings_percentage, 0); ?>%)
+                                            (<?php echo round(abs($savings_percentage), 2); ?>%)
                                         </span>
                                     </div>
-                                    <?php }
+                                    <?php 
                                 }
                             }
                             ?>
