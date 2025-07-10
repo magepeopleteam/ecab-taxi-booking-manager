@@ -836,43 +836,33 @@ if (!class_exists('MPTBM_Woocommerce')) {
 		}
 		/****************************/
 		public function mptbm_add_to_cart()
-		{
-			$quantity = isset($_POST['transport_quantity']) ? sanitize_text_field($_POST['transport_quantity']) : 1;
-			$link_id = absint($_POST['link_id']);
-			$product_id = apply_filters('woocommerce_add_to_cart_product_id', $link_id);
-			$passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity);
-			$product_status = get_post_status($product_id);
+			{
+				$quantity = isset($_POST['transport_quantity']) ? sanitize_text_field($_POST['transport_quantity']) : 1;
+				$link_id = absint($_POST['link_id']);
+				$product_id = apply_filters('woocommerce_add_to_cart_product_id', $link_id);
+				$passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity);
+				$product_status = get_post_status($product_id);
 
-			// Prevent multiple taxi bookings in the cart
-			foreach (WC()->cart->get_cart() as $cart_item) {
-				$post_id = isset($cart_item['mptbm_id']) ? $cart_item['mptbm_id'] : 0;
-				if ($post_id && get_post_type($post_id) === 'mptbm_booking') {
-					wc_add_notice(__('You can only add one taxi booking per order.', 'ecab-taxi-booking-manager'), 'error');
-					// If AJAX, return error and exit
-					if (defined('DOING_AJAX') && DOING_AJAX) {
-						wp_send_json_error(['error' => 'taxi_already_in_cart']);
-					}
-					return;
-				}
-			}
+				// Remove all previous items from cart
+				WC()->cart->empty_cart();
 
-			ob_start();
-			if ($passed_validation && WC()->cart->add_to_cart($product_id, $quantity) && 'publish' === $product_status) {
-				$checkout_system = MP_Global_Function::get_settings('mptbm_general_settings', 'single_page_checkout', 'yes');
-				if ($checkout_system == 'yes') {
-					echo wc_get_checkout_url();
-				} else {
+				ob_start();
+				if ($passed_validation && WC()->cart->add_to_cart($product_id, $quantity) && 'publish' === $product_status) {
+					$checkout_system = MP_Global_Function::get_settings('mptbm_general_settings', 'single_page_checkout', 'yes');
+					if ($checkout_system == 'yes') {
+						echo wc_get_checkout_url();
+					} else {
 			?>
-					<div class="dLayout woocommerce-page">
-						<?php echo do_shortcode('[woocommerce_checkout]'); ?>
-						<?php //do_action('woocommerce_ajax_checkout'); ?>
-					</div>
-<?php
+						<div class="dLayout woocommerce-page">
+							<?php echo do_shortcode('[woocommerce_checkout]'); ?>
+						</div>
+			<?php
+					}
 				}
+				echo ob_get_clean();
+				die();
 			}
-			echo ob_get_clean();
-			die();
-		}
+
 		/**
 		 * Override order-item quantity HTML with transport quantity meta.
 		 *
