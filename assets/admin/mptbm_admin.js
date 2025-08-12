@@ -1,5 +1,7 @@
 (function ($) {
 	"use strict";
+	
+	// Handle extra services setting
 	$(document).on('change', '.mptbm_extra_services_setting [name="mptbm_extra_services_id"]', function () {
 		let ex_id = $(this).val();
 		let parent = $(this).closest('.mptbm_extra_services_setting');
@@ -18,6 +20,32 @@
 		} else {
 			target.html('');
 		}
+	});
+	
+	// Fix for Select2 tooltip conflicts in admin settings
+	$(document).ready(function() {
+		// Initialize Select2 with proper configuration
+		$('.mp_select2').select2({
+			closeOnSelect: false,
+			allowClear: true,
+			width: '100%'
+		});
+		
+		// Prevent tooltips on Select2 elements
+		$(document).on('mouseenter', '.select2-container *, .select2-selection *, .select2-dropdown *', function(e) {
+			e.stopPropagation();
+			return false;
+		});
+		
+		// Remove title attributes from Select2 elements
+		$(document).on('select2:open', function() {
+			$('.select2-container *').removeAttr('title');
+		});
+		
+		// Handle Select2 choice removal
+		$(document).on('click', '.select2-selection__choice__remove', function(e) {
+			e.stopPropagation();
+		});
 	});
 	 
 }(jQuery));

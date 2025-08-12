@@ -80,6 +80,16 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					'title' => esc_html__('Translations', 'ecab-taxi-booking-manager')
 				)
 			);
+			
+			// Add QR Code Settings section only if QR Addon class exists
+			if (class_exists('Ecab_Taxi_Booking_QR_Addon')) {
+				$sections[] = array(
+					'id' => 'mptbm_qr_settings',
+					'icon' => 'fas fa-qrcode',
+					'title' => esc_html__('QR Code Settings', 'ecab-taxi-booking-manager')
+				);
+			}
+			
 			return array_merge($default_sec, $sections);
 		}
 		public function settings_sec_fields($default_fields): array
@@ -414,8 +424,33 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					array('name' => 'number_of_bags_label', 'label' => esc_html__('Number Of Bags Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Number Of Bags'),
 					array('name' => 'number_of_passengers_filter_label', 'label' => esc_html__('Number Of Passengers Filter Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Number Of Passengers'),
 				)),
+				// Conditionally add QR settings fields
+				// Only add if Ecab_Taxi_Booking_QR_Addon exists
 			);
-
+			if (class_exists('Ecab_Taxi_Booking_QR_Addon')) {
+				$settings_fields['mptbm_qr_settings'] = apply_filters('filter_mptbm_qr_settings', array(
+					array(
+						'name' => 'mptbm_enable_qr_code',
+						'label' => esc_html__('Enable QR Code', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('If you want to enable QR Code, please select Yes. Default is No', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'no',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no' => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
+						'name' => 'mptbm_allowed_user_roles',
+						'label' => esc_html__('Allowed User Role', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Select the user role that can access the QR Code. Default is Administrator', 'ecab-taxi-booking-manager'),
+						'type' => 'mp_select2_role',
+						'default' => ['administrator'],
+						'options' => []
+					)
+				));
+			}
+			
 			return array_merge($default_fields, $settings_fields);
 		}
 		public function global_taxi($default_sec)
@@ -451,6 +486,7 @@ if (!class_exists('MPTBM_Settings_Global')) {
 			);
 			return array_merge($default_sec, $sections);
 		}
+
 	}
 	new  MPTBM_Settings_Global();
 }

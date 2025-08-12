@@ -94,13 +94,22 @@ $current_minute = wp_date('i', $current_time);
 // Convert to total minutes since midnight local time
 $current_minutes = intval($current_hour) * 60 + intval($current_minute);
 
+// Calculate buffer end time in minutes since midnight
 $buffer_end_minutes = $current_minutes + $buffer_time;
 
+// Ensure buffer_end_minutes is not negative
 $buffer_end_minutes = max($buffer_end_minutes, 0);
-while ($buffer_end_minutes > 1440) {
-	array_shift($all_dates);
-	$buffer_end_minutes -= 1440;
+
+// If buffer extends beyond current day, remove today from available dates
+if ($buffer_end_minutes >= 1440) {
+	// Remove today from available dates
+	if (!empty($all_dates)) {
+		array_shift($all_dates);
+	}
+	// Adjust buffer_end_minutes for next day
+	$buffer_end_minutes = $buffer_end_minutes - 1440;
 }
+
 if (sizeof($all_dates) > 0) {
 	$taxi_return = MPTBM_Function::get_general_settings('taxi_return', 'enable');
 	$interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time', '30');

@@ -75,17 +75,83 @@
 				wp_die(); // End AJAX call
 			}
 			public function get_mptbm_map_search_result() {
+				// Buffer time validation
+				$buffer_time = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'enable_buffer_time');
+				
+				if ($buffer_time > 0) {
+					$start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : '';
+					$start_time = isset($_POST['start_time']) ? sanitize_text_field($_POST['start_time']) : '';
 					
+					if ($start_date && $start_time) {
+						// Convert start time to proper format
+						$time_parts = explode('.', $start_time);
+						$hours = isset($time_parts[0]) ? intval($time_parts[0]) : 0;
+						$minutes = isset($time_parts[1]) ? intval($time_parts[1]) : 0;
+						
+						// Create datetime string
+						$booking_datetime = $start_date . ' ' . sprintf('%02d:%02d', $hours, $minutes);
+						$booking_timestamp = strtotime($booking_datetime);
+						$current_timestamp = time();
+						
+						// Calculate time difference in minutes
+						$time_difference = ($booking_timestamp - $current_timestamp) / 60;
+						
+						if ($time_difference < $buffer_time) {
+							// Return error response
+							wp_send_json_error(array(
+								'message' => sprintf(
+									esc_html__('Booking must be at least %d minutes in advance. Please select a later time.', 'ecab-taxi-booking-manager'),
+									$buffer_time
+								)
+							));
+							die();
+						}
+					}
+				}
 				
-					$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';
-					$duration = isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '';
-					// if ($distance && $duration) {
-						include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
-					// }
-				
-				die(); // Ensure further execution stops after outputting the JavaScript
+				$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';
+				$duration = isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '';
+				// if ($distance && $duration) {
+					include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
+				// }
+			
+			die(); // Ensure further execution stops after outputting the JavaScript
 			}
 			public function get_mptbm_map_search_result_redirect(){
+				// Buffer time validation
+				$buffer_time = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'enable_buffer_time');
+				
+				if ($buffer_time > 0) {
+					$start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : '';
+					$start_time = isset($_POST['start_time']) ? sanitize_text_field($_POST['start_time']) : '';
+					
+					if ($start_date && $start_time) {
+						// Convert start time to proper format
+						$time_parts = explode('.', $start_time);
+						$hours = isset($time_parts[0]) ? intval($time_parts[0]) : 0;
+						$minutes = isset($time_parts[1]) ? intval($time_parts[1]) : 0;
+						
+						// Create datetime string
+						$booking_datetime = $start_date . ' ' . sprintf('%02d:%02d', $hours, $minutes);
+						$booking_timestamp = strtotime($booking_datetime);
+						$current_timestamp = time();
+						
+						// Calculate time difference in minutes
+						$time_difference = ($booking_timestamp - $current_timestamp) / 60;
+						
+						if ($time_difference < $buffer_time) {
+							// Return error response
+							wp_send_json_error(array(
+								'message' => sprintf(
+									esc_html__('Booking must be at least %d minutes in advance. Please select a later time.', 'ecab-taxi-booking-manager'),
+									$buffer_time
+								)
+							));
+							die();
+						}
+					}
+				}
+				
 				ob_start(); // Start output buffering
 					
 					$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';

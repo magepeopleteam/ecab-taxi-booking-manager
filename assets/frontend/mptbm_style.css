@@ -76,6 +76,37 @@
 .mptbm-hidden-field {
     display: none !important;
 }
+
+/* Buffer time notice styling */
+.mptbm_buffer_notice {
+    background-color: #f8f9fa;
+    border-left: 3px solid #007cba;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #495057;
+    line-height: 1.4;
+}
+
+.mptbm_buffer_notice i {
+    color: #007cba;
+    margin-right: 5px;
+}
+
+.mptbm_buffer_notice:hover {
+    background-color: #e9ecef;
+    transition: background-color 0.2s ease;
+}
+
+/* Mobile responsive buffer notice */
+@media only screen and (max-width: 768px) {
+    .mptbm_buffer_notice {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+}
+
 .woocommerce-page form .form-row .select2-container .select2-selection--single .select2-selection__rendered
  {
      padding: 8px !important;
@@ -94,3 +125,13 @@
     padding: 0;
 }
 
+/* Override for small screens */
+@media only screen and (max-width: 450px) {
+    .mpStyle .justifyBetween {
+        display: block !important;
+        /* justify-content: space-between; */ /* Not needed for block */
+    }
+     ._dLayout.mptbm_distance_time {
+        margin-top: 20px !important;
+    }
+}

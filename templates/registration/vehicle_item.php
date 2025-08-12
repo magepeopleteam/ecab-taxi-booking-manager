@@ -179,29 +179,34 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                             <?php 
                             // Calculate and display tier pricing savings if applicable
                             if (class_exists('MPTBM_Distance_Tier_Pricing')) {
-                                $tier_pricing_enabled = get_post_meta($post_id, 'mptbm_distance_tier_enabled', true);
-                                if ($tier_pricing_enabled === 'on') {
-                                    $regular_price = MPTBM_Distance_Tier_Pricing::calculate_regular_price(
-                                        $post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time
-                                    );
-                                    $savings = $regular_price - $price;
-                                    $savings_percentage = ($savings / $regular_price) * 100;
-                                    if ($savings > 0) {
-                                    ?>
-                                    <div class="mptbm-tier-pricing-savings-ticket">
-                                        <span class="mptbm-tier-pricing-savings-ticket-amount">
-                                            <?php echo wp_kses_post(wc_price($savings)); ?>
-                                        </span>
-                                        <span class="mptbm-tier-pricing-savings-ticket-label">
-                                            Save
-                                        </span>
-                                        <span class="mptbm-tier-pricing-savings-ticket-percent">
-                                            (<?php echo round($savings_percentage, 0); ?>%)
-                                        </span>
-                                    </div>
-                                    <?php }
+                                    $tier_pricing_enabled = get_post_meta($post_id, 'mptbm_distance_tier_enabled', true);
+                                    if ($tier_pricing_enabled === 'on') {
+                                        $regular_price = MPTBM_Distance_Tier_Pricing::calculate_regular_price(
+                                            $post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time
+                                        );
+
+                                        $savings = $regular_price - $price;
+
+                                        // Avoid division by zero
+                                        $savings_percentage = $regular_price > 0 ? ($savings / $regular_price) * 100 : 0;
+
+                                        if ($savings > 0) {
+                                            ?>
+                                            <div class="mptbm-tier-pricing-savings-ticket">
+                                                <span class="mptbm-tier-pricing-savings-ticket-amount">
+                                                    <?php echo wp_kses_post(wc_price($savings)); ?>
+                                                </span>
+                                                <span class="mptbm-tier-pricing-savings-ticket-label">
+                                                    Save
+                                                </span>
+                                                <span class="mptbm-tier-pricing-savings-ticket-percent">
+                                                    (<?php echo round($savings_percentage, 0); ?>%)
+                                                </span>
+                                            </div>
+                                            <?php
+                                        }
+                                    }
                                 }
-                            }
                             ?>
                             </div>
                             <h4 class="textCenter" style="clear:right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; word-break: keep-all; line-height: 1.2;"> <?php echo wp_kses_post($price_display); ?></h4>

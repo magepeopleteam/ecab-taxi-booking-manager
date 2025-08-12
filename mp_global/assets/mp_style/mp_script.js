@@ -128,7 +128,27 @@ function mp_alert($this, attr = 'alert') {
 	"use strict";
 	$(document).ready(function () {
 		mp_load_date_picker();
-		$('.mp_select2').select2({});
+		$('.mp_select2').select2({
+			// Add configuration to prevent tooltip conflicts
+			closeOnSelect: false,
+			allowClear: true
+		});
+		
+		// Prevent tooltips on Select2 elements globally
+		$(document).on('mouseenter', '.select2-container *, .select2-selection *, .select2-dropdown *', function(e) {
+			e.stopPropagation();
+			return false;
+		});
+		
+		// Remove title attributes from Select2 elements to prevent tooltip conflicts
+		$(document).on('select2:open', function() {
+			$('.select2-container *').removeAttr('title');
+		});
+		
+		// Handle Select2 choice removal specifically
+		$(document).on('click', '.select2-selection__choice__remove', function(e) {
+			e.stopPropagation();
+		});
 	});
 }(jQuery));
 //====================================================================Load Bg Image=================//

@@ -61,29 +61,36 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 						}
 					}
 
-					
+					                    // Set form_style to 'inline' only for manual tab
+                    if (array_key_exists('manual', $available_tabs)) {
+                        // We'll handle this dynamically in JavaScript
+                        $manual_form_style = 'inline';
+                    }
 
 					
 
-					$first_tab = key($available_tabs);
-					$form_style = $form_style ?: 'horizontal';
-					$map = $map ?: 'yes';
+					
 
-					if ($first_tab == 'hourly') {
-						$price_based = 'fixed_hourly';
-					} else if ($first_tab == 'manual') {
-						$price_based = 'manual';
-						//$form_style = 'inline';
-					}
+					                    $first_tab = key($available_tabs);
+                    $original_form_style = $form_style ?: 'horizontal';
+                    $map = $map ?: 'yes';
+
+                    if ($first_tab == 'hourly') {
+                        $price_based = 'fixed_hourly';
+                    } else if ($first_tab == 'manual') {
+                        $price_based = 'manual';
+                    }
 					
 				?>
 					<div class="mptb-tab-container">
 					<ul class="mptb-tabs">
-						<?php foreach ($available_tabs as $key => $tab_name) { ?>
+						<?php foreach ($available_tabs as $key => $tab_name) { 
+							$tab_form_style = ($tab_name === 'flat-rate') ? 'inline' : $original_form_style;
+						?>
 							<li class="tab-link <?php echo ($key === $first_tab) ? 'current' : ''; ?>"
 								mptbm-data-tab="<?php echo $tab_name; ?>"
 								mptbm-data-map="<?php echo $map; ?>"
-								mptbm-data-form-style="<?php echo $form_style; ?>">
+								mptbm-data-form-style="<?php echo $tab_form_style; ?>">
 
 								<?php
 								$label = '';
@@ -92,6 +99,7 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 								} elseif ($tab_name === 'hourly') {
 									$label = mptbm_get_translation('hourly_tab_label', __('Hourly', 'ecab-taxi-booking-manager'));
 								} elseif ($tab_name === 'flat-rate') {
+									
 									$label = mptbm_get_translation('flat_rate_tab_label', __('Flat rate', 'ecab-taxi-booking-manager'));
 								}else {
 									$label = ucfirst(str_replace('-', ' ', $tab_name));
@@ -107,7 +115,10 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 						<?php foreach ($available_tabs as $key => $tab_name) { ?>
 							<div id="<?php echo $tab_name; ?>" class="mptb-tab-content <?php echo ($key === $first_tab) ? 'current' : ''; ?>">
 							
-								<?php if ($key === $first_tab && $first_tab != 'custom') { ?>
+								<?php if ($key === $first_tab && $first_tab != 'custom') { 
+									$current_form_style = ($tab_name === 'flat-rate') ? 'inline' : $original_form_style;
+									$form_style = $current_form_style;
+								?>
 										
 										<?php include MPTBM_Function::template_path('registration/get_details.php'); ?>
 									<?php } else { ?>
@@ -120,6 +131,24 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 						<div class="mptbm-hide-gif mptbm-gif">
 							<img src="<?php echo plugin_dir_url(dirname(__DIR__)) . 'assets/images/loader.gif'; ?>" class="mptb-tabs-loader" />
 						</div>
+						
+						<script>
+						jQuery(document).ready(function($) {
+							// Handle form style changes when tabs are clicked
+							$('.mptb-tab-link').on('click', function() {
+								var tabName = $(this).attr('mptbm-data-tab');
+								var currentFormStyle = $(this).attr('mptbm-data-form-style');
+								
+								if (tabName === 'flat-rate') {
+									// Set inline style for manual tab
+									$(this).attr('mptbm-data-form-style', 'inline');
+								} else {
+									// Reset to original form style for other tabs
+									$(this).attr('mptbm-data-form-style', '<?php echo $original_form_style; ?>');
+								}
+							});
+						});
+						</script>
 					</div>
 					
 				<?php } else { ?>

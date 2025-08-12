@@ -137,12 +137,23 @@
                 $value=is_array($value)?$value:[$value];
 				?>
 				<label>
-					<select name="<?php echo esc_attr($name); ?>" class="formControl mp_select2" multiple>
+					<select name="<?php echo esc_attr($name); ?>" class="formControl mp_select2_role" multiple>
 						<?php foreach ($wp_roles->roles as $key => $label) { ?>
 							<option value="<?php echo esc_attr($key); ?>" <?php echo in_array($key, $value) ? 'selected' : ''; ?>><?php echo esc_html($label['name']); ?></option>
 						<?php } ?>
 					</select>
 				</label>
+				<script>
+				jQuery(document).ready(function($) {
+					// Initialize Select2 for role selector
+					$('.mp_select2_role').select2({
+						closeOnSelect: false,
+						allowClear: true,
+						width: '100%',
+						placeholder: '<?php echo esc_js(__('Select user roles', 'ecab-taxi-booking-manager')); ?>'
+					});
+				});
+				</script>
 				<?php
 			}
 			function callback_url($args) {
