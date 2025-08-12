@@ -938,7 +938,8 @@
 			}
 			// Enqueue JS for file upload on checkout
 			public static function enqueue_file_upload_js() {
-				if (is_checkout()) {
+				// Check if WooCommerce is active and the is_checkout function exists
+				if (function_exists('is_checkout') && is_checkout()) {
 					wp_enqueue_script('mptbm-file-upload', plugins_url('assets/frontend/js/mptbm-file-upload.js', dirname(__FILE__)), array('jquery'), '1.0', true);
 					wp_localize_script('mptbm-file-upload', 'mptbmFileUpload', array(
 						'ajax_url' => admin_url('admin-ajax.php'),

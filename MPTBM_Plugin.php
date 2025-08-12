@@ -247,7 +247,8 @@ if (!class_exists('MPTBM_Plugin')) {
          * Enqueue frontend assets
          */
         public function enqueue_frontend_assets() {
-            if (is_checkout()) {
+            // Check if WooCommerce is active and the is_checkout function exists
+            if (function_exists('is_checkout') && is_checkout()) {
                 wp_enqueue_style(
                     'mptbm-file-upload',
                     MPTBM_PLUGIN_URL . '/assets/css/file-upload.css',
@@ -255,6 +256,36 @@ if (!class_exists('MPTBM_Plugin')) {
                     MPTBM_PLUGIN_VERSION
                 );
             }
+
+            // Dequeue conflicting datepicker CSS from other plugins (e.g., WP Travel Engine)
+            // on pages where our booking shortcode is present.
+            if (is_singular()) {
+                global $post;
+                if ($post && has_shortcode($post->post_content, 'mptbm_booking')) {
+                    // Run very late to ensure conflicting styles were enqueued first.
+                    add_action('wp_print_styles', array($this, 'dequeue_conflicting_styles'), 999);
+                }
+            }
+        }
+
+        /**
+         * Dequeue CSS that overrides our jQuery UI datepicker styling.
+         */
+        public function dequeue_conflicting_styles() {
+            // Handle used by WP Travel Engine for jQuery UI Datepicker theme.
+            wp_dequeue_style('datepicker-style');
+
+            // WTE bundles many generic styles (including .ui-datepicker) into this handle.
+            wp_dequeue_style('wp-travel-engine');
+
+            // Ensure our jQuery UI stylesheet prints after others for higher cascade priority.
+            if (wp_style_is('mp_jquery_ui', 'enqueued')) {
+                wp_dequeue_style('mp_jquery_ui');
+                wp_enqueue_style('mp_jquery_ui', MPTBM_PLUGIN_URL . '/mp_global/assets/jquery-ui.min.css', array(), '1.13.2');
+            }
+
+            // If any theme or plugin enqueues their own jQuery UI base with this handle,
+            // leave it as-is. Our plugin already enqueues its own scoped UI CSS as 'mp_jquery_ui'.
         }
     }
 

@@ -71,15 +71,15 @@ $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 
 					
 
-					                    $first_tab = key($available_tabs);
+					$first_tab = key($available_tabs);
                     $original_form_style = $form_style ?: 'horizontal';
-                    $map = $map ?: 'yes';
+					$map = $map ?: 'yes';
 
-                    if ($first_tab == 'hourly') {
-                        $price_based = 'fixed_hourly';
-                    } else if ($first_tab == 'manual') {
-                        $price_based = 'manual';
-                    }
+					if ($first_tab == 'hourly') {
+						$price_based = 'fixed_hourly';
+					} else if ($first_tab == 'manual') {
+						$price_based = 'manual';
+					}
 					
 				?>
 					<div class="mptb-tab-container">

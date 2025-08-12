@@ -1,7 +1,27 @@
 let mptbm_map;
 let mptbm_map_window;
+
+// Function to clean up existing map instance
+function mptbm_cleanup_map() {
+    if (mptbm_map) {
+        // Clear any existing map instances
+        google.maps.event.clearInstanceListeners(mptbm_map);
+        mptbm_map = null;
+    }
+    if (mptbm_map_window) {
+        mptbm_map_window.close();
+        mptbm_map_window = null;
+    }
+}
 function mptbm_set_cookie_distance_duration(start_place = "", end_place = "") {
-    mptbm_map = new google.maps.Map(document.getElementById("mptbm_map_area"), {
+    // Check if map container exists before initializing
+    const mapContainer = document.getElementById("mptbm_map_area");
+    if (!mapContainer) {
+        console.warn("Map container #mptbm_map_area not found. Map initialization skipped.");
+        return false;
+    }
+    
+    mptbm_map = new google.maps.Map(mapContainer, {
         mapTypeControl: false,
         center: mp_lat_lng,
         zoom: 15,
@@ -62,7 +82,15 @@ function mptbm_set_cookie_distance_duration(start_place = "", end_place = "") {
     } else if (start_place || end_place) {
         let place = start_place ? start_place : end_place;
         mptbm_map_window = new google.maps.InfoWindow();
-        map = new google.maps.Map(document.getElementById("mptbm_map_area"), {
+        
+        // Check if map container exists before initializing
+        const mapContainer = document.getElementById("mptbm_map_area");
+        if (!mapContainer) {
+            console.warn("Map container #mptbm_map_area not found. Map initialization skipped.");
+            return false;
+        }
+        
+        map = new google.maps.Map(mapContainer, {
             center: mp_lat_lng,
             zoom: 15,
         });
@@ -98,15 +126,31 @@ function mptbmCreateMarker(place) {
     });
 }
 function mptbm_map_area_init() {
+    // Check if Google Maps API is loaded
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        console.warn("Google Maps API not loaded. Skipping map initialization.");
+        return false;
+    }
+    
+    // Check if map container exists and is visible before initializing
+    const mapContainer = document.getElementById("mptbm_map_area");
+    if (!mapContainer) {
+        console.warn("Map container #mptbm_map_area not found. Skipping map initialization.");
+        return false;
+    }
+    
+    // Check if the map container is visible (not hidden by CSS)
+    const mapArea = document.querySelector('.mptbm_map_area');
+    if (mapArea && mapArea.style.display === 'none') {
+        console.warn("Map area is hidden. Skipping map initialization.");
+        return false;
+    }
+    
     mptbm_set_cookie_distance_duration();
 
-    if (
-        jQuery("#mptbm_map_start_place").length > 0 &&
-        jQuery("#mptbm_map_end_place").length > 0
-    ) {
+    // Initialize Google Places autocomplete for pickup location
+    if (jQuery("#mptbm_map_start_place").length > 0) {
         let start_place = document.getElementById("mptbm_map_start_place");
-        let end_place = document.getElementById("mptbm_map_end_place");
-
         let start_place_autoload = new google.maps.places.Autocomplete(start_place);
         let mptbm_restrict_search_to_country = jQuery('[name="mptbm_restrict_search_country"]').val();
         let mptbm_country = jQuery('[name="mptbm_country"]').val();
@@ -118,13 +162,50 @@ function mptbm_map_area_init() {
         }
 
         google.maps.event.addListener(start_place_autoload, "place_changed", function () {
+            let end_place = document.getElementById("mptbm_map_end_place");
+            
+            // Only sync dropoff with pickup if dropoff is hidden (hourly pricing with disabled dropoff)
+            if (end_place && end_place.type === 'hidden') {
+                console.log('Syncing dropoff with pickup (dropoff is hidden)');
+                end_place.value = start_place.value;
+            }
+            
             mptbm_set_cookie_distance_duration(
                 start_place.value,
-                end_place.value
+                end_place ? end_place.value : start_place.value
             );
         });
 
+        // Mark as initialized to prevent duplicate initialization
+        start_place.setAttribute('data-autocomplete-initialized', 'true');
+    }
+    
+    // Ensure Next button is properly positioned after map initialization
+    setTimeout(function() {
+        var nextButtonContainer = document.querySelector('.get_details_next_link');
+        if (nextButtonContainer) {
+            // Force a reflow to ensure proper positioning
+            nextButtonContainer.style.display = 'none';
+            nextButtonContainer.offsetHeight; // Force reflow
+            nextButtonContainer.style.display = '';
+            
+            // Ensure it's positioned correctly relative to the map
+            var mapArea = document.querySelector('.mptbm_map_area');
+            if (mapArea && mapArea.style.display !== 'none') {
+                nextButtonContainer.style.marginTop = '20px';
+                nextButtonContainer.style.position = 'relative';
+                nextButtonContainer.style.clear = 'both';
+            }
+        }
+    }, 100);
+
+    // Initialize Google Places autocomplete for dropoff location (only if it exists and is visible)
+    if (jQuery("#mptbm_map_end_place").length > 0 && jQuery("#mptbm_map_end_place").is(":visible")) {
+        let end_place = document.getElementById("mptbm_map_end_place");
         let end_place_autoload = new google.maps.places.Autocomplete(end_place);
+        let mptbm_restrict_search_to_country = jQuery('[name="mptbm_restrict_search_country"]').val();
+        let mptbm_country = jQuery('[name="mptbm_country"]').val();
+
         if (mptbm_restrict_search_to_country == 'yes') {
             end_place_autoload.setComponentRestrictions({
                 country: [mptbm_country]
@@ -132,9 +213,10 @@ function mptbm_map_area_init() {
         }
 
         google.maps.event.addListener(end_place_autoload, "place_changed", function () {
+            let start_place = document.getElementById("mptbm_map_start_place");
             mptbm_set_cookie_distance_duration(
-                start_place.value,
-                end_place.value
+                start_place ? start_place.value : '',
+                end_place ? end_place.value : ''
             );
         });
     }
@@ -144,8 +226,159 @@ function mptbm_map_area_init() {
     $(document).ready(function () {
         $(".mpStyle ul.mp_input_select_list").hide();
 
+        // Function to initialize Google Places autocomplete (global scope)
+        window.initializeGooglePlacesAutocomplete = function() {
+            // Check if Google Maps API is loaded
+            if (typeof google === 'undefined' || typeof google.maps === 'undefined' || typeof google.maps.places === 'undefined') {
+                console.log('Google Maps API not loaded yet, retrying in 500ms...');
+                setTimeout(function() {
+                    initializeGooglePlacesAutocomplete();
+                }, 500);
+                return;
+            }
+            
+                        var startPlaceInput = document.getElementById('mptbm_map_start_place');
+            console.log('Pickup location input found:', startPlaceInput);
+            if (startPlaceInput && !startPlaceInput.hasAttribute('data-autocomplete-initialized')) {
+                    console.log('Initializing Google Places autocomplete for pickup location');
+                    var startPlaceAutocomplete = new google.maps.places.Autocomplete(startPlaceInput);
+                    var mptbmRestrictSearchToCountry = $('[name="mptbm_restrict_search_country"]').val();
+                    var mptbmCountry = $('[name="mptbm_country"]').val();
+
+                    if (mptbmRestrictSearchToCountry == 'yes') {
+                        startPlaceAutocomplete.setComponentRestrictions({
+                            country: [mptbmCountry]
+                        });
+                    }
+
+                    google.maps.event.addListener(startPlaceAutocomplete, "place_changed", function () {
+                        var endPlaceInput = document.getElementById('mptbm_map_end_place');
+                        
+                        // Only sync dropoff with pickup if dropoff is hidden (hourly pricing with disabled dropoff)
+                        if (endPlaceInput && endPlaceInput.type === 'hidden') {
+                            console.log('Syncing dropoff with pickup (dropoff is hidden)');
+                            endPlaceInput.value = startPlaceInput.value;
+                        }
+                        
+                        mptbm_set_cookie_distance_duration(
+                            startPlaceInput.value,
+                            endPlaceInput ? endPlaceInput.value : startPlaceInput.value
+                        );
+                    });
+                    
+                    // Mark as initialized to prevent duplicate initialization
+                    startPlaceInput.setAttribute('data-autocomplete-initialized', 'true');
+                }
+        }
+
+        // Initialize Google Places autocomplete on page load with a delay to ensure API is loaded
+        console.log('Setting up Google Places autocomplete initialization...');
+        setTimeout(function() {
+            console.log('Attempting to initialize Google Places autocomplete...');
+            initializeGooglePlacesAutocomplete();
+        }, 500);
+        
+        // Handle Previous/Next button positioning after tab changes
+        $(document).on('click', '.nextTab_prev, .nextTab_next', function() {
+            setTimeout(function() {
+                var nextButtonContainer = document.querySelector('.get_details_next_link');
+                if (nextButtonContainer) {
+                    // Force a reflow to ensure proper positioning
+                    nextButtonContainer.style.display = 'none';
+                    nextButtonContainer.offsetHeight; // Force reflow
+                    nextButtonContainer.style.display = '';
+                    
+                    // Ensure it's positioned correctly relative to the map
+                    var mapArea = document.querySelector('.mptbm_map_area');
+                    if (mapArea && mapArea.style.display !== 'none') {
+                        nextButtonContainer.style.marginTop = '20px';
+                        nextButtonContainer.style.position = 'relative';
+                        nextButtonContainer.style.clear = 'both';
+                    }
+                }
+            }, 350); // Wait for slideDown animation to complete
+        });
+
+        // Function to validate and fix tab structure (silent version)
+        function validateTabStructure() {
+            // Check tab links
+            $('.mptb-tabs li').each(function() {
+                var tabId = $(this).attr('mptbm-data-tab');
+                var isCurrent = $(this).hasClass('current');
+                
+                // Check if corresponding tab content exists
+                var tabContent = $("#" + tabId);
+                if (tabContent.length === 0) {
+                    // Create missing tab content container
+                    var tabContainerParent = $('.mptb-tab-container');
+                    if (tabContainerParent.length > 0) {
+                        var newTabContainer = $('<div id="' + tabId + '" class="mptb-tab-content"></div>');
+                        tabContainerParent.append(newTabContainer);
+                    }
+                }
+            });
+            
+            // Check tab content containers
+            $('.mptb-tab-content').each(function() {
+                var tabId = $(this).attr('id');
+                var isCurrent = $(this).hasClass('current');
+                var isVisible = $(this).is(':visible');
+                
+                // Ensure current tab is visible
+                if (isCurrent && !isVisible) {
+                    $(this).css('display', 'block');
+                }
+            });
+        }
+
+        // Function to ensure loading GIF element exists
+        window.ensureLoadingGifExists = function() {
+            var loadingGif = $('.mptbm-hide-gif');
+            var tabContainer = $('.mptb-tab-container');
+            
+            if (loadingGif.length === 0 && tabContainer.length > 0) {
+                console.log('Loading GIF element not found, creating it...');
+                var loadingGifHtml = '<div class="mptbm-hide-gif mptbm-gif" style="display: none;"><img src="' + window.location.origin + '/taxi/wp-content/plugins/ecab-taxi-booking-manager/assets/images/loader.gif" class="mptb-tabs-loader" /></div>';
+                tabContainer.append(loadingGifHtml);
+                console.log('Loading GIF element created');
+                return true;
+            } else if (loadingGif.length === 0 && tabContainer.length === 0) {
+                console.log('Tab container not found, will create loading GIF when needed');
+                return false;
+            }
+            return true;
+        };
+        
+        // Try to create loading GIF element immediately
+        window.ensureLoadingGifExists();
+        
+        // Also try after a short delay to ensure DOM is fully ready
+        setTimeout(function() {
+            window.ensureLoadingGifExists();
+            validateTabStructure();
+        }, 100);
+
+        // Only initialize map on page load if the first tab should have a map
         if ($("#mptbm_map_area").length > 0) {
+            var hasTabs = $('.mptb-tabs').length > 0;
+            if (hasTabs) {
+                // Check if the current tab should have a map
+                var currentTab = $('.mptb-tabs li.current').attr('mptbm-data-tab');
+                var mapEnabled = $('.mptb-tabs li.current').attr('mptbm-data-map');
+                
+                // Don't initialize map for manual/flat-rate tab or if map is disabled
+                if (currentTab !== 'flat-rate' && mapEnabled === 'yes') {
             mptbm_map_area_init();
+                }
+            } else {
+                // No tabs (plain [mptbm_booking]) → initialize map if container is visible
+                var mapAreaEl = document.querySelector('.mptbm_map_area');
+                if (!mapAreaEl || mapAreaEl.style.display === 'none') {
+                    // Skip if hidden by template conditions
+                } else {
+                    mptbm_map_area_init();
+                }
+            }
         }
     });
     $(document).on("click", "#mptbm_get_vehicle", function () {
@@ -165,6 +398,8 @@ function mptbm_map_area_init() {
         let two_way = parent.find('[name="mptbm_taxi_return"]').val();
         let waiting_time = parent.find('[name="mptbm_waiting_time"]').val();
         let fixed_time = parent.find('[name="mptbm_fixed_hours"]').val();
+        let mptbm_original_price_base = parent.find('[name="mptbm_original_price_base"]').val();
+        
         
         let mptbm_enable_view_search_result_page = parent
             .find('[name="mptbm_enable_view_search_result_page"]')
@@ -297,6 +532,7 @@ function mptbm_map_area_init() {
                                     mptbm_passengers: parent.find('#mptbm_passengers').val(),
                                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                                    mptbm_original_price_base: mptbm_original_price_base,
                                 },
                                 beforeSend: function () {
                                     //dLoader(target);
@@ -350,6 +586,7 @@ function mptbm_map_area_init() {
                                     mptbm_passengers: parent.find('#mptbm_passengers').val(),
                                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                                    mptbm_original_price_base: mptbm_original_price_base,
                                 },
                                 beforeSend: function () {
                                     dLoader(target);
@@ -400,6 +637,7 @@ function mptbm_map_area_init() {
                                 mptbm_passengers: parent.find('#mptbm_passengers').val(),
                                 mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                                mptbm_original_price_base: mptbm_original_price_base,
                             },
                             beforeSend: function () {
                                 //dLoader(target);
@@ -451,6 +689,7 @@ function mptbm_map_area_init() {
                                 mptbm_passengers: parent.find('#mptbm_passengers').val(),
                                 mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                                mptbm_original_price_base: mptbm_original_price_base,
                             },
                             beforeSend: function () {
                                 dLoader(target);
@@ -620,9 +859,12 @@ function mptbm_map_area_init() {
                         post_id: post_id,
                     },
                     beforeSend: function () {
+                        // Remove any existing custom dropdown before AJAX call
+                        $('.mptbm-custom-select-wrapper').remove();
                         dLoader(target.closest(".mptbm_search_area"));
                     },
                     success: function (data) {
+                        console.log('AJAX response for end locations:', data);
                         target
                             .html(data)
                             .promise()
@@ -634,10 +876,15 @@ function mptbm_map_area_init() {
                                     void target[0].offsetHeight;
                                     target[0].style.display = '';
                                 }
+                                
+                                // Add a small delay to ensure the select is properly updated
+                                setTimeout(function() {
+                                    console.log('Select updated, options count:', target.find('option:not([disabled])').length);
+                                }, 100);
                             });
                     },
                     error: function (response) {
-                        console.log(response);
+                        console.log('AJAX error for end locations:', response);
                     },
                 });
             }
@@ -995,7 +1242,8 @@ function mptbm_price_calculation(parent) {
         let date = parent.find('[name="mptbm_date"]').val();
         let link_id = $(this).attr('data-wc_link_id');
         let quantity = parseInt(parent.find(`.mp_quantity_input[data-post-id="${post_id}"]`).val()) || 1;
-       
+        let mptbm_original_price_base = parent.find('[name="mptbm_original_price_base"]').val();
+        
         if (start_place !== '' && end_place !== '' && link_id && post_id) {
             let extra_service_name = {};
             let extra_service_qty = {};
@@ -1031,6 +1279,7 @@ function mptbm_price_calculation(parent) {
                     mptbm_passengers: parent.find('#mptbm_passengers').val(),
                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                    mptbm_original_price_base: mptbm_original_price_base,
                 },
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));
@@ -1104,13 +1353,50 @@ function mptbm_price_calculation(parent) {
             var form_style = $(this).attr('mptbm-data-form-style');
             var map = $(this).attr('mptbm-data-map');
             
-            // Remove existing template before inserting the new one
-            $('.mptb-tab-content').empty().removeClass('current');
-            $('.mptbm-hide-gif').css('display', 'block');
+            // Clean up existing map instance before switching tabs
+            mptbm_cleanup_map();
+            
+            // Check if the target tab already has content
+            var targetTabContainer = $("#" + tab_id);
+            var hasExistingContent = targetTabContainer.length > 0 && targetTabContainer.html().trim() !== '';
+            
+            // Only show loading overlay if the tab doesn't have content or needs to be refreshed
+            if (!hasExistingContent) {
+                // Remove any existing loading overlay
+                $('.mptbm-loading-overlay').remove();
+                
+                // Create a new loading overlay that will definitely be visible
+                var loadingOverlay = $('<div class="mptbm-loading-overlay" style="position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; z-index: 9999 !important; padding: 30px !important; text-align: center !important; margin-top: 40px !important;"><img src="' + window.location.origin + '/taxi/wp-content/plugins/ecab-taxi-booking-manager/assets/images/loader.gif" style="width: 80px !important; height: auto !important;" /></div>');
+                
+                                // Append to body to ensure it's visible
+                $('body').append(loadingOverlay);
+            }
+            
             // Mark the clicked tab as active
             $('.mptb-tabs li').removeClass('current');
             $(this).addClass('current');
             
+            // Handle content loading based on whether tab already has content
+            if (hasExistingContent) {
+                // Tab already has content, just show it without AJAX call
+                $('.mptb-tab-content').removeClass('current');
+                targetTabContainer.addClass('current');
+                
+                // Force display block if CSS class doesn't work
+                if (!targetTabContainer.is(':visible')) {
+                    console.log('Tab not visible, forcing display block');
+                    targetTabContainer.css('display', 'block');
+                }
+                
+                console.log('Switched to existing tab content without AJAX');
+                return; // Exit the click handler early
+            }
+            
+            // Remove existing template before inserting the new one
+            $('.mptb-tab-content').empty().removeClass('current');
+            
+            // Small delay to ensure loading GIF is rendered before AJAX starts (only when loading new content)
+            setTimeout(function() {
             // AJAX call to load the template
             $.ajax({
                 type: "POST",
@@ -1122,19 +1408,263 @@ function mptbm_price_calculation(parent) {
                     map: map
                 },
                 beforeSend: function () {
-                    $("#" + tab_id).html('<p>Loading...</p>'); // Show loading message
+                    // Check if the tab container exists before trying to insert loading message
+                    var tabContainer = $("#" + tab_id);
+                    if (tabContainer.length === 0) {
+                        // Create the container if it doesn't exist
+                        var tabContainerParent = $('.mptb-tab-container');
+                        if (tabContainerParent.length > 0) {
+                            var newTabContainer = $('<div id="' + tab_id + '" class="mptb-tab-content"></div>');
+                            tabContainerParent.append(newTabContainer);
+                            tabContainer = newTabContainer;
+                        }
+                    }
+                    
+                    if (tabContainer.length > 0) {
+                        tabContainer.html('<div style="text-align: center; padding: 20px;"><p>Loading...</p><div style="margin-top: 10px;">Please wait while we load the booking form...</div></div>');
+                    }
                 },
                 success: function (data) {
-                    $("#" + tab_id).html(data).addClass('current'); // Load the template
-                    $('.mptbm-hide-gif').css('display', 'none');
+                    console.log('=== LOADING GIF DEBUG ===');
+                    console.log('AJAX response received for tab:', tab_id);
+                    console.log('Response data length:', data.length);
+                    
+                    // Check if the tab container exists
+                    var tabContainer = $("#" + tab_id);
+                    if (tabContainer.length === 0) {
+                        console.log('Tab container not found, creating new one:', tab_id);
+                        
+                        // Try to create the tab container if it doesn't exist
+                        var tabContainerParent = $('.mptb-tab-container');
+                        if (tabContainerParent.length > 0) {
+                            var newTabContainer = $('<div id="' + tab_id + '" class="mptb-tab-content"></div>');
+                            tabContainerParent.append(newTabContainer);
+                            tabContainer = newTabContainer;
+                            console.log('Created new tab container:', tab_id);
+                        } else {
+                            console.error('Tab container parent not found');
+                            return;
+                        }
+                    }
+                    
+                    // Insert the content into the correct tab container
+                    tabContainer.html(data);
+                    
+                    // Ensure the tab content is visible using CSS classes
+                    $('.mptb-tab-content').removeClass('current');
+                    tabContainer.addClass('current');
+                    
+                    // Force display block if CSS class doesn't work
+                    if (!tabContainer.is(':visible')) {
+                        console.log('Tab not visible, forcing display block');
+                        tabContainer.css('display', 'block');
+                    }
+                    
+                    // Hide loading GIF after content is loaded with a minimum display time
+                    console.log('Hiding loading GIF...');
+                    
+                    // Add a minimum display time of 1000ms to ensure the loading GIF is visible
+                    // This gives more time for the user to see the loading state
+                    setTimeout(function() {
+                        // Remove the loading overlay
+                        $('.mptbm-loading-overlay').remove();
+                        console.log('Removed loading overlay');
+                    }, 1000);
+                    
+                                         // Add a small delay to ensure DOM is fully updated before initializing map
+                     setTimeout(function() {
+                         // Only initialize map if the current tab should have a map
+                         var currentTab = $('.mptb-tabs li.current').attr('mptbm-data-tab');
+                         var mapEnabled = $('.mptb-tabs li.current').attr('mptbm-data-map');
+                         
+                         // Don't initialize map for manual/flat-rate tab or if map is disabled
+                         if (currentTab !== 'flat-rate' && mapEnabled === 'yes') {
                     // **Reinitialize the map-related elements after template loads**
                     mptbm_map_area_init();
+                         }
+                         
+                         // Always reinitialize Google Places autocomplete for pickup location
+                         initializeGooglePlacesAutocomplete();
+                     }, 100);
                 },
                 error: function (response) {
-                    console.log(response);
+                    console.log('AJAX Error:', response);
+                    // Hide loading GIF on error with minimum display time
+                    setTimeout(function() {
+                        // Remove the loading overlay
+                        $('.mptbm-loading-overlay').remove();
+                        console.log('Removed loading overlay on error');
+                    }, 1000);
+                    // Show error message
+                    var tabContainer = $("#" + tab_id);
+                    if (tabContainer.length > 0) {
+                        tabContainer.html('<div style="text-align: center; padding: 20px; color: red;"><p>Error loading content. Please try again.</p></div>');
+                    }
                 },
             });
+                }, 100); // Close the setTimeout for AJAX delay
         });
+    });
+
+    // Handle select dropdown search functionality
+    $(document).on('click', '#mptbm_manual_start_place, #mptbm_manual_end_place', function(e) {
+        // Prevent default select behavior
+        e.preventDefault();
+        e.stopPropagation();
+        
+        var $select = $(this);
+        var selectId = $select.attr('id');
+        
+        console.log('Select clicked:', selectId);
+        
+        // Remove any existing custom search elements
+        $('.mptbm-custom-select-wrapper').remove();
+        
+        // Check if select has options (dropoff might be empty initially)
+        var $options = $select.find('option:not([disabled])');
+        console.log('Available options for', selectId + ':', $options.length);
+        
+        if ($options.length <= 0) {
+            console.log('No options available for:', selectId);
+            return;
+        }
+        
+        // Get select position and dimensions
+        var selectOffset = $select.offset();
+        var selectWidth = $select.outerWidth();
+        var selectHeight = $select.outerHeight();
+        
+        // Keep the original select visible - don't hide it
+        // $select.hide(); // REMOVED - keep select visible
+        
+        // Create custom select wrapper positioned below the select element
+        var $customWrapper = $('<div class="mptbm-custom-select-wrapper" style="position: absolute !important; top: ' + (selectOffset.top + selectHeight + 2) + 'px !important; left: ' + selectOffset.left + 'px !important; width: ' + selectWidth + 'px !important; z-index: 9999 !important; background: white !important; border: 1px solid #ddd !important; border-radius: 4px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;"></div>');
+        
+        // Create search input
+        var $searchInput = $('<input type="text" class="mptbm-custom-search-input" placeholder="Search locations..." style="width: 100% !important; padding: 8px !important; border: none !important; border-bottom: 1px solid #eee !important; border-radius: 4px 4px 0 0 !important; font-size: 14px !important; box-sizing: border-box !important; background: #F5F6F8 !important; color: #222222 !important; font-weight: 400 !important; outline: none !important;" />');
+        
+        // Create options container
+        var $optionsContainer = $('<div class="mptbm-custom-options" style="max-height: 200px !important; overflow-y: auto !important; background: white !important;"></div>');
+        
+        // Get all options from original select (excluding disabled ones)
+        var $originalOptions = $select.find('option:not([disabled])');
+        var optionsHtml = '';
+        
+        console.log('Creating custom dropdown with', $originalOptions.length, 'options');
+        
+        $originalOptions.each(function() {
+            var optionText = $(this).text();
+            var optionValue = $(this).val();
+            var isSelected = $(this).is(':selected');
+            
+            var selectedClass = isSelected ? 'mptbm-option-selected' : '';
+            optionsHtml += '<div class="mptbm-custom-option ' + selectedClass + '" data-value="' + optionValue + '" style="padding: 8px !important; cursor: pointer !important; border-bottom: 1px solid #f5f5f5 !important; font-size: 14px !important; color: #222222 !important;">' + optionText + '</div>';
+        });
+        
+        $optionsContainer.html(optionsHtml);
+        
+        // Assemble and append to body
+        $customWrapper.append($searchInput).append($optionsContainer);
+        $('body').append($customWrapper);
+        
+        // Ensure map elements are not affected by the dropdown
+        $('.mptbm_map_area').css('z-index', '1');
+        $('.mptbm_map_area #mptbm_map_area').css('z-index', '1');
+        
+        console.log('Custom select created');
+        
+        // Focus on search input
+        $searchInput.focus();
+        
+        // Handle search input
+        $searchInput.on('input', function() {
+            var searchTerm = $(this).val().toLowerCase();
+            var $options = $customWrapper.find('.mptbm-custom-option');
+            
+            console.log('Searching for:', searchTerm);
+            
+            $options.each(function() {
+                var optionText = $(this).text().toLowerCase();
+                if (optionText.includes(searchTerm) || searchTerm === '') {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+        
+        // Handle option selection
+        $customWrapper.on('click', '.mptbm-custom-option', function() {
+            var selectedValue = $(this).data('value');
+            var selectedText = $(this).text();
+            
+            // Update original select
+            $select.val(selectedValue);
+            $select.trigger('change');
+            
+            // Update search input with selected text
+            $searchInput.val(selectedText);
+            
+            // Remove custom wrapper (select stays visible)
+            $customWrapper.remove();
+            
+            // Restore map z-index
+            $('.mptbm_map_area').css('z-index', '');
+            $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
+            
+            console.log('Option selected:', selectedValue);
+        });
+        
+        // Handle select change event to clean up custom dropdown
+        $select.one('change', function() {
+            $customWrapper.remove();
+            // Restore map z-index
+            $('.mptbm_map_area').css('z-index', '');
+            $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
+        });
+        
+        // Handle clicking outside to close
+        $(document).one('click', function(e) {
+            if (!$(e.target).closest('.mptbm-custom-select-wrapper, #' + selectId).length) {
+                $customWrapper.remove();
+                // Restore map z-index
+                $('.mptbm_map_area').css('z-index', '');
+                $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
+                console.log('Custom select closed - clicked outside');
+            }
+        });
+        
+        // Handle window resize to reposition dropdown
+        $(window).one('resize scroll', function() {
+            $customWrapper.remove();
+            // Restore map z-index
+            $('.mptbm_map_area').css('z-index', '');
+            $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
+            console.log('Custom select closed - window resize/scroll');
+        });
+        
+        // Handle escape key
+        $searchInput.on('keydown', function(e) {
+            if (e.key === 'Escape') {
+                $customWrapper.remove();
+                // Restore map z-index
+                $('.mptbm_map_area').css('z-index', '');
+                $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
+                console.log('Custom select closed - escape key');
+            }
+        });
+    });
+    
+    // Prevent native dropdown behavior for manual select elements
+    $(document).on('focus mousedown keydown', '#mptbm_manual_start_place, #mptbm_manual_end_place', function(e) {
+        // Only prevent if it's not already handled by our custom dropdown
+        if (!$(e.target).closest('.mptbm-custom-select-wrapper').length) {
+            if (e.type === 'focus' || e.type === 'mousedown' || 
+                (e.type === 'keydown' && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp'))) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
     });
 
     // Handle extra info toggle functionality

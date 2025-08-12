@@ -50,6 +50,16 @@ if (!class_exists('MPTBM_Query')) {
 						'starting_location_three' => isset($mptbm_starting_location) ? $mptbm_starting_location : null,
 						'coordinates_three' => isset($mptbm_coordinates) ? $mptbm_coordinates : null,
 					);
+				} elseif ($mptbm_operation_type === 'geo-matched-operation-area-type') {
+					// If operation type is 'geo-matched-operation-area-type', retrieve corresponding meta
+					$mptbm_starting_location = get_post_meta($post_id, 'mptbm-starting-location-four', true);
+					$mptbm_coordinates = get_post_meta($post_id, 'mptbm-coordinates-four', true);
+					$result[] = array(
+						'post_id' => $post_id,
+						'operation_type' => $mptbm_operation_type,
+						'starting_location_four' => isset($mptbm_starting_location) ? $mptbm_starting_location : null,
+						'coordinates_four' => isset($mptbm_coordinates) ? $mptbm_coordinates : null,
+					);
 				} else {
 					// Otherwise, retrieve meta for two sets of locations and coordinates
 					$mptbm_starting_location_one = get_post_meta($post_id, 'mptbm-starting-location-one', true);

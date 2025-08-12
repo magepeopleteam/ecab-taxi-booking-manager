@@ -253,29 +253,49 @@ if (!class_exists('MPTBM_Rest_Api')) {
                 return $response;
             }
 
-            // Always allow API access for debugging
-            return $response;
+            // Check if API is enabled
+            if (!$this->is_api_enabled()) {
+                return new WP_Error(
+                        'rest_disabled',
+                        esc_html__('The E-Cab REST API is disabled.', 'ecab-taxi-booking-manager'),
+                        array('status' => 403)
+                );
+            }
 
-            // Original code:
-            // if (!$this->is_api_enabled()) {
-            //     return new WP_Error(
-            //         'rest_disabled',
-            //         esc_html__('The E-Cab REST API is disabled.', 'ecab-taxi-booking-manager'),
-            //         array('status' => 403)
-            //     );
-            // }
-            //
-            // $rate_limit_check = $this->check_rate_limit($request);
-            // if (is_wp_error($rate_limit_check)) {
-            //     return $rate_limit_check;
-            // }
-            //
-            // return $response;
+            // Check rate limiting
+            $rate_limit_check = $this->check_rate_limit($request);
+            if (is_wp_error($rate_limit_check)) {
+                return $rate_limit_check;
+            }
+
+            return $response;
         }
 
         public function check_booking_read_permission($request) {
             $auth_type = MP_Global_Function::get_settings('mp_global_settings', 'api_authentication_type', 'application_password');
-            return $auth_type === 'none' ? true : current_user_can('read');
+            
+            // Check custom API key authentication
+            if ($auth_type === 'custom_api_key') {
+                return $this->validate_custom_api_key($request);
+            }
+            
+            // Application password authentication
+            if ($auth_type === 'application_password') {
+                // Require authentication for application passwords
+                if (!is_user_logged_in()) {
+                    return false;
+                }
+                
+                // Check if user has read capability
+                return current_user_can('read');
+            }
+            
+            // Default: require authentication
+            if (!is_user_logged_in()) {
+                return false;
+            }
+            
+            return current_user_can('read');
         }
 
         public function get_transport_services($request) {
@@ -556,7 +576,29 @@ if (!class_exists('MPTBM_Rest_Api')) {
         // Add permission callback for write operations
         public function check_booking_write_permission($request) {
             $auth_type = MP_Global_Function::get_settings('mp_global_settings', 'api_authentication_type', 'application_password');
-            return $auth_type === 'none' ? true : current_user_can('edit_posts');
+            
+            // Check custom API key authentication
+            if ($auth_type === 'custom_api_key') {
+                return $this->validate_custom_api_key($request);
+            }
+            
+            // Application password authentication
+            if ($auth_type === 'application_password') {
+                // Require authentication for application passwords
+                if (!is_user_logged_in()) {
+                    return false;
+                }
+                
+                // Check if user has appropriate capabilities
+                return current_user_can('edit_posts') || current_user_can('manage_options');
+            }
+            
+            // Default: require authentication
+            if (!is_user_logged_in()) {
+                return false;
+            }
+            
+            return current_user_can('edit_posts') || current_user_can('manage_options');
         }
 
         // Argument definitions
@@ -1600,6 +1642,34 @@ if (!class_exists('MPTBM_Rest_Api')) {
             $customer_id = $request['id'];
             $params = $request->get_params();
             
+            // Additional security check: Only allow users to update their own data unless they're admin
+            $current_user_id = get_current_user_id();
+            $auth_type = MP_Global_Function::get_settings('mp_global_settings', 'api_authentication_type', 'application_password');
+            
+            // For custom API key authentication, allow updates (key provides authentication)
+            if ($auth_type === 'custom_api_key') {
+                // Custom API key is already validated in permission callback
+                // Allow the operation to proceed
+            } else {
+                // For application password authentication, enforce user permissions
+                if (!$current_user_id) {
+                    return new WP_Error(
+                        'authentication_required',
+                        esc_html__('Authentication required to update customer data', 'ecab-taxi-booking-manager'),
+                        array('status' => 401)
+                    );
+                }
+                
+                // Only allow users to update their own data, or admins to update any data
+                if ($current_user_id != $customer_id && !current_user_can('manage_options')) {
+                    return new WP_Error(
+                        'insufficient_permissions',
+                        esc_html__('You can only update your own customer data', 'ecab-taxi-booking-manager'),
+                        array('status' => 403)
+                    );
+                }
+            }
+            
             // Check if user exists
             $user = get_user_by('ID', $customer_id);
             
@@ -1670,10 +1740,29 @@ if (!class_exists('MPTBM_Rest_Api')) {
 
         // Permission callback for admin-only operations
         public function check_booking_admin_permission($request) {
-            // Always allow access for debugging
-            return true;
-            // Original code:
-            // return current_user_can('manage_options');
+            $auth_type = MP_Global_Function::get_settings('mp_global_settings', 'api_authentication_type', 'application_password');
+            
+            // Check custom API key authentication
+            if ($auth_type === 'custom_api_key') {
+                return $this->validate_custom_api_key($request);
+            }
+            
+            // Application password authentication
+            if ($auth_type === 'application_password') {
+                // Require authentication and admin capabilities
+                if (!is_user_logged_in()) {
+                    return false;
+                }
+                
+                return current_user_can('manage_options');
+            }
+            
+            // Default: require authentication and admin capabilities
+            if (!is_user_logged_in()) {
+                return false;
+            }
+            
+            return current_user_can('manage_options');
         }
         
         // Get locations
@@ -2356,6 +2445,7 @@ if (!class_exists('MPTBM_Rest_Api')) {
             $settings = array(
                 'api_enabled' => MP_Global_Function::get_settings('mp_global_settings', 'enable_rest_api', 'off'),
                 'api_authentication_type' => MP_Global_Function::get_settings('mp_global_settings', 'api_authentication_type', 'application_password'),
+                'api_custom_key' => MP_Global_Function::get_settings('mp_global_settings', 'api_custom_key', ''),
                 'api_rate_limit' => (int)MP_Global_Function::get_settings('mp_global_settings', 'api_rate_limit', 60)
             );
             
@@ -2376,6 +2466,16 @@ if (!class_exists('MPTBM_Rest_Api')) {
                 $global_settings['api_authentication_type'] = $params['api_authentication_type'];
             }
             
+            if (isset($params['api_custom_key'])) {
+                // Only save the custom key if it's not empty
+                if (!empty($params['api_custom_key'])) {
+                    $global_settings['api_custom_key'] = sanitize_text_field($params['api_custom_key']);
+                } else {
+                    // Remove the custom key if empty
+                    unset($global_settings['api_custom_key']);
+                }
+            }
+            
             if (isset($params['api_rate_limit'])) {
                 $global_settings['api_rate_limit'] = max(0, intval($params['api_rate_limit']));
             }
@@ -2388,6 +2488,7 @@ if (!class_exists('MPTBM_Rest_Api')) {
                     'settings' => array(
                         'api_enabled' => $global_settings['enable_rest_api'],
                         'api_authentication_type' => $global_settings['api_authentication_type'],
+                        'api_custom_key' => isset($global_settings['api_custom_key']) ? $global_settings['api_custom_key'] : '',
                         'api_rate_limit' => (int)$global_settings['api_rate_limit']
                     )
                 ), 
@@ -2501,7 +2602,12 @@ if (!class_exists('MPTBM_Rest_Api')) {
                     'required' => false,
                     'type' => 'string',
                     'description' => 'Authentication type',
-                    'enum' => array('none', 'application_password', 'jwt')
+                    'enum' => array('application_password', 'custom_api_key')
+                ),
+                'api_custom_key' => array(
+                    'required' => false,
+                    'type' => 'string',
+                    'description' => 'Custom API key for authentication'
                 ),
                 'api_rate_limit' => array(
                     'required' => false,
@@ -2514,6 +2620,40 @@ if (!class_exists('MPTBM_Rest_Api')) {
             );
         }
 
+        // Validate custom API key
+        private function validate_custom_api_key($request) {
+            $custom_key = MP_Global_Function::get_settings('mp_global_settings', 'api_custom_key', '');
+            
+            // If no custom key is set, API should not work
+            if (empty($custom_key)) {
+                return false;
+            }
+            
+            // Get the API key from the request header
+            $provided_key = $request->get_header('X-API-Key');
+            
+            // If no key provided in header, check for it in the Authorization header
+            if (empty($provided_key)) {
+                $auth_header = $request->get_header('Authorization');
+                if (!empty($auth_header) && strpos($auth_header, 'Bearer ') === 0) {
+                    $provided_key = substr($auth_header, 7); // Remove 'Bearer ' prefix
+                }
+            }
+            
+            // Validate the key
+            if (empty($provided_key)) {
+                return false;
+            }
+            
+            return hash_equals($custom_key, $provided_key);
+        }
+        
+        // Generate a secure custom API key (for admin use only)
+        private function generate_custom_api_key() {
+            $key = wp_generate_password(32, false); // Generate 32 character key without special chars
+            return $key;
+        }
+        
         // Add a helper method to ensure consistent currency formatting
         private function get_currency_symbol() {
             // First try to get WooCommerce currency symbol

@@ -88,6 +88,7 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                             <h6><?php esc_html_e('Operation Area Settings', 'ecab-taxi-booking-manager'); ?></h6>
                             <span><?php esc_html_e('Here you can set operation area', 'ecab-taxi-booking-manager'); ?></span>
                         </section>
+                        
                         <section id="mptbm-operation-type-section">
                             <label class="label">
                                 <div>
@@ -100,6 +101,7 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                                 </select>
                             </label>
                         </section>
+
                         
                         <section class="mptbm_geo_fence_settings <?php echo ($operation_type == 'geo-fence-operation-area-type') ? 'mActive' : '';  ?>" data-collapse="#geo-fence-operation-area-type">
                             <div class="mptbm_geo_fence_settings_map">
@@ -175,7 +177,7 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                             </div>
                         </section>
                         
-                        <section class="mptbm_geo_fixed_operation_settings <?php echo ($operation_type != 'geo-fence-operation-area-type') ? 'mActive' : '';  ?>" id="" data-collapse="#fixed-operation-area-type">
+                        <section class="mptbm_geo_fixed_operation_settings <?php echo ($operation_type != 'geo-fence-operation-area-type' && $operation_type != 'geo-matched-operation-area-type') ? 'mActive' : '';  ?>" id="" data-collapse="#fixed-operation-area-type">
                             <div id="mptbm_start_location_three" class="mptbm_map_area">
                                 <label class="label mptbm_starting_location">
                                     <div>
@@ -188,6 +190,22 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                                 </label>
                                 </br>
                                 <div id="mptbm-map-canvas-three" style="width: 100%; height: 600px"></div>
+                            </div>
+                        </section>
+                        
+                        <section class="mptbm_geo_matched_operation_settings <?php echo ($operation_type == 'geo-matched-operation-area-type') ? 'mActive' : '';  ?>" data-collapse="#geo-matched-operation-area-type">
+                            <div id="mptbm_start_location_four" class="mptbm_map_area">
+                                <label class="label mptbm_starting_location">
+                                    <div>
+                                        <h6><?php esc_html_e('Operation Area', 'ecab-taxi-booking-manager'); ?></h6>
+                                        <span class="desc"><?php esc_html_e('Draw the operation area on the map', 'ecab-taxi-booking-manager'); ?></span>
+                                    </div>
+                                    <input class="formControl" type="text" id="mptbm-starting-location-four" value="<?php echo esc_attr(!empty($location_four) ? $location_four : ''); ?>" autocomplete="on" placeholder="Enter a location" />
+                                    <input class="formControl" type="hidden" name="mptbm-starting-location-four" id="mptbm-starting-location-four-hidden" value="<?php echo esc_attr(!empty($location_four) ? $location_four : ''); ?>" />
+                                    <input class="formControl" type="hidden" name="mptbm-coordinates-four" id="mptbm-coordinates-four" />
+                                </label>
+                                </br>
+                                <div id="mptbm-map-canvas-four" style="width: 100%; height: 600px"></div>
                             </div>
                         </section>
                     </div>
@@ -224,6 +242,18 @@ if (!class_exists('MPTBM_Operation_Areas')) {
 
                     update_post_meta($post_id, 'mptbm-starting-location-three', $mptbm_starting_location_three);
                     update_post_meta($post_id, 'mptbm-coordinates-three', $mptbm_coordinates_three);
+                    update_post_meta($post_id, 'mptbm-operation-type', $mptbm_operation_type);
+                }
+            } elseif ($mptbm_operation_type === 'geo-matched-operation-area-type') {
+
+                $mptbm_starting_location_four = isset($_POST['mptbm-starting-location-four']) ? sanitize_text_field($_POST['mptbm-starting-location-four']) : '';
+                $mptbm_coordinates_four = isset($_POST['mptbm-coordinates-four']) ? sanitize_text_field($_POST['mptbm-coordinates-four']) : '';
+
+                if (!empty($mptbm_coordinates_four) && !empty($mptbm_starting_location_four)) {
+                    $mptbm_coordinates_four = explode(',', $mptbm_coordinates_four);
+
+                    update_post_meta($post_id, 'mptbm-starting-location-four', $mptbm_starting_location_four);
+                    update_post_meta($post_id, 'mptbm-coordinates-four', $mptbm_coordinates_four);
                     update_post_meta($post_id, 'mptbm-operation-type', $mptbm_operation_type);
                 }
             } else {
@@ -284,6 +314,7 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                                 <option value=""><?php esc_html_e('Select Operation Type', 'ecab-taxi-booking-manager'); ?></option>
                                 <option value="fixed-operation-area-type" <?php selected($selected_operation_type, 'fixed-operation-area-type'); ?>><?php esc_html_e('Fixed Operation Area', 'ecab-taxi-booking-manager'); ?></option>
                                 <option value="geo-fence-operation-area-type" <?php selected($selected_operation_type, 'geo-fence-operation-area-type'); ?>><?php esc_html_e('Geo Fence Operation Area', 'ecab-taxi-booking-manager'); ?></option>
+                                <option value="geo-matched-operation-area-type" <?php selected($selected_operation_type, 'geo-matched-operation-area-type'); ?>><?php esc_html_e('Geo-Matched Operation Area', 'ecab-taxi-booking-manager'); ?></option>
                             </select>
                         </label>
                     </section>
@@ -327,6 +358,26 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                         </label>
                     </section>
 
+                    <section id="geo-matched-operation-area-section" class="<?php echo ($selected_operation_type == 'geo-matched-operation-area-type') ? 'mActive' : ''; ?>" data-collapse="#geo-matched-operation-area-type">
+                        <label class="label">
+                            <div>
+                                <h6><?php esc_html_e('Select Geo-Matched Operation Area', 'ecab-taxi-booking-manager'); ?></h6>
+                                <span class="desc"><?php esc_html_e('Select a geo-matched operation area', 'ecab-taxi-booking-manager'); ?></span>
+                            </div>
+                            <select class="formControl" name="mptbm_selected_operation_areas[]" id="mptbm_selected_geo_matched_area">
+                                <option value=""><?php esc_html_e('Select Fixed Operation Area', 'ecab-taxi-booking-manager'); ?></option>
+                                <?php
+                                foreach ($all_operation_area_infos as $area_info) {
+                                    if ($area_info['operation_type'] == 'fixed-operation-area-type') {
+                                        $selected = in_array($area_info['post_id'], $selected_operation_areas) ? 'selected' : '';
+                                        echo '<option value="' . esc_attr($area_info['post_id']) . '" ' . $selected . '>' . esc_html(get_the_title($area_info['post_id'])) . '</option>';
+                                    }
+                                }
+                                ?>
+                            </select>
+                        </label>
+                    </section>
+
                     <div class="mp_settings_area_item">
                         <div id="selected-operation-area-maps">
                             <!-- Maps will be displayed here when operation areas are selected -->
@@ -343,18 +394,31 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                         if (selectedType == 'fixed-operation-area-type') {
                             $('#fixed-operation-area-section').addClass('mActive');
                             $('#geo-fence-operation-area-section').removeClass('mActive');
+                            $('#geo-matched-operation-area-section').removeClass('mActive');
                             $('#mptbm_selected_geo_fence_area').prop('disabled', true);
+                            $('#mptbm_selected_geo_matched_area').prop('disabled', true);
                             $('#mptbm_selected_operation_areas').prop('disabled', false);
                         } else if (selectedType == 'geo-fence-operation-area-type') {
                             $('#fixed-operation-area-section').removeClass('mActive');
                             $('#geo-fence-operation-area-section').addClass('mActive');
+                            $('#geo-matched-operation-area-section').removeClass('mActive');
                             $('#mptbm_selected_operation_areas').prop('disabled', true);
+                            $('#mptbm_selected_geo_matched_area').prop('disabled', true);
                             $('#mptbm_selected_geo_fence_area').prop('disabled', false);
+                        } else if (selectedType == 'geo-matched-operation-area-type') {
+                            $('#fixed-operation-area-section').removeClass('mActive');
+                            $('#geo-fence-operation-area-section').removeClass('mActive');
+                            $('#geo-matched-operation-area-section').addClass('mActive');
+                            $('#mptbm_selected_operation_areas').prop('disabled', true);
+                            $('#mptbm_selected_geo_fence_area').prop('disabled', true);
+                            $('#mptbm_selected_geo_matched_area').prop('disabled', false);
                         } else {
                             $('#fixed-operation-area-section').removeClass('mActive');
                             $('#geo-fence-operation-area-section').removeClass('mActive');
+                            $('#geo-matched-operation-area-section').removeClass('mActive');
                             $('#mptbm_selected_operation_areas').prop('disabled', true);
                             $('#mptbm_selected_geo_fence_area').prop('disabled', true);
+                            $('#mptbm_selected_geo_matched_area').prop('disabled', true);
                         }
                         // Clear maps when operation type changes
                         $('#selected-operation-area-maps').empty();
@@ -474,11 +538,53 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                         }
                     });
 
+                    // Handle geo-matched operation area selection
+                    $('#mptbm_selected_geo_matched_area').on('change', function() {
+                        var selectedAreaId = $(this).val();
+                        var mapsContainer = $('#selected-operation-area-maps');
+                        mapsContainer.empty();
+
+                        if (selectedAreaId) {
+                            var areaInfo = <?php echo wp_json_encode($all_operation_area_infos); ?>.find(function(area) {
+                                return area.post_id == selectedAreaId;
+                            });
+
+                            if (areaInfo && areaInfo.coordinates_three && areaInfo.coordinates_three.length > 0) {
+                                var mapContainer = $('<div class="mptbm_map_area padding" style="width: 100%; height: 600px; margin-bottom: 20px;"></div>');
+                                var mapId = 'geo_matched_map_' + selectedAreaId;
+                                mapContainer.attr('id', mapId);
+                                mapsContainer.append(mapContainer);
+
+                                // Convert coordinates to the format expected by iniSavedtMap
+                                var coordinates = areaInfo.coordinates_three;
+                                var formattedCoordinates = [];
+                                for (var i = 0; i < coordinates.length; i += 2) {
+                                    var lat = parseFloat(coordinates[i]);
+                                    var lng = parseFloat(coordinates[i + 1]);
+                                    if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                                        formattedCoordinates.push(lat);
+                                        formattedCoordinates.push(lng);
+                                    }
+                                }
+
+                                if (formattedCoordinates.length > 0) {
+                                    try {
+                                        iniSavedtMap(formattedCoordinates, mapId, null);
+                                    } catch (e) {
+                                        console.error('Error initializing geo-matched map:', e);
+                                    }
+                                }
+                            }
+                        }
+                    });
+
                     // Trigger change events to show initial maps if there are selected areas
                     if ($('#mptbm_operation_area_type').val() === 'fixed-operation-area-type') {
                         $('#mptbm_selected_operation_areas').trigger('change');
                     } else if ($('#mptbm_operation_area_type').val() === 'geo-fence-operation-area-type') {
                         $('#mptbm_selected_geo_fence_area').trigger('change');
+                    } else if ($('#mptbm_operation_area_type').val() === 'geo-matched-operation-area-type') {
+                        $('#mptbm_selected_geo_matched_area').trigger('change');
                     }
                 });
             </script>
@@ -496,6 +602,12 @@ if (!class_exists('MPTBM_Operation_Areas')) {
 
                 // Save selected operation areas
                 $selected_areas = isset($_POST['mptbm_selected_operation_areas']) ? array_map('intval', $_POST['mptbm_selected_operation_areas']) : array();
+                
+                // For geo-matched operation area, ensure only one area is selected
+                if ($operation_type === 'geo-matched-operation-area-type' && count($selected_areas) > 1) {
+                    $selected_areas = array_slice($selected_areas, 0, 1); // Keep only the first selected area
+                }
+                
                 update_post_meta($post_id, 'mptbm_selected_operation_areas', $selected_areas);
             }
         }

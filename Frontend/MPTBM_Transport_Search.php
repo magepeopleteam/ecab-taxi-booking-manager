@@ -38,7 +38,7 @@
 				$map= $params['map'] ?: 'yes';
 				$map = $display_map == 'disable' ? 'no' : $map;
 				$tab = $params['tab'] ?: 'no';
-				$tabs = $params['tabs'] ?: 'distance,hourly,manually';
+				$tabs = $params['tabs'] ?: 'distance,hourly,manual';
 				ob_start();
 				do_shortcode('[shop_messages]');
 				echo ob_get_clean();

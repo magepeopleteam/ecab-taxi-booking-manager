@@ -280,6 +280,12 @@
 				return max($price, 0);
 			}
 			public static function wc_price($post_id, $price, $args = array()): string {
+				// Check if WooCommerce is active before using WooCommerce functions
+				if (self::check_woocommerce() !== 1) {
+					// If WooCommerce is not active, return a simple formatted price
+					return number_format($price, 2);
+				}
+				
 				$num_of_decimal = get_option('woocommerce_price_num_decimals', 2);
 				$args = wp_parse_args($args, array(
 					'qty' => '',
@@ -400,6 +406,11 @@
 				}
 			}
 			public static function get_order_item_meta($item_id, $key): string {
+				// Check if WooCommerce is active before accessing WooCommerce tables
+				if (self::check_woocommerce() !== 1) {
+					return '';
+				}
+				
 				global $wpdb;
 				$table_name = $wpdb->prefix . "woocommerce_order_itemmeta";
 				$results = $wpdb->get_results($wpdb->prepare("SELECT meta_value FROM $table_name WHERE order_item_id = %d AND meta_key = %s", $item_id, $key));
@@ -421,6 +432,11 @@
 				return false;
 			}
 			public static function wc_product_sku($product_id) {
+				// Check if WooCommerce is active before using WooCommerce functions
+				if (self::check_woocommerce() !== 1) {
+					return null;
+				}
+				
 				if ($product_id) {
 					return new WC_Product($product_id);
 				}
@@ -428,6 +444,11 @@
 			}
 			//***********************************//
 			public static function all_tax_list(): array {
+				// Check if WooCommerce is active before accessing WooCommerce tables
+				if (self::check_woocommerce() !== 1) {
+					return [];
+				}
+				
 				global $wpdb;
 				$table_name = $wpdb->prefix . 'wc_tax_rate_classes';
 				$result = $wpdb->get_results("SELECT * FROM $table_name");

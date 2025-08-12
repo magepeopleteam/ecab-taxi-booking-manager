@@ -78,7 +78,8 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					'id' => 'mptbm_translations',
 					'icon' => 'fas fa-language',
 					'title' => esc_html__('Translations', 'ecab-taxi-booking-manager')
-				)
+				),
+				
 			);
 			
 			// Add QR Code Settings section only if QR Addon class exists
@@ -103,6 +104,17 @@ if (!class_exists('MPTBM_Settings_Global')) {
 			$settings_fields = array(
 				'mptbm_general_settings' => apply_filters('filter_mptbm_general_settings', array(
 					array(
+						'name' => 'transfer_type',
+						'label' => esc_html__('Disable/Enable Transfer Type', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('If you want to disable Transfer Type, please select disable. default enable', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'enable',
+						'options' => array(
+							'enable' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+							'disable' => esc_html__('Disable', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
 						'name' => 'taxi_return',
 						'label' => esc_html__('Disable/ Enable Taxi Return', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('If you want to disable taxi return, please select disable. default enable', 'ecab-taxi-booking-manager'),
@@ -122,6 +134,36 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						'options' => array(
 							'enable' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
 							'disable' => esc_html__('Disabled', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
+						'name' => 'disable_dropoff_hourly',
+						'label' => esc_html__('Disable/Enable drop off location in hourly pricing', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('If you want to disable drop off location in hourly pricing, please select disable. default enable', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'enable',
+						'options' => array(
+							'enable' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+							'disable' => esc_html__('Disable', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
+						'name' => 'minimum_booking_hours',
+						'label' => esc_html__('Minimum Booking Hours (Hourly Pricing)', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Minimum hours required for hourly bookings. Bookings below this won\'t be allowed. Select 0 to disable minimum restriction.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => '0',
+						'options' => array(
+							'1' => esc_html__('1 Hour', 'ecab-taxi-booking-manager'),
+							'2' => esc_html__('2 Hours', 'ecab-taxi-booking-manager'),
+							'3' => esc_html__('3 Hours', 'ecab-taxi-booking-manager'),
+							'4' => esc_html__('4 Hours', 'ecab-taxi-booking-manager'),
+							'5' => esc_html__('5 Hours', 'ecab-taxi-booking-manager'),
+							'6' => esc_html__('6 Hours', 'ecab-taxi-booking-manager'),
+							'7' => esc_html__('7 Hours', 'ecab-taxi-booking-manager'),
+							'8' => esc_html__('8 Hours', 'ecab-taxi-booking-manager'),
+							'9' => esc_html__('9 Hours', 'ecab-taxi-booking-manager'),
+							'10' => esc_html__('10 Hours', 'ecab-taxi-booking-manager'),
 						)
 					),
 					array(
@@ -424,6 +466,15 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					array('name' => 'number_of_bags_label', 'label' => esc_html__('Number Of Bags Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Number Of Bags'),
 					array('name' => 'number_of_passengers_filter_label', 'label' => esc_html__('Number Of Passengers Filter Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Number Of Passengers'),
 				)),
+				'mptbm_buffer_settings' => apply_filters('filter_mptbm_buffer_settings', array(
+					array(
+						'name' => 'buffer_time',
+						'label' => esc_html__('Buffer Time', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Please enter the buffer time in minutes.', 'ecab-taxi-booking-manager'),
+						'type' => 'text',
+						'default' => '10'
+					)
+				)),
 				// Conditionally add QR settings fields
 				// Only add if Ecab_Taxi_Booking_QR_Addon exists
 			);
@@ -486,6 +537,7 @@ if (!class_exists('MPTBM_Settings_Global')) {
 			);
 			return array_merge($default_sec, $sections);
 		}
+
 
 	}
 	new  MPTBM_Settings_Global();

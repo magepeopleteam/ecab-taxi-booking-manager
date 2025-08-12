@@ -18,6 +18,7 @@ $restrict_search_country = MP_Global_Function::get_settings('mptbm_map_api_setti
 $country = MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'no');
 $km_or_mile = MP_Global_Function::get_settings('mp_global_settings', 'km_or_mile', 'km');
 $price_based = $price_based ?? '';
+
 set_transient('original_price_based', $price_based);
 
 $map = $map ?? 'yes';
@@ -25,6 +26,14 @@ $map = strtolower($map); // Normalize the value to lowercase
 
 $all_dates = MPTBM_Function::get_all_dates($price_based);
 $form_style = $form_style ?? 'horizontal';
+$disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
+if ($price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
+    $form_style = 'inline';
+    $map = 'no';
+    $hide_dropoff = true;
+} else {
+    $hide_dropoff = false;
+}
 $form_style_class = $form_style == 'horizontal' ? 'inputHorizontal' : 'inputInline';
 $area_class = $price_based == 'manual' ? ' ' : 'justifyBetween';
 $area_class = $form_style != 'horizontal' ? 'mptbm_form_details_area fdColumn' : $area_class;
@@ -85,7 +94,13 @@ if (!function_exists('convertToMinutes')) {
 $min_minutes = convertToMinutes($min_schedule_value);
 $max_minutes = convertToMinutes($max_schedule_value);
 
-$buffer_time = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'enable_buffer_time');
+// Use our custom buffer time function instead of the main plugin's buffer time
+if (function_exists('ecab_get_buffer_time')) {
+    $buffer_time = ecab_get_buffer_time();
+} else {
+    // Fallback to main plugin's buffer time if our function doesn't exist
+    $buffer_time = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'enable_buffer_time');
+}
 
 $current_time = time();
 $current_hour = wp_date('H', $current_time);
@@ -136,6 +151,14 @@ if (sizeof($all_dates) > 0) {
 	$max_bag = !empty($mptbm_bags) ? max($mptbm_bags) : 1;
 	$max_passenger = !empty($mptbm_passengers) ? max($mptbm_passengers) : 1;
 	
+	$disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
+	if ($price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
+	    $form_style = 'inline';
+	    $map = 'no';
+	    $hide_dropoff = true;
+	} else {
+	    $hide_dropoff = false;
+	}
 ?>	
 	<div class="<?php echo esc_attr($area_class); ?> ">
 	
@@ -241,19 +264,39 @@ if (sizeof($all_dates) > 0) {
 						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
 					</label>
 				</div>
-				<div class="inputList">
-					<label class="fdColumn mptbm_manual_end_place">
-						<span><?php echo mptbm_get_translation('drop_off_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')); ?></span>
-						<?php if ($price_based == 'manual') { ?>
-							<select class="formControl mptbm_map_end_place" id="mptbm_manual_end_place">
-								<option class="textCapitalize" selected disabled><?php echo mptbm_get_translation('select_destination_location_label', __(' Select Destination Location', 'ecab-taxi-booking-manager')); ?></option>
-							</select>
-						<?php } else { ?>
-							<input class="formControl textCapitalize" type="text" id="mptbm_map_end_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_drop_off_location_label', __(' Enter Drop-Off Location', 'ecab-taxi-booking-manager')); ?>" value="" />
-						<?php } ?>
-						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
-					</label>
-				</div>
+				<?php if (!($hide_dropoff && $price_based === 'fixed_hourly')): ?>
+<div class="inputList">
+    <label class="fdColumn mptbm_manual_end_place">
+        <span><?php echo mptbm_get_translation('drop_off_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')); ?></span>
+        <?php if ($price_based == 'manual') { ?>
+            <select class="formControl mptbm_map_end_place" id="mptbm_manual_end_place">
+                <option class="textCapitalize" selected disabled><?php echo mptbm_get_translation('select_destination_location_label', __(' Select Destination Location', 'ecab-taxi-booking-manager')); ?></option>
+            </select>
+        <?php } else { ?>
+            <input class="formControl textCapitalize" type="text" id="mptbm_map_end_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_drop_off_location_label', __(' Enter Drop-Off Location', 'ecab-taxi-booking-manager')); ?>" value="" />
+        <?php } ?>
+        <i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
+    </label>
+</div>
+<?php else: ?>
+<input type="hidden" id="mptbm_map_end_place" />
+<?php endif; ?>
+<input type="hidden" name="mptbm_original_price_base" value="<?php echo esc_attr($price_based); ?>" />
+<?php if ($hide_dropoff && $price_based === 'fixed_hourly') : ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var pickup = document.getElementById('mptbm_map_start_place');
+    var dropoff = document.getElementById('mptbm_map_end_place');
+    if (pickup && dropoff) {
+        function syncDropoff() {
+            dropoff.value = pickup.value;
+        }
+        pickup.addEventListener('input', syncDropoff);
+        syncDropoff();
+    }
+});
+</script>
+<?php endif; ?>
 				<?php
 				if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page')) {
 				?>
@@ -307,7 +350,9 @@ if (sizeof($all_dates) > 0) {
 				?>
 			</div>
 			<div class="mpForm">
-				<?php if ($taxi_return == 'enable' && $price_based != 'fixed_hourly') { ?>
+				<?php 
+				$transfer_type_setting = MP_Global_Function::get_settings('mptbm_general_settings', 'transfer_type', 'enable');
+				if ($taxi_return == 'enable' && $price_based != 'fixed_hourly' && $transfer_type_setting !== 'disable') { ?>
 					<div class="inputList">
 						<label class="fdColumn">
 							<span><?php echo mptbm_get_translation('transfer_type_label', __('Transfer Type', 'ecab-taxi-booking-manager')); ?></span>
@@ -409,23 +454,38 @@ if (sizeof($all_dates) > 0) {
 						</label>
 					</div>
 				<?php } ?>
-				<?php if ($price_based == 'fixed_hourly') { ?>
+				<?php if ($price_based == 'fixed_hourly') { 
+					$minimum_booking_hours = MP_Global_Function::get_settings('mptbm_general_settings', 'minimum_booking_hours', '0');
+					$minimum_booking_hours = intval($minimum_booking_hours);
+					$max_hours = 12; // Maximum hours to show in dropdown
+					// If setting is 0 (disabled), start from 1 hour
+					$start_hours = ($minimum_booking_hours == 0) ? 1 : $minimum_booking_hours;
+				?>
 					<div class="inputList">
 						<label class="fdColumn">
 							<span><?php echo mptbm_get_translation('select_hours_label', __('Select Hours', 'ecab-taxi-booking-manager')); ?></span>
 							<select class="formControl" name="mptbm_fixed_hours" id="mptbm_fixed_hours">
-								<option value="1" selected><?php echo mptbm_get_translation('one_hour_label', __('1 Hour', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="2"><?php echo mptbm_get_translation('two_hours_label', __('2 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="3"><?php echo mptbm_get_translation('three_hours_label', __('3 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="4"><?php echo mptbm_get_translation('four_hours_label', __('4 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="5"><?php echo mptbm_get_translation('five_hours_label', __('5 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="6"><?php echo mptbm_get_translation('six_hours_label', __('6 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="7"><?php echo mptbm_get_translation('seven_hours_label', __('7 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="8"><?php echo mptbm_get_translation('eight_hours_label', __('8 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="9"><?php echo mptbm_get_translation('nine_hours_label', __('9 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="10"><?php echo mptbm_get_translation('ten_hours_label', __('10 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="11"><?php echo mptbm_get_translation('eleven_hours_label', __('11 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="12"><?php echo mptbm_get_translation('twelve_hours_label', __('12 Hours', 'ecab-taxi-booking-manager')); ?></option>
+								<?php for ($i = $start_hours; $i <= $max_hours; $i++) { 
+									$selected = ($i == $start_hours) ? 'selected' : '';
+									$hour_label = '';
+									switch ($i) {
+										case 1: $hour_label = mptbm_get_translation('one_hour_label', __('1 Hour', 'ecab-taxi-booking-manager')); break;
+										case 2: $hour_label = mptbm_get_translation('two_hours_label', __('2 Hours', 'ecab-taxi-booking-manager')); break;
+										case 3: $hour_label = mptbm_get_translation('three_hours_label', __('3 Hours', 'ecab-taxi-booking-manager')); break;
+										case 4: $hour_label = mptbm_get_translation('four_hours_label', __('4 Hours', 'ecab-taxi-booking-manager')); break;
+										case 5: $hour_label = mptbm_get_translation('five_hours_label', __('5 Hours', 'ecab-taxi-booking-manager')); break;
+										case 6: $hour_label = mptbm_get_translation('six_hours_label', __('6 Hours', 'ecab-taxi-booking-manager')); break;
+										case 7: $hour_label = mptbm_get_translation('seven_hours_label', __('7 Hours', 'ecab-taxi-booking-manager')); break;
+										case 8: $hour_label = mptbm_get_translation('eight_hours_label', __('8 Hours', 'ecab-taxi-booking-manager')); break;
+										case 9: $hour_label = mptbm_get_translation('nine_hours_label', __('9 Hours', 'ecab-taxi-booking-manager')); break;
+										case 10: $hour_label = mptbm_get_translation('ten_hours_label', __('10 Hours', 'ecab-taxi-booking-manager')); break;
+										case 11: $hour_label = mptbm_get_translation('eleven_hours_label', __('11 Hours', 'ecab-taxi-booking-manager')); break;
+										case 12: $hour_label = mptbm_get_translation('twelve_hours_label', __('12 Hours', 'ecab-taxi-booking-manager')); break;
+										default: $hour_label = sprintf(__('%d Hours', 'ecab-taxi-booking-manager'), $i); break;
+									}
+								?>
+									<option value="<?php echo esc_attr($i); ?>" <?php echo $selected; ?>><?php echo esc_html($hour_label); ?></option>
+								<?php } ?>
 							</select>
 							<i class="far fa-clock mptbm_left_icon allCenter"></i>
 						</label>
@@ -469,7 +529,7 @@ if (sizeof($all_dates) > 0) {
 		</div>
 		<?php $map_key = get_option('mptbm_map_api_settings',true);?>
 		<span class="mptbm-map-warning" style="display:none"><?php _e('Google Map Authentication Failed! Please contact site admin.','ecab-taxi-booking-manager'); ?></span>
-		<div class="mptbm_map_area fdColumn" style="display: <?php echo ($price_based != 'manual' && $map === 'yes') ? 'block' : 'none'; ?>;">
+		<div class="mptbm_map_area fdColumn" style="display: <?php echo ($price_based != 'manual' && $map === 'yes' && !($hide_dropoff && $price_based === 'fixed_hourly')) ? 'block' : 'none'; ?>;">
 			<div class="fullHeight">
 				<?php if(!empty($map_key['gmap_api_key'])): ?>
 					<div id="mptbm_map_area"></div>
@@ -499,6 +559,7 @@ if (sizeof($all_dates) > 0) {
 							<span class="fas fa-clock textTheme"></span>
 						</h1>
 						<div class="fdColumn">
+							<div class="fdColumn">
 							<h6><?php echo mptbm_get_translation('total_time_label', __('TOTAL TIME', 'ecab-taxi-booking-manager')); ?></h6>
 							<strong class="mptbm_total_time"><?php echo mptbm_get_translation('zero_hour_label', __('0 Hour', 'ecab-taxi-booking-manager')); ?></strong>
 						</div>
@@ -538,4 +599,4 @@ if (sizeof($all_dates) > 0) {
 		</h3>
 	</div>
 <?php
-}
+} 

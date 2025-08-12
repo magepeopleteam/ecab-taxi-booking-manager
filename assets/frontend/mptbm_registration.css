@@ -10,7 +10,12 @@
 	div.mptbm_transport_summary,
 	div.mptbm_extra_service {display: none;}
 	div.mptbm_transport_search_area div[data-extra-service] {display: none;}
-	div.get_details_next_link {display: none;}
+	div.get_details_next_link {
+	display: none;
+	position: relative;
+	clear: both;
+	margin-top: 20px;
+}
 	div.mptbm_transport_search_area .woocommerce-page span.woocommerce-input-wrapper,
 	div.mptbm_transport_search_area .woocommerce-page table span {display: initial;}
 	div.mptbm_transport_search_area .woocommerce-page label {margin: 0 0 var(--dmp_xs) 0;display:initial;}
@@ -41,7 +46,28 @@
 		-webkit-appearance: none;
 	}
 	div.mptbm_transport_search_area .mptbm_map_area {max-width: calc(65% - 30px);width: 65%;}
-	div.mptbm_form_details_area div.mptbm_map_area{max-width: 100%;width: 100%;}
+	div.mptbm_form_details_area div.mptbm_map_area{
+		max-width: 100%;
+		width: 100%;
+		position: relative;
+		margin-bottom: 20px;
+		min-height: 300px;
+	}
+	
+	/* Ensure the map container has proper height */
+	div.mptbm_form_details_area div.mptbm_map_area #mptbm_map_area {
+		width: 100%;
+		height: 300px;
+		position: relative;
+	}
+	
+	/* Fix Next button positioning when map is visible */
+	div.mptbm_form_details_area .get_details_next_link {
+		position: relative;
+		clear: both;
+		margin-top: 20px;
+		z-index: 10;
+	}
 	div.mptbm_transport_search_area #mptbm_start_date.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
 	div.mptbm_transport_search_area #mptbm_return_date.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
 	div.mptbm_transport_search_area #mptbm_manual_start_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
@@ -155,6 +181,69 @@
 }
 .mptbm-hide-gif{
 	display: none;
+}
+
+/* Custom select dropdown styles */
+.mptbm-custom-select-wrapper {
+	position: absolute;
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+	z-index: 1000;
+}
+
+.mptbm-custom-search-input {
+	width: 100%;
+	padding: 8px;
+	border: none;
+	border-bottom: 1px solid #eee;
+	border-radius: 4px 4px 0 0;
+	font-size: 14px;
+	box-sizing: border-box;
+	background: #F5F6F8;
+	color: #222222;
+	font-weight: 400;
+	outline: none;
+}
+
+.mptbm-custom-search-input:focus {
+	border-bottom-color: var(--color_theme);
+	background: white;
+}
+
+.mptbm-custom-search-input::placeholder {
+	color: #999;
+	font-style: italic;
+}
+
+.mptbm-custom-options {
+	max-height: 200px;
+	overflow-y: auto;
+	background: white;
+}
+
+.mptbm-custom-option {
+	padding: 8px;
+	cursor: pointer;
+	border-bottom: 1px solid #f5f5f5;
+	font-size: 14px;
+	color: #222222;
+	transition: background-color 0.2s ease;
+}
+
+.mptbm-custom-option:hover {
+	background-color: #f8f9fa;
+}
+
+.mptbm-custom-option.mptbm-option-selected {
+	background-color: var(--color_theme);
+	color: white;
+}
+
+.mptbm-custom-option.mptbm-option-selected:hover {
+	background-color: var(--color_theme);
+	opacity: 0.9;
 }
 
 .mpStyle .inputInline .inputList{

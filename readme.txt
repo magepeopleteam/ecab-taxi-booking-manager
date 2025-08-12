@@ -212,6 +212,10 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 1.3.1 = 
+1. Drop off location can be hidden when it is hourly price
+2. Minimal rental duration can be added when it is hourly price 
+3. Minor bug fixes 
 = 1.3.0 =
 1. Added checkout disable field to disable all checkout field from this plugin
 2. 0 priced transport can be booked now

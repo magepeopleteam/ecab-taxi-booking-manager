@@ -58,14 +58,21 @@
 						array(
 							'name' => 'api_authentication_type',
 							'label' => esc_html__('API Authentication', 'ecab-taxi-booking-manager'),
-							'desc' => esc_html__('Choose the authentication method for the REST API', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Choose the authentication method for the REST API. Application Passwords use WordPress built-in authentication, while Custom API Key provides a simple key-based authentication.', 'ecab-taxi-booking-manager'),
 							'type' => 'select',
 							'default' => 'application_password',
 							'options' => array(
-								'none' => esc_html__('No Authentication', 'ecab-taxi-booking-manager'),
-								'application_password' => esc_html__('Application Passwords', 'ecab-taxi-booking-manager'),
-								'jwt' => esc_html__('JWT Authentication', 'ecab-taxi-booking-manager')
+								'application_password' => esc_html__('Application Passwords (Recommended)', 'ecab-taxi-booking-manager'),
+								'custom_api_key' => esc_html__('Custom API Key', 'ecab-taxi-booking-manager'),
 							)
+						),
+						array(
+							'name' => 'api_custom_key',
+							'label' => esc_html__('Custom API Key', 'ecab-taxi-booking-manager'),
+							'desc' => esc_html__('Enter a custom API key for authentication. This key must be included in API requests as "X-API-Key" header. Required when Custom API Key authentication is selected.', 'ecab-taxi-booking-manager'),
+							'type' => 'text',
+							'default' => '',
+							'placeholder' => 'Enter your custom API key'
 						),
 						array(
 							'name' => 'api_rate_limit',
