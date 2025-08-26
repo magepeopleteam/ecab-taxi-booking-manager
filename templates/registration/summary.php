@@ -51,9 +51,9 @@
 					<div class="dividerL"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Pickup Location', 'ecab-taxi-booking-manager'); ?></h6>
 					<?php if($price_based == 'manual'){ ?>
-						<p class="_textLight_1 mptbm_manual_start_place"><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $start_place,'locations' )); ?></p>
+						<p class="_textLight_1 mptbm_summary_start_place"><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $start_place,'locations' )); ?></p>
 					<?php }else{ ?>
-						<p class="_textLight_1 mptbm_manual_start_place"><?php echo esc_html($start_place); ?></p>
+						<p class="_textLight_1 mptbm_summary_start_place"><?php echo esc_html($start_place); ?></p>
 					<?php } ?>
 					<div class="dividerL"></div>
 					<?php 
@@ -66,9 +66,9 @@
 					<?php } ?>
 					<h6 class="_mB_xs"><?php esc_html_e('Drop-Off Location', 'ecab-taxi-booking-manager'); ?></h6>
 					<?php if($price_based == 'manual'){ ?>
-						<p class="_textLight_1 mptbm_map_end_place"><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $end_place,'locations' )); ?></p>
+						<p class="_textLight_1 mptbm_summary_end_place"><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $end_place,'locations' )); ?></p>
 					<?php }else{ ?>
-						<p class="_textLight_1 mptbm_map_end_place"><?php echo esc_html($end_place); ?></p>
+						<p class="_textLight_1 mptbm_summary_end_place"><?php echo esc_html($end_place); ?></p>
 					<?php } ?>
 					
 					<?php if($price_based != 'manual'){ ?>

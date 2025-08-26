@@ -170,8 +170,62 @@ function mptbm_map_area_init() {
             .find('[name="mptbm_enable_view_search_result_page"]')
             .val();
         if (price_based === "manual") {
-            start_place = document.getElementById("mptbm_manual_start_place");
-            end_place = document.getElementById("mptbm_manual_end_place");
+            // Get Select2 values properly for manual mode
+            let start_place_select = parent.find("#mptbm_manual_start_place");
+            let end_place_select = parent.find("#mptbm_manual_end_place");
+            
+            // Check if Select2 is applied and get the value accordingly
+            if (start_place_select.hasClass('select2-hidden-accessible')) {
+                // Try different methods to get Select2/SelectWoo value
+                let start_val = null;
+                
+                // Try selectWoo first
+                if (typeof start_place_select.selectWoo === 'function') {
+                    start_val = start_place_select.selectWoo('val');
+                }
+                // Fallback to select2
+                if (!start_val && typeof start_place_select.select2 === 'function') {
+                    start_val = start_place_select.select2('val');
+                }
+                // Fallback to regular val()
+                if (!start_val) {
+                    start_val = start_place_select.val();
+                }
+                // Final fallback to selected option
+                if (!start_val) {
+                    start_val = start_place_select.find('option:selected').val();
+                }
+                
+                start_place = { value: start_val };
+            } else {
+                start_place = { value: start_place_select.val() };
+            }
+            
+            if (end_place_select.hasClass('select2-hidden-accessible')) {
+                // Try different methods to get Select2/SelectWoo value
+                let end_val = null;
+                
+                // Try selectWoo first
+                if (typeof end_place_select.selectWoo === 'function') {
+                    end_val = end_place_select.selectWoo('val');
+                }
+                // Fallback to select2
+                if (!end_val && typeof end_place_select.select2 === 'function') {
+                    end_val = end_place_select.select2('val');
+                }
+                // Fallback to regular val()
+                if (!end_val) {
+                    end_val = end_place_select.val();
+                }
+                // Final fallback to selected option
+                if (!end_val) {
+                    end_val = end_place_select.find('option:selected').val();
+                }
+                
+                end_place = { value: end_val };
+            } else {
+                end_place = { value: end_place_select.val() };
+            }
         } else {
             start_place = document.getElementById("mptbm_map_start_place");
             end_place = document.getElementById("mptbm_map_end_place");
@@ -223,9 +277,17 @@ function mptbm_map_area_init() {
                     .trigger("click");
             }
         } else if (!start_place.value) {
+            if (price_based === "manual") {
+                parent.find("#mptbm_manual_start_place").focus();
+            } else {
             start_place.focus();
+            }
         } else if (!end_place.value) {
+            if (price_based === "manual") {
+                parent.find("#mptbm_manual_end_place").focus();
+            } else {
             end_place.focus();
+            }
         } else {
             dLoader(parent.find(".tabsContentNext"));
             mptbm_content_refresh(parent);
@@ -841,9 +903,14 @@ function mptbm_price_calculation(parent) {
                                     pageScrollTo(target_extra_service);
                                 }
                                 dLoaderRemove(parent.find('.tabsContentNext'));
-                                if (!target_extra_service.find('[name="mptbm_extra_service[]"]').length) {
+                                // Check if vehicle has seat plan enabled
+                                let hasSeatPlan = parent.find('.mptbm_transport_select[data-post-id="' + post_id + '"]').hasClass('mptbm-has-seat-plan');
+                                
+                                if (!target_extra_service.find('[name="mptbm_extra_service[]"]').length && !hasSeatPlan) {
+                                    // Only auto-trigger checkout if no extra services AND no seat plan
                                     parent.find('.mptbm_book_now[type="button"]').trigger('click');
                                 } else {
+                                    // Show Book Now button if there are extra services OR seat plan
                                     checkAndToggleBookNowButton(parent);
                                 }
                                 // iOS DOM reflow workaround
@@ -889,8 +956,16 @@ function mptbm_price_calculation(parent) {
     function checkAndToggleBookNowButton(parent) {
         // Check if there are any extra services present
         let extraServicesAvailable = parent.find('[name="mptbm_extra_service[]"]').length > 0;
+        
+        // Check if the selected vehicle has seat plan enabled
+        let post_id = parent.find('[name="mptbm_post_id"]').val();
+        let hasSeatPlan = false;
+        if (post_id) {
+            hasSeatPlan = parent.find('.mptbm_transport_select[data-post-id="' + post_id + '"]').hasClass('mptbm-has-seat-plan');
+        }
 
-        if (extraServicesAvailable) {
+        // Show Book Now button if there are extra services OR seat plan
+        if (extraServicesAvailable || hasSeatPlan) {
             parent.find('.mptbm_book_now[type="button"]').show();
         } else {
             parent.find('.mptbm_book_now[type="button"]').hide();
@@ -1185,11 +1260,12 @@ function mptbm_is_ios() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
-// Enable search in Drop-Off and Pickup Location dropdowns using selectWoo if available
+// Enable search in Drop-Off and Pickup Location dropdowns using selectWoo or select2 if available
 jQuery(document).ajaxComplete(function() {
+    // Check for selectWoo first (WooCommerce's version of Select2)
     if (typeof jQuery.fn.selectWoo !== 'undefined') {
-        // Drop-Off Location
-        jQuery('.mptbm_map_end_place').each(function() {
+        // Drop-Off Location - only target select elements, not summary display elements
+        jQuery('select.mptbm_map_end_place').each(function() {
             if (!jQuery(this).hasClass('select2-hidden-accessible')) {
                 jQuery(this).selectWoo({
                     width: '100%',
@@ -1198,10 +1274,33 @@ jQuery(document).ajaxComplete(function() {
                 });
             }
         });
-        // Pickup Location (manual mode)
-        jQuery('.mptbm_manual_start_place').each(function() {
+        // Pickup Location (manual mode) - only target select elements, not summary display elements
+        jQuery('select.mptbm_manual_start_place').each(function() {
             if (!jQuery(this).hasClass('select2-hidden-accessible')) {
                 jQuery(this).selectWoo({
+                    width: '100%',
+                    placeholder: jQuery(this).find('option[selected]').text() || 'Select Pick-Up Location',
+                    allowClear: true
+                });
+            }
+        });
+    }
+    // Fallback to select2 if selectWoo is not available
+    else if (typeof jQuery.fn.select2 !== 'undefined') {
+        // Drop-Off Location - only target select elements, not summary display elements
+        jQuery('select.mptbm_map_end_place').each(function() {
+            if (!jQuery(this).hasClass('select2-hidden-accessible')) {
+                jQuery(this).select2({
+                    width: '100%',
+                    placeholder: jQuery(this).find('option[selected]').text() || 'Select Destination Location',
+                    allowClear: true
+                });
+            }
+        });
+        // Pickup Location (manual mode) - only target select elements, not summary display elements
+        jQuery('select.mptbm_manual_start_place').each(function() {
+            if (!jQuery(this).hasClass('select2-hidden-accessible')) {
+                jQuery(this).select2({
                     width: '100%',
                     placeholder: jQuery(this).find('option[selected]').text() || 'Select Pick-Up Location',
                     allowClear: true
