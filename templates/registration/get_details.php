@@ -267,13 +267,13 @@ if (sizeof($all_dates) > 0) {
 				<?php if (!($hide_dropoff && $price_based === 'fixed_hourly')): ?>
 <div class="inputList">
     <label class="fdColumn mptbm_manual_end_place">
-        <span><?php echo mptbm_get_translation('drop_off_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')); ?></span>
+        <span><?php echo mptbm_get_translation('dropoff_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')); ?></span>
         <?php if ($price_based == 'manual') { ?>
             <select class="formControl mptbm_map_end_place" id="mptbm_manual_end_place">
                 <option class="textCapitalize" selected disabled><?php echo mptbm_get_translation('select_destination_location_label', __(' Select Destination Location', 'ecab-taxi-booking-manager')); ?></option>
             </select>
         <?php } else { ?>
-            <input class="formControl textCapitalize" type="text" id="mptbm_map_end_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_drop_off_location_label', __(' Enter Drop-Off Location', 'ecab-taxi-booking-manager')); ?>" value="" />
+            <input type="text" id="mptbm_map_end_place" class="formControl textCapitalize" placeholder="<?php echo mptbm_get_translation('enter_dropoff_location_placeholder', __(' Enter Drop-Off Location', 'ecab-taxi-booking-manager')); ?>" value="" />
         <?php } ?>
         <i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
     </label>
@@ -297,22 +297,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <?php endif; ?>
-				<?php
-				if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page')) {
-				?>
-					<a href="<?php echo MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page') ?>" class="mptbm_find_location_btn"><?php echo mptbm_get_translation('click_here_label', __('Click here', 'ecab-taxi-booking-manager')); ?></a>
-					<?php echo mptbm_get_translation('if_you_are_not_able_to_find_your_desired_location_label', __('If you are not able to find your desired location', 'ecab-taxi-booking-manager')); ?>
-				<?php
-				}
-				?>			
-				<?php
-				if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page')) {
-				?>
-					<a href="<?php echo MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page') ?>" class="mptbm_find_location_btn"><?php echo mptbm_get_translation('click_here_label', __('Click here', 'ecab-taxi-booking-manager')); ?></a>
-					<?php echo mptbm_get_translation('if_you_are_not_able_to_find_your_desired_location_label', __('If you are not able to find your desired location', 'ecab-taxi-booking-manager')); ?>
-				<?php
-				}
-				?>
 				<?php if ($pro_active && $enable_max_passenger_filter === 'yes'): ?>
 				<div class="inputList mp_input_select">
 					<label class="fdColumn">
@@ -341,10 +325,11 @@ document.addEventListener('DOMContentLoaded', function() {
 				<?php endif; ?>
 			
 				<?php
-				if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page')) {
+				$location_page_url = MPTBM_Function::get_page_url_from_slug(MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page'));
+				if ($location_page_url) {
 				?>
-					<a href="<?php echo MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page') ?>" class="mptbm_find_location_btn"><?php esc_html_e('Click here', 'ecab-taxi-booking-manager'); ?></a>
-					<?php esc_html_e('If you are not able to find your desired location', 'ecab-taxi-booking-manager'); ?>
+					<a href="<?php echo esc_url($location_page_url); ?>" class="mptbm_find_location_btn"><?php echo mptbm_get_translation('click_here_label', __('Click here', 'ecab-taxi-booking-manager')); ?></a>
+					<?php echo mptbm_get_translation('if_you_are_not_able_to_find_your_desired_location_label', __('If you are not able to find your desired location', 'ecab-taxi-booking-manager')); ?>
 				<?php
 				}
 				?>
@@ -429,6 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		?>
 			<li data-value="<?php echo esc_attr($data_value); ?>" data-time="<?php echo esc_attr($data_time); ?>"><?php echo esc_html(MP_Global_Function::date_format($time_formatted, 'time')); ?></li>
 		<?php } ?>
+		
 	</ul>
 						</div>
 					<?php
@@ -443,12 +429,12 @@ document.addEventListener('DOMContentLoaded', function() {
 							<span><?php echo mptbm_get_translation('extra_waiting_hours_label', __('Extra Waiting Hours', 'ecab-taxi-booking-manager')); ?></span>
 							<select class="formControl" name="mptbm_waiting_time" id="mptbm_waiting_time">
 								<option value="0" selected><?php echo mptbm_get_translation('no_waiting_label', __('No Waiting', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="1"><?php echo mptbm_get_translation('one_hour_label', __('1 Hour', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="2"><?php echo mptbm_get_translation('two_hours_label', __('2 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="3"><?php echo mptbm_get_translation('three_hours_label', __('3 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="4"><?php echo mptbm_get_translation('four_hours_label', __('4 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="5"><?php echo mptbm_get_translation('five_hours_label', __('5 Hours', 'ecab-taxi-booking-manager')); ?></option>
-								<option value="6"><?php echo mptbm_get_translation('six_hours_label', __('6 Hours', 'ecab-taxi-booking-manager')); ?></option>
+								<option value="1">1 <?php echo mptbm_get_translation('hours_in_waiting_label', __('Hour', 'ecab-taxi-booking-manager')); ?></option>
+								<option value="2">2 <?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></option>
+								<option value="3">3 <?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></option>
+								<option value="4">4 <?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></option>
+								<option value="5">5 <?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></option>
+								<option value="6">6 <?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></option>
 							</select>
 							<i class="far fa-clock mptbm_left_icon allCenter"></i>
 						</label>
@@ -560,8 +546,9 @@ document.addEventListener('DOMContentLoaded', function() {
 						</h1>
 						<div class="fdColumn">
 							<div class="fdColumn">
-							<h6><?php echo mptbm_get_translation('total_time_label', __('TOTAL TIME', 'ecab-taxi-booking-manager')); ?></h6>
-							<strong class="mptbm_total_time"><?php echo mptbm_get_translation('zero_hour_label', __('0 Hour', 'ecab-taxi-booking-manager')); ?></strong>
+								<h6><?php echo mptbm_get_translation('total_time_label', __('TOTAL TIME', 'ecab-taxi-booking-manager')); ?></h6>
+								<strong class="mptbm_total_time"><?php echo mptbm_get_translation('zero_hour_label', __('0 Hour', 'ecab-taxi-booking-manager')); ?></strong>
+							</div>
 						</div>
 					</div>
 				</div>

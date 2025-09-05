@@ -1,4 +1,7 @@
 <?php
+if (!function_exists('mptbm_get_translation')) {
+	require_once dirname(__DIR__) . '/inc/mptbm-translation-helper.php';
+}
 /*
 * @Author 		engr.sumonazma@gmail.com
 * Copyright: 	mage-people.com
@@ -237,10 +240,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				}
 
 				if ($waiting_time && $waiting_time > 0) {
-					$item->add_meta_data(esc_html__('Extra Waiting Hours', 'ecab-taxi-booking-manager'), $waiting_time . ' ' . esc_html__('Hour ', 'ecab-taxi-booking-manager'));
+					$item->add_meta_data(mptbm_get_translation('extra_waiting_hours_label', __('Extra Waiting Hours', 'ecab-taxi-booking-manager')), $waiting_time . ' ' . mptbm_get_translation('hours_in_waiting_label', __('Hour', 'ecab-taxi-booking-manager')));
 				}
 				if ($fixed_time && $fixed_time > 0) {
-					$item->add_meta_data(esc_html__('Service Times', 'ecab-taxi-booking-manager'), $fixed_time . ' ' . esc_html__('Hour ', 'ecab-taxi-booking-manager'));
+					$item->add_meta_data(mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')), $fixed_time . ' ' . mptbm_get_translation('hours_in_waiting_label', __('Hour', 'ecab-taxi-booking-manager')));
 				}
 				$item->add_meta_data(esc_html__('Date ', 'ecab-taxi-booking-manager'), esc_html(MP_Global_Function::date_format($date)));
 				$item->add_meta_data(esc_html__('Time ', 'ecab-taxi-booking-manager'), esc_html(MP_Global_Function::date_format($date, 'time')));
@@ -573,7 +576,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						<?php if (!($original_price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable')): ?>
 						<li>
 							<span class="fas fa-map-marker-alt"></span>
-							<h6 class="_mR_xs"><?php esc_html_e('Drop-Off Location', 'ecab-taxi-booking-manager'); ?> :</h6>
+							<h6 class="_mR_xs"><?php echo mptbm_get_translation('dropoff_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')); ?> :</h6>
 							<span><?php echo esc_html($end_location); ?></span>
 						</li>
 						<?php endif; ?>
@@ -656,14 +659,14 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						<?php } ?>
 						<?php if ($waiting_time && $waiting_time > 0) { ?>
 							<li>
-								<h6 class="_mR_xs"><?php esc_html_e('Extra Waiting Hours', 'ecab-taxi-booking-manager'); ?> :</h6>
-								<span><?php echo esc_html($waiting_time); ?><?php esc_html_e('Hours', 'ecab-taxi-booking-manager'); ?></span>
+								<h6 class="_mR_xs"><?php echo mptbm_get_translation('extra_waiting_hours_label', __('Extra Waiting Hours', 'ecab-taxi-booking-manager')); ?> :</h6>
+								<span><?php echo esc_html($waiting_time); ?><?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></span>
 							</li>
 						<?php } ?>
 						<?php if ($fixed_time && $fixed_time > 0) { ?>
 							<li>
-								<h6 class="_mR_xs"><?php esc_html_e('Service Times', 'ecab-taxi-booking-manager'); ?> :</h6>
-								<span><?php echo esc_html($fixed_time); ?><?php esc_html_e('Hours', 'ecab-taxi-booking-manager'); ?></span>
+								<h6 class="_mR_xs"><?php echo mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')); ?> :</h6>
+								<span><?php echo esc_html($fixed_time); ?><?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></span>
 							</li>
 						<?php } ?>
 						<?php 

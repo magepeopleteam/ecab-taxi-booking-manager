@@ -1,4 +1,7 @@
 <?php
+if (!function_exists('mptbm_get_translation')) {
+	require_once dirname(__DIR__, 2) . '/inc/mptbm-translation-helper.php';
+}
 	/*
  * @Author 		engr.sumonazma@gmail.com
  * Copyright: 	mage-people.com
@@ -32,9 +35,9 @@
     if (sizeof($end_locations) > 0) {
         
         ?>
-	    <span><?php esc_html_e('Drop-Off Location', 'ecab-taxi-booking-manager'); ?></span>
+	    <span><?php echo mptbm_get_translation('dropoff_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')); ?></span>
         <select class="formControl mptbm_map_end_place" id="mptbm_manual_end_place">
-            <option selected disabled><?php esc_html_e(' Select Destination Location', 'ecab-taxi-booking-manager'); ?></option>
+            <option selected disabled><?php echo mptbm_get_translation('select_destination_location_label', __(' Select Destination Location', 'ecab-taxi-booking-manager')); ?></option>
             <?php foreach ($end_locations as $location) { ?>
                 <option value="<?php echo esc_attr($location); ?>"><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $location,'locations' )); ?></option>
             <?php } ?>

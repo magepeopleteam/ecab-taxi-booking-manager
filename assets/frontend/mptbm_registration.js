@@ -269,6 +269,32 @@ function mptbm_map_area_init() {
                     // Mark as initialized to prevent duplicate initialization
                     startPlaceInput.setAttribute('data-autocomplete-initialized', 'true');
                 }
+
+            // Initialize Google Places autocomplete for dropoff location as well (independent of map visibility)
+            var endPlaceInput = document.getElementById('mptbm_map_end_place');
+            if (endPlaceInput && !endPlaceInput.hasAttribute('data-autocomplete-initialized') && endPlaceInput.type !== 'hidden') {
+                console.log('Initializing Google Places autocomplete for dropoff location');
+                var endPlaceAutocomplete = new google.maps.places.Autocomplete(endPlaceInput);
+                var restrictToCountry = $('[name="mptbm_restrict_search_country"]').val();
+                var countryCode = $('[name="mptbm_country"]').val();
+
+                if (restrictToCountry == 'yes') {
+                    endPlaceAutocomplete.setComponentRestrictions({
+                        country: [countryCode]
+                    });
+                }
+
+                google.maps.event.addListener(endPlaceAutocomplete, 'place_changed', function () {
+                    var startInput = document.getElementById('mptbm_map_start_place');
+                    mptbm_set_cookie_distance_duration(
+                        startInput ? startInput.value : '',
+                        endPlaceInput ? endPlaceInput.value : ''
+                    );
+                });
+
+                // Mark as initialized to prevent duplicate initialization
+                endPlaceInput.setAttribute('data-autocomplete-initialized', 'true');
+            }
         }
 
         // Initialize Google Places autocomplete on page load with a delay to ensure API is loaded
@@ -418,13 +444,13 @@ function mptbm_map_area_init() {
         if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1 && price_based != 'fixed_hourly') {
             return_date = return_target_date.val();
             return_time = return_target_time.val();
-            // Fix for return_time conversion
+            
+            // Get the actual time from the data-time attribute (consistent with start_time)
             let selectedReturnTimeElement = parent.find("#mptbm_map_return_time").closest(".mp_input_select").find("li[data-value='" + return_time + "']");
             if (selectedReturnTimeElement.length) {
                 return_time = selectedReturnTimeElement.attr('data-time');
-                let [r_hours, r_minutes] = return_time.split('.');
-                return_time = parseFloat(r_hours) + (parseFloat(r_minutes) / 60);
             }
+            
         } else {
             return_date = start_date;
             return_time = 'Not applicable';

@@ -23,14 +23,14 @@ if (!class_exists('MPTBM_Settings_Global')) {
 		public function global_settings_menu()
 		{
 			$cpt = MPTBM_Function::get_cpt();
-			add_submenu_page('edit.php?post_type=' . $cpt, esc_html__('Global Settings', 'ecab-taxi-booking-manager'), esc_html__('Global Settings', 'ecab-taxi-booking-manager'), 'manage_options', 'mptbm_settings_page', array($this, 'settings_page'));
+			add_submenu_page('edit.php?post_type=' . $cpt, esc_html__('Settings', 'ecab-taxi-booking-manager'), esc_html__('Settings', 'ecab-taxi-booking-manager'), 'manage_options', 'mptbm_settings_page', array($this, 'settings_page'));
 		}
 		public function settings_page()
 		{
 ?>
 			<div class="mpStyle mp_global_settings">
 				<div class="mpPanel">
-					<div class="mpPanelHeader"><?php echo esc_html(esc_html__(' Global Settings', 'ecab-taxi-booking-manager')); ?></div>
+					<div class="mpPanelHeader"><?php echo esc_html(esc_html__('Settings', 'ecab-taxi-booking-manager')); ?></div>
 					<div class="mpPanelBody mp_zero">
 						<div class="mpTabs leftTabs">
 							<?php $this->settings_api->show_navigation(); ?>
@@ -254,19 +254,17 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					array(
 						'name' => 'enable_view_search_result_page',
 						'label' => $label . ' ' . esc_html__('Show Search Result In A Different Page', 'ecab-taxi-booking-manager'),
-						'desc' => esc_html__('Enter page slug. Leave blank if you dont want to enable this setting', 'ecab-taxi-booking-manager'),
-						'ecab-taxi-booking-manager' . '<strong> ' . esc_html__('Yes', 'ecab-taxi-booking-manager') . '</strong>' . esc_html__('or to make it hidden, select', 'ecab-taxi-booking-manager') . '<strong> ' . esc_html__('No', 'ecab-taxi-booking-manager') . '</strong>' . esc_html__('. Default is', 'ecab-taxi-booking-manager') . '<strong>' . esc_html__('No', 'ecab-taxi-booking-manager') . '</strong>',
+						'desc' => esc_html__('Enter page slug (e.g., my-search-results) or full URL. The plugin will automatically assign the correct template to any page you specify. Leave blank if you dont want to enable this setting. Works with any WordPress permalink structure.', 'ecab-taxi-booking-manager'),
 						'type' => 'text',
-						'placeholder' => 'transport-result',
+						'placeholder' => 'my-search-results',
 						'default' => '',
 					),
 					array(
 						'name' => 'enable_view_find_location_page',
 						'label' => $label . ' ' . esc_html__('Take user to another page if location can not be found', 'ecab-taxi-booking-manager'),
-						'desc' => esc_html__('Enter page url. Leave blank if you dont want to enable this setting', 'ecab-taxi-booking-manager'),
-						'ecab-taxi-booking-manager' . '<strong> ' . esc_html__('Yes', 'ecab-taxi-booking-manager') . '</strong>' . esc_html__('or to make it hidden, select', 'ecab-taxi-booking-manager') . '<strong> ' . esc_html__('No', 'ecab-taxi-booking-manager') . '</strong>' . esc_html__('. Default is', 'ecab-taxi-booking-manager') . '<strong>' . esc_html__('No', 'ecab-taxi-booking-manager') . '</strong>',
+						'desc' => esc_html__('Enter page slug (e.g., taxi-help) or full URL. Leave blank if you dont want to enable this setting. Works with any WordPress permalink structure.', 'ecab-taxi-booking-manager'),
 						'type' => 'text',
-						'placeholder' => 'https://mysite.com/taxi'
+						'placeholder' => 'taxi-help'
 					),
 					array(
 						'name' => 'enable_buffer_time',
@@ -435,6 +433,7 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					array('name' => 'select_time_placeholder', 'label' => esc_html__('Select Time Placeholder', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Please Select Time'),
 					array('name' => 'enter_pickup_location_placeholder', 'label' => esc_html__('Enter Pickup Location Placeholder', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Enter Pick-Up Location'),
 					array('name' => 'enter_dropoff_location_placeholder', 'label' => esc_html__('Enter Drop-Off Location Placeholder', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Enter Drop-Off Location'),
+					array('name' => 'select_destination_location_label', 'label' => esc_html__('Select Destination Location Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Select Destination Location'),
 					array('name' => 'transfer_type_label', 'label' => esc_html__('Transfer Type Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Transfer Type'),
 					array('name' => 'one_way_label', 'label' => esc_html__('One Way Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'One Way'),
 					array('name' => 'return_label', 'label' => esc_html__('Return Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Return'),
@@ -462,6 +461,7 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					array('name' => 'selected_label_2', 'label' => esc_html__('Selected Button Label 2', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Selected'),
 					array('name' => 'no_waiting_label', 'label' => esc_html__('No Waiting Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'No Waiting'),
 					array('name' => 'extra_waiting_hours_label', 'label' => esc_html__('Extra Waiting Hours Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Extra Waiting Hours'),
+					array('name' => 'hours_in_waiting_label', 'label' => esc_html__('Hours in Waiting Hours Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Hours'),
 					array('name' => 'select_hours_label', 'label' => esc_html__('Select Hours Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Select Hours'),
 					array('name' => 'number_of_bags_label', 'label' => esc_html__('Number Of Bags Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Number Of Bags'),
 					array('name' => 'number_of_passengers_filter_label', 'label' => esc_html__('Number Of Passengers Filter Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Number Of Passengers'),

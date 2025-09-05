@@ -6,6 +6,20 @@
 if (!defined("ABSPATH")) {
     die();
 } // Cannot access pages directly
+
+// Clear only pricing-related cache to ensure fresh pricing on transport result page
+$current_page_template = get_page_template_slug();
+$is_transport_result_page = ($current_page_template === 'transport_result.php') || 
+                           (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'transport-result') !== false);
+
+if ($is_transport_result_page) {
+    // Clear only pricing-specific caches, not essential search data
+    global $wpdb;
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_weather_pricing_%'");
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_traffic_data_%'");
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_weather_pricing_%'");
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_traffic_data_%'");
+}
 $label = MPTBM_Function::get_name();
 $days = MP_Global_Function::week_day();
 $days_name = array_keys($days);
@@ -574,6 +588,7 @@ if ($two_way > 1 && MP_Global_Function::get_settings("mptbm_general_settings", "
         $return_date_time .= " " . $return_time_formatted;
     }
 
+    
 }
 if (MP_Global_Function::get_settings("mptbm_general_settings", "enable_filter_via_features") == "yes") {
     $feature_passenger_number = isset($_POST["feature_passenger_number"]) ? sanitize_text_field($_POST["feature_passenger_number"]) : "";
@@ -591,6 +606,18 @@ $mptbm_passengers = max($mptbm_passengers);
 
 $selected_max_passenger = isset($_POST['mptbm_max_passenger']) ? intval($_POST['mptbm_max_passenger']) : 0;
 $selected_max_bag = isset($_POST['mptbm_max_bag']) ? intval($_POST['mptbm_max_bag']) : 0;
+
+// Get distance and duration from cookies for price calculation
+$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';
+$duration = isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '';
+
+// Fallback values for object caching compatibility
+if (empty($distance)) {
+    $distance = 1000; // Default 1km in meters
+}
+if (empty($duration)) {
+    $duration = 3600; // Default 1 hour in seconds
+}
 ?>
 <div data-tabs-next="#mptbm_search_result" class="mptbm_map_search_result">
 	<input type="hidden" name="mptbm_post_id" value="" data-price="" />
@@ -648,13 +675,18 @@ $selected_max_bag = isset($_POST['mptbm_max_bag']) ? intval($_POST['mptbm_max_ba
 				<!-- Filter area end -->
 					<?php
 
+error_log('MPTBM DEBUG: About to query transport list with price_based: ' . $price_based);
 $all_posts = MPTBM_Query::query_transport_list($price_based);
+
+error_log('MPTBM DEBUG: Found ' . $all_posts->found_posts . ' total posts');
  
 if ($all_posts->found_posts > 0) {
     $posts = $all_posts->posts;
     $vehicle_item_count = 0;
+    error_log('MPTBM DEBUG: Processing ' . count($posts) . ' vehicles');
     foreach ($posts as $post) {
         $post_id = $post->ID;
+        error_log('MPTBM DEBUG: Processing vehicle ID: ' . $post_id);
         $taxi_max_passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
         $taxi_max_bag = (int) get_post_meta($post_id, 'mptbm_maximum_bag', true);
         // error_log('DEBUG: Taxi ' . $post_id . ' max_passenger=' . $taxi_max_passenger . ', max_bag=' . $taxi_max_bag);
@@ -662,22 +694,28 @@ if ($all_posts->found_posts > 0) {
             ($selected_max_passenger && $taxi_max_passenger < $selected_max_passenger) ||
             ($selected_max_bag && $taxi_max_bag < $selected_max_bag)
         ) {
-            // error_log('DEBUG: Taxi ' . $post_id . ' SKIPPED by filter');
+            error_log('MPTBM DEBUG: Vehicle ' . $post_id . ' SKIPPED by filter - passenger/bag requirements not met');
             continue; // Skip this taxi, it doesn't meet the filter
         }
-        // error_log('DEBUG: Taxi ' . $post_id . ' INCLUDED');
+        
         $check_schedule = wptbm_get_schedule($post_id, $days_name, $start_date,$start_time_schedule, $return_time_schedule, $start_place_coordinates, $end_place_coordinates, $price_based);
+        error_log('MPTBM DEBUG: Vehicle ' . $post_id . ' schedule check result: ' . ($check_schedule ? 'PASSED' : 'FAILED'));
         
         if ($check_schedule) {
             $vehicle_item_count = $vehicle_item_count + 1;
             $price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
             $custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
             
+            error_log('MPTBM DEBUG: Vehicle ' . $post_id . ' - Getting price with distance: ' . $distance . ', duration: ' . $duration . ', start: ' . $start_place . ', end: ' . $end_place);
+            
             // Get the price
             $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time);
             
+            error_log('MPTBM DEBUG: Vehicle ' . $post_id . ' calculated price: ' . $price . ', display_type: ' . $price_display_type);
+            
             // Only skip display if price is 0 and we're not in zero or custom message mode
             if (!$price && $price_display_type === 'normal') {
+                error_log('MPTBM DEBUG: Vehicle ' . $post_id . ' SKIPPED - price is 0 and display type is normal');
                 continue;
             }
             
@@ -691,9 +729,13 @@ if ($all_posts->found_posts > 0) {
                 $price_display = $wc_price;
             }
             
+            error_log('MPTBM DEBUG: Vehicle ' . $post_id . ' INCLUDED - raw_price: ' . $raw_price . ', price_display: ' . strip_tags($price_display));
+            
             include MPTBM_Function::template_path("registration/vehicle_item.php");
         }
     }
+    
+    error_log('MPTBM DEBUG: Total vehicles processed: ' . count($posts) . ', Total included: ' . $vehicle_item_count);
 } else {
 ?>
 						<div class="_dLayout_mT_bgWarning">

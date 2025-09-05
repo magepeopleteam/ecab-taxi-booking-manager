@@ -4,7 +4,7 @@ Author URI : https://mage-people.com
 Tags: Taxi Service, Chauffeur Service, Ride Booking, Cab Booking, Transportation
 Requires at least: 5.3
 Stable tag: trunk
-Tested up to: 6.8
+Tested up to: 6.8.2
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -212,6 +212,9 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 1.3.2 = 
+1. Made compatiable with major caching plugins 
+2. Manual shortcode div not properly closing issue fixed
 = 1.3.1 = 
 1. Drop off location can be hidden when it is hourly price
 2. Minimal rental duration can be added when it is hourly price 

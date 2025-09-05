@@ -160,6 +160,34 @@ if (!class_exists('MPTBM_Function')) {
 		{
 			return self::get_general_settings('organizer_slug', 'transportation-organizer');
 		}
+		
+		/**
+		 * Convert a page slug to a proper WordPress URL
+		 * 
+		 * @param string $slug_or_url The slug or URL to convert
+		 * @return string The proper URL
+		 */
+		public static function get_page_url_from_slug($slug_or_url)
+		{
+			// If it's already a full URL, return it as is
+			if (filter_var($slug_or_url, FILTER_VALIDATE_URL)) {
+				return $slug_or_url;
+			}
+			
+			// If it's empty, return empty
+			if (empty($slug_or_url)) {
+				return '';
+			}
+			
+			// Try to find the page by slug
+			$page = get_page_by_path($slug_or_url, OBJECT, 'page');
+			if ($page) {
+				return get_permalink($page->ID);
+			}
+			
+			// Fallback to home URL with slug
+			return home_url('/' . $slug_or_url . '/');
+		}
 		//*************************************************************Full Custom Function******************************//
 		//*************Date*********************************//
 		public static function get_date($post_id, $expire = false)
@@ -222,12 +250,60 @@ if (!class_exists('MPTBM_Function')) {
 		//*************Price*********************************//
 		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0)
 		{
+			error_log("MPTBM DEBUG: get_price called for post_id: {$post_id}, distance: {$distance}, duration: {$duration}, start: {$start_place}, end: {$destination_place}");
+			
+			// Force fresh pricing calculations to prevent caching issues on repeated searches
+			$is_transport_result_page = false;
+			$is_ajax_search = false;
+			
+			// Check if we're on the transport result page by various methods
+			if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'transport-result') !== false) {
+				$is_transport_result_page = true;
+			}
+			
+			// Check if current page template is transport_result.php
+			if (is_page() && get_page_template_slug() === 'transport_result.php') {
+				$is_transport_result_page = true;
+			}
+			
+			// Check if we're on the custom search result page from settings
+			$search_result_slug = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_search_result_page');
+			if (!empty($search_result_slug) && isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], $search_result_slug) !== false) {
+				$is_transport_result_page = true;
+			}
+			
+			// Check if this is an AJAX search request
+			if (defined('DOING_AJAX') && DOING_AJAX && 
+				(isset($_POST['action']) && (
+					$_POST['action'] === 'get_mptbm_map_search_result' || 
+					$_POST['action'] === 'get_mptbm_map_search_result_redirect'
+				))) {
+				$is_ajax_search = true;
+			}
+			
+			if ($is_transport_result_page || $is_ajax_search) {
+				error_log("MPTBM DEBUG: Clearing caches for post_id: {$post_id} (transport_result: {$is_transport_result_page}, ajax: {$is_ajax_search})");
+				// Clear pricing-specific cache groups for fresh calculations
+				wp_cache_flush_group('mptbm_pricing');
+				wp_cache_flush_group('weather_pricing');
+				wp_cache_flush_group('traffic_data');
+				
+				// Also clear specific location-based transients if start/end places are provided
+				if (!empty($start_place) && !empty($destination_place)) {
+					$location_cache_key = md5($start_place . $destination_place);
+					delete_transient('weather_pricing_' . $location_cache_key);
+					delete_transient('traffic_data_' . $location_cache_key);
+					error_log("MPTBM DEBUG: Cleared location-specific transients for key: {$location_cache_key}");
+				}
+			}
 
 			// Get price display type
 			$price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
+			error_log("MPTBM DEBUG: post_id {$post_id} - price_display_type: {$price_display_type}");
 			
 			// If price display type is zero, return 0
 			if ($price_display_type === 'zero') {
+				error_log("MPTBM DEBUG: post_id {$post_id} - returning 0 (zero price display type)");
 				return 0;
 			}
 			
@@ -235,12 +311,14 @@ if (!class_exists('MPTBM_Function')) {
 			if ($price_display_type === 'custom_message') {
 				$custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
 				set_transient('mptbm_custom_price_message_' . $post_id, $custom_message, HOUR_IN_SECONDS);
+				error_log("MPTBM DEBUG: post_id {$post_id} - returning 0 (custom message)");
 				return 0;
 			}
 
 			// Get price basis information
 			$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
 			$original_price_based = get_transient('original_price_based');
+			error_log("MPTBM DEBUG: post_id {$post_id} - price_based: {$price_based}, original_price_based: {$original_price_based}");
 
 			// If original price basis is fixed_hourly but current price basis is distance, return false
 			if ($original_price_based === 'fixed_hourly' && $price_based === 'distance') {
@@ -526,6 +604,7 @@ if (!class_exists('MPTBM_Function')) {
 				$price = apply_filters('mptbm_calculate_price', $price, $post_id, $selected_start_date, $selected_start_time, $extra_data);
 			}
 
+			error_log("MPTBM DEBUG: post_id {$post_id} - FINAL CALCULATED PRICE: {$price}");
 			return $price;
 		}
 

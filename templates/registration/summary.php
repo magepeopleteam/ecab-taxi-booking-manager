@@ -1,5 +1,8 @@
 <?php
-	/*
+if (!function_exists('mptbm_get_translation')) {
+	require_once dirname(__DIR__, 2) . '/inc/mptbm-translation-helper.php';
+}
+/*
  * @Author 		engr.sumonazma@gmail.com
  * Copyright: 	mage-people.com
  */
@@ -61,7 +64,7 @@
 					<?php if (!($price_based == 'fixed_hourly' && $disable_dropoff_hourly === 'disable')): ?>
 						<div class="dividerL"></div>
 						<div>
-							<h6 class="_mB_xs"><?php esc_html_e('Drop-Off Location', 'ecab-taxi-booking-manager'); ?></h6>
+							<h6 class="_mB_xs"><?php echo mptbm_get_translation('dropoff_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')); ?></h6>
 							<?php if($price_based == 'manual'){ ?>
 								<p class="_textLight_1 mptbm_map_end_place"><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $end_place,'locations' )); ?></p>
 							<?php }else{ ?>
@@ -97,13 +100,13 @@
 					<?php } ?>
 					<?php if($waiting_time>0){ ?>
 						<div class="dividerL"></div>
-						<h6 class="_mB_xs"><?php esc_html_e('Extra Waiting Hours', 'ecab-taxi-booking-manager'); ?></h6>
-						<p class="_textLight_1"><?php echo esc_html($waiting_time); ?>&nbsp;<?php esc_html_e('Hours', 'ecab-taxi-booking-manager'); ?></p>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('extra_waiting_hours_label', __('Extra Waiting Hours', 'ecab-taxi-booking-manager')); ?></h6>
+						<p class="_textLight_1"><?php echo esc_html($waiting_time); ?>&nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
 					<?php } ?>
 					<?php if($fixed_time && $fixed_time>0){ ?>
 						<div class="dividerL"></div>
-						<h6 class="_mB_xs"><?php esc_html_e('Service Times', 'ecab-taxi-booking-manager'); ?></h6>
-						<p class="_textLight_1"><?php echo esc_html($fixed_time); ?> &nbsp;<?php esc_html_e('Hours', 'ecab-taxi-booking-manager'); ?></p>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')); ?></h6>
+						<p class="_textLight_1"><?php echo esc_html($fixed_time); ?> &nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
 					<?php } ?>
 					<div class="mptbm_transport_summary">
 						<div class="dividerL"></div>

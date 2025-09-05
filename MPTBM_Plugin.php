@@ -25,6 +25,15 @@ if (!class_exists('MPTBM_Plugin')) {
             add_filter('template_include', array($this, 'mptbm_change_page_template'), 99);
             add_action('admin_init', array($this, 'wptbm_assign_template_to_page'));
             add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
+            
+            // Hook to automatically assign template when settings are saved
+            add_action('update_option_mp_global_settings', array($this, 'auto_assign_template_on_settings_save'), 10, 3);
+            
+            // Hook to automatically assign template when pages are created/updated
+            add_action('save_post_page', array($this, 'auto_assign_template_on_page_save'), 10, 3);
+            
+            // Add admin notice about template assignment
+            add_action('admin_notices', array($this, 'show_template_assignment_notice'));
         }
 
         private function load_plugin(): void
@@ -191,11 +200,103 @@ if (!class_exists('MPTBM_Plugin')) {
         public function wptbm_assign_template_to_page()
         {
             flush_rewrite_rules();
-            // Check if the page 'transport-result' exists
-            $page = get_page_by_path('transport-result');
+            
+            // Get the search result page slug from settings
+            $search_result_slug = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_search_result_page');
+            
+            // If no custom slug is set, use the default 'transport-result'
+            if (empty($search_result_slug)) {
+                $search_result_slug = 'transport-result';
+            }
+            
+            // Check if the page exists
+            $page = get_page_by_path($search_result_slug);
             if ($page) {
                 // Update the page meta to assign the template
                 update_post_meta($page->ID, '_wp_page_template', 'transport_result.php');
+            }
+        }
+        
+        /**
+         * Automatically assign the Transport Result template when settings are saved
+         */
+        public function auto_assign_template_on_settings_save($old_value, $value, $option)
+        {
+            // Check if the mptbm_general_settings were updated
+            if (isset($value['mptbm_general_settings']['enable_view_search_result_page'])) {
+                $new_search_result_slug = $value['mptbm_general_settings']['enable_view_search_result_page'];
+                $old_search_result_slug = isset($old_value['mptbm_general_settings']['enable_view_search_result_page']) ? $old_value['mptbm_general_settings']['enable_view_search_result_page'] : '';
+                
+                // If the slug changed, remove template from old page
+                if (!empty($old_search_result_slug) && $old_search_result_slug !== $new_search_result_slug) {
+                    $old_page = get_page_by_path($old_search_result_slug);
+                    if ($old_page) {
+                        delete_post_meta($old_page->ID, '_wp_page_template');
+                    }
+                }
+                
+                // If a new slug is provided, assign the template to that page
+                if (!empty($new_search_result_slug)) {
+                    $page = get_page_by_path($new_search_result_slug);
+                    if ($page) {
+                        update_post_meta($page->ID, '_wp_page_template', 'transport_result.php');
+                    }
+                }
+            }
+        }
+        
+        /**
+         * Automatically assign the Transport Result template when a page is created/updated
+         */
+        public function auto_assign_template_on_page_save($post_id, $post, $update)
+        {
+            // Only proceed if this is a page and it's being published
+            if ($post->post_type !== 'page' || $post->post_status !== 'publish') {
+                return;
+            }
+            
+            // Get the search result page slug from settings
+            $search_result_slug = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_search_result_page');
+            
+            // If no custom slug is set, use the default 'transport-result'
+            if (empty($search_result_slug)) {
+                $search_result_slug = 'transport-result';
+            }
+            
+            // Check if this page's slug matches the search result slug
+            if ($post->post_name === $search_result_slug) {
+                update_post_meta($post_id, '_wp_page_template', 'transport_result.php');
+            }
+        }
+        
+        /**
+         * Show admin notice about automatic template assignment
+         */
+        public function show_template_assignment_notice()
+        {
+            // Only show on plugin settings page
+            if (!isset($_GET['page']) || $_GET['page'] !== 'mptbm_settings_page') {
+                return;
+            }
+            
+            $search_result_slug = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_search_result_page');
+            
+            if (!empty($search_result_slug)) {
+                $page = get_page_by_path($search_result_slug);
+                if ($page) {
+                    $template = get_page_template_slug($page->ID);
+                    if ($template === 'transport_result.php') {
+                        echo '<div class="notice notice-success is-dismissible">';
+                        echo '<p><strong>' . esc_html__('E-Cab Taxi Booking Manager:', 'ecab-taxi-booking-manager') . '</strong> ';
+                        echo sprintf(
+                            esc_html__('The "Transport Result" template has been automatically assigned to the page "%s" (slug: %s).', 'ecab-taxi-booking-manager'),
+                            esc_html($page->post_title),
+                            esc_html($search_result_slug)
+                        );
+                        echo '</p>';
+                        echo '</div>';
+                    }
+                }
             }
         }
 
