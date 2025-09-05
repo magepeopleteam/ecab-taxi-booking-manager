@@ -49,7 +49,18 @@
 				do_action('add_mp_global_enqueue');
 			}
 			public function admin_enqueue() {
-				$this->global_enqueue();
+				// Check if we're on a Gravity Forms admin page and skip loading scripts if so
+				$is_gravity_forms_page = (
+					isset($_GET['page']) && (
+						strpos($_GET['page'], 'gf_') !== false ||
+						strpos($_GET['page'], 'gravityforms') !== false ||
+						$_GET['page'] === 'gf_edit_forms'
+					)
+				);
+				
+				if (!$is_gravity_forms_page) {
+					$this->global_enqueue();
+				}
 				wp_enqueue_editor();
 				wp_enqueue_media();
 				//admin script

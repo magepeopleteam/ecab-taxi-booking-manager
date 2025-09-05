@@ -134,20 +134,25 @@ function mp_alert($this, attr = 'alert') {
 			allowClear: true
 		});
 		
-		// Prevent tooltips on Select2 elements globally
-		$(document).on('mouseenter', '.select2-container *, .select2-selection *, .select2-dropdown *', function(e) {
-			e.stopPropagation();
-			return false;
-		});
+		// Prevent tooltips on Select2 elements globally (but not on Gravity Forms pages)
+		if (!window.location.href.includes('page=gf_') && 
+		    !window.location.href.includes('gf_edit_forms') && 
+		    !window.location.href.includes('gravityforms') &&
+		    !document.getElementById('gform_editor')) {
+			$(document).on('mouseenter', '.select2-container *, .select2-selection *, .select2-dropdown *', function(e) {
+				e.stopPropagation();
+				return false;
+			});
+			
+			// Handle Select2 choice removal specifically
+			$(document).on('click', '.select2-selection__choice__remove', function(e) {
+				e.stopPropagation();
+			});
+		}
 		
 		// Remove title attributes from Select2 elements to prevent tooltip conflicts
 		$(document).on('select2:open', function() {
 			$('.select2-container *').removeAttr('title');
-		});
-		
-		// Handle Select2 choice removal specifically
-		$(document).on('click', '.select2-selection__choice__remove', function(e) {
-			e.stopPropagation();
 		});
 	});
 }(jQuery));

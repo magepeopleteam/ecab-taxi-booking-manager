@@ -46,18 +46,65 @@ if (!class_exists('MPTBM_Dependencies')) {
 
         public function admin_enqueue()
         {
-            $this->global_enqueue();
-            // custom
-            wp_enqueue_style('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.css', array(), time());
-            wp_enqueue_style('admin_style', MPTBM_PLUGIN_URL . '/assets/admin/admin_style.css', array(), time());
-            wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), time(), true);
-            wp_enqueue_script('mptbm_tooltip', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_tooltip.js', array('jquery'), time(), true);
+            // Check if we're on a Gravity Forms admin page
+            $is_gravity_forms_page = (
+                isset($_GET['page']) && (
+                    strpos($_GET['page'], 'gf_') !== false ||
+                    strpos($_GET['page'], 'gravityforms') !== false ||
+                    $_GET['page'] === 'gf_edit_forms'
+                )
+            );
             
-            // No transport templates
-            wp_enqueue_script('mptbm-no-transport-templates', MPTBM_PLUGIN_URL . '/assets/admin/js/no-transport-templates.js', array('jquery'), time(), true);
-           
-            // Trigger the action hook to add additional scripts if needed
-            do_action('add_mptbm_admin_script');
+            // Don't load most scripts on Gravity Forms pages to prevent conflicts
+            if (!$is_gravity_forms_page) {
+                $this->global_enqueue();
+                
+                // custom
+                wp_enqueue_style('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.css', array(), time());
+                wp_enqueue_style('admin_style', MPTBM_PLUGIN_URL . '/assets/admin/admin_style.css', array(), time());
+                wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), time(), true);
+                wp_enqueue_script('mptbm_tooltip', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_tooltip.js', array('jquery'), time(), true);
+                
+                // No transport templates
+                wp_enqueue_script('mptbm-no-transport-templates', MPTBM_PLUGIN_URL . '/assets/admin/js/no-transport-templates.js', array('jquery'), time(), true);
+                
+                // Trigger the action hook to add additional scripts if needed
+                do_action('add_mptbm_admin_script');
+            } else {
+                // On Gravity Forms pages, only load minimal CSS and the compatibility script
+                wp_enqueue_style('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.css', array(), time());
+                
+                // Load compatibility script with higher priority
+                wp_enqueue_script('mptbm-gravity-forms-compatibility', MPTBM_PLUGIN_URL . '/assets/admin/js/gravity-forms-compatibility.js', array('jquery'), MPTBM_PLUGIN_VERSION, true);
+                
+                // Add inline script to completely disable MP Global scripts
+                wp_add_inline_script('mptbm-gravity-forms-compatibility', '
+                    // Prevent MP Global scripts from initializing
+                    window.mp_disable_global_scripts = true;
+                    
+                    // Override MP Global functions that might interfere
+                    if (typeof jQuery !== "undefined") {
+                        jQuery(document).ready(function($) {
+                            console.log("MPTBM: Gravity Forms isolation mode activated - MP Global scripts disabled");
+                            
+                            // Disable all jQuery event delegation that might interfere
+                            var originalOn = $.fn.on;
+                            $.fn.on = function(events, selector, data, handler) {
+                                // Allow Gravity Forms events but block problematic selectors
+                                if (typeof selector === "string" && (
+                                    selector.includes("select2") ||
+                                    selector.includes("[data-") ||
+                                    selector === "*"
+                                )) {
+                                    console.log("MPTBM: Blocked event handler for:", selector);
+                                    return this;
+                                }
+                                return originalOn.apply(this, arguments);
+                            };
+                        });
+                    }
+                ', 'before');
+            }
         }
 
         public function frontend_enqueue()
