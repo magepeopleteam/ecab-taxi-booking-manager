@@ -13,7 +13,7 @@ $progressbar = $progressbar ?? 'yes';
 $progressbar_class = $progressbar == 'yes' ? '' : 'dNone';
 ?>
 <div class="mpStyle mptbm_transport_search_area">
-	<div class="mpTabsNext _mT">
+	<div class="mpTabsNext">
 		<div class="tabListsNext <?php echo esc_attr($progressbar_class); ?>">
 			<div data-tabs-target-next="#mptbm_pick_up_details" class="tabItemNext active" data-open-text="1" data-close-text=" " data-open-icon="" data-close-icon="fas fa-check" data-add-class="success">
 				<h4 class="circleIcon" data-class>
