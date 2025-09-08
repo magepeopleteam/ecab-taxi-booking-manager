@@ -64,7 +64,7 @@
 	}
 
 	div.mpTabsNext .tabItemNext.active .circleTitle.success { color: var(--color_theme); }
-	div.mptbm_transport_search_area .tabItemNext.active [class*="circleIcon"].success {background-color: var(--color_theme_alter);}
+	div.mptbm_transport_search_area .tabItemNext.active [class*="circleIcon"].success {background-color: var(--color_theme);}
 	div.mptbm_transport_search_area .tabItemNext .circleTitle {font-weight: 600;color:var(--color_theme);text-transform: capitalize;}
 	div.mptbm_transport_search_area .tabItemNext.active .circleTitle {font-weight: 600;color: var(--color_theme);}
 	div.mptbm_transport_search_area .tabItemNext [class*="circleIcon"]::after {top: 20px;border-color: #EAECEE;left: calc(50% + 20px);}
@@ -119,7 +119,16 @@
 	div.mptbm_booking_item h5 {color: #000;font-size: 24px;font-weight: 600}
 	div.mptbm_booking_item h4 {color: #000;font-size: 36px;font-weight: 600;margin: 0 0 var(--dmp_xs) 0;}
 	.mptbm_booking_item_hidden{display: none !important;}
-	div.mptbm_transport_search_area ul.list_inline_two li {border: none;color: #626262;font-weight: 400;font-size: 12px;}
+	div.mptbm_transport_search_area ul.list_inline_two{
+		align-items: center;
+	}
+	div.mptbm_transport_search_area ul.list_inline_two li {
+		border: none;
+		color: #626262;
+		font-weight: 400;
+		width: 50%;
+	}
+
 	div.mptbm_transport_search_area button.mptbm_price_calculation
 	{background-color: #EAECEE;color: #666;border-radius: var(--dbr);}
 	div.mptbm_transport_search_area button.mptbm_price_calculation.active_select,
@@ -160,6 +169,11 @@
 		transform: translateY(-4px);
 		box-shadow: 0 0px 10px rgba(0, 0, 0, 0.15);
 		border: 2px solid var(--color_theme);
+	}
+	.mptbm_transport_search_area .mptbm_booking_item.selected{
+		box-shadow: 0 0px 10px rgba(0, 0, 0, 0.15);
+		border: 2px solid var(--color_theme);
+		box-shadow: 0 0px 10px var(--color_theme_77);
 	}
 
 }
@@ -335,10 +349,10 @@ div.bg_image_area{
 }
 
 .mpStyle button:hover span{
-    color: var(--color_theme);
+    color: var(--color_theme_alter);
 }
 .mpStyle button:focus span {
-    color: #fff;
+    color: var(--color_theme_alter);
 }
 .mptbm_transport_search_area .tabListsNext{
 	padding: 20px;

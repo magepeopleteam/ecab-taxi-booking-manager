@@ -529,7 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				<div class="_equalChild_separatorRight">
 					<div class="_dFlex_pR_xs">
 						<h1 class="_mR">
-							<span class="fas fa-route textTheme"></span>
+							<span class="mi mi-car-journey textTheme"></span>
 						</h1>
 						<div class="fdColumn">
 							<h6><?php echo mptbm_get_translation('total_distance_label', __('TOTAL DISTANCE', 'ecab-taxi-booking-manager')); ?></h6>
@@ -542,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					</div>
 					<div class="dFlex">
 						<h1 class="_mLR">
-							<span class="fas fa-clock textTheme"></span>
+							<span class="mi mi-clock-three textTheme"></span>
 						</h1>
 						<div class="fdColumn">
 							<div class="fdColumn">

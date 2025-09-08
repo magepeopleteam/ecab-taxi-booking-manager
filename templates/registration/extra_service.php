@@ -73,7 +73,7 @@
 		<div class="divider"></div>
 		<div class="justifyBetween">
 			<div></div>
-			<button class="_successButton_min_200 mptbm_book_now" style="display:none;" type="button" data-wc_link_id="<?php echo esc_attr($link_wc_product); ?>">
+			<button class="_themeButton_min_200 mptbm_book_now" style="display:none;" type="button" data-wc_link_id="<?php echo esc_attr($link_wc_product); ?>">
 				<span class="fas fa-cart-plus _mR_xs"></span>
 				<?php esc_html_e('Book Now', 'ecab-taxi-booking-manager'); ?>
 			</button>

@@ -1104,6 +1104,10 @@ function mptbm_price_calculation(parent) {
                 }
 
                 $this.addClass('active_select');
+                $('.mptbm_booking_item').removeClass('selected');
+                $this.closest('.mptbm_booking_item').addClass('selected');
+                
+
                 mp_all_content_change($this);
                 parent.find('[name="mptbm_post_id"]').val(post_id).attr('data-price', transport_price).promise().done(function () {
                     mptbm_price_calculation(parent);
