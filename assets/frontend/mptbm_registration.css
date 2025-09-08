@@ -325,8 +325,9 @@
 	margin: 0 0 15px 0;
 }
 div.bg_image_area{
-	height: auto;
+	height:100%;
 	max-height: 200px;
+	border-radius: 7px;
 }
 
 .mpStyle ul.list_inline_two li span{

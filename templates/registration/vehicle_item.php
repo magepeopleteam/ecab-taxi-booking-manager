@@ -146,7 +146,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
 ?>
         <div class="mptbm-vehicle-wrapper" style="width: 100%; display: block;">
             <div class="_dFlex mptbm_booking_item <?php echo $has_extra_info ? 'mptbm-has-extra-info' : ''; ?> <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" data-placeholder <?php echo $has_extra_info ? 'style="border-bottom: 2px solid var(--color_theme); margin-bottom: 0; border-radius: 8px 8px 0 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"' : ''; ?>>
-                <div class="_max_200_mR">
+                <div class="_max_200_mR_xs">
                     <div class="bg_image_area"  data-placeholder>
                         <div data-bg-image="<?php echo esc_attr($thumbnail); ?>"></div>
                     </div>
