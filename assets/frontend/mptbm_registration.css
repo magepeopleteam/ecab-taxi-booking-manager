@@ -8,7 +8,7 @@
 	}
 	div.mptbm_transport_search_area div.tabsContentNext {
 		padding:15px;
-		background: #f7f8fe;
+		background: #fff;
     	border-radius: 12px; 
 	}
 	/* div.mptbm_transport_search_area div.mptbm_distance_time { margin: var(--dmp) 0 0 0; } */
@@ -40,33 +40,33 @@
 	
 	
 	.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]{
-		color: var(--color_theme_alter);
-		border: 2px solid var(--color_theme_alter);
+		color: var(--color_theme);
+		border: 3px solid var(--color_theme);
 	}
 	.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]::after {
-		border-color: var(--color_theme_alter);
+		border-color: var(--color_theme);
 	}
 
 	.mptbm_transport_search_area .mpTabsNext .tabItemNext.active [class*="circleIcon"]{
-		background: var(--color_theme_alter);
+		background: var(--color_theme);
 		font-size: 24px;
 		font-weight: bold;
 	}
 
 	.mptbm_transport_search_area .tabItemNext.active [class*="circleIcon"] {
 		background-color: var(--color_theme_alter); 
-		color: var(--color_theme);
+		color: var(--color_theme_alter);
 	}
 	
 
 	.mptbm_transport_search_area .mpTabsNext .tabItemNext.active [class*="circleIcon"]::after {
-		border-color: var(--color_theme_alter);
+		border-color: var(--color_theme);
 	}
 
 	div.mpTabsNext .tabItemNext.active .circleTitle.success { color: var(--color_theme); }
 	div.mptbm_transport_search_area .tabItemNext.active [class*="circleIcon"].success {background-color: var(--color_theme_alter);}
-	div.mptbm_transport_search_area .tabItemNext .circleTitle {font-weight: 600;color:var(--color_theme_alter);text-transform: capitalize;}
-	div.mptbm_transport_search_area .tabItemNext.active .circleTitle {font-weight: 600;color: var(--color_theme_alter);}
+	div.mptbm_transport_search_area .tabItemNext .circleTitle {font-weight: 600;color:var(--color_theme);text-transform: capitalize;}
+	div.mptbm_transport_search_area .tabItemNext.active .circleTitle {font-weight: 600;color: var(--color_theme);}
 	div.mptbm_transport_search_area .tabItemNext [class*="circleIcon"]::after {top: 20px;border-color: #EAECEE;left: calc(50% + 20px);}
 	/*********************/
 	div.mptbm_transport_search_area .mptbm_search_area {padding: 15px;border-radius: var(--dbrl);}
@@ -342,7 +342,7 @@ div.bg_image_area{
 }
 .mptbm_transport_search_area .tabListsNext{
 	padding: 20px;
-	background: var(--color_theme);
+	background:#f5f6f8;
 	border-radius: 12px 12px 0 0;
 }
 
