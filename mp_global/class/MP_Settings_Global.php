@@ -28,14 +28,17 @@
 				$sections = array(
 					array(
 						'id' => 'mp_style_settings',
+						'icon' => 'fas fa-palette',
 						'title' => esc_html__('Style Settings', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mp_add_custom_css',
+						'icon' => 'fas fa-css',
 						'title' => esc_html__('Custom CSS', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mp_basic_license_settings',
+						'icon' => 'fas fa-language',
 						'title' => esc_html__('Mage-People License', 'ecab-taxi-booking-manager')
 					)
 				);
