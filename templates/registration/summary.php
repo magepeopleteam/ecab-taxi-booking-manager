@@ -42,7 +42,7 @@ if (!function_exists('mptbm_get_translation')) {
 	<?php if ($show_summary): ?>
 	<div class="leftSidebar">
 		<div class="">
-			<div class="mp_sticky_on_scroll">
+			<div class="mp_sticky_on_scroll summary-box">
 				<div class="_dFlex_fdColumn">
 					<h3><?php esc_html_e('SUMMARY', 'ecab-taxi-booking-manager'); ?></h3>
 					<div class="divider"></div>

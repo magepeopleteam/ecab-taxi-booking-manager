@@ -165,9 +165,9 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                                 ?>
                                     <li>
                                         <?php if ($icon) { ?>
-                                            <span class="<?php echo esc_attr($icon); ?> _mR_xs"></span>
+                                            <i class="<?php echo esc_attr($icon); ?>"></i>
                                         <?php } ?>
-                                        <?php echo esc_html($label); ?>&nbsp;:&nbsp;<?php echo esc_html($text); ?>
+                                        <span title="<?php echo esc_html($label.':'.$text); ?>"><?php echo esc_html( mb_strimwidth( $text, 0, 30, '...' ) ); ?></span>
                                     </li>
                                 <?php } ?>
                             </ul>
