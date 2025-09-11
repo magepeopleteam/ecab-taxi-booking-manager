@@ -621,9 +621,13 @@ function iniSavedtMap(coordinates,mapCanvasId,mapAppendId) {
 
     $(document).ready(function () {
         
-        // Register event listener for input change
-        $('#mptbm-starting-location-one').on('input', function () {
-            var input = document.getElementById('mptbm-starting-location-one');
+        // Initialize Google Places autocomplete instances only once
+        function initializeAutocomplete(inputId, mapFunction) {
+            var input = document.getElementById(inputId);
+            if (!input || input.hasAttribute('data-autocomplete-initialized')) {
+                return;
+            }
+            
             var autocomplete = new google.maps.places.Autocomplete(input, { types: ['geocode'] });
             
             autocomplete.addListener('place_changed', function() {
@@ -631,38 +635,20 @@ function iniSavedtMap(coordinates,mapCanvasId,mapAppendId) {
                 formattedAddress = place.formatted_address;
                 if (place.geometry) {
                     var location = place.geometry.location;
-                    InitMapOne(location,formattedAddress);
+                    mapFunction(location, formattedAddress);
                 }
             });
-        });
-        $('#mptbm-starting-location-two').on('input', function () {
-            var input = document.getElementById('mptbm-starting-location-two');
-            var autocomplete = new google.maps.places.Autocomplete(input, { types: ['geocode'] });
             
-            autocomplete.addListener('place_changed', function() {
-                var place = autocomplete.getPlace();
-                formattedAddress = place.formatted_address;
-                if (place.geometry) {
-                    var location = place.geometry.location;
-                    InitMapTwo(location,formattedAddress);
-                }
-            });
-        });
-        $('#mptbm-starting-location-three').on('input', function () {
-            var input = document.getElementById('mptbm-starting-location-three');
-            var autocomplete = new google.maps.places.Autocomplete(input, { types: ['geocode'] });
-            
-            autocomplete.addListener('place_changed', function() {
-                var place = autocomplete.getPlace();
-                formattedAddress = place.formatted_address;
-                if (place.geometry) {
-                    var location = place.geometry.location;
-                    
-                    InitMapFixed(location,formattedAddress);
-                }
-            });
-        });
+            // Mark as initialized to prevent duplicate initialization
+            input.setAttribute('data-autocomplete-initialized', 'true');
+        }
+        
+        // Initialize autocomplete for all three location inputs
+        initializeAutocomplete('mptbm-starting-location-one', InitMapOne);
+        initializeAutocomplete('mptbm-starting-location-two', InitMapTwo);
+        initializeAutocomplete('mptbm-starting-location-three', InitMapFixed);
         
     });
     
 })(jQuery);
+
