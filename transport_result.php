@@ -159,15 +159,6 @@ if (function_exists('wp_is_block_theme') && wp_is_block_theme()) {
     margin: 0 auto;
 }
 
-/* Ensure the flexWrap is properly displayed */
-.mptbm-show-search-result .flexWrap {
-    display: flex !important;
-    gap: 30px;
-    width: 100%;
-    align-items: flex-start;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
 
 .mptbm-show-search-result .mainSection {
     flex: 1;
@@ -236,11 +227,6 @@ if (function_exists('wp_is_block_theme') && wp_is_block_theme()) {
     .mptbm-show-search-result .background-img-skin {
         padding: 15px;
         margin: 0 5px;
-    }
-    
-    .mptbm-show-search-result .flexWrap {
-        flex-direction: column !important;
-        gap: 20px;
     }
     
     .mptbm-show-search-result .leftSidebar {
