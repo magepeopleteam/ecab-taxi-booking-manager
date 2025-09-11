@@ -71,7 +71,7 @@ if (!class_exists('MPTBM_Settings_Global')) {
 				),
 				array(
 					'id' => 'mptbm_general_settings',
-					'icon' => 'fas fa-sliders-h',
+					'icon' => 'fas fa-car-alt',
 					'title' => $label . ' ' . esc_html__('Settings', 'ecab-taxi-booking-manager')
 				),
 				array(

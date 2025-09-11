@@ -19,6 +19,7 @@
 				$sections = array(
 					array(
 						'id' => 'mp_global_settings',
+						'icon' => 'fas fa-cogs',
 						'title' => esc_html__('Global Settings', 'ecab-taxi-booking-manager')
 					),
 				);
