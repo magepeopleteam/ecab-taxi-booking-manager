@@ -145,7 +145,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
         $has_extra_info = !empty(trim($extra_info));
 ?>
         <div class="mptbm-vehicle-wrapper" style="width: 100%; display: block;">
-            <div class="_dFlex mptbm_booking_item <?php echo $has_extra_info ? 'mptbm-has-extra-info' : ''; ?> <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" data-placeholder <?php echo $has_extra_info ? 'style="border-bottom: 2px solid var(--color_theme); margin-bottom: 0; border-radius: 8px 8px 0 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"' : ''; ?>>
+            <div class="_dFlex mptbm_booking_item <?php echo $has_extra_info ? 'mptbm-has-extra-info' : ''; ?> <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" data-placeholder>
                 <div class="_max_200_mR_xs">
                     <div class="bg_image_area"  data-placeholder>
                         <div data-bg-image="<?php echo esc_attr($thumbnail); ?>"></div>
@@ -269,7 +269,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                 </div>
             </div>
             <?php if ($has_extra_info) { ?>
-                <div class="mptbm-extra-info-content" style="display: none; width: 100%; margin: 5px 0 15px 0; padding: 12px 15px; background: linear-gradient(to right, #f8f9fa 0%, #ffffff 100%); border: 1px solid #e1e5e9; border-top: 3px solid var(--color_theme); border-radius: 0 0 8px 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); font-size: 13px; line-height: 1.5; clear: both; box-sizing: border-box; position: relative;" data-post-id="<?php echo esc_attr($post_id); ?>">
+                <div class="mptbm-extra-info-content" style="display: none; width: 100%; margin:-8px 0 10px 0; padding: 12px 15px; background: linear-gradient(to right, #f8f9fa 0%, #ffffff 100%); border: 1px solid #e1e5e9; border-top: 3px solid var(--color_theme); border-radius:8px 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); font-size: 13px; line-height: 1.5; clear: both; box-sizing: border-box; position: relative;" data-post-id="<?php echo esc_attr($post_id); ?>">
                     <div style="position: absolute; top: -3px; left: 20px; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid var(--color_theme);"></div>
                     <div style="border-left: 3px solid var(--color_theme); padding-left: 12px; background: rgba(255,255,255,0.7); margin: -5px 0; padding-top: 8px; padding-bottom: 8px; border-radius: 4px;">
                         <div style="display: flex; align-items: center; margin-bottom: 5px;">
