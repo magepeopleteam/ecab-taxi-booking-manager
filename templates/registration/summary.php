@@ -42,43 +42,43 @@ if (!function_exists('mptbm_get_translation')) {
 	<?php if ($show_summary): ?>
 	<div class="leftSidebar">
 		<div class="">
-			<div class="mp_sticky_on_scroll">
-				<div class="_dLayout_dFlex_fdColumn_btLight_2">
+			<div class="mp_sticky_on_scroll summary-box">
+				<div class="_dFlex_fdColumn">
 					<h3><?php esc_html_e('SUMMARY', 'ecab-taxi-booking-manager'); ?></h3>
-					<div class="dividerL"></div>
+					<div class="divider"></div>
 
 					<h6 class="_mB_xs"><?php esc_html_e('Pickup Date', 'ecab-taxi-booking-manager'); ?></h6>
 					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date)); ?></p>
-					<div class="dividerL"></div>
+					<div class="divider"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Pickup Time', 'ecab-taxi-booking-manager'); ?></h6>
 					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date, 'time')); ?></p>
-					<div class="dividerL"></div>
+					<div class="divider"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Pickup Location', 'ecab-taxi-booking-manager'); ?></h6>
 					<?php if($price_based == 'manual'){ ?>
-						<p class="_textLight_1 mptbm_manual_start_place"><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $start_place,'locations' )); ?></p>
+						<p class="_textLight_1 "><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $start_place,'locations' )); ?></p>
 					<?php }else{ ?>
-						<p class="_textLight_1 mptbm_manual_start_place"><?php echo esc_html($start_place); ?></p>
+						<p class="_textLight_1 "><?php echo esc_html($start_place); ?></p>
 					<?php } ?>
 					
 					
 					<?php if (!($price_based == 'fixed_hourly' && $disable_dropoff_hourly === 'disable')): ?>
-						<div class="dividerL"></div>
+						<div class="divider"></div>
 						<div>
 							<h6 class="_mB_xs"><?php echo mptbm_get_translation('dropoff_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')); ?></h6>
 							<?php if($price_based == 'manual'){ ?>
-								<p class="_textLight_1 mptbm_map_end_place"><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $end_place,'locations' )); ?></p>
+								<p class="_textLight_1 "><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $end_place,'locations' )); ?></p>
 							<?php }else{ ?>
-								<p class="_textLight_1 mptbm_map_end_place"><?php echo esc_html($end_place); ?></p>
+								<p class="_textLight_1 "><?php echo esc_html($end_place); ?></p>
 							<?php } ?>
 
 						</div>
 					<?php endif; ?>
 					
 					<?php if($price_based != 'manual' && $price_based != 'fixed_hourly'){ ?> 
-						<div class="dividerL"></div>
+						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php esc_html_e('Total Distance', 'ecab-taxi-booking-manager'); ?></h6>
 						<p class="_textLight_1"><?php echo esc_html(isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : ''); ?></p>
-						<div class="dividerL"></div>
+						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php esc_html_e('Total Time', 'ecab-taxi-booking-manager'); ?></h6>
 						<p class="_textLight_1"><?php echo esc_html(isset($_COOKIE['mptbm_duration_text']) ? $_COOKIE['mptbm_duration_text'] : ''); ?></p>
 					<?php } ?>
@@ -86,30 +86,30 @@ if (!function_exists('mptbm_get_translation')) {
 					
 					<?php if($two_way>1){ 
 						?>
-						<div class="dividerL"></div>
+						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php esc_html_e('Transfer Type', 'ecab-taxi-booking-manager'); ?></h6>
 						<p class="_textLight_1"><?php esc_html_e('Return', 'ecab-taxi-booking-manager'); ?></p>
 						<?php if(!empty($return_date_time)){ ?>
-                            <div class="dividerL"></div>
+                            <div class="divider"></div>
                             <h6 class="_mB_xs"><?php esc_html_e('Return Date', 'ecab-taxi-booking-manager'); ?></h6>
                             <p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($return_date_time)); ?></p>
-                            <div class="dividerL"></div>
+                            <div class="divider"></div>
                             <h6 class="_mB_xs"><?php esc_html_e('Return Time', 'ecab-taxi-booking-manager'); ?></h6>
                             <p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($return_date_time,'time')); ?></p>
                         <?php } ?>
 					<?php } ?>
 					<?php if($waiting_time>0){ ?>
-						<div class="dividerL"></div>
+						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('extra_waiting_hours_label', __('Extra Waiting Hours', 'ecab-taxi-booking-manager')); ?></h6>
 						<p class="_textLight_1"><?php echo esc_html($waiting_time); ?>&nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
 					<?php } ?>
 					<?php if($fixed_time && $fixed_time>0){ ?>
-						<div class="dividerL"></div>
+						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')); ?></h6>
 						<p class="_textLight_1"><?php echo esc_html($fixed_time); ?> &nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
 					<?php } ?>
 					<div class="mptbm_transport_summary">
-						<div class="dividerL"></div>
+						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo esc_html($label) . ' ' . esc_html__(' Details', 'ecab-taxi-booking-manager') ?></h6>
 						<div class="_textColor_4 justifyBetween">
 							<div class="_dFlex_alignCenter">
@@ -123,7 +123,7 @@ if (!function_exists('mptbm_get_translation')) {
 							<?php endif; ?>
 						</div>
 						<div class="mptbm_extra_service_summary"></div>
-						<div class="dividerL"></div>
+						<div class="divider"></div>
 						<div class="justifyBetween">
 							<h4><?php esc_html_e('Total : ', 'ecab-taxi-booking-manager'); ?></h4>
 							<h6 class="mptbm_product_total_price"></h6>

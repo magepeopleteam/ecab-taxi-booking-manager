@@ -260,7 +260,7 @@ if (function_exists('wp_is_block_theme') && wp_is_block_theme()) {
     <div class="container">
         <div class="container background-img-skin">
             <div class="mpStyle mptbm_transport_search_area">
-                <div class="mpTabsNext _mT">
+                <div class="mpTabsNext">
                     <div class="tabListsNext">
                         <div data-tabs-target-next="#mptbm_pick_up_details" class="tabItemNext active" data-open-text="1" data-close-text=" " data-open-icon="" data-close-icon="fas fa-check" data-add-class="success">
                             <h4 class="circleIcon" data-class>

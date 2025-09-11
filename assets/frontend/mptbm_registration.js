@@ -364,7 +364,7 @@ function mptbm_map_area_init() {
             
             if (loadingGif.length === 0 && tabContainer.length > 0) {
                 console.log('Loading GIF element not found, creating it...');
-                var loadingGifHtml = '<div class="mptbm-hide-gif mptbm-gif" style="display: none;"><img src="' + window.location.origin + '/taxi/wp-content/plugins/ecab-taxi-booking-manager/assets/images/loader.gif" class="mptb-tabs-loader" /></div>';
+                var loadingGifHtml = '<div class="mptbm-hide-gif mptbm-gif" style="display: none;"><img src="' + window.location.origin + '/wp-content/plugins/ecab-taxi-booking-manager/assets/images/loader.gif" class="mptb-tabs-loader" /></div>';
                 tabContainer.append(loadingGifHtml);
                 console.log('Loading GIF element created');
                 return true;
@@ -1104,6 +1104,10 @@ function mptbm_price_calculation(parent) {
                 }
 
                 $this.addClass('active_select');
+                $('.mptbm_booking_item').removeClass('selected');
+                $this.closest('.mptbm_booking_item').addClass('selected');
+                
+
                 mp_all_content_change($this);
                 parent.find('[name="mptbm_post_id"]').val(post_id).attr('data-price', transport_price).promise().done(function () {
                     mptbm_price_calculation(parent);
@@ -1392,7 +1396,7 @@ function mptbm_price_calculation(parent) {
                 $('.mptbm-loading-overlay').remove();
                 
                 // Create a new loading overlay that will definitely be visible
-                var loadingOverlay = $('<div class="mptbm-loading-overlay" style="position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; z-index: 9999 !important; padding: 30px !important; text-align: center !important; margin-top: 40px !important;"><img src="' + window.location.origin + '/taxi/wp-content/plugins/ecab-taxi-booking-manager/assets/images/loader.gif" style="width: 80px !important; height: auto !important;" /></div>');
+                var loadingOverlay = $('<div class="mptbm-loading-overlay" style="position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; z-index: 9999 !important; padding: 30px !important; text-align: center !important; margin-top: 40px !important;"><img src="' + window.location.origin + '/wp-content/plugins/ecab-taxi-booking-manager/assets/images/loader.gif" style="width: 80px !important; height: auto !important;" /></div>');
                 
                                 // Append to body to ensure it's visible
                 $('body').append(loadingOverlay);

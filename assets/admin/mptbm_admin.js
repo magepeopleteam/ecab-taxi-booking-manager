@@ -47,5 +47,16 @@
 			e.stopPropagation();
 		});
 	});
-	 
+	//==== Live search icon======
+	const searchInputIcon = document.getElementById('searchInputIcon');
+	if (searchInputIcon) {
+		searchInputIcon.addEventListener('input', function () {
+			const filter = this.value.toLowerCase();
+			const items = document.querySelectorAll('.popupTabItem .itemIconArea .iconItem');
+			items.forEach(item => {
+				const text = item.getAttribute('title')?.toLowerCase() || '';
+				item.style.display = text.includes(filter) ? '' : 'none';
+			});
+		});
+	}
 }(jQuery));

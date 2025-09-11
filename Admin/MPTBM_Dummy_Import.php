@@ -145,35 +145,35 @@ if (!class_exists('MPTBM_Dummy_Import')) {
 								'feature_image' => $feature_image[0],
 								'mptbm_extra_service_infos' => array(
 									0 => array(
-										'service_icon' => 'fas fa-baby',
+										'service_icon' => 'mi mi-child',
 										'service_name' => 'Child Seat',
 										'service_price' => '50',
 										'service_qty_type' => 'inputbox',
 										'extra_service_description' => "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
 									),
 									1 => array(
-										'service_icon' => 'fas fa-seedling',
+										'service_icon' => 'mi mi-flower-bouquet',
 										'service_name' => 'Bouquet of Flowers',
 										'service_price' => '150',
 										'service_qty_type' => 'inputbox',
 										'extra_service_description' => "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
 									),
 									2 => array(
-										'service_icon' => 'fas fa-wine-glass-alt',
+										'service_icon' => 'mi mi-juice',
 										'service_name' => 'Welcome Drink',
 										'service_price' => '30',
 										'service_qty_type' => 'inputbox',
 										'extra_service_description' => "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
 									),
 									3 => array(
-										'service_icon' => 'fas fa-user-alt',
+										'service_icon' => 'mi mi-plane',
 										'service_name' => 'Airport Assistance and Hostess Service',
 										'service_price' => '30',
 										'service_qty_type' => 'inputbox',
 										'extra_service_description' => "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
 									),
 									4 => array(
-										'service_icon' => 'fas fa-skating',
+										'service_icon' => 'mi mi-user-police',
 										'service_name' => 'Bodyguard Service',
 										'service_price' => '30',
 										'service_qty_type' => 'inputbox',
@@ -193,37 +193,37 @@ if (!class_exists('MPTBM_Dummy_Import')) {
 								'mptbm_features' => [
 									0 => array(
 										'label' => 'Name',
-										'icon' => 'fas fa-car-side',
+										'icon' => 'mi mi-car-alt',
 										'image' => '',
 										'text' => 'BMW 5 Series Long'
 									),
 									1 => array(
 										'label' => 'Model',
-										'icon' => 'fas fa-car',
+										'icon' => 'mi mi-badge-check',
 										'image' => '',
 										'text' => 'EXPRW'
 									),
 									2 => array(
 										'label' => 'Engine',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-engine',
 										'image' => '',
 										'text' => '3000'
 									),
 									3 => array(
 										'label' => 'Fuel Type',
-										'icon' => 'fas fa-gas-pump',
+										'icon' => 'mi mi-gas-pump-alt',
 										'image' => '',
 										'text' => 'Diesel'
 									),
 									4 => array(
 										'label' => 'Transmission',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-steering-wheel',
 										'image' => '',
 										'text' => 'Automatic'
 									),
 									5 => array(
 										'label' => 'Seating Capacity',
-										'icon' => 'fas fa-users',
+										'icon' => 'mi mi-person-seat',
 										'image' => '',
 										'text' => '5'
 									),
@@ -304,37 +304,37 @@ if (!class_exists('MPTBM_Dummy_Import')) {
 								'mptbm_features' => [
 									0 => array(
 										'label' => 'Name',
-										'icon' => 'fas fa-car-side',
+										'icon' => 'mi mi-car-alt',
 										'image' => '',
 										'text' => 'BMW 5 Series Long'
 									),
 									1 => array(
 										'label' => 'Model',
-										'icon' => 'fas fa-car',
+										'icon' => 'mi mi-badge-check',
 										'image' => '',
 										'text' => 'EXPRW'
 									),
 									2 => array(
 										'label' => 'Engine',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-engine',
 										'image' => '',
 										'text' => '3000'
 									),
 									3 => array(
 										'label' => 'Fuel Type',
-										'icon' => 'fas fa-gas-pump',
+										'icon' => 'mi mi-gas-pump-alt',
 										'image' => '',
 										'text' => 'Diesel'
 									),
 									4 => array(
 										'label' => 'Transmission',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-steering-wheel',
 										'image' => '',
 										'text' => 'Automatic'
 									),
 									5 => array(
 										'label' => 'Seating Capacity',
-										'icon' => 'fas fa-users',
+										'icon' => 'mi mi-person-seat',
 										'image' => '',
 										'text' => '5'
 									),
@@ -416,37 +416,37 @@ if (!class_exists('MPTBM_Dummy_Import')) {
 								'mptbm_features' => [
 									0 => array(
 										'label' => 'Name',
-										'icon' => 'fas fa-car-side',
+										'icon' => 'mi mi-car-alt',
 										'image' => '',
 										'text' => 'BMW 5 Series Long'
 									),
 									1 => array(
 										'label' => 'Model',
-										'icon' => 'fas fa-car',
+										'icon' => 'mi mi-badge-check',
 										'image' => '',
 										'text' => 'EXPRW'
 									),
 									2 => array(
 										'label' => 'Engine',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-engine',
 										'image' => '',
 										'text' => '3000'
 									),
 									3 => array(
 										'label' => 'Fuel Type',
-										'icon' => 'fas fa-gas-pump',
+										'icon' => 'mi mi-gas-pump-alt',
 										'image' => '',
 										'text' => 'Diesel'
 									),
 									4 => array(
 										'label' => 'Transmission',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-steering-wheel',
 										'image' => '',
 										'text' => 'Automatic'
 									),
 									5 => array(
 										'label' => 'Seating Capacity',
-										'icon' => 'fas fa-users',
+										'icon' => 'mi mi-person-seat',
 										'image' => '',
 										'text' => '5'
 									),
@@ -528,37 +528,37 @@ if (!class_exists('MPTBM_Dummy_Import')) {
 								'mptbm_features' => [
 									0 => array(
 										'label' => 'Name',
-										'icon' => 'fas fa-car-side',
+										'icon' => 'mi mi-car-alt',
 										'image' => '',
 										'text' => 'BMW 5 Series Long'
 									),
 									1 => array(
 										'label' => 'Model',
-										'icon' => 'fas fa-car',
+										'icon' => 'mi mi-badge-check',
 										'image' => '',
 										'text' => 'EXPRW'
 									),
 									2 => array(
 										'label' => 'Engine',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-engine',
 										'image' => '',
 										'text' => '3000'
 									),
 									3 => array(
 										'label' => 'Fuel Type',
-										'icon' => 'fas fa-gas-pump',
+										'icon' => 'mi mi-gas-pump-alt',
 										'image' => '',
 										'text' => 'Diesel'
 									),
 									4 => array(
 										'label' => 'Transmission',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-steering-wheel',
 										'image' => '',
 										'text' => 'Automatic'
 									),
 									5 => array(
 										'label' => 'Seating Capacity',
-										'icon' => 'fas fa-users',
+										'icon' => 'mi mi-person-seat',
 										'image' => '',
 										'text' => '5'
 									),
@@ -640,37 +640,37 @@ if (!class_exists('MPTBM_Dummy_Import')) {
 								'mptbm_features' => [
 									0 => array(
 										'label' => 'Name',
-										'icon' => 'fas fa-car-side',
+										'icon' => 'mi mi-car-alt',
 										'image' => '',
 										'text' => 'BMW 5 Series Long'
 									),
 									1 => array(
 										'label' => 'Model',
-										'icon' => 'fas fa-car',
+										'icon' => 'mi mi-badge-check',
 										'image' => '',
 										'text' => 'EXPRW'
 									),
 									2 => array(
 										'label' => 'Engine',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-engine',
 										'image' => '',
 										'text' => '3000'
 									),
 									3 => array(
 										'label' => 'Fuel Type',
-										'icon' => 'fas fa-gas-pump',
+										'icon' => 'mi mi-gas-pump-alt',
 										'image' => '',
 										'text' => 'Diesel'
 									),
 									4 => array(
 										'label' => 'Transmission',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-steering-wheel',
 										'image' => '',
 										'text' => 'Automatic'
 									),
 									5 => array(
 										'label' => 'Seating Capacity',
-										'icon' => 'fas fa-users',
+										'icon' => 'mi mi-person-seat',
 										'image' => '',
 										'text' => '5'
 									),
@@ -751,37 +751,37 @@ if (!class_exists('MPTBM_Dummy_Import')) {
 								'mptbm_features' => [
 									0 => array(
 										'label' => 'Name',
-										'icon' => 'fas fa-car-side',
+										'icon' => 'mi mi-car-alt',
 										'image' => '',
 										'text' => 'BMW 5 Series Long'
 									),
 									1 => array(
 										'label' => 'Model',
-										'icon' => 'fas fa-car',
+										'icon' => 'mi mi-badge-check',
 										'image' => '',
 										'text' => 'EXPRW'
 									),
 									2 => array(
 										'label' => 'Engine',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-engine',
 										'image' => '',
 										'text' => '3000'
 									),
 									3 => array(
 										'label' => 'Fuel Type',
-										'icon' => 'fas fa-gas-pump',
+										'icon' => 'mi mi-gas-pump-alt',
 										'image' => '',
 										'text' => 'Diesel'
 									),
 									4 => array(
 										'label' => 'Transmission',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-steering-wheel',
 										'image' => '',
 										'text' => 'Automatic'
 									),
 									5 => array(
 										'label' => 'Seating Capacity',
-										'icon' => 'fas fa-users',
+										'icon' => 'mi mi-person-seat',
 										'image' => '',
 										'text' => '5'
 									),
@@ -862,37 +862,37 @@ if (!class_exists('MPTBM_Dummy_Import')) {
 								'mptbm_features' => [
 									0 => array(
 										'label' => 'Name',
-										'icon' => 'fas fa-car-side',
+										'icon' => 'mi mi-car-alt',
 										'image' => '',
 										'text' => 'BMW 5 Series Long'
 									),
 									1 => array(
 										'label' => 'Model',
-										'icon' => 'fas fa-car',
+										'icon' => 'mi mi-badge-check',
 										'image' => '',
 										'text' => 'EXPRW'
 									),
 									2 => array(
 										'label' => 'Engine',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-engine',
 										'image' => '',
 										'text' => '3000'
 									),
 									3 => array(
 										'label' => 'Fuel Type',
-										'icon' => 'fas fa-gas-pump',
+										'icon' => 'mi mi-gas-pump-alt',
 										'image' => '',
 										'text' => 'Diesel'
 									),
 									4 => array(
 										'label' => 'Transmission',
-										'icon' => 'fas fa-cogs',
+										'icon' => 'mi mi-engine',
 										'image' => '',
 										'text' => 'Automatic'
 									),
 									5 => array(
 										'label' => 'Seating Capacity',
-										'icon' => 'fas fa-users',
+										'icon' => 'mi mi-person-seat',
 										'image' => '',
 										'text' => '5'
 									),

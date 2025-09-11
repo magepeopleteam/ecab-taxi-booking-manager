@@ -42,6 +42,7 @@ if (!class_exists('MPTBM_Dependencies')) {
                 add_action('admin_notices', [$this, 'map_api_not_active']);
             }
             do_action('add_mptbm_common_script');
+            wp_enqueue_style('mage-icons', MPTBM_PLUGIN_URL . '/assets/mage-icon/css/mage-icon.css', array(), time());
         }
 
         public function admin_enqueue()
