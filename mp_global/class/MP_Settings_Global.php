@@ -33,12 +33,12 @@
 					),
 					array(
 						'id' => 'mp_add_custom_css',
-						'icon' => 'fas fa-css',
+						'icon' => 'fas fa-file-code',
 						'title' => esc_html__('Custom CSS', 'ecab-taxi-booking-manager')
 					),
 					array(
 						'id' => 'mp_basic_license_settings',
-						'icon' => 'fas fa-language',
+						'icon' => 'fas fa-certificate',
 						'title' => esc_html__('Mage-People License', 'ecab-taxi-booking-manager')
 					)
 				);
