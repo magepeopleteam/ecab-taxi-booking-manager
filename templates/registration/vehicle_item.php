@@ -145,7 +145,9 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
         $has_extra_info = !empty(trim($extra_info));
 ?>
         <div class="mptbm-vehicle-wrapper" style="width: 100%; display: block;">
+
             <div class="_dFlex mptbm_booking_item <?php echo $has_extra_info ? 'mptbm-has-extra-info' : ''; ?> <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" data-placeholder >
+
                 <div class="_max_200_mR_xs">
                     <div class="bg_image_area"  data-placeholder>
                         <div data-bg-image="<?php echo esc_attr($thumbnail); ?>"></div>
