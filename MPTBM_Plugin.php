@@ -3,7 +3,7 @@
  * Plugin Name: E-cab Taxi Booking Manager for Woocommerce
  * Plugin URI: https://wordpress.org/plugins/ecab-taxi-booking-manager/
  * Description: A Complete Transportation Solution for WordPress by MagePeople.
- * Version: 1.2.9
+ * Version: 1.3.2
  * Author: MagePeople Team
  * Author URI: http://www.mage-people.com/
  * License: GPL v2 or later
@@ -70,8 +70,6 @@ if (!class_exists('MPTBM_Plugin')) {
                 self::on_activation_page_create();
                 require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Dependencies.php';
                 require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Geo_Lib.php';
-                require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Rest_Api.php';
-                require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_API_Documentation.php';
 				
 
                 // Load Block Editor Integration
@@ -112,8 +110,10 @@ if (!class_exists('MPTBM_Plugin')) {
         {
             if (did_action('wp_loaded')) {
                 self::create_pages();
+                self::create_api_tables();
             } else {
                 add_action('wp_loaded', array(__CLASS__, 'create_pages'));
+                add_action('wp_loaded', array(__CLASS__, 'create_api_tables'));
             }
         }
 
@@ -170,6 +170,68 @@ if (!class_exists('MPTBM_Plugin')) {
                 }
             }
 
+            flush_rewrite_rules();
+        }
+        
+        public static function create_api_tables(): void
+        {
+            global $wpdb;
+            
+            $api_keys_table = $wpdb->prefix . 'mptbm_api_keys';
+            $api_logs_table = $wpdb->prefix . 'mptbm_api_logs';
+            
+            $charset_collate = $wpdb->get_charset_collate();
+            
+            // API Keys table
+            $api_keys_sql = "CREATE TABLE {$api_keys_table} (
+                id int(11) NOT NULL AUTO_INCREMENT,
+                user_id int(11) NOT NULL,
+                api_key varchar(64) NOT NULL,
+                api_secret varchar(64) NOT NULL,
+                name varchar(200) NOT NULL,
+                permissions text,
+                last_used datetime DEFAULT NULL,
+                created_at datetime DEFAULT CURRENT_TIMESTAMP,
+                expires_at datetime DEFAULT NULL,
+                status enum('active','revoked') DEFAULT 'active',
+                PRIMARY KEY (id),
+                UNIQUE KEY api_key (api_key),
+                KEY user_id (user_id),
+                KEY status (status)
+            ) {$charset_collate};";
+            
+            // API Logs table
+            $api_logs_sql = "CREATE TABLE {$api_logs_table} (
+                id int(11) NOT NULL AUTO_INCREMENT,
+                api_key_id int(11) DEFAULT NULL,
+                endpoint varchar(255) NOT NULL,
+                method varchar(10) NOT NULL,
+                request_data text,
+                response_code int(3) NOT NULL,
+                response_data text,
+                ip_address varchar(45) NOT NULL,
+                user_agent text,
+                created_at datetime DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY api_key_id (api_key_id),
+                KEY endpoint (endpoint),
+                KEY created_at (created_at)
+            ) {$charset_collate};";
+            
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($api_keys_sql);
+            dbDelta($api_logs_sql);
+        }
+        
+        public static function on_plugin_activation()
+        {
+            // Create pages
+            self::on_activation_page_create();
+            
+            // Create API tables
+            self::create_api_tables();
+            
+            // Flush rewrite rules
             flush_rewrite_rules();
         }
 
@@ -390,5 +452,8 @@ if (!class_exists('MPTBM_Plugin')) {
         }
     }
 
+    // Register activation hook
+    register_activation_hook(__FILE__, array('MPTBM_Plugin', 'on_plugin_activation'));
+    
     new MPTBM_Plugin();
 }

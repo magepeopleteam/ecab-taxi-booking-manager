@@ -74,13 +74,18 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					'icon' => 'fas fa-car-alt',
 					'title' => $label . ' ' . esc_html__('Settings', 'ecab-taxi-booking-manager')
 				),
-				array(
-					'id' => 'mptbm_translations',
-					'icon' => 'fas fa-language',
-					'title' => esc_html__('Translations', 'ecab-taxi-booking-manager')
-				),
-				
-			);
+			array(
+				'id' => 'mptbm_translations',
+				'icon' => 'fas fa-language',
+				'title' => esc_html__('Translations', 'ecab-taxi-booking-manager')
+			),
+			array(
+				'id' => 'mptbm_rest_api_settings',
+				'icon' => 'fas fa-code',
+				'title' => esc_html__('REST API Settings', 'ecab-taxi-booking-manager')
+			),
+			
+		);
 			
 			// Add QR Code Settings section only if QR Addon class exists
 			if (class_exists('Ecab_Taxi_Booking_QR_Addon')) {
@@ -464,8 +469,119 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					array('name' => 'hours_in_waiting_label', 'label' => esc_html__('Hours in Waiting Hours Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Hours'),
 					array('name' => 'select_hours_label', 'label' => esc_html__('Select Hours Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Select Hours'),
 					array('name' => 'number_of_bags_label', 'label' => esc_html__('Number Of Bags Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Number Of Bags'),
-					array('name' => 'number_of_passengers_filter_label', 'label' => esc_html__('Number Of Passengers Filter Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Number Of Passengers'),
-				)),
+				array('name' => 'number_of_passengers_filter_label', 'label' => esc_html__('Number Of Passengers Filter Label', 'ecab-taxi-booking-manager'), 'type' => 'text', 'default' => 'Number Of Passengers'),
+			)),
+			'mptbm_rest_api_settings' => apply_filters('filter_mptbm_rest_api_settings', array(
+				array(
+					'name' => 'enable_rest_api',
+					'label' => esc_html__('Enable REST API', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Enable or disable the REST API for taxi booking operations', 'ecab-taxi-booking-manager'),
+					'type' => 'select',
+					'default' => 'no',
+					'options' => array(
+						'yes' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+						'no' => esc_html__('Disable', 'ecab-taxi-booking-manager')
+					)
+				),
+				array(
+					'name' => 'api_base_url',
+					'label' => esc_html__('API Base URL', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('The base URL for your REST API endpoints', 'ecab-taxi-booking-manager'),
+					'type' => 'text',
+					'default' => site_url('wp-json/ecab-taxi/v1/'),
+					'readonly' => true
+				),
+				array(
+					'name' => 'enable_api_key_auth',
+					'label' => esc_html__('Enable API Key Authentication', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Allow authentication using API keys for server-to-server communication', 'ecab-taxi-booking-manager'),
+					'type' => 'select',
+					'default' => 'yes',
+					'options' => array(
+						'yes' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+						'no' => esc_html__('Disable', 'ecab-taxi-booking-manager')
+					)
+				),
+				array(
+					'name' => 'api_key_expiry',
+					'label' => esc_html__('API Key Expiry (days)', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Number of days after which API keys expire (0 for no expiry)', 'ecab-taxi-booking-manager'),
+					'type' => 'number',
+					'default' => '365'
+				),
+				array(
+					'name' => 'enable_app_passwords',
+					'label' => esc_html__('Enable Application Passwords', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Allow users to generate application passwords for API access', 'ecab-taxi-booking-manager'),
+					'type' => 'select',
+					'default' => 'yes',
+					'options' => array(
+						'yes' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+						'no' => esc_html__('Disable', 'ecab-taxi-booking-manager')
+					)
+				),
+				array(
+					'name' => 'rate_limit_enabled',
+					'label' => esc_html__('Enable Rate Limiting', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Limit the number of API requests per minute', 'ecab-taxi-booking-manager'),
+					'type' => 'select',
+					'default' => 'yes',
+					'options' => array(
+						'yes' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+						'no' => esc_html__('Disable', 'ecab-taxi-booking-manager')
+					)
+				),
+				array(
+					'name' => 'rate_limit_requests',
+					'label' => esc_html__('Rate Limit (requests/minute)', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Maximum number of API requests allowed per minute per API key', 'ecab-taxi-booking-manager'),
+					'type' => 'number',
+					'default' => '100'
+				),
+				array(
+					'name' => 'allowed_user_roles',
+					'label' => esc_html__('API Access Roles', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Select which user roles can generate API keys', 'ecab-taxi-booking-manager'),
+					'type' => 'multicheck',
+					'default' => array(
+						'administrator' => 'administrator'
+					),
+					'options' => array(
+						'administrator' => esc_html__('Administrator', 'ecab-taxi-booking-manager'),
+						'editor' => esc_html__('Editor', 'ecab-taxi-booking-manager'),
+						'shop_manager' => esc_html__('Shop Manager', 'ecab-taxi-booking-manager')
+					)
+				),
+				array(
+					'name' => 'api_logging',
+					'label' => esc_html__('Enable API Logging', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Log API requests for debugging and monitoring', 'ecab-taxi-booking-manager'),
+					'type' => 'select',
+					'default' => 'yes',
+					'options' => array(
+						'yes' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+						'no' => esc_html__('Disable', 'ecab-taxi-booking-manager')
+					)
+				),
+				array(
+					'name' => 'cors_enabled',
+					'label' => esc_html__('Enable CORS', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Enable Cross-Origin Resource Sharing for web applications', 'ecab-taxi-booking-manager'),
+					'type' => 'select',
+					'default' => 'yes',
+					'options' => array(
+						'yes' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+						'no' => esc_html__('Disable', 'ecab-taxi-booking-manager')
+					)
+				),
+				array(
+					'name' => 'cors_allowed_origins',
+					'label' => esc_html__('Allowed Origins', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Comma-separated list of allowed origins (* for all)', 'ecab-taxi-booking-manager'),
+					'type' => 'textarea',
+					'default' => '*'
+				)
+			)),
 				'mptbm_buffer_settings' => apply_filters('filter_mptbm_buffer_settings', array(
 					array(
 						'name' => 'buffer_time',

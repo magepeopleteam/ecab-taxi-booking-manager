@@ -9,28 +9,39 @@ if (!defined('ABSPATH')) {
 if (!class_exists('MPTBM_Dependencies')) {
     class MPTBM_Dependencies
     {
-        public function __construct()
-        {
-            add_action('init', array($this, 'language_load'));
-            $this->load_file();
-            add_action('admin_enqueue_scripts', array($this, 'admin_enqueue'), 80);
-            add_action('wp_enqueue_scripts', array($this, 'frontend_enqueue'), 80);
-            add_action('admin_head', array($this, 'js_constant'), 5);
-            add_action('wp_head', array($this, 'js_constant'), 5);
-        }
+		public function __construct()
+		{
+			add_action('init', array($this, 'language_load'));
+			$this->load_file();
+			$this->init_rest_api();
+			add_action('admin_enqueue_scripts', array($this, 'admin_enqueue'), 80);
+			add_action('wp_enqueue_scripts', array($this, 'frontend_enqueue'), 80);
+			add_action('admin_head', array($this, 'js_constant'), 5);
+			add_action('wp_head', array($this, 'js_constant'), 5);
+		}
         public function language_load(): void
         {
             $plugin_dir = basename(dirname(__DIR__)) . "/languages/";
             load_plugin_textdomain('ecab-taxi-booking-manager', false, $plugin_dir);
         }
-        private function load_file(): void
-        {
-            require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Function.php';
-            require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Query.php';
-            require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Layout.php';
-            require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Admin.php';
-            require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Frontend.php';
-        }
+		private function load_file(): void
+		{
+			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Function.php';
+			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Query.php';
+			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Layout.php';
+			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_REST_API.php';
+			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Admin.php';
+			require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Frontend.php';
+		}
+		
+		private function init_rest_api(): void
+		{
+			// Initialize REST API only if enabled
+			$api_enabled = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'enable_rest_api', 'no');
+			if ($api_enabled === 'yes') {
+				new MPTBM_REST_API();
+			}
+		}
         public function global_enqueue()
         {
             $api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');

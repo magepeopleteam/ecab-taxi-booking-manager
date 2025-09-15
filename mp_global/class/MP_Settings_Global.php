@@ -50,44 +50,6 @@
 				$settings_fields = array(
 					'mp_global_settings' => apply_filters('filter_mp_global_settings', array(
 						array(
-							'name' => 'enable_rest_api',
-							'label' => esc_html__('Enable Rest API', 'ecab-taxi-booking-manager'),
-							'type' => 'select',
-							'default' => 'off',
-							'options' => array(
-								'on' => esc_html__('On', 'ecab-taxi-booking-manager'),
-								'off' => esc_html__('Off', 'ecab-taxi-booking-manager')
-							)
-						),
-						array(
-							'name' => 'api_authentication_type',
-							'label' => esc_html__('API Authentication', 'ecab-taxi-booking-manager'),
-							'desc' => esc_html__('Choose the authentication method for the REST API. Application Passwords use WordPress built-in authentication, while Custom API Key provides a simple key-based authentication.', 'ecab-taxi-booking-manager'),
-							'type' => 'select',
-							'default' => 'application_password',
-							'options' => array(
-								'application_password' => esc_html__('Application Passwords (Recommended)', 'ecab-taxi-booking-manager'),
-								'custom_api_key' => esc_html__('Custom API Key', 'ecab-taxi-booking-manager'),
-							)
-						),
-						array(
-							'name' => 'api_custom_key',
-							'label' => esc_html__('Custom API Key', 'ecab-taxi-booking-manager'),
-							'desc' => esc_html__('Enter a custom API key for authentication. This key must be included in API requests as "X-API-Key" header. Required when Custom API Key authentication is selected.', 'ecab-taxi-booking-manager'),
-							'type' => 'text',
-							'default' => '',
-							'placeholder' => 'Enter your custom API key'
-						),
-						array(
-							'name' => 'api_rate_limit',
-							'label' => esc_html__('API Rate Limit', 'ecab-taxi-booking-manager'),
-							'desc' => esc_html__('Number of requests allowed per minute (0 for unlimited)', 'ecab-taxi-booking-manager'),
-							'type' => 'number',
-							'default' => '60',
-							'min' => '0',
-							'max' => '1000'
-						),
-						array(
 							'name' => 'disable_block_editor',
 							'label' => esc_html__('Disable Block/Gutenberg Editor', 'ecab-taxi-booking-manager'),
 							'desc' => esc_html__('If you want to disable WordPress\'s new Block/Gutenberg editor, please select Yes.', 'ecab-taxi-booking-manager'),
