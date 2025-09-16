@@ -593,9 +593,10 @@ if (!class_exists('MPTBM_REST_API')) {
                 return new WP_Error('invalid_api_key', 'Invalid or expired API key', array('status' => 401));
             }
             
-            // Check rate limiting
-            if ($this->is_rate_limited($key_data['id'])) {
-                return new WP_Error('rate_limited', 'Rate limit exceeded', array('status' => 429));
+            // Check rate limiting with endpoint-specific limits
+            $endpoint = $request->get_route();
+            if ($this->is_rate_limited($key_data['id'], $endpoint)) {
+                return new WP_Error('rate_limited', 'Rate limit exceeded for this endpoint', array('status' => 429));
             }
             
             // Log the request
@@ -629,14 +630,12 @@ if (!class_exists('MPTBM_REST_API')) {
             return $api_key;
         }
         
-        private function is_rate_limited($api_key_id) {
+        private function is_rate_limited($api_key_id, $endpoint = null) {
             $rate_limit_enabled = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'rate_limit_enabled', 'yes');
             
             if ($rate_limit_enabled !== 'yes') {
                 return false;
             }
-            
-            $limit = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'rate_limit_requests', 100);
             
             global $wpdb;
             
@@ -645,14 +644,45 @@ if (!class_exists('MPTBM_REST_API')) {
                 $this->init_table_names();
             }
             
-            $count = $wpdb->get_var($wpdb->prepare(
+            // Per-endpoint rate limiting
+            if ($endpoint) {
+                $endpoint_limits = array(
+                    'create_booking' => 5, // Max 5 bookings per minute
+                    'update_booking' => 10, // Max 10 updates per minute
+                    'cancel_booking' => 3, // Max 3 cancellations per minute
+                    'calculate_booking_price' => 30, // Max 30 calculations per minute
+                    'location_autocomplete' => 60, // Max 60 autocomplete requests per minute
+                    'calculate_distance' => 20, // Max 20 distance calculations per minute
+                );
+                
+                $endpoint_slug = str_replace('/', '_', trim($endpoint, '/'));
+                $specific_limit = isset($endpoint_limits[$endpoint_slug]) ? $endpoint_limits[$endpoint_slug] : 50;
+                
+                $endpoint_count = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(*) FROM {$this->api_logs_table} 
+                     WHERE api_key_id = %d 
+                     AND endpoint = %s
+                     AND created_at > DATE_SUB(NOW(), INTERVAL 1 MINUTE)",
+                    $api_key_id,
+                    $endpoint
+                ));
+                
+                if ($endpoint_count >= $specific_limit) {
+                    return true;
+                }
+            }
+            
+            // Global rate limiting
+            $global_limit = absint(MP_Global_Function::get_settings('mptbm_rest_api_settings', 'rate_limit_requests', 100));
+            
+            $total_count = $wpdb->get_var($wpdb->prepare(
                 "SELECT COUNT(*) FROM {$this->api_logs_table} 
                  WHERE api_key_id = %d 
                  AND created_at > DATE_SUB(NOW(), INTERVAL 1 MINUTE)",
                 $api_key_id
             ));
             
-            return $count >= $limit;
+            return $total_count >= $global_limit;
         }
         
         private function log_api_request($api_key_id, $request) {
@@ -1572,6 +1602,937 @@ if (!class_exists('MPTBM_REST_API')) {
             );
             
             return new WP_REST_Response($response_data, 201);
+        }
+        
+        public function get_booking($request) {
+            $booking_id = $request->get_param('id');
+            
+            if (!$booking_id) {
+                return new WP_Error('missing_id', 'Booking ID is required', array('status' => 400));
+            }
+            
+            $booking_post = get_post(absint($booking_id));
+            
+            if (!$booking_post || ($booking_post->post_type !== 'shop_order' && $booking_post->post_type !== 'mptbm_booking')) {
+                return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
+            }
+            
+            // Check if this booking belongs to taxi booking system
+            $taxi_id = get_post_meta($booking_id, 'mptbm_taxi_id', true);
+            if (!$taxi_id) {
+                return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
+            }
+            
+            // Get WooCommerce order if available
+            $order = null;
+            if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
+                $order = wc_get_order($booking_id);
+            }
+            
+            // Build booking data
+            $booking_data = array(
+                'id' => $booking_id,
+                'status' => $order ? $order->get_status() : str_replace('wc-', '', $booking_post->post_status),
+                'date_created' => $booking_post->post_date,
+                'date_modified' => $booking_post->post_modified,
+                'total' => $order ? $order->get_total() : get_post_meta($booking_id, '_order_total', true),
+                'currency' => $order ? $order->get_currency() : get_option('woocommerce_currency', 'USD'),
+                'customer_id' => $order ? $order->get_customer_id() : get_post_meta($booking_id, '_customer_user', true),
+                'customer_details' => array(
+                    'email' => $order ? $order->get_billing_email() : get_post_meta($booking_id, '_billing_email', true),
+                    'first_name' => $order ? $order->get_billing_first_name() : get_post_meta($booking_id, '_billing_first_name', true),
+                    'last_name' => $order ? $order->get_billing_last_name() : get_post_meta($booking_id, '_billing_last_name', true),
+                    'phone' => $order ? $order->get_billing_phone() : get_post_meta($booking_id, '_billing_phone', true),
+                    'address' => array(
+                        'address_1' => $order ? $order->get_billing_address_1() : get_post_meta($booking_id, '_billing_address_1', true),
+                        'address_2' => $order ? $order->get_billing_address_2() : get_post_meta($booking_id, '_billing_address_2', true),
+                        'city' => $order ? $order->get_billing_city() : get_post_meta($booking_id, '_billing_city', true),
+                        'state' => $order ? $order->get_billing_state() : get_post_meta($booking_id, '_billing_state', true),
+                        'postcode' => $order ? $order->get_billing_postcode() : get_post_meta($booking_id, '_billing_postcode', true),
+                        'country' => $order ? $order->get_billing_country() : get_post_meta($booking_id, '_billing_country', true)
+                    )
+                ),
+                'booking_details' => array(
+                    'pickup_location' => get_post_meta($booking_id, 'mptbm_pickup_location', true),
+                    'dropoff_location' => get_post_meta($booking_id, 'mptbm_dropoff_location', true),
+                    'pickup_date' => get_post_meta($booking_id, 'mptbm_pickup_date', true),
+                    'pickup_time' => get_post_meta($booking_id, 'mptbm_pickup_time', true),
+                    'return_date' => get_post_meta($booking_id, 'mptbm_return_date', true),
+                    'return_time' => get_post_meta($booking_id, 'mptbm_return_time', true),
+                    'passenger_count' => absint(get_post_meta($booking_id, 'mptbm_passenger_count', true)),
+                    'distance' => floatval(get_post_meta($booking_id, 'mptbm_distance', true)),
+                    'duration' => get_post_meta($booking_id, 'mptbm_duration', true),
+                    'special_instructions' => get_post_meta($booking_id, 'mptbm_special_instructions', true),
+                    'booking_type' => get_post_meta($booking_id, 'mptbm_booking_type', true) ?: 'distance',
+                    'created_via' => get_post_meta($booking_id, 'mptbm_booking_created_via', true) ?: 'web'
+                ),
+                'payment_details' => array(
+                    'payment_method' => $order ? $order->get_payment_method() : get_post_meta($booking_id, '_payment_method', true),
+                    'payment_method_title' => $order ? $order->get_payment_method_title() : get_post_meta($booking_id, '_payment_method_title', true),
+                    'transaction_id' => $order ? $order->get_transaction_id() : get_post_meta($booking_id, '_transaction_id', true),
+                    'date_paid' => $order ? $order->get_date_paid() : get_post_meta($booking_id, '_date_paid', true)
+                )
+            );
+            
+            // Get taxi details
+            $taxi_post = get_post($taxi_id);
+            if ($taxi_post) {
+                $booking_data['taxi_details'] = array(
+                    'id' => $taxi_post->ID,
+                    'title' => $taxi_post->post_title,
+                    'description' => $taxi_post->post_content,
+                    'featured_image' => get_the_post_thumbnail_url($taxi_post->ID, 'medium'),
+                    'max_passengers' => MPTBM_Function::get_feature_passenger($taxi_post->ID),
+                    'max_bags' => MPTBM_Function::get_feature_bag($taxi_post->ID),
+                    'price' => MP_Global_Function::get_post_info($taxi_post->ID, 'mptbm_rent_price', 0)
+                );
+            }
+            
+            // Get order items if WooCommerce order
+            if ($order) {
+                $booking_data['order_items'] = array();
+                foreach ($order->get_items() as $item_id => $item) {
+                    $booking_data['order_items'][] = array(
+                        'id' => $item_id,
+                        'name' => $item->get_name(),
+                        'quantity' => $item->get_quantity(),
+                        'total' => $item->get_total(),
+                        'product_id' => $item->get_product_id(),
+                        'variation_id' => $item->get_variation_id()
+                    );
+                }
+            }
+            
+            $response_data = array(
+                'success' => true,
+                'data' => $booking_data
+            );
+            
+            return new WP_REST_Response($response_data, 200);
+        }
+        
+        public function update_booking($request) {
+            $booking_id = $request->get_param('id');
+            
+            if (!$booking_id) {
+                return new WP_Error('missing_id', 'Booking ID is required', array('status' => 400));
+            }
+            
+            $booking_post = get_post(absint($booking_id));
+            
+            if (!$booking_post || ($booking_post->post_type !== 'shop_order' && $booking_post->post_type !== 'mptbm_booking')) {
+                return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
+            }
+            
+            // Check if this booking belongs to taxi booking system
+            $taxi_id = get_post_meta($booking_id, 'mptbm_taxi_id', true);
+            if (!$taxi_id) {
+                return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
+            }
+            
+            // Check if booking can be modified (not completed, cancelled, refunded)
+            $current_status = get_post_status($booking_id);
+            $immutable_statuses = array('wc-completed', 'wc-cancelled', 'wc-refunded', 'completed', 'cancelled', 'refunded');
+            
+            if (in_array($current_status, $immutable_statuses)) {
+                return new WP_Error('booking_immutable', 'This booking cannot be modified', array('status' => 409));
+            }
+            
+            $updated = false;
+            $order = null;
+            
+            if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
+                $order = wc_get_order($booking_id);
+            }
+            
+            // Update customer details if provided
+            if ($request->get_param('customer_email')) {
+                $email = sanitize_email($request->get_param('customer_email'));
+                if (is_email($email)) {
+                    if ($order) {
+                        $order->set_billing_email($email);
+                    } else {
+                        update_post_meta($booking_id, '_billing_email', $email);
+                    }
+                    $updated = true;
+                }
+            }
+            
+            if ($request->get_param('customer_name')) {
+                $name = sanitize_text_field($request->get_param('customer_name'));
+                $name_parts = explode(' ', $name, 2);
+                if ($order) {
+                    $order->set_billing_first_name($name_parts[0]);
+                    if (isset($name_parts[1])) {
+                        $order->set_billing_last_name($name_parts[1]);
+                    }
+                } else {
+                    update_post_meta($booking_id, '_billing_first_name', $name_parts[0]);
+                    if (isset($name_parts[1])) {
+                        update_post_meta($booking_id, '_billing_last_name', $name_parts[1]);
+                    }
+                }
+                $updated = true;
+            }
+            
+            if ($request->get_param('customer_phone')) {
+                $phone = sanitize_text_field($request->get_param('customer_phone'));
+                if ($order) {
+                    $order->set_billing_phone($phone);
+                } else {
+                    update_post_meta($booking_id, '_billing_phone', $phone);
+                }
+                $updated = true;
+            }
+            
+            // Update booking details if provided
+            $booking_updates = array(
+                'pickup_location' => 'mptbm_pickup_location',
+                'dropoff_location' => 'mptbm_dropoff_location',
+                'pickup_date' => 'mptbm_pickup_date',
+                'pickup_time' => 'mptbm_pickup_time',
+                'return_date' => 'mptbm_return_date',
+                'return_time' => 'mptbm_return_time',
+                'passenger_count' => 'mptbm_passenger_count',
+                'special_instructions' => 'mptbm_special_instructions'
+            );
+            
+            foreach ($booking_updates as $param => $meta_key) {
+                if ($request->get_param($param) !== null) {
+                    $value = sanitize_text_field($request->get_param($param));
+                    
+                    // Special handling for passenger_count
+                    if ($param === 'passenger_count') {
+                        $value = absint($value);
+                        if ($value <= 0) {
+                            continue;
+                        }
+                    }
+                    
+                    // Special handling for dates
+                    if (in_array($param, array('pickup_date', 'return_date')) && $value && !strtotime($value)) {
+                        continue; // Skip invalid dates
+                    }
+                    
+                    update_post_meta($booking_id, $meta_key, $value);
+                    $updated = true;
+                }
+            }
+            
+            // Update taxi if provided
+            if ($request->get_param('taxi_id')) {
+                $new_taxi_id = absint($request->get_param('taxi_id'));
+                $taxi_post = get_post($new_taxi_id);
+                
+                if ($taxi_post && $taxi_post->post_type === MPTBM_Function::get_cpt()) {
+                    update_post_meta($booking_id, 'mptbm_taxi_id', $new_taxi_id);
+                    $updated = true;
+                }
+            }
+            
+            // Save WooCommerce order if it exists
+            if ($order && $updated) {
+                $order->save();
+                $order->add_order_note('Booking updated via API', false, true);
+            }
+            
+            if (!$updated) {
+                return new WP_Error('no_changes', 'No valid changes provided', array('status' => 400));
+            }
+            
+            // Add update timestamp
+            update_post_meta($booking_id, 'mptbm_last_updated_via_api', current_time('mysql'));
+            
+            $response_data = array(
+                'success' => true,
+                'message' => 'Booking updated successfully',
+                'data' => array(
+                    'id' => $booking_id,
+                    'status' => get_post_status($booking_id)
+                )
+            );
+            
+            return new WP_REST_Response($response_data, 200);
+        }
+        
+        public function cancel_booking($request) {
+            $booking_id = $request->get_param('id');
+            
+            if (!$booking_id) {
+                return new WP_Error('missing_id', 'Booking ID is required', array('status' => 400));
+            }
+            
+            $booking_post = get_post(absint($booking_id));
+            
+            if (!$booking_post || ($booking_post->post_type !== 'shop_order' && $booking_post->post_type !== 'mptbm_booking')) {
+                return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
+            }
+            
+            // Check if this booking belongs to taxi booking system
+            $taxi_id = get_post_meta($booking_id, 'mptbm_taxi_id', true);
+            if (!$taxi_id) {
+                return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
+            }
+            
+            $current_status = get_post_status($booking_id);
+            $already_cancelled = in_array($current_status, array('wc-cancelled', 'cancelled'));
+            
+            if ($already_cancelled) {
+                return new WP_Error('already_cancelled', 'Booking is already cancelled', array('status' => 409));
+            }
+            
+            $completed_statuses = array('wc-completed', 'completed');
+            if (in_array($current_status, $completed_statuses)) {
+                return new WP_Error('cannot_cancel_completed', 'Cannot cancel completed booking', array('status' => 409));
+            }
+            
+            $reason = sanitize_text_field($request->get_param('reason')) ?: 'Cancelled via API';
+            $refund_amount = floatval($request->get_param('refund_amount'));
+            
+            $order = null;
+            if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
+                $order = wc_get_order($booking_id);
+            }
+            
+            // Cancel the booking
+            if ($order) {
+                $order->update_status('cancelled', $reason);
+                $order->add_order_note(sprintf('Booking cancelled via API. Reason: %s', $reason), false, true);
+                
+                // Handle refund if requested
+                if ($refund_amount > 0 && $refund_amount <= $order->get_total()) {
+                    if (function_exists('wc_create_refund')) {
+                        $refund = wc_create_refund(array(
+                            'order_id' => $booking_id,
+                            'amount' => $refund_amount,
+                            'reason' => $reason,
+                            'line_items' => array(),
+                        ));
+                        
+                        if (!is_wp_error($refund)) {
+                            $order->add_order_note(sprintf('Refund of %s created via API', wc_price($refund_amount)), false, true);
+                        }
+                    }
+                }
+            } else {
+                // Update custom post status
+                wp_update_post(array(
+                    'ID' => $booking_id,
+                    'post_status' => 'cancelled'
+                ));
+            }
+            
+            // Store cancellation details
+            update_post_meta($booking_id, 'mptbm_cancelled_at', current_time('mysql'));
+            update_post_meta($booking_id, 'mptbm_cancellation_reason', $reason);
+            update_post_meta($booking_id, 'mptbm_cancelled_via', 'api');
+            
+            if ($refund_amount > 0) {
+                update_post_meta($booking_id, 'mptbm_refund_amount', $refund_amount);
+            }
+            
+            // Trigger webhook if configured
+            $this->trigger_webhook('booking.cancelled', array(
+                'booking_id' => $booking_id,
+                'taxi_id' => $taxi_id,
+                'reason' => $reason,
+                'refund_amount' => $refund_amount,
+                'cancelled_at' => current_time('mysql')
+            ));
+            
+            $response_data = array(
+                'success' => true,
+                'message' => 'Booking cancelled successfully',
+                'data' => array(
+                    'id' => $booking_id,
+                    'status' => 'cancelled',
+                    'reason' => $reason,
+                    'cancelled_at' => current_time('mysql'),
+                    'refund_amount' => $refund_amount
+                )
+            );
+            
+            return new WP_REST_Response($response_data, 200);
+        }
+        
+        public function update_booking_status($request) {
+            $booking_id = $request->get_param('id');
+            $new_status = sanitize_text_field($request->get_param('status'));
+            
+            if (!$booking_id) {
+                return new WP_Error('missing_id', 'Booking ID is required', array('status' => 400));
+            }
+            
+            if (!$new_status) {
+                return new WP_Error('missing_status', 'Status is required', array('status' => 400));
+            }
+            
+            $booking_post = get_post(absint($booking_id));
+            
+            if (!$booking_post || ($booking_post->post_type !== 'shop_order' && $booking_post->post_type !== 'mptbm_booking')) {
+                return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
+            }
+            
+            // Check if this booking belongs to taxi booking system
+            $taxi_id = get_post_meta($booking_id, 'mptbm_taxi_id', true);
+            if (!$taxi_id) {
+                return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
+            }
+            
+            // Validate status
+            $valid_statuses = array(
+                'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed'
+            );
+            
+            if (!in_array($new_status, $valid_statuses)) {
+                return new WP_Error('invalid_status', 'Invalid status provided', array('status' => 400));
+            }
+            
+            $current_status = str_replace('wc-', '', get_post_status($booking_id));
+            
+            if ($current_status === $new_status) {
+                return new WP_Error('same_status', 'Status is already set to this value', array('status' => 409));
+            }
+            
+            $note = sanitize_text_field($request->get_param('note')) ?: sprintf('Status changed to %s via API', $new_status);
+            
+            $order = null;
+            if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
+                $order = wc_get_order($booking_id);
+            }
+            
+            // Update the status
+            if ($order) {
+                $order->update_status($new_status, $note);
+                $order->add_order_note($note, false, true);
+            } else {
+                wp_update_post(array(
+                    'ID' => $booking_id,
+                    'post_status' => $new_status
+                ));
+            }
+            
+            // Store status change details
+            $status_history = get_post_meta($booking_id, 'mptbm_status_history', true) ?: array();
+            $status_history[] = array(
+                'from' => $current_status,
+                'to' => $new_status,
+                'note' => $note,
+                'changed_at' => current_time('mysql'),
+                'changed_via' => 'api'
+            );
+            update_post_meta($booking_id, 'mptbm_status_history', $status_history);
+            
+            // Trigger webhook if configured
+            $this->trigger_webhook('booking.status_changed', array(
+                'booking_id' => $booking_id,
+                'taxi_id' => $taxi_id,
+                'from_status' => $current_status,
+                'to_status' => $new_status,
+                'note' => $note,
+                'changed_at' => current_time('mysql')
+            ));
+            
+            $response_data = array(
+                'success' => true,
+                'message' => sprintf('Booking status updated to %s', $new_status),
+                'data' => array(
+                    'id' => $booking_id,
+                    'previous_status' => $current_status,
+                    'new_status' => $new_status,
+                    'note' => $note,
+                    'changed_at' => current_time('mysql')
+                )
+            );
+            
+            return new WP_REST_Response($response_data, 200);
+        }
+        
+        public function calculate_booking_price($request) {
+            // Validate required parameters
+            $required_params = array('taxi_id', 'pickup_location', 'dropoff_location');
+            
+            foreach ($required_params as $param) {
+                if (!$request->get_param($param)) {
+                    return new WP_Error('missing_parameter', "Missing required parameter: {$param}", array('status' => 400));
+                }
+            }
+            
+            $taxi_id = absint($request->get_param('taxi_id'));
+            $pickup_location = sanitize_text_field($request->get_param('pickup_location'));
+            $dropoff_location = sanitize_text_field($request->get_param('dropoff_location'));
+            $passenger_count = absint($request->get_param('passenger_count')) ?: 1;
+            $pricing_type = sanitize_text_field($request->get_param('pricing_type')) ?: 'distance';
+            $pickup_date = sanitize_text_field($request->get_param('pickup_date'));
+            $pickup_time = sanitize_text_field($request->get_param('pickup_time'));
+            $return_date = sanitize_text_field($request->get_param('return_date'));
+            $hours = floatval($request->get_param('hours')); // For hourly pricing
+            
+            // Validate taxi exists
+            $taxi_post = get_post($taxi_id);
+            if (!$taxi_post || $taxi_post->post_type !== MPTBM_Function::get_cpt()) {
+                return new WP_Error('invalid_taxi', 'Invalid taxi ID', array('status' => 400));
+            }
+            
+            // Get base pricing
+            $base_price = floatval(MP_Global_Function::get_post_info($taxi_id, 'mptbm_rent_price', 0));
+            $price_per_km = floatval(MP_Global_Function::get_settings('mptbm_general_settings', 'price_per_km', 2));
+            $price_per_hour = floatval(MP_Global_Function::get_settings('mptbm_general_settings', 'price_per_hour', 25));
+            
+            $pricing_breakdown = array(
+                'base_price' => $base_price,
+                'distance_price' => 0,
+                'time_price' => 0,
+                'surcharges' => array(),
+                'total_before_tax' => $base_price
+            );
+            
+            // Calculate distance-based pricing
+            if ($pricing_type === 'distance' || $pricing_type === 'dynamic') {
+                $distance = $this->calculate_distance_between_locations($pickup_location, $dropoff_location);
+                
+                if (!is_wp_error($distance)) {
+                    $distance_km = $distance['distance_km'];
+                    $pricing_breakdown['distance'] = array(
+                        'value' => $distance_km,
+                        'unit' => 'km',
+                        'duration' => $distance['duration']
+                    );
+                    $pricing_breakdown['distance_price'] = $distance_km * $price_per_km;
+                }
+            }
+            
+            // Calculate hourly pricing
+            if ($pricing_type === 'hourly' && $hours > 0) {
+                $pricing_breakdown['time_price'] = $hours * $price_per_hour;
+                $pricing_breakdown['hours'] = $hours;
+            }
+            
+            // Calculate return trip if provided
+            if ($return_date && $pricing_type === 'distance') {
+                $pricing_breakdown['distance_price'] *= 2; // Round trip
+                $pricing_breakdown['return_trip'] = true;
+            }
+            
+            // Apply passenger multiplier
+            $passenger_multiplier = floatval(MP_Global_Function::get_settings('mptbm_general_settings', 'passenger_price_multiplier', 1));
+            if ($passenger_count > 1 && $passenger_multiplier > 1) {
+                $extra_passenger_cost = ($passenger_count - 1) * ($passenger_multiplier - 1) * $base_price;
+                $pricing_breakdown['surcharges']['extra_passengers'] = $extra_passenger_cost;
+            }
+            
+            // Apply time-based surcharges
+            if ($pickup_date && $pickup_time) {
+                $pickup_datetime = strtotime($pickup_date . ' ' . $pickup_time);
+                $hour = date('H', $pickup_datetime);
+                $day_of_week = date('w', $pickup_datetime);
+                
+                // Night surcharge (22:00 - 06:00)
+                $night_surcharge = floatval(MP_Global_Function::get_settings('mptbm_general_settings', 'night_surcharge', 0));
+                if (($hour >= 22 || $hour < 6) && $night_surcharge > 0) {
+                    $pricing_breakdown['surcharges']['night_surcharge'] = $night_surcharge;
+                }
+                
+                // Weekend surcharge (Saturday = 6, Sunday = 0)
+                $weekend_surcharge = floatval(MP_Global_Function::get_settings('mptbm_general_settings', 'weekend_surcharge', 0));
+                if (($day_of_week == 0 || $day_of_week == 6) && $weekend_surcharge > 0) {
+                    $pricing_breakdown['surcharges']['weekend_surcharge'] = $weekend_surcharge;
+                }
+            }
+            
+            // Calculate total before tax
+            $pricing_breakdown['total_before_tax'] = $base_price + $pricing_breakdown['distance_price'] + 
+                                                    $pricing_breakdown['time_price'] + 
+                                                    array_sum($pricing_breakdown['surcharges']);
+            
+            // Apply tax
+            $tax_rate = floatval(MP_Global_Function::get_settings('mptbm_general_settings', 'tax_rate', 0));
+            $pricing_breakdown['tax'] = array(
+                'rate' => $tax_rate,
+                'amount' => ($pricing_breakdown['total_before_tax'] * $tax_rate / 100)
+            );
+            
+            $pricing_breakdown['total'] = $pricing_breakdown['total_before_tax'] + $pricing_breakdown['tax']['amount'];
+            
+            // Round prices to 2 decimal places
+            $pricing_breakdown['base_price'] = round($pricing_breakdown['base_price'], 2);
+            $pricing_breakdown['distance_price'] = round($pricing_breakdown['distance_price'], 2);
+            $pricing_breakdown['time_price'] = round($pricing_breakdown['time_price'], 2);
+            $pricing_breakdown['total_before_tax'] = round($pricing_breakdown['total_before_tax'], 2);
+            $pricing_breakdown['tax']['amount'] = round($pricing_breakdown['tax']['amount'], 2);
+            $pricing_breakdown['total'] = round($pricing_breakdown['total'], 2);
+            
+            foreach ($pricing_breakdown['surcharges'] as $key => $value) {
+                $pricing_breakdown['surcharges'][$key] = round($value, 2);
+            }
+            
+            $response_data = array(
+                'success' => true,
+                'data' => array(
+                    'taxi_id' => $taxi_id,
+                    'taxi_title' => $taxi_post->post_title,
+                    'pricing_type' => $pricing_type,
+                    'passenger_count' => $passenger_count,
+                    'pickup_location' => $pickup_location,
+                    'dropoff_location' => $dropoff_location,
+                    'pricing_breakdown' => $pricing_breakdown,
+                    'currency' => get_option('woocommerce_currency', 'USD'),
+                    'currency_symbol' => function_exists('get_woocommerce_currency_symbol') ? get_woocommerce_currency_symbol() : '$',
+                    'calculated_at' => current_time('mysql')
+                ),
+                'message' => sprintf('Price calculated: %s %s', 
+                    function_exists('get_woocommerce_currency_symbol') ? get_woocommerce_currency_symbol() : '$',
+                    $pricing_breakdown['total']
+                )
+            );
+            
+            return new WP_REST_Response($response_data, 200);
+        }
+        
+        // Helper method for distance calculation in price calculation
+        private function calculate_distance_between_locations($origin, $destination) {
+            $api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
+            if (!$api_key) {
+                return new WP_Error('missing_api_key', 'Google Maps API key not configured');
+            }
+            
+            $url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
+            $params = array(
+                'origins' => $origin,
+                'destinations' => $destination,
+                'key' => $api_key,
+                'units' => 'metric',
+                'mode' => 'driving'
+            );
+            
+            $response = wp_remote_get($url . '?' . http_build_query($params));
+            
+            if (is_wp_error($response)) {
+                return $response;
+            }
+            
+            $body = wp_remote_retrieve_body($response);
+            $data = json_decode($body, true);
+            
+            if ($data['status'] !== 'OK') {
+                return new WP_Error('google_api_error', 'Google API error: ' . $data['status']);
+            }
+            
+            $element = $data['rows'][0]['elements'][0] ?? null;
+            
+            if (!$element || $element['status'] !== 'OK') {
+                return new WP_Error('route_not_found', 'Route not found');
+            }
+            
+            return array(
+                'distance_km' => $element['distance']['value'] / 1000,
+                'duration' => $element['duration']['text']
+            );
+        }
+        
+        // Enhanced input validation helpers
+        private function validate_date($date, $field_name = 'date') {
+            if (empty($date)) {
+                return new WP_Error('missing_date', "Missing {$field_name}", array('status' => 400));
+            }
+            
+            $timestamp = strtotime($date);
+            if (!$timestamp) {
+                return new WP_Error('invalid_date', "Invalid {$field_name} format. Use Y-m-d format.", array('status' => 400));
+            }
+            
+            // Check if date is in the past (for pickup dates)
+            if ($field_name === 'pickup_date' && $timestamp < strtotime('today')) {
+                return new WP_Error('past_date', 'Pickup date cannot be in the past', array('status' => 400));
+            }
+            
+            // Check if date is too far in the future
+            $max_advance_days = absint(MP_Global_Function::get_settings('mptbm_general_settings', 'max_advance_days', 365));
+            if ($timestamp > strtotime("+{$max_advance_days} days")) {
+                return new WP_Error('date_too_far', "Date cannot be more than {$max_advance_days} days in advance", array('status' => 400));
+            }
+            
+            return true;
+        }
+        
+        private function validate_time($time, $field_name = 'time') {
+            if (empty($time)) {
+                return new WP_Error('missing_time', "Missing {$field_name}", array('status' => 400));
+            }
+            
+            // Validate time format (H:i or H:i:s)
+            if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/', $time)) {
+                return new WP_Error('invalid_time', "Invalid {$field_name} format. Use H:i format (e.g., 14:30)", array('status' => 400));
+            }
+            
+            return true;
+        }
+        
+        private function validate_location($location, $field_name = 'location') {
+            if (empty($location)) {
+                return new WP_Error('missing_location', "Missing {$field_name}", array('status' => 400));
+            }
+            
+            $location = sanitize_text_field($location);
+            if (strlen($location) < 3) {
+                return new WP_Error('location_too_short', "{$field_name} must be at least 3 characters long", array('status' => 400));
+            }
+            
+            if (strlen($location) > 255) {
+                return new WP_Error('location_too_long', "{$field_name} cannot exceed 255 characters", array('status' => 400));
+            }
+            
+            return $location;
+        }
+        
+        private function validate_passenger_count($count, $taxi_id = null) {
+            $count = absint($count);
+            
+            if ($count <= 0) {
+                return new WP_Error('invalid_passenger_count', 'Passenger count must be at least 1', array('status' => 400));
+            }
+            
+            if ($count > 50) {
+                return new WP_Error('too_many_passengers', 'Passenger count cannot exceed 50', array('status' => 400));
+            }
+            
+            // Check against taxi capacity if taxi_id is provided
+            if ($taxi_id) {
+                $max_passengers = MPTBM_Function::get_feature_passenger($taxi_id);
+                if ($max_passengers && $count > $max_passengers) {
+                    return new WP_Error('exceeds_capacity', "Selected taxi can accommodate maximum {$max_passengers} passengers", array('status' => 400));
+                }
+            }
+            
+            return $count;
+        }
+        
+        private function validate_email($email, $field_name = 'email') {
+            if (empty($email)) {
+                return new WP_Error('missing_email', "Missing {$field_name}", array('status' => 400));
+            }
+            
+            $email = sanitize_email($email);
+            if (!is_email($email)) {
+                return new WP_Error('invalid_email', "Invalid {$field_name} format", array('status' => 400));
+            }
+            
+            return $email;
+        }
+        
+        private function validate_phone($phone, $required = false) {
+            if (empty($phone)) {
+                if ($required) {
+                    return new WP_Error('missing_phone', 'Phone number is required', array('status' => 400));
+                }
+                return '';
+            }
+            
+            $phone = sanitize_text_field($phone);
+            
+            // Basic phone validation - allow numbers, spaces, dashes, parentheses, plus sign
+            if (!preg_match('/^[+]?[(]?[\d\s\-()]+$/', $phone)) {
+                return new WP_Error('invalid_phone', 'Invalid phone number format', array('status' => 400));
+            }
+            
+            // Check length
+            $digits_only = preg_replace('/[^\d]/', '', $phone);
+            if (strlen($digits_only) < 7 || strlen($digits_only) > 15) {
+                return new WP_Error('invalid_phone_length', 'Phone number must contain 7-15 digits', array('status' => 400));
+            }
+            
+            return $phone;
+        }
+        
+        private function validate_booking_permissions($booking_id, $action = 'view') {
+            // Check if user has permission to access this booking
+            $current_user = wp_get_current_user();
+            
+            // Admins can access any booking
+            if (current_user_can('manage_options')) {
+                return true;
+            }
+            
+            // Check if it's the customer's own booking
+            $customer_id = get_post_meta($booking_id, '_customer_user', true);
+            if ($customer_id && $customer_id == $current_user->ID) {
+                return true;
+            }
+            
+            // Check if customer email matches current user email
+            $customer_email = get_post_meta($booking_id, '_billing_email', true);
+            if ($customer_email && $customer_email === $current_user->user_email) {
+                return true;
+            }
+            
+            return new WP_Error('insufficient_permissions', "Insufficient permissions to {$action} this booking", array('status' => 403));
+        }
+        
+        private function sanitize_and_validate_parameters($request, $validation_rules) {
+            $validated_data = array();
+            $errors = array();
+            
+            foreach ($validation_rules as $param => $rules) {
+                $value = $request->get_param($param);
+                $field_errors = array();
+                
+                // Check if required
+                if (isset($rules['required']) && $rules['required'] && empty($value)) {
+                    $field_errors[] = "Missing required parameter: {$param}";
+                    continue;
+                }
+                
+                // Skip validation if value is empty and not required
+                if (empty($value) && (!isset($rules['required']) || !$rules['required'])) {
+                    $validated_data[$param] = '';
+                    continue;
+                }
+                
+                // Apply sanitization
+                switch ($rules['type']) {
+                    case 'email':
+                        $value = sanitize_email($value);
+                        if (!is_email($value)) {
+                            $field_errors[] = "Invalid email format for {$param}";
+                        }
+                        break;
+                        
+                    case 'int':
+                        $value = absint($value);
+                        if (isset($rules['min']) && $value < $rules['min']) {
+                            $field_errors[] = "{$param} must be at least {$rules['min']}";
+                        }
+                        if (isset($rules['max']) && $value > $rules['max']) {
+                            $field_errors[] = "{$param} cannot exceed {$rules['max']}";
+                        }
+                        break;
+                        
+                    case 'float':
+                        $value = floatval($value);
+                        if (isset($rules['min']) && $value < $rules['min']) {
+                            $field_errors[] = "{$param} must be at least {$rules['min']}";
+                        }
+                        if (isset($rules['max']) && $value > $rules['max']) {
+                            $field_errors[] = "{$param} cannot exceed {$rules['max']}";
+                        }
+                        break;
+                        
+                    case 'string':
+                        $value = sanitize_text_field($value);
+                        if (isset($rules['min_length']) && strlen($value) < $rules['min_length']) {
+                            $field_errors[] = "{$param} must be at least {$rules['min_length']} characters long";
+                        }
+                        if (isset($rules['max_length']) && strlen($value) > $rules['max_length']) {
+                            $field_errors[] = "{$param} cannot exceed {$rules['max_length']} characters";
+                        }
+                        break;
+                        
+                    case 'textarea':
+                        $value = sanitize_textarea_field($value);
+                        if (isset($rules['max_length']) && strlen($value) > $rules['max_length']) {
+                            $field_errors[] = "{$param} cannot exceed {$rules['max_length']} characters";
+                        }
+                        break;
+                        
+                    case 'date':
+                        $validation_result = $this->validate_date($value, $param);
+                        if (is_wp_error($validation_result)) {
+                            $field_errors[] = $validation_result->get_error_message();
+                        }
+                        break;
+                        
+                    case 'time':
+                        $validation_result = $this->validate_time($value, $param);
+                        if (is_wp_error($validation_result)) {
+                            $field_errors[] = $validation_result->get_error_message();
+                        }
+                        break;
+                        
+                    case 'enum':
+                        if (isset($rules['values']) && !in_array($value, $rules['values'])) {
+                            $field_errors[] = "{$param} must be one of: " . implode(', ', $rules['values']);
+                        }
+                        break;
+                }
+                
+                if (!empty($field_errors)) {
+                    $errors[$param] = $field_errors;
+                } else {
+                    $validated_data[$param] = $value;
+                }
+            }
+            
+            if (!empty($errors)) {
+                return new WP_Error('validation_failed', 'Validation failed', array(
+                    'status' => 400,
+                    'errors' => $errors
+                ));
+            }
+            
+            return $validated_data;
+        }
+        
+        // Enhanced error logging
+        private function log_api_error($error, $request, $context = '') {
+            if (MP_Global_Function::get_settings('mptbm_rest_api_settings', 'error_logging', 'yes') !== 'yes') {
+                return;
+            }
+            
+            $log_entry = array(
+                'timestamp' => current_time('mysql'),
+                'endpoint' => $request->get_route(),
+                'method' => $request->get_method(),
+                'error_code' => $error->get_error_code(),
+                'error_message' => $error->get_error_message(),
+                'context' => $context,
+                'user_agent' => $request->get_header('User-Agent'),
+                'ip_address' => $this->get_client_ip()
+            );
+            
+            error_log('MPTBM API Error: ' . json_encode($log_entry));
+        }
+        
+        // Webhook functionality
+        private function trigger_webhook($event, $data) {
+            $webhook_url = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'webhook_url', '');
+            
+            if (!$webhook_url) {
+                return; // No webhook configured
+            }
+            
+            $webhook_secret = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'webhook_secret', '');
+            
+            $payload = array(
+                'event' => $event,
+                'data' => $data,
+                'timestamp' => current_time('timestamp'),
+                'site_url' => get_site_url()
+            );
+            
+            $headers = array(
+                'Content-Type' => 'application/json',
+                'User-Agent' => 'MPTBM-Webhook/1.0'
+            );
+            
+            // Add signature if secret is configured
+            if ($webhook_secret) {
+                $signature = hash_hmac('sha256', json_encode($payload), $webhook_secret);
+                $headers['X-MPTBM-Signature'] = 'sha256=' . $signature;
+            }
+            
+            // Send webhook asynchronously
+            wp_remote_post($webhook_url, array(
+                'method' => 'POST',
+                'headers' => $headers,
+                'body' => json_encode($payload),
+                'timeout' => 10,
+                'blocking' => false // Don't wait for response
+            ));
+            
+            // Log webhook for debugging
+            if (MP_Global_Function::get_settings('mptbm_rest_api_settings', 'webhook_logging', 'no') === 'yes') {
+                error_log(sprintf('MPTBM Webhook triggered: %s for event %s', $webhook_url, $event));
+            }
         }
         
         // Location operations

@@ -376,37 +376,139 @@ Content-Type: application/json
                 array(
                     'method' => 'GET',
                     'url' => '/bookings',
-                    'description' => 'Get list of bookings',
+                    'description' => 'Get list of bookings with pagination and filtering',
                     'parameters' => array(
-                        array('name' => 'status', 'type' => 'string', 'required' => false, 'description' => 'Filter by booking status'),
-                        array('name' => 'customer_id', 'type' => 'integer', 'required' => false, 'description' => 'Filter by customer ID'),
-                        array('name' => 'date_from', 'type' => 'string', 'required' => false, 'description' => 'Start date filter (Y-m-d)'),
-                        array('name' => 'date_to', 'type' => 'string', 'required' => false, 'description' => 'End date filter (Y-m-d)')
-                    )
+                        array('name' => 'page', 'type' => 'integer', 'required' => false, 'description' => 'Page number for pagination (default: 1)'),
+                        array('name' => 'per_page', 'type' => 'integer', 'required' => false, 'description' => 'Items per page (max 100, default: 10)'),
+                        array('name' => 'status', 'type' => 'string', 'required' => false, 'description' => 'Filter by booking status (pending, processing, completed, cancelled)'),
+                        array('name' => 'user_id', 'type' => 'integer', 'required' => false, 'description' => 'Filter by customer ID')
+                    ),
+                    'example_response' => '{
+    "success": true,
+    "data": [
+        {
+            "id": 123,
+            "status": "pending",
+            "total": "45.50",
+            "customer_name": "John Doe",
+            "pickup_location": "Airport",
+            "dropoff_location": "Hotel",
+            "pickup_date": "2024-12-15",
+            "taxi_details": {...}
+        }
+    ],
+    "pagination": {...}
+}'
+                ),
+                array(
+                    'method' => 'GET',
+                    'url' => '/bookings/{id}',
+                    'description' => 'Get detailed information about a specific booking',
+                    'parameters' => array(
+                        array('name' => 'id', 'type' => 'integer', 'required' => true, 'description' => 'Booking ID')
+                    ),
+                    'example_response' => '{
+    "success": true,
+    "data": {
+        "id": 123,
+        "status": "pending",
+        "customer_details": {...},
+        "booking_details": {...},
+        "taxi_details": {...},
+        "payment_details": {...}
+    }
+}'
                 ),
                 array(
                     'method' => 'POST',
                     'url' => '/bookings',
-                    'description' => 'Create a new booking',
+                    'description' => 'Create a new booking with full WooCommerce integration',
                     'parameters' => array(
                         array('name' => 'taxi_id', 'type' => 'integer', 'required' => true, 'description' => 'ID of the selected taxi'),
-                        array('name' => 'customer_info', 'type' => 'object', 'required' => true, 'description' => 'Customer information'),
-                        array('name' => 'pickup_location', 'type' => 'string', 'required' => true, 'description' => 'Pickup location'),
-                        array('name' => 'dropoff_location', 'type' => 'string', 'required' => false, 'description' => 'Drop-off location'),
-                        array('name' => 'pickup_date', 'type' => 'string', 'required' => true, 'description' => 'Pickup date (Y-m-d)'),
-                        array('name' => 'pickup_time', 'type' => 'string', 'required' => true, 'description' => 'Pickup time (H:i)')
+                        array('name' => 'pickup_location', 'type' => 'string', 'required' => true, 'description' => 'Pickup location (min 3 chars)'),
+                        array('name' => 'dropoff_location', 'type' => 'string', 'required' => true, 'description' => 'Drop-off location (min 3 chars)'),
+                        array('name' => 'pickup_date', 'type' => 'string', 'required' => true, 'description' => 'Pickup date (Y-m-d format)'),
+                        array('name' => 'pickup_time', 'type' => 'string', 'required' => true, 'description' => 'Pickup time (H:i format)'),
+                        array('name' => 'customer_email', 'type' => 'string', 'required' => true, 'description' => 'Customer email address'),
+                        array('name' => 'customer_name', 'type' => 'string', 'required' => false, 'description' => 'Customer full name'),
+                        array('name' => 'customer_phone', 'type' => 'string', 'required' => false, 'description' => 'Customer phone number'),
+                        array('name' => 'passenger_count', 'type' => 'integer', 'required' => false, 'description' => 'Number of passengers (default: 1)'),
+                        array('name' => 'return_date', 'type' => 'string', 'required' => false, 'description' => 'Return date for round trips'),
+                        array('name' => 'return_time', 'type' => 'string', 'required' => false, 'description' => 'Return time for round trips'),
+                        array('name' => 'distance', 'type' => 'number', 'required' => false, 'description' => 'Distance in kilometers'),
+                        array('name' => 'duration', 'type' => 'string', 'required' => false, 'description' => 'Estimated duration')
+                    )
+                ),
+                array(
+                    'method' => 'PUT',
+                    'url' => '/bookings/{id}',
+                    'description' => 'Update an existing booking (only pending/processing bookings)',
+                    'parameters' => array(
+                        array('name' => 'id', 'type' => 'integer', 'required' => true, 'description' => 'Booking ID'),
+                        array('name' => 'customer_email', 'type' => 'string', 'required' => false, 'description' => 'Updated customer email'),
+                        array('name' => 'customer_name', 'type' => 'string', 'required' => false, 'description' => 'Updated customer name'),
+                        array('name' => 'customer_phone', 'type' => 'string', 'required' => false, 'description' => 'Updated customer phone'),
+                        array('name' => 'pickup_location', 'type' => 'string', 'required' => false, 'description' => 'Updated pickup location'),
+                        array('name' => 'dropoff_location', 'type' => 'string', 'required' => false, 'description' => 'Updated dropoff location'),
+                        array('name' => 'pickup_date', 'type' => 'string', 'required' => false, 'description' => 'Updated pickup date'),
+                        array('name' => 'pickup_time', 'type' => 'string', 'required' => false, 'description' => 'Updated pickup time'),
+                        array('name' => 'passenger_count', 'type' => 'integer', 'required' => false, 'description' => 'Updated passenger count'),
+                        array('name' => 'special_instructions', 'type' => 'string', 'required' => false, 'description' => 'Special instructions')
+                    )
+                ),
+                array(
+                    'method' => 'DELETE',
+                    'url' => '/bookings/{id}',
+                    'description' => 'Cancel a booking with optional refund',
+                    'parameters' => array(
+                        array('name' => 'id', 'type' => 'integer', 'required' => true, 'description' => 'Booking ID'),
+                        array('name' => 'reason', 'type' => 'string', 'required' => false, 'description' => 'Cancellation reason'),
+                        array('name' => 'refund_amount', 'type' => 'number', 'required' => false, 'description' => 'Refund amount (if applicable)')
+                    )
+                ),
+                array(
+                    'method' => 'PUT',
+                    'url' => '/bookings/{id}/status',
+                    'description' => 'Update booking status with history tracking',
+                    'parameters' => array(
+                        array('name' => 'id', 'type' => 'integer', 'required' => true, 'description' => 'Booking ID'),
+                        array('name' => 'status', 'type' => 'string', 'required' => true, 'description' => 'New status (pending, processing, on-hold, completed, cancelled, refunded, failed)'),
+                        array('name' => 'note', 'type' => 'string', 'required' => false, 'description' => 'Status change note')
                     )
                 ),
                 array(
                     'method' => 'POST',
                     'url' => '/bookings/calculate-price',
-                    'description' => 'Calculate price for a booking',
+                    'description' => 'Calculate detailed pricing for a potential booking',
                     'parameters' => array(
                         array('name' => 'taxi_id', 'type' => 'integer', 'required' => true, 'description' => 'ID of the taxi'),
                         array('name' => 'pickup_location', 'type' => 'string', 'required' => true, 'description' => 'Pickup location'),
-                        array('name' => 'dropoff_location', 'type' => 'string', 'required' => false, 'description' => 'Drop-off location'),
-                        array('name' => 'pricing_type', 'type' => 'string', 'required' => false, 'description' => 'Pricing type (dynamic, manual, hourly)')
-                    )
+                        array('name' => 'dropoff_location', 'type' => 'string', 'required' => true, 'description' => 'Drop-off location'),
+                        array('name' => 'pricing_type', 'type' => 'string', 'required' => false, 'description' => 'Pricing type (distance, hourly, dynamic - default: distance)'),
+                        array('name' => 'passenger_count', 'type' => 'integer', 'required' => false, 'description' => 'Number of passengers (default: 1)'),
+                        array('name' => 'pickup_date', 'type' => 'string', 'required' => false, 'description' => 'Pickup date for surcharge calculation'),
+                        array('name' => 'pickup_time', 'type' => 'string', 'required' => false, 'description' => 'Pickup time for surcharge calculation'),
+                        array('name' => 'return_date', 'type' => 'string', 'required' => false, 'description' => 'Return date for round trip pricing'),
+                        array('name' => 'hours', 'type' => 'number', 'required' => false, 'description' => 'Hours for hourly pricing')
+                    ),
+                    'example_response' => '{
+    "success": true,
+    "data": {
+        "pricing_breakdown": {
+            "base_price": 25.00,
+            "distance_price": 18.50,
+            "surcharges": {
+                "night_surcharge": 5.00
+            },
+            "tax": {
+                "rate": 10,
+                "amount": 4.85
+            },
+            "total": 53.35
+        },
+        "currency": "USD"
+    }
+}'
                 )
             );
         }
