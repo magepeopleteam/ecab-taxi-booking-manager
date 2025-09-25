@@ -30,7 +30,7 @@ if (!class_exists('MPTBM_Settings_Global')) {
 ?>
 			<div class="mpStyle mp_global_settings">
 				<div class="mpPanel">
-					<div class="mpPanelHeader"><?php echo esc_html(esc_html__('Settings', 'ecab-taxi-booking-manager')); ?></div>
+					<div class="mpPanelHeader"><?php echo esc_html__('Settings', 'ecab-taxi-booking-manager'); ?></div>
 					<div class="mpPanelBody mp_zero">
 						<div class="mpTabs leftTabs">
 							<?php $this->settings_api->show_navigation(); ?>
