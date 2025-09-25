@@ -14,12 +14,12 @@
 			public function tour_licence() {
 				?>
 				<tr>
-					<th colspan="4" class="_textLeft"><?php echo esc_html('Taxi and Chauffeur Booking service Manager','tour-booking-manager'); ?></th>
-					<th><?php esc_html_e('Free','tour-booking-manager'); ?></th>
+					<th colspan="4" class="_textLeft"><?php esc_html_e('Taxi and Chauffeur Booking service Manager','ecab-taxi-booking-manager'); ?></th>
+					<th><?php esc_html_e('Free','ecab-taxi-booking-manager'); ?></th>
 					<th></th>
-					<th colspan="2"><?php esc_html_e('Unlimited','tour-booking-manager'); ?></th>
-					<th colspan="3"><?php esc_html_e('No Need','tour-booking-manager'); ?></th>
-					<th class="textSuccess"><?php esc_html_e('Active','tour-booking-manager'); ?></th>
+					<th colspan="2"><?php esc_html_e('Unlimited','ecab-taxi-booking-manager'); ?></th>
+					<th colspan="3"><?php esc_html_e('No Need','ecab-taxi-booking-manager'); ?></th>
+					<th class="textSuccess"><?php esc_html_e('Active','ecab-taxi-booking-manager'); ?></th>
 					<td colspan="2"></td>
 				</tr>
 				<?php
