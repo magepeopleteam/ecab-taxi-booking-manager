@@ -421,131 +421,6 @@ if (!class_exists('MPTBM_Function')) {
 				}
 			}
 
-			// Now apply datewise discount if addon is active
-			if (class_exists('MPTBM_Datewise_Discount_Addon')) {
-				$selected_start_date = get_transient('start_date_transient');
-				$selected_start_time = get_transient('start_time_schedule_transient');
-				$datetime_discount_applied = false;
-				$day_discount_applied = false;
-				$date_range_matched = false;
-				$original_price = $price;
-
-				// Get toggle states for both discount types
-				$datetime_discount_enabled = get_post_meta($post_id, 'mptbm_datetime_discount_enabled', true);
-				$day_discount_enabled = get_post_meta($post_id, 'mptbm_day_discount_enabled', true);
-
-				if (strpos($selected_start_time, '.') !== false) {
-					$selected_start_time = sprintf('%02d:%02d', floor($selected_start_time), ($selected_start_time - floor($selected_start_time)) * 60);
-				} else {
-					$selected_start_time = sprintf('%02d:00', $selected_start_time);
-				}
-
-				// Apply Date and Time Wise Discount if enabled
-				if ($datetime_discount_enabled === 'on') {
-					$discounts = MP_Global_Function::get_post_info($post_id, 'mptbm_discounts', []);
-					if (!empty($discounts)) {
-						foreach ($discounts as $discount) {
-							$start_date = isset($discount['start_date']) ? date('Y-m-d', strtotime($discount['start_date'])) : '';
-							$end_date = isset($discount['end_date']) ? date('Y-m-d', strtotime($discount['end_date'])) : '';
-							$time_slots = isset($discount['time_slots']) ? $discount['time_slots'] : [];
-
-							if (strtotime($selected_start_date) >= strtotime($start_date) && 
-								strtotime($selected_start_date) <= strtotime($end_date)) {
-								
-								$date_range_matched = true;
-								
-								$time_slot_matched = false;
-								foreach ($time_slots as $slot) {
-									$start_time = isset($slot['start_time']) ? sanitize_text_field($slot['start_time']) : '';
-									$end_time = isset($slot['end_time']) ? sanitize_text_field($slot['end_time']) : '';
-
-									if (strpos($start_time, '.') !== false) {
-										$start_time = sprintf('%02d:%02d', floor($start_time), ($start_time - floor($start_time)) * 60);
-									}
-									if (strpos($end_time, '.') !== false) {
-										$end_time = sprintf('%02d:%02d', floor($end_time), ($end_time - floor($end_time)) * 60);
-									}
-
-									if (strtotime($start_time) > strtotime($end_time)) {
-										if (strtotime($selected_start_time) >= strtotime($start_time) || 
-											strtotime($selected_start_time) <= strtotime($end_time)) {
-											
-											$percentage = floatval(rtrim($slot['percentage'], '%'));
-											$type = isset($slot['type']) ? $slot['type'] : 'increase';
-
-											$discount_amount = ($percentage / 100) * $original_price;
-
-											if ($type === 'decrease') {
-												$price -= abs($discount_amount);
-											} else {
-												$price += $discount_amount;
-											}
-											$datetime_discount_applied = true;
-											$time_slot_matched = true;
-										}
-									} else {
-										if (strtotime($selected_start_time) >= strtotime($start_time) && 
-											strtotime($selected_start_time) <= strtotime($end_time)) {
-											
-											$percentage = floatval(rtrim($slot['percentage'], '%'));
-											$type = isset($slot['type']) ? $slot['type'] : 'increase';
-
-											$discount_amount = ($percentage / 100) * $original_price;
-
-											if ($type === 'decrease') {
-												$price -= abs($discount_amount);
-											} else {
-												$price += $discount_amount;
-											}
-											$datetime_discount_applied = true;
-											$time_slot_matched = true;
-										}
-									}
-								}
-								
-								if (!empty($time_slots) && !$time_slot_matched) {
-									continue;
-								}
-							}
-						}
-					}
-				}
-
-				// Apply Day-based discount if enabled and no date-range discount was applied
-				// Check if addon is handling both date-time and day-based discounts
-				$skip_day_discount = apply_filters('mptbm_skip_day_discount_when_both_enabled', false, $post_id);
-				
-				if ($day_discount_enabled === 'on' && !empty($selected_start_date) && !$date_range_matched && !$skip_day_discount) {
-					$day_of_week = strtolower(date('l', strtotime($selected_start_date)));
-					
-					// Get day-based discounts
-					$day_discounts = get_post_meta($post_id, 'mptbm_day_discounts', true);
-					if (is_array($day_discounts) && isset($day_discounts[$day_of_week]) && 
-						$day_discounts[$day_of_week]['status'] === 'active') {
-						
-						$day_data = $day_discounts[$day_of_week];
-						$amount = floatval($day_data['amount']);
-						
-						if ($amount > 0) {
-							if ($day_data['amount_type'] === 'percentage') {
-								$discount_amount = ($amount / 100) * $original_price;
-							} else {
-								$discount_amount = $amount;
-							}
-
-							if ($day_data['type'] === 'decrease') {
-								$price -= $discount_amount;
-							} else {
-								$price += $discount_amount;
-							}
-							$day_discount_applied = true;
-						}
-					}
-				}
-
-				// Weather and Traffic pricing is now handled by the filter below to avoid double application
-			}
-
 			if (isset($_SESSION['geo_fence_post_' . $post_id])) {
 				$session_data = $_SESSION['geo_fence_post_' . $post_id];
 				if (isset($session_data[0])) {
@@ -562,13 +437,13 @@ if (!class_exists('MPTBM_Function')) {
 			// Apply filters for dynamic pricing (weather, traffic, etc.) if addons are available
 			if (has_filter('mptbm_calculate_price')) {
 				$extra_data = array();
-				
+
 				// Try to get coordinates from various sources for weather/traffic pricing
 				$pickup_lat = get_transient('mptbm_pickup_lat') ?: get_transient('pickup_lat_transient');
 				$pickup_lng = get_transient('mptbm_pickup_lng') ?: get_transient('pickup_lng_transient');
 				$drop_lat = get_transient('mptbm_drop_lat') ?: get_transient('drop_lat_transient');
 				$drop_lng = get_transient('mptbm_drop_lng') ?: get_transient('drop_lng_transient');
-				
+
 				// Fallback to session data
 				if (empty($pickup_lat) || empty($pickup_lng)) {
 					$pickup_lat = isset($_SESSION['pickup_lat']) ? $_SESSION['pickup_lat'] : '';
@@ -578,7 +453,7 @@ if (!class_exists('MPTBM_Function')) {
 					$drop_lat = isset($_SESSION['drop_lat']) ? $_SESSION['drop_lat'] : '';
 					$drop_lng = isset($_SESSION['drop_lng']) ? $_SESSION['drop_lng'] : '';
 				}
-				
+
 				// Final fallback to POST data (for AJAX requests)
 				if (empty($pickup_lat) || empty($pickup_lng)) {
 					$pickup_lat = isset($_POST['origin_lat']) ? $_POST['origin_lat'] : (isset($_POST['pickup_lat']) ? $_POST['pickup_lat'] : '');
@@ -588,7 +463,14 @@ if (!class_exists('MPTBM_Function')) {
 					$drop_lat = isset($_POST['dest_lat']) ? $_POST['dest_lat'] : (isset($_POST['drop_lat']) ? $_POST['drop_lat'] : '');
 					$drop_lng = isset($_POST['dest_lng']) ? $_POST['dest_lng'] : (isset($_POST['drop_lng']) ? $_POST['drop_lng'] : '');
 				}
-				
+
+				// Add distance to extra_data for distance tier pricing addon
+				if (isset($distance) && $distance > 0) {
+					$extra_data['distance'] = $distance;
+				} elseif (isset($_COOKIE['mptbm_distance']) && $_COOKIE['mptbm_distance'] > 0) {
+					$extra_data['distance'] = intval($_COOKIE['mptbm_distance']);
+				}
+
 				if (!empty($pickup_lat) && !empty($pickup_lng)) {
 					$extra_data['origin_lat'] = floatval($pickup_lat);
 					$extra_data['origin_lng'] = floatval($pickup_lng);
@@ -597,10 +479,10 @@ if (!class_exists('MPTBM_Function')) {
 					$extra_data['dest_lat'] = floatval($drop_lat);
 					$extra_data['dest_lng'] = floatval($drop_lng);
 				}
-				
+
 				$selected_start_date = get_transient('start_date_transient') ?: '';
 				$selected_start_time = get_transient('start_time_schedule_transient') ?: '';
-				
+
 				$price = apply_filters('mptbm_calculate_price', $price, $post_id, $selected_start_date, $selected_start_time, $extra_data);
 			}
 
@@ -810,194 +692,6 @@ if (!class_exists('MPTBM_Function')) {
 					'placeholder' => __('Enter your email address', 'ecab-taxi-booking-manager'),
 				],
 			];
-		}
-
-		/**
-		 * Get current weather condition for pricing calculation
-		 *
-		 * @param float $lat Latitude
-		 * @param float $lng Longitude
-		 * @param string $api_key OpenWeatherMap API key
-		 * @return string Weather condition key
-		 */
-		public static function get_weather_condition_for_pricing($lat, $lng, $api_key) {
-			if (empty($api_key) || empty($lat) || empty($lng)) {
-				return '';
-			}
-			
-			// Check cache first (cache for 15 minutes)
-			$cache_key = 'weather_pricing_' . md5($lat . '_' . $lng);
-			$cached_weather = get_transient($cache_key);
-			if ($cached_weather !== false) {
-				return $cached_weather;
-			}
-			
-			$url = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lng}&appid={$api_key}&units=metric";
-			
-			$response = wp_remote_get($url, array(
-				'timeout' => 10,
-				'headers' => array(
-					'User-Agent' => 'WordPress Taxi Pricing Plugin'
-				)
-			));
-			
-			if (is_wp_error($response)) {
-				return '';
-			}
-			
-			$body = wp_remote_retrieve_body($response);
-			$data = json_decode($body, true);
-			
-			if (empty($data) || !isset($data['weather'][0]['main'])) {
-				return '';
-			}
-			
-			$weather_main = strtolower($data['weather'][0]['main']);
-			$weather_desc = strtolower($data['weather'][0]['description']);
-			$temp = isset($data['main']['temp']) ? $data['main']['temp'] : 20;
-			$wind_speed = isset($data['wind']['speed']) ? $data['wind']['speed'] * 3.6 : 0; // Convert m/s to km/h
-			
-			$condition = '';
-			
-			// Determine weather condition based on API response
-			switch ($weather_main) {
-				case 'rain':
-					$condition = (strpos($weather_desc, 'heavy') !== false) ? 'heavy_rain' : 'rain';
-					break;
-				case 'drizzle':
-					$condition = 'rain';
-					break;
-				case 'snow':
-					$condition = 'snow';
-					break;
-				case 'fog':
-				case 'mist':
-				case 'haze':
-					$condition = 'fog';
-					break;
-				case 'thunderstorm':
-					$condition = 'storm';
-					break;
-				case 'clear':
-				case 'clouds':
-					// Check for extreme temperatures
-					if ($temp < 0) {
-						$condition = 'extreme_cold';
-					} elseif ($temp > 35) {
-						$condition = 'extreme_heat';
-					}
-					break;
-			}
-			
-			// Check for high wind regardless of other conditions
-			if ($wind_speed > 25) {
-				$condition = 'high_wind';
-			}
-			
-			// Cache the result for 15 minutes
-			set_transient($cache_key, $condition, 15 * MINUTE_IN_SECONDS);
-			
-			return $condition;
-		}
-
-		/**
-		 * Get traffic condition based on route duration for pricing calculation
-		 *
-		 * @param float $origin_lat Origin latitude
-		 * @param float $origin_lng Origin longitude
-		 * @param float $dest_lat Destination latitude
-		 * @param float $dest_lng Destination longitude
-		 * @param string $google_api_key Google Maps API key
-		 * @return array Traffic condition data
-		 */
-		public static function get_traffic_condition_for_pricing($origin_lat, $origin_lng, $dest_lat, $dest_lng, $google_api_key) {
-						
-			if (empty($google_api_key) || empty($origin_lat) || empty($origin_lng) || empty($dest_lat) || empty($dest_lng)) {
-				// error_log("[MPTBM Traffic API] Missing required parameters - aborting");
-				return array('condition' => '', 'multiplier' => 1.0);
-			}
-			
-			// Check cache first (cache for 5 minutes)
-			$cache_key = 'traffic_data_' . md5($origin_lat . $origin_lng . $dest_lat . $dest_lng);
-			$cached_data = get_transient($cache_key);
-			if ($cached_data !== false) {
-				// error_log("[MPTBM Traffic API] Using cached data: " . print_r($cached_data, true));
-				return $cached_data;
-			}
-			
-			// Build Google Maps API URLs
-			$base_params = "origin={$origin_lat},{$origin_lng}&destination={$dest_lat},{$dest_lng}&key={$google_api_key}";
-			$url_with_traffic = "https://maps.googleapis.com/maps/api/directions/json?{$base_params}&departure_time=now&traffic_model=best_guess";
-			$url_without_traffic = "https://maps.googleapis.com/maps/api/directions/json?{$base_params}";
-			
-			// error_log("[MPTBM Traffic API] URL with traffic: " . substr($url_with_traffic, 0, 100) . "...");
-			// error_log("[MPTBM Traffic API] URL without traffic: " . substr($url_without_traffic, 0, 100) . "...");
-			
-			// Get both responses
-			$response_with_traffic = wp_remote_get($url_with_traffic);
-			$response_without_traffic = wp_remote_get($url_without_traffic);
-			
-			if (is_wp_error($response_with_traffic)) {
-				// error_log("[MPTBM Traffic API] Error with traffic request: " . $response_with_traffic->get_error_message());
-				return array('condition' => '', 'multiplier' => 1.0);
-			}
-			
-			if (is_wp_error($response_without_traffic)) {
-				// error_log("[MPTBM Traffic API] Error without traffic request: " . $response_without_traffic->get_error_message());
-				return array('condition' => '', 'multiplier' => 1.0);
-			}
-			
-			$body_with_traffic = wp_remote_retrieve_body($response_with_traffic);
-			$body_without_traffic = wp_remote_retrieve_body($response_without_traffic);
-			
-			// error_log("[MPTBM Traffic API] Response with traffic: " . substr($body_with_traffic, 0, 200) . "...");
-				// error_log("[MPTBM Traffic API] Response without traffic: " . substr($body_without_traffic, 0, 200) . "...");
-			
-			$data_with_traffic = json_decode($body_with_traffic, true);
-			$data_without_traffic = json_decode($body_without_traffic, true);
-			
-			if (!isset($data_with_traffic['routes'][0]['legs'][0]) || !isset($data_without_traffic['routes'][0]['legs'][0])) {
-				// error_log("[MPTBM Traffic API] Invalid API response structure");
-					// error_log("[MPTBM Traffic API] With traffic status: " . (isset($data_with_traffic['status']) ? $data_with_traffic['status'] : 'unknown'));
-					// error_log("[MPTBM Traffic API] Without traffic status: " . (isset($data_without_traffic['status']) ? $data_without_traffic['status'] : 'unknown'));
-				return array('condition' => '', 'multiplier' => 1.0);
-			}
-			
-			// Get durations
-			$duration_with_traffic = $data_with_traffic['routes'][0]['legs'][0]['duration_in_traffic']['value'] ?? 
-									$data_with_traffic['routes'][0]['legs'][0]['duration']['value'];
-			$duration_without_traffic = $data_without_traffic['routes'][0]['legs'][0]['duration']['value'];
-			
-			// error_log("[MPTBM Traffic API] Duration with traffic: {$duration_with_traffic}s");
-				// error_log("[MPTBM Traffic API] Duration without traffic: {$duration_without_traffic}s");
-			
-			// Calculate traffic multiplier
-			$traffic_multiplier = $duration_with_traffic / $duration_without_traffic;
-			// error_log("[MPTBM Traffic API] Calculated traffic multiplier: $traffic_multiplier");
-			
-			// Determine traffic condition
-			$condition = '';
-			if ($traffic_multiplier >= 2.0) {
-				$condition = 'severe';
-			} elseif ($traffic_multiplier >= 1.5) {
-				$condition = 'heavy';
-			} elseif ($traffic_multiplier >= 1.2) {
-				$condition = 'moderate';
-			} else {
-				$condition = 'light';
-			}
-			
-			$result = array(
-				'condition' => $condition,
-				'multiplier' => $traffic_multiplier
-			);
-			
-			// error_log("[MPTBM Traffic API] Final result: " . print_r($result, true));
-			
-			// Cache the result for 5 minutes
-			set_transient($cache_key, $result, 300);
-			
-			return $result;
 		}
 	}
 	new MPTBM_Function();

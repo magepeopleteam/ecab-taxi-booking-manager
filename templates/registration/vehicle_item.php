@@ -209,6 +209,34 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                                 }
                             ?>
                             </div>
+                            
+                            <?php
+                            // Display Peak Hour Badge if addon is active
+                            if (class_exists('Taxi_Peak_Hour_Pricing')) {
+                                $peak_hour_pricing = new Taxi_Peak_Hour_Pricing();
+                                $start_date_formatted = $start_date ? date('Y-m-d', strtotime($start_date)) : '';
+                                $start_time_formatted = $start_time ? date('H:i', strtotime($start_time . ':00')) : '';
+
+                                if ($start_date_formatted && $start_time_formatted) {
+                                    echo $peak_hour_pricing->get_peak_hour_badge($post_id, $start_date_formatted, $start_time_formatted);
+                                }
+                            }
+
+                            // Display Distance Tier Badge if addon is active
+                            if (class_exists('Distance_Tier_Pricing')) {
+                                $distance_tier_pricing = new Distance_Tier_Pricing();
+                                $distance_meters = $distance ?? 0;
+
+                                // Try to get distance from various sources
+                                if (!$distance_meters && isset($_COOKIE['mptbm_distance'])) {
+                                    $distance_meters = absint($_COOKIE['mptbm_distance']);
+                                }
+
+                                if ($distance_meters > 0) {
+                                    echo $distance_tier_pricing->get_tier_badge($post_id, $distance_meters);
+                                }
+                            }
+                            ?>
                             <h4 class="textCenter" style="clear:right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; word-break: keep-all; line-height: 1.2;"> <?php echo wp_kses_post($price_display); ?></h4>
                             
                             <?php if (class_exists('MPTBM_Plugin_Pro')) { 
