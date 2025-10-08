@@ -52,12 +52,12 @@ if (!class_exists('MPTBM_CPT')) {
 		public function mptbm_rent_columns($columns)
 		{
 			unset($columns['date']);
-			$columns['mptbm_price_based'] = esc_html__('Price based', 'booking-and-rental-manager-for-woocommerce');
-			$columns['mptbm_km_price']      =  esc_html__('Kilometer price', 'booking-and-rental-manager-for-woocommerce');
-			$columns['mptbm_hour_price']      =  esc_html__('Hourly price', 'booking-and-rental-manager-for-woocommerce');
-			$columns['mptbm_waiting_price']      =  esc_html__('Waiting price', 'booking-and-rental-manager-for-woocommerce');
-			$columns['author']      =  esc_html__('Author', 'booking-and-rental-manager-for-woocommerce');
-			$columns['date']        = esc_html__('Date', 'booking-and-rental-manager-for-woocommerce');
+			$columns['mptbm_price_based'] = esc_html__('Price based', 'ecab-taxi-booking-manager');
+			$columns['mptbm_km_price']      =  esc_html__('Kilometer price', 'ecab-taxi-booking-manager');
+			$columns['mptbm_hour_price']      =  esc_html__('Hourly price', 'ecab-taxi-booking-manager');
+			$columns['mptbm_waiting_price']      =  esc_html__('Waiting price', 'ecab-taxi-booking-manager');
+			$columns['author']      =  esc_html__('Author', 'ecab-taxi-booking-manager');
+			$columns['date']        = esc_html__('Date', 'ecab-taxi-booking-manager');
 			return $columns;
 		}
 
