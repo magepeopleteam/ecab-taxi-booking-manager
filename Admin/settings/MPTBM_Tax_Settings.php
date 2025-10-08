@@ -35,7 +35,7 @@
 										<span class="desc"><?php esc_html_e('Select tax status type.', 'ecab-taxi-booking-manager'); ?></span>
 									</div>
 									<select class="formControl max_300" name="_tax_status">
-										<option disabled selected><?php esc_html_e('Please Select', 'bus-ticket-booking-with-seat-reservation');  ?></option>
+										<option disabled selected><?php esc_html_e('Please Select', 'ecab-taxi-booking-manager');  ?></option>
 										<option value="taxable" <?php echo esc_attr($tax_status == 'taxable' ? 'selected' : ''); ?>>
 											<?php esc_html_e('Taxable', 'ecab-taxi-booking-manager'); ?>
 										</option>
@@ -56,7 +56,7 @@
 										<span class="desc"><?php esc_html_e('Select tax class.', 'ecab-taxi-booking-manager'); ?></span>
 									</div>
 									<select class="formControl max_300" name="_tax_class">
-										<option disabled selected><?php esc_html_e('Please Select', 'bus-ticket-booking-with-seat-reservation');  ?></option>
+										<option disabled selected><?php esc_html_e('Please Select', 'ecab-taxi-booking-manager');  ?></option>
 										<option value="standard" <?php echo esc_attr($tax_class == 'standard' ? 'selected' : ''); ?>>
 											<?php esc_html_e('Standard', 'ecab-taxi-booking-manager'); ?>
 										</option>
