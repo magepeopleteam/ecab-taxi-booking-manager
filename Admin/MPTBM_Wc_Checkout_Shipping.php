@@ -44,14 +44,14 @@
 								<?php $status = '';
 								$status = (isset($checkout_field['disabled']) && $checkout_field['disabled'] == '1') ? '' : 'checked'; ?>
                                 <tr>
-                                    <input id="<?php echo esc_attr(esc_html($key)) ?>" type="hidden" name="<?php echo esc_attr(esc_html($key)) ?>" value="<?php echo esc_attr(esc_html(json_encode(array('name' => $key, 'attributes' => $checkout_field)))) ?>"/>
+                                    <input id="<?php echo esc_attr($key) ?>" type="hidden" name="<?php echo esc_attr($key) ?>" value="<?php echo esc_attr(json_encode(array('name' => $key, 'attributes' => $checkout_field))) ?>"/>
                                     <td><?php echo esc_html($key); ?></td>
                                     <td><?php echo esc_html(isset($checkout_field['label']) ? $checkout_field['label'] : ''); ?></td>
                                     <td><?php echo esc_html(isset($checkout_field['type']) ? $checkout_field['type'] : ''); ?></td>
                                     <td><?php echo esc_html(isset($checkout_field['placeholder']) ? $checkout_field['placeholder'] : ''); ?></td>
                                     <td><?php echo esc_html(implode(',', (isset($checkout_field['validate']) && is_array($checkout_field['validate'])) ? $checkout_field['validate'] : array())); ?></td>
-                                    <td><span class="<?php echo esc_attr(esc_html((isset($checkout_field['required']) && $checkout_field['required'] == '1') ? 'dashicons dashicons-yes tips' : '')); ?>"></span></td>
-                                    <td><span class="checkout-disabled <?php echo esc_attr(esc_html((isset($checkout_field['disabled']) && $checkout_field['disabled'] == '1') ? 'dashicons dashicons-yes tips' : '')); ?>"></span></td>
+                                    <td><span class="<?php echo esc_attr((isset($checkout_field['required']) && $checkout_field['required'] == '1') ? 'dashicons dashicons-yes tips' : ''); ?>"></span></td>
+                                    <td><span class="checkout-disabled <?php echo esc_attr((isset($checkout_field['disabled']) && $checkout_field['disabled'] == '1') ? 'dashicons dashicons-yes tips' : ''); ?>"></span></td>
                                     <td>
 										<?php if (class_exists('MPTBM_Plugin_Pro')): ?>
 											<?php MPTBM_Wc_Checkout_Fields::switch_button($key, 'checkoutSwitchButton', $key, $status, array('key' => 'shipping', 'name' => $key)); ?>
