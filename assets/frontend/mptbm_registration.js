@@ -20,6 +20,68 @@ function mptbm_cleanup_map() {
         mptbm_map_window = null;
     }
 }
+
+// Function to show location validation errors
+function showLocationError(element, message) {
+    // Remove any existing errors for this element
+    var existingError = element.parentElement.querySelector('.mptbm-location-error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Add error class to input
+    element.classList.add('mptbm-error-field');
+    
+    // Create error message element
+    var errorDiv = document.createElement('div');
+    errorDiv.className = 'mptbm-location-error';
+    errorDiv.style.color = '#dc3545';
+    errorDiv.style.fontSize = '12px';
+    errorDiv.style.marginTop = '5px';
+    errorDiv.textContent = message;
+    
+    // Insert error message after the input
+    element.parentElement.appendChild(errorDiv);
+}
+
+// Function to remove all location errors
+function removeLocationErrors() {
+    var errorFields = document.querySelectorAll('.mptbm-error-field');
+    errorFields.forEach(function(field) {
+        field.classList.remove('mptbm-error-field');
+    });
+    
+    var errorMessages = document.querySelectorAll('.mptbm-location-error');
+    errorMessages.forEach(function(error) {
+        error.remove();
+    });
+}
+
+// Add event listeners to clear errors when user starts typing
+jQuery(document).ready(function($) {
+    // Clear errors on input for pickup location
+    $(document).on('input change', '#mptbm_map_start_place, #mptbm_manual_start_place', function() {
+        if (this.classList.contains('mptbm-error-field')) {
+            this.classList.remove('mptbm-error-field');
+            var errorMsg = this.parentElement.querySelector('.mptbm-location-error');
+            if (errorMsg) {
+                errorMsg.remove();
+            }
+        }
+    });
+    
+    // Clear errors on input for dropoff location
+    $(document).on('input change', '#mptbm_map_end_place, #mptbm_manual_end_place', function() {
+        if (this.classList.contains('mptbm-error-field')) {
+            this.classList.remove('mptbm-error-field');
+            var errorMsg = this.parentElement.querySelector('.mptbm-location-error');
+            if (errorMsg) {
+                errorMsg.remove();
+            }
+        }
+    });
+});
+
 function mptbm_set_cookie_distance_duration(start_place, end_place) {
     
     // Check if OpenStreetMap is active
@@ -961,11 +1023,25 @@ function mptbm_init_google_map() {
                     .find("input.formControl")
                     .trigger("click");
             }
-        } else if (!start_place.value) {
+        } else if (!start_place.value || (start_place.tagName === 'SELECT' && start_place.options[start_place.selectedIndex].disabled)) {
             start_place.focus();
-        } else if (!end_place.value) {
-            end_place.focus();
+            // Show error message
+            let startMsg = price_based === 'manual' ? 'Please select a pickup location' : 'Please enter a pickup location';
+            showLocationError(start_place, startMsg);
+        } else if (!end_place.value || (end_place.tagName === 'SELECT' && end_place.options[end_place.selectedIndex].disabled)) {
+            // Check if dropoff is required (not hidden for hourly)
+            let hideDropoff = parent.find('[name="mptbm_original_price_base"]').val() === 'fixed_hourly' && 
+                             document.getElementById('mptbm_map_end_place').type === 'hidden';
+            if (!hideDropoff) {
+                end_place.focus();
+                // Show error message
+                let endMsg = price_based === 'manual' ? 'Please select a dropoff location' : 'Please enter a dropoff location';
+                showLocationError(end_place, endMsg);
+            }
         } else {
+            // Remove any existing error messages
+            removeLocationErrors();
+            
             dLoader(parent.find(".tabsContentNext"));
             mptbm_content_refresh(parent);
             if (price_based !== "manual") {
@@ -1042,6 +1118,21 @@ function mptbm_init_google_map() {
                     getCoordinatesAsync(start_place.value),
                     getCoordinatesAsync(end_place.value)
                 ).done(function (startCoordinates, endCoordinates) {
+                    // Validate that geocoding was successful
+                    if (!startCoordinates || startCoordinates === null) {
+                        dLoaderRemove(parent.find(".tabsContentNext"));
+                        showLocationError(start_place, 'Invalid pickup location. Please select a valid address.');
+                        start_place.focus();
+                        return;
+                    }
+                    
+                    if (!endCoordinates || endCoordinates === null) {
+                        dLoaderRemove(parent.find(".tabsContentNext"));
+                        showLocationError(end_place, 'Invalid dropoff location. Please select a valid address.');
+                        end_place.focus();
+                        return;
+                    }
+                    
                     if (start_place.value && end_place.value && start_date && 
                         (start_time !== undefined && start_time !== null && start_time !== '') && 
                         return_date && 
