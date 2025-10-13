@@ -287,9 +287,44 @@ if (!class_exists('MPTBM_Operation_Areas')) {
             <script>
                 jQuery(document).ready(function($) {
                     var geoLocationOne = new google.maps.LatLng(23.8103, 90.4125);
-                    InitMapOne(geoLocationOne);
-                    InitMapTwo(geoLocationOne);
-                    InitMapFixed(geoLocationOne, '');
+                    
+                    // Wait for operation type selection to initialize maps
+                    function initializeGoogleMapsBasedOnType() {
+                        var selectedType = $('#mptbm-operation-type').val();
+                        
+                        // Small delay to ensure containers are visible
+                        setTimeout(function() {
+                            if (selectedType === 'geo-fence-operation-area-type') {
+                                // Initialize intercity maps only if no saved coordinates
+                                <?php if (!$coordinates_one): ?>
+                                if (document.getElementById('mptbm-map-canvas-one')) {
+                                    InitMapOne(geoLocationOne);
+                                }
+                                <?php endif; ?>
+                                
+                                <?php if (!$coordinates_two): ?>
+                                if (document.getElementById('mptbm-map-canvas-two')) {
+                                    InitMapTwo(geoLocationOne);
+                                }
+                                <?php endif; ?>
+                            } else if (selectedType === 'fixed-operation-area-type') {
+                                // Initialize single operation area map only if no saved coordinates
+                                <?php if (!$coordinates_three): ?>
+                                if (document.getElementById('mptbm-map-canvas-three')) {
+                                    InitMapFixed(geoLocationOne, '');
+                                }
+                                <?php endif; ?>
+                            }
+                        }, 300);
+                    }
+                    
+                    // Initialize on page load
+                    initializeGoogleMapsBasedOnType();
+                    
+                    // Re-initialize when operation type changes
+                    $('#mptbm-operation-type').on('change', function() {
+                        initializeGoogleMapsBasedOnType();
+                    });
                 });
             </script>
             <?php endif; ?>

@@ -433,13 +433,9 @@ function InitMapFixed(geoLocationOne) {
     }
 }
 
-// Only auto-initialize Google Maps if Google Maps API is loaded
-// OpenStreetMap initialization is handled separately in the template
-if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
-    InitMapOne(geoLocationOne);
-    InitMapTwo(geoLocationOne);
-    InitMapFixed(geoLocationOne, formattedAddress);
-}
+// Map initialization is now handled in the PHP template
+// based on whether coordinates are saved or not.
+// Do not auto-initialize here to avoid conflicts.
 
 
 
