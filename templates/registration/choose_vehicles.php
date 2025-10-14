@@ -82,21 +82,23 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
         </script>
         <?php
         // PHP-side: try to check if pickup or dropoff is inside polygon for logging
-        function pointInPolygon($point, $polygon) {
-            $x = $point['latitude'];
-            $y = $point['longitude'];
-            $inside = false;
-            $n = count($polygon);
-            for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
-                $xi = $polygon[$i]['latitude'];
-                $yi = $polygon[$i]['longitude'];
-                $xj = $polygon[$j]['latitude'];
-                $yj = $polygon[$j]['longitude'];
-                $intersect = (($yi > $y) != ($yj > $y)) &&
-                    ($x < ($xj - $xi) * ($y - $yi) / ($yj - $yi + 0.0000001) + $xi);
-                if ($intersect) $inside = !$inside;
+        if ( ! function_exists( 'pointInPolygon' ) ) {
+            function pointInPolygon($point, $polygon) {
+                $x = $point['latitude'];
+                $y = $point['longitude'];
+                $inside = false;
+                $n = count($polygon);
+                for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
+                    $xi = $polygon[$i]['latitude'];
+                    $yi = $polygon[$i]['longitude'];
+                    $xj = $polygon[$j]['latitude'];
+                    $yj = $polygon[$j]['longitude'];
+                    $intersect = (($yi > $y) != ($yj > $y)) &&
+                        ($x < ($xj - $xi) * ($y - $yi) / ($yj - $yi + 0.0000001) + $xi);
+                    if ($intersect) $inside = !$inside;
+                }
+                return $inside;
             }
-            return $inside;
         }
         $php_start_in_area = false;
         $php_end_in_area = false;
@@ -274,21 +276,23 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                             $operation_area_coordinates[] = ["latitude" => $flat_operation_area_coordinates[$i], "longitude" => $flat_operation_area_coordinates[$i + 1]];
                         }
                         // PHP-side: try to check if pickup or dropoff is inside polygon for logging
-                        function pointInPolygon($point, $polygon) {
-                            $x = $point['latitude'];
-                            $y = $point['longitude'];
-                            $inside = false;
-                            $n = count($polygon);
-                            for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
-                                $xi = $polygon[$i]['latitude'];
-                                $yi = $polygon[$i]['longitude'];
-                                $xj = $polygon[$j]['latitude'];
-                                $yj = $polygon[$j]['longitude'];
-                                $intersect = (($yi > $y) != ($yj > $y)) &&
-                                    ($x < ($xj - $xi) * ($y - $yi) / ($yj - $yi + 0.0000001) + $xi);
-                                if ($intersect) $inside = !$inside;
+                        if ( ! function_exists( 'pointInPolygon' ) ) {
+                            function pointInPolygon($point, $polygon) {
+                                $x = $point['latitude'];
+                                $y = $point['longitude'];
+                                $inside = false;
+                                $n = count($polygon);
+                                for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
+                                    $xi = $polygon[$i]['latitude'];
+                                    $yi = $polygon[$i]['longitude'];
+                                    $xj = $polygon[$j]['latitude'];
+                                    $yj = $polygon[$j]['longitude'];
+                                    $intersect = (($yi > $y) != ($yj > $y)) &&
+                                        ($x < ($xj - $xi) * ($y - $yi) / ($yj - $yi + 0.0000001) + $xi);
+                                    if ($intersect) $inside = !$inside;
+                                }
+                                return $inside;
                             }
-                            return $inside;
                         }
                         $php_start_in_area = false;
                         $php_end_in_area = false;
