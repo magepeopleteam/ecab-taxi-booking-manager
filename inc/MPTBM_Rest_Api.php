@@ -883,6 +883,13 @@ if (!class_exists('MPTBM_REST_API')) {
             if ($origins === '*') {
                 // Security warning: wildcard should not be used with credentials
                 error_log('MPTBM Security Warning: CORS wildcard (*) is not secure. Please specify exact origins.');
+                
+                // Auto-fix: Update the database setting to secure default
+                $settings = get_option('mptbm_rest_api_settings', array());
+                $settings['cors_allowed_origins'] = 'http://localhost';
+                update_option('mptbm_rest_api_settings', $settings);
+                
+                error_log('MPTBM Security Fix: Automatically changed CORS wildcard (*) to secure localhost origin.');
                 return 'http://localhost';
             }
             
