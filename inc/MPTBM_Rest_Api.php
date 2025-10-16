@@ -1737,88 +1737,78 @@ if (!class_exists('MPTBM_REST_API')) {
         }
         
         public function update_booking($request) {
-            $booking_id = $request->get_param('id');
+            $id = $request->get_param('id');
             
-            if (!$booking_id) {
+            if (!$id) {
                 return new WP_Error('missing_id', 'Booking ID is required', array('status' => 400));
             }
             
-            $booking_post = get_post(absint($booking_id));
+            global $wpdb;
             
-            if (!$booking_post || ($booking_post->post_type !== 'shop_order' && $booking_post->post_type !== 'mptbm_booking')) {
+            // Find the booking (similar logic to get_booking)
+            $booking_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT p.ID FROM {$wpdb->prefix}posts p 
+                 JOIN {$wpdb->prefix}postmeta pm ON p.ID = pm.post_id 
+                 WHERE p.post_type = 'mptbm_booking' 
+                 AND pm.meta_key = 'mptbm_order_id' 
+                 AND pm.meta_value = %s",
+                $id
+            ));
+            
+            if (!$booking_id) {
+                $booking_post = get_post(absint($id));
+                if ($booking_post && $booking_post->post_type === 'mptbm_booking') {
+                    $booking_id = $id;
+                } else {
+                    return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
+                }
+            }
+            
+            $booking_post = get_post($booking_id);
+            if (!$booking_post || $booking_post->post_type !== 'mptbm_booking') {
                 return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
             }
             
-            // Check if this booking belongs to taxi booking system
-            $taxi_id = get_post_meta($booking_id, 'mptbm_taxi_id', true);
-            if (!$taxi_id) {
-                return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
-            }
-            
-            // Check if booking can be modified (not completed, cancelled, refunded)
-            $current_status = get_post_status($booking_id);
-            $immutable_statuses = array('wc-completed', 'wc-cancelled', 'wc-refunded', 'completed', 'cancelled', 'refunded');
+            // Check if booking can be modified (only allow pending/processing bookings)
+            $current_status = get_post_meta($booking_id, 'mptbm_order_status', true);
+            $immutable_statuses = array('completed', 'cancelled', 'refunded', 'failed');
             
             if (in_array($current_status, $immutable_statuses)) {
                 return new WP_Error('booking_immutable', 'This booking cannot be modified', array('status' => 409));
             }
             
             $updated = false;
-            $order = null;
-            
-            if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
-                $order = wc_get_order($booking_id);
-            }
             
             // Update customer details if provided
             if ($request->get_param('customer_email')) {
                 $email = sanitize_email($request->get_param('customer_email'));
                 if (is_email($email)) {
-                    if ($order) {
-                        $order->set_billing_email($email);
-                    } else {
-                        update_post_meta($booking_id, '_billing_email', $email);
-                    }
+                    update_post_meta($booking_id, 'mptbm_billing_email', $email);
                     $updated = true;
                 }
             }
             
             if ($request->get_param('customer_name')) {
                 $name = sanitize_text_field($request->get_param('customer_name'));
-                $name_parts = explode(' ', $name, 2);
-                if ($order) {
-                    $order->set_billing_first_name($name_parts[0]);
-                    if (isset($name_parts[1])) {
-                        $order->set_billing_last_name($name_parts[1]);
-                    }
-                } else {
-                    update_post_meta($booking_id, '_billing_first_name', $name_parts[0]);
-                    if (isset($name_parts[1])) {
-                        update_post_meta($booking_id, '_billing_last_name', $name_parts[1]);
-                    }
-                }
+                update_post_meta($booking_id, 'mptbm_billing_name', $name);
                 $updated = true;
             }
             
             if ($request->get_param('customer_phone')) {
                 $phone = sanitize_text_field($request->get_param('customer_phone'));
-                if ($order) {
-                    $order->set_billing_phone($phone);
-                } else {
-                    update_post_meta($booking_id, '_billing_phone', $phone);
-                }
+                update_post_meta($booking_id, 'mptbm_billing_phone', $phone);
                 $updated = true;
             }
             
-            // Update booking details if provided
+            // Update booking details if provided (using correct MPTBM metadata keys)
             $booking_updates = array(
-                'pickup_location' => 'mptbm_pickup_location',
-                'dropoff_location' => 'mptbm_dropoff_location',
-                'pickup_date' => 'mptbm_pickup_date',
-                'pickup_time' => 'mptbm_pickup_time',
-                'return_date' => 'mptbm_return_date',
-                'return_time' => 'mptbm_return_time',
-                'passenger_count' => 'mptbm_passenger_count',
+                'pickup_location' => 'mptbm_start_place',
+                'dropoff_location' => 'mptbm_end_place',
+                'pickup_date' => 'mptbm_date',
+                'pickup_time' => 'mptbm_time',
+                'return_date' => 'mptbm_return_target_date',
+                'return_time' => 'mptbm_return_target_time',
+                'passenger_count' => 'mptbm_passengers',
                 'special_instructions' => 'mptbm_special_instructions'
             );
             
@@ -1850,7 +1840,7 @@ if (!class_exists('MPTBM_REST_API')) {
                 $taxi_post = get_post($new_taxi_id);
                 
                 if ($taxi_post && $taxi_post->post_type === MPTBM_Function::get_cpt()) {
-                    update_post_meta($booking_id, 'mptbm_taxi_id', $new_taxi_id);
+                    update_post_meta($booking_id, 'mptbm_id', $new_taxi_id);
                     $updated = true;
                 }
             }
@@ -1881,22 +1871,36 @@ if (!class_exists('MPTBM_REST_API')) {
         }
         
         public function cancel_booking($request) {
-            $booking_id = $request->get_param('id');
+            $id = $request->get_param('id');
             
-            if (!$booking_id) {
+            if (!$id) {
                 return new WP_Error('missing_id', 'Booking ID is required', array('status' => 400));
             }
             
-            $booking_post = get_post(absint($booking_id));
+            global $wpdb;
             
-            if (!$booking_post || ($booking_post->post_type !== 'shop_order' && $booking_post->post_type !== 'mptbm_booking')) {
-                return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
+            // Find the booking (similar logic to get_booking)
+            $booking_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT p.ID FROM {$wpdb->prefix}posts p 
+                 JOIN {$wpdb->prefix}postmeta pm ON p.ID = pm.post_id 
+                 WHERE p.post_type = 'mptbm_booking' 
+                 AND pm.meta_key = 'mptbm_order_id' 
+                 AND pm.meta_value = %s",
+                $id
+            ));
+            
+            if (!$booking_id) {
+                $booking_post = get_post(absint($id));
+                if ($booking_post && $booking_post->post_type === 'mptbm_booking') {
+                    $booking_id = $id;
+                } else {
+                    return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
+                }
             }
             
-            // Check if this booking belongs to taxi booking system
-            $taxi_id = get_post_meta($booking_id, 'mptbm_taxi_id', true);
-            if (!$taxi_id) {
-                return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
+            $booking_post = get_post($booking_id);
+            if (!$booking_post || $booking_post->post_type !== 'mptbm_booking') {
+                return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
             }
             
             $current_status = get_post_status($booking_id);
@@ -1981,10 +1985,10 @@ if (!class_exists('MPTBM_REST_API')) {
         }
         
         public function update_booking_status($request) {
-            $booking_id = $request->get_param('id');
+            $id = $request->get_param('id');
             $new_status = sanitize_text_field($request->get_param('status'));
             
-            if (!$booking_id) {
+            if (!$id) {
                 return new WP_Error('missing_id', 'Booking ID is required', array('status' => 400));
             }
             
@@ -1992,86 +1996,64 @@ if (!class_exists('MPTBM_REST_API')) {
                 return new WP_Error('missing_status', 'Status is required', array('status' => 400));
             }
             
-            $booking_post = get_post(absint($booking_id));
+            global $wpdb;
             
-            if (!$booking_post || ($booking_post->post_type !== 'shop_order' && $booking_post->post_type !== 'mptbm_booking')) {
+            // Find the booking (similar logic to get_booking)
+            $booking_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT p.ID FROM {$wpdb->prefix}posts p 
+                 JOIN {$wpdb->prefix}postmeta pm ON p.ID = pm.post_id 
+                 WHERE p.post_type = 'mptbm_booking' 
+                 AND pm.meta_key = 'mptbm_order_id' 
+                 AND pm.meta_value = %s",
+                $id
+            ));
+            
+            if (!$booking_id) {
+                $booking_post = get_post(absint($id));
+                if ($booking_post && $booking_post->post_type === 'mptbm_booking') {
+                    $booking_id = $id;
+                } else {
+                    return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
+                }
+            }
+            
+            $booking_post = get_post($booking_id);
+            if (!$booking_post || $booking_post->post_type !== 'mptbm_booking') {
                 return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
             }
             
-            // Check if this booking belongs to taxi booking system
-            $taxi_id = get_post_meta($booking_id, 'mptbm_taxi_id', true);
-            if (!$taxi_id) {
-                return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
-            }
-            
             // Validate status
-            $valid_statuses = array(
-                'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed'
-            );
-            
+            $valid_statuses = array('pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed');
             if (!in_array($new_status, $valid_statuses)) {
                 return new WP_Error('invalid_status', 'Invalid status provided', array('status' => 400));
             }
             
-            $current_status = str_replace('wc-', '', get_post_status($booking_id));
+            // Update the booking status
+            update_post_meta($booking_id, 'mptbm_order_status', $new_status);
             
-            if ($current_status === $new_status) {
-                return new WP_Error('same_status', 'Status is already set to this value', array('status' => 409));
+            // Also update WooCommerce order status if it exists
+            $wc_order_id = get_post_meta($booking_id, 'mptbm_order_id', true);
+            if ($wc_order_id && function_exists('wc_get_order')) {
+                $order = wc_get_order($wc_order_id);
+                if ($order) {
+                    $order->update_status($new_status, $request->get_param('note') ?: 'Status updated via API');
+                }
             }
-            
-            $note = sanitize_text_field($request->get_param('note')) ?: sprintf('Status changed to %s via API', $new_status);
-            
-            $order = null;
-            if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
-                $order = wc_get_order($booking_id);
-            }
-            
-            // Update the status
-            if ($order) {
-                $order->update_status($new_status, $note);
-                $order->add_order_note($note, false, true);
-            } else {
-                wp_update_post(array(
-                    'ID' => $booking_id,
-                    'post_status' => $new_status
-                ));
-            }
-            
-            // Store status change details
-            $status_history = get_post_meta($booking_id, 'mptbm_status_history', true) ?: array();
-            $status_history[] = array(
-                'from' => $current_status,
-                'to' => $new_status,
-                'note' => $note,
-                'changed_at' => current_time('mysql'),
-                'changed_via' => 'api'
-            );
-            update_post_meta($booking_id, 'mptbm_status_history', $status_history);
-            
-            // Trigger webhook if configured
-            $this->trigger_webhook('booking.status_changed', array(
-                'booking_id' => $booking_id,
-                'taxi_id' => $taxi_id,
-                'from_status' => $current_status,
-                'to_status' => $new_status,
-                'note' => $note,
-                'changed_at' => current_time('mysql')
-            ));
             
             $response_data = array(
                 'success' => true,
-                'message' => sprintf('Booking status updated to %s', $new_status),
                 'data' => array(
-                    'id' => $booking_id,
-                    'previous_status' => $current_status,
-                    'new_status' => $new_status,
-                    'note' => $note,
-                    'changed_at' => current_time('mysql')
-                )
+                    'id' => $wc_order_id ?: $booking_id,
+                    'booking_id' => $booking_id,
+                    'status' => $new_status,
+                    'updated_at' => current_time('mysql')
+                ),
+                'message' => 'Booking status updated successfully'
             );
             
             return new WP_REST_Response($response_data, 200);
         }
+        
         
         public function calculate_booking_price($request) {
             // Validate required parameters
