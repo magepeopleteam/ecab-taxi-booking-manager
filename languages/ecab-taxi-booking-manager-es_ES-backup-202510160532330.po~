@@ -13,7 +13,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2025-10-03T06:00:40+02:00\n"
-"PO-Revision-Date: 2025-10-16 05:32+0000\n"
+"PO-Revision-Date: 2025-10-16 05:31+0000\n"
 "X-Generator: Loco https://localise.biz/\n"
 "X-Domain: ecab-taxi-booking-manager\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);"
@@ -2954,7 +2954,7 @@ msgstr "Estado"
 
 #: Admin/MPTBM_Settings_Global.php:429
 msgid "Step 1: Enter Ride Details (Stepper Tab)"
-msgstr "Jata kotha"
+msgstr ""
 
 #: Admin/MPTBM_Settings_Global.php:430
 msgid "Step 2: Choose a Vehicle (Stepper Tab)"

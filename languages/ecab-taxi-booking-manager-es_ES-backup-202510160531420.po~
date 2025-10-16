@@ -1,0 +1,1398 @@
+# Traducción al español para E-cab Taxi Booking Manager
+# Copyright (C) 2025 MagePeople Team
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: E-cab Taxi Booking Manager for Woocommerce 1.3.2\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/ecab-taxi-booking-manager\n"
+"Last-Translator: \n"
+"Language-Team: Español\n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-10-03T06:00:40+02:00\n"
+"PO-Revision-Date: 2025-10-03 12:00+0000\n"
+"X-Generator: Manual\n"
+"X-Domain: ecab-taxi-booking-manager\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Plugin Name of the plugin
+#: MPTBM_Plugin.php
+msgid "E-cab Taxi Booking Manager for Woocommerce"
+msgstr "E-cab Gestor de Reservas de Taxi para Woocommerce"
+
+#. Plugin URI of the plugin
+#: MPTBM_Plugin.php
+msgid "https://wordpress.org/plugins/ecab-taxi-booking-manager/"
+msgstr "https://wordpress.org/plugins/ecab-taxi-booking-manager/"
+
+#. Description of the plugin
+#: MPTBM_Plugin.php
+msgid "A Complete Transportation Solution for WordPress by MagePeople."
+msgstr "Una Solución Completa de Transporte para WordPress por MagePeople."
+
+#. Author of the plugin
+#: MPTBM_Plugin.php
+msgid "MagePeople Team"
+msgstr "Equipo MagePeople"
+
+#. Author URI of the plugin
+#: MPTBM_Plugin.php
+msgid "http://www.mage-people.com/"
+msgstr "http://www.mage-people.com/"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:26
+#: Admin/MPTBM_Analytics_Dashboard.php:27
+msgid "Analytics Dashboard"
+msgstr "Panel de Análisis"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:61
+msgid "Bookings"
+msgstr "Reservas"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:62
+msgid "Revenue"
+msgstr "Ingresos"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:63
+#: Admin/MPTBM_Analytics_Dashboard.php:214
+msgid "Popular Routes"
+msgstr "Rutas Populares"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:64
+msgid "Booking Status"
+msgstr "Estado de Reserva"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:65
+msgid "Loading..."
+msgstr "Cargando..."
+
+#: Admin/MPTBM_Analytics_Dashboard.php:76
+msgid "E-Cab Taxi Booking Analytics Dashboard"
+msgstr "Panel de Análisis de Reservas de Taxi E-Cab"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:82
+msgid "Date Range:"
+msgstr "Rango de Fechas:"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:88
+msgid "Refresh Data"
+msgstr "Actualizar Datos"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:100
+msgid "Total Bookings"
+msgstr "Total de Reservas"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:111
+msgid "Total Revenue"
+msgstr "Ingresos Totales"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:122
+msgid "Avg. Booking Value"
+msgstr "Valor Promedio de Reserva"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:133
+msgid "Completion Rate"
+msgstr "Tasa de Finalización"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:142
+msgid "Cancellation & Lost Revenue Summary"
+msgstr "Resumen de Cancelaciones e Ingresos Perdidos"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:149
+msgid "Cancelled Bookings"
+msgstr "Reservas Canceladas"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:159
+msgid "Failed Bookings"
+msgstr "Reservas Fallidas"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:169
+msgid "Lost Revenue"
+msgstr "Ingresos Perdidos"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:179
+msgid "Cancellation Rate"
+msgstr "Tasa de Cancelación"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:189
+msgid "Bookings Over Time"
+msgstr "Reservas a lo Largo del Tiempo"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:194
+#: Admin/MPTBM_Analytics_Dashboard.php:205
+#: Admin/MPTBM_Analytics_Dashboard.php:219
+#: Admin/MPTBM_Analytics_Dashboard.php:230
+msgid "Loading chart data..."
+msgstr "Cargando datos del gráfico..."
+
+#: Admin/MPTBM_Analytics_Dashboard.php:200
+msgid "Revenue Over Time"
+msgstr "Ingresos a lo Largo del Tiempo"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:225
+msgid "Booking Status Distribution"
+msgstr "Distribución del Estado de Reservas"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:238
+msgid "Recent Bookings"
+msgstr "Reservas Recientes"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:243
+msgid "Order ID"
+msgstr "ID de Pedido"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:244
+msgid "Customer"
+msgstr "Cliente"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:245
+msgid "Route"
+msgstr "Ruta"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:246
+#: Admin/MPTBM_Settings.php:37
+#: Frontend/MPTBM_Woocommerce.php:599
+msgid "Date"
+msgstr "Fecha"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:247
+msgid "Amount"
+msgstr "Cantidad"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:248
+#: Admin/MPTBM_Status.php:16
+#: mp_global/class/MP_Settings_Global.php:303
+msgid "Status"
+msgstr "Estado"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:249
+msgid "Actions"
+msgstr "Acciones"
+
+#: Admin/MPTBM_Analytics_Dashboard.php:256
+msgid "Loading recent bookings..."
+msgstr "Cargando reservas recientes..."
+
+#: Admin/MPTBM_API_Documentation.php:25
+#: Admin/MPTBM_API_Documentation.php:26
+msgid "API Documentation"
+msgstr "Documentación de API"
+
+#: Admin/MPTBM_API_Documentation.php:56
+msgid "E-Cab Taxi Booking REST API Documentation"
+msgstr "Documentación de API REST de Reservas de Taxi E-Cab"
+
+#: Admin/MPTBM_API_Documentation.php:61
+msgid "REST API is currently disabled."
+msgstr "La API REST está actualmente deshabilitada."
+
+#: Admin/MPTBM_API_Documentation.php:63
+msgid "Enable it in settings"
+msgstr "Habilitarla en configuración"
+
+#: Admin/MPTBM_API_Documentation.php:72
+msgid "API Key Management"
+msgstr "Gestión de Claves API"
+
+#: Admin/MPTBM_API_Documentation.php:75
+msgid "Generate New API Key"
+msgstr "Generar Nueva Clave API"
+
+#: Admin/MPTBM_API_Documentation.php:79
+msgid "Key Name"
+msgstr "Nombre de la Clave"
+
+#: Admin/MPTBM_API_Documentation.php:80
+msgid "My Mobile App"
+msgstr "Mi Aplicación Móvil"
+
+#: Admin/MPTBM_API_Documentation.php:83
+msgid "Permissions"
+msgstr "Permisos"
+
+#: Admin/MPTBM_API_Documentation.php:85
+msgid "Read"
+msgstr "Lectura"
+
+#: Admin/MPTBM_API_Documentation.php:86
+msgid "Write"
+msgstr "Escritura"
+
+#: Admin/MPTBM_API_Documentation.php:91
+msgid "Generate API Key"
+msgstr "Generar Clave API"
+
+#: Admin/MPTBM_API_Documentation.php:97
+msgid "Existing API Keys"
+msgstr "Claves API Existentes"
+
+#: Admin/MPTBM_API_Documentation.php:107
+msgid "API Overview"
+msgstr "Vista General de API"
+
+#: Admin/MPTBM_API_Documentation.php:110
+msgid "Base URL"
+msgstr "URL Base"
+
+#: Admin/MPTBM_API_Documentation.php:115
+msgid "Authentication"
+msgstr "Autenticación"
+
+#: Admin/MPTBM_API_Documentation.php:116
+msgid "Include your API key in the request header:"
+msgstr "Incluya su clave API en el encabezado de la solicitud:"
+
+#: Admin/MPTBM_API_Documentation.php:118
+msgid "Or as a query parameter:"
+msgstr "O como parámetro de consulta:"
+
+#: Admin/MPTBM_API_Documentation.php:123
+msgid "Response Format"
+msgstr "Formato de Respuesta"
+
+#: Admin/MPTBM_API_Documentation.php:124
+msgid "All responses are in JSON format:"
+msgstr "Todas las respuestas están en formato JSON:"
+
+#: Admin/MPTBM_API_Documentation.php:173
+msgid "Parameters"
+msgstr "Parámetros"
+
+#: Admin/MPTBM_API_Documentation.php:177
+#: Admin/MPTBM_Guideline.php:54
+msgid "Parameter"
+msgstr "Parámetro"
+
+#: Admin/MPTBM_API_Documentation.php:178
+#: mp_global/class/MP_Settings_Global.php:299
+msgid "Type"
+msgstr "Tipo"
+
+#: Admin/MPTBM_API_Documentation.php:179
+msgid "Required"
+msgstr "Requerido"
+
+#: Admin/MPTBM_API_Documentation.php:180
+#: Admin/MPTBM_Guideline.php:56
+#: Admin/settings/MPTBM_Extra_Service.php:196
+msgid "Description"
+msgstr "Descripción"
+
+#: Admin/MPTBM_API_Documentation.php:199
+msgid "Example Request"
+msgstr "Solicitud de Ejemplo"
+
+#: Admin/MPTBM_API_Documentation.php:206
+msgid "Example Response"
+msgstr "Respuesta de Ejemplo"
+
+#: Admin/MPTBM_CPT.php:149
+#: Admin/MPTBM_CPT.php:150
+msgid " List"
+msgstr " Lista"
+
+#: Admin/MPTBM_CPT.php:151
+msgid " Item:"
+msgstr " Artículo:"
+
+#: Admin/MPTBM_CPT.php:152
+msgid "All "
+msgstr "Todos "
+
+#: Admin/MPTBM_CPT.php:153
+#: Admin/MPTBM_CPT.php:154
+msgid "Add New "
+msgstr "Agregar Nuevo "
+
+#: Admin/MPTBM_CPT.php:155
+msgid "New "
+msgstr "Nuevo "
+
+#: Admin/MPTBM_CPT.php:156
+msgid "Edit "
+msgstr "Editar "
+
+#: Admin/MPTBM_CPT.php:157
+msgid "Update "
+msgstr "Actualizar "
+
+#: Admin/MPTBM_CPT.php:158
+#: Admin/MPTBM_CPT.php:159
+msgid "View "
+msgstr "Ver "
+
+#: Admin/MPTBM_CPT.php:160
+msgid "Search "
+msgstr "Buscar "
+
+#: Admin/MPTBM_CPT.php:161
+msgid " Not found"
+msgstr " No encontrado"
+
+#: Admin/MPTBM_CPT.php:162
+msgid " Not found in Trash"
+msgstr " No encontrado en la Papelera"
+
+#: Admin/MPTBM_CPT.php:163
+msgid " Feature Image"
+msgstr " Imagen Destacada"
+
+#: Admin/MPTBM_CPT.php:164
+msgid "Set "
+msgstr "Establecer "
+
+#: Admin/MPTBM_CPT.php:164
+#: Admin/MPTBM_CPT.php:165
+#: Admin/MPTBM_CPT.php:166
+msgid " featured image"
+msgstr " imagen destacada"
+
+#: Admin/MPTBM_CPT.php:165
+msgid "Remove "
+msgstr "Eliminar "
+
+#: Admin/MPTBM_CPT.php:166
+msgid "Use as featured image"
+msgstr "Usar como imagen destacada"
+
+#: Admin/MPTBM_CPT.php:167
+msgid "Insert into "
+msgstr "Insertar en "
+
+#: Admin/MPTBM_CPT.php:168
+msgid "Uploaded to this "
+msgstr "Subido a este "
+
+#: Admin/MPTBM_CPT.php:169
+#: Admin/MPTBM_CPT.php:171
+msgid " list"
+msgstr " lista"
+
+#: Admin/MPTBM_CPT.php:170
+msgid " list navigation"
+msgstr " navegación de lista"
+
+#: Admin/MPTBM_CPT.php:171
+msgid "Filter "
+msgstr "Filtrar "
+
+#: Admin/MPTBM_CPT.php:190
+#: Frontend/MPTBM_Woocommerce.php:708
+msgid "Extra Services"
+msgstr "Servicios Adicionales"
+
+#: Admin/MPTBM_CPT.php:204
+msgid "Operation Areas"
+msgstr "Áreas de Operación"
+
+#: Admin/MPTBM_CPT.php:217
+#: Admin/MPTBM_CPT.php:219
+msgid "Locations"
+msgstr "Ubicaciones"
+
+#: Admin/MPTBM_CPT.php:218
+msgid "Location"
+msgstr "Ubicación"
+
+#: Admin/MPTBM_CPT.php:220
+msgid "All Locations"
+msgstr "Todas las Ubicaciones"
+
+#: Admin/MPTBM_CPT.php:221
+msgid "Edit Location"
+msgstr "Editar Ubicación"
+
+#: Admin/MPTBM_CPT.php:222
+msgid "View Location"
+msgstr "Ver Ubicación"
+
+#: Admin/MPTBM_CPT.php:223
+msgid "Update Location"
+msgstr "Actualizar Ubicación"
+
+#: Admin/MPTBM_CPT.php:224
+msgid "Add New Location"
+msgstr "Agregar Nueva Ubicación"
+
+#: Admin/MPTBM_CPT.php:225
+msgid "New Location Name"
+msgstr "Nombre de Nueva Ubicación"
+
+#: Admin/MPTBM_CPT.php:226
+msgid "Search Locations"
+msgstr "Buscar Ubicaciones"
+
+#: Admin/MPTBM_Guideline.php:19
+msgid "Guideline"
+msgstr "Guía"
+
+#: Admin/MPTBM_Guideline.php:30
+msgid "Documentation"
+msgstr "Documentación"
+
+#: Admin/MPTBM_Guideline.php:31
+msgid "Everything you need to know to get started with the Taxi Booking Manager"
+msgstr "Todo lo que necesitas saber para comenzar con el Gestor de Reservas de Taxi"
+
+#: Admin/MPTBM_Guideline.php:40
+msgid "Main Booking Shortcode"
+msgstr "Shortcode Principal de Reservas"
+
+#: Admin/MPTBM_Guideline.php:55
+msgid "Values"
+msgstr "Valores"
+
+#: Admin/MPTBM_Guideline.php:67
+#: Admin/MPTBM_Guideline.php:78
+#: Admin/MPTBM_Guideline.php:89
+#: Admin/MPTBM_Guideline.php:100
+#: Admin/MPTBM_Guideline.php:111
+msgid "Default is"
+msgstr "Por defecto es"
+
+#: Admin/MPTBM_Guideline.php:68
+msgid "Dynamic pricing works based on Google Maps distance, while manual means fixed pricing between 2 locations."
+msgstr "El precio dinámico funciona basado en la distancia de Google Maps, mientras que manual significa precio fijo entre 2 ubicaciones."
+
+#: Admin/MPTBM_Guideline.php:79
+msgid "Inline displays a minimal single-line form."
+msgstr "Inline muestra un formulario mínimo de una sola línea."
+
+#: Admin/MPTBM_Guideline.php:90
+msgid "If set to no, the progress bar will be hidden."
+msgstr "Si se establece en no, la barra de progreso se ocultará."
+
+#: Admin/MPTBM_Guideline.php:101
+msgid "If set to no, the map will be hidden."
+msgstr "Si se establece en no, el mapa se ocultará."
+
+#: Admin/MPTBM_Guideline.php:112
+msgid "If yes, it shows tabs: hourly, distance, manual."
+msgstr "Si es sí, muestra pestañas: por hora, distancia, manual."
+
+#: Admin/MPTBM_Guideline.php:113
+msgid "Used when tab is set to yes."
+msgstr "Se usa cuando tab se establece en sí."
+
+#: Admin/MPTBM_Guideline.php:124
+msgid "List tabs to include. Only applies when tab is set to yes."
+msgstr "Lista de pestañas a incluir. Solo aplica cuando tab se establece en sí."
+
+#: Admin/MPTBM_Guideline.php:126
+msgid "Examples:"
+msgstr "Ejemplos:"
+
+#: Admin/MPTBM_Guideline.php:129
+msgid "â†' Shows all tabs"
+msgstr "→ Muestra todas las pestañas"
+
+#: Admin/MPTBM_Guideline.php:133
+msgid "â†' Hides manual tab, shows hourly & distance tabs"
+msgstr "→ Oculta la pestaña manual, muestra pestañas por hora y distancia"
+
+#: Admin/MPTBM_Guideline.php:137
+msgid "â†' Hides hourly & distance tabs, shows only manual tab"
+msgstr "→ Oculta pestañas por hora y distancia, muestra solo pestaña manual"
+
+#: Admin/MPTBM_Guideline.php:153
+msgid "Pro Tip"
+msgstr "Consejo Pro"
+
+#: Admin/MPTBM_Guideline.php:154
+msgid "For the best user experience, use the dynamic pricing mode with Google Maps API configured correctly in your settings."
+msgstr "Para la mejor experiencia de usuario, usa el modo de precios dinámicos con la API de Google Maps configurada correctamente en tu configuración."
+
+#: Admin/MPTBM_Quick_Setup.php:17
+#: Admin/MPTBM_Quick_Setup.php:18
+#: Admin/MPTBM_Quick_Setup.php:21
+msgid "Quick Setup"
+msgstr "Configuración Rápida"
+
+#: Admin/MPTBM_Quick_Setup.php:20
+#: inc/MPTBM_Function.php:137
+msgid "Transportation"
+msgstr "Transporte"
+
+#: Admin/MPTBM_Quick_Setup.php:126
+msgid "Welcome"
+msgstr "Bienvenido"
+
+#: Admin/MPTBM_Quick_Setup.php:133
+msgid "General"
+msgstr "General"
+
+#: Admin/MPTBM_Quick_Setup.php:140
+msgid "Done"
+msgstr "Hecho"
+
+#: Admin/MPTBM_Quick_Setup.php:153
+#: templates/registration/get_details.php:610
+#: templates/registration/summary.php:135
+msgid "Previous"
+msgstr "Anterior"
+
+#: Admin/MPTBM_Quick_Setup.php:157
+#: templates/registration/get_details.php:614
+msgid "Next"
+msgstr "Siguiente"
+
+#: Admin/MPTBM_Quick_Setup.php:171
+msgid "Transportation Booking Manager For Woocommerce Plugin"
+msgstr "Gestor de Reservas de Transporte Para Plugin de Woocommerce"
+
+#: Admin/MPTBM_Quick_Setup.php:172
+msgid "Thanks for choosing Transportation Booking Manager Plugin for WooCommerce for your site, Please go step by step and choose some options to get started."
+msgstr "Gracias por elegir el Plugin Gestor de Reservas de Transporte para WooCommerce para tu sitio. Por favor, ve paso a paso y elige algunas opciones para comenzar."
+
+#: Admin/MPTBM_Quick_Setup.php:176
+msgid "Woocommerce already installed and activated"
+msgstr "Woocommerce ya está instalado y activado"
+
+#: Admin/MPTBM_Quick_Setup.php:178
+msgid "Woocommerce need to install and active"
+msgstr "Woocommerce necesita ser instalado y activado"
+
+#: Admin/MPTBM_Quick_Setup.php:180
+msgid "Woocommerce already install , please activate it"
+msgstr "Woocommerce ya está instalado, por favor actívalo"
+
+#: Admin/MPTBM_Quick_Setup.php:188
+msgid "Install & Active Now"
+msgstr "Instalar y Activar Ahora"
+
+#: Admin/MPTBM_Quick_Setup.php:190
+msgid "Active Now"
+msgstr "Activar Ahora"
+
+#: Admin/MPTBM_Quick_Setup.php:202
+msgid "General settings"
+msgstr "Configuración general"
+
+#: Admin/MPTBM_Quick_Setup.php:203
+msgid "Choose some general option."
+msgstr "Elige alguna opción general."
+
+#: Admin/MPTBM_Quick_Setup.php:206
+msgid "Transportation Label:"
+msgstr "Etiqueta de Transporte:"
+
+#: Admin/MPTBM_Quick_Setup.php:211
+msgid "It will change the Transportation post type label on the entire plugin."
+msgstr "Cambiará la etiqueta del tipo de publicación de Transporte en todo el plugin."
+
+#: Admin/MPTBM_Quick_Setup.php:215
+msgid "Transportation Slug:"
+msgstr "Slug de Transporte:"
+
+#: Admin/MPTBM_Quick_Setup.php:220
+msgid "It will change the Transportation slug on the entire plugin. Remember after changing this slug you need to flush permalinks. Just go to Settings->Permalinks hit the Save Settings button"
+msgstr "Cambiará el slug de Transporte en todo el plugin. Recuerda que después de cambiar este slug necesitas actualizar los enlaces permanentes. Solo ve a Ajustes->Enlaces permanentes y presiona el botón Guardar cambios"
+
+#: Admin/MPTBM_Quick_Setup.php:230
+msgid "Finalize Setup"
+msgstr "Finalizar Configuración"
+
+#: Admin/MPTBM_Quick_Setup.php:231
+msgid "You are about to Finish & Save Transportation Booking Manager For Woocommerce Plugin setup process"
+msgstr "Estás a punto de Finalizar y Guardar el proceso de configuración del Plugin Gestor de Reservas de Transporte para Woocommerce"
+
+#: Admin/MPTBM_Quick_Setup.php:233
+msgid "Finish & Save"
+msgstr "Finalizar y Guardar"
+
+#: Admin/MPTBM_Settings.php:21
+msgid "Information Settings <span class=\"version\"> V"
+msgstr "Configuración de Información <span class=\"version\"> V"
+
+#: Admin/MPTBM_Settings.php:34
+msgid "General Info"
+msgstr "Información General"
+
+#: Admin/MPTBM_Settings.php:40
+msgid "Pricing"
+msgstr "Precios"
+
+#: Admin/MPTBM_Settings.php:43
+msgid "Extra Service"
+msgstr "Servicio Adicional"
+
+#: Admin/MPTBM_Settings.php:49
+#: Admin/settings/MPTBM_Operation_Areas.php:215
+msgid "Operation Area"
+msgstr "Área de Operación"
+
+#: Admin/MPTBM_Settings.php:56
+msgid "Tax Configure"
+msgstr "Configurar Impuestos"
+
+#: templates/registration/get_details.php:182
+#: templates/registration/summary.php:50
+msgid "Pickup Date"
+msgstr "Fecha de Recogida"
+
+#: templates/registration/get_details.php:183
+#: templates/registration/get_details.php:361
+msgid "Select Date"
+msgstr "Seleccionar Fecha"
+
+#: templates/registration/get_details.php:191
+#: templates/registration/summary.php:53
+msgid "Pickup Time"
+msgstr "Hora de Recogida"
+
+#: templates/registration/get_details.php:192
+#: templates/registration/get_details.php:369
+msgid "Please Select Time"
+msgstr "Por favor Seleccione Hora"
+
+#: templates/registration/get_details.php:250
+#: templates/registration/summary.php:56
+#: Frontend/MPTBM_Woocommerce.php:573
+#: inc/MPTBM_Function.php:757
+msgid "Pickup Location"
+msgstr "Ubicación de Recogida"
+
+#: templates/registration/get_details.php:255
+msgid " Select Pick-Up Location"
+msgstr " Seleccionar Ubicación de Recogida"
+
+#: templates/registration/get_details.php:263
+msgid "Enter Pick-Up Location"
+msgstr "Ingresar Ubicación de Recogida"
+
+#: templates/registration/get_details.php:272
+#: templates/registration/get_end_place.php:38
+#: templates/registration/summary.php:67
+#: Frontend/MPTBM_Woocommerce.php:579
+msgid "Drop-Off Location"
+msgstr "Ubicación de Destino"
+
+#: templates/registration/get_details.php:275
+#: templates/registration/get_end_place.php:40
+msgid " Select Destination Location"
+msgstr " Seleccionar Ubicación de Destino"
+
+#: templates/registration/get_details.php:278
+msgid " Enter Drop-Off Location"
+msgstr " Ingresar Ubicación de Destino"
+
+#: templates/registration/get_details.php:305
+#: Admin/settings/MPTBM_General_Settings.php:64
+msgid "Maximum Passenger"
+msgstr "Pasajeros Máximo"
+
+#: templates/registration/get_details.php:318
+#: Admin/settings/MPTBM_General_Settings.php:73
+msgid "Maximum Bag"
+msgstr "Equipaje Máximo"
+
+#: templates/registration/get_details.php:333
+msgid "Click here"
+msgstr "Haga clic aquí"
+
+#: templates/registration/get_details.php:334
+msgid "If you are not able to find your desired location"
+msgstr "Si no puede encontrar su ubicación deseada"
+
+#: templates/registration/get_details.php:345
+#: templates/registration/summary.php:90
+#: Frontend/MPTBM_Woocommerce.php:609
+msgid "Transfer Type"
+msgstr "Tipo de Traslado"
+
+#: templates/registration/get_details.php:347
+msgid "One Way"
+msgstr "Solo Ida"
+
+#: templates/registration/get_details.php:348
+#: templates/registration/summary.php:91
+#: Frontend/MPTBM_Woocommerce.php:610
+msgid "Return"
+msgstr "Regreso"
+
+#: templates/registration/get_details.php:360
+#: templates/registration/summary.php:94
+#: Frontend/MPTBM_Woocommerce.php:650
+msgid "Return Date"
+msgstr "Fecha de Regreso"
+
+#: templates/registration/get_details.php:368
+#: templates/registration/summary.php:97
+#: Frontend/MPTBM_Woocommerce.php:655
+msgid "Return Time"
+msgstr "Hora de Regreso"
+
+#: templates/registration/get_details.php:431
+#: templates/registration/summary.php:103
+#: Frontend/MPTBM_Woocommerce.php:243
+#: Frontend/MPTBM_Woocommerce.php:662
+msgid "Extra Waiting Hours"
+msgstr "Horas de Espera Adicionales"
+
+#: templates/registration/get_details.php:433
+msgid "No Waiting"
+msgstr "Sin Espera"
+
+#: templates/registration/get_details.php:434
+#: templates/registration/get_details.php:243
+#: Frontend/MPTBM_Woocommerce.php:246
+msgid "Hour"
+msgstr "Hora"
+
+#: templates/registration/get_details.php:435
+#: templates/registration/get_details.php:436
+#: templates/registration/get_details.php:437
+#: templates/registration/get_details.php:438
+#: templates/registration/get_details.php:439
+#: templates/registration/summary.php:104
+#: templates/registration/summary.php:109
+#: Frontend/MPTBM_Woocommerce.php:663
+#: Frontend/MPTBM_Woocommerce.php:669
+msgid "Hours"
+msgstr "Horas"
+
+#: templates/registration/get_details.php:454
+msgid "Select Hours"
+msgstr "Seleccionar Horas"
+
+#: templates/registration/get_details.php:460
+#: Admin/MPTBM_Settings_Global.php:162
+msgid "1 Hour"
+msgstr "1 Hora"
+
+#: templates/registration/get_details.php:461
+#: Admin/MPTBM_Settings_Global.php:163
+msgid "2 Hours"
+msgstr "2 Horas"
+
+#: templates/registration/get_details.php:462
+#: Admin/MPTBM_Settings_Global.php:164
+msgid "3 Hours"
+msgstr "3 Horas"
+
+#: templates/registration/get_details.php:463
+#: Admin/MPTBM_Settings_Global.php:165
+msgid "4 Hours"
+msgstr "4 Horas"
+
+#: templates/registration/get_details.php:464
+#: Admin/MPTBM_Settings_Global.php:166
+msgid "5 Hours"
+msgstr "5 Horas"
+
+#: templates/registration/get_details.php:465
+#: Admin/MPTBM_Settings_Global.php:167
+msgid "6 Hours"
+msgstr "6 Horas"
+
+#: templates/registration/get_details.php:466
+#: Admin/MPTBM_Settings_Global.php:168
+msgid "7 Hours"
+msgstr "7 Horas"
+
+#: templates/registration/get_details.php:467
+#: Admin/MPTBM_Settings_Global.php:169
+msgid "8 Hours"
+msgstr "8 Horas"
+
+#: templates/registration/get_details.php:468
+#: Admin/MPTBM_Settings_Global.php:170
+msgid "9 Hours"
+msgstr "9 Horas"
+
+#: templates/registration/get_details.php:469
+#: Admin/MPTBM_Settings_Global.php:171
+msgid "10 Hours"
+msgstr "10 Horas"
+
+#: templates/registration/get_details.php:470
+msgid "11 Hours"
+msgstr "11 Horas"
+
+#: templates/registration/get_details.php:471
+msgid "12 Hours"
+msgstr "12 Horas"
+
+#: templates/registration/get_details.php:472
+#, php-format
+msgid "%d Hours"
+msgstr "%d Horas"
+
+#: templates/registration/get_details.php:488
+#: Frontend/MPTBM_Woocommerce.php:678
+#: inc/MPTBM_Function.php:778
+msgid "Number of Passengers"
+msgstr "Número de Pasajeros"
+
+#: templates/registration/get_details.php:501
+msgid "Search"
+msgstr "Buscar"
+
+#: templates/registration/get_details.php:557
+msgid "Map Authentication Failed! Please contact site admin."
+msgstr "¡Fallo en la Autenticación del Mapa! Por favor contacte al administrador del sitio."
+
+#: templates/registration/get_details.php:566
+msgid "Google Map API key not configured! Please contact site admin."
+msgstr "¡Clave API de Google Maps no configurada! Por favor contacte al administrador del sitio."
+
+#: templates/registration/get_details.php:570
+msgid "Map functionality is disabled."
+msgstr "La funcionalidad del mapa está deshabilitada."
+
+#: templates/registration/get_details.php:581
+msgid "TOTAL DISTANCE"
+msgstr "DISTANCIA TOTAL"
+
+#: templates/registration/get_details.php:583
+msgid " 0 MILE"
+msgstr " 0 MILLAS"
+
+#: templates/registration/get_details.php:585
+msgid " 0 KM"
+msgstr " 0 KM"
+
+#: templates/registration/get_details.php:595
+msgid "TOTAL TIME"
+msgstr "TIEMPO TOTAL"
+
+#: templates/registration/get_details.php:596
+msgid "0 Hour"
+msgstr "0 Horas"
+
+#: templates/registration/get_details.php:610
+#: templates/registration/summary.php:135
+#: Admin/MPTBM_Quick_Setup.php:153
+msgid "Previous"
+msgstr "Anterior"
+
+#: templates/registration/get_details.php:614
+#: Admin/MPTBM_Quick_Setup.php:157
+msgid "Next"
+msgstr "Siguiente"
+
+#: templates/registration/get_details.php:629
+#, php-format
+msgid "No %s configured for this price setting"
+msgstr "No hay %s configurado para esta configuración de precio"
+
+#: templates/registration/get_end_place.php:47
+msgid " Can not find any Destination Location"
+msgstr " No se puede encontrar ninguna Ubicación de Destino"
+
+#: templates/registration/registration_layout.php:25
+#: transport_result.php:270
+msgid "Enter Ride Details"
+msgstr "Ingresar Detalles del Viaje"
+
+#: templates/registration/registration_layout.php:32
+#: transport_result.php:277
+msgid "Choose a vehicle"
+msgstr "Elegir un vehículo"
+
+#: templates/registration/registration_layout.php:39
+#: transport_result.php:284
+msgid "Place Order"
+msgstr "Realizar Pedido"
+
+#: templates/registration/registration_layout.php:100
+#: Frontend/MPTBM_Elementor_Widget.php:191
+msgid "Distance"
+msgstr "Distancia"
+
+#: templates/registration/registration_layout.php:102
+#: Frontend/MPTBM_Elementor_Widget.php:192
+msgid "Hourly"
+msgstr "Por Hora"
+
+#: templates/registration/registration_layout.php:105
+msgid "Flat rate"
+msgstr "Tarifa Plana"
+
+#: templates/registration/summary.php:47
+msgid "SUMMARY"
+msgstr "RESUMEN"
+
+#: templates/registration/summary.php:79
+msgid "Total Distance"
+msgstr "Distancia Total"
+
+#: templates/registration/summary.php:82
+msgid "Total Time"
+msgstr "Tiempo Total"
+
+#: templates/registration/summary.php:108
+#: Frontend/MPTBM_Woocommerce.php:246
+#: Frontend/MPTBM_Woocommerce.php:668
+msgid "Service Times"
+msgstr "Horarios de Servicio"
+
+#: templates/registration/summary.php:113
+msgid " Details"
+msgstr " Detalles"
+
+#: templates/registration/summary.php:128
+msgid "Total : "
+msgstr "Total : "
+
+#: templates/registration/extra_service.php:18
+msgid "Choose Extra Features (Optional)"
+msgstr "Elegir Características Adicionales (Opcional)"
+
+#: templates/registration/extra_service.php:60
+#: templates/registration/vehicle_item.php:238
+#: templates/registration/vehicle_item.php:254
+#: inc/MPTBM_Layout.php:17
+#: Frontend/MPTBM_Woocommerce.php:956
+msgid "Selected"
+msgstr "Seleccionado"
+
+#: templates/registration/extra_service.php:60
+#: templates/registration/vehicle_item.php:238
+#: templates/registration/vehicle_item.php:254
+#: inc/MPTBM_Layout.php:17
+msgid "Select"
+msgstr "Seleccionar"
+
+#: templates/registration/extra_service.php:81
+msgid "Book Now"
+msgstr "Reservar Ahora"
+
+#: templates/registration/vehicle_item.php:240
+#: templates/registration/vehicle_item.php:256
+msgid "Select Car"
+msgstr "Seleccionar Vehículo"
+
+#: templates/registration/vehicle_item.php:250
+msgid "Out of Stock"
+msgstr "Agotado"
+
+#: templates/registration/choose_vehicles.php:645
+msgid "Number Of Passengers"
+msgstr "Número de Pasajeros"
+
+#: templates/registration/choose_vehicles.php:658
+msgid "Number Of Bags"
+msgstr "Número de Maletas"
+
+#: templates/registration/choose_vehicles.php:740
+#: templates/registration/choose_vehicles.php:763
+msgid "No Transport Available !"
+msgstr "¡No Hay Transporte Disponible!"
+
+#: Frontend/MPTBM_Woocommerce.php:193
+msgid "Booking Details "
+msgstr "Detalles de la Reserva "
+
+#: Frontend/MPTBM_Woocommerce.php:221
+msgid "Pickup Location "
+msgstr "Ubicación de Recogida "
+
+#: Frontend/MPTBM_Woocommerce.php:223
+msgid "Drop-Off Location "
+msgstr "Ubicación de Destino "
+
+#: Frontend/MPTBM_Woocommerce.php:238
+msgid "Approximate Distancee "
+msgstr "Distancia Aproximada "
+
+#: Frontend/MPTBM_Woocommerce.php:239
+msgid "Approximate Time "
+msgstr "Tiempo Aproximado "
+
+#: Frontend/MPTBM_Woocommerce.php:248
+msgid "Date "
+msgstr "Fecha "
+
+#: Frontend/MPTBM_Woocommerce.php:249
+msgid "Time "
+msgstr "Hora "
+
+#: Frontend/MPTBM_Woocommerce.php:250
+msgid "Transport Quantity "
+msgstr "Cantidad de Transporte "
+
+#: Frontend/MPTBM_Woocommerce.php:255
+msgid "Number of Passengers"
+msgstr "Número de Pasajeros"
+
+#: Frontend/MPTBM_Woocommerce.php:260
+msgid "Return "
+msgstr "Regreso "
+
+#: Frontend/MPTBM_Woocommerce.php:294
+msgid "Return Date"
+msgstr "Fecha de Regreso"
+
+#: Frontend/MPTBM_Woocommerce.php:295
+msgid "Return Time"
+msgstr "Hora de Regreso"
+
+#: Frontend/MPTBM_Woocommerce.php:299
+#: Frontend/MPTBM_Woocommerce.php:701
+msgid "Transport Quantity"
+msgstr "Cantidad de Transporte"
+
+#: Frontend/MPTBM_Woocommerce.php:304
+#: Frontend/MPTBM_Woocommerce.php:306
+#: Frontend/MPTBM_Woocommerce.php:313
+msgid "Price "
+msgstr "Precio "
+
+#: Frontend/MPTBM_Woocommerce.php:309
+msgid "Optional Service "
+msgstr "Servicio Opcional "
+
+#: Frontend/MPTBM_Woocommerce.php:311
+msgid "Services Name "
+msgstr "Nombre del Servicio "
+
+#: Frontend/MPTBM_Woocommerce.php:312
+msgid "Services Quantity "
+msgstr "Cantidad de Servicios "
+
+#: Frontend/MPTBM_Woocommerce.php:368
+#: Frontend/MPTBM_Woocommerce.php:369
+msgid "Add this event to your Google Calendar"
+msgstr "Agregar este evento a tu Calendario de Google"
+
+#: Frontend/MPTBM_Woocommerce.php:588
+msgid "Approximate Distance"
+msgstr "Distancia Aproximada"
+
+#: Frontend/MPTBM_Woocommerce.php:593
+msgid "Approximate Time"
+msgstr "Tiempo Aproximado"
+
+#: Frontend/MPTBM_Woocommerce.php:599
+#: Admin/MPTBM_Settings.php:37
+#: Admin/MPTBM_Analytics_Dashboard.php:246
+msgid "Date"
+msgstr "Fecha"
+
+#: Frontend/MPTBM_Woocommerce.php:604
+msgid "Time : "
+msgstr "Hora : "
+
+#: Frontend/MPTBM_Woocommerce.php:684
+msgid "Base Price : "
+msgstr "Precio Base : "
+
+#: Frontend/MPTBM_Woocommerce.php:708
+#: Admin/MPTBM_CPT.php:190
+msgid "Extra Services"
+msgstr "Servicios Adicionales"
+
+#: Frontend/MPTBM_Woocommerce.php:713
+#: Admin/MPTBM_Status.php:55
+msgid "Name : "
+msgstr "Nombre : "
+
+#: Frontend/MPTBM_Woocommerce.php:717
+msgid "Quantity : "
+msgstr "Cantidad : "
+
+#: Frontend/MPTBM_Woocommerce.php:721
+msgid "Price : "
+msgstr "Precio : "
+
+#: Frontend/MPTBM_Woocommerce.php:1000
+#: Frontend/MPTBM_Woocommerce.php:1004
+#, php-format
+msgid "%s is a required field."
+msgstr "%s es un campo requerido."
+
+#: Frontend/MPTBM_Woocommerce.php:1031
+msgid "Custom Booking Details"
+msgstr "Detalles de Reserva Personalizados"
+
+#: Frontend/MPTBM_Woocommerce.php:1143
+msgid "No file uploaded."
+msgstr "No se subió ningún archivo."
+
+#: Frontend/MPTBM_Woocommerce.php:1149
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:600
+msgid "Invalid file type."
+msgstr "Tipo de archivo inválido."
+
+#: Frontend/MPTBM_Woocommerce.php:1152
+msgid "File too large (max 5MB)."
+msgstr "Archivo demasiado grande (máx. 5MB)."
+
+#: Frontend/MPTBM_Transport_Search.php:135
+#: Frontend/MPTBM_Transport_Search.php:216
+#, php-format
+msgid "Booking must be at least %d minutes in advance. Please select a later time."
+msgstr "La reserva debe hacerse con al menos %d minutos de anticipación. Por favor seleccione una hora posterior."
+
+#: Frontend/MPTBM_Elementor_Widget.php:12
+#: assets/js/block.js:12
+#: assets/js/block.js:161
+msgid "E-Cab Booking Form"
+msgstr "Formulario de Reserva E-Cab"
+
+#: Frontend/MPTBM_Elementor_Widget.php:28
+msgid "Display Settings"
+msgstr "Configuración de Visualización"
+
+#: Frontend/MPTBM_Elementor_Widget.php:36
+#: assets/js/block.js:96
+msgid "Display Style"
+msgstr "Estilo de Visualización"
+
+#: Frontend/MPTBM_Elementor_Widget.php:40
+msgid "List"
+msgstr "Lista"
+
+#: Frontend/MPTBM_Elementor_Widget.php:41
+msgid "Grid"
+msgstr "Cuadrícula"
+
+#: Frontend/MPTBM_Elementor_Widget.php:49
+#: assets/js/block.js:106
+msgid "Items to Show"
+msgstr "Elementos a Mostrar"
+
+#: Frontend/MPTBM_Elementor_Widget.php:60
+msgid "Columns"
+msgstr "Columnas"
+
+#: Frontend/MPTBM_Elementor_Widget.php:81
+msgid "Form Settings"
+msgstr "Configuración del Formulario"
+
+#: Frontend/MPTBM_Elementor_Widget.php:89
+#: assets/js/block.js:112
+msgid "Price Based"
+msgstr "Basado en Precio"
+
+#: Frontend/MPTBM_Elementor_Widget.php:93
+msgid "Dynamic"
+msgstr "Dinámico"
+
+#: Frontend/MPTBM_Elementor_Widget.php:94
+#: Frontend/MPTBM_Elementor_Widget.php:193
+msgid "Manual"
+msgstr "Manual"
+
+#: Frontend/MPTBM_Elementor_Widget.php:95
+#: Admin/settings/MPTBM_Price_Settings.php:123
+msgid "Fixed Hourly"
+msgstr "Por Hora Fijo"
+
+#: Frontend/MPTBM_Elementor_Widget.php:103
+#: assets/js/block.js:123
+msgid "Form Layout"
+msgstr "Diseño del Formulario"
+
+#: Frontend/MPTBM_Elementor_Widget.php:107
+msgid "Horizontal"
+msgstr "Horizontal"
+
+#: Frontend/MPTBM_Elementor_Widget.php:108
+msgid "Inline"
+msgstr "En línea"
+
+#: Frontend/MPTBM_Elementor_Widget.php:119
+msgid "Additional Features"
+msgstr "Características Adicionales"
+
+#: Frontend/MPTBM_Elementor_Widget.php:127
+#: assets/js/block.js:133
+msgid "Show Pagination"
+msgstr "Mostrar Paginación"
+
+#: Frontend/MPTBM_Elementor_Widget.php:129
+#: Frontend/MPTBM_Elementor_Widget.php:156
+#: Frontend/MPTBM_Elementor_Widget.php:167
+#: Frontend/MPTBM_Elementor_Widget.php:178
+#: Admin/MPTBM_Settings_Global.php:251
+#: Admin/MPTBM_Settings_Global.php:255
+#: Admin/MPTBM_Settings_Global.php:285
+#: Admin/MPTBM_Settings_Global.php:299
+#: Admin/MPTBM_Settings_Global.php:303
+#: Admin/MPTBM_Settings_Global.php:311
+#: Admin/MPTBM_Settings_Global.php:315
+#: Admin/MPTBM_Settings_Global.php:326
+#: Admin/MPTBM_Settings_Global.php:423
+#: Admin/MPTBM_Settings_Global.php:608
+#: Admin/MPTBM_Status.php:21
+#: mp_global/class/MP_Settings_Global.php:59
+msgid "Yes"
+msgstr "Sí"
+
+#: Frontend/MPTBM_Elementor_Widget.php:130
+#: Frontend/MPTBM_Elementor_Widget.php:157
+#: Frontend/MPTBM_Elementor_Widget.php:168
+#: Frontend/MPTBM_Elementor_Widget.php:179
+#: Admin/MPTBM_Settings_Global.php:251
+#: Admin/MPTBM_Settings_Global.php:256
+#: Admin/MPTBM_Settings_Global.php:285
+#: Admin/MPTBM_Settings_Global.php:299
+#: Admin/MPTBM_Settings_Global.php:304
+#: Admin/MPTBM_Settings_Global.php:311
+#: Admin/MPTBM_Settings_Global.php:316
+#: Admin/MPTBM_Settings_Global.php:327
+#: Admin/MPTBM_Settings_Global.php:424
+#: Admin/MPTBM_Settings_Global.php:609
+#: Admin/MPTBM_Status.php:21
+#: mp_global/class/MP_Settings_Global.php:60
+msgid "No"
+msgstr "No"
+
+#: Frontend/MPTBM_Elementor_Widget.php:138
+msgid "Pagination Style"
+msgstr "Estilo de Paginación"
+
+#: Frontend/MPTBM_Elementor_Widget.php:142
+#: mp_global/class/MP_Custom_Layout.php:40
+#: mp_global/class/MP_Custom_Layout.php:182
+#: mp_global/class/MP_Custom_Layout.php:183
+msgid "Load More"
+msgstr "Cargar Más"
+
+#: Frontend/MPTBM_Elementor_Widget.php:143
+msgid "Numeric"
+msgstr "Numérico"
+
+#: Frontend/MPTBM_Elementor_Widget.php:154
+#: assets/js/block.js:139
+msgid "Show Progress Bar"
+msgstr "Mostrar Barra de Progreso"
+
+#: Frontend/MPTBM_Elementor_Widget.php:165
+#: assets/js/block.js:145
+msgid "Show Map"
+msgstr "Mostrar Mapa"
+
+#: Frontend/MPTBM_Elementor_Widget.php:176
+#: assets/js/block.js:151
+msgid "Enable Tabs"
+msgstr "Habilitar Pestañas"
+
+#: Frontend/MPTBM_Elementor_Widget.php:187
+msgid "Tab Options"
+msgstr "Opciones de Pestañas"
+
+#: transport_result.php:373
+#, php-format
+msgid "Powered by %s"
+msgstr "Desarrollado por %s"
+
+#: assets/js/block.js:92
+msgid "Booking Form Settings"
+msgstr "Configuración del Formulario de Reservas"
+
+#: assets/js/block.js:162
+msgid "Your booking form will appear here on the frontend."
+msgstr "Su formulario de reservas aparecerá aquí en el frontend."
+
+#: inc/MPTBM_Function.php:743
+msgid "Flight No"
+msgstr "Número de Vuelo"
+
+#: inc/MPTBM_Function.php:747
+msgid "Enter your flight number"
+msgstr "Ingrese su número de vuelo"
+
+#: inc/MPTBM_Function.php:750
+msgid "Passport No"
+msgstr "Número de Pasaporte"
+
+#: inc/MPTBM_Function.php:754
+msgid "Enter your passport number"
+msgstr "Ingrese su número de pasaporte"
+
+#: inc/MPTBM_Function.php:761
+msgid "Enter pickup location"
+msgstr "Ingrese ubicación de recogida"
+
+#: inc/MPTBM_Function.php:764
+msgid "Drop-off Location"
+msgstr "Ubicación de Destino"
+
+#: inc/MPTBM_Function.php:768
+msgid "Enter drop-off location"
+msgstr "Ingrese ubicación de destino"
+
+#: inc/MPTBM_Function.php:771
+msgid "Pickup Date & Time"
+msgstr "Fecha y Hora de Recogida"
+
+#: inc/MPTBM_Function.php:775
+msgid "Select pickup date and time"
+msgstr "Seleccione fecha y hora de recogida"
+
+#: inc/MPTBM_Function.php:782
+msgid "Enter number of passengers"
+msgstr "Ingrese número de pasajeros"
+
+#: inc/MPTBM_Function.php:785
+msgid "Luggage Details"
+msgstr "Detalles del Equipaje"
+
+#: inc/MPTBM_Function.php:789
+msgid "Enter luggage details"
+msgstr "Ingrese detalles del equipaje"
+
+#: inc/MPTBM_Function.php:792
+msgid "Contact Phone"
+msgstr "Teléfono de Contacto"
+
+#: inc/MPTBM_Function.php:796
+msgid "Enter contact phone"
+msgstr "Ingrese teléfono de contacto"
+
+#: inc/MPTBM_Function.php:799
+msgid "Special Instructions"
+msgstr "Instrucciones Especiales"
+
+#: inc/MPTBM_Function.php:803
+msgid "Any special instructions?"
+msgstr "¿Alguna instrucción especial?"
+
+#: inc/MPTBM_Function.php:806
+msgid "Email Address"
+msgstr "Dirección de Correo Electrónico"
+
+#: inc/MPTBM_Function.php:810
+msgid "Enter your email address"
+msgstr "Ingrese su dirección de correo electrónico"
+
+#: inc/MPTBM_Function.php:149
+msgid "Category"
+msgstr "Categoría"
+
+#: inc/MPTBM_Function.php:157
+msgid "Organizer"
+msgstr "Organizador"
+
+#: mp_global/class/MP_Global_Function.php:463
+msgid "Monday"
+msgstr "Lunes"
+
+#: mp_global/class/MP_Global_Function.php:464
+msgid "Tuesday"
+msgstr "Martes"
+
+#: mp_global/class/MP_Global_Function.php:465
+msgid "Wednesday"
+msgstr "Miércoles"
+
+#: mp_global/class/MP_Global_Function.php:466
+msgid "Thursday"
+msgstr "Jueves"
+
+#: mp_global/class/MP_Global_Function.php:467
+msgid "Friday"
+msgstr "Viernes"
+
+#: mp_global/class/MP_Global_Function.php:468
+msgid "Saturday"
+msgstr "Sábado"
+
+#: mp_global/class/MP_Global_Function.php:469
+msgid "Sunday"
+msgstr "Domingo"
