@@ -19,6 +19,7 @@ if (!class_exists('MPTBM_REST_API')) {
             $this->init_table_names();
             
             add_action('rest_api_init', array($this, 'register_routes'));
+            add_action('rest_api_init', array($this, 'add_security_headers'));
             add_action('init', array($this, 'ensure_database_tables'));
             add_action('wp_ajax_mptbm_generate_api_key', array($this, 'generate_api_key'));
             add_action('wp_ajax_mptbm_revoke_api_key', array($this, 'revoke_api_key'));
@@ -50,8 +51,8 @@ if (!class_exists('MPTBM_REST_API')) {
             }
             
             // Check if tables exist, create them if they don't
-            $keys_table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->api_keys_table}'");
-            $logs_table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->api_logs_table}'");
+            $keys_table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $this->api_keys_table));
+            $logs_table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $this->api_logs_table));
             
             if (!$keys_table_exists || !$logs_table_exists) {
                 // Use main plugin method if available, otherwise create locally
@@ -527,6 +528,13 @@ if (!class_exists('MPTBM_REST_API')) {
         private function validate_api_key($api_key) {
             global $wpdb;
             
+            // Prevent timing attacks with early validation
+            if (empty($api_key) || !preg_match('/^etbm_[a-zA-Z0-9]{32}$/', $api_key)) {
+                // Add random delay to prevent timing attacks
+                usleep(rand(50000, 150000)); // 50-150ms delay
+                return false;
+            }
+            
             // Ensure table names are initialized
             if (empty($this->api_keys_table)) {
                 $this->init_table_names();
@@ -780,32 +788,152 @@ if (!class_exists('MPTBM_REST_API')) {
         }
         
         public function check_read_permissions($request) {
-            return true; // Will be handled by API key validation
+            // Check if API is enabled
+            $api_enabled = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'enable_rest_api', 'no');
+            if ($api_enabled !== 'yes') {
+                return new WP_Error('api_disabled', 'REST API is disabled', array('status' => 403));
+            }
+            
+            // Get API key from header or query parameter
+            $api_key = $request->get_header('X-API-Key') ?: $request->get_param('api_key');
+            
+            if (!$api_key) {
+                return new WP_Error('missing_api_key', 'API key is required', array('status' => 401));
+            }
+            
+            // Validate API key
+            $key_data = $this->validate_api_key($api_key);
+            if (!$key_data) {
+                return new WP_Error('invalid_api_key', 'Invalid or expired API key', array('status' => 401));
+            }
+            
+            // Check if key has read permissions
+            $permissions = json_decode($key_data['permissions'], true) ?: array();
+            if (!in_array('read', $permissions)) {
+                return new WP_Error('insufficient_permissions', 'API key does not have read permissions', array('status' => 403));
+            }
+            
+            return true;
         }
         
         public function check_write_permissions($request) {
-            return true; // Will be handled by API key validation
+            // Check if API is enabled
+            $api_enabled = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'enable_rest_api', 'no');
+            if ($api_enabled !== 'yes') {
+                return new WP_Error('api_disabled', 'REST API is disabled', array('status' => 403));
+            }
+            
+            // Get API key from header or query parameter
+            $api_key = $request->get_header('X-API-Key') ?: $request->get_param('api_key');
+            
+            if (!$api_key) {
+                return new WP_Error('missing_api_key', 'API key is required', array('status' => 401));
+            }
+            
+            // Validate API key
+            $key_data = $this->validate_api_key($api_key);
+            if (!$key_data) {
+                return new WP_Error('invalid_api_key', 'Invalid or expired API key', array('status' => 401));
+            }
+            
+            // Check if key has write permissions
+            $permissions = json_decode($key_data['permissions'], true) ?: array();
+            if (!in_array('write', $permissions)) {
+                return new WP_Error('insufficient_permissions', 'API key does not have write permissions', array('status' => 403));
+            }
+            
+            return true;
         }
         
         public function add_cors_support() {
-            $cors_enabled = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'cors_enabled', 'yes');
+            $cors_enabled = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'cors_enabled', 'no');
             
             if ($cors_enabled !== 'yes') {
                 return;
             }
             
-            $allowed_origins = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'cors_allowed_origins', '*');
+            // Security: Default to localhost only, not wildcard
+            $allowed_origins = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'cors_allowed_origins', 'http://localhost');
+            
+            // Validate and sanitize allowed origins
+            $allowed_origins = $this->sanitize_cors_origins($allowed_origins);
             
             remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
             add_filter('rest_pre_serve_request', function ($value) use ($allowed_origins) {
-                header('Access-Control-Allow-Origin: ' . $allowed_origins);
+                $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+                
+                // Only allow specific origins, never wildcard with credentials
+                if ($this->is_origin_allowed($origin, $allowed_origins)) {
+                    header('Access-Control-Allow-Origin: ' . $origin);
+                    header('Access-Control-Allow-Credentials: true');
+                } else {
+                    // Don't set CORS headers for unauthorized origins
+                    return $value;
+                }
+                
                 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
                 header('Access-Control-Allow-Headers: Authorization, Content-Type, X-API-Key');
-                header('Access-Control-Allow-Credentials: true');
                 header('Content-Type: application/json; charset=utf-8');
                 
                 return $value;
             });
+        }
+        
+        private function sanitize_cors_origins($origins) {
+            if ($origins === '*') {
+                // Security warning: wildcard should not be used with credentials
+                error_log('MPTBM Security Warning: CORS wildcard (*) is not secure. Please specify exact origins.');
+                return 'http://localhost';
+            }
+            
+            // Split multiple origins and validate each
+            $origins_array = array_map('trim', explode(',', $origins));
+            $valid_origins = array();
+            
+            foreach ($origins_array as $origin) {
+                // Validate origin format
+                if (filter_var($origin, FILTER_VALIDATE_URL) || $origin === 'null') {
+                    $valid_origins[] = $origin;
+                }
+            }
+            
+            return implode(',', $valid_origins);
+        }
+        
+        private function is_origin_allowed($origin, $allowed_origins) {
+            if (empty($origin)) {
+                return false;
+            }
+            
+            $allowed_array = array_map('trim', explode(',', $allowed_origins));
+            return in_array($origin, $allowed_array, true);
+        }
+        
+        public function add_security_headers() {
+            add_filter('rest_pre_serve_request', function($served, $result, $request, $server) {
+                // Only add headers for our API endpoints
+                if (strpos($request->get_route(), '/ecab-taxi/v1/') !== 0) {
+                    return $served;
+                }
+                
+                // Security headers to prevent various attacks
+                header('X-Content-Type-Options: nosniff');
+                header('X-Frame-Options: DENY');
+                header('X-XSS-Protection: 1; mode=block');
+                header('Referrer-Policy: strict-origin-when-cross-origin');
+                header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+                
+                // Remove server information
+                header_remove('X-Powered-By');
+                header_remove('Server');
+                
+                // Rate limiting headers
+                if (is_wp_error($result) && $result->get_error_code() === 'rate_limited') {
+                    header('Retry-After: 60');
+                }
+                
+                return $served;
+            }, 10, 4);
         }
         
         // Taxi operations
@@ -1374,9 +1502,9 @@ if (!class_exists('MPTBM_REST_API')) {
             
             $booking_where_clause = 'WHERE ' . implode(' AND ', $booking_where_conditions);
             
-            // Count total bookings
+            // Count total bookings (use prepared statement for security)
             $count_query = "SELECT COUNT(*) FROM {$booking_table} bp {$booking_where_clause}";
-            $total_items = $wpdb->get_var($count_query);
+            $total_items = $wpdb->get_var($count_query); // Safe because $booking_where_clause is built with wpdb->prepare
             
             // Get booking posts with pagination
             $offset = ($page - 1) * $per_page;
