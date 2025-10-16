@@ -1615,72 +1615,87 @@ if (!class_exists('MPTBM_REST_API')) {
         }
         
         public function get_booking($request) {
-            $booking_id = $request->get_param('id');
+            $id = $request->get_param('id');
             
-            if (!$booking_id) {
+            if (!$id) {
                 return new WP_Error('missing_id', 'Booking ID is required', array('status' => 400));
             }
             
-            $booking_post = get_post(absint($booking_id));
+            global $wpdb;
             
-            if (!$booking_post || ($booking_post->post_type !== 'shop_order' && $booking_post->post_type !== 'mptbm_booking')) {
+            // First, try to find if this is a WooCommerce order ID
+            $booking_post = null;
+            $wc_order_id = null;
+            
+            // Check if it's a WooCommerce order ID, then find the corresponding mptbm_booking
+            $booking_id = $wpdb->get_var($wpdb->prepare(
+                "SELECT p.ID FROM {$wpdb->prefix}posts p 
+                 JOIN {$wpdb->prefix}postmeta pm ON p.ID = pm.post_id 
+                 WHERE p.post_type = 'mptbm_booking' 
+                 AND pm.meta_key = 'mptbm_order_id' 
+                 AND pm.meta_value = %s",
+                $id
+            ));
+            
+            // If not found by order ID, try direct booking ID
+            if (!$booking_id) {
+                $booking_post = get_post(absint($id));
+                if ($booking_post && $booking_post->post_type === 'mptbm_booking') {
+                    $booking_id = $id;
+                } else {
+                    return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
+                }
+            } else {
+                $booking_post = get_post($booking_id);
+                $wc_order_id = $id;
+            }
+            
+            if (!$booking_post || $booking_post->post_type !== 'mptbm_booking') {
                 return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
             }
             
-            // Check if this booking belongs to taxi booking system
-            $taxi_id = get_post_meta($booking_id, 'mptbm_taxi_id', true);
-            if (!$taxi_id) {
-                return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
-            }
+            // Get booking metadata from mptbm_booking post
+            $wc_order_id = $wc_order_id ?: get_post_meta($booking_id, 'mptbm_order_id', true);
+            $taxi_id = get_post_meta($booking_id, 'mptbm_id', true);
+            $order_status = get_post_meta($booking_id, 'mptbm_order_status', true);
             
             // Get WooCommerce order if available
-            $order = null;
-            if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
-                $order = wc_get_order($booking_id);
-            }
+            $order = function_exists('wc_get_order') && $wc_order_id ? wc_get_order($wc_order_id) : null;
             
             // Build booking data
             $booking_data = array(
-                'id' => $booking_id,
-                'status' => $order ? $order->get_status() : str_replace('wc-', '', $booking_post->post_status),
+                'id' => $wc_order_id ?: $booking_id,
+                'booking_id' => $booking_id,
+                'status' => $order_status ?: 'pending',
                 'date_created' => $booking_post->post_date,
                 'date_modified' => $booking_post->post_modified,
-                'total' => $order ? $order->get_total() : get_post_meta($booking_id, '_order_total', true),
+                'total' => $order ? $order->get_total() : get_post_meta($booking_id, 'mptbm_tp', true),
                 'currency' => $order ? $order->get_currency() : get_option('woocommerce_currency', 'USD'),
-                'customer_id' => $order ? $order->get_customer_id() : get_post_meta($booking_id, '_customer_user', true),
+                'customer_id' => get_post_meta($booking_id, 'mptbm_user_id', true),
                 'customer_details' => array(
-                    'email' => $order ? $order->get_billing_email() : get_post_meta($booking_id, '_billing_email', true),
-                    'first_name' => $order ? $order->get_billing_first_name() : get_post_meta($booking_id, '_billing_first_name', true),
-                    'last_name' => $order ? $order->get_billing_last_name() : get_post_meta($booking_id, '_billing_last_name', true),
-                    'phone' => $order ? $order->get_billing_phone() : get_post_meta($booking_id, '_billing_phone', true),
-                    'address' => array(
-                        'address_1' => $order ? $order->get_billing_address_1() : get_post_meta($booking_id, '_billing_address_1', true),
-                        'address_2' => $order ? $order->get_billing_address_2() : get_post_meta($booking_id, '_billing_address_2', true),
-                        'city' => $order ? $order->get_billing_city() : get_post_meta($booking_id, '_billing_city', true),
-                        'state' => $order ? $order->get_billing_state() : get_post_meta($booking_id, '_billing_state', true),
-                        'postcode' => $order ? $order->get_billing_postcode() : get_post_meta($booking_id, '_billing_postcode', true),
-                        'country' => $order ? $order->get_billing_country() : get_post_meta($booking_id, '_billing_country', true)
-                    )
+                    'email' => get_post_meta($booking_id, 'mptbm_billing_email', true),
+                    'name' => get_post_meta($booking_id, 'mptbm_billing_name', true),
+                    'phone' => get_post_meta($booking_id, 'mptbm_billing_phone', true)
                 ),
                 'booking_details' => array(
-                    'pickup_location' => get_post_meta($booking_id, 'mptbm_pickup_location', true),
-                    'dropoff_location' => get_post_meta($booking_id, 'mptbm_dropoff_location', true),
-                    'pickup_date' => get_post_meta($booking_id, 'mptbm_pickup_date', true),
-                    'pickup_time' => get_post_meta($booking_id, 'mptbm_pickup_time', true),
-                    'return_date' => get_post_meta($booking_id, 'mptbm_return_date', true),
-                    'return_time' => get_post_meta($booking_id, 'mptbm_return_time', true),
-                    'passenger_count' => absint(get_post_meta($booking_id, 'mptbm_passenger_count', true)),
-                    'distance' => floatval(get_post_meta($booking_id, 'mptbm_distance', true)),
+                    'pickup_location' => get_post_meta($booking_id, 'mptbm_start_place', true),
+                    'dropoff_location' => get_post_meta($booking_id, 'mptbm_end_place', true),
+                    'pickup_date' => get_post_meta($booking_id, 'mptbm_date', true),
+                    'pickup_time' => get_post_meta($booking_id, 'mptbm_time', true),
+                    'return_date' => get_post_meta($booking_id, 'mptbm_return_target_date', true),
+                    'return_time' => get_post_meta($booking_id, 'mptbm_return_target_time', true),
+                    'passenger_count' => get_post_meta($booking_id, 'mptbm_passengers', true) ?: get_post_meta($booking_id, 'mptbm_transport_quantity', true),
+                    'taxi_id' => $taxi_id,
+                    'distance' => get_post_meta($booking_id, 'mptbm_distance', true),
                     'duration' => get_post_meta($booking_id, 'mptbm_duration', true),
-                    'special_instructions' => get_post_meta($booking_id, 'mptbm_special_instructions', true),
-                    'booking_type' => get_post_meta($booking_id, 'mptbm_booking_type', true) ?: 'distance',
-                    'created_via' => get_post_meta($booking_id, 'mptbm_booking_created_via', true) ?: 'web'
+                    'waiting_time' => get_post_meta($booking_id, 'mptbm_waiting_time', true),
+                    'return_trips' => get_post_meta($booking_id, 'mptbm_taxi_return', true),
+                    'fixed_hours' => get_post_meta($booking_id, 'mptbm_fixed_hours', true),
+                    'base_price' => get_post_meta($booking_id, 'mptbm_base_price', true)
                 ),
                 'payment_details' => array(
-                    'payment_method' => $order ? $order->get_payment_method() : get_post_meta($booking_id, '_payment_method', true),
-                    'payment_method_title' => $order ? $order->get_payment_method_title() : get_post_meta($booking_id, '_payment_method_title', true),
-                    'transaction_id' => $order ? $order->get_transaction_id() : get_post_meta($booking_id, '_transaction_id', true),
-                    'date_paid' => $order ? $order->get_date_paid() : get_post_meta($booking_id, '_date_paid', true)
+                    'payment_method' => get_post_meta($booking_id, 'mptbm_payment_method', true),
+                    'order_id' => $wc_order_id
                 )
             );
             
