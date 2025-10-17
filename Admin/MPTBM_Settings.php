@@ -39,6 +39,16 @@ if (!class_exists('MPTBM_Settings')) {
 						<li data-tabs-target="#mptbm_settings_pricing">
 							<span class="pe-1 fas fa-hand-holding-usd"></span><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?>
 						</li>
+						<?php if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) { ?>
+						<li data-tabs-target="#mptbm_peak_hour_pricing">
+							<span class="pe-1 fas fa-clock"></span><?php esc_html_e('Peak Hour Pricing', 'ecab-taxi-booking-manager'); ?>
+						</li>
+						<?php } ?>
+						<?php if (class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) { ?>
+						<li data-tabs-target="#mptbm_distance_tier_pricing">
+							<span class="pe-1 fas fa-route"></span><?php esc_html_e('Distance Tier Pricing', 'ecab-taxi-booking-manager'); ?>
+						</li>
+						<?php } ?>
 						<li data-tabs-target="#mptbm_settings_ex_service">
 							<span class="pe-1 fas fa-puzzle-piece"></span><?php esc_html_e('Extra Service', 'ecab-taxi-booking-manager'); ?>
 						</li>
