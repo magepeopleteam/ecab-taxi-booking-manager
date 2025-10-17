@@ -211,6 +211,13 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                             </div>
                             <h4 class="textCenter" style="clear:right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; word-break: keep-all; line-height: 1.2;"> <?php echo wp_kses_post($price_display); ?></h4>
                             
+                            <?php 
+                            // Hook for peak hour badge display
+                            // error_log("VEHICLE ITEM DEBUG: About to call mptbm_after_vehicle_price hook for post_id: $post_id");
+                            do_action('mptbm_after_vehicle_price', $post_id, $price_display); 
+                            // error_log("VEHICLE ITEM DEBUG: mptbm_after_vehicle_price hook called for post_id: $post_id");
+                            ?>
+                            
                             <?php if (class_exists('MPTBM_Plugin_Pro')) { 
                                 if ($enable_inventory == 'yes' && $available_quantity > 1) { ?>
                                     <div style="margin-bottom: 2px;" class="textCenter _mT_xs mptbm_quantity_selector mptbm_booking_item_hidden <?php echo 'mptbm_quantity_selector_' . $post_id; ?> ">
