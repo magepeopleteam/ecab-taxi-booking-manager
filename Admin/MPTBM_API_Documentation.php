@@ -102,37 +102,6 @@ if (!class_exists('MPTBM_API_Documentation')) {
                         </div>
                     </div>
                     
-                    <!-- API Overview -->
-                    <div class="api-section">
-                        <h2><span class="dashicons dashicons-admin-tools"></span> <?php esc_html_e('API Overview', 'ecab-taxi-booking-manager'); ?></h2>
-                        <div class="api-overview">
-                            <div class="api-info-card">
-                                <h4><?php esc_html_e('Base URL', 'ecab-taxi-booking-manager'); ?></h4>
-                                <code class="api-url"><?php echo esc_html($base_url); ?></code>
-                            </div>
-                            
-                            <div class="api-info-card">
-                                <h4><?php esc_html_e('Authentication', 'ecab-taxi-booking-manager'); ?></h4>
-                                <p><?php esc_html_e('Include your API key in the request header:', 'ecab-taxi-booking-manager'); ?></p>
-                                <code>X-API-Key: YOUR_API_KEY</code>
-                                <p><?php esc_html_e('Or as a query parameter:', 'ecab-taxi-booking-manager'); ?></p>
-                                <code>?api_key=YOUR_API_KEY</code>
-                            </div>
-                            
-                            <div class="api-info-card">
-                                <h4><?php esc_html_e('Response Format', 'ecab-taxi-booking-manager'); ?></h4>
-                                <p><?php esc_html_e('All responses are in JSON format:', 'ecab-taxi-booking-manager'); ?></p>
-                                <pre class="api-response-example">{
-    "success": true,
-    "data": {},
-    "message": "Success message"
-}</pre>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Authentication Endpoints -->
-                    <?php $this->render_endpoint_section('Authentication', $this->get_auth_endpoints()); ?>
                     
                     <!-- Taxi Management Endpoints -->
                     <?php $this->render_endpoint_section('Taxi Management', $this->get_taxi_endpoints()); ?>
