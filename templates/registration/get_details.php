@@ -44,6 +44,7 @@ $mptbm_schedule = [];
 $min_schedule_value = 0;
 $max_schedule_value = 24;
 $loop = 1;
+$day_specific_times = [];
 
 foreach ($mptbm_all_transport_id as $key => $value) {
 	if (MP_Global_Function::get_post_info($value, 'mptbm_available_for_all_time') == 'on') {
@@ -52,31 +53,71 @@ foreach ($mptbm_all_transport_id as $key => $value) {
 }
 
 if ($mptbm_available_for_all_time == false) {
-
+	$all_schedules = [];
+	$day_specific_times = [];
+	
 	foreach ($mptbm_all_transport_id as $key => $value) {
-		array_push($mptbm_schedule, MPTBM_Function::get_schedule($value));
+		$transport_schedule = MPTBM_Function::get_schedule($value);
+		if (!empty($transport_schedule)) {
+			$all_schedules[] = $transport_schedule;
+			
+			// Debug: Log each transport's schedule
+			if (defined('WP_DEBUG') && WP_DEBUG) {
+				error_log("Transport {$value} schedule: " . print_r($transport_schedule, true));
+			}
+		}
 	}
-	foreach ($mptbm_schedule as $dayArray) {
-		foreach ($dayArray as $times) {
-			if (is_array($times)) {
-				if ($loop) {
-					$min_schedule_value = $times[0];
-					$max_schedule_value = $times[0];
-					$loop = 0;
+	
+	// Process all schedules to find min/max times for each day
+	foreach ($all_schedules as $schedule) {
+		foreach ($schedule as $day => $times) {
+			if (is_array($times) && count($times) >= 2) {
+				$start_time = floatval($times[0]);
+				$end_time = floatval($times[1]);
+				
+				// Store times for each day
+				if (!isset($day_specific_times[$day])) {
+					$day_specific_times[$day] = ['start' => [], 'end' => []];
 				}
-				// Loop through each element in the array
-				foreach ($times as $time) {
-
-					// Update the global smallest and largest values
-					if ($time < $min_schedule_value) {
-						$min_schedule_value = $time;
-					}
-					if ($time > $max_schedule_value) {
-						$max_schedule_value = $time;
-					}
+				$day_specific_times[$day]['start'][] = $start_time;
+				$day_specific_times[$day]['end'][] = $end_time;
+				
+				// Debug: Log schedule data
+				if (defined('WP_DEBUG') && WP_DEBUG) {
+					error_log("Schedule for {$day}: start={$start_time}, end={$end_time}");
 				}
 			}
 		}
+	}
+	
+	// Debug: Log final day specific times
+	if (defined('WP_DEBUG') && WP_DEBUG) {
+		error_log("Final day specific times: " . print_r($day_specific_times, true));
+	}
+	
+	// Debug: Log Wednesday specifically
+	if (isset($day_specific_times['wednesday'])) {
+		if (defined('WP_DEBUG') && WP_DEBUG) {
+			error_log("Wednesday times - Start: " . print_r($day_specific_times['wednesday']['start'], true));
+			error_log("Wednesday times - End: " . print_r($day_specific_times['wednesday']['end'], true));
+		}
+	}
+	
+	// Calculate global min/max from all available times
+	$all_start_times = [];
+	$all_end_times = [];
+	foreach ($day_specific_times as $day => $times) {
+		$all_start_times = array_merge($all_start_times, $times['start']);
+		$all_end_times = array_merge($all_end_times, $times['end']);
+	}
+	
+	if (!empty($all_start_times) && !empty($all_end_times)) {
+		$min_schedule_value = min($all_start_times);
+		$max_schedule_value = max($all_end_times);
+	} else {
+		// If no schedules found, set default values
+		$min_schedule_value = 0.5; // 30 minutes
+		$max_schedule_value = 24;   // 24 hours
 	}
 }
 // Ensure the schedule values are numeric
@@ -619,6 +660,99 @@ document.addEventListener('DOMContentLoaded', function() {
 			</button>
 		</div>
 	</div>
+	<script>
+	// Day-specific time ranges
+	var dayTimeRanges = <?php echo wp_json_encode(isset($day_specific_times) ? $day_specific_times : []); ?>;
+	
+	// Debug: Log the complete day time ranges
+	console.log('Complete Day Time Ranges:', dayTimeRanges);
+	
+	function updateTimeRangeForDay(selectedDate) {
+		if (!selectedDate) return;
+		
+		// Get the day name from the selected date
+		var date = new Date(selectedDate);
+		var dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+		var dayName = dayNames[date.getDay()];
+		
+		
+		
+		// Find the time range for this specific day
+		var dayTimes = dayTimeRanges[dayName];
+		if (dayTimes && dayTimes.start.length > 0 && dayTimes.end.length > 0) {
+			// For each day, find the earliest start time and latest end time
+			// This ensures we get the correct range for that specific day
+			var minTime = Math.min.apply(Math, dayTimes.start);
+			var maxTime = Math.max.apply(Math, dayTimes.end);
+			
+			console.log('Day-specific range for', dayName, ':', minTime, 'to', maxTime);
+			console.log('Available start times for', dayName, ':', dayTimes.start);
+			console.log('Available end times for', dayName, ':', dayTimes.end);
+			
+			// Update the time picker options
+			updateTimePickerOptions(minTime, maxTime);
+		} else {
+			console.log('No specific times for', dayName, ', using global range');
+			// Use global range if no specific day times
+			updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>);
+		}
+	}
+	
+	function updateTimePickerOptions(minTime, maxTime) {
+		// Convert to minutes for easier calculation
+		var minMinutes = Math.floor(minTime) * 60 + (minTime % 1) * 100;
+		var maxMinutes = Math.floor(maxTime) * 60 + (maxTime % 1) * 100;
+		var intervalTime = <?php echo $interval_time; ?>;
+		
+		// Clear existing options
+		jQuery('.start_time_list li').remove();
+		jQuery('.return_time_list li').remove();
+		
+		// Generate new options
+		for (var i = minMinutes; i <= maxMinutes; i += intervalTime) {
+			var hours = Math.floor(i / 60);
+			var minutes = i % 60;
+			var dataValue = hours + (minutes / 100);
+			var timeFormatted = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
+			var dataTime = String(hours).padStart(2, '0') + '.' + String(minutes).padStart(2, '0');
+			
+			// Add to start time list
+			jQuery('.start_time_list').append('<li data-value="' + dataValue.toFixed(2) + '" data-time="' + dataTime + '">' + timeFormatted + '</li>');
+			
+			// Add to return time list
+			jQuery('.return_time_list').append('<li data-value="' + dataValue.toFixed(2) + '" data-time="' + dataTime + '">' + timeFormatted + '</li>');
+		}
+		
+		
+	}
+	
+	
+	
+	// Update time range when date is selected
+	jQuery(document).ready(function() {
+		// Initialize with global range on page load
+		updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>);
+		
+		jQuery('#mptbm_start_date').on('change', function() {
+			updateTimeRangeForDay(jQuery(this).val());
+		});
+		
+		jQuery('#mptbm_return_date').on('change', function() {
+			updateTimeRangeForDay(jQuery(this).val());
+		});
+		
+		// Also trigger on date picker selection
+		jQuery(document).on('click', '.ui-datepicker-calendar td a', function() {
+			setTimeout(function() {
+				var selectedDate = jQuery('#mptbm_start_date').val();
+				if (selectedDate) {
+					updateTimeRangeForDay(selectedDate);
+				}
+			}, 100);
+		});
+	});
+	</script>
+	
 	<?php do_action('mp_load_date_picker_js', '#mptbm_start_date', $all_dates); ?>
 	<?php do_action('mp_load_date_picker_js', '#mptbm_return_date', $all_dates); ?>
 <?php } else { ?>

@@ -56,32 +56,41 @@ if (!class_exists('MPTBM_Function')) {
 			return get_post_meta($post_id, "mptbm_maximum_passenger", 0);
 		}
 
-		public static function get_schedule($post_id)
-		{
-			$days = MP_Global_Function::week_day();
-			$days_name = array_keys($days);
-			$all_empty = true;
-			$schedule = [];
-			foreach ($days_name as $name) {
-				$start_time = get_post_meta($post_id, "mptbm_" . $name . "_start_time", true);
-				$end_time = get_post_meta($post_id, "mptbm_" . $name . "_end_time", true);
-				if ($start_time !== "" && $end_time !== "") {
-					$schedule[$name] = [$start_time, $end_time];
-				}
+	public static function get_schedule($post_id)
+	{
+		$days = MP_Global_Function::week_day();
+		$days_name = array_keys($days);
+		$schedule = [];
+		
+		// Get default times
+		$default_start_time = get_post_meta($post_id, "mptbm_default_start_time", true);
+		$default_end_time = get_post_meta($post_id, "mptbm_default_end_time", true);
+		
+		foreach ($days_name as $name) {
+			$start_time = get_post_meta($post_id, "mptbm_" . $name . "_start_time", true);
+			$end_time = get_post_meta($post_id, "mptbm_" . $name . "_end_time", true);
+			
+			// If day-specific times are empty or set to 'default', use default times
+			if($start_time == '' || $start_time == 'default'){
+				$start_time = $default_start_time;
 			}
-			foreach ($schedule as $times) {
-				if (!empty($times[0]) || !empty($times[1])) {
-					$all_empty = false;
-					break;
-				}
+			if($end_time == '' || $end_time == 'default'){
+				$end_time = $default_end_time;
 			}
-			if ($all_empty) {
-				$default_start_time = get_post_meta($post_id, "mptbm_default_start_time", true);
-				$default_end_time = get_post_meta($post_id, "mptbm_default_end_time", true);
-				$schedule['default'] = [$default_start_time, $default_end_time];
+			
+			// Only add to schedule if we have valid times
+			if ($start_time !== "" && $end_time !== "" && $start_time !== null && $end_time !== null) {
+				$schedule[$name] = [floatval($start_time), floatval($end_time)];
 			}
-			return $schedule;
 		}
+		
+		// If no day-specific schedules found, add default schedule
+		if (empty($schedule) && $default_start_time !== "" && $default_end_time !== "") {
+			$schedule['default'] = [floatval($default_start_time), floatval($default_end_time)];
+		}
+		
+		return $schedule;
+	}
 
 		public static function details_template_path(): string
 		{

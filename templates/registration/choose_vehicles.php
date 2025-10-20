@@ -243,7 +243,6 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
 function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_schedule, $return_time_schedule, $start_place_coordinates, $end_place_coordinates, $price_based) {
     
     $timestamp = strtotime($selected_day);
-
     $selected_day = date('l', $timestamp);
     
     // Check & destroy transport session if exist
@@ -252,14 +251,13 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
         unset($_SESSION["geo_fence_post_" . $post_id]);
     }
     session_write_close();
+    
     //Get operation area id
     $operation_area_ids = get_post_meta($post_id, "mptbm_selected_operation_areas", true);
-
-    
     
     //Schedule array
     $schedule = [];
-    //
+    
     if ($operation_area_ids && $price_based !== "manual") {
         // Handle multiple operation areas
         if (is_array($operation_area_ids)) {
@@ -367,72 +365,78 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
         <?php
     }
     
+    // Check if transport is available for all time
     $available_all_time = get_post_meta($post_id, 'mptbm_available_for_all_time');
-    
-    
     if($available_all_time[0] == 'on'){
         return true;
     }
+    
+    // Get default times
+    $default_start_time = get_post_meta($post_id, "mptbm_default_start_time", true);
+    $default_end_time = get_post_meta($post_id, "mptbm_default_end_time", true);
+    
+    // Build schedule array with proper default handling
     foreach ($days_name as $name) {
         $start_time = get_post_meta($post_id, "mptbm_" . $name . "_start_time", true);
-        if($start_time == ''){
-            $start_time = get_post_meta($post_id, "mptbm_default_start_time", true);
-        }
         $end_time = get_post_meta($post_id, "mptbm_" . $name . "_end_time", true);
-        if($end_time == ''){
-            $end_time = get_post_meta($post_id, "mptbm_default_end_time", true);
+        
+        // If day-specific times are empty, use default times
+        if($start_time == '' || $start_time == 'default'){
+            $start_time = $default_start_time;
         }
-        if ($start_time !== "" && $end_time !== "") {
-            $schedule[$name] = [$start_time, $end_time];
+        if($end_time == '' || $end_time == 'default'){
+            $end_time = $default_end_time;
+        }
+        
+        // Only add to schedule if we have valid times
+        if ($start_time !== "" && $end_time !== "" && $start_time !== null && $end_time !== null) {
+            $schedule[$name] = [floatval($start_time), floatval($end_time)];
+        }
+        
+        // Debug: Log schedule building
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("Building schedule for {$name}: start={$start_time}, end={$end_time}, default_start={$default_start_time}, default_end={$default_end_time}");
         }
     }
+    
+    // Check if the selected day matches any schedule
+    $selected_day_lower = strtolower($selected_day);
     
     foreach ($schedule as $day => $times) {
         $day_start_time = $times[0];
         $day_end_time = $times[1];
-        $day = ucwords($day);
+        $day_lower = strtolower($day);
         
-        if( $selected_day == $day){ 
-            
-            if (isset($return_time_schedule) && $return_time_schedule !== "") {
-                if ($return_time_schedule >= $day_start_time && $return_time_schedule <= $day_end_time && ($start_time_schedule >= $day_start_time && $start_time_schedule <= $day_end_time)) {
-                    return true; 
-                    
-                }
-            } else {
-                if ($start_time_schedule >= $day_start_time && $start_time_schedule <= $day_end_time) {
+        if($selected_day_lower == $day_lower){ 
+            // Check if start time is within the schedule
+            if ($start_time_schedule >= $day_start_time && $start_time_schedule <= $day_end_time) {
+                // If return time is specified, check it too
+                if (isset($return_time_schedule) && $return_time_schedule !== "" && $return_time_schedule !== null) {
+                    if ($return_time_schedule >= $day_start_time && $return_time_schedule <= $day_end_time) {
+                        return true;
+                    }
+                } else {
                     return true;
                 }
             }
         }
-        
-    }
-    // If all other days have empty start and end times, check the 'default' day
-    $all_empty = true;
-    foreach ($schedule as $times) {
-        if (!empty($times[0]) || !empty($times[1])) {
-            $all_empty = false;
-            break;
-        }
     }
     
-    if ($all_empty) {
-        $default_start_time = get_post_meta($post_id, "mptbm_default_start_time", true);
-        $default_end_time = get_post_meta($post_id, "mptbm_default_end_time", true);
-        if ($default_start_time !== "" && $default_end_time !== "") {
-            if (isset($return_time_schedule) && $return_time_schedule !== "") {
-                if ($return_time_schedule >= $default_start_time && $return_time_schedule <= $default_end_time && ($start_time_schedule >= $default_start_time && $start_time_schedule <= $default_end_time)) {
-                    return true; // $start_time_schedule and $return_time_schedule are within the schedule for this day
-                    
-                }
-            } else {
-                if ($start_time_schedule >= $default_start_time && $start_time_schedule <= $default_end_time) {
-                    return true; // $start_time_schedule is within the schedule for this day
-                    
+    // If no specific day schedule found, check if we should use default times
+    if (empty($schedule) || !isset($schedule[$selected_day_lower])) {
+        if ($default_start_time !== "" && $default_end_time !== "" && $default_start_time !== null && $default_end_time !== null) {
+            if ($start_time_schedule >= floatval($default_start_time) && $start_time_schedule <= floatval($default_end_time)) {
+                if (isset($return_time_schedule) && $return_time_schedule !== "" && $return_time_schedule !== null) {
+                    if ($return_time_schedule >= floatval($default_start_time) && $return_time_schedule <= floatval($default_end_time)) {
+                        return true;
+                    }
+                } else {
+                    return true;
                 }
             }
         }
     }
+    
     return false;
 }
 $start_date = isset($_POST["start_date"]) ? sanitize_text_field($_POST["start_date"]) : "";
@@ -695,6 +699,11 @@ if ($all_posts->found_posts > 0) {
         }
         
         $check_schedule = wptbm_get_schedule($post_id, $days_name, $start_date,$start_time_schedule, $return_time_schedule, $start_place_coordinates, $end_place_coordinates, $price_based);
+        
+        // Debug: Log schedule check result
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("Schedule check for post {$post_id}: " . ($check_schedule ? 'AVAILABLE' : 'NOT AVAILABLE') . " - Date: {$start_date}, Time: {$start_time_schedule}");
+        }
         
         if ($check_schedule) {
             $vehicle_item_count = $vehicle_item_count + 1;
