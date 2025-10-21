@@ -1377,23 +1377,38 @@ function mptbm_init_google_map() {
                 }
             });
         } else if (selectedDate == mptbm_first_calendar_date) {
+
             // For the first available date (which might be today or tomorrow depending on buffer)
             $('.start_time_list-no-dsiplay li').each(function () {
                 const timeValue = parseFloat($(this).attr('data-value'));
                 const timeInMinutes = Math.floor(timeValue) * 60 + ((timeValue % 1) * 100);
-                
+
                 // If this is tomorrow and buffer extends to tomorrow, apply buffer
                 if (mptbm_buffer_end_minutes > 1440) {
                     const adjustedBufferMinutes = mptbm_buffer_end_minutes - 1440;
                     if (timeInMinutes > adjustedBufferMinutes) {
-                        $('#mptbm_map_start_time').siblings('.start_time_list').append($(this).clone());
+                        $('#mptbm_map_start_time')
+                            .siblings('.start_time_list')
+                            .append($(this).clone());
                     }
+
+                } else if (mptbm_buffer_end_minutes < 1440 && mptbm_buffer_end_minutes > 0) {
+                    // ✅ If buffer does not extend to tomorrow, show time after buffer end time
+                    if (timeInMinutes >= mptbm_buffer_end_minutes) {
+                        $('#mptbm_map_start_time')
+                            .siblings('.start_time_list')
+                            .append($(this).clone());
+                    }
+
                 } else {
-                    // For other dates, show all times
-                    $('#mptbm_map_start_time').siblings('.start_time_list').append($(this).clone());
+                    // For other dates or no buffer, show all times
+                    $('#mptbm_map_start_time')
+                        .siblings('.start_time_list')
+                        .append($(this).clone());
                 }
             });
-        } else {
+        }
+else {
             // For future dates, show all available times
             $('.start_time_list-no-dsiplay li').each(function () {
                 $('#mptbm_map_start_time').siblings('.start_time_list').append($(this).clone());

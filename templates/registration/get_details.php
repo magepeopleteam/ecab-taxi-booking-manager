@@ -157,14 +157,18 @@ $buffer_end_minutes = $current_minutes + $buffer_time;
 // Ensure buffer_end_minutes is not negative
 $buffer_end_minutes = max($buffer_end_minutes, 0);
 
-// If buffer extends beyond current day, remove today from available dates
-if ($buffer_end_minutes >= 1440) {
-	// Remove today from available dates
-	if (!empty($all_dates)) {
-		array_shift($all_dates);
-	}
-	// Adjust buffer_end_minutes for next day
-	$buffer_end_minutes = $buffer_end_minutes - 1440;
+// Calculate how many full days the buffer covers
+$days_to_hide = floor($buffer_end_minutes / 1440); // 1440 = minutes per day
+
+// If buffer goes beyond one or more full days
+if ($days_to_hide > 0 && !empty($all_dates)) {
+    // Remove as many days as the buffer covers (today + next days)
+    for ($i = 0; $i < $days_to_hide && !empty($all_dates); $i++) {
+        array_shift($all_dates);
+    }
+
+    // Adjust remaining buffer minutes for the last day
+    $buffer_end_minutes = $buffer_end_minutes % 1440;
 }
 
 if (sizeof($all_dates) > 0) {
