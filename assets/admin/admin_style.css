@@ -14,7 +14,7 @@
 }
 
 #mp_meta_box_panel .postbox-header {
-  background-color: var(--mptbm-primary);
+  background-color: var(--color_theme);
 }
 #mp_meta_box_panel .postbox-header .handle-actions {
   margin-top: 0;
@@ -32,38 +32,63 @@
 }
 #mp_meta_box_panel .mptbm_settings .tabLists {
   width: 20%;
-  padding: 25px;
-  background-color: var(--mptbm-light);
-  padding-right: 0;
+  padding: 10px;
+  background-color:#fff;
 }
+
+#mp_meta_box_panel .mptbm_settings .tabLists li.active {
+  background-color: var(--color_theme);
+  color: #fff;
+  font-weight: normal;
+  position: relative;
+}
+#mp_meta_box_panel .mptbm_settings .tabLists li.active span{
+  color: #fff;
+}
+
+#mp_meta_box_panel .mptbm_settings .tabLists li.active:hover {
+  background-color: var(--color_theme);
+  color: #fff;
+}
+
 #mp_meta_box_panel .mptbm_settings .tabLists li {
   border-left: 0;
   border-right: 0;
-  padding: 15px;
+  padding: 10px;
   color: var(--mptbm-secondary);
-  border-left: 2px solid transparent;
+  background-color: #f8f8f8;
+  margin:5px 0;
+}
+
+#mp_meta_box_panel .mptbm_settings .tabLists li:hover {
+  background-color: #EAF6FF;
+  color: var(--color_theme);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 119, 204, 0.15);
+}
+
+#mp_meta_box_panel .leftTabs [data-tabs-target]::after {
+  border: 0;
 }
 #mp_meta_box_panel .mptbm_settings .tabLists li span {
-  margin-right: 25px;
-  color: var(--mptbm-primary);
+  margin-right:10px;
+  color: var(--color_theme);
 }
-#mp_meta_box_panel .mptbm_settings .tabLists li::after {
-  content: "";
+
+#mp_meta_box_panel .mptbm_settings .tabLists li.active::after {
+  content: '';
   position: absolute;
-  left: 0;
-  bottom: -1px;
-  border-bottom: 1px solid #d8d8d8;
-  width: 91%;
+  top: 50%;
+  left:100%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 8px solid var(--color_theme);
 }
-#mp_meta_box_panel .mptbm_settings .tabLists li.active, #mp_meta_box_panel .mptbm_settings .tabLists li:hover {
-  background-color: var(--mptbm-white);
-  color: #333;
-  font-weight: normal;
-  border-left: 2px solid var(--mptbm-primary);
-}
-#mp_meta_box_panel .mptbm_settings .tabLists li.active::after, #mp_meta_box_panel .mptbm_settings .tabLists li:hover::after {
-  width: 100%;
-}
+
 #mp_meta_box_panel .mptbm_settings .tabsContent {
   width: 80%;
   padding: 2% 5%;
