@@ -564,13 +564,13 @@ if (!class_exists('MPTBM_Function')) {
 			// Apply filters for dynamic pricing (weather, traffic, etc.) if addons are available
 			if (has_filter('mptbm_calculate_price')) {
 				$extra_data = array();
-				
+
 				// Try to get coordinates from various sources for weather/traffic pricing
 				$pickup_lat = get_transient('mptbm_pickup_lat') ?: get_transient('pickup_lat_transient');
 				$pickup_lng = get_transient('mptbm_pickup_lng') ?: get_transient('pickup_lng_transient');
 				$drop_lat = get_transient('mptbm_drop_lat') ?: get_transient('drop_lat_transient');
 				$drop_lng = get_transient('mptbm_drop_lng') ?: get_transient('drop_lng_transient');
-				
+
 				// Fallback to session data
 				if (empty($pickup_lat) || empty($pickup_lng)) {
 					$pickup_lat = isset($_SESSION['pickup_lat']) ? $_SESSION['pickup_lat'] : '';
@@ -580,7 +580,7 @@ if (!class_exists('MPTBM_Function')) {
 					$drop_lat = isset($_SESSION['drop_lat']) ? $_SESSION['drop_lat'] : '';
 					$drop_lng = isset($_SESSION['drop_lng']) ? $_SESSION['drop_lng'] : '';
 				}
-				
+
 				// Final fallback to POST data (for AJAX requests)
 				if (empty($pickup_lat) || empty($pickup_lng)) {
 					$pickup_lat = isset($_POST['origin_lat']) ? $_POST['origin_lat'] : (isset($_POST['pickup_lat']) ? $_POST['pickup_lat'] : '');
@@ -590,7 +590,7 @@ if (!class_exists('MPTBM_Function')) {
 					$drop_lat = isset($_POST['dest_lat']) ? $_POST['dest_lat'] : (isset($_POST['drop_lat']) ? $_POST['drop_lat'] : '');
 					$drop_lng = isset($_POST['dest_lng']) ? $_POST['dest_lng'] : (isset($_POST['drop_lng']) ? $_POST['drop_lng'] : '');
 				}
-				
+
 				if (!empty($pickup_lat) && !empty($pickup_lng)) {
 					$extra_data['origin_lat'] = floatval($pickup_lat);
 					$extra_data['origin_lng'] = floatval($pickup_lng);
@@ -599,12 +599,43 @@ if (!class_exists('MPTBM_Function')) {
 					$extra_data['dest_lat'] = floatval($drop_lat);
 					$extra_data['dest_lng'] = floatval($drop_lng);
 				}
-				
+
 				$selected_start_date = get_transient('start_date_transient') ?: '';
 				$selected_start_time = get_transient('start_time_schedule_transient') ?: '';
-				
+
 				$price = apply_filters('mptbm_calculate_price', $price, $post_id, $selected_start_date, $selected_start_time, $extra_data);
 			}
+
+			
+
+			$wc_check = MP_Global_Function::check_woocommerce();
+
+			if ($wc_check == 1) {
+				$_product_id = MP_Global_Function::get_post_info($post_id, 'link_wc_product', $post_id);
+
+				$product = wc_get_product($_product_id);
+
+				if ($product) {
+					$is_taxable = $product->is_taxable();
+
+					if ($is_taxable) {
+						// Get tax rates for this product
+						$tax_rates = WC_Tax::get_rates($product->get_tax_class());
+
+						if (!empty($tax_rates)) {
+							// Calculate tax on the final price
+							$taxes = WC_Tax::calc_tax($price, $tax_rates, false);
+
+							if (!empty($taxes)) {
+								$tax_amount = array_sum($taxes);
+								// Add tax to the price
+								$price = $price + $tax_amount;
+							} 
+						} 
+					}
+				} 
+			} 
+
 
 			return $price;
 		}
