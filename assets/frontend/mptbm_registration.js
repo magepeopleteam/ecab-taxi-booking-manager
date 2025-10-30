@@ -2172,7 +2172,7 @@ function mptbm_price_calculation(parent) {
         // $select.hide(); // REMOVED - keep select visible
         
         // Create custom select wrapper with dynamic positioning
-        var $customWrapper = $('<div class="mptbm-custom-select-wrapper" style="position: fixed !important; z-index: 9999 !important; background: white !important; border: 1px solid #ddd !important; border-radius: 4px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;"></div>');
+        var $customWrapper = $('<div class="mptbm-custom-select-wrapper" style="position: absolute !important; z-index: 9999 !important; background: white !important; border: 1px solid #ddd !important; border-radius: 4px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;"></div>');
         
         // Function to update dropdown position
         function updateDropdownPosition() {
@@ -2303,7 +2303,7 @@ function mptbm_price_calculation(parent) {
             }
         });
         
-        // Handle window resize and scroll to update dropdown position with debouncing
+        // Handle window resize to update dropdown position with debouncing
         var positionUpdateTimeout;
         var positionUpdateHandler = function() {
             clearTimeout(positionUpdateTimeout);
@@ -2311,14 +2311,14 @@ function mptbm_price_calculation(parent) {
                 updateDropdownPosition();
             }, 16); // ~60fps throttling
         };
-        
-        $(window).on('resize.mptbm-dropdown scroll.mptbm-dropdown', positionUpdateHandler);
-        
+
+        $(window).on('resize.mptbm-dropdown', positionUpdateHandler);
+
         // Clean up event listeners when dropdown is removed
         var originalRemove = $customWrapper.remove;
         $customWrapper.remove = function() {
             clearTimeout(positionUpdateTimeout);
-            $(window).off('resize.mptbm-dropdown scroll.mptbm-dropdown');
+            $(window).off('resize.mptbm-dropdown');
             return originalRemove.call(this);
         };
         
