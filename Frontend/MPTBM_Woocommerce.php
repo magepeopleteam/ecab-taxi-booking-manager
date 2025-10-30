@@ -264,13 +264,20 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 						if ($return_time !== "") {
 							if ($return_time !== "0") {
-								// Convert start time to hours and minutes
-								list($hours, $decimal_part) = explode('.', $return_time);
+								// Convert return time to hours and minutes
+								$time_parts = explode('.', $return_time);
+								$hours = isset($time_parts[0]) ? $time_parts[0] : 0;
+								$decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
 								$interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
+
 								if ($interval_time == "5" || $interval_time == "15") {
-									$minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+									if ($decimal_part != 3) {
+										$minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+									} else {
+										$minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 10 to convert to minutes
+									}
 								} else {
-									$minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 10 to convert to minutes
+									$minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
 								}
 							} else {
 								$hours = 0;
@@ -616,13 +623,20 @@ if (!class_exists('MPTBM_Woocommerce')) {
 								$return_time = array_key_exists('mptbm_return_target_time', $cart_item) ? $cart_item['mptbm_return_target_time'] : '';
 								if ($return_time !== "") {
 									if ($return_time !== "0") {
-										// Convert start time to hours and minutes
-										list($hours, $decimal_part) = explode('.', $return_time);
+										// Convert return time to hours and minutes
+										$time_parts = explode('.', $return_time);
+										$hours = isset($time_parts[0]) ? $time_parts[0] : 0;
+										$decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
 										$interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
+
 										if ($interval_time == "5" || $interval_time == "15") {
-											$minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+											if ($decimal_part != 3) {
+												$minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+											} else {
+												$minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 10 to convert to minutes
+											}
 										} else {
-											$minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 10 to convert to minutes
+											$minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
 										}
 									} else {
 										$hours = 0;
