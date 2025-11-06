@@ -593,7 +593,9 @@ function mp_sticky_management() {
 			target.slideDown(250);
 		} else {
 			target.each(function () {
-				$(this).slideToggle(250).toggleClass('mActive');
+				if ($('.wbtm_passenger_filter_area').length === 0) {
+					$(this).slideToggle(250).toggleClass('mActive');
+				}
 			});
 		}
 		return true;
