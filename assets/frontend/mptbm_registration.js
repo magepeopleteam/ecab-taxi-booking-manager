@@ -2145,9 +2145,7 @@ function mptbm_price_calculation(parent) {
 
     // Handle select dropdown search functionality
     $(document).on('click', '#mptbm_manual_start_place, #mptbm_manual_end_place', function(e) {
-        // Prevent default select behavior
-        e.preventDefault();
-        e.stopPropagation();
+       
         
         var $select = $(this);
         var selectId = $select.attr('id');
@@ -2239,7 +2237,7 @@ function mptbm_price_calculation(parent) {
         
         // Assemble and append to body
         $customWrapper.append($searchInput).append($optionsContainer);
-        $('body').append($customWrapper);
+        $('.mptbm_transport_search_area').append($customWrapper);
         
         // Ensure map elements are not affected by the dropdown
         $('.mptbm_map_area').css('z-index', '1');
