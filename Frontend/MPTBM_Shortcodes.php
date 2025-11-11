@@ -3,23 +3,23 @@
 * @Author        magePeople
 * @Copyright     mage-people.com
 */
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
     die;
 }
 
-if ( ! class_exists( 'MPTBM_Shortcodes' ) ) {
+if (!class_exists('MPTBM_Shortcodes')) {
 
     class MPTBM_Shortcodes {
 
         public function __construct() {
-            add_shortcode( 'mptbm_booking', array( $this, 'mptbm_booking' ) );
+            add_shortcode('mptbm_booking', array($this, 'mptbm_booking'));
         }
 
-        public function mptbm_booking( $attribute ) {
+        public function mptbm_booking($attributes) {
             $defaults = $this->default_attribute();
-            $params   = shortcode_atts( $defaults, $attribute, 'mptbm_booking' );
+            $params   = shortcode_atts($defaults, $attributes, 'mptbm_booking');
 
-            // === Secure sanitization section ===
+            // === Secure Sanitization ===
             $whitelists = [
                 'tabs' => ['distance', 'hourly', 'manual'],
                 'sort' => ['ASC', 'DESC'],
@@ -29,105 +29,75 @@ if ( ! class_exists( 'MPTBM_Shortcodes' ) ) {
                 'pagination-style' => ['load_more', 'numbered']
             ];
 
-            $types = [
-                'cat' => 'int',
-                'org' => 'int',
-                'style' => 'listtype',
-                'show' => 'int',
-                'pagination' => 'bool',
-                'city' => 'text',
-                'country' => 'text',
-                'sort' => 'listtype',
-                'status' => 'text',
-                'pagination-style' => 'listtype',
-                'column' => 'int',
-                'price_based' => 'listtype',
-                'progressbar' => 'bool',
-                'map' => 'slug',
-                'form' => 'listtype',
-                'tab' => 'bool',
-                'tabs' => 'list',
-            ];
+            foreach ($params as $key => $value) {
+                $value = wp_strip_all_tags($value); // removes HTML and JS
+                $value = trim($value);
 
-            foreach ( $params as $key => $value ) {
-
-                if ( ! isset( $types[ $key ] ) ) {
-                    $params[ $key ] = sanitize_text_field( $value );
-                    continue;
-                }
-
-                switch ( $types[ $key ] ) {
-
-                    case 'int':
-                        $params[ $key ] = intval( $value );
+                switch ($key) {
+                    case 'cat':
+                    case 'org':
+                    case 'show':
+                    case 'column':
+                        $params[$key] = intval($value);
                         break;
 
-                    case 'bool':
-                        // Normalize to 'yes' or 'no' so old code that checks for 'yes' continues to work.
-                        if ( function_exists( 'wp_validate_boolean' ) ) {
-                            $is_true = wp_validate_boolean( $value );
-                        } else {
-                            $is_true = filter_var( $value, FILTER_VALIDATE_BOOLEAN );
-                        }
-                        $params[ $key ] = $is_true ? 'yes' : 'no';
+                    case 'pagination':
+                    case 'progressbar':
+                    case 'map':
+                    case 'tab':
+                        // normalize true/false or yes/no
+                        $bool = strtolower($value);
+                        $params[$key] = in_array($bool, ['1', 'true', 'yes', 'on'], true) ? 'yes' : 'no';
                         break;
 
-                    case 'slug':
-                        // Allow only safe alphanumeric, dash and underscore
-                        $value = sanitize_text_field( $value );
-                        $params[ $key ] = preg_replace( '/[^A-Za-z0-9_-]/', '', $value );
-                        break;
-
-                    case 'list':
-                        // e.g. tabs="distance,hourly,manual"
-                        // preserve user's order, but validate items against whitelist (if present)
-                        $items = array_filter( array_map( 'trim', explode( ',', $value ) ) );
+                    case 'tabs':
+                        // Comma-separated whitelist validation
+                        $items = array_filter(array_map('trim', explode(',', $value)));
                         $clean = [];
-                        foreach ( $items as $item ) {
-                            $item = sanitize_text_field( $item );
-                            if ( isset( $whitelists[ $key ] ) ) {
-                                if ( in_array( $item, $whitelists[ $key ], true ) ) {
-                                    $clean[] = $item;
-                                }
-                            } else {
-                                // if no whitelist provided, accept sanitized item
+                        foreach ($items as $item) {
+                            $item = sanitize_text_field($item);
+                            if (in_array($item, $whitelists['tabs'], true)) {
                                 $clean[] = $item;
                             }
                         }
-                        // If no valid items left, fall back to default
-                        if ( empty( $clean ) && isset( $defaults[ $key ] ) ) {
-                            $params[ $key ] = $defaults[ $key ];
-                        } else {
-                            $params[ $key ] = implode( ',', $clean );
-                        }
+                        $params[$key] = !empty($clean) ? implode(',', $clean) : $defaults['tabs'];
                         break;
 
-                    case 'listtype':
-                        // single value but must match whitelist; fallback to original default if invalid
-                        $value = sanitize_text_field( $value );
-                        if ( isset( $whitelists[ $key ] ) && in_array( $value, $whitelists[ $key ], true ) ) {
-                            $params[ $key ] = $value;
-                        } else {
-                            // keep the original default for this key (safer than guessing)
-                            $params[ $key ] = isset( $defaults[ $key ] ) ? $defaults[ $key ] : ( $whitelists[ $key ][0] ?? '' );
-                        }
+                    case 'style':
+                    case 'sort':
+                    case 'form':
+                    case 'price_based':
+                    case 'pagination-style':
+                        $params[$key] = (isset($whitelists[$key]) && in_array($value, $whitelists[$key], true))
+                            ? $value
+                            : $defaults[$key];
                         break;
 
-                    case 'text':
+                    case 'city':
+                    case 'country':
+                    case 'status':
+                        $params[$key] = sanitize_text_field($value);
+                        break;
+
                     default:
-                        $params[ $key ] = sanitize_text_field( $value );
+                        $params[$key] = sanitize_text_field($value);
                         break;
                 }
             }
-            // === End sanitization ===
+            // === End Sanitization ===
+
+            // ✅ Respect tab control
+            if ($params['tab'] !== 'yes') {
+                $params['tabs'] = ''; // hide tabs if tab=no
+            }
 
             ob_start();
-            do_action( 'mptbm_transport_search', $params );
+            do_action('mptbm_transport_search', $params);
             return ob_get_clean();
         }
 
         public function default_attribute() {
-            return array(
+            return [
                 "cat" => "0",
                 "org" => "0",
                 "style" => 'list',
@@ -140,12 +110,12 @@ if ( ! class_exists( 'MPTBM_Shortcodes' ) ) {
                 "pagination-style" => "load_more",
                 "column" => 3,
                 "price_based" => 'dynamic',
-                'progressbar' => 'yes',
-                'map' => 'yes',
-                'form' => 'horizontal',
-                'tab' => 'no',
-                'tabs' => 'distance,hourly,manual'
-            );
+                "progressbar" => 'yes',
+                "map" => 'yes',
+                "form" => 'horizontal',
+                "tab" => 'no',
+                "tabs" => 'distance,hourly,manual'
+            ];
         }
     }
 
