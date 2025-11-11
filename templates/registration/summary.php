@@ -21,7 +21,7 @@ if (!function_exists('mptbm_get_translation')) {
 	$return_date_time = $return_date_time ?? '';
 	$price_based = $price_based ?? '';
 	$post_id = $summary_post_id ?? '';
-	
+	$km_or_mile = MP_Global_Function::get_settings('mp_global_settings', 'km_or_mile', 'km');
 	// Get price display type and custom message if post_id is available
 	if ($post_id) {
 		$price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
@@ -77,7 +77,16 @@ if (!function_exists('mptbm_get_translation')) {
 					<?php if($price_based != 'manual' && $price_based != 'fixed_hourly'){ ?> 
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php esc_html_e('Total Distance', 'ecab-taxi-booking-manager'); ?></h6>
+						<?php if ($two_way > 1) { 
+							$distance_text = isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : '';
+							$distance_value = floatval($distance_text) * 2; // Extracts number safely
+						?>
+							<p class="_textLight_1">
+								<?php echo esc_html($distance_value ." ". ucfirst($km_or_mile)); ?>
+							</p>
+						<?php }else{ ?>
 						<p class="_textLight_1"><?php echo esc_html(isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : ''); ?></p>
+						<?php }?>
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php esc_html_e('Total Time', 'ecab-taxi-booking-manager'); ?></h6>
 						<p class="_textLight_1"><?php echo esc_html(isset($_COOKIE['mptbm_duration_text']) ? $_COOKIE['mptbm_duration_text'] : ''); ?></p>

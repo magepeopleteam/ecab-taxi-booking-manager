@@ -2172,48 +2172,48 @@ function mptbm_price_calculation(parent) {
         // $select.hide(); // REMOVED - keep select visible
         
         // Create custom select wrapper with dynamic positioning
-        var $customWrapper = $('<div class="mptbm-custom-select-wrapper" style="position: absolute !important; z-index: 9999 !important; background: white !important; border: 1px solid #ddd !important; border-radius: 4px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;"></div>');
-        
+        var $customWrapper = $('<div class="mptbm-custom-select-wrapper" style="position: fixed !important; z-index: 9999 !important; background: white !important; border: 1px solid #ddd !important; border-radius: 4px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;"></div>');
+
         // Function to update dropdown position
         function updateDropdownPosition() {
             var currentOffset = $select.offset();
             var currentWidth = $select.outerWidth();
             var currentHeight = $select.outerHeight();
-            
-            // Calculate position relative to viewport
-            var top = currentOffset.top + currentHeight + 2;
-            var left = currentOffset.left;
+
+            var scrollTop = $(window).scrollTop();
+            var scrollLeft = $(window).scrollLeft();
+
+            // Position relative to viewport
+            var top = currentOffset.top - scrollTop + currentHeight + 2;
+            var left = currentOffset.left - scrollLeft;
             var width = currentWidth;
-            
-            // Check if dropdown would go off-screen and adjust
+
             var windowHeight = $(window).height();
             var windowWidth = $(window).width();
-            var dropdownHeight = 250; // Approximate dropdown height
-            
-            // If dropdown would go below viewport, position it above the select
+            var dropdownHeight = 250;
+
+            // If dropdown would go below viewport, position it above
             if (top + dropdownHeight > windowHeight) {
-                top = currentOffset.top - dropdownHeight - 2;
+                top = currentOffset.top - scrollTop - dropdownHeight - 2;
             }
-            
-            // If dropdown would go off right edge, adjust left position
-            if (left + width > windowWidth) {
+
+            // Prevent offscreen left/right
+            if (left + width > windowWidth - 10) {
                 left = windowWidth - width - 10;
             }
-            
-            // Ensure dropdown doesn't go off left edge
-            if (left < 10) {
-                left = 10;
-            }
-            
+            if (left < 10) left = 10;
+
             $customWrapper.css({
-                'top': top + 'px',
-                'left': left + 'px',
-                'width': width + 'px'
+                top: top + 'px',
+                left: left + 'px',
+                width: width + 'px'
             });
         }
-        
-        // Set initial position
+
+        // Initial and responsive position
         updateDropdownPosition();
+        $(window).on('scroll resize', updateDropdownPosition);
+
         
         // Create search input
         var $searchInput = $('<input type="text" class="mptbm-custom-search-input" placeholder="Search locations..." style="width: 100% !important; padding: 8px !important; border: none !important; border-bottom: 1px solid #eee !important; border-radius: 4px 4px 0 0 !important; font-size: 14px !important; box-sizing: border-box !important; background: #F5F6F8 !important; color: #222222 !important; font-weight: 400 !important; outline: none !important;" />');
