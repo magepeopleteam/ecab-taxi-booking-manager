@@ -2144,192 +2144,192 @@ function mptbm_price_calculation(parent) {
     });
 
     // Handle select dropdown search functionality
-    $(document).on('click', '#mptbm_manual_start_place, #mptbm_manual_end_place', function(e) {
-       
+$(document).on('click', '#mptbm_manual_start_place, #mptbm_manual_end_place', function(e) {
+   
+    
+    var $select = $(this);
+    var selectId = $select.attr('id');
+    
+    
+    // Remove any existing custom search elements
+    $('.mptbm-custom-select-wrapper').remove();
+    
+    // Check if select has options (dropoff might be empty initially)
+    var $options = $select.find('option:not([disabled])');
+    
+    if ($options.length <= 0) {
+        return;
+    }
+    
+    // Get select position and dimensions
+    var selectOffset = $select.offset();
+    var selectWidth = $select.outerWidth();
+    var selectHeight = $select.outerHeight();
+    
+    // Keep the original select visible - don't hide it
+    // $select.hide(); // REMOVED - keep select visible
+    
+    // Create custom select wrapper with dynamic positioning
+    var $customWrapper = $('<div class="mptbm-custom-select-wrapper" style="position: fixed !important; z-index: 9999 !important; background: white !important; border: 1px solid #ddd !important; border-radius: 4px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;"></div>');
+
+    // Create search input
+    var $searchInput = $('<input type="text" class="mptbm-custom-search-input" placeholder="Search locations..." style="width: 100% !important; padding: 8px !important; border: none !important; border-bottom: 1px solid #eee !important; border-radius: 4px 4px 0 0 !important; font-size: 14px !important; box-sizing: border-box !important; background: #F5F6F8 !important; color: #222222 !important; font-weight: 400 !important; outline: none !important;" />');
+    
+    // Create options container
+    var $optionsContainer = $('<div class="mptbm-custom-options" style="max-height: 200px !important; overflow-y: auto !important; background: white !important;"></div>');
+
+    // Function to update dropdown position
+    function updateDropdownPosition() {
+        var currentOffset = $select.offset();
+        var currentWidth = $select.outerWidth();
+        var currentHeight = $select.outerHeight();
+
+        var scrollTop = $(window).scrollTop();
+        var scrollLeft = $(window).scrollLeft();
+
+        // Always position below
+        var top = currentOffset.top - scrollTop + currentHeight + 2;
+        var left = currentOffset.left - scrollLeft;
+        var width = currentWidth;
+
+        var windowHeight = $(window).height();
+        var windowWidth = $(window).width();
+
+        // Calculate available space and adjust dropdown height accordingly
+        var availableHeight = windowHeight - top - 20; // 20px padding from bottom
+        var maxHeight = Math.min(250, Math.max(100, availableHeight)); // Min 100px, max 250px
         
-        var $select = $(this);
-        var selectId = $select.attr('id');
-        
-        
-        // Remove any existing custom search elements
-        $('.mptbm-custom-select-wrapper').remove();
-        
-        // Check if select has options (dropoff might be empty initially)
-        var $options = $select.find('option:not([disabled])');
-        
-        if ($options.length <= 0) {
-            return;
+        $optionsContainer.css('max-height', maxHeight + 'px');
+
+        // Prevent offscreen left/right
+        if (left + width > windowWidth - 10) {
+            left = windowWidth - width - 10;
         }
-        
-        // Get select position and dimensions
-        var selectOffset = $select.offset();
-        var selectWidth = $select.outerWidth();
-        var selectHeight = $select.outerHeight();
-        
-        // Keep the original select visible - don't hide it
-        // $select.hide(); // REMOVED - keep select visible
-        
-        // Create custom select wrapper with dynamic positioning
-        var $customWrapper = $('<div class="mptbm-custom-select-wrapper" style="position: fixed !important; z-index: 9999 !important; background: white !important; border: 1px solid #ddd !important; border-radius: 4px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;"></div>');
+        if (left < 10) left = 10;
 
-        // Function to update dropdown position
-        function updateDropdownPosition() {
-            var currentOffset = $select.offset();
-            var currentWidth = $select.outerWidth();
-            var currentHeight = $select.outerHeight();
-
-            var scrollTop = $(window).scrollTop();
-            var scrollLeft = $(window).scrollLeft();
-
-            // Position relative to viewport
-            var top = currentOffset.top - scrollTop + currentHeight + 2;
-            var left = currentOffset.left - scrollLeft;
-            var width = currentWidth;
-
-            var windowHeight = $(window).height();
-            var windowWidth = $(window).width();
-            var dropdownHeight = 250;
-
-            // If dropdown would go below viewport, position it above
-            if (top + dropdownHeight > windowHeight) {
-                top = currentOffset.top - scrollTop - dropdownHeight - 2;
-            }
-
-            // Prevent offscreen left/right
-            if (left + width > windowWidth - 10) {
-                left = windowWidth - width - 10;
-            }
-            if (left < 10) left = 10;
-
-            $customWrapper.css({
-                top: top + 'px',
-                left: left + 'px',
-                width: width + 'px'
-            });
-        }
-
-        // Initial and responsive position
-        updateDropdownPosition();
-        $(window).on('scroll resize', updateDropdownPosition);
-
-        
-        // Create search input
-        var $searchInput = $('<input type="text" class="mptbm-custom-search-input" placeholder="Search locations..." style="width: 100% !important; padding: 8px !important; border: none !important; border-bottom: 1px solid #eee !important; border-radius: 4px 4px 0 0 !important; font-size: 14px !important; box-sizing: border-box !important; background: #F5F6F8 !important; color: #222222 !important; font-weight: 400 !important; outline: none !important;" />');
-        
-        // Create options container
-        var $optionsContainer = $('<div class="mptbm-custom-options" style="max-height: 200px !important; overflow-y: auto !important; background: white !important;"></div>');
-        
-        // Get all options from original select (excluding disabled ones)
-        var $originalOptions = $select.find('option:not([disabled])');
-        var optionsHtml = '';
-        
-        
-        $originalOptions.each(function() {
-            var optionText = $(this).text();
-            var optionValue = $(this).val();
-            var isSelected = $(this).is(':selected');
-            
-            var selectedClass = isSelected ? 'mptbm-option-selected' : '';
-            optionsHtml += '<div class="mptbm-custom-option ' + selectedClass + '" data-value="' + optionValue + '" style="padding: 8px !important; cursor: pointer !important; border-bottom: 1px solid #f5f5f5 !important; font-size: 14px !important; color: #222222 !important;">' + optionText + '</div>';
+        $customWrapper.css({
+            top: top + 'px',
+            left: left + 'px',
+            width: width + 'px'
         });
+    }
+    
+    // Get all options from original select (excluding disabled ones)
+    var $originalOptions = $select.find('option:not([disabled])');
+    var optionsHtml = '';
+    
+    
+    $originalOptions.each(function() {
+        var optionText = $(this).text();
+        var optionValue = $(this).val();
+        var isSelected = $(this).is(':selected');
         
-        $optionsContainer.html(optionsHtml);
-        
-        // Assemble and append to body
-        $customWrapper.append($searchInput).append($optionsContainer);
-        $('.mptbm_transport_search_area').append($customWrapper);
-        
-        // Ensure map elements are not affected by the dropdown
-        $('.mptbm_map_area').css('z-index', '1');
-        $('.mptbm_map_area #mptbm_map_area').css('z-index', '1');
-        
-        // Focus on search input
-        $searchInput.focus();
-        
-        // Handle search input
-        $searchInput.on('input', function() {
-            var searchTerm = $(this).val().toLowerCase();
-            var $options = $customWrapper.find('.mptbm-custom-option');
-            
-            
-            $options.each(function() {
-                var optionText = $(this).text().toLowerCase();
-                if (optionText.includes(searchTerm) || searchTerm === '') {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
-        });
-        
-        // Handle option selection
-        $customWrapper.on('click', '.mptbm-custom-option', function() {
-            var selectedValue = $(this).data('value');
-            var selectedText = $(this).text();
-            
-            // Update original select
-            $select.val(selectedValue);
-            $select.trigger('change');
-            
-            // Update search input with selected text
-            $searchInput.val(selectedText);
-            
-            // Remove custom wrapper (select stays visible)
-            $customWrapper.remove();
-            
-            // Restore map z-index
-            $('.mptbm_map_area').css('z-index', '');
-            $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
-            
-        });
-        
-        // Handle select change event to clean up custom dropdown
-        $select.one('change', function() {
-            $customWrapper.remove();
-            // Restore map z-index
-            $('.mptbm_map_area').css('z-index', '');
-            $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
-        });
-        
-        // Handle clicking outside to close
-        $(document).one('click', function(e) {
-            if (!$(e.target).closest('.mptbm-custom-select-wrapper, #' + selectId).length) {
-                $customWrapper.remove();
-                // Restore map z-index
-                $('.mptbm_map_area').css('z-index', '');
-                $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
-            }
-        });
-        
-        // Handle window resize to update dropdown position with debouncing
-        var positionUpdateTimeout;
-        var positionUpdateHandler = function() {
-            clearTimeout(positionUpdateTimeout);
-            positionUpdateTimeout = setTimeout(function() {
-                updateDropdownPosition();
-            }, 16); // ~60fps throttling
-        };
+        var selectedClass = isSelected ? 'mptbm-option-selected' : '';
+        optionsHtml += '<div class="mptbm-custom-option ' + selectedClass + '" data-value="' + optionValue + '" style="padding: 8px !important; cursor: pointer !important; border-bottom: 1px solid #f5f5f5 !important; font-size: 14px !important; color: #222222 !important;">' + optionText + '</div>';
+    });
+    
+    $optionsContainer.html(optionsHtml);
+    
+    // Assemble and append to mptbm_transport_search_area
+    $customWrapper.append($searchInput).append($optionsContainer);
+    $('.mptbm_transport_search_area').append($customWrapper);
 
-        $(window).on('resize.mptbm-dropdown', positionUpdateHandler);
-
-        // Clean up event listeners when dropdown is removed
-        var originalRemove = $customWrapper.remove;
-        $customWrapper.remove = function() {
-            clearTimeout(positionUpdateTimeout);
-            $(window).off('resize.mptbm-dropdown');
-            return originalRemove.call(this);
-        };
+    // Initial and responsive position
+    updateDropdownPosition();
+    $(window).on('scroll resize', updateDropdownPosition);
+    
+    // Ensure map elements are not affected by the dropdown
+    $('.mptbm_map_area').css('z-index', '1');
+    $('.mptbm_map_area #mptbm_map_area').css('z-index', '1');
+    
+    // Focus on search input
+    $searchInput.focus();
+    
+    // Handle search input
+    $searchInput.on('input', function() {
+        var searchTerm = $(this).val().toLowerCase();
+        var $options = $customWrapper.find('.mptbm-custom-option');
         
-        // Handle escape key
-        $searchInput.on('keydown', function(e) {
-            if (e.key === 'Escape') {
-                $customWrapper.remove();
-                // Restore map z-index
-                $('.mptbm_map_area').css('z-index', '');
-                $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
+        
+        $options.each(function() {
+            var optionText = $(this).text().toLowerCase();
+            if (optionText.includes(searchTerm) || searchTerm === '') {
+                $(this).show();
+            } else {
+                $(this).hide();
             }
         });
     });
+    
+    // Handle option selection
+    $customWrapper.on('click', '.mptbm-custom-option', function() {
+        var selectedValue = $(this).data('value');
+        var selectedText = $(this).text();
+        
+        // Update original select
+        $select.val(selectedValue);
+        $select.trigger('change');
+        
+        // Update search input with selected text
+        $searchInput.val(selectedText);
+        
+        // Remove custom wrapper (select stays visible)
+        $customWrapper.remove();
+        
+        // Restore map z-index
+        $('.mptbm_map_area').css('z-index', '');
+        $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
+        
+    });
+    
+    // Handle select change event to clean up custom dropdown
+    $select.one('change', function() {
+        $customWrapper.remove();
+        // Restore map z-index
+        $('.mptbm_map_area').css('z-index', '');
+        $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
+    });
+    
+    // Handle clicking outside to close
+    $(document).one('click', function(e) {
+        if (!$(e.target).closest('.mptbm-custom-select-wrapper, #' + selectId).length) {
+            $customWrapper.remove();
+            // Restore map z-index
+            $('.mptbm_map_area').css('z-index', '');
+            $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
+        }
+    });
+    
+    // Handle window resize to update dropdown position with debouncing
+    var positionUpdateTimeout;
+    var positionUpdateHandler = function() {
+        clearTimeout(positionUpdateTimeout);
+        positionUpdateTimeout = setTimeout(function() {
+            updateDropdownPosition();
+        }, 16); // ~60fps throttling
+    };
+
+    $(window).on('resize.mptbm-dropdown', positionUpdateHandler);
+
+    // Clean up event listeners when dropdown is removed
+    var originalRemove = $customWrapper.remove;
+    $customWrapper.remove = function() {
+        clearTimeout(positionUpdateTimeout);
+        $(window).off('resize.mptbm-dropdown');
+        $(window).off('scroll resize', updateDropdownPosition);
+        return originalRemove.call(this);
+    };
+    
+    // Handle escape key
+    $searchInput.on('keydown', function(e) {
+        if (e.key === 'Escape') {
+            $customWrapper.remove();
+            // Restore map z-index
+            $('.mptbm_map_area').css('z-index', '');
+            $('.mptbm_map_area #mptbm_map_area').css('z-index', '');
+        }
+    });
+});
     
     // Prevent native dropdown behavior for manual select elements
     $(document).on('focus mousedown keydown', '#mptbm_manual_start_place, #mptbm_manual_end_place', function(e) {
