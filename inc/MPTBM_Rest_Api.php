@@ -1355,75 +1355,170 @@ if (!class_exists('MPTBM_REST_API')) {
             // Ensure per_page is reasonable
             $per_page = min($per_page, 100);
             
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'posts';
-            $meta_table = $wpdb->prefix . 'postmeta';
+            // Use WooCommerce query to get orders
+            $args = array(
+                'limit' => -1, // Get all orders, we'll filter and paginate manually
+                'orderby' => 'date',
+                'order' => 'DESC',
+                'return' => 'ids'
+            );
             
-            // Build WHERE conditions
-            $where_conditions = array("p.post_type = 'shop_order'");
-            
+            // Add status filter if provided
             if ($status) {
-                $where_conditions[] = $wpdb->prepare("p.post_status = %s", 'wc-' . $status);
+                $args['status'] = 'wc-' . $status;
+            } else {
+                // Get all order statuses except auto-draft and trash
+                $args['status'] = array_keys(wc_get_order_statuses());
             }
             
+            // Add customer filter if provided
             if ($user_id) {
-                $where_conditions[] = $wpdb->prepare(
-                    "EXISTS (SELECT 1 FROM {$meta_table} WHERE post_id = p.ID AND meta_key = '_customer_user' AND meta_value = %d)",
-                    $user_id
-                );
+                $args['customer_id'] = $user_id;
             }
             
-            // Add filter for transportation bookings
-            $where_conditions[] = "EXISTS (SELECT 1 FROM {$meta_table} WHERE post_id = p.ID AND meta_key LIKE 'mptbm_%')";
+            // Get all order IDs first
+            $all_order_ids = wc_get_orders($args);
             
-            $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
+            // Filter orders to find only those with taxi bookings
+            $taxi_booking_order_ids = array();
             
-            // Count total
-            $count_query = "SELECT COUNT(*) FROM {$table_name} p {$where_clause}";
-            $total_items = $wpdb->get_var($count_query);
+            foreach ($all_order_ids as $order_id) {
+                $order = function_exists('wc_get_order') ? wc_get_order($order_id) : null;
+                
+                if (!$order) {
+                    continue;
+                }
+                
+                // Check if order has taxi booking items
+                $has_taxi_booking = false;
+                foreach ($order->get_items() as $item_id => $item) {
+                    // Check for _mptbm_id in order item meta
+                    $item_taxi_id = wc_get_order_item_meta($item_id, '_mptbm_id', true);
+                    
+                    // If no _mptbm_id found, check if product is linked to taxi booking
+                    if (empty($item_taxi_id)) {
+                        $product_id = $item->get_product_id();
+                        if ($product_id) {
+                            $linked_taxi_id = get_post_meta($product_id, 'link_mptbm_id', true);
+                            if ($linked_taxi_id && get_post_type($linked_taxi_id) == MPTBM_Function::get_cpt()) {
+                                $item_taxi_id = $linked_taxi_id;
+                            }
+                        }
+                    }
+                    
+                    if ($item_taxi_id && get_post_type($item_taxi_id) == MPTBM_Function::get_cpt()) {
+                        $has_taxi_booking = true;
+                        break;
+                    }
+                }
+                
+                if ($has_taxi_booking) {
+                    $taxi_booking_order_ids[] = $order_id;
+                }
+            }
             
-            // Get bookings with pagination
+            // Get total count
+            $total_items = count($taxi_booking_order_ids);
+            
+            // Apply pagination
             $offset = ($page - 1) * $per_page;
-            $bookings_query = "SELECT p.* FROM {$table_name} p {$where_clause} ORDER BY p.post_date DESC LIMIT %d OFFSET %d";
-            $bookings_query = $wpdb->prepare($bookings_query, $per_page, $offset);
-            $booking_posts = $wpdb->get_results($bookings_query);
+            $paginated_order_ids = array_slice($taxi_booking_order_ids, $offset, $per_page);
             
             $bookings = array();
             
-            foreach ($booking_posts as $post) {
-                $order_id = $post->ID;
-                
-                // Get WooCommerce order if available
+            foreach ($paginated_order_ids as $order_id) {
+                // Get WooCommerce order
                 $order = function_exists('wc_get_order') ? wc_get_order($order_id) : null;
+                
+                if (!$order) {
+                    continue;
+                }
+                
+                // Find taxi booking item in order
+                $taxi_item_id = null;
+                $taxi_id = null;
+                $booking_item_data = array();
+                
+                foreach ($order->get_items() as $item_id => $item) {
+                    // Check for _mptbm_id in order item meta
+                    $item_taxi_id = wc_get_order_item_meta($item_id, '_mptbm_id', true);
+                    
+                    // If no _mptbm_id found, check if product is linked to taxi booking
+                    if (empty($item_taxi_id)) {
+                        $product_id = $item->get_product_id();
+                        if ($product_id) {
+                            $linked_taxi_id = get_post_meta($product_id, 'link_mptbm_id', true);
+                            if ($linked_taxi_id && get_post_type($linked_taxi_id) == MPTBM_Function::get_cpt()) {
+                                $item_taxi_id = $linked_taxi_id;
+                            }
+                        }
+                    }
+                    
+                    if ($item_taxi_id && get_post_type($item_taxi_id) == MPTBM_Function::get_cpt()) {
+                        $taxi_item_id = $item_id;
+                        $taxi_id = $item_taxi_id;
+                        
+                        // Get all booking data from order item meta
+                        $booking_date = wc_get_order_item_meta($item_id, '_mptbm_date', true);
+                        $pickup_date = '';
+                        $pickup_time = '';
+                        
+                        // Extract date and time from booking_date
+                        if (!empty($booking_date)) {
+                            $date_parts = explode(' ', $booking_date);
+                            $pickup_date = $date_parts[0];
+                            if (count($date_parts) > 1) {
+                                $pickup_time = $date_parts[1];
+                            }
+                        }
+                        
+                        $booking_item_data = array(
+                            'pickup_location' => wc_get_order_item_meta($item_id, '_mptbm_start_place', true),
+                            'dropoff_location' => wc_get_order_item_meta($item_id, '_mptbm_end_place', true),
+                            'pickup_date' => $pickup_date,
+                            'pickup_time' => $pickup_time,
+                            'return_date' => wc_get_order_item_meta($item_id, '_mptbm_return_target_date', true) ?: '',
+                            'return_time' => wc_get_order_item_meta($item_id, '_mptbm_return_target_time', true) ?: '',
+                            'passenger_count' => absint(wc_get_order_item_meta($item_id, '_mptbm_passengers', true)) ?: 1,
+                            'taxi_id' => absint($item_taxi_id),
+                            'distance' => floatval(wc_get_order_item_meta($item_id, '_mptbm_distance', true)),
+                            'duration' => wc_get_order_item_meta($item_id, '_mptbm_duration_text', true) ?: wc_get_order_item_meta($item_id, '_mptbm_duration', true),
+                            'distance_text' => wc_get_order_item_meta($item_id, '_mptbm_distance_text', true),
+                            'waiting_time' => wc_get_order_item_meta($item_id, '_mptbm_waiting_time', true),
+                            'return' => wc_get_order_item_meta($item_id, '_mptbm_taxi_return', true),
+                            'fixed_hours' => wc_get_order_item_meta($item_id, '_mptbm_fixed_hours', true),
+                            'base_price' => floatval(wc_get_order_item_meta($item_id, '_mptbm_base_price', true)),
+                            'transport_quantity' => absint(wc_get_order_item_meta($item_id, '_mptbm_transport_quantity', true)) ?: 1
+                        );
+                        
+                        break; // Use first taxi booking item found
+                    }
+                }
+                
+                // Skip if no taxi booking found in this order
+                if (!$taxi_id) {
+                    continue;
+                }
+                
+                $date_created = $order->get_date_created();
+                $date_modified = $order->get_date_modified();
                 
                 $booking_data = array(
                     'id' => $order_id,
-                    'status' => str_replace('wc-', '', $post->post_status),
-                    'date_created' => $post->post_date,
-                    'date_modified' => $post->post_modified,
-                    'total' => $order ? $order->get_total() : get_post_meta($order_id, '_order_total', true),
-                    'currency' => $order ? $order->get_currency() : get_option('woocommerce_currency', 'USD'),
-                    'customer_id' => $order ? $order->get_customer_id() : get_post_meta($order_id, '_customer_user', true),
-                    'customer_email' => $order ? $order->get_billing_email() : get_post_meta($order_id, '_billing_email', true),
-                    'customer_name' => $order ? ($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()) : 
-                                       (get_post_meta($order_id, '_billing_first_name', true) . ' ' . get_post_meta($order_id, '_billing_last_name', true)),
-                    'booking_details' => array(
-                        'pickup_location' => get_post_meta($order_id, 'mptbm_pickup_location', true),
-                        'dropoff_location' => get_post_meta($order_id, 'mptbm_dropoff_location', true),
-                        'pickup_date' => get_post_meta($order_id, 'mptbm_pickup_date', true),
-                        'pickup_time' => get_post_meta($order_id, 'mptbm_pickup_time', true),
-                        'return_date' => get_post_meta($order_id, 'mptbm_return_date', true),
-                        'return_time' => get_post_meta($order_id, 'mptbm_return_time', true),
-                        'passenger_count' => get_post_meta($order_id, 'mptbm_passenger_count', true),
-                        'taxi_id' => get_post_meta($order_id, 'mptbm_taxi_id', true),
-                        'distance' => get_post_meta($order_id, 'mptbm_distance', true),
-                        'duration' => get_post_meta($order_id, 'mptbm_duration', true)
-                    )
+                    'status' => str_replace('wc-', '', $order->get_status()),
+                    'date_created' => $date_created ? $date_created->date('Y-m-d H:i:s') : '',
+                    'date_modified' => $date_modified ? $date_modified->date('Y-m-d H:i:s') : '',
+                    'total' => floatval($order->get_total()),
+                    'currency' => $order->get_currency(),
+                    'customer_id' => $order->get_customer_id(),
+                    'customer_email' => $order->get_billing_email(),
+                    'customer_name' => trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()),
+                    'booking_details' => $booking_item_data
                 );
                 
                 // Get taxi details if taxi_id exists
-                if ($booking_data['booking_details']['taxi_id']) {
-                    $taxi_post = get_post($booking_data['booking_details']['taxi_id']);
+                if ($taxi_id) {
+                    $taxi_post = get_post($taxi_id);
                     if ($taxi_post) {
                         $booking_data['taxi_details'] = array(
                             'id' => $taxi_post->ID,
@@ -1611,31 +1706,171 @@ if (!class_exists('MPTBM_REST_API')) {
                 return new WP_Error('missing_id', 'Booking ID is required', array('status' => 400));
             }
             
-            $booking_post = get_post(absint($booking_id));
+            $booking_id = absint($booking_id);
             
-            if (!$booking_post || ($booking_post->post_type !== 'shop_order' && $booking_post->post_type !== 'mptbm_booking')) {
+            // First, try to get WooCommerce order directly
+            $order = null;
+            $booking_post = null;
+            
+            if (function_exists('wc_get_order')) {
+                $order = wc_get_order($booking_id);
+                if ($order && $order->get_id()) {
+                    // Order exists, get the post for additional info
+                    $booking_post = get_post($booking_id);
+                }
+            }
+            
+            // If order not found via WooCommerce, try to get post directly
+            if (!$order) {
+                $booking_post = get_post($booking_id);
+                
+                // Check if it's a shop_order or custom booking post type
+                if ($booking_post && ($booking_post->post_type === 'shop_order' || $booking_post->post_type === 'mptbm_booking')) {
+                    // Try to get order again
+                    if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
+                        $order = wc_get_order($booking_id);
+                    }
+                } else {
+                    // Post doesn't exist or is not a valid booking type
+                    return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
+                }
+            }
+            
+            // Final check - if we still don't have order or post, return error
+            if (!$order && !$booking_post) {
                 return new WP_Error('booking_not_found', 'Booking not found', array('status' => 404));
             }
             
-            // Check if this booking belongs to taxi booking system
-            $taxi_id = get_post_meta($booking_id, 'mptbm_taxi_id', true);
-            if (!$taxi_id) {
-                return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
+            // If we have order but not post, get post
+            if ($order && !$booking_post) {
+                $booking_post = get_post($booking_id);
             }
             
-            // Get WooCommerce order if available
-            $order = null;
-            if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
-                $order = wc_get_order($booking_id);
+            // Find taxi booking item in order
+            $taxi_id = null;
+            $booking_item_data = array();
+            
+            if ($order) {
+                // Check if order has items
+                $order_items = $order->get_items();
+                if (empty($order_items)) {
+                    return new WP_Error('order_empty', 'Order has no items', array('status' => 404));
+                }
+                
+                // Check order items for taxi booking data
+                foreach ($order_items as $item_id => $item) {
+                    // Check for _mptbm_id in order item meta
+                    $item_taxi_id = wc_get_order_item_meta($item_id, '_mptbm_id', true);
+                    
+                    // If no _mptbm_id found, check if product is linked to taxi booking
+                    if (empty($item_taxi_id)) {
+                        $product_id = $item->get_product_id();
+                        if ($product_id) {
+                            $linked_taxi_id = get_post_meta($product_id, 'link_mptbm_id', true);
+                            if ($linked_taxi_id && get_post_type($linked_taxi_id) == MPTBM_Function::get_cpt()) {
+                                $item_taxi_id = $linked_taxi_id;
+                            }
+                        }
+                    }
+                    
+                    if ($item_taxi_id && get_post_type($item_taxi_id) == MPTBM_Function::get_cpt()) {
+                        $taxi_id = $item_taxi_id;
+                        
+                        // Get all booking data from order item meta
+                        $booking_date = wc_get_order_item_meta($item_id, '_mptbm_date', true);
+                        $pickup_date = '';
+                        $pickup_time = '';
+                        
+                        // Extract date and time from booking_date
+                        if (!empty($booking_date)) {
+                            $date_parts = explode(' ', $booking_date);
+                            $pickup_date = $date_parts[0];
+                            if (count($date_parts) > 1) {
+                                $pickup_time = $date_parts[1];
+                            }
+                        }
+                        
+                        $booking_item_data = array(
+                            'pickup_location' => wc_get_order_item_meta($item_id, '_mptbm_start_place', true),
+                            'dropoff_location' => wc_get_order_item_meta($item_id, '_mptbm_end_place', true),
+                            'pickup_date' => $pickup_date,
+                            'pickup_time' => $pickup_time,
+                            'return_date' => wc_get_order_item_meta($item_id, '_mptbm_return_target_date', true) ?: '',
+                            'return_time' => wc_get_order_item_meta($item_id, '_mptbm_return_target_time', true) ?: '',
+                            'passenger_count' => absint(wc_get_order_item_meta($item_id, '_mptbm_passengers', true)) ?: 1,
+                            'taxi_id' => absint($item_taxi_id),
+                            'distance' => floatval(wc_get_order_item_meta($item_id, '_mptbm_distance', true)),
+                            'duration' => wc_get_order_item_meta($item_id, '_mptbm_duration_text', true) ?: wc_get_order_item_meta($item_id, '_mptbm_duration', true),
+                            'distance_text' => wc_get_order_item_meta($item_id, '_mptbm_distance_text', true),
+                            'waiting_time' => wc_get_order_item_meta($item_id, '_mptbm_waiting_time', true),
+                            'return' => wc_get_order_item_meta($item_id, '_mptbm_taxi_return', true),
+                            'fixed_hours' => wc_get_order_item_meta($item_id, '_mptbm_fixed_hours', true),
+                            'base_price' => floatval(wc_get_order_item_meta($item_id, '_mptbm_base_price', true)),
+                            'transport_quantity' => absint(wc_get_order_item_meta($item_id, '_mptbm_transport_quantity', true)) ?: 1,
+                            'extra_service_info' => wc_get_order_item_meta($item_id, '_mptbm_service_info', true),
+                            'booking_type' => wc_get_order_item_meta($item_id, '_mptbm_fixed_hours', true) ? 'fixed_hourly' : 'distance',
+                            'created_via' => 'web'
+                        );
+                        
+                        break; // Use first taxi booking item found
+                    }
+                }
+                
+                // Check if this booking belongs to taxi booking system
+                if (!$taxi_id) {
+                    // Fallback: check for custom post type booking
+                    if ($booking_post->post_type === 'mptbm_booking') {
+                        $taxi_id = get_post_meta($booking_id, 'mptbm_id', true);
+                        if (!$taxi_id) {
+                            return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
+                        }
+                        // Get data from post meta for custom booking post type
+                        $booking_item_data = array(
+                            'pickup_location' => get_post_meta($booking_id, 'mptbm_start_place', true),
+                            'dropoff_location' => get_post_meta($booking_id, 'mptbm_end_place', true),
+                            'pickup_date' => get_post_meta($booking_id, 'mptbm_date', true),
+                            'pickup_time' => '',
+                            'return_date' => get_post_meta($booking_id, 'mptbm_return_target_date', true),
+                            'return_time' => get_post_meta($booking_id, 'mptbm_return_target_time', true),
+                            'passenger_count' => absint(get_post_meta($booking_id, 'mptbm_passengers', true)) ?: 1,
+                            'taxi_id' => absint($taxi_id),
+                            'distance' => floatval(get_post_meta($booking_id, 'mptbm_distance', true)),
+                            'duration' => get_post_meta($booking_id, 'mptbm_duration', true),
+                            'created_via' => 'web'
+                        );
+                    } else {
+                        return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
+                    }
+                }
+            } else {
+                // Handle custom booking post type
+                $taxi_id = get_post_meta($booking_id, 'mptbm_id', true);
+                if (!$taxi_id) {
+                    return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
+                }
+                // Get data from post meta
+                $booking_item_data = array(
+                    'pickup_location' => get_post_meta($booking_id, 'mptbm_start_place', true),
+                    'dropoff_location' => get_post_meta($booking_id, 'mptbm_end_place', true),
+                    'pickup_date' => get_post_meta($booking_id, 'mptbm_date', true),
+                    'pickup_time' => '',
+                    'return_date' => get_post_meta($booking_id, 'mptbm_return_target_date', true),
+                    'return_time' => get_post_meta($booking_id, 'mptbm_return_target_time', true),
+                    'passenger_count' => absint(get_post_meta($booking_id, 'mptbm_passengers', true)) ?: 1,
+                    'taxi_id' => absint($taxi_id),
+                    'distance' => floatval(get_post_meta($booking_id, 'mptbm_distance', true)),
+                    'duration' => get_post_meta($booking_id, 'mptbm_duration', true),
+                    'created_via' => 'web'
+                );
             }
             
             // Build booking data
             $booking_data = array(
                 'id' => $booking_id,
-                'status' => $order ? $order->get_status() : str_replace('wc-', '', $booking_post->post_status),
-                'date_created' => $booking_post->post_date,
-                'date_modified' => $booking_post->post_modified,
-                'total' => $order ? $order->get_total() : get_post_meta($booking_id, '_order_total', true),
+                'status' => $order ? str_replace('wc-', '', $order->get_status()) : str_replace('wc-', '', $booking_post->post_status),
+                'date_created' => $order ? ($order->get_date_created() ? $order->get_date_created()->date('Y-m-d H:i:s') : $booking_post->post_date) : $booking_post->post_date,
+                'date_modified' => $order ? ($order->get_date_modified() ? $order->get_date_modified()->date('Y-m-d H:i:s') : $booking_post->post_modified) : $booking_post->post_modified,
+                'total' => $order ? floatval($order->get_total()) : floatval(get_post_meta($booking_id, '_order_total', true)),
                 'currency' => $order ? $order->get_currency() : get_option('woocommerce_currency', 'USD'),
                 'customer_id' => $order ? $order->get_customer_id() : get_post_meta($booking_id, '_customer_user', true),
                 'customer_details' => array(
@@ -1652,25 +1887,12 @@ if (!class_exists('MPTBM_REST_API')) {
                         'country' => $order ? $order->get_billing_country() : get_post_meta($booking_id, '_billing_country', true)
                     )
                 ),
-                'booking_details' => array(
-                    'pickup_location' => get_post_meta($booking_id, 'mptbm_pickup_location', true),
-                    'dropoff_location' => get_post_meta($booking_id, 'mptbm_dropoff_location', true),
-                    'pickup_date' => get_post_meta($booking_id, 'mptbm_pickup_date', true),
-                    'pickup_time' => get_post_meta($booking_id, 'mptbm_pickup_time', true),
-                    'return_date' => get_post_meta($booking_id, 'mptbm_return_date', true),
-                    'return_time' => get_post_meta($booking_id, 'mptbm_return_time', true),
-                    'passenger_count' => absint(get_post_meta($booking_id, 'mptbm_passenger_count', true)),
-                    'distance' => floatval(get_post_meta($booking_id, 'mptbm_distance', true)),
-                    'duration' => get_post_meta($booking_id, 'mptbm_duration', true),
-                    'special_instructions' => get_post_meta($booking_id, 'mptbm_special_instructions', true),
-                    'booking_type' => get_post_meta($booking_id, 'mptbm_booking_type', true) ?: 'distance',
-                    'created_via' => get_post_meta($booking_id, 'mptbm_booking_created_via', true) ?: 'web'
-                ),
+                'booking_details' => $booking_item_data,
                 'payment_details' => array(
                     'payment_method' => $order ? $order->get_payment_method() : get_post_meta($booking_id, '_payment_method', true),
                     'payment_method_title' => $order ? $order->get_payment_method_title() : get_post_meta($booking_id, '_payment_method_title', true),
                     'transaction_id' => $order ? $order->get_transaction_id() : get_post_meta($booking_id, '_transaction_id', true),
-                    'date_paid' => $order ? $order->get_date_paid() : get_post_meta($booking_id, '_date_paid', true)
+                    'date_paid' => $order ? ($order->get_date_paid() ? $order->get_date_paid()->date('Y-m-d H:i:s') : null) : get_post_meta($booking_id, '_date_paid', true)
                 )
             );
             
