@@ -31,7 +31,12 @@ if (!class_exists('MPTBM_API_Documentation')) {
         }
         
         public function enqueue_documentation_assets($hook) {
-            if ($hook !== 'mptbm_rent_page_mptbm_api_docs') {
+            // Check if we're on the API documentation page
+            // The hook suffix can vary, so we check for the page parameter
+            $cpt = MPTBM_Function::get_cpt();
+            $expected_hook = $cpt . '_page_mptbm_api_docs';
+            
+            if ($hook !== $expected_hook && strpos($hook, 'mptbm_api_docs') === false) {
                 return;
             }
             
@@ -73,7 +78,7 @@ if (!class_exists('MPTBM_API_Documentation')) {
                         <div class="api-keys-manager">
                             <div class="generate-key-form">
                                 <h3><?php esc_html_e('Generate New API Key', 'ecab-taxi-booking-manager'); ?></h3>
-                                <form id="generate-api-key-form">
+                                <form id="generate-api-key-form" action="javascript:void(0);">
                                     <table class="form-table">
                                         <tr>
                                             <th><label for="api-key-name"><?php esc_html_e('Key Name', 'ecab-taxi-booking-manager'); ?></label></th>
