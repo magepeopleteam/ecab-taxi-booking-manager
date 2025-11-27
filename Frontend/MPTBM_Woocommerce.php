@@ -408,7 +408,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 			// Send email notification
 			$admin_email = get_option('admin_email');
-			wp_mail($admin_email, 'MPTBM Order Processed', 'Order ID: ' . $order_id);
+	//wp_mail($admin_email, 'MPTBM Order Processed', 'Order ID: ' . $order_id);
 			if ($order_id) {
 
 				$order = wc_get_order($order_id);
