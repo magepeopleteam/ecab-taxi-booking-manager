@@ -112,6 +112,25 @@ if (!function_exists('mptbm_get_translation')) {
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('extra_waiting_hours_label', __('Extra Waiting Hours', 'ecab-taxi-booking-manager')); ?></h6>
 						<p class="_textLight_1"><?php echo esc_html($waiting_time); ?>&nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
 					<?php } ?>
+					<div class="divider"></div>
+					<h6 class="_mB_xs"><?php esc_html_e('Passengers', 'ecab-taxi-booking-manager'); ?></h6>
+					<p class="_textLight_1 mptbm_summary_passenger">
+						<?php
+						if (!empty($summary_passenger) || $summary_passenger === 0) {
+							echo esc_html($summary_passenger);
+						}
+						?>
+					</p>
+					
+					<div class="divider"></div>
+					<h6 class="_mB_xs"><?php esc_html_e('Bags', 'ecab-taxi-booking-manager'); ?></h6>
+					<p class="_textLight_1 mptbm_summary_bag">
+						<?php
+						if (!empty($summary_bag) || $summary_bag === 0) {
+							echo esc_html($summary_bag);
+						}
+						?>
+					</p>
 					<?php if($fixed_time && $fixed_time>0){ ?>
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')); ?></h6>
@@ -148,3 +167,29 @@ if (!function_exists('mptbm_get_translation')) {
 	</div>
 	<?php endif; ?>
 <?php
+// Populate passengers/bags summary from the current form selections (if available)
+add_action('wp_footer', function() { ?>
+<script>
+    (function($){
+        function updateSummaryCounts() {
+            var passenger = $('#mptbm_max_passenger').val() || $('#mptbm_passengers').val() || '';
+            var bag = $('#mptbm_max_bag').val() || '';
+            // Fallback to data stored on selected vehicle (if present)
+            var selectedItem = $('.mptbm_single_item.active');
+            if (!passenger && selectedItem.length) {
+                passenger = selectedItem.data('passenger');
+            }
+            if (!bag && selectedItem.length) {
+                bag = selectedItem.data('bag');
+            }
+            $('.mptbm_summary_passenger').text(passenger ? passenger : '—');
+            $('.mptbm_summary_bag').text(bag ? bag : '—');
+        }
+        $(document).ready(function(){
+            updateSummaryCounts();
+            $(document).on('change', '#mptbm_max_passenger, #mptbm_passengers, #mptbm_max_bag', updateSummaryCounts);
+            $(document).on('click', '.mptbm_single_item', updateSummaryCounts);
+        });
+    })(jQuery);
+</script>
+<?php });
