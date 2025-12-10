@@ -4,7 +4,7 @@
 	$(document).ready(function () {
         // Initialize tooltips only on elements that are not Select2 related
         $(document).tooltip({
-            items: "[title]:not(.select2-container *):not(.select2-selection *):not(.select2-dropdown *)",
+            items: "[title]:not(.select2-container *):not(.select2-selection *):not(.select2-dropdown *):not(.ui-datepicker *)",
             show: {
                 effect: "fadeIn",
                 duration: 200
