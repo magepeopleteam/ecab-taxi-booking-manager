@@ -1472,15 +1472,33 @@ if (!class_exists('MPTBM_REST_API')) {
                             }
                         }
                         
+                        $return_flag = wc_get_order_item_meta($item_id, '_mptbm_taxi_return', true);
+                        $return_date_meta = $this->get_return_date_from_item($item_id, $pickup_date, $return_flag);
+                        $return_time_meta = $this->get_return_time_from_item($item_id, $pickup_time, $return_flag);
+                        $is_actual_return = $this->is_actual_return_trip($return_flag, $return_date_meta);
+                        $extra_service_info = wc_get_order_item_meta($item_id, '_mptbm_service_info', true);
+                        $bag_count = wc_get_order_item_meta($item_id, '_mptbm_bags', true);
+                        if ($bag_count === '') {
+                            $bag_count = wc_get_order_item_meta($item_id, '_mptbm_max_bag', true);
+                        }
+                        $bag_count = ($bag_count === '' || $bag_count === null) ? '' : absint($bag_count);
+
+                        $bag_count = $this->get_booking_bag_count_from_item($item_id);
+
                         $booking_item_data = array(
                             'pickup_location' => wc_get_order_item_meta($item_id, '_mptbm_start_place', true),
                             'dropoff_location' => wc_get_order_item_meta($item_id, '_mptbm_end_place', true),
                             'pickup_date' => $pickup_date,
                             'pickup_time' => $pickup_time,
-                            'return_date' => wc_get_order_item_meta($item_id, '_mptbm_return_target_date', true) ?: '',
-                            'return_time' => wc_get_order_item_meta($item_id, '_mptbm_return_target_time', true) ?: '',
+                            'return_date' => $return_date_meta,
+                            'return_time' => $return_time_meta,
+                            'is_return' => $is_actual_return,
                             'passenger_count' => absint(wc_get_order_item_meta($item_id, '_mptbm_passengers', true)) ?: 1,
                             'taxi_id' => absint($item_taxi_id),
+                            // Reflect what was selected in the booking form
+                            'max_passengers' => absint(wc_get_order_item_meta($item_id, '_mptbm_passengers', true)) ?: 1,
+                            'max_bags' => $bag_count !== '' ? $bag_count : MPTBM_Function::get_feature_bag($item_taxi_id),
+                            'bag_count' => $bag_count,
                             'distance' => floatval(wc_get_order_item_meta($item_id, '_mptbm_distance', true)),
                             'duration' => wc_get_order_item_meta($item_id, '_mptbm_duration_text', true) ?: wc_get_order_item_meta($item_id, '_mptbm_duration', true),
                             'distance_text' => wc_get_order_item_meta($item_id, '_mptbm_distance_text', true),
@@ -1488,7 +1506,8 @@ if (!class_exists('MPTBM_REST_API')) {
                             'return' => wc_get_order_item_meta($item_id, '_mptbm_taxi_return', true),
                             'fixed_hours' => wc_get_order_item_meta($item_id, '_mptbm_fixed_hours', true),
                             'base_price' => floatval(wc_get_order_item_meta($item_id, '_mptbm_base_price', true)),
-                            'transport_quantity' => absint(wc_get_order_item_meta($item_id, '_mptbm_transport_quantity', true)) ?: 1
+                            'transport_quantity' => absint(wc_get_order_item_meta($item_id, '_mptbm_transport_quantity', true)) ?: 1,
+                            'extra_service_info' => $extra_service_info
                         );
                         
                         break; // Use first taxi booking item found
@@ -1518,14 +1537,10 @@ if (!class_exists('MPTBM_REST_API')) {
                 
                 // Get taxi details if taxi_id exists
                 if ($taxi_id) {
-                    $taxi_post = get_post($taxi_id);
-                    if ($taxi_post) {
-                        $booking_data['taxi_details'] = array(
-                            'id' => $taxi_post->ID,
-                            'title' => $taxi_post->post_title,
-                            'featured_image' => get_the_post_thumbnail_url($taxi_post->ID, 'medium')
-                        );
-                    }
+                        $taxi_details = $this->build_taxi_details($taxi_id);
+                        if (!empty($taxi_details)) {
+                            $booking_data['taxi_details'] = $taxi_details;
+                        }
                 }
                 
                 $bookings[] = $booking_data;
@@ -1570,6 +1585,7 @@ if (!class_exists('MPTBM_REST_API')) {
             $customer_phone = sanitize_text_field($request->get_param('customer_phone'));
             $distance = floatval($request->get_param('distance'));
             $duration = sanitize_text_field($request->get_param('duration'));
+            $extra_service_info = $this->sanitize_extra_service_info($request->get_param('extra_service_info'));
             
             // Validate taxi exists
             $taxi_post = get_post($taxi_id);
@@ -1587,6 +1603,8 @@ if (!class_exists('MPTBM_REST_API')) {
                 return new WP_Error('invalid_date', 'Invalid pickup date format', array('status' => 400));
             }
             
+            // Check if this is actually a return trip (has return date and is not empty/false)
+            $is_actual_return = $this->is_actual_return_trip($request->get_param('is_return'), $return_date);
             // Calculate price
             $base_price = floatval(MP_Global_Function::get_post_info($taxi_id, 'mptbm_rent_price', 0));
             $distance_price = $distance > 0 ? ($distance * floatval(MP_Global_Function::get_settings('mptbm_general_settings', 'price_per_km', 1))) : 0;
@@ -1596,6 +1614,11 @@ if (!class_exists('MPTBM_REST_API')) {
             $passenger_multiplier = floatval(MP_Global_Function::get_settings('mptbm_general_settings', 'passenger_price_multiplier', 1));
             if ($passenger_count > 1 && $passenger_multiplier > 1) {
                 $total_price *= (1 + (($passenger_count - 1) * ($passenger_multiplier - 1)));
+            }
+            
+            // Double price for return trip if it's actually a return trip
+            if ($is_actual_return) {
+                $total_price *= 2;
             }
             
             // Create WooCommerce order if WooCommerce is active
@@ -1633,6 +1656,14 @@ if (!class_exists('MPTBM_REST_API')) {
                     $order->save();
                     
                     $order_id = $order->get_id();
+
+                    // Store any extra services on the order items for later retrieval
+                    if (!empty($extra_service_info)) {
+                        foreach ($order->get_items() as $item_id => $item) {
+                            $item->add_meta_data('_mptbm_service_info', $extra_service_info);
+                            $item->save();
+                        }
+                    }
                 } catch (Exception $e) {
                     return new WP_Error('order_creation_failed', 'Failed to create order: ' . $e->getMessage(), array('status' => 500));
                 }
@@ -1669,6 +1700,7 @@ if (!class_exists('MPTBM_REST_API')) {
                 'mptbm_passenger_count' => $passenger_count,
                 'mptbm_distance' => $distance,
                 'mptbm_duration' => $duration,
+                'mptbm_service_info' => $extra_service_info,
                 'mptbm_booking_created_via' => 'api'
             );
             
@@ -1688,7 +1720,11 @@ if (!class_exists('MPTBM_REST_API')) {
                     'dropoff_location' => $dropoff_location,
                     'pickup_date' => $pickup_date,
                     'pickup_time' => $pickup_time,
+                    'return_date' => $return_date,
+                    'return_time' => $return_time,
+                    'is_return' => $is_actual_return,
                     'passenger_count' => $passenger_count,
+                    'extra_service_info' => $extra_service_info,
                     'total_price' => $total_price,
                     'currency' => get_option('woocommerce_currency', 'USD'),
                     'customer_email' => $customer_email
@@ -1790,13 +1826,21 @@ if (!class_exists('MPTBM_REST_API')) {
                             }
                         }
                         
+                        // Check if this is actually a return trip
+                        $return_flag = wc_get_order_item_meta($item_id, '_mptbm_taxi_return', true);
+                        $return_date_meta = $this->get_return_date_from_item($item_id, $pickup_date, $return_flag);
+                        $return_time_meta = $this->get_return_time_from_item($item_id, $pickup_time, $return_flag);
+                        $is_actual_return = $this->is_actual_return_trip($return_flag, $return_date_meta);
+                        $extra_service_info = wc_get_order_item_meta($item_id, '_mptbm_service_info', true);
+                        
                         $booking_item_data = array(
                             'pickup_location' => wc_get_order_item_meta($item_id, '_mptbm_start_place', true),
                             'dropoff_location' => wc_get_order_item_meta($item_id, '_mptbm_end_place', true),
                             'pickup_date' => $pickup_date,
                             'pickup_time' => $pickup_time,
-                            'return_date' => wc_get_order_item_meta($item_id, '_mptbm_return_target_date', true) ?: '',
-                            'return_time' => wc_get_order_item_meta($item_id, '_mptbm_return_target_time', true) ?: '',
+                            'return_date' => $return_date_meta,
+                            'return_time' => $return_time_meta,
+                            'is_return' => $is_actual_return,
                             'passenger_count' => absint(wc_get_order_item_meta($item_id, '_mptbm_passengers', true)) ?: 1,
                             'taxi_id' => absint($item_taxi_id),
                             'distance' => floatval(wc_get_order_item_meta($item_id, '_mptbm_distance', true)),
@@ -1807,7 +1851,7 @@ if (!class_exists('MPTBM_REST_API')) {
                             'fixed_hours' => wc_get_order_item_meta($item_id, '_mptbm_fixed_hours', true),
                             'base_price' => floatval(wc_get_order_item_meta($item_id, '_mptbm_base_price', true)),
                             'transport_quantity' => absint(wc_get_order_item_meta($item_id, '_mptbm_transport_quantity', true)) ?: 1,
-                            'extra_service_info' => wc_get_order_item_meta($item_id, '_mptbm_service_info', true),
+                            'extra_service_info' => $extra_service_info,
                             'booking_type' => wc_get_order_item_meta($item_id, '_mptbm_fixed_hours', true) ? 'fixed_hourly' : 'distance',
                             'created_via' => 'web'
                         );
@@ -1825,17 +1869,34 @@ if (!class_exists('MPTBM_REST_API')) {
                             return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
                         }
                         // Get data from post meta for custom booking post type
+                        $pickup_date_meta = get_post_meta($booking_id, 'mptbm_date', true);
+                        $return_flag = get_post_meta($booking_id, 'mptbm_taxi_return', true);
+                        $return_date_meta = $this->get_return_date_from_post_meta($booking_id, $pickup_date_meta, $return_flag);
+                        $return_time_meta = $this->get_return_time_from_post_meta($booking_id, '', $return_flag);
+                        $is_actual_return = $this->is_actual_return_trip($return_flag, $return_date_meta);
+                        $bag_count = $this->get_booking_bag_count_from_post($booking_id);
+                        if ($bag_count === '') {
+                            $bag_count = get_post_meta($booking_id, 'mptbm_maximum_bag', true);
+                            $bag_count = $bag_count === '' ? '' : absint($bag_count);
+                        }
+                        
                         $booking_item_data = array(
                             'pickup_location' => get_post_meta($booking_id, 'mptbm_start_place', true),
                             'dropoff_location' => get_post_meta($booking_id, 'mptbm_end_place', true),
-                            'pickup_date' => get_post_meta($booking_id, 'mptbm_date', true),
+                            'pickup_date' => $pickup_date_meta,
                             'pickup_time' => '',
-                            'return_date' => get_post_meta($booking_id, 'mptbm_return_target_date', true),
-                            'return_time' => get_post_meta($booking_id, 'mptbm_return_target_time', true),
+                            'return_date' => $return_date_meta,
+                            'return_time' => $return_time_meta,
+                            'is_return' => $is_actual_return,
                             'passenger_count' => absint(get_post_meta($booking_id, 'mptbm_passengers', true)) ?: 1,
                             'taxi_id' => absint($taxi_id),
+                            // Reflect what was selected in the booking form
+                            'max_passengers' => absint(get_post_meta($booking_id, 'mptbm_passengers', true)) ?: 1,
+                            'max_bags' => $bag_count !== '' ? $bag_count : MPTBM_Function::get_feature_bag($taxi_id),
+                            'bag_count' => $bag_count,
                             'distance' => floatval(get_post_meta($booking_id, 'mptbm_distance', true)),
                             'duration' => get_post_meta($booking_id, 'mptbm_duration', true),
+                            'extra_service_info' => get_post_meta($booking_id, 'mptbm_service_info', true),
                             'created_via' => 'web'
                         );
                     } else {
@@ -1849,15 +1910,30 @@ if (!class_exists('MPTBM_REST_API')) {
                     return new WP_Error('not_taxi_booking', 'This is not a taxi booking', array('status' => 404));
                 }
                 // Get data from post meta
+                $bag_count = $this->get_booking_bag_count_from_post($booking_id);
+                if ($bag_count === '') {
+                    $bag_count = get_post_meta($booking_id, 'mptbm_maximum_bag', true);
+                    $bag_count = $bag_count === '' ? '' : absint($bag_count);
+                }
+                $pickup_date_meta = get_post_meta($booking_id, 'mptbm_date', true);
+                $return_flag = get_post_meta($booking_id, 'mptbm_taxi_return', true);
+                $return_date_meta = $this->get_return_date_from_post_meta($booking_id, $pickup_date_meta, $return_flag);
+                $return_time_meta = $this->get_return_time_from_post_meta($booking_id, '', $return_flag);
+                $is_actual_return = $this->is_actual_return_trip($return_flag, $return_date_meta);
+                
                 $booking_item_data = array(
                     'pickup_location' => get_post_meta($booking_id, 'mptbm_start_place', true),
                     'dropoff_location' => get_post_meta($booking_id, 'mptbm_end_place', true),
-                    'pickup_date' => get_post_meta($booking_id, 'mptbm_date', true),
+                    'pickup_date' => $pickup_date_meta,
                     'pickup_time' => '',
-                    'return_date' => get_post_meta($booking_id, 'mptbm_return_target_date', true),
-                    'return_time' => get_post_meta($booking_id, 'mptbm_return_target_time', true),
+                    'return_date' => $return_date_meta,
+                    'return_time' => $return_time_meta,
+                    'is_return' => $is_actual_return,
                     'passenger_count' => absint(get_post_meta($booking_id, 'mptbm_passengers', true)) ?: 1,
                     'taxi_id' => absint($taxi_id),
+                    'max_passengers' => absint(get_post_meta($booking_id, 'mptbm_passengers', true)) ?: 1,
+                    'max_bags' => $bag_count !== '' ? $bag_count : MPTBM_Function::get_feature_bag($taxi_id),
+                    'bag_count' => $bag_count,
                     'distance' => floatval(get_post_meta($booking_id, 'mptbm_distance', true)),
                     'duration' => get_post_meta($booking_id, 'mptbm_duration', true),
                     'created_via' => 'web'
@@ -1897,17 +1973,9 @@ if (!class_exists('MPTBM_REST_API')) {
             );
             
             // Get taxi details
-            $taxi_post = get_post($taxi_id);
-            if ($taxi_post) {
-                $booking_data['taxi_details'] = array(
-                    'id' => $taxi_post->ID,
-                    'title' => $taxi_post->post_title,
-                    'description' => $taxi_post->post_content,
-                    'featured_image' => get_the_post_thumbnail_url($taxi_post->ID, 'medium'),
-                    'max_passengers' => MPTBM_Function::get_feature_passenger($taxi_post->ID),
-                    'max_bags' => MPTBM_Function::get_feature_bag($taxi_post->ID),
-                    'price' => MP_Global_Function::get_post_info($taxi_post->ID, 'mptbm_rent_price', 0)
-                );
+            $taxi_details = $this->build_taxi_details($taxi_id);
+            if (!empty($taxi_details)) {
+                $booking_data['taxi_details'] = $taxi_details;
             }
             
             // Get order items if WooCommerce order
@@ -2330,8 +2398,10 @@ if (!class_exists('MPTBM_REST_API')) {
                 $pricing_breakdown['hours'] = $hours;
             }
             
+            // Check if this is actually a return trip (has return date and is not empty/false)
+            $is_actual_return = $this->is_actual_return_trip($request->get_param('is_return'), $return_date);
             // Calculate return trip if provided
-            if ($return_date && $pricing_type === 'distance') {
+            if ($is_actual_return && $pricing_type === 'distance') {
                 $pricing_breakdown['distance_price'] *= 2; // Round trip
                 $pricing_breakdown['return_trip'] = true;
             }
@@ -2397,6 +2467,8 @@ if (!class_exists('MPTBM_REST_API')) {
                     'passenger_count' => $passenger_count,
                     'pickup_location' => $pickup_location,
                     'dropoff_location' => $dropoff_location,
+                    'return_date' => $return_date,
+                    'is_return' => $is_actual_return,
                     'pricing_breakdown' => $pricing_breakdown,
                     'currency' => get_option('woocommerce_currency', 'USD'),
                     'currency_symbol' => function_exists('get_woocommerce_currency_symbol') ? get_woocommerce_currency_symbol() : '$',
@@ -3031,6 +3103,285 @@ if (!class_exists('MPTBM_REST_API')) {
                 'data' => $zones,
                 'message' => sprintf('Found %d operation zones', count($zones))
             ), 200);
+        }
+
+        /**
+         * Determine whether the request indicates an actual return trip.
+         */
+        private function is_actual_return_trip($is_return_value, $return_date_value) {
+            $has_return_flag = !empty($is_return_value) && $is_return_value != '0' && $is_return_value != 'false' && $is_return_value !== false;
+            $has_return_date = !empty($return_date_value) && $return_date_value != '0' && $return_date_value != 'false' && $return_date_value !== false;
+            return $has_return_flag && $has_return_date;
+        }
+
+        /**
+         * Sanitize the optional extra service data coming from the API.
+         */
+        private function sanitize_extra_service_info($extra_service) {
+            if (empty($extra_service)) {
+                return array();
+            }
+
+            if (is_string($extra_service)) {
+                $decoded = json_decode($extra_service, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $extra_service = $decoded;
+                } else {
+                    return sanitize_text_field($extra_service);
+                }
+            }
+
+            if (!is_array($extra_service)) {
+                return array();
+            }
+
+            return array_map(function($value) {
+                if (is_array($value)) {
+                    return array_map('sanitize_text_field', $value);
+                }
+                return sanitize_text_field($value);
+            }, $extra_service);
+        }
+
+        /**
+         * Build a richer taxi details payload for booking responses.
+         */
+        private function build_taxi_details($taxi_id) {
+            $taxi_post = get_post($taxi_id);
+            if (!$taxi_post || $taxi_post->post_type !== MPTBM_Function::get_cpt()) {
+                return array();
+            }
+
+            $details = array(
+                'id' => $taxi_post->ID,
+                'title' => $taxi_post->post_title,
+                'description' => $taxi_post->post_content,
+                'excerpt' => $taxi_post->post_excerpt,
+                'status' => get_post_status($taxi_post),
+                'featured_image' => get_the_post_thumbnail_url($taxi_post->ID, 'full'),
+                'permalink' => get_permalink($taxi_post),
+                'price' => MP_Global_Function::get_post_info($taxi_post->ID, 'mptbm_rent_price', 0),
+                'rent_type' => MP_Global_Function::get_post_info($taxi_post->ID, 'mptbm_rent_type', 'taxi'),
+                'max_passengers' => MPTBM_Function::get_feature_passenger($taxi_post->ID),
+                'max_bags' => MPTBM_Function::get_feature_bag($taxi_post->ID),
+                'schedule' => method_exists('MPTBM_Function', 'get_schedule') ? MPTBM_Function::get_schedule($taxi_post->ID) : array(),
+                'meta' => array(
+                    'vehicle_type' => MP_Global_Function::get_post_info($taxi_post->ID, 'mptbm_vehicle_type', ''),
+                    'vehicle_model' => MP_Global_Function::get_post_info($taxi_post->ID, 'mptbm_vehicle_model', ''),
+                    'vehicle_color' => MP_Global_Function::get_post_info($taxi_post->ID, 'mptbm_vehicle_color', ''),
+                ),
+            );
+
+            // Add taxonomy data (categories)
+            $categories = get_the_terms($taxi_post->ID, MPTBM_Function::get_category_slug());
+            if ($categories && !is_wp_error($categories)) {
+                $details['categories'] = array_map(function($cat) {
+                    return array(
+                        'id' => $cat->term_id,
+                        'name' => $cat->name,
+                        'slug' => $cat->slug
+                    );
+                }, $categories);
+            } else {
+                $details['categories'] = array();
+            }
+
+            return $details;
+        }
+
+        /**
+         * Get return date from order item, handling same-day returns
+         */
+        private function get_return_date_from_item($item_id, $pickup_date, $return_flag) {
+            // Check if it's a return trip
+            if (empty($return_flag) || $return_flag == '0' || $return_flag == '1') {
+                return '';
+            }
+            
+            // First check for different date return
+            $return_date = wc_get_order_item_meta($item_id, '_mptbm_return_target_date', true);
+            if (!empty($return_date)) {
+                return $return_date;
+            }
+            
+            // Check alternative meta key
+            $return_date = wc_get_order_item_meta($item_id, '_mptbm_return_date', true);
+            if (!empty($return_date)) {
+                return $return_date;
+            }
+            
+            // If it's a return trip but no separate date stored, it's same-day return
+            // Use pickup date as return date
+            if ($return_flag > 1 && !empty($pickup_date)) {
+                return $pickup_date;
+            }
+            
+            return '';
+        }
+
+        /**
+         * Get return time from order item, handling same-day returns
+         */
+        private function get_return_time_from_item($item_id, $pickup_time, $return_flag) {
+            // Check if it's a return trip
+            if (empty($return_flag) || $return_flag == '0' || $return_flag == '1') {
+                return '';
+            }
+            
+            // First check for different date return time
+            $return_time = wc_get_order_item_meta($item_id, '_mptbm_return_target_time', true);
+            if (!empty($return_time) && $return_time != '0') {
+                // Convert decimal time to HH:MM format if needed
+                return $this->format_return_time($return_time);
+            }
+            
+            // Check alternative meta key
+            $return_time = wc_get_order_item_meta($item_id, '_mptbm_return_time', true);
+            if (!empty($return_time) && $return_time != '0') {
+                return $this->format_return_time($return_time);
+            }
+            
+            // For same-day returns, return time might not be stored separately
+            // Return empty string - caller can use pickup_time if needed
+            return '';
+        }
+
+        /**
+         * Format return time from decimal format to HH:MM
+         */
+        private function format_return_time($return_time) {
+            if (empty($return_time) || $return_time == '0') {
+                return '';
+            }
+            
+            // If already in HH:MM format, return as is
+            if (preg_match('/^\d{2}:\d{2}$/', $return_time)) {
+                return $return_time;
+            }
+            
+            // Convert decimal time to HH:MM
+            $time_parts = explode('.', $return_time);
+            $hours = isset($time_parts[0]) ? intval($time_parts[0]) : 0;
+            $decimal_part = isset($time_parts[1]) ? intval($time_parts[1]) : 0;
+            
+            $interval_time = method_exists('MPTBM_Function', 'get_general_settings') 
+                ? MPTBM_Function::get_general_settings('mptbm_pickup_interval_time') 
+                : '30';
+            
+            if ($interval_time == "5" || $interval_time == "15") {
+                if ($decimal_part != 3) {
+                    $minutes = $decimal_part * 1;
+                } else {
+                    $minutes = $decimal_part * 10;
+                }
+            } else {
+                $minutes = $decimal_part * 1;
+            }
+            
+            // Ensure minutes are within valid range
+            if ($minutes >= 60) {
+                $hours += floor($minutes / 60);
+                $minutes = $minutes % 60;
+            }
+            
+            return sprintf('%02d:%02d', $hours, $minutes);
+        }
+
+        /**
+         * Get selected bag count from WooCommerce order item meta
+         */
+        private function get_booking_bag_count_from_item($item_id) {
+            $bag_keys = array(
+                '_mptbm_max_bag',
+                '_mptbm_bag',
+                '_mptbm_bags',
+                '_mptbm_maximum_bag'
+            );
+
+            foreach ($bag_keys as $key) {
+                $val = wc_get_order_item_meta($item_id, $key, true);
+                if ($val !== '' && $val !== null) {
+                    return absint($val);
+                }
+            }
+
+            return '';
+        }
+
+        /**
+         * Get selected bag count from custom booking post meta
+         */
+        private function get_booking_bag_count_from_post($post_id) {
+            $bag_keys = array(
+                'mptbm_max_bag',
+                'mptbm_bag',
+                'mptbm_bags',
+                'mptbm_maximum_bag'
+            );
+
+            foreach ($bag_keys as $key) {
+                $val = get_post_meta($post_id, $key, true);
+                if ($val !== '' && $val !== null) {
+                    return absint($val);
+                }
+            }
+
+            return '';
+        }
+
+        /**
+         * Get return date from post meta, handling same-day returns
+         */
+        private function get_return_date_from_post_meta($post_id, $pickup_date, $return_flag) {
+            // Check if it's a return trip
+            if (empty($return_flag) || $return_flag == '0' || $return_flag == '1') {
+                return '';
+            }
+            
+            // First check for different date return
+            $return_date = get_post_meta($post_id, 'mptbm_return_target_date', true);
+            if (!empty($return_date)) {
+                return $return_date;
+            }
+            
+            // Check alternative meta key
+            $return_date = get_post_meta($post_id, 'mptbm_return_date', true);
+            if (!empty($return_date)) {
+                return $return_date;
+            }
+            
+            // If it's a return trip but no separate date stored, it's same-day return
+            // Use pickup date as return date
+            if ($return_flag > 1 && !empty($pickup_date)) {
+                return $pickup_date;
+            }
+            
+            return '';
+        }
+
+        /**
+         * Get return time from post meta, handling same-day returns
+         */
+        private function get_return_time_from_post_meta($post_id, $pickup_time, $return_flag) {
+            // Check if it's a return trip
+            if (empty($return_flag) || $return_flag == '0' || $return_flag == '1') {
+                return '';
+            }
+            
+            // First check for different date return time
+            $return_time = get_post_meta($post_id, 'mptbm_return_target_time', true);
+            if (!empty($return_time) && $return_time != '0') {
+                return $this->format_return_time($return_time);
+            }
+            
+            // Check alternative meta key
+            $return_time = get_post_meta($post_id, 'mptbm_return_time', true);
+            if (!empty($return_time) && $return_time != '0') {
+                return $this->format_return_time($return_time);
+            }
+            
+            // For same-day returns, return time might not be stored separately
+            return '';
         }
         
         // Cleanup method for old API logs
