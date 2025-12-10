@@ -66,10 +66,27 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			$linked_id = MP_Global_Function::get_post_info($product_id, 'link_mptbm_id', $product_id);
 			$post_id = is_string(get_post_status($linked_id)) ? $linked_id : $product_id;
 			if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
-				$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';
-				$duration = isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '';
 				$start_place = isset($_POST['mptbm_start_place']) ? sanitize_text_field($_POST['mptbm_start_place']) : '';
 				$end_place = isset($_POST['mptbm_end_place']) ? sanitize_text_field($_POST['mptbm_end_place']) : '';
+				$pickup_lat = isset($_POST['pickup_lat']) ? sanitize_text_field($_POST['pickup_lat']) : '';
+				$pickup_lng = isset($_POST['pickup_lng']) ? sanitize_text_field($_POST['pickup_lng']) : '';
+				$drop_lat = isset($_POST['drop_lat']) ? sanitize_text_field($_POST['drop_lat']) : '';
+				$drop_lng = isset($_POST['drop_lng']) ? sanitize_text_field($_POST['drop_lng']) : '';
+
+				// Server-side validation for distance and duration
+				$server_data = MPTBM_Function::get_server_side_distance_duration($start_place, $end_place, $pickup_lat, $pickup_lng, $drop_lat, $drop_lng);
+
+				if ($server_data === false) {
+					// Block booking if validation fails
+					throw new Exception(__('Unable to verify route details. Please try again.', 'ecab-taxi-booking-manager'));
+				}
+
+				$distance = $server_data['distance'];
+				$duration = $server_data['duration'];
+				
+				// Update cookie values for consistency (optional, but good for display)
+				$_COOKIE['mptbm_distance_text'] = $server_data['distance_text'];
+				$_COOKIE['mptbm_duration_text'] = $server_data['duration_text'];
 				$waiting_time = isset($_POST['mptbm_waiting_time']) ? sanitize_text_field($_POST['mptbm_waiting_time']) : 0;
 				$return = isset($_POST['mptbm_taxi_return']) ? sanitize_text_field($_POST['mptbm_taxi_return']) : 1;
 				$fixed_hour = isset($_POST['mptbm_fixed_hours']) ? sanitize_text_field($_POST['mptbm_fixed_hours']) : 0;

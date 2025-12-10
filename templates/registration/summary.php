@@ -38,6 +38,12 @@ if (!function_exists('mptbm_get_translation')) {
 		$show_summary = false;
 	}
 	$disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
+	
+	// Check if Pro plugin is active and get filter settings
+	$pro_active = class_exists('MPTBM_Dependencies_Pro');
+	$search_filter_settings = $pro_active ? get_option('mptbm_search_filter_settings', array()) : array();
+	$enable_max_passenger_filter = isset($search_filter_settings['enable_max_passenger_filter']) ? $search_filter_settings['enable_max_passenger_filter'] : 'no';
+	$enable_max_bag_filter = isset($search_filter_settings['enable_max_bag_filter']) ? $search_filter_settings['enable_max_bag_filter'] : 'no';
 ?>
 	<?php if ($show_summary): ?>
 	<div class="leftSidebar">
@@ -112,25 +118,31 @@ if (!function_exists('mptbm_get_translation')) {
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('extra_waiting_hours_label', __('Extra Waiting Hours', 'ecab-taxi-booking-manager')); ?></h6>
 						<p class="_textLight_1"><?php echo esc_html($waiting_time); ?>&nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
 					<?php } ?>
+					<?php if ($pro_active && $enable_max_passenger_filter === 'yes'): ?>
 					<div class="divider"></div>
 					<h6 class="_mB_xs"><?php esc_html_e('Passengers', 'ecab-taxi-booking-manager'); ?></h6>
 					<p class="_textLight_1 mptbm_summary_passenger">
 						<?php
-						if (!empty($summary_passenger) || $summary_passenger === 0) {
+						if (!empty($summary_passenger) || $summary_passenger === 0 || $summary_passenger === '0') {
 							echo esc_html($summary_passenger);
 						}
 						?>
 					</p>
+					<?php endif; ?>
 					
-					<div class="divider"></div>
-					<h6 class="_mB_xs"><?php esc_html_e('Bags', 'ecab-taxi-booking-manager'); ?></h6>
-					<p class="_textLight_1 mptbm_summary_bag">
-						<?php
-						if (!empty($summary_bag) || $summary_bag === 0) {
-							echo esc_html($summary_bag);
-						}
-						?>
-					</p>
+					<?php if ($pro_active && $enable_max_bag_filter === 'yes' && $summary_bag > 0): ?>
+					<div class="mptbm_bag_summary_wrapper">
+						<div class="divider"></div>
+						<h6 class="_mB_xs"><?php esc_html_e('Bags', 'ecab-taxi-booking-manager'); ?></h6>
+						<p class="_textLight_1 mptbm_summary_bag">
+							<?php
+							if (!empty($summary_bag) || $summary_bag === 0 || $summary_bag === '0') {
+								echo esc_html($summary_bag);
+							}
+							?>
+						</p>
+					</div>
+					<?php endif; ?>
 					<?php if($fixed_time && $fixed_time>0){ ?>
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')); ?></h6>
@@ -183,7 +195,15 @@ add_action('wp_footer', function() { ?>
                 bag = selectedItem.data('bag');
             }
             $('.mptbm_summary_passenger').text(passenger ? passenger : '—');
-            $('.mptbm_summary_bag').text(bag ? bag : '—');
+            
+            var bagValue = (bag || bag === 0 || bag === '0') ? bag : '—';
+            $('.mptbm_summary_bag').text(bagValue);
+            
+            if (bag && bag != '0' && bag != 0) {
+                $('.mptbm_bag_summary_wrapper').show();
+            } else {
+                $('.mptbm_bag_summary_wrapper').hide();
+            }
         }
         $(document).ready(function(){
             updateSummaryCounts();

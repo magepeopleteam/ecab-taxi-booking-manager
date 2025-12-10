@@ -1019,6 +1019,66 @@ if (!class_exists('MPTBM_Function')) {
 			
 			return $result;
 		}
+		public static function get_server_side_distance_duration($start_place, $end_place, $pickup_lat, $pickup_lng, $drop_lat, $drop_lng)
+		{
+			$map_type = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'openstreetmap');
+			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
+
+			if ($map_type === 'enable' && $api_key) {
+				// Google Maps
+				$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" . urlencode($start_place) . "&destinations=" . urlencode($end_place) . "&key=" . $api_key;
+
+				$response = wp_remote_get($url);
+				if (is_wp_error($response)) {
+					return false;
+				}
+
+				$body = wp_remote_retrieve_body($response);
+				$data = json_decode($body, true);
+
+				if (isset($data['rows'][0]['elements'][0]['status']) && $data['rows'][0]['elements'][0]['status'] === 'OK') {
+					return [
+						'distance' => $data['rows'][0]['elements'][0]['distance']['value'],
+						'duration' => $data['rows'][0]['elements'][0]['duration']['value'],
+						'distance_text' => $data['rows'][0]['elements'][0]['distance']['text'],
+						'duration_text' => $data['rows'][0]['elements'][0]['duration']['text']
+					];
+				}
+			} elseif ($map_type === 'openstreetmap') {
+				// OSRM
+				if ($pickup_lat && $pickup_lng && $drop_lat && $drop_lng) {
+					$url = "http://router.project-osrm.org/route/v1/driving/$pickup_lng,$pickup_lat;$drop_lng,$drop_lat?overview=false";
+
+					$response = wp_remote_get($url);
+					if (is_wp_error($response)) {
+						return false;
+					}
+
+					$body = wp_remote_retrieve_body($response);
+					$data = json_decode($body, true);
+
+					if (isset($data['code']) && $data['code'] === 'Ok' && isset($data['routes'][0])) {
+						$distance = $data['routes'][0]['distance']; // meters
+						$duration = $data['routes'][0]['duration']; // seconds
+
+						// Format text
+						$distance_text = round($distance / 1000, 1) . ' km';
+						$hours = floor($duration / 3600);
+						$minutes = floor(($duration % 3600) / 60);
+						$duration_text = ($hours > 0 ? $hours . ' hours ' : '') . $minutes . ' mins';
+
+						return [
+							'distance' => $distance,
+							'duration' => $duration,
+							'distance_text' => $distance_text,
+							'duration_text' => $duration_text
+						];
+					}
+				}
+			}
+
+			return false;
+		}
 	}
 	new MPTBM_Function();
 }
