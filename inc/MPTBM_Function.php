@@ -1019,6 +1019,67 @@ if (!class_exists('MPTBM_Function')) {
 			
 			return $result;
 		}
+
+		/**
+		 * Whitelist Google Maps API script from CookieAdmin blocking
+		 * 
+		 * @param string $tag The script tag
+		 * @param string $handle The script handle
+		 * @param string $src The script source
+		 * @return string The modified script tag
+		 */
+		public static function whitelist_google_maps_script($tag, $handle, $src) {
+			if ($handle === 'mptbm_map_api') {
+				// Restore the script type to text/javascript if it was changed to text/plain
+				$tag = str_replace('type="text/plain"', 'type="text/javascript"', $tag);
+				
+				// Remove CookieAdmin category attributes that cause blocking
+				$tag = preg_replace('/data-cookieadmin-category="[^"]*"/', '', $tag);
+			}
+			return $tag;
+		}
+
+		
+		// Helper to calculate distance server-side
+		public static function get_server_distance($start_lat, $start_lng, $end_lat, $end_lng) {
+			if (!$start_lat || !$start_lng || !$end_lat || !$end_lng) {
+				return false;
+			}
+			
+			// Try Google Maps Distance Matrix API first if Key exists
+			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'map_api_key');
+			if ($api_key) {
+				$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={$start_lat},{$start_lng}&destinations={$end_lat},{$end_lng}&mode=driving&key={$api_key}";
+				$response = wp_remote_get($url);
+				if (!is_wp_error($response)) {
+					$body = wp_remote_retrieve_body($response);
+					$data = json_decode($body, true);
+					if (isset($data['rows'][0]['elements'][0]['status']) && $data['rows'][0]['elements'][0]['status'] === 'OK') {
+						return [
+							'distance' => $data['rows'][0]['elements'][0]['distance']['value'], // meters
+							'duration' => $data['rows'][0]['elements'][0]['duration']['value']  // seconds
+						];
+					}
+				}
+			}
+
+			// Fallback to OSRM (Open Source Routing Machine)
+			// Note: OSRM uses {lng},{lat} order
+			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$start_lng},{$start_lat};{$end_lng},{$end_lat}?overview=false";
+			$response = wp_remote_get($osrm_url);
+			if (!is_wp_error($response)) {
+				$body = wp_remote_retrieve_body($response);
+				$data = json_decode($body, true);
+				if (isset($data['code']) && $data['code'] === 'Ok' && isset($data['routes'][0])) {
+					return [
+						'distance' => $data['routes'][0]['distance'], // meters
+						'duration' => $data['routes'][0]['duration']  // seconds
+					];
+				}
+			}
+			
+			return false;
+		}
 	}
 	new MPTBM_Function();
 }

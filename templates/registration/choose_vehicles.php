@@ -617,9 +617,9 @@ $selected_max_bag = isset($_POST['mptbm_max_bag']) ? intval($_POST['mptbm_max_ba
 $summary_passenger = $selected_max_passenger ?: (isset($_POST['mptbm_passengers']) ? absint($_POST['mptbm_passengers']) : '');
 $summary_bag = $selected_max_bag ?: '';
 
-// Get distance and duration from cookies for price calculation
-$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';
-$duration = isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '';
+// Get distance and duration from POST (if sent via AJAX fallback) or cookies
+$distance = isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '');
+$duration = isset($_POST['mptbm_duration']) && !empty($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '');
 
 // Fallback values for object caching compatibility
 if (empty($distance)) {

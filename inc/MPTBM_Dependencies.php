@@ -22,6 +22,9 @@ if (!class_exists('MPTBM_Dependencies')) {
 		// Add AJAX handler for OpenStreetMap search
 		add_action('wp_ajax_mptbm_osm_search', array($this, 'osm_search_proxy'));
 		add_action('wp_ajax_nopriv_mptbm_osm_search', array($this, 'osm_search_proxy'));
+		
+		// Whitelist Google Maps script from CookieAdmin
+		add_filter('script_loader_tag', array('MPTBM_Function', 'whitelist_google_maps_script'), 20, 3);
 	}
         public function language_load(): void
         {
