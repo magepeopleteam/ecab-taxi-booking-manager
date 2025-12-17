@@ -375,6 +375,11 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
     $default_start_time = get_post_meta($post_id, "mptbm_default_start_time", true);
     $default_end_time = get_post_meta($post_id, "mptbm_default_end_time", true);
     
+    error_log("----------------------------------------");
+    error_log("MPTBM DEBUG: Post ID: " . $post_id);
+    error_log("MPTBM DEBUG: Raw Default Start Time: '" . $default_start_time . "'");
+    error_log("MPTBM DEBUG: Raw Default End Time: '" . $default_end_time . "'");
+    
     // Build schedule array with proper default handling
     foreach ($days_name as $name) {
         $start_time = get_post_meta($post_id, "mptbm_" . $name . "_start_time", true);
@@ -382,10 +387,17 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
         
         // If day-specific times are empty, use default times
         if($start_time == '' || $start_time == 'default'){
+            error_log("MPTBM DEBUG: {$name} - Start time is empty/default. Using default: '" . $default_start_time . "'");
             $start_time = $default_start_time;
+        } else {
+             error_log("MPTBM DEBUG: {$name} - Found specific start time: '" . $start_time . "'");
         }
+        
         if($end_time == '' || $end_time == 'default'){
+            error_log("MPTBM DEBUG: {$name} - End time is empty/default. Using default: '" . $default_end_time . "'");
             $end_time = $default_end_time;
+        } else {
+             error_log("MPTBM DEBUG: {$name} - Found specific end time: '" . $end_time . "'");
         }
         
         // Only add to schedule if we have valid times
@@ -408,11 +420,27 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
         $day_lower = strtolower($day);
         
         if($selected_day_lower == $day_lower){ 
+            $is_overnight = $day_start_time > $day_end_time;
+            $start_valid = false;
+
+            if ($is_overnight) {
+                $start_valid = ($start_time_schedule >= $day_start_time) || ($start_time_schedule <= $day_end_time);
+            } else {
+                $start_valid = ($start_time_schedule >= $day_start_time) && ($start_time_schedule <= $day_end_time);
+            }
+
             // Check if start time is within the schedule
-            if ($start_time_schedule >= $day_start_time && $start_time_schedule <= $day_end_time) {
+            if ($start_valid) {
                 // If return time is specified, check it too
                 if (isset($return_time_schedule) && $return_time_schedule !== "" && $return_time_schedule !== null) {
-                    if ($return_time_schedule >= $day_start_time && $return_time_schedule <= $day_end_time) {
+                    $return_valid = false;
+                    if ($is_overnight) {
+                        $return_valid = ($return_time_schedule >= $day_start_time) || ($return_time_schedule <= $day_end_time);
+                    } else {
+                        $return_valid = ($return_time_schedule >= $day_start_time) && ($return_time_schedule <= $day_end_time);
+                    }
+
+                    if ($return_valid) {
                         return true;
                     }
                 } else {
@@ -425,9 +453,28 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
     // If no specific day schedule found, check if we should use default times
     if (empty($schedule) || !isset($schedule[$selected_day_lower])) {
         if ($default_start_time !== "" && $default_end_time !== "" && $default_start_time !== null && $default_end_time !== null) {
-            if ($start_time_schedule >= floatval($default_start_time) && $start_time_schedule <= floatval($default_end_time)) {
-                if (isset($return_time_schedule) && $return_time_schedule !== "" && $return_time_schedule !== null) {
-                    if ($return_time_schedule >= floatval($default_start_time) && $return_time_schedule <= floatval($default_end_time)) {
+            $def_start = floatval($default_start_time);
+            $def_end = floatval($default_end_time);
+            
+            $is_overnight = $def_start > $def_end;
+            $start_valid = false;
+            
+            if ($is_overnight) {
+                $start_valid = ($start_time_schedule >= $def_start) || ($start_time_schedule <= $def_end);
+            } else {
+                $start_valid = ($start_time_schedule >= $def_start) && ($start_time_schedule <= $def_end);
+            }
+
+            if ($start_valid) {
+                 if (isset($return_time_schedule) && $return_time_schedule !== "" && $return_time_schedule !== null) {
+                    $return_valid = false;
+                    if ($is_overnight) {
+                        $return_valid = ($return_time_schedule >= $def_start) || ($return_time_schedule <= $def_end);
+                    } else {
+                        $return_valid = ($return_time_schedule >= $def_start) && ($return_time_schedule <= $def_end);
+                    }
+                    
+                    if ($return_valid) {
                         return true;
                     }
                 } else {
