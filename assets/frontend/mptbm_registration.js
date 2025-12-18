@@ -167,8 +167,18 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
                         if (mapArea.find('input[name="mptbm_hidden_duration"]').length === 0) {
                             mapArea.append('<input type="hidden" name="mptbm_hidden_duration" value="" />');
                         }
+                        // Add hidden inputs for text values as well (needed for cart display)
+                        if (mapArea.find('input[name="mptbm_hidden_distance_text"]').length === 0) {
+                            mapArea.append('<input type="hidden" name="mptbm_hidden_distance_text" value="" />');
+                        }
+                        if (mapArea.find('input[name="mptbm_hidden_duration_text"]').length === 0) {
+                            mapArea.append('<input type="hidden" name="mptbm_hidden_duration_text" value="" />');
+                        }
+
                         mapArea.find('input[name="mptbm_hidden_distance"]').val(distance);
                         mapArea.find('input[name="mptbm_hidden_duration"]').val(duration);
+                        mapArea.find('input[name="mptbm_hidden_distance_text"]').val(distance_text);
+                        mapArea.find('input[name="mptbm_hidden_duration_text"]').val(duration_text);
                     }
 
                     directionsRenderer.setDirections(result);
@@ -1288,6 +1298,8 @@ function mptbm_init_google_map() {
                                 mptbm_original_price_base: mptbm_original_price_base,
                                 mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
                                 mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
+                                mptbm_distance_text: parent.find('input[name="mptbm_hidden_distance_text"]').val(),
+                                mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
                             },
                             beforeSend: function () {
                                 //dLoader(target);
@@ -1343,6 +1355,8 @@ function mptbm_init_google_map() {
                                 mptbm_original_price_base: mptbm_original_price_base,
                                 mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
                                 mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
+                                mptbm_distance_text: parent.find('input[name="mptbm_hidden_distance_text"]').val(),
+                                mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
                             },
                             beforeSend: function () {
                                 dLoader(target);
@@ -1926,6 +1940,16 @@ function mptbm_price_calculation(parent) {
                     count++;
                 }
             });
+
+            // DEBUG: Log data being sent to add to cart
+            console.log("MPTBM DEBUG: Add to Cart Data", {
+                start: start_place,
+                end: end_place,
+                distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
+                distance_text: parent.find('input[name="mptbm_hidden_distance_text"]').val(),
+                post_id: post_id
+            });
+
             $.ajax({
                 type: 'POST',
                 url: mp_ajax_url,
@@ -1951,6 +1975,8 @@ function mptbm_price_calculation(parent) {
                     mptbm_original_price_base: mptbm_original_price_base,
                     mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
                     mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
+                    mptbm_distance_text: parent.find('input[name="mptbm_hidden_distance_text"]').val(),
+                    mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
                 },
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));
@@ -2452,6 +2478,7 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
 
     // Try to use server-side calculation as backup
     if (typeof mp_ajax_url !== 'undefined') {
+        console.log("MPTBM JS: Calling server-side fallback");
         jQuery.ajax({
             type: "POST",
             url: mp_ajax_url,
@@ -2461,9 +2488,23 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
                 end_place: end_place
             },
             success: function (response) {
+                console.log("MPTBM JS: Server fallback response", response);
                 if (response.success && response.data) {
-                    jQuery(".mptbm_total_distance").html(response.data.distance_text);
-                    jQuery(".mptbm_total_time").html(response.data.duration_text);
+                    var distElem = jQuery(".mptbm_total_distance");
+                    var timeElem = jQuery(".mptbm_total_time");
+                    console.log("MPTBM JS: Updating UI. Dist Elem length:", distElem.length, "Time Elem length:", timeElem.length);
+
+                    distElem.html(response.data.distance_text);
+                    timeElem.html(response.data.duration_text);
+
+                    // Update hidden inputs for AJAX fallback
+                    var mapArea = jQuery('#mptbm_map_area').closest('.mptbm_transport_search_area');
+                    if (mapArea.length > 0) {
+                        mapArea.find('input[name="mptbm_hidden_distance"]').val(response.data.distance);
+                        mapArea.find('input[name="mptbm_hidden_duration"]').val(response.data.duration);
+                        mapArea.find('input[name="mptbm_hidden_distance_text"]').val(response.data.distance_text);
+                        mapArea.find('input[name="mptbm_hidden_duration_text"]').val(response.data.duration_text);
+                    }
 
                     // Update cookies with server response
                     document.cookie = "mptbm_distance=" + encodeURIComponent(response.data.distance) + cookieOptions;

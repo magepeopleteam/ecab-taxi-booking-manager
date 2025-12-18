@@ -259,6 +259,8 @@ if (!class_exists('MPTBM_Function')) {
 		//*************Price*********************************//
 		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0)
 		{
+			// DEBUG PRICE
+			error_log("MPTBM DEBUG: get_price called. PostID: $post_id, Dist: $distance, Dur: $duration");
 			
 			// Force fresh pricing calculations to prevent caching issues on repeated searches
 			$is_transport_result_page = false;

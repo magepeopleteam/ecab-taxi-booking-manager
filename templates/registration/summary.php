@@ -9,6 +9,10 @@ if (!function_exists('mptbm_get_translation')) {
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly
+// DEBUG SUMMARY
+error_log('MPTBM DEBUG: summary.php loaded');
+error_log('MPTBM DEBUG: COOKIE mptbm_distance_text: ' . (isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : 'unset'));
+error_log('MPTBM DEBUG: REQUEST mptbm_distance_text: ' . (isset($_REQUEST['mptbm_distance_text']) ? $_REQUEST['mptbm_distance_text'] : 'unset'));
 	$distance = $distance ?? (isset($_COOKIE['mptbm_distance']) ?absint($_COOKIE['mptbm_distance']): '');
 	$duration = $duration ?? (isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '');
 	$label = $label ?? MPTBM_Function::get_name();
@@ -77,19 +81,21 @@ if (!function_exists('mptbm_get_translation')) {
 					<?php if($price_based != 'manual' && $price_based != 'fixed_hourly'){ ?> 
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php esc_html_e('Total Distance', 'ecab-taxi-booking-manager'); ?></h6>
+						<?php 
+							$distance_text = isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : (isset($_REQUEST['mptbm_distance_text']) ? $_REQUEST['mptbm_distance_text'] : '');
+						?>
 						<?php if ($two_way > 1) { 
-							$distance_text = isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : '';
 							$distance_value = floatval($distance_text) * 2; // Extracts number safely
 						?>
-							<p class="_textLight_1">
+							<p class="_textLight_1 mptbm_total_distance">
 								<?php echo esc_html($distance_value ." ". ucfirst($km_or_mile)); ?>
 							</p>
 						<?php }else{ ?>
-						<p class="_textLight_1"><?php echo esc_html(isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : ''); ?></p>
+						<p class="_textLight_1 mptbm_total_distance"><?php echo esc_html($distance_text); ?></p>
 						<?php }?>
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php esc_html_e('Total Time', 'ecab-taxi-booking-manager'); ?></h6>
-						<p class="_textLight_1"><?php echo esc_html(isset($_COOKIE['mptbm_duration_text']) ? $_COOKIE['mptbm_duration_text'] : ''); ?></p>
+						<p class="_textLight_1 mptbm_total_time"><?php echo esc_html(isset($_COOKIE['mptbm_duration_text']) ? $_COOKIE['mptbm_duration_text'] : (isset($_REQUEST['mptbm_duration_text']) ? $_REQUEST['mptbm_duration_text'] : '')); ?></p>
 					<?php } ?>
 					
 					

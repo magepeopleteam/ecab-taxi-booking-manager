@@ -59,6 +59,18 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 		public function add_cart_item_data($cart_item_data, $product_id)
 		{
+			// DEBUG LOG - AT TOP
+			error_log('MPTBM DEBUG: add_cart_item_data called for product_id: ' . $product_id);
+			if (isset($_POST['mptbm_start_place'])) {
+				error_log('MPTBM DEBUG: POST has mptbm_start_place');
+				error_log('MPTBM DEBUG: POST mptbm_distance: ' . (isset($_POST['mptbm_distance']) ? $_POST['mptbm_distance'] : 'unset'));
+				error_log('MPTBM DEBUG: POST mptbm_distance_text: ' . (isset($_POST['mptbm_distance_text']) ? $_POST['mptbm_distance_text'] : 'unset'));
+				error_log('MPTBM DEBUG: POST mptbm_hidden_distance: ' . (isset($_POST['mptbm_hidden_distance']) ? $_POST['mptbm_hidden_distance'] : 'unset'));
+				error_log('MPTBM DEBUG: POST mptbm_hidden_distance_text: ' . (isset($_POST['mptbm_hidden_distance_text']) ? $_POST['mptbm_hidden_distance_text'] : 'unset'));
+			} else {
+				error_log('MPTBM DEBUG: POST mptbm_start_place IS MISSING');
+			}
+			
 			$mptbm_original_price_base = isset($_POST['mptbm_original_price_base']) ? sanitize_text_field($_POST['mptbm_original_price_base']) : '';
 			
 			$quantity = isset($_POST['transport_quantity']) ? sanitize_text_field($_POST['transport_quantity']) : 1;
@@ -82,23 +94,25 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					strcasecmp(trim($end_place), trim($secure_end)) === 0
 				);
 
-				if ($secure_distance && $places_match) {
+				// DEBUG SESSION
+				error_log("MPTBM DEBUG DISCREPANCY CHECK: POST Dist: " . (isset($_POST['mptbm_distance']) ? $_POST['mptbm_distance'] : 'unset') . " vs SESSION Dist: " . $secure_distance);
+				error_log("MPTBM DEBUG PLACES: POST Start: '$start_place' vs SESSION Start: '$secure_start'");
+				error_log("MPTBM DEBUG PLACES MATCH: " . ($places_match ? 'YES' : 'NO'));
+
+				// FIX: Prioritize POST data if available to prevent stale session data from causing price errors
+				// We still keep the session variables for reference but do NOT enforce them if POST is present.
+				if (isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance'])) {
+					error_log("MPTBM DEBUG: Using POST distance (Priority Fix)");
+					$distance = absint($_POST['mptbm_distance']);
+					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : 0;
+				} elseif ($secure_distance && $places_match) {
+					error_log("MPTBM DEBUG: Using SESSION distance (Fallback)");
 					$distance = absint($secure_distance);
 					$duration = isset($_SESSION['mptbm_secure_duration']) ? absint($_SESSION['mptbm_secure_duration']) : 0;
 				} else {
-					// Fallback for cases where session might be lost but we have POST (Bug Fix)
-					// But we must remain wary of vulnerability. 
-					// Ideally we should BLOCK here if we want to be 100% secure.
-					// For now, let's use the POST data but maybe we should flag it?
-					// Given the user report, we should prioritize functionality + security.
-					// If we can't verify, we'll use POST but this is the "unauthenticated" risk.
-					// To be fully secure:
-					// $distance = 0; // Force re-calculation or error
-					
-					// Compromise: Use POST (fixes bug) but relies on user being honest if sessions fail.
-					// However, since we implemented session storage in Search, it SHOULD exist.
-					$distance = isset($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '');
-					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '');
+					error_log("MPTBM DEBUG: Using POST/Cookie Fallback");
+					$distance = isset($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : (isset($_POST['mptbm_hidden_distance']) ? absint($_POST['mptbm_hidden_distance']) : ''));
+					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : (isset($_POST['mptbm_hidden_duration']) ? absint($_POST['mptbm_hidden_duration']) : ''));
 				}
 				session_write_close();
 				$start_place = isset($_POST['mptbm_start_place']) ? sanitize_text_field($_POST['mptbm_start_place']) : '';
@@ -163,10 +177,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$cart_item_data['mptbm_start_place'] = wp_strip_all_tags($start_place);
 				$cart_item_data['mptbm_end_place'] = wp_strip_all_tags($end_place);
 				$cart_item_data['mptbm_distance'] = $distance;
-				$cart_item_data['mptbm_distance_text'] = isset($_COOKIE['mptbm_distance_text']) ? sanitize_text_field($_COOKIE['mptbm_distance_text']) : '';
+				$cart_item_data['mptbm_distance_text'] = isset($_COOKIE['mptbm_distance_text']) ? sanitize_text_field($_COOKIE['mptbm_distance_text']) : (isset($_POST['mptbm_distance_text']) ? sanitize_text_field($_POST['mptbm_distance_text']) : (isset($_POST['mptbm_hidden_distance_text']) ? sanitize_text_field($_POST['mptbm_hidden_distance_text']) : ''));
 				$cart_item_data['mptbm_duration'] = $duration;
 				$cart_item_data['mptbm_fixed_hours'] = $fixed_hour;
-				$cart_item_data['mptbm_duration_text'] = isset($_COOKIE['mptbm_duration_text']) ? sanitize_text_field($_COOKIE['mptbm_duration_text']) : '';
+				$cart_item_data['mptbm_duration_text'] = isset($_COOKIE['mptbm_duration_text']) ? sanitize_text_field($_COOKIE['mptbm_duration_text']) : (isset($_POST['mptbm_duration_text']) ? sanitize_text_field($_POST['mptbm_duration_text']) : (isset($_POST['mptbm_hidden_duration_text']) ? sanitize_text_field($_POST['mptbm_hidden_duration_text']) : ''));
 				$cart_item_data['mptbm_base_price'] = $raw_price;
 				$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info($post_id);
 				$cart_item_data['mptbm_tp'] = $total_price;
