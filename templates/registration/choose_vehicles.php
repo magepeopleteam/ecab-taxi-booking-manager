@@ -668,6 +668,10 @@ $summary_bag = $selected_max_bag ?: '';
 $distance = isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '');
 $duration = isset($_POST['mptbm_duration']) && !empty($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '');
 
+error_log("MPTBM: Distance received: " . $distance);
+error_log("MPTBM: Duration received: " . $duration);
+error_log("MPTBM: POST data: " . print_r($_POST, true));
+
 // Fallback values for object caching compatibility
 if (empty($distance)) {
     $distance = 1000; // Default 1km in meters

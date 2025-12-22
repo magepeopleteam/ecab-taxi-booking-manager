@@ -167,6 +167,17 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
                         if (mapArea.find('input[name="mptbm_hidden_duration"]').length === 0) {
                             mapArea.append('<input type="hidden" name="mptbm_hidden_duration" value="" />');
                         }
+
+                        // Also update our explicit hidden fields if they exist
+                        var explicitDistance = document.getElementById('mptbm_calculated_distance');
+                        if (explicitDistance) {
+                            explicitDistance.value = distance;
+                        }
+                        var explicitDuration = document.getElementById('mptbm_calculated_duration');
+                        if (explicitDuration) {
+                            explicitDuration.value = duration;
+                        }
+
                         // Add hidden inputs for text values as well (needed for cart display)
                         if (mapArea.find('input[name="mptbm_hidden_distance_text"]').length === 0) {
                             mapArea.append('<input type="hidden" name="mptbm_hidden_distance_text" value="" />');
@@ -606,6 +617,16 @@ function mptbm_calculate_osm_distance() {
                 document.cookie = "mptbm_distance_text=" + encodeURIComponent(distance_text) + cookieOptions;
                 document.cookie = "mptbm_duration=" + encodeURIComponent(durationInSeconds) + cookieOptions;
                 document.cookie = "mptbm_duration_text=" + encodeURIComponent(duration_text) + cookieOptions;
+
+                // Update explicit hidden fields
+                var explicitDistance = document.getElementById('mptbm_calculated_distance');
+                if (explicitDistance) {
+                    explicitDistance.value = distanceInMeters;
+                }
+                var explicitDuration = document.getElementById('mptbm_calculated_duration');
+                if (explicitDuration) {
+                    explicitDuration.value = durationInSeconds;
+                }
 
 
                 // Update distance display
@@ -1185,8 +1206,9 @@ function mptbm_init_google_map() {
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                     mptbm_original_price_base: mptbm_original_price_base,
-                                    mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
-                                    mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
+                                    mptbm_original_price_base: mptbm_original_price_base,
+                                    mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
+                                    mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
                                 },
                                 beforeSend: function () {
                                     //dLoader(target);
@@ -1242,8 +1264,9 @@ function mptbm_init_google_map() {
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                     mptbm_original_price_base: mptbm_original_price_base,
-                                    mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
-                                    mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
+                                    mptbm_original_price_base: mptbm_original_price_base,
+                                    mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
+                                    mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
                                 },
                                 beforeSend: function () {
                                     dLoader(target);
@@ -1296,8 +1319,8 @@ function mptbm_init_google_map() {
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 mptbm_original_price_base: mptbm_original_price_base,
-                                mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
-                                mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
+                                mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
+                                mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
                                 mptbm_distance_text: parent.find('input[name="mptbm_hidden_distance_text"]').val(),
                                 mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
                             },
@@ -1353,8 +1376,8 @@ function mptbm_init_google_map() {
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 mptbm_original_price_base: mptbm_original_price_base,
-                                mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
-                                mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
+                                mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
+                                mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
                                 mptbm_distance_text: parent.find('input[name="mptbm_hidden_distance_text"]').val(),
                                 mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
                             },

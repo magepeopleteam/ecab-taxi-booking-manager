@@ -9,10 +9,7 @@ if (!function_exists('mptbm_get_translation')) {
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly
-// DEBUG SUMMARY
-error_log('MPTBM DEBUG: summary.php loaded');
-error_log('MPTBM DEBUG: COOKIE mptbm_distance_text: ' . (isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : 'unset'));
-error_log('MPTBM DEBUG: REQUEST mptbm_distance_text: ' . (isset($_REQUEST['mptbm_distance_text']) ? $_REQUEST['mptbm_distance_text'] : 'unset'));
+
 	$distance = $distance ?? (isset($_COOKIE['mptbm_distance']) ?absint($_COOKIE['mptbm_distance']): '');
 	$duration = $duration ?? (isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '');
 	$label = $label ?? MPTBM_Function::get_name();
@@ -80,22 +77,66 @@ error_log('MPTBM DEBUG: REQUEST mptbm_distance_text: ' . (isset($_REQUEST['mptbm
 					
 					<?php if($price_based != 'manual' && $price_based != 'fixed_hourly'){ ?> 
 						<div class="divider"></div>
+						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php esc_html_e('Total Distance', 'ecab-taxi-booking-manager'); ?></h6>
 						<?php 
+							// First try to get text from cookies/request
 							$distance_text = isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : (isset($_REQUEST['mptbm_distance_text']) ? $_REQUEST['mptbm_distance_text'] : '');
+							
+							// If text is missing but we have raw value, calculate it
+							if (empty($distance_text) && !empty($distance)) {
+								$distance_in_meters = floatval($distance);
+								if ($km_or_mile == 'mile') {
+									$dist_val = $distance_in_meters * 0.000621371;
+									$distance_text = round($dist_val, 1) . ' miles';
+								} else {
+									$dist_val = $distance_in_meters / 1000;
+									$distance_text = round($dist_val, 1) . ' km';
+								}
+							}
+
+							$duration_text = isset($_COOKIE['mptbm_duration_text']) ? $_COOKIE['mptbm_duration_text'] : (isset($_REQUEST['mptbm_duration_text']) ? $_REQUEST['mptbm_duration_text'] : '');
+							
+							// If duration text is missing but we have raw value
+							if (empty($duration_text) && !empty($duration)) {
+								$duration_seconds = intval($duration);
+								$hours = floor($duration_seconds / 3600);
+								$minutes = round(($duration_seconds % 3600) / 60);
+								
+								if ($hours > 0) {
+									$duration_text = sprintf(__('%d Hour %d Min', 'ecab-taxi-booking-manager'), $hours, $minutes);
+								} else {
+									$duration_text = sprintf(__('%d Min', 'ecab-taxi-booking-manager'), $minutes);
+								}
+							}
 						?>
 						<?php if ($two_way > 1) { 
-							$distance_value = floatval($distance_text) * 2; // Extracts number safely
+							// If we calculated it ourselves, we can just double the numeric part or re-calculate
+							if (!empty($distance) && empty($_COOKIE['mptbm_distance_text']) && empty($_REQUEST['mptbm_distance_text'])) {
+								// We have raw distance, so just double raw distance and format
+								$total_dist = floatval($distance) * 2;
+								if ($km_or_mile == 'mile') {
+									$val = $total_dist * 0.000621371;
+									$display_dist = round($val, 1) . ' MILE';
+								} else {
+									$val = $total_dist / 1000;
+									$display_dist = round($val, 1) . ' KM';
+								}
+							} else {
+								// Fallback to parsing the text (legacy behavior)
+								$distance_value = floatval($distance_text) * 2; 
+								$display_dist = $distance_value ." ". ucfirst($km_or_mile);
+							}
 						?>
 							<p class="_textLight_1 mptbm_total_distance">
-								<?php echo esc_html($distance_value ." ". ucfirst($km_or_mile)); ?>
+								<?php echo esc_html($display_dist); ?>
 							</p>
 						<?php }else{ ?>
 						<p class="_textLight_1 mptbm_total_distance"><?php echo esc_html($distance_text); ?></p>
 						<?php }?>
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php esc_html_e('Total Time', 'ecab-taxi-booking-manager'); ?></h6>
-						<p class="_textLight_1 mptbm_total_time"><?php echo esc_html(isset($_COOKIE['mptbm_duration_text']) ? $_COOKIE['mptbm_duration_text'] : (isset($_REQUEST['mptbm_duration_text']) ? $_REQUEST['mptbm_duration_text'] : '')); ?></p>
+						<p class="_textLight_1 mptbm_total_time"><?php echo esc_html($duration_text); ?></p>
 					<?php } ?>
 					
 					
@@ -129,6 +170,7 @@ error_log('MPTBM DEBUG: REQUEST mptbm_distance_text: ' . (isset($_REQUEST['mptbm
 					</p>
 					
 					<div class="divider"></div>
+					<?php if($summary_bag>0){ ?>
 					<h6 class="_mB_xs"><?php esc_html_e('Bags', 'ecab-taxi-booking-manager'); ?></h6>
 					<p class="_textLight_1 mptbm_summary_bag">
 						<?php
@@ -137,6 +179,7 @@ error_log('MPTBM DEBUG: REQUEST mptbm_distance_text: ' . (isset($_REQUEST['mptbm
 						}
 						?>
 					</p>
+					<?php } ?>
 					<?php if($fixed_time && $fixed_time>0){ ?>
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')); ?></h6>
