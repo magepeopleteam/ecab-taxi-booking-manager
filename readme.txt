@@ -219,6 +219,14 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 2.0.1 = 
+1. Api issues resolved
+2. buffer time for other days issue resolved 
+3. tax issue fixed 
+4. decimel in extra service issue fixed
+5. xss vulnerbility fixed
+6. dropdown issue for manual pricing fixed
+7. date picker in admin issue fixed
 = 2.0.0 = 
 1. Openstreet map implemented
 2. extra service image issue fixed 
