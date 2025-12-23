@@ -39,6 +39,8 @@ if (!function_exists('mptbm_get_translation')) {
 		$show_summary = false;
 	}
 	$disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
+	// Check feature filter setting
+	$enable_filter_features = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_filter_via_features', 'no');
 ?>
 	<?php if ($show_summary): ?>
 	<div class="leftSidebar">
@@ -160,25 +162,27 @@ if (!function_exists('mptbm_get_translation')) {
 						<p class="_textLight_1"><?php echo esc_html($waiting_time); ?>&nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
 					<?php } ?>
 					<div class="divider"></div>
-					<h6 class="_mB_xs"><?php esc_html_e('Passengers', 'ecab-taxi-booking-manager'); ?></h6>
-					<p class="_textLight_1 mptbm_summary_passenger">
-						<?php
-						if (!empty($summary_passenger) || $summary_passenger === 0) {
-							echo esc_html($summary_passenger);
-						}
-						?>
-					</p>
-					
-					<div class="divider"></div>
-					<?php if($summary_bag>0){ ?>
-					<h6 class="_mB_xs"><?php esc_html_e('Bags', 'ecab-taxi-booking-manager'); ?></h6>
-					<p class="_textLight_1 mptbm_summary_bag">
-						<?php
-						if (!empty($summary_bag) || $summary_bag === 0) {
-							echo esc_html($summary_bag);
-						}
-						?>
-					</p>
+					<?php if ($enable_filter_features == 'yes') { ?>
+						<h6 class="_mB_xs"><?php esc_html_e('Passengers', 'ecab-taxi-booking-manager'); ?></h6>
+						<p class="_textLight_1 mptbm_summary_passenger">
+							<?php
+							if (!empty($summary_passenger) || $summary_passenger === 0) {
+								echo esc_html($summary_passenger);
+							}
+							?>
+						</p>
+						
+						<div class="divider"></div>
+						<?php if($summary_bag>0){ ?>
+						<h6 class="_mB_xs"><?php esc_html_e('Bags', 'ecab-taxi-booking-manager'); ?></h6>
+						<p class="_textLight_1 mptbm_summary_bag">
+							<?php
+							if (!empty($summary_bag) || $summary_bag === 0) {
+								echo esc_html($summary_bag);
+							}
+							?>
+						</p>
+						<?php } ?>
 					<?php } ?>
 					<?php if($fixed_time && $fixed_time>0){ ?>
 						<div class="divider"></div>
