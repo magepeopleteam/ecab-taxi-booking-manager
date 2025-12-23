@@ -45,7 +45,7 @@ if (!function_exists('mptbm_get_translation')) {
 		<div class="">
 			<div class="mp_sticky_on_scroll summary-box">
 				<div class="_dFlex_fdColumn">
-					<h3><?php esc_html_e('SUMMARY', 'ecab-taxi-booking-manager'); ?></h3>
+					<h3><?php echo mptbm_get_translation('summary_label', __('SUMMARY', 'ecab-taxi-booking-manager')); ?></h3>
 					<div class="divider"></div>
 
 					<h6 class="_mB_xs"><?php esc_html_e('Pickup Date', 'ecab-taxi-booking-manager'); ?></h6>
@@ -78,7 +78,7 @@ if (!function_exists('mptbm_get_translation')) {
 					<?php if($price_based != 'manual' && $price_based != 'fixed_hourly'){ ?> 
 						<div class="divider"></div>
 						<div class="divider"></div>
-						<h6 class="_mB_xs"><?php esc_html_e('Total Distance', 'ecab-taxi-booking-manager'); ?></h6>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('total_distance_label', __('Total Distance', 'ecab-taxi-booking-manager')); ?></h6>
 						<?php 
 							// First try to get text from cookies/request
 							$distance_text = isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : (isset($_REQUEST['mptbm_distance_text']) ? $_REQUEST['mptbm_distance_text'] : '');
@@ -135,7 +135,7 @@ if (!function_exists('mptbm_get_translation')) {
 						<p class="_textLight_1 mptbm_total_distance"><?php echo esc_html($distance_text); ?></p>
 						<?php }?>
 						<div class="divider"></div>
-						<h6 class="_mB_xs"><?php esc_html_e('Total Time', 'ecab-taxi-booking-manager'); ?></h6>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('total_time_label', __('Total Time', 'ecab-taxi-booking-manager')); ?></h6>
 						<p class="_textLight_1 mptbm_total_time"><?php echo esc_html($duration_text); ?></p>
 					<?php } ?>
 					
@@ -143,7 +143,7 @@ if (!function_exists('mptbm_get_translation')) {
 					<?php if($two_way>1){ 
 						?>
 						<div class="divider"></div>
-						<h6 class="_mB_xs"><?php esc_html_e('Transfer Type', 'ecab-taxi-booking-manager'); ?></h6>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('transfer_type_label', __('Transfer Type', 'ecab-taxi-booking-manager')); ?></h6>
 						<p class="_textLight_1"><?php esc_html_e('Return', 'ecab-taxi-booking-manager'); ?></p>
 						<?php if(!empty($return_date_time)){ ?>
                             <div class="divider"></div>

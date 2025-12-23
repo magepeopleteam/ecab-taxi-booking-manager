@@ -278,7 +278,7 @@ if (function_exists('wp_is_block_theme') && wp_is_block_theme()) {
                                 <span class="mp_zero" data-icon></span>
                                 <span class="mp_zero" data-text>3</span>
                             </h4>
-                            <h6 class="circleTitle" data-class><?php esc_html_e('Place Order', 'ecab-taxi-booking-manager'); ?></h6>
+                            <h6 class="circleTitle" data-class><?php echo mptbm_get_translation('place_order_label', __('Place Order', 'ecab-taxi-booking-manager')); ?></h6>
                         </div>
                     </div>
                     <div class="tabsContentNext">
