@@ -59,17 +59,6 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 		public function add_cart_item_data($cart_item_data, $product_id)
 		{
-			// DEBUG LOG - AT TOP
-			error_log('MPTBM DEBUG: add_cart_item_data called for product_id: ' . $product_id);
-			if (isset($_POST['mptbm_start_place'])) {
-				error_log('MPTBM DEBUG: POST has mptbm_start_place');
-				error_log('MPTBM DEBUG: POST mptbm_distance: ' . (isset($_POST['mptbm_distance']) ? $_POST['mptbm_distance'] : 'unset'));
-				error_log('MPTBM DEBUG: POST mptbm_distance_text: ' . (isset($_POST['mptbm_distance_text']) ? $_POST['mptbm_distance_text'] : 'unset'));
-				error_log('MPTBM DEBUG: POST mptbm_hidden_distance: ' . (isset($_POST['mptbm_hidden_distance']) ? $_POST['mptbm_hidden_distance'] : 'unset'));
-				error_log('MPTBM DEBUG: POST mptbm_hidden_distance_text: ' . (isset($_POST['mptbm_hidden_distance_text']) ? $_POST['mptbm_hidden_distance_text'] : 'unset'));
-			} else {
-				error_log('MPTBM DEBUG: POST mptbm_start_place IS MISSING');
-			}
 			
 			$mptbm_original_price_base = isset($_POST['mptbm_original_price_base']) ? sanitize_text_field($_POST['mptbm_original_price_base']) : '';
 			
@@ -94,23 +83,16 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					strcasecmp(trim($end_place), trim($secure_end)) === 0
 				);
 
-				// DEBUG SESSION
-				error_log("MPTBM DEBUG DISCREPANCY CHECK: POST Dist: " . (isset($_POST['mptbm_distance']) ? $_POST['mptbm_distance'] : 'unset') . " vs SESSION Dist: " . $secure_distance);
-				error_log("MPTBM DEBUG PLACES: POST Start: '$start_place' vs SESSION Start: '$secure_start'");
-				error_log("MPTBM DEBUG PLACES MATCH: " . ($places_match ? 'YES' : 'NO'));
 
 				// FIX: Prioritize POST data if available to prevent stale session data from causing price errors
 				// We still keep the session variables for reference but do NOT enforce them if POST is present.
 				if (isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance'])) {
-					error_log("MPTBM DEBUG: Using POST distance (Priority Fix)");
 					$distance = absint($_POST['mptbm_distance']);
 					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : 0;
 				} elseif ($secure_distance && $places_match) {
-					error_log("MPTBM DEBUG: Using SESSION distance (Fallback)");
 					$distance = absint($secure_distance);
 					$duration = isset($_SESSION['mptbm_secure_duration']) ? absint($_SESSION['mptbm_secure_duration']) : 0;
 				} else {
-					error_log("MPTBM DEBUG: Using POST/Cookie Fallback");
 					$distance = isset($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : (isset($_POST['mptbm_hidden_distance']) ? absint($_POST['mptbm_hidden_distance']) : ''));
 					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : (isset($_POST['mptbm_hidden_duration']) ? absint($_POST['mptbm_hidden_duration']) : ''));
 				}
@@ -159,8 +141,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				
 				// Calculate single-unit transport price
 				$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $return, $fixed_hour);
-				$wc_price = MP_Global_Function::wc_price($post_id, $price);
-				$raw_price = MP_Global_Function::price_convert_raw($wc_price);
+				// Send the raw, tax-exclusive price to WooCommerce and let it handle tax calculations at checkout to avoid double taxation.
+				$raw_price = $price;
 				// Multiply transport unit price by quantity
 				$transport_total_price = $raw_price * $quantity;
 				// Calculate extra service total (single add-on, not per transport unit)
@@ -231,6 +213,18 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					$value['data']->set_price($total_price);
 					$value['data']->set_regular_price($total_price);
 					$value['data']->set_sale_price($total_price);
+					// Force tax status and class from the taxi booking settings to ensure they are respected
+					$tax_status = get_post_meta($post_id, '_tax_status', true) ?: 'none';
+					$tax_class = get_post_meta($post_id, '_tax_class', true) ?: '';
+					
+					// If stored as 'standard' in our UI, convert to empty string for WooCommerce
+					if ($tax_class === 'standard') {
+						$tax_class = '';
+					}
+					
+					$value['data']->set_tax_status($tax_status);
+					$value['data']->set_tax_class($tax_class);
+					
 					$value['data']->get_price();
 				}
 			}
@@ -258,26 +252,26 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					$end_location = array_key_exists('mptbm_end_place', $cart_item) ? $cart_item['mptbm_end_place'] : '';
 					$date = array_key_exists('mptbm_date', $cart_item) ? $cart_item['mptbm_date'] : '';
 
-					$item_data[] = array('key' => esc_html__('Pickup', 'ecab-taxi-booking-manager'), 'value' => $start_location);
+					$item_data[] = array('key' => mptbm_get_translation('pickup_label', __('Pickup', 'ecab-taxi-booking-manager')), 'value' => $start_location);
 
 					if (!($original_price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable')) {
-						$item_data[] = array('key' => esc_html__('Dropoff', 'ecab-taxi-booking-manager'), 'value' => $end_location);
+						$item_data[] = array('key' => mptbm_get_translation('dropoff_label', __('Dropoff', 'ecab-taxi-booking-manager')), 'value' => $end_location);
 					}
 
-					$item_data[] = array('key' => esc_html__('Date', 'ecab-taxi-booking-manager'), 'value' => MP_Global_Function::date_format($date));
-					$item_data[] = array('key' => esc_html__('Time', 'ecab-taxi-booking-manager'), 'value' => MP_Global_Function::date_format($date, 'time'));
+					$item_data[] = array('key' => mptbm_get_translation('date_label', __('Date', 'ecab-taxi-booking-manager')), 'value' => MP_Global_Function::date_format($date));
+					$item_data[] = array('key' => mptbm_get_translation('time_label', __('Time', 'ecab-taxi-booking-manager')), 'value' => MP_Global_Function::date_format($date, 'time'));
 
 					// Passengers and Bags (Respecting the setting)
 					$enable_filter_features = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_filter_via_features', 'no');
 					if ($enable_filter_features == 'yes') {
 						$passengers = array_key_exists('mptbm_passengers', $cart_item) ? absint($cart_item['mptbm_passengers']) : '';
 						if ($passengers !== '') {
-							$item_data[] = array('key' => esc_html__('Passengers', 'ecab-taxi-booking-manager'), 'value' => $passengers);
+							$item_data[] = array('key' => mptbm_get_translation('passengers_label', __('Passengers', 'ecab-taxi-booking-manager')), 'value' => $passengers);
 						}
 						
 						$bags = array_key_exists('mptbm_bags', $cart_item) ? $cart_item['mptbm_bags'] : '';
 						if ($bags !== '') {
-							$item_data[] = array('key' => esc_html__('Bags', 'ecab-taxi-booking-manager'), 'value' => $bags);
+							$item_data[] = array('key' => mptbm_get_translation('bags_label', __('Bags', 'ecab-taxi-booking-manager')), 'value' => $bags);
 						}
 					}
 					
@@ -294,7 +288,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				if ($original_price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
 					$cart_html = preg_replace('/<li>.*?Drop-Off Location.*?<\/li>/is', '', $cart_html);
 				}
-				$item_data[] = array('key' => esc_html__('Booking Details ', 'ecab-taxi-booking-manager'), 'value' => $cart_html);
+				$item_data[] = array('key' => mptbm_get_translation('booking_details_label', __('Booking Details', 'ecab-taxi-booking-manager')), 'value' => $cart_html);
 			}
 			return $item_data;
 		}
@@ -322,9 +316,9 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$date = isset($values['mptbm_date']) ? $values['mptbm_date'] : '';
 				$start_location = isset($values['mptbm_start_place']) ? $values['mptbm_start_place'] : '';
 				$end_location = isset($values['mptbm_end_place']) ? $values['mptbm_end_place'] : '';
-				$item->add_meta_data(esc_html__('Pickup Location ', 'ecab-taxi-booking-manager'), $start_location);
+				$item->add_meta_data(mptbm_get_translation('pickup_location_label', __('Pickup Location', 'ecab-taxi-booking-manager')), $start_location);
 				if (!($original_price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable')) {
-					$item->add_meta_data(esc_html__('Drop-Off Location ', 'ecab-taxi-booking-manager'), $end_location);
+					$item->add_meta_data(mptbm_get_translation('dropoff_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')), $end_location);
 				}
 				$distance = isset($values['mptbm_distance']) ? $values['mptbm_distance'] : '';
 				$distance_text = isset($values['mptbm_distance_text']) ? $values['mptbm_distance_text'] : '';
@@ -339,8 +333,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$transport_quantity = isset($values['mptbm_transport_quantity']) ? $values['mptbm_transport_quantity'] : 1;
 				$item->set_quantity( $transport_quantity );
 				if ($original_price_based !== 'manual') {
-					$item->add_meta_data(esc_html__('Approximate Distancee ', 'ecab-taxi-booking-manager'), $distance_text);
-					$item->add_meta_data(esc_html__('Approximate Time ', 'ecab-taxi-booking-manager'), $duration_text);
+					$item->add_meta_data(mptbm_get_translation('approximate_distance_label', __('Approximate Distance', 'ecab-taxi-booking-manager')), $distance_text);
+					$item->add_meta_data(mptbm_get_translation('approximate_time_label', __('Approximate Time', 'ecab-taxi-booking-manager')), $duration_text);
 				}
 
 				if ($waiting_time && $waiting_time > 0) {
@@ -349,25 +343,25 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				if ($fixed_time && $fixed_time > 0) {
 					$item->add_meta_data(mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')), $fixed_time . ' ' . mptbm_get_translation('hours_in_waiting_label', __('Hour', 'ecab-taxi-booking-manager')));
 				}
-				$item->add_meta_data(esc_html__('Date ', 'ecab-taxi-booking-manager'), esc_html(MP_Global_Function::date_format($date)));
-				$item->add_meta_data(esc_html__('Time ', 'ecab-taxi-booking-manager'), esc_html(MP_Global_Function::date_format($date, 'time')));
-				$item->add_meta_data(esc_html__('Transport Quantity ', 'ecab-taxi-booking-manager'), $transport_quantity);
+				$item->add_meta_data(mptbm_get_translation('date_label', __('Date', 'ecab-taxi-booking-manager')), esc_html(MP_Global_Function::date_format($date)));
+				$item->add_meta_data(mptbm_get_translation('time_label', __('Time', 'ecab-taxi-booking-manager')), esc_html(MP_Global_Function::date_format($date, 'time')));
+				$item->add_meta_data(mptbm_get_translation('transport_quantity_label', __('Transport Quantity', 'ecab-taxi-booking-manager')), $transport_quantity);
 				// Always store passengers and bags counts when provided AND enabled
 				$enable_filter_features = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_filter_via_features', 'no');
 				if ($enable_filter_features == 'yes') {
 					$passengers = isset($values['mptbm_passengers']) ? absint($values['mptbm_passengers']) : 1;
-					$item->add_meta_data(esc_html__('Number of Passengers', 'ecab-taxi-booking-manager'), $passengers);
+					$item->add_meta_data(mptbm_get_translation('number_of_passengers_label', __('Number of Passengers', 'ecab-taxi-booking-manager')), $passengers);
 					$item->add_meta_data('_mptbm_passengers', $passengers);
 
 					$bags = isset($values['mptbm_bags']) ? absint($values['mptbm_bags']) : '';
 					if ($bags !== '') {
-						$item->add_meta_data(esc_html__('Number of Bags', 'ecab-taxi-booking-manager'), $bags);
+						$item->add_meta_data(mptbm_get_translation('number_of_bags_label', __('Number of Bags', 'ecab-taxi-booking-manager')), $bags);
 						$item->add_meta_data('_mptbm_bags', $bags);
 					}
 				}
 
 				if ($return && $return > 1) {
-					$item->add_meta_data(esc_html__('Transfer Type', 'ecab-taxi-booking-manager'), esc_html__('Return ', 'ecab-taxi-booking-manager'));
+					$item->add_meta_data(mptbm_get_translation('transfer_type_label', __('Transfer Type', 'ecab-taxi-booking-manager')), mptbm_get_translation('return_label', __('Return', 'ecab-taxi-booking-manager')));
 					if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_return_in_different_date') == 'yes') {
 						$return_date = $values['mptbm_return_target_date'] ?? '';
 						$return_time = $values['mptbm_return_target_time'] ?? '';
@@ -408,8 +402,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						}
 
 
-						$item->add_meta_data(esc_html__('Return Date', 'ecab-taxi-booking-manager'), esc_html(MP_Global_Function::date_format($return_date_time)));
-						$item->add_meta_data(esc_html__('Return Time', 'ecab-taxi-booking-manager'), esc_html(MP_Global_Function::date_format($return_date_time, 'time')));
+						$item->add_meta_data(mptbm_get_translation('return_date_label', __('Return Date', 'ecab-taxi-booking-manager')), esc_html(MP_Global_Function::date_format($return_date_time)));
+						$item->add_meta_data(mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')), esc_html(MP_Global_Function::date_format($return_date_time, 'time')));
 						$item->add_meta_data('_mptbm_return_date', $return_date);
 						$item->add_meta_data('_mptbm_return_time', $return_time);
 					}
@@ -699,7 +693,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					<ul class="cart_list">
 						<li>
 							<span class="fas fa-map-marker-alt"></span>
-							<h6 class="_mR_xs"><?php esc_html_e('Pickup Location', 'ecab-taxi-booking-manager'); ?> :</h6>
+							<h6 class="_mR_xs"><?php echo mptbm_get_translation('pickup_location_label', __('Pickup Location', 'ecab-taxi-booking-manager')); ?> :</h6>
 							<span><?php echo esc_html($start_location); ?></span>
 						</li>
 						<?php if (!($original_price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable')): ?>
@@ -714,29 +708,29 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						?>
 							<li>
 								<span class="fas fa-route"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Approximate Distance', 'ecab-taxi-booking-manager'); ?> :</h6>
+								<h6 class="_mR_xs"><?php echo mptbm_get_translation('approximate_distance_label', __('Approximate Distance', 'ecab-taxi-booking-manager')); ?> :</h6>
 								<span><?php echo esc_html($cart_item['mptbm_distance_text']); ?></span>
 							</li>
 							<li>
 								<span class="far fa-clock"></span>
-								<h6 class="_mR_xs"><?php esc_html_e('Approximate Time', 'ecab-taxi-booking-manager'); ?> :</h6>
+								<h6 class="_mR_xs"><?php echo mptbm_get_translation('approximate_time_label', __('Approximate Time', 'ecab-taxi-booking-manager')); ?> :</h6>
 								<span><?php echo esc_html($cart_item['mptbm_duration_text']); ?></span>
 							</li>
 						<?php } ?>
 						<li>
 							<span class="far fa-calendar-alt"></span>
-							<h6 class="_mR_xs"><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?> :</h6>
+							<h6 class="_mR_xs"><?php echo mptbm_get_translation('date_label', __('Date', 'ecab-taxi-booking-manager')); ?> :</h6>
 							<span><?php echo esc_html(MP_Global_Function::date_format($date)); ?></span>
 						</li>
 						<li>
 							<span class="far fa-clock"></span>
-							<h6 class="_mR_xs"><?php esc_html_e('Time : ', 'ecab-taxi-booking-manager'); ?></h6>
+							<h6 class="_mR_xs"><?php echo mptbm_get_translation('time_label', __('Time', 'ecab-taxi-booking-manager')); ?> :</h6>
 							<span><?php echo esc_html(MP_Global_Function::date_format($date, 'time')); ?></span>
 						</li>
 						<?php if ($return && $return > 1) { ?>
 							<li>
-								<h6 class="_mR_xs"><?php esc_html_e('Transfer Type', 'ecab-taxi-booking-manager'); ?> :</h6>
-								<span><?php esc_html_e('Return', 'ecab-taxi-booking-manager'); ?></span>
+								<h6 class="_mR_xs"><?php echo mptbm_get_translation('transfer_type_label', __('Transfer Type', 'ecab-taxi-booking-manager')); ?> :</h6>
+								<span><?php echo mptbm_get_translation('return_label', __('Return', 'ecab-taxi-booking-manager')); ?></span>
 							</li>
 
 							<?php if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_return_in_different_date') == 'yes') {
@@ -783,12 +777,12 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							?>
 								<li>
 									<span class="far fa-calendar-alt"></span>
-									<h6 class="_mR_xs"><?php esc_html_e('Return Date', 'ecab-taxi-booking-manager'); ?> :</h6>
+									<h6 class="_mR_xs"><?php echo mptbm_get_translation('return_date_label', __('Return Date', 'ecab-taxi-booking-manager')); ?> :</h6>
 									<span><?php echo esc_html(MP_Global_Function::date_format($return_date_time)); ?></span>
 								</li>
 								<li>
 									<span class="far fa-clock"></span>
-									<h6 class="_mR_xs"><?php esc_html_e('Return Time', 'ecab-taxi-booking-manager'); ?> :</h6>
+									<h6 class="_mR_xs"><?php echo mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')); ?> :</h6>
 									<span><?php echo esc_html(MP_Global_Function::date_format($return_date_time, 'time')); ?></span>
 								</li>
 							<?php } ?>
@@ -933,8 +927,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				for ($i = 0; $i < count($service_name); $i++) {
 					if ($service_name[$i] && $service_quantity[$i] > 0) {
 						$price = MPTBM_Function::get_extra_service_price_by_name($post_id, $service_name[$i]);
-						$wc_price = MP_Global_Function::wc_price($post_id, $price);
-						$raw_price = MP_Global_Function::price_convert_raw($wc_price);
+				// Send the raw, tax-exclusive price for extra services to avoid double taxation.
+				$raw_price = $price;
 						$extra_service[$i]['service_name'] = $service_name[$i];
 						$extra_service[$i]['service_quantity'] = $service_quantity[$i];
 						$extra_service[$i]['service_price'] = $raw_price;

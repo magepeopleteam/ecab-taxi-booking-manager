@@ -1,0 +1,211 @@
+/* API Documentation Styles */
+.mptbm-api-documentation {
+    max-width: 1200px;
+    margin: 20px 0;
+}
+
+.api-docs-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.api-section {
+    margin-bottom: 40px;
+    padding: 20px;
+    border: 1px solid #e1e4e7;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.api-section h2 {
+    margin-top: 0;
+    color: #2271b1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* API Keys Management */
+.api-keys-manager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.generate-key-form,
+.api-keys-list {
+    background: white;
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.api-key-item {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.api-key-status.active {
+    background: #00a32a;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.api-key-status.revoked {
+    background: #d63638;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* Endpoints */
+.endpoints-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.endpoint-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.endpoint-header {
+    background: #f6f7f7;
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.method {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: white;
+    min-width: 60px;
+    text-align: center;
+}
+
+.method-get {
+    background: #28a745;
+}
+
+.method-post {
+    background: #007bff;
+}
+
+.method-put {
+    background: #ffc107;
+    color: #000;
+}
+
+.method-delete {
+    background: #dc3545;
+}
+
+.endpoint-url {
+    font-family: 'Courier New', monospace;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    flex-grow: 1;
+}
+
+.endpoint-description,
+.endpoint-parameters,
+.endpoint-example {
+    padding: 20px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.parameters-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.parameters-table th,
+.parameters-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+    font-size: 12px;
+}
+
+.parameters-table th {
+    background: #f6f7f7;
+    font-weight: bold;
+    color: #1d2327;
+}
+
+.code-example {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    overflow-x: auto;
+    margin: 0;
+    white-space: pre;
+    line-height: 1.4;
+}
+
+.required {
+    color: #d63638;
+    font-weight: bold;
+}
+}
+
+.endpoint-section h3 {
+    cursor: pointer;
+    position: relative;
+}
+
+.endpoint-section h3:after {
+    content: "▼";
+    position: absolute;
+    right: 20px;
+    transition: transform 0.3s ease;
+}
+
+.endpoint-section.active h3:after {
+    transform: rotate(180deg);
+}
+
+/* Responsive Design */
+@media screen and (max-width: 782px) {
+    .mptbm-api-docs {
+        margin: 10px;
+    }
+
+    .parameters table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .endpoint-section {
+        padding: 15px;
+    }
+
+    .example-response pre {
+        font-size: 12px;
+    }
+}

@@ -1430,6 +1430,9 @@ if (!class_exists('MPTBM_REST_API')) {
                 // Get WooCommerce order
                 $order = function_exists('wc_get_order') ? wc_get_order($order_id) : null;
                 
+                // Normalize order to handle refunds (prevent fatal errors)
+                $order = $this->get_actual_order($order);
+                
                 if (!$order) {
                     continue;
                 }
@@ -1750,6 +1753,9 @@ if (!class_exists('MPTBM_REST_API')) {
             
             if (function_exists('wc_get_order')) {
                 $order = wc_get_order($booking_id);
+                // Normalize order to handle refunds (prevent fatal errors)
+                $order = $this->get_actual_order($order);
+                
                 if ($order && $order->get_id()) {
                     // Order exists, get the post for additional info
                     $booking_post = get_post($booking_id);
@@ -1765,6 +1771,8 @@ if (!class_exists('MPTBM_REST_API')) {
                     // Try to get order again
                     if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
                         $order = wc_get_order($booking_id);
+                        // Normalize order to handle refunds (prevent fatal errors)
+                        $order = $this->get_actual_order($order);
                     }
                 } else {
                     // Post doesn't exist or is not a valid booking type
@@ -2033,6 +2041,8 @@ if (!class_exists('MPTBM_REST_API')) {
             
             if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
                 $order = wc_get_order($booking_id);
+                // Normalize order to handle refunds (prevent fatal errors)
+                $order = $this->get_actual_order($order);
             }
             
             // Update customer details if provided
@@ -2182,6 +2192,8 @@ if (!class_exists('MPTBM_REST_API')) {
             $order = null;
             if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
                 $order = wc_get_order($booking_id);
+                // Normalize order to handle refunds (prevent fatal errors)
+                $order = $this->get_actual_order($order);
             }
             
             // Cancel the booking
@@ -2289,6 +2301,8 @@ if (!class_exists('MPTBM_REST_API')) {
             $order = null;
             if ($booking_post->post_type === 'shop_order' && function_exists('wc_get_order')) {
                 $order = wc_get_order($booking_id);
+                // Normalize order to handle refunds (prevent fatal errors)
+                $order = $this->get_actual_order($order);
             }
             
             // Update the status
@@ -3141,6 +3155,25 @@ if (!class_exists('MPTBM_REST_API')) {
                 }
                 return sanitize_text_field($value);
             }, $extra_service);
+        }
+
+        /**
+         * Get the actual parent order if the provided order is a refund.
+         * This handles the Automattic\WooCommerce\Admin\Overrides\OrderRefund fatal errors
+         * where methods like get_customer_id() are missing on refund objects.
+         */
+        private function get_actual_order($order) {
+            if (!$order) {
+                return $order;
+            }
+
+            // If it's a refund, it will have a parent order ID
+            if (method_exists($order, 'get_parent_id') && $order->get_parent_id() > 0) {
+                $parent_order = wc_get_order($order->get_parent_id());
+                return $parent_order ?: $order;
+            }
+
+            return $order;
         }
 
         /**

@@ -259,8 +259,6 @@ if (!class_exists('MPTBM_Function')) {
 		//*************Price*********************************//
 		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0)
 		{
-			// DEBUG PRICE
-			error_log("MPTBM DEBUG: get_price called. PostID: $post_id, Dist: $distance, Dur: $duration");
 			
 			// Force fresh pricing calculations to prevent caching issues on repeated searches
 			$is_transport_result_page = false;
@@ -610,36 +608,11 @@ if (!class_exists('MPTBM_Function')) {
 
 			
 
-			$wc_check = MP_Global_Function::check_woocommerce();
-
-			if ($wc_check == 1) {
-				$_product_id = MP_Global_Function::get_post_info($post_id, 'link_wc_product', $post_id);
-
-				$product = wc_get_product($_product_id);
-
-				if ($product) {
-					$is_taxable = $product->is_taxable();
-
-					if ($is_taxable) {
-						// Get tax rates for this product
-						$tax_rates = WC_Tax::get_rates($product->get_tax_class());
-
-						if (!empty($tax_rates)) {
-							// Calculate tax on the final price
-							$taxes = WC_Tax::calc_tax($price, $tax_rates, false);
-
-							if (!empty($taxes)) {
-								$tax_amount = array_sum($taxes);
-								// Add tax to the price
-								$price = $price + $tax_amount;
-							} 
-						} 
-					}
-				} 
-			} 
-
-
-			return $price;
+			// Removed manual tax addition here because it causes double taxation.
+			// get_price should return the raw base price. WooCommerce and the wc_price helper
+			// will handle tax display and calculation at checkout natively.
+			
+			return (float) $price;
 		}
 
 		public static function get_extra_service_price_by_name($post_id, $service_name)

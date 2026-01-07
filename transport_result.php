@@ -264,14 +264,14 @@ if (function_exists('wp_is_block_theme') && wp_is_block_theme()) {
                                 <span class="mp_zero" data-icon></span>
                                 <span class="mp_zero" data-text>1</span>
                             </h4>
-                            <h6 class="circleTitle" data-class><?php esc_html_e('Enter Ride Details', 'ecab-taxi-booking-manager'); ?></h6>
+                            <h6 class="circleTitle" data-class><?php echo mptbm_get_translation('enter_ride_details_label', __('Enter Ride Details', 'ecab-taxi-booking-manager')); ?></h6>
                         </div>
                         <div data-tabs-target-next="#mptbm_search_result" class="tabItemNext active" data-open-text="2" data-close-text="" data-open-icon="" data-close-icon="fas fa-check" data-add-class="success">
                             <h4 class="circleIcon" data-class>
                                 <span class="mp_zero" data-icon></span>
                                 <span class="mp_zero" data-text>2</span>
                             </h4>
-                            <h6 class="circleTitle" data-class><?php esc_html_e('Choose a vehicle', 'ecab-taxi-booking-manager'); ?></h6>
+                            <h6 class="circleTitle" data-class><?php echo mptbm_get_translation('choose_vehicle_label', __('Choose a vehicle', 'ecab-taxi-booking-manager')); ?></h6>
                         </div>
                         <div data-tabs-target-next="#mptbm_order_summary" class="tabItemNext step-place-order" data-open-text="3" data-close-text="" data-open-icon="" data-close-icon="fas fa-check" data-add-class="success">
                             <h4 class="circleIcon" data-class>

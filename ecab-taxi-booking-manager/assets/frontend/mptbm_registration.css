@@ -1,0 +1,481 @@
+ /******************************************************************** ************************************************/
+/* Loading Spinner Animation */
+.mptbm-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: mptbm-spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes mptbm-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/******************************************************************** ************************************************/
+@media only screen and (min-width: 10px) {
+	div.mptbm_transport_search_area {width: 100%;max-width: 1200px;
+		box-shadow: 0 0 10px #ddd;
+		border-radius: 12px;
+		background-color: #FFF;
+	}
+	div.mptbm_transport_search_area div.tabsContentNext {
+		padding:15px;
+		background: #fff;
+    	border-radius: 12px; 
+	}
+	/* div.mptbm_transport_search_area div.mptbm_distance_time { margin: var(--dmp) 0 0 0; } */
+	div.mptbm_distance_time h6 {font-size: var(--fs);color: var(--d_color);}
+	div.mptbm_distance_time strong {font-size: var(--fs);}
+	#mptbm_map_area { width: 100%; height: 100%; min-height: 200px;border-radius: 15px; }
+	div.mptbm_form_details_area #mptbm_map_area{min-height: 300px;}
+	div.mptbm_transport_summary,
+	div.mptbm_extra_service {display: none;}
+	div.mptbm_transport_search_area div[data-extra-service] {display: none;}
+	div.get_details_next_link {
+	display: none;
+	position: relative;
+	clear: both;
+	margin-top: 20px;
+}
+	div.mptbm_transport_search_area .woocommerce-page span.woocommerce-input-wrapper,
+	div.mptbm_transport_search_area .woocommerce-page table span {display: initial;}
+	div.mptbm_transport_search_area .woocommerce-page label {margin: 0 0 var(--dmp_xs) 0;display:initial;}
+	div.mptbm_transport_search_area .woocommerce-page label img{width:inherit !important;}
+	div.mptbm_transport_search_area table th,
+	div.mptbm_transport_search_area table td {border: none;}
+	div.mptbm_transport_search_area .woocommerce form .form-row {margin-bottom: var(--dmp_xs);}
+}
+/******************************************************************** ************************************************/
+@media only screen and (min-width: 10px) {
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext {min-height: 70px;}
+	div.mptbm_transport_search_area .circleIcon {width: 40px;height: 40px;font-size: 18px;font-weight: 600;color: #666666;background-color: #EAECEE; }
+	
+	
+	.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]{
+		color: var(--color_theme);
+		border: 3px solid var(--color_theme);
+	}
+	.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]::after {
+		border-color: var(--color_theme);
+	}
+
+	.mptbm_transport_search_area .mpTabsNext .tabItemNext.active [class*="circleIcon"]{
+		background: var(--color_theme);
+		font-size: 24px;
+		font-weight: bold;
+	}
+
+	.mptbm_transport_search_area .tabItemNext.active [class*="circleIcon"] {
+		background-color: var(--color_theme_alter); 
+		color: var(--color_theme_alter);
+	}
+	
+
+	.mptbm_transport_search_area .mpTabsNext .tabItemNext.active [class*="circleIcon"]::after {
+		border-color: var(--color_theme);
+	}
+
+	div.mpTabsNext .tabItemNext.active .circleTitle.success { color: var(--color_theme); }
+	div.mptbm_transport_search_area .tabItemNext.active [class*="circleIcon"].success {background-color: var(--color_theme);}
+	div.mptbm_transport_search_area .tabItemNext .circleTitle {font-weight: 600;color:var(--color_theme);text-transform: capitalize;}
+	div.mptbm_transport_search_area .tabItemNext.active .circleTitle {font-weight: 600;color: var(--color_theme);}
+	div.mptbm_transport_search_area .tabItemNext [class*="circleIcon"]::after {top: 20px;border-color: #EAECEE;left: calc(50% + 20px);}
+	/*********************/
+	div.mptbm_transport_search_area .mptbm_search_area {padding: 15px;border-radius: var(--dbrl);}
+	div.mptbm_transport_search_area .mptbm_search_area.inputHorizontal {max-width:30%;margin-left: 0;}
+	div.mptbm_transport_search_area .mptbm_search_area h3 {text-transform: uppercase;color: #152C5B;}
+	div.mptbm_transport_search_area .mptbm_search_area label {font-weight: 400;color: #152C5B;}
+	div.mptbm_transport_search_area .mptbm_search_area label .formControl {
+		height: 47px;background-color: #F5F6F8;color: #222222;font-weight: 400;
+		padding: var(--dmp_xs) 35px var(--dmp_xs) var(--dmp_xs);border-color: #EBECEE;
+		background-image: url('../../mp_global/assets/images/arrow_down.png'); background-repeat: no-repeat; background-position: calc(100% - var(--dmp_xs)); background-size: auto;
+		-webkit-appearance: none;
+	}
+	div.mptbm_transport_search_area .mptbm_map_area {max-width: calc(71% - 30px);width: 71%;}
+	div.mptbm_form_details_area div.mptbm_map_area{
+		max-width: 100%;
+		width: 100%;
+		position: relative;
+		margin-bottom: 20px;
+		min-height: 300px;
+	}
+	
+	/* Ensure the map container has proper height */
+	div.mptbm_form_details_area div.mptbm_map_area #mptbm_map_area {
+		width: 100%;
+		height: 300px;
+		position: relative;
+	}
+	
+	/* Fix Next button positioning when map is visible */
+	div.mptbm_form_details_area .get_details_next_link {
+		position: relative;
+		clear: both;
+		margin-top: 20px;
+		z-index: 10;
+	}
+	div.mptbm_transport_search_area #mptbm_start_date.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+	div.mptbm_transport_search_area #mptbm_return_date.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+	div.mptbm_transport_search_area #mptbm_manual_start_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+	div.mptbm_transport_search_area #mptbm_manual_end_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+	div.mptbm_transport_search_area #mptbm_taxi_return.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+	div.mptbm_transport_search_area #mptbm_map_start_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+	div.mptbm_transport_search_area #mptbm_map_end_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+	#mptbm_fixed_hours.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+	div.mptbm_transport_search_area div.mp_input_select .formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+	div.mptbm_transport_search_area .mptbm_left_icon { position: absolute; left: 1px; bottom: 1px; width: 45px !important; font-size: 25px; color: var(--color_theme); background-color: transparent; border-radius: var(--dbr) 0 0 var(--dbr); height: 46px; margin: 0 !important;}
+	/*********************/
+	div.mptbm_transport_search_area .leftSidebar h3 {color: #152C5B; font-size: 24px;font-weight: 700;text-transform: uppercase;}
+	div.mptbm_transport_search_area .leftSidebar h6 {color: #152C5B;font-size: 17px;font-weight: 600;}
+	div.mptbm_transport_search_area .leftSidebar p {color: #2B1818;font-size: 16px;font-weight: 400;}
+	div.mptbm_booking_item h5 {color: #000;font-size: 24px;font-weight: 600}
+	div.mptbm_booking_item h4 {color: #000;font-size: 36px;font-weight: 600;margin: 0 0 var(--dmp_xs) 0;}
+	.mptbm_booking_item_hidden{display: none !important;}
+	div.mptbm_transport_search_area ul.list_inline_two{
+		align-items: center;
+	}
+	div.mptbm_transport_search_area ul.list_inline_two li {
+		border: none;
+		width: 50%;
+	}
+	div.mptbm_transport_search_area ul.list_inline_two li span{
+		font-size: 12px;
+	}
+
+	div.mptbm_transport_search_area button.mptbm_price_calculation
+	{background-color: #EAECEE;color: #666;border-radius: var(--dbr);}
+	div.mptbm_transport_search_area button.mptbm_price_calculation.active_select,
+	div.mptbm_transport_search_area button.mptbm_transport_select.active_select {
+		background-image: linear-gradient(to right, #0f9d58, #0cc46e);
+		color: var(--color_theme_alter);
+		border: 0;
+	}
+	div.mptbm_transport_search_area .mp_sticky_section .leftSidebar{
+		max-width: 100%;
+	}
+	div.mptbm_transport_search_area .mp_sticky_section .mainSection{
+		max-width: 100%;
+	}
+	@media (min-width:768px) {
+
+		div.mptbm_transport_search_area .mp_sticky_section .leftSidebar{
+			max-width: 28%;
+		}
+		div.mptbm_transport_search_area .mp_sticky_section .mainSection{
+			max-width: 70%;
+		}
+	}
+	
+	div.mptbm_transport_search_area div.mp_sticky_on_scroll.summary-box{
+		min-height: 400px;
+		overflow: auto;
+		background: #f5f6f8;
+		padding:15px;
+		border-radius: 20px;
+		height: fit-content;
+		position: sticky;
+		top: 20px;
+		border: 1px solid rgba(0, 0, 0, 0.05);
+	}
+	div.mp_sticky_on_scroll.summary-box h6{
+		margin-bottom: 2px;
+	}
+	div.mp_sticky_on_scroll.summary-box .divider{
+		margin-bottom: 2px;
+		background: none;
+	}	
+	.mptbm_transport_search_area .mp_sticky_on_scroll h3{
+		margin: 0;
+	}
+	.mptbm_transport_search_area .mp_sticky_on_scroll .devider{
+		margin: 5px 0;
+	}
+	.mptbm_transport_search_area .mptbm_booking_item{
+		margin-bottom: 10px;
+		border-radius: 12px;
+		border: 2px solid transparent;
+		box-shadow: 0 0 5px #ddd;
+		transition: all .5s;
+		padding:5px;
+		background-color: var(--color_white);
+	}
+	.mptbm_transport_search_area .mptbm_booking_item:hover{
+		transform: translateY(-4px);
+		box-shadow: 0 0px 10px rgba(0, 0, 0, 0.15);
+	}
+	.mptbm_transport_search_area .mptbm_booking_item.selected{
+		box-shadow: 0 0px 10px rgba(0, 0, 0, 0.15);
+	}
+
+}
+/******************************************************************** Responsive ************************************************/
+@media only screen and (max-width: 1000px) {
+	div.mptbm_transport_search_area .mptbm_search_area {padding: 30px;}
+}
+@media only screen and (max-width: 800px) {
+	div.mptbm_transport_search_area .mptbm_map_area{width:100%;max-width:100%;}
+	div.mptbm_transport_search_area div.mptbm_booking_item,
+	div.mptbm_pick_up_details > .justifyBetween {-webkit-flex-direction: column;flex-direction: column;}
+	div.mptbm_transport_search_area .mptbm_search_area.inputHorizontal,
+	div.mptbm_transport_search_area .mptbm_map_area,
+	div.mptbm_transport_search_area .leftSidebar,
+	div.mptbm_transport_search_area .leftSidebar .mp_sticky_area,
+	div.mptbm_transport_search_area .mainSection {width: 100%;max-width: 100%;}
+	div.mptbm_transport_search_area #mptbm_map_area {margin: var(--dmp) 0;min-height: 400px;}
+	div.mptbm_transport_search_area .mainSection {margin: var(--dmp) 0 0 0;}
+	div.mptbm_transport_search_area ul.list_inline_two li {width: 100%;}
+	div.mptbm_transport_search_area div.mptbm_list_details [class*="_min_150"],
+	div.mptbm_transport_search_area button.mptbm_transport_select {width: auto;min-width: 100px;}
+}
+@media only screen and (max-width: 600px) {
+	div.mptbm_transport_search_area .mptbm_search_area {padding: 20px;}
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext { min-height: 60px; }
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"] {width: 30px;height: 30px;min-width: 30px;font-size: var(--fs);}
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]::after {top: 15px;left: calc(50% + 15px);}
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext .circleTitle {font-size: 12px;top: 35px;}
+}
+.mptbm_transport_search_area{
+	margin: 0 auto;
+}
+
+#ui-datepicker-div {
+	width:auto;
+}
+.mpTabsNext .tabItemNext.active [class*="circleIcon"]::after{
+	border-width:3px;
+}
+.mpTabsNext .tabItemNext [class*="circleIcon"]::after{
+	border-width: 3px;
+}
+.mptb-tab-container {
+    width: 100%;
+    margin: 50px auto;
+}
+
+.mptb-tabs {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    cursor: pointer;
+}
+
+.mptb-tabs li {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    width: 100%;
+    text-align: center;
+    ;
+}
+
+.mptb-tabs .current {
+    background: var(--color_theme);
+    color: white;
+}
+
+.mptb-tab-content {
+    display: none;
+	width: 100%;
+	padding-top: 1%;
+}
+
+.mptb-tab-content.current {
+    display: block;
+}
+.tab-link{
+	padding: 2.3% 2.5%  !important;
+}
+
+
+.mptbm-gif{
+	padding-top: 10%;
+	width: 128px;
+	margin: 0 auto;
+
+}
+.mptb-tabs-loader{
+	width: 200px !important;
+}
+.mptbm-hide-gif{
+	display: none;
+}
+
+/* Custom select dropdown styles */
+.mptbm-custom-select-wrapper {
+	position: absolute;
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+	z-index: 1000;
+}
+
+.mptbm-custom-search-input {
+	width: 100%;
+	padding: 8px;
+	border: none;
+	border-bottom: 1px solid #eee;
+	border-radius: 4px 4px 0 0;
+	font-size: 14px;
+	box-sizing: border-box;
+	background: #F5F6F8;
+	color: #222222;
+	font-weight: 400;
+	outline: none;
+}
+
+.mptbm-custom-search-input:focus {
+	border-bottom-color: var(--color_theme);
+	background: white;
+}
+
+.mptbm-custom-search-input::placeholder {
+	color: #999;
+	font-style: italic;
+}
+
+.mptbm-custom-options {
+	max-height: 200px;
+	overflow-y: auto;
+	background: white;
+}
+
+.mptbm-custom-option {
+	padding: 8px;
+	cursor: pointer;
+	border-bottom: 1px solid #f5f5f5;
+	font-size: 14px;
+	color: #222222;
+	transition: background-color 0.2s ease;
+}
+
+.mptbm-custom-option:hover {
+	background-color: #f8f9fa;
+}
+
+.mptbm-custom-option.mptbm-option-selected {
+	background-color: var(--color_theme);
+	color: white;
+}
+
+.mptbm-custom-option.mptbm-option-selected:hover {
+	background-color: var(--color_theme);
+	opacity: 0.9;
+}
+
+.mpStyle .inputInline .inputList{
+	margin: 20px var(--dmp_xs) 0 0;
+}
+
+.mpStyle .mpForm label span{
+	margin: 0 0 15px 0;
+}
+div.bg_image_area{
+	height:100%;
+	max-height: 200px;
+	border-radius: 7px;
+}
+
+.mpStyle ul.list_inline_two li i{
+	color: var(--color_theme);
+}
+
+.mpStyle ul.list_inline_two li span{
+	color:#333;
+}
+
+.mpStyle button:hover span{
+    color: var(--color_theme_alter);
+}
+.mpStyle button:focus span {
+    color: var(--color_theme_alter);
+}
+.mptbm_transport_search_area .tabListsNext{
+	padding: 20px;
+	background:#f5f6f8;
+	border-radius: 12px 12px 0 0;
+}
+
+div.mptbm_transport_search_area button.mptbm_transport_select{
+	border: none;
+	padding: 10px;
+	background-image: linear-gradient(to right,var(--color_theme), var(--color_theme_aa));
+	color:var(--color_theme_alter);
+	border-radius: 50px;
+	transition: all .5s;
+}
+div.mptbm_transport_search_area button.mptbm_transport_select:hover{
+	background-color: var(--color_theme);
+}
+div.mptbm_transport_search_area button.mptbm_transport_select:hover span{
+	color: #fff;
+}
+
+.mptbm-map-warning{
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #ddd;
+	border-radius: 10px;
+  }
+
+#mptbm_map_area{
+	height: 86%;
+}
+
+._dLayout.mptbm_distance_time{
+	margin-top: -11.3%;
+	border-bottom-left-radius: var(--dbrl);
+	border-bottom-right-radius: var(--dbrl);
+}
+
+.mp_quantity_selector {
+	display: inline-flex;
+	align-items: center;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	overflow: hidden;
+	background: #fff;
+	height: 30px; /* Reduced height */
+  }
+
+  .mp_quantity_minus,
+  .mp_quantity_plus {
+	background: #f8f8f8;
+	border: none;
+	padding: 6px 10px; /* Reduced padding */
+	cursor: pointer;
+	color: #333;
+	transition: all 0.3s;
+	font-size: 12px; /* Reduced font size */
+  }
+
+.mp_quantity_minus:hover,
+.mp_quantity_plus:hover {
+    background: #e8e8e8;
+}
+
+.mp_quantity_input {
+	width: 35px; /* Reduced width */
+	text-align: center;
+	border: none;
+	border-left: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	padding: 6px 0; /* Reduced padding */
+	font-size: 12px; /* Reduced font size */
+	-moz-appearance: textfield;
+  }
+
+  .mp_quantity_input::-webkit-outer-spin-button,
+  .mp_quantity_input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+  }
+  
+  .mp_quantity_input:focus {
+	outline: none;
+  }

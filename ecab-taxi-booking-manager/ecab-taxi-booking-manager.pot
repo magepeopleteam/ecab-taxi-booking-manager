@@ -1,0 +1,1696 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: E-cab taxi booking manager\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-08-15 04:53+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.11; wp-6.6.1\n"
+"X-Domain: ecab-taxi-booking-manager"
+
+#: templates/registration/get_details.php:297
+msgid " 0 KM"
+msgstr ""
+
+#: templates/registration/get_details.php:295
+msgid " 0 MILE"
+msgstr ""
+
+#: templates/registration/get_end_place.php:24
+msgid " Can not find any Destination Location"
+msgstr ""
+
+#: templates/registration/summary.php:73
+msgid " Details"
+msgstr ""
+
+#: templates/registration/get_details.php:155
+msgid " Enter Drop-Off Location"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:93
+msgid " Feature Image"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:94 Admin/MPTBM_CPT.php:95 Admin/MPTBM_CPT.php:96
+msgid " featured image"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:29
+msgid " Global Settings"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:81
+msgid " Item:"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:79 Admin/MPTBM_CPT.php:80
+msgid " List"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:99 Admin/MPTBM_CPT.php:101
+msgid " list"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:100
+msgid " list navigation"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:91
+msgid " Not found"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:92
+msgid " Not found in Trash"
+msgstr ""
+
+#: templates/registration/get_end_place.php:18
+#: templates/registration/get_details.php:152
+msgid " Select Destination Location"
+msgstr ""
+
+#: templates/registration/get_details.php:127
+msgid " Select Pick-Up Location"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:176 Admin/MPTBM_Settings_Global.php:187
+#: Admin/MPTBM_Settings_Global.php:194 Admin/MPTBM_Settings_Global.php:201
+#: Admin/MPTBM_Settings_Global.php:214 Admin/MPTBM_Settings_Global.php:225
+msgid ". Default is"
+msgstr ""
+
+#: templates/registration/get_details.php:307
+msgid "0 Hour"
+msgstr ""
+
+#: templates/registration/get_details.php:226
+#: templates/registration/get_details.php:241
+msgid "1 Hour"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:207
+msgid "10"
+msgstr ""
+
+#: templates/registration/get_details.php:250
+msgid "10 Hours"
+msgstr ""
+
+#: templates/registration/get_details.php:251
+msgid "11 Hours"
+msgstr ""
+
+#: templates/registration/get_details.php:252
+msgid "12 Hours"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:206
+msgid "15"
+msgstr ""
+
+#: templates/registration/get_details.php:227
+#: templates/registration/get_details.php:242
+msgid "2 Hours"
+msgstr ""
+
+#: templates/registration/get_details.php:228
+#: templates/registration/get_details.php:243
+msgid "3 Hours"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:205
+msgid "30"
+msgstr ""
+
+#: templates/registration/get_details.php:229
+#: templates/registration/get_details.php:244
+msgid "4 Hours"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:208
+msgid "5"
+msgstr ""
+
+#: templates/registration/get_details.php:230
+#: templates/registration/get_details.php:245
+msgid "5 Hours"
+msgstr ""
+
+#: templates/registration/get_details.php:231
+#: templates/registration/get_details.php:246
+msgid "6 Hours"
+msgstr ""
+
+#: templates/registration/get_details.php:247
+msgid "7 Hours"
+msgstr ""
+
+#: templates/registration/get_details.php:248
+msgid "8 Hours"
+msgstr ""
+
+#: templates/registration/get_details.php:249
+msgid "9 Hours"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:18 Admin/settings/MPTBM_Extra_Service.php:25
+#: Admin/settings/MPTBM_Operation_Areas.php:23
+msgid "</span>"
+msgstr ""
+
+#. Description of the plugin
+msgid "A Complete Transportation Solution for WordPress by MagePeople."
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:132
+#: Admin/settings/MPTBM_Extra_Service.php:52
+#: Admin/settings/MPTBM_Extra_Service.php:189
+#: Admin/settings/MPTBM_General_Settings.php:94
+msgid "Action"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:190
+msgid "Active Now"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:65
+msgid "Add a list of tour activities for this tour."
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:66
+#: Admin/settings/MPTBM_Extra_Service.php:204
+msgid "Add Extra New Service"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:83 Admin/MPTBM_CPT.php:84
+msgid "Add New "
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:110
+msgid "Add New Item"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:153
+msgid "Add New Location"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:282
+msgid "Add New Off date"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:140
+msgid "Add New Particular date"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:151
+msgid "Add New Price"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:267
+msgid "Add off dates"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:124
+msgid "Add Particular Dates"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:82
+msgid "All "
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:149
+msgid "All Locations"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:141
+msgid "and copy your icon code and paste it here."
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:79
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:210
+msgid "Apartment, suite, unit, etc."
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:83
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:214
+msgid "Apartment, suite, unit, etc. (optional)"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:359
+msgid "Approximate Distance"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:145
+msgid "Approximate Distance "
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:364
+msgid "Approximate Time"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:146
+msgid "Approximate Time "
+msgstr ""
+
+#: Admin/MPTBM_Guideline.php:24
+msgid "available Shortcode"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:446
+msgid "Base Price : "
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:54
+msgid "Basic Configuration"
+msgstr ""
+
+#: templates/registration/extra_service.php:78
+msgid "Book Now"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:108
+msgid "Booking Details "
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:171
+msgid "Both Direction (Origin &harr; Dest)"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:64
+msgid ""
+"By default Activities type is ON but you can keep it off by switching this "
+"option"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:72
+msgid ""
+"By default Display Get a Questions is ON but you can keep it off by "
+"switching this option"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:74
+msgid ""
+"By default Duration is ON but you can keep it off by switching this option"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:81
+msgid ""
+"By default Extra services is ON but you can keep it off by switching this "
+"option"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:71
+msgid ""
+"By default Seat Info is ON but you can keep it off by switching this option"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:69
+msgid "By default Section title is style one"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:73
+msgid ""
+"By default Sidebar Widget is Off but you can keep it ON by switching this "
+"option"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:79 Admin/MPTBM_Settings.php:80
+msgid ""
+"By default slider is ON but you can keep it off by switching this option"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:70
+msgid ""
+"By default, the ticket purchase system is open. Once you check the "
+"availability, you can choose the system that best suits your needs."
+msgstr ""
+
+#: inc/MPTBM_Function.php:145
+msgid "Category"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:147
+msgid "Category Label"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:154
+msgid "Category Slug"
+msgstr ""
+
+#: Admin/MPTBM_Wc_Checkout_Fields.php:80
+msgid "Checkout Fields"
+msgstr ""
+
+#: transport_result.php:42 templates/registration/registration_layout.php:27
+msgid "Choose a vehicle"
+msgstr ""
+
+#: templates/registration/extra_service.php:18
+msgid "Choose Extra Features (Optional)"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:203
+msgid "Choose some general option."
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:267 Admin/MPTBM_Settings_Global.php:274
+msgid "Click Here"
+msgstr ""
+
+#: templates/registration/get_details.php:142
+#: templates/registration/get_details.php:162
+msgid "Click here"
+msgstr ""
+
+#: inc/MPTBM_Dependencies.php:101
+msgid "Click Here to get google api key"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:47
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:178
+msgid "Company name"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:306
+msgid "Completed"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:121
+msgid "completed"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:57
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:188
+msgid "Country / Region"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:280
+msgid "Country Location"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:159
+msgid "Custom"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:141
+msgid "Dashicons Library."
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:33 Frontend/MPTBM_Woocommerce.php:370
+msgid "Date"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:155
+msgid "Date "
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:99
+msgid "Date Settings"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:110
+msgid "Date Type"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:211
+msgid "Day"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:21
+msgid "Default"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:186
+msgid "Description"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:166
+msgid "Direction"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:235
+msgid "Disable single page checkout"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:79
+msgid "Disable/ Enable Taxi Return"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:90
+msgid "Disable/ Enable Taxi Waiting Time"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:85 Admin/MPTBM_Settings_Global.php:96
+msgid "Disabled"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:93
+msgid "Distance + Duration as google map"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:91
+msgid "Distance as google map"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:140
+msgid "Done"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:350 templates/registration/summary.php:42
+#: templates/registration/get_end_place.php:16
+#: templates/registration/get_details.php:149
+msgid "Drop-Off Location"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:142
+msgid "Drop-Off Location "
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:109
+msgid "Dropdown List"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:311
+msgid "Duration By Kilometer or Mile"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:92
+msgid "Duration/Time as google map"
+msgstr ""
+
+#. Name of the plugin
+msgid "E-cab taxi booking manager"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:86
+msgid "Edit "
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:150
+msgid "Edit Location"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:145
+msgid "Email address"
+msgstr ""
+
+#: Admin/MPTBM_Status.php:61
+msgid "Email Address : "
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:84 Admin/MPTBM_Settings_Global.php:95
+msgid "Enable"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:224
+msgid "Enable filter via features"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:213
+msgid "Enable return in different date"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:130
+msgid "End Location"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:214
+msgid "End Time"
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:38
+msgid "Engine"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:187
+msgid "Enter page slug. Leave blank if you dont want to enable this setting"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:194
+msgid "Enter page url. Leave blank if you dont want to enable this setting"
+msgstr ""
+
+#: templates/registration/get_details.php:135
+msgid "Enter Pick-Up Location"
+msgstr ""
+
+#: transport_result.php:35 templates/registration/registration_layout.php:20
+msgid "Enter Ride Details"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:104
+msgid "EX: 10"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:100
+msgid "EX: Description"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:96
+msgid "EX: Driver"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:57
+#: Admin/settings/MPTBM_Price_Settings.php:65
+#: Admin/settings/MPTBM_Price_Settings.php:74
+#: Admin/settings/MPTBM_Price_Settings.php:106
+#: Admin/settings/MPTBM_Price_Settings.php:115
+#: Admin/settings/MPTBM_Operation_Areas.php:151
+#: Admin/settings/MPTBM_Operation_Areas.php:160
+msgid "EX:10"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:192
+#: Admin/settings/MPTBM_Price_Settings.php:247
+#: Admin/settings/MPTBM_Price_Settings.php:295
+msgid "EX:10 "
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:66
+#: Admin/settings/MPTBM_General_Settings.php:75
+msgid "EX:4"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:182
+#: Admin/settings/MPTBM_Price_Settings.php:187
+msgid "EX:Dhaka"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:175
+msgid "Expired  Visibility"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:39
+msgid "Extra Service"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:38
+msgid "Extra Service Settings"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:120 Frontend/MPTBM_Woocommerce.php:452
+msgid "Extra Services"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:150 Frontend/MPTBM_Woocommerce.php:433
+#: templates/registration/summary.php:63
+#: templates/registration/get_details.php:223
+msgid "Extra Waiting Hours"
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:57
+msgid "Feature Configuration"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:101
+msgid "Filter "
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:230
+msgid "Finalize Setup"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:233
+msgid "Finish & Save"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:29
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:160
+msgid "First name"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:95
+msgid "Fixed Hourly"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:140
+#: Admin/settings/MPTBM_Operation_Areas.php:148
+msgid "Fixed Price"
+msgstr ""
+
+#: Admin/MPTBM_Status.php:31
+msgid "For Woocommerce Environment Status"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:61
+msgid "Frequently Asked Questions about this tour that customers need to know"
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:44
+msgid "Fuel Type"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:133
+msgid "General"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:103
+msgid "General Date Configuration"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:30
+msgid "General Info"
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:53
+msgid "General Information Settings"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:202
+msgid "General settings"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:35
+msgid "Global Extra Service Settings"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:23
+msgid "Global Settings"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:253
+msgid "Google map"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:259
+msgid "Google MAP API"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:62
+msgid "Google Map API Settings"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:83
+msgid "google map base pricing option"
+msgstr ""
+
+#: Admin/MPTBM_Guideline.php:16
+msgid "Guideline"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:100
+msgid "Here you can configure date."
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:104
+#: Admin/settings/MPTBM_Date_Settings.php:111
+msgid "Here you can configure general date"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:233
+msgid "Here you can configure Off Days & Dates."
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:205
+msgid "Here you can configure Schedule date."
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:58
+msgid "Here you can On/Off feature list and create new feature."
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:45
+msgid ""
+"here you can set initial price, Waiting Time price, price calculation model"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:89
+#: Admin/settings/MPTBM_Operation_Areas.php:270
+msgid "Here you can set operation area"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:49
+#: Admin/settings/MPTBM_Extra_Service.php:39
+msgid "Here you can set price"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:134 Admin/MPTBM_Settings_Global.php:155
+#: Admin/MPTBM_Settings_Global.php:169
+msgid "hit the Save Settings button."
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:150 Frontend/MPTBM_Woocommerce.php:153
+msgid "Hour "
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:434 Frontend/MPTBM_Woocommerce.php:440
+#: templates/registration/summary.php:64 templates/registration/summary.php:69
+msgid "Hours"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:69
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:200
+msgid "House number and street name"
+msgstr ""
+
+#. URI of the plugin
+msgid "http://mage-people.com"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "http://www.mage-people.com/"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:140
+#: Admin/settings/MPTBM_Extra_Service.php:184
+msgid "Icon"
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:91
+msgid "Icon/Image"
+msgstr ""
+
+#: templates/registration/get_details.php:143
+#: templates/registration/get_details.php:163
+msgid "If you are not able to find your desired location"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:127
+msgid ""
+"If you like to change the label in the dashboard menu, you can change it "
+"here."
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:162
+msgid ""
+"If you want to change the  category label in the dashboard menu you can "
+"change here"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:148
+msgid ""
+"If you want to change the  category label in the dashboard menu, you can "
+"change it here."
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:141
+msgid ""
+"If you want to change the  icon in the dashboard menu, you can change it "
+"from here, and the Dashboard icon only supports the Dashicons, So please go "
+"to "
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:249
+msgid ""
+"If you want to disable Pricing system based on google map, please select "
+"Without google map. default Google map"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:236
+msgid ""
+"If you want to disable single page checkout, please select Yes.That means "
+"active woocommerce checkout page active"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:80
+msgid ""
+"If you want to disable taxi return, please select disable. default enable"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:91
+msgid ""
+"If you want to disable taxi Waiting Time, please select disable. default "
+"enable"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:176
+msgid "If you want to visible expired  ?, please select "
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:135
+msgid "Increase Price By"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:54
+msgid "Initial Price"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:108
+msgid "Input Box"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:97
+msgid "Insert into "
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:188
+msgid "Install & Active Now"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:99
+msgid "Intercity Operation Area"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:200
+msgid "Interval of pickup/return time in frontend"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:211
+msgid "It will change the Transportation post type label on the entire plugin."
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:220
+msgid ""
+"It will change the Transportation slug on the entire plugin. Remember after "
+"changing this slug you need to flush permalinks. Just go to Settings->"
+"Permalinks hit the Save Settings button"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:315
+msgid "Kilometer"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:126
+#: Admin/settings/MPTBM_General_Settings.php:92
+msgid "Label"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:38
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:169
+msgid "Last name"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:147
+msgid "Location"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:146 Admin/MPTBM_CPT.php:148
+msgid "Locations"
+msgstr ""
+
+#. Author of the plugin
+msgid "MagePeople Team"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:196
+msgid "Make Transport Available For 24 Hours"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:94
+msgid "Manual as fixed Location"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:121
+#: Admin/settings/MPTBM_Price_Settings.php:122
+msgid "Manual Price Settings"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:186
+#: Admin/settings/MPTBM_Date_Settings.php:187
+msgid "Maximum Advanced Day Booking"
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:72
+msgid "Maximum Bag"
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:63
+msgid "Maximum Passenger"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:316
+msgid "Mile"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:62
+msgid "Minimum Price"
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:32
+msgid "Model"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:185
+#: Admin/settings/MPTBM_General_Settings.php:26
+msgid "Name"
+msgstr ""
+
+#: Admin/MPTBM_Status.php:55 Frontend/MPTBM_Woocommerce.php:457
+msgid "Name : "
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:85
+msgid "New "
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:154
+msgid "New Location Name"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:157 templates/registration/get_details.php:323
+msgid "Next"
+msgstr ""
+
+#: Admin/MPTBM_Status.php:21 Admin/MPTBM_Settings_Global.php:176
+#: Admin/MPTBM_Settings_Global.php:176 Admin/MPTBM_Settings_Global.php:181
+#: Admin/MPTBM_Settings_Global.php:187 Admin/MPTBM_Settings_Global.php:187
+#: Admin/MPTBM_Settings_Global.php:194 Admin/MPTBM_Settings_Global.php:194
+#: Admin/MPTBM_Settings_Global.php:201 Admin/MPTBM_Settings_Global.php:201
+#: Admin/MPTBM_Settings_Global.php:214 Admin/MPTBM_Settings_Global.php:214
+#: Admin/MPTBM_Settings_Global.php:219 Admin/MPTBM_Settings_Global.php:225
+#: Admin/MPTBM_Settings_Global.php:225 Admin/MPTBM_Settings_Global.php:230
+#: Admin/MPTBM_Settings_Global.php:241
+msgid "No"
+msgstr ""
+
+#: templates/registration/choose_vehicles.php:441
+#: templates/registration/choose_vehicles.php:463
+msgid "No Transport Available !"
+msgstr ""
+
+#: templates/registration/get_details.php:225
+msgid "No Waiting"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:270
+msgid "Notes about your order, e.g. special notes for delivery."
+msgstr ""
+
+#: templates/registration/choose_vehicles.php:408
+msgid "Number Of Bags"
+msgstr ""
+
+#: templates/registration/choose_vehicles.php:395
+msgid "Number Of Passengers"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:266
+msgid "Off Dates"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:240
+msgid "Off Day"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:232
+msgid "Off Days & Dates Configuration"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:303
+msgid "On Hold"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:134
+#: Admin/settings/MPTBM_Extra_Service.php:135
+#: Admin/settings/MPTBM_Extra_Service.php:138
+#: Admin/settings/MPTBM_Extra_Service.php:139
+#: Admin/settings/MPTBM_Extra_Service.php:144
+msgid "On/Off Extra Service Settings"
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:81
+msgid "On/Off Feature Extra feature"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:170
+msgid "One Direction (Origin &rarr; Dest)"
+msgstr ""
+
+#: templates/registration/get_details.php:174
+msgid "One Way"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:45
+msgid "Operation Area"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:88
+#: Admin/settings/MPTBM_Operation_Areas.php:269
+msgid "Operation Area Settings"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:134
+msgid "Operation Areas"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:201
+msgid "Optional Service "
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:176 Admin/MPTBM_Settings_Global.php:187
+#: Admin/MPTBM_Settings_Global.php:194 Admin/MPTBM_Settings_Global.php:201
+#: Admin/MPTBM_Settings_Global.php:214 Admin/MPTBM_Settings_Global.php:225
+msgid "or to make it hidden, select"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:269
+msgid "Order notes"
+msgstr ""
+
+#: inc/MPTBM_Function.php:153
+msgid "Organizer"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:161
+msgid "Organizer Label"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:168
+msgid "Organizer Slug"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:115
+msgid "Particular"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:123
+msgid "Particular Dates"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:109
+msgid "Pay on service"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:115
+msgid "Pay on service Booked Status"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:101
+msgid "Payment System"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:120 Admin/MPTBM_Settings_Global.php:304
+msgid "Pending"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:141
+#: Admin/settings/MPTBM_Operation_Areas.php:157
+msgid "Percentage"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:132
+msgid "Phone"
+msgstr ""
+
+#: templates/registration/summary.php:29
+#: templates/registration/get_details.php:88
+msgid "Pickup Date"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:345 templates/registration/summary.php:35
+#: templates/registration/get_details.php:122
+msgid "Pickup Location"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:141
+msgid "Pickup Location "
+msgstr ""
+
+#: templates/registration/summary.php:32
+#: templates/registration/get_details.php:97
+msgid "Pickup Time"
+msgstr ""
+
+#: transport_result.php:49 templates/registration/registration_layout.php:34
+msgid "Place Order"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:63
+msgid "Please add why to book feature list one by one."
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:82
+msgid "Please add your global extra service which add any transport"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:77
+msgid "Please Enter contact phone email"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:75
+msgid "Please Enter contact phone no"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:76
+msgid "Please Enter Contact Section Text"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:155
+msgid ""
+"Please enter the slug name you want for category. Remember after change this "
+"slug you need to flush permalink, Just go to  "
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:169
+msgid ""
+"Please enter the slug name you want for the  organizer. Remember, after "
+"changing this slug, you need to flush the permalinks. Just go to "
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:134
+msgid ""
+"Please enter the slug name you want. Remember, after changing this slug; you "
+"need to flush permalink; go to"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:260
+msgid "Please enter your Google Maps API key in this Options."
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:18
+msgid "Please select"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:114
+#: Admin/settings/MPTBM_Price_Settings.php:90
+msgid "Please select ..."
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:68
+msgid "Please select a related transport from this list."
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:102
+msgid "Please Select Payment System."
+msgstr ""
+
+#: templates/registration/get_details.php:98
+#: templates/registration/get_details.php:194
+msgid "Please Select Time"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:296
+msgid "Please Select when and which order status Seat Will be Booked/Reduced."
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:116
+msgid ""
+"Please Select when and which order status service Will be Booked/Reduced in "
+"Pay on service."
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:83
+msgid "Please select your global extra service"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:267
+msgid ""
+"Please type Your Location Latitude.This are mandatory for google map show. "
+"To find latitude please "
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:274
+msgid ""
+"Please type Your Location Longitude .This are mandatory for google map show. "
+"To find latitude please "
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:85
+msgid "Please upload images for gallery"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:119
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:250
+msgid "Postcode / ZIP"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:153 Frontend/MPTBM_Woocommerce.php:621
+#: templates/registration/summary.php:91
+#: templates/registration/get_details.php:319
+msgid "Previous"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:131
+#: Admin/settings/MPTBM_Extra_Service.php:187
+msgid "Price"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:199 Frontend/MPTBM_Woocommerce.php:205
+msgid "Price "
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:465
+msgid "Price : "
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:44
+#: Admin/settings/MPTBM_Price_Settings.php:48
+msgid "Price Settings"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:112
+msgid "Price/Hour"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:103
+msgid "Price/KM"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:36
+msgid "Pricing"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:81
+msgid "Pricing based on"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:248
+msgid "Pricing system based on google map"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:305
+msgid "Processing"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:51
+#: Admin/settings/MPTBM_Extra_Service.php:188
+msgid "Qty Box Type"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:461
+msgid "Quantity : "
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:17 Admin/MPTBM_Quick_Setup.php:18
+#: Admin/MPTBM_Quick_Setup.php:18 Admin/MPTBM_Quick_Setup.php:21
+#: Admin/MPTBM_Quick_Setup.php:21
+msgid "Quick Setup"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:95
+msgid "Remove "
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:116
+msgid "Repeated"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:176
+#: Admin/settings/MPTBM_Date_Settings.php:177
+msgid "Repeated after"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:163
+#: Admin/settings/MPTBM_Date_Settings.php:164
+msgid "Repeated Start Date"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:381 templates/registration/summary.php:53
+#: templates/registration/get_details.php:175
+msgid "Return"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:159
+msgid "Return "
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:193 Frontend/MPTBM_Woocommerce.php:421
+#: templates/registration/summary.php:55
+#: templates/registration/get_details.php:185
+msgid "Return Date"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:194 Frontend/MPTBM_Woocommerce.php:426
+#: templates/registration/summary.php:58
+#: templates/registration/get_details.php:193
+msgid "Return Time"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:204
+msgid "Schedule Date Configuration"
+msgstr ""
+
+#: templates/registration/get_details.php:264
+msgid "Search"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:90
+msgid "Search "
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:155
+msgid "Search Locations"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:295
+msgid "Seat Booked Status"
+msgstr ""
+
+#: inc/MPTBM_Layout.php:17 templates/registration/extra_service.php:57
+#: templates/registration/extra_service.php:59
+msgid "Select"
+msgstr ""
+
+#: templates/registration/vehicle_item.php:87
+#: templates/registration/vehicle_item.php:89
+msgid "Select Car"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:241
+msgid "Select checkbox for off day"
+msgstr ""
+
+#: templates/registration/get_details.php:89
+#: templates/registration/get_details.php:186
+msgid "Select Date"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:158
+msgid "Select extra option"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:154
+msgid "Select extra option :"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:201
+msgid "Select frontend interval pickup and return time"
+msgstr ""
+
+#: templates/registration/get_details.php:239
+msgid "Select Hours"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:275
+msgid "Select operation area"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:94
+msgid "Select Operation Type"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:214
+msgid "Select yes if you want to enable different date return field"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:225
+msgid "Select yes if you want to enable filter via passenger and bags"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:281
+msgid "Select your country Location.This are mandatory for google map show."
+msgstr ""
+
+#: templates/registration/extra_service.php:57
+#: templates/registration/vehicle_item.php:87
+msgid "Selected"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:47
+msgid "Service Icon"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:48
+msgid "Service Name"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:50
+msgid "Service Price"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:153 Frontend/MPTBM_Woocommerce.php:439
+#: templates/registration/summary.php:68
+msgid "Service Times"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:203
+msgid "Services Name "
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:204
+msgid "Services Quantity "
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:94
+msgid "Set "
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:91
+msgid "Set Price per Hour"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:90
+msgid "Set Price per KM"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:92
+msgid "Set waiting price per hour"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:67
+msgid "Settings"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:134 Admin/MPTBM_Settings_Global.php:155
+#: Admin/MPTBM_Settings_Global.php:169
+msgid "Settings-> Permalinks"
+msgstr ""
+
+#: inc/MPTBM_Dependencies.php:100
+msgid "Settings>Map Api Settings"
+msgstr ""
+
+#: Admin/settings/MPTBM_Extra_Service.php:49
+msgid "Short description"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:186
+msgid "Show Search Result In A Different Page"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:98
+msgid "Single Operation Area"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:133
+msgid "Slug"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:129
+msgid "Start Location"
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:212
+msgid "Start Time"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:182
+msgid "Starting Location"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:108
+msgid "Starting Location 1"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:119
+msgid "Starting Location 2"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:104
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:235
+msgid "State / County"
+msgstr ""
+
+#: Admin/MPTBM_Status.php:16
+msgid "Status"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:68
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:199
+msgid "Street address"
+msgstr ""
+
+#: templates/registration/summary.php:26
+msgid "SUMMARY"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:193
+msgid "Take user to another page if location can not be found"
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:93
+msgid "Text"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:172
+msgid ""
+"Thanks for choosing Transportation Booking Manager Plugin for WooCommerce "
+"for your site, Please go step by step and choose some options to get started."
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:67
+msgid ""
+"The description is not prominent by default; however, some themes may show "
+"it."
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:88
+msgid "The initial price that will be added as the starting price"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:66
+msgid "The name is how it appears on your site."
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:89
+msgid "This is a price calculation model, price will vary based on your choice"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:157
+msgid "Time "
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:375
+msgid "Time : "
+msgstr ""
+
+#: Admin/settings/MPTBM_Date_Settings.php:83
+#: Admin/settings/MPTBM_Date_Settings.php:213
+msgid "To"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:83
+msgid "To enable google map pricing option you must enable  "
+msgstr ""
+
+#: templates/registration/summary.php:84
+msgid "Total : "
+msgstr ""
+
+#: templates/registration/get_details.php:293
+msgid "TOTAL DISTANCE"
+msgstr ""
+
+#: templates/registration/get_details.php:306
+msgid "TOTAL TIME"
+msgstr ""
+
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:93
+#: Frontend/MPTBM_Wc_Checkout_Fields_Helper.php:224
+msgid "Town / City"
+msgstr ""
+
+#: Frontend/MPTBM_Woocommerce.php:159 Frontend/MPTBM_Woocommerce.php:380
+#: templates/registration/summary.php:52
+#: templates/registration/get_details.php:172
+msgid "Transfer Type"
+msgstr ""
+
+#: inc/MPTBM_Function.php:133 Admin/MPTBM_Quick_Setup.php:20
+#: Admin/MPTBM_Quick_Setup.php:20
+msgid "Transportation"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:171
+msgid "Transportation Booking Manager For Woocommerce Plugin"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:206
+msgid "Transportation Label:"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:215
+msgid "Transportation Slug:"
+msgstr ""
+
+#: Admin/settings/MPTBM_Operation_Areas.php:183
+msgid "Type here to get location name from the map"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:87
+msgid "Update "
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:152
+msgid "Update Location"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:98
+msgid "Uploaded to this "
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:96
+msgid "Use as featured image"
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:88 Admin/MPTBM_CPT.php:89
+msgid "View "
+msgstr ""
+
+#: Admin/MPTBM_CPT.php:151
+msgid "View Location"
+msgstr ""
+
+#: Admin/settings/MPTBM_Price_Settings.php:71
+msgid "Waiting Time Price/Hour"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:126
+msgid "Welcome"
+msgstr ""
+
+#: Admin/MPTBM_Settings.php:62
+msgid ""
+"Why choose us section, write a key feature list that tourist get Trust to "
+"book. you can switch it off."
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:254
+msgid "Without google map"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:180
+msgid "Woocommerce already install , please activate it"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:176
+msgid "Woocommerce already installed and activated"
+msgstr ""
+
+#: Admin/MPTBM_Status.php:42
+msgid "Woocommerce Installed : "
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:178
+msgid "Woocommerce need to install and active"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:110
+msgid "woocommerce Payment"
+msgstr ""
+
+#: Admin/MPTBM_Status.php:49
+msgid "Woocommerce Version : "
+msgstr ""
+
+#: Admin/MPTBM_Status.php:36
+msgid "WordPress Version : "
+msgstr ""
+
+#: Admin/MPTBM_Status.php:21 Admin/MPTBM_Settings_Global.php:176
+#: Admin/MPTBM_Settings_Global.php:180 Admin/MPTBM_Settings_Global.php:187
+#: Admin/MPTBM_Settings_Global.php:194 Admin/MPTBM_Settings_Global.php:201
+#: Admin/MPTBM_Settings_Global.php:214 Admin/MPTBM_Settings_Global.php:218
+#: Admin/MPTBM_Settings_Global.php:225 Admin/MPTBM_Settings_Global.php:229
+#: Admin/MPTBM_Settings_Global.php:240
+msgid "Yes"
+msgstr ""
+
+#: Admin/MPTBM_Quick_Setup.php:231
+msgid ""
+"You are about to Finish & Save Transportation Booking Manager For "
+"Woocommerce Plugin setup process"
+msgstr ""
+
+#: inc/MPTBM_Dependencies.php:99
+msgid ""
+"You Must Add Google Map Api key for E-cab taxi booking manager, Because It "
+"is dependent on Google Map. Please enter your Google Maps API key in Plugin "
+"Options."
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:266
+msgid "Your Location Latitude"
+msgstr ""
+
+#: Admin/MPTBM_Settings_Global.php:273
+msgid "Your Location Longitude"
+msgstr ""

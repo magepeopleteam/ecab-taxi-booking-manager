@@ -50,8 +50,8 @@
 					set_post_thumbnail($product_id, get_post_thumbnail_id($post_id));
 					wp_publish_post($product_id);
 					$product_type = 'yes';
-					$_tax_status = isset($_POST['_tax_status']) ? sanitize_text_field($_POST['_tax_status']) : 'none';
-					$_tax_class = isset($_POST['_tax_class']) ? sanitize_text_field($_POST['_tax_class']) : '';
+					$_tax_status = isset($_POST['_tax_status']) ? sanitize_text_field($_POST['_tax_status']) : (get_post_meta($post_id, '_tax_status', true) ?: 'none');
+					$_tax_class = isset($_POST['_tax_class']) ? sanitize_text_field($_POST['_tax_class']) : (get_post_meta($post_id, '_tax_class', true) ?: '');
 					update_post_meta($product_id, '_tax_status', $_tax_status);
 					update_post_meta($product_id, '_tax_class', $_tax_class);
 					update_post_meta($product_id, '_stock_status', 'instock');
@@ -63,9 +63,9 @@
 						'post_title' => $title,
 						'post_name' => uniqid()
 					);
-					remove_action('save_post', 'run_link_product_on_save');
+					remove_action('save_post', array($this, 'run_link_product_on_save'), 99);
 					wp_update_post($my_post);
-					add_action('save_post', 'run_link_product_on_save');
+					add_action('save_post', array($this, 'run_link_product_on_save'), 99);
 				}
 			}
 			public function hide_wc_hidden_product_from_product_list($query) {

@@ -1,0 +1,57 @@
+.no-transport-message {
+    text-align: center;
+    padding: 2rem;
+    background: var(--no_transport_bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 1rem 0;
+}
+
+.no-transport-message i {
+    font-size: 3rem;
+    color: var(--no_transport_icon);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.no-transport-message h3 {
+    color: var(--no_transport_text);
+    margin: 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.no-transport-message p {
+    color: var(--no_transport_text);
+    margin: 0.5rem 0;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.no-transport-message .contact-info {
+    margin-top: 1rem;
+    padding: 0.8rem;
+    background: var(--no_transport_contact_bg);
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.no-transport-message .contact-info i {
+    font-size: 1rem;
+    color: var(--no_transport_contact_icon);
+    margin: 0 0.5rem;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.no-transport-message .contact-info a {
+    color: var(--no_transport_link);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.no-transport-message .contact-info a:hover {
+    text-decoration: underline;
+    color: var(--no_transport_link);
+    opacity: 0.8;
+} 

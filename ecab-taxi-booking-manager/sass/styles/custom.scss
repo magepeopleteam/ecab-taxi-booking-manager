@@ -1,0 +1,518 @@
+#mp_meta_box_panel{
+    .postbox-header{
+        background-color: $color-primary;
+        .handle-actions{
+            margin-top: 0;
+            .handle-order-higher, .handle-order-lower, .toggle-indicator{
+                color: $color-white;
+            }
+        }
+      h2{
+        span{
+          font-size: 12px;
+          margin:  0 5px;
+          margin-top: 5px;
+        }
+      }
+    }
+    .mptbm_settings{
+      background-color:  $color-white;
+      .tabLists{
+        width: 20%;
+        padding: 25px;
+        background-color: $color-light;
+        padding-right: 0;
+        li{
+          border-left: 0;
+          border-right:0 ;
+          padding:15px;
+          color:$color-secondary;
+          border-left: 2px solid transparent;
+          span{
+            margin-right: 25px;
+            color: $color-primary;
+          }
+          &::after{
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -1px;
+            border-bottom: 1px solid #d8d8d8;
+            width: 91%;
+          }
+          &.active,&:hover{
+            background-color:  $color-white;
+            color: #333;
+            font-weight: normal;
+            border-left: 2px solid $color-primary;
+            &::after{
+              width: 100%;
+              
+            }
+          }
+        }
+      }
+      .tabsContent{
+        width: 80%;
+        padding: 2% 5%;
+        .tabsItem{
+          & > h2{
+            padding: 0;
+            color: $color-secondary;
+            margin: 30px 0 20px 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+            line-height: 26px;
+            margin-bottom: 12px;
+            font-weight: 700;
+          }
+          & > p {
+            color: $color-secondary;
+            margin: 0;
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 24px;
+            margin-bottom: 30px;
+          }
+          section{
+            border: 1px solid #d8d8d8;
+            padding: 20px;
+            margin-top: -1px;
+            &.bg-light{
+              background-color: $color-light;
+            }
+            .label{
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              cursor: pointer;
+              h6{
+                color: $color-secondary;
+                line-height: 1.25rem;
+                font-size: 1rem;
+                font-weight: 500;
+              }
+              span.desc{
+                line-height: 1.25rem;
+                color: $color-secondary;
+                font-size: .95rem;
+              }
+              .formControl{
+                width: 260px;
+              }
+              .roundSwitchLabel{
+                input{
+                  &:checked{
+                    + .roundSwitch{
+                      background-color: $color-primary;
+                    }
+                  }
+                }
+              }
+            }
+          }
+         
+        }
+        .span-row{
+          color: #6B7280;
+          font-size: 13px;
+          font-weight: normal;
+        }
+        .long-input{
+          width:80%;
+        }
+        .wp-switch-editor{
+          height: auto;
+        }
+        .wp-editor-area{
+          width: 100%;
+          border: 0;
+        }
+      }
+    }
+} 
+@media only screen and (min-width:0px) {
+    #mp_meta_box_panel .tabLists {
+      border-right: 0px solid $color-light;
+    }
+
+    .leftTabs [data-tabs-target] {
+      border-bottom: 0px solid $color-light;
+    }
+
+    .leftTabs > .tabLists {
+      -webkit-flex-flow: column;
+      flex-flow: column;
+      min-width:inherit;
+      max-width:inherit;
+    }
+    div.mpStyle [data-tabs-target]{
+      color: $color-secondary;
+      
+    }
+    .mpStyle .tabsContent {
+      overflow: visible;
+    }
+
+    .mpStyle .navy_blueButton, .mpStyle [class*="_navy_blueButton"] {
+      background-color: $color-primary;
+      color: $color-white;
+      padding: 1.5em;
+      border: 2px solid $color-primary;
+      &:hover{
+        background-color: $color-white;
+        color:  $color-primary;
+        border-color: $color-primary;
+        span{
+          color:  $color-primary;
+        }
+      }
+    }
+
+    .mpStyle .warningButton, .mpStyle [class*="_warningButton"] {
+      background-color: $color-yellow;
+      color: $color-white;
+      padding:1.5em;
+      border: 2px solid $color-yellow;
+      &:hover{
+        background-color: $color-white;
+        color: $color-yellow;
+        span{
+          color: $color-yellow;
+        }
+      
+    }
+  }
+  
+    div.mpStyle select.formControl:focus {
+      background-color: $color-white;
+    }
+    .mpStyle .mp_remove_icon {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      width: 25px;
+      height: 25px;
+      cursor: pointer;
+      opacity: 1;
+    }
+    // settings page css==================
+    .mp_settings_panel_header {
+      background: $color-secondary;
+      padding: 2em;
+      color: $color-white;
+      font-size: 20px;
+      margin-top: 30px;
+    }
+    .mp_settings_panel{
+      padding-bottom: .5em;
+     .nav-tab-wrapper {
+      background:$color-sky-light;
+      border: 5px solid $color-sky-light;
+      .nav-tab{
+        box-sizing: border-box;
+        background:$color-white;
+        color: $color-secondary;
+        margin-bottom: .5em;
+        border-radius: .5em;
+        &:hover{
+          background: $color-primary;
+          color: $color-white;
+        }
+        &.nav-tab-active {
+          background: $color-primary;
+          color: $color-white;
+        }
+      }
+    }
+    .metabox-holder {
+      background: #FFF;
+      padding:0;
+      margin: 0;
+      width: calc(100% - 300px);
+      border: 15px solid $color-sky-light;
+      background-color: $color-sky-light;
+
+      h2{
+        border-bottom: 0px solid $color-white;
+        font-size: 1.625rem;
+        line-height: 1.4;
+        padding:.5em 0;
+        margin: 0;
+        font-weight: normal;
+        background:$color-sky-light;
+        color: $color-primary !important;
+      }
+      table{
+        border-collapse: separate;
+        border-spacing: 0 0.1em;
+        // border: 2px solid $color-primary;
+        margin: 0;
+        background-color: $color-sky-light;
+        border-radius: .5em;
+        tr:nth-child(2n) {
+          background-color: $color-white;
+        }
+      }
+    }
+    p.submit input {
+      font-size: 16px;
+      padding: 5px 30px;
+      border-radius: .5em;
+      background: $color-primary;
+      border-color: $color-primary;
+      transition: 0.2s;
+      &:hover{
+        background: $color-primary;
+        border-color: $color-primary;
+      }
+    }
+  }
+  #wpbody-content .metabox-holder {
+    padding-top: 0px;
+    padding-bottom: .5em;
+  }
+}
+
+// =============date config style customization=============
+.ppof-settings{
+  .form-wrapper {
+    margin-left: 250px;
+    background: transparent;
+    
+  }
+}
+#mp_meta_box_panel{
+  h1{
+    padding: 0;
+    color: var(--mpl-secondary);
+    margin: 30px 0 20px 0;
+    margin-bottom: 20px;
+    margin-bottom: 20px;
+    font-size: 22px;
+    line-height: 26px;
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+
+  .tab-content-ttbm_date_config_meta_boxs,.tab-content-ttbm_tax_meta_boxs{
+    .description{
+      margin: 0;
+      padding:1.5em;
+      font-size: 1rem;
+    }
+    table {
+      border-collapse: collapse; 
+      border-spacing:0;
+      border: 0;
+      margin: 0;
+      margin-top: 50px;
+    }
+    table.form-table tr th,table.form-table tr td{
+      background-color: $color-white;
+      padding: 3em;
+      margin-bottom:3em;
+      width:50%;
+      border:1px solid $color-gray;
+      p{
+        font-size: .8rem;
+      }
+    }
+    
+    table.form-table tr td{
+      text-align: right;
+      label{
+        display: block;
+        text-align: right;
+      }
+      input{
+        border-radius:.5em;
+      }
+      input.select2-search__field{
+        border: 0;
+      }
+      input#mep_disable_ticket_time{
+        margin-right: .5em;
+      }
+    }
+  }
+
+
+// form builder custom code==========
+
+  .form-wrap.form-builder {
+    h1, h2, h3, h4, h5, h6,
+    .h1, .h2, .h3, .h4, .h5, .h6{
+      color: $color-dark;
+    }
+    .frmb { 
+      li{
+        padding-bottom: .5em;
+        border:1px dashed $color-gray;
+        box-shadow: 0 0 0px $color-light;
+        background-color: $color-light;
+        margin-bottom: .5em;
+        &.frmb-placeholder, &.ui-state-highlight{
+          padding: .5em;
+          background:  $color-sky-light;
+          border:1px dashed $color-primary;
+          clip-path:none;  
+          margin-bottom: .5em;
+        }
+        
+        &:hover{
+          border:1px dashed $color-primary;
+          box-shadow: 0 0 10px $color-light;
+          background-color: $color-sky-light;
+        }
+        &.delete{
+          &:hover{
+            border:1px dashed $color-red;
+            background-color: $color-red-light;
+          }
+        }
+        .field-actions {
+          .btn {
+            min-width: 0;
+            padding: 0;
+            color: $color-white;
+            border-radius:0 ;
+            transition: all 0;
+          }
+          .del-button{
+            background-color: $color-red;
+            color: $color-white;
+          }
+    
+          .toggle-form{
+            background-color: $color-yellow;
+            transition: all 0;
+          }
+    
+          .copy-button{
+            background-color: $color-primary;
+            color: $color-white;
+          }
+        }
+      }
+      
+    }
+  }
+}
+
+div > .ppof-metabox {
+  background: transparent;
+}
+
+.mpStyle .ppof-button{
+  width: 320px;
+  border: 0px solid;
+  box-shadow: none;
+  background-color: $color-primary;
+  border-radius: .5em;
+  padding:.5em;
+  color: $color-white;
+  font-size: .5em;
+  transition: all .5s ease-in-out;
+  min-width: 100px;
+}
+
+@media only screen and (min-width:0px) {
+  div.mp_multi_image {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: start;
+    align-items: stretch;
+    gap: .5em;
+    margin-bottom: .5em;
+    div.mp_multi_image_item {
+      width: calc(25% - 7px);
+      img{
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+      }
+    }
+    
+  }
+  div.mpStyle .description{
+    font-size:1rem !important;
+    color: var(--mpl-secondary);
+  }
+ 
+  .mpStyle .customCheckboxLabel input:checked ~ .customCheckbox::before {
+    background: $color-sky;
+  }
+  .mpStyle .customCheckboxLabel {
+    cursor: pointer;
+    font-weight: normal;
+  }
+  .mpStyle .customCheckbox::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 20px;
+    width: 20px;
+    background-color: $color-white;
+    border: 1px solid $color-primary;
+    border-radius: 2px;
+  }
+}
+
+
+div.mpStyle span.mp_remove_multi_image {
+  background-color:$color-black;
+  color: $color-white;
+  box-shadow: 0 0 5px $color-white;
+}
+div.mpStyle span.mp_remove_multi_image{
+  top:-7px;
+  right:-7px;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice{
+  background-color: $color-gray;
+  border: 5px solid $color-light;
+  border-radius:.5em;
+  cursor: default;
+  float: left;
+  margin-right: 5px;
+  margin-top: 5px;
+  padding: 5px 10px;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  padding:5px;
+}
+
+.global-settings table th{
+  width: 50%;
+  label{
+    display: block;
+  }
+}
+
+div.mp_global_settings label .info_text{
+  line-height: .9rem;
+}
+
+div.mp_global_settings .mpPanel .mpPanelBody .mpTabs .tabLists{
+  width: 25%;
+}
+
+#ui-datepicker-div{
+  width: auto;
+}
+
+@media only screen and (min-width: 10px) {
+  div.mpStyle .mp_sticky_area.mpSticky {
+    position: relative;
+  }
+  div.mpStyle span.selection{
+    height: auto;
+  }
+  div.mpStyle span.select2-container.select2{
+    height: auto;
+  }
+}

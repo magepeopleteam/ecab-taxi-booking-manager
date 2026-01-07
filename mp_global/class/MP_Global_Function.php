@@ -303,6 +303,16 @@
 				}
 				$line_price = (float)$price * (int)$qty;
 				$return_price = $line_price;
+				if ($product) {
+					$tax_status = get_post_meta($post_id, '_tax_status', true) ?: 'none';
+					$tax_class = get_post_meta($post_id, '_tax_class', true) ?: '';
+					if ($tax_class === 'standard') {
+						$tax_class = '';
+					}
+					$product->set_tax_status($tax_status);
+					$product->set_tax_class($tax_class);
+
+				}
 				if ($product && $product->is_taxable()) {
 					if (!wc_prices_include_tax()) {
 						$tax_rates = WC_Tax::get_rates($product->get_tax_class());

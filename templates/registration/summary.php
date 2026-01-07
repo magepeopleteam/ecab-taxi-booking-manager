@@ -50,13 +50,13 @@ if (!function_exists('mptbm_get_translation')) {
 					<h3><?php echo mptbm_get_translation('summary_label', __('SUMMARY', 'ecab-taxi-booking-manager')); ?></h3>
 					<div class="divider"></div>
 
-					<h6 class="_mB_xs"><?php esc_html_e('Pickup Date', 'ecab-taxi-booking-manager'); ?></h6>
+					<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_date_label', __('Pickup Date', 'ecab-taxi-booking-manager')); ?></h6>
 					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date)); ?></p>
 					<div class="divider"></div>
-					<h6 class="_mB_xs"><?php esc_html_e('Pickup Time', 'ecab-taxi-booking-manager'); ?></h6>
+					<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_time_label', __('Pickup Time', 'ecab-taxi-booking-manager')); ?></h6>
 					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date, 'time')); ?></p>
 					<div class="divider"></div>
-					<h6 class="_mB_xs"><?php esc_html_e('Pickup Location', 'ecab-taxi-booking-manager'); ?></h6>
+					<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_location_label', __('Pickup Location', 'ecab-taxi-booking-manager')); ?></h6>
 					<?php if($price_based == 'manual'){ ?>
 						<p class="_textLight_1 "><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $start_place,'locations' )); ?></p>
 					<?php }else{ ?>
@@ -146,14 +146,14 @@ if (!function_exists('mptbm_get_translation')) {
 						?>
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('transfer_type_label', __('Transfer Type', 'ecab-taxi-booking-manager')); ?></h6>
-						<p class="_textLight_1"><?php esc_html_e('Return', 'ecab-taxi-booking-manager'); ?></p>
+						<p class="_textLight_1"><?php echo mptbm_get_translation('return_label', __('Return', 'ecab-taxi-booking-manager')); ?></p>
 						<?php if(!empty($return_date_time)){ ?>
                             <div class="divider"></div>
-                            <h6 class="_mB_xs"><?php esc_html_e('Return Date', 'ecab-taxi-booking-manager'); ?></h6>
-                            <p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($return_date_time)); ?></p>
+                             <h6 class="_mB_xs"><?php echo mptbm_get_translation('return_date_label', __('Return Date', 'ecab-taxi-booking-manager')); ?></h6>
+                             <p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($return_date_time)); ?></p>
                             <div class="divider"></div>
-                            <h6 class="_mB_xs"><?php esc_html_e('Return Time', 'ecab-taxi-booking-manager'); ?></h6>
-                            <p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($return_date_time,'time')); ?></p>
+                             <h6 class="_mB_xs"><?php echo mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')); ?></h6>
+                             <p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($return_date_time,'time')); ?></p>
                         <?php } ?>
 					<?php } ?>
 					<?php if($waiting_time>0){ ?>
@@ -163,7 +163,7 @@ if (!function_exists('mptbm_get_translation')) {
 					<?php } ?>
 					<div class="divider"></div>
 					<?php if ($enable_filter_features == 'yes') { ?>
-						<h6 class="_mB_xs"><?php esc_html_e('Passengers', 'ecab-taxi-booking-manager'); ?></h6>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('passengers_label', __('Passengers', 'ecab-taxi-booking-manager')); ?></h6>
 						<p class="_textLight_1 mptbm_summary_passenger">
 							<?php
 							if (!empty($summary_passenger) || $summary_passenger === 0) {
@@ -174,7 +174,7 @@ if (!function_exists('mptbm_get_translation')) {
 						
 						<div class="divider"></div>
 						<?php if($summary_bag>0){ ?>
-						<h6 class="_mB_xs"><?php esc_html_e('Bags', 'ecab-taxi-booking-manager'); ?></h6>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('bags_label', __('Bags', 'ecab-taxi-booking-manager')); ?></h6>
 						<p class="_textLight_1 mptbm_summary_bag">
 							<?php
 							if (!empty($summary_bag) || $summary_bag === 0) {
