@@ -372,6 +372,17 @@ if (!class_exists('MPTBM_Function')) {
 				} elseif ($price_based == 'distance' && $original_price_based == 'fixed_hourly') {
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
 					$price = $km_price * ((float) $distance / 1000);
+				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_distance') && $original_price_based == 'fixed_distance') {
+					$match_type = isset($_SESSION['mptbm_fixed_distance_match_' . $post_id]) ? $_SESSION['mptbm_fixed_distance_match_' . $post_id] : 'partial';
+					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
+					
+					if ($match_type === 'full') {
+						$price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_price');
+					} else {
+						// Fallback to Distance + Duration
+						$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
+						$price = ($hour_price * ((float) $duration / 3600)) + ($km_price * ((float) $distance / 1000));
+					}
 				}
 				elseif ((trim($price_based) == 'inclusive' || trim($price_based) == 'manual') && trim($original_price_based) == 'manual') {
 					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);

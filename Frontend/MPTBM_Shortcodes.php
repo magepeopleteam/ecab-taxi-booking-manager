@@ -28,7 +28,7 @@ if (!class_exists('MPTBM_Shortcodes')) {
             $params['tab'] = ($params['tab'] === 'yes') ? 'yes' : 'no';
             $params['map'] = ($params['map'] === 'no') ? 'no' : 'yes';
             $params['form'] = in_array($params['form'], ['horizontal', 'inline', 'vertical']) ? $params['form'] : 'horizontal';
-            $params['price_based'] = in_array($params['price_based'], ['dynamic', 'manual', 'fixed_hourly']) ? $params['price_based'] : 'dynamic';
+            $params['price_based'] = in_array($params['price_based'], ['dynamic', 'manual', 'fixed_hourly', 'fixed_distance']) ? $params['price_based'] : 'dynamic';
 
             ob_start();
             do_action('mptbm_transport_search', $params);

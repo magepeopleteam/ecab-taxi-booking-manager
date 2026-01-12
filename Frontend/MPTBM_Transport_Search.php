@@ -97,9 +97,14 @@
 						'_transient_timeout_' . $pattern
 					));
 				}
-				
+				if (defined('WP_DEBUG') && WP_DEBUG) {
+					error_log("MPTBM Debug: Search Result AJAX called. POST data: " . print_r($_POST, true));
+				}
 				// Ensure original_price_based is set for proper pricing calculations
 				$price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
+				if ($price_based == 'fixed_distance') {
+					set_transient('original_price_based', 'fixed_distance', HOUR_IN_SECONDS);
+				}
 				set_transient('original_price_based', $price_based, HOUR_IN_SECONDS);
 				
 				// Buffer time validation
@@ -200,9 +205,14 @@
 						'_transient_timeout_' . $pattern
 					));
 				}
-				
+				if (defined('WP_DEBUG') && WP_DEBUG) {
+					error_log("MPTBM Debug: Search Result Redirect AJAX called. POST data: " . print_r($_POST, true));
+				}
 				// Ensure original_price_based is set for proper pricing calculations
 				$price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
+				if ($price_based == 'fixed_distance') {
+					set_transient('original_price_based', 'fixed_distance', HOUR_IN_SECONDS);
+				}
 				set_transient('original_price_based', $price_based, HOUR_IN_SECONDS);
 				
 				// Buffer time validation
