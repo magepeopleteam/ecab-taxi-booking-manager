@@ -109,7 +109,15 @@
 						</label>
 					</td>
 					<td class="text-center">
-						<input type="number" pattern="[0-9]*" step="0.01" class="small mp_price_validation" name="service_price[]" placeholder="<?php esc_attr_e( 'EX: 10', 'ecab-taxi-booking-manager' ); ?>" value="<?php echo esc_attr( $service_price ); ?>"/>
+						<input
+							type="number"
+							step="0.01"
+							min="0"
+							class="small"
+							name="service_price[]"
+							placeholder="<?php esc_attr_e( 'EX: 10.50', 'ecab-taxi-booking-manager' ); ?>"
+							value="<?php echo esc_attr( $service_price ); ?>"
+						/>
 					</td>
 					<td>
 						<select name="service_qty_type[]" class='mideum'>

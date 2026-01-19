@@ -9,6 +9,7 @@ if (!function_exists('mptbm_get_translation')) {
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly
+
 	$distance = $distance ?? (isset($_COOKIE['mptbm_distance']) ?absint($_COOKIE['mptbm_distance']): '');
 	$duration = $duration ?? (isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '');
 	$label = $label ?? MPTBM_Function::get_name();
@@ -21,7 +22,7 @@ if (!function_exists('mptbm_get_translation')) {
 	$return_date_time = $return_date_time ?? '';
 	$price_based = $price_based ?? '';
 	$post_id = $summary_post_id ?? '';
-	
+	$km_or_mile = MP_Global_Function::get_settings('mp_global_settings', 'km_or_mile', 'km');
 	// Get price display type and custom message if post_id is available
 	if ($post_id) {
 		$price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
@@ -38,22 +39,24 @@ if (!function_exists('mptbm_get_translation')) {
 		$show_summary = false;
 	}
 	$disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
+	// Check feature filter setting
+	$enable_filter_features = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_filter_via_features', 'no');
 ?>
 	<?php if ($show_summary): ?>
 	<div class="leftSidebar">
 		<div class="">
 			<div class="mp_sticky_on_scroll summary-box">
 				<div class="_dFlex_fdColumn">
-					<h3><?php esc_html_e('SUMMARY', 'ecab-taxi-booking-manager'); ?></h3>
+					<h3><?php echo mptbm_get_translation('summary_label', __('SUMMARY', 'ecab-taxi-booking-manager')); ?></h3>
 					<div class="divider"></div>
 
-					<h6 class="_mB_xs"><?php esc_html_e('Pickup Date', 'ecab-taxi-booking-manager'); ?></h6>
+					<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_date_label', __('Pickup Date', 'ecab-taxi-booking-manager')); ?></h6>
 					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date)); ?></p>
 					<div class="divider"></div>
-					<h6 class="_mB_xs"><?php esc_html_e('Pickup Time', 'ecab-taxi-booking-manager'); ?></h6>
+					<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_time_label', __('Pickup Time', 'ecab-taxi-booking-manager')); ?></h6>
 					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date, 'time')); ?></p>
 					<div class="divider"></div>
-					<h6 class="_mB_xs"><?php esc_html_e('Pickup Location', 'ecab-taxi-booking-manager'); ?></h6>
+					<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_location_label', __('Pickup Location', 'ecab-taxi-booking-manager')); ?></h6>
 					<?php if($price_based == 'manual'){ ?>
 						<p class="_textLight_1 "><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $start_place,'locations' )); ?></p>
 					<?php }else{ ?>
@@ -76,32 +79,110 @@ if (!function_exists('mptbm_get_translation')) {
 					
 					<?php if($price_based != 'manual' && $price_based != 'fixed_hourly'){ ?> 
 						<div class="divider"></div>
-						<h6 class="_mB_xs"><?php esc_html_e('Total Distance', 'ecab-taxi-booking-manager'); ?></h6>
-						<p class="_textLight_1"><?php echo esc_html(isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : ''); ?></p>
 						<div class="divider"></div>
-						<h6 class="_mB_xs"><?php esc_html_e('Total Time', 'ecab-taxi-booking-manager'); ?></h6>
-						<p class="_textLight_1"><?php echo esc_html(isset($_COOKIE['mptbm_duration_text']) ? $_COOKIE['mptbm_duration_text'] : ''); ?></p>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('total_distance_label', __('Total Distance', 'ecab-taxi-booking-manager')); ?></h6>
+						<?php 
+							// First try to get text from cookies/request
+							$distance_text = isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : (isset($_REQUEST['mptbm_distance_text']) ? $_REQUEST['mptbm_distance_text'] : '');
+							
+							// If text is missing but we have raw value, calculate it
+							if (empty($distance_text) && !empty($distance)) {
+								$distance_in_meters = floatval($distance);
+								if ($km_or_mile == 'mile') {
+									$dist_val = $distance_in_meters * 0.000621371;
+									$distance_text = round($dist_val, 1) . ' miles';
+								} else {
+									$dist_val = $distance_in_meters / 1000;
+									$distance_text = round($dist_val, 1) . ' km';
+								}
+							}
+
+							$duration_text = isset($_COOKIE['mptbm_duration_text']) ? $_COOKIE['mptbm_duration_text'] : (isset($_REQUEST['mptbm_duration_text']) ? $_REQUEST['mptbm_duration_text'] : '');
+							
+							// If duration text is missing but we have raw value
+							if (empty($duration_text) && !empty($duration)) {
+								$duration_seconds = intval($duration);
+								$hours = floor($duration_seconds / 3600);
+								$minutes = round(($duration_seconds % 3600) / 60);
+								
+								if ($hours > 0) {
+									$duration_text = sprintf(__('%d Hour %d Min', 'ecab-taxi-booking-manager'), $hours, $minutes);
+								} else {
+									$duration_text = sprintf(__('%d Min', 'ecab-taxi-booking-manager'), $minutes);
+								}
+							}
+						?>
+						<?php if ($two_way > 1) { 
+							// If we calculated it ourselves, we can just double the numeric part or re-calculate
+							if (!empty($distance) && empty($_COOKIE['mptbm_distance_text']) && empty($_REQUEST['mptbm_distance_text'])) {
+								// We have raw distance, so just double raw distance and format
+								$total_dist = floatval($distance) * 2;
+								if ($km_or_mile == 'mile') {
+									$val = $total_dist * 0.000621371;
+									$display_dist = round($val, 1) . ' MILE';
+								} else {
+									$val = $total_dist / 1000;
+									$display_dist = round($val, 1) . ' KM';
+								}
+							} else {
+								// Fallback to parsing the text (legacy behavior)
+								$distance_value = floatval($distance_text) * 2; 
+								$display_dist = $distance_value ." ". ucfirst($km_or_mile);
+							}
+						?>
+							<p class="_textLight_1 mptbm_total_distance">
+								<?php echo esc_html($display_dist); ?>
+							</p>
+						<?php }else{ ?>
+						<p class="_textLight_1 mptbm_total_distance"><?php echo esc_html($distance_text); ?></p>
+						<?php }?>
+						<div class="divider"></div>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('total_time_label', __('Total Time', 'ecab-taxi-booking-manager')); ?></h6>
+						<p class="_textLight_1 mptbm_total_time"><?php echo esc_html($duration_text); ?></p>
 					<?php } ?>
 					
 					
 					<?php if($two_way>1){ 
 						?>
 						<div class="divider"></div>
-						<h6 class="_mB_xs"><?php esc_html_e('Transfer Type', 'ecab-taxi-booking-manager'); ?></h6>
-						<p class="_textLight_1"><?php esc_html_e('Return', 'ecab-taxi-booking-manager'); ?></p>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('transfer_type_label', __('Transfer Type', 'ecab-taxi-booking-manager')); ?></h6>
+						<p class="_textLight_1"><?php echo mptbm_get_translation('return_label', __('Return', 'ecab-taxi-booking-manager')); ?></p>
 						<?php if(!empty($return_date_time)){ ?>
                             <div class="divider"></div>
-                            <h6 class="_mB_xs"><?php esc_html_e('Return Date', 'ecab-taxi-booking-manager'); ?></h6>
-                            <p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($return_date_time)); ?></p>
+                             <h6 class="_mB_xs"><?php echo mptbm_get_translation('return_date_label', __('Return Date', 'ecab-taxi-booking-manager')); ?></h6>
+                             <p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($return_date_time)); ?></p>
                             <div class="divider"></div>
-                            <h6 class="_mB_xs"><?php esc_html_e('Return Time', 'ecab-taxi-booking-manager'); ?></h6>
-                            <p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($return_date_time,'time')); ?></p>
+                             <h6 class="_mB_xs"><?php echo mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')); ?></h6>
+                             <p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($return_date_time,'time')); ?></p>
                         <?php } ?>
 					<?php } ?>
 					<?php if($waiting_time>0){ ?>
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('extra_waiting_hours_label', __('Extra Waiting Hours', 'ecab-taxi-booking-manager')); ?></h6>
 						<p class="_textLight_1"><?php echo esc_html($waiting_time); ?>&nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
+					<?php } ?>
+					<div class="divider"></div>
+					<?php if ($enable_filter_features == 'yes') { ?>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('passengers_label', __('Passengers', 'ecab-taxi-booking-manager')); ?></h6>
+						<p class="_textLight_1 mptbm_summary_passenger">
+							<?php
+							if (!empty($summary_passenger) || $summary_passenger === 0) {
+								echo esc_html($summary_passenger);
+							}
+							?>
+						</p>
+						
+						<div class="divider"></div>
+						<?php if($summary_bag>0){ ?>
+						<h6 class="_mB_xs"><?php echo mptbm_get_translation('bags_label', __('Bags', 'ecab-taxi-booking-manager')); ?></h6>
+						<p class="_textLight_1 mptbm_summary_bag">
+							<?php
+							if (!empty($summary_bag) || $summary_bag === 0) {
+								echo esc_html($summary_bag);
+							}
+							?>
+						</p>
+						<?php } ?>
 					<?php } ?>
 					<?php if($fixed_time && $fixed_time>0){ ?>
 						<div class="divider"></div>
@@ -139,3 +220,29 @@ if (!function_exists('mptbm_get_translation')) {
 	</div>
 	<?php endif; ?>
 <?php
+// Populate passengers/bags summary from the current form selections (if available)
+add_action('wp_footer', function() { ?>
+<script>
+    (function($){
+        function updateSummaryCounts() {
+            var passenger = $('#mptbm_max_passenger').val() || $('#mptbm_passengers').val() || '';
+            var bag = $('#mptbm_max_bag').val() || '';
+            // Fallback to data stored on selected vehicle (if present)
+            var selectedItem = $('.mptbm_single_item.active');
+            if (!passenger && selectedItem.length) {
+                passenger = selectedItem.data('passenger');
+            }
+            if (!bag && selectedItem.length) {
+                bag = selectedItem.data('bag');
+            }
+            $('.mptbm_summary_passenger').text(passenger ? passenger : '—');
+            $('.mptbm_summary_bag').text(bag ? bag : '—');
+        }
+        $(document).ready(function(){
+            updateSummaryCounts();
+            $(document).on('change', '#mptbm_max_passenger, #mptbm_passengers, #mptbm_max_bag', updateSummaryCounts);
+            $(document).on('click', '.mptbm_single_item', updateSummaryCounts);
+        });
+    })(jQuery);
+</script>
+<?php });

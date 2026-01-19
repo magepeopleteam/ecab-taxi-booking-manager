@@ -237,6 +237,102 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
         }
     }
 }
+function mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_place_coordinates, $end_place_coordinates, $price_based) {
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log("MPTBM Debug: Fixed Distance Check for Post ID: $post_id, Area ID: $operation_area_id");
+    }
+    // Only apply for fixed_distance pricing
+    if ($price_based !== 'fixed_distance') {
+        return false;
+    }
+    $operation_area_type = get_post_meta($operation_area_id, "mptbm-operation-type", true);
+    
+    // Determine meta key based on operation type
+    $coord_key = '';
+    if ($operation_area_type === "geo-matched-operation-area-type") {
+        $coord_key = "mptbm-coordinates-four";
+    } elseif ($operation_area_type === "fixed-operation-area-type") {
+        $coord_key = "mptbm-coordinates-three";
+    }
+
+    if (!$coord_key) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("MPTBM Debug: Area ID $operation_area_id has unsupported type: $operation_area_type");
+        }
+        return false;
+    }
+
+    $flat_operation_area_coordinates = get_post_meta($operation_area_id, $coord_key, true);
+    if (!is_array($flat_operation_area_coordinates)) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("MPTBM Debug: Area ID $operation_area_id coordinates not found or not an array for key $coord_key");
+        }
+        return false;
+    }
+    // Convert to polygon format
+    $operation_area_coordinates = [];
+    for ($i = 0; $i < count($flat_operation_area_coordinates); $i += 2) {
+        $operation_area_coordinates[] = ["latitude" => $flat_operation_area_coordinates[$i], "longitude" => $flat_operation_area_coordinates[$i + 1]];
+    }
+    // Check if BOTH pickup and dropoff are in polygon
+    if (!function_exists('pointInPolygon')) {
+        function pointInPolygon($point, $polygon) {
+            $x = isset($point['latitude']) ? $point['latitude'] : (isset($point['lat']) ? $point['lat'] : 0);
+            $y = isset($point['longitude']) ? $point['longitude'] : (isset($point['lng']) ? $point['lng'] : 0);
+            $inside = false;
+            $n = count($polygon);
+            for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
+                $xi = $polygon[$i]['latitude'];
+                $yi = $polygon[$i]['longitude'];
+                $xj = $polygon[$j]['latitude'];
+                $yj = $polygon[$j]['longitude'];
+                $intersect = (($yi > $y) != ($yj > $y)) &&
+                    ($x < ($xj - $xi) * ($y - $yi) / ($yj - $yi + 0.0000001) + $xi);
+                if ($intersect) $inside = !$inside;
+            }
+            return $inside;
+        }
+    }
+
+    $start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : json_decode($start_place_coordinates, true);
+    $end_coords = is_array($end_place_coordinates) ? $end_place_coordinates : json_decode($end_place_coordinates, true);
+
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log("MPTBM Debug: Start Coords: " . print_r($start_coords, true));
+        error_log("MPTBM Debug: End Coords: " . print_r($end_coords, true));
+    }
+
+    $start_in_area = false;
+    $end_in_area = false;
+    if (is_array($start_coords)) {
+        $start_in_area = pointInPolygon($start_coords, $operation_area_coordinates);
+    }
+    if (is_array($end_coords)) {
+        $end_in_area = pointInPolygon($end_coords, $operation_area_coordinates);
+    }
+
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log("MPTBM Debug: Pickup: " . ($start_in_area ? 'Inside' : 'Outside'));
+        error_log("MPTBM Debug: Dropoff: " . ($end_in_area ? 'Inside' : 'Outside'));
+    }
+
+    if ($start_in_area && $end_in_area) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("MPTBM Debug: Final Result: Fixed Price (Both Inside)");
+        }
+        return 'full';
+    } elseif ($start_in_area || $end_in_area) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("MPTBM Debug: Final Result: Fallback Price (One Inside)");
+        }
+        return 'partial';
+    }
+
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log("MPTBM Debug: Final Result: No Match (Both Outside)");
+    }
+    return false;
+}
 
 
 
@@ -246,15 +342,20 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
     $selected_day = date('l', $timestamp);
     
     // Check & destroy transport session if exist
-    session_start();
-    if (isset($_SESSION["geo_fence_post_" . $post_id])) {
-        unset($_SESSION["geo_fence_post_" . $post_id]);
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
     }
-    session_write_close();
+    if (isset($_SESSION["mptbm_fixed_distance_match_" . $post_id])) {
+        unset($_SESSION["mptbm_fixed_distance_match_" . $post_id]);
+    }
     
     //Get operation area id
     $operation_area_ids = get_post_meta($post_id, "mptbm_selected_operation_areas", true);
     
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log("MPTBM Debug: Post ID: $post_id, Price Based: $price_based, Operation Area IDs: " . (is_array($operation_area_ids) ? implode(',', $operation_area_ids) : $operation_area_ids));
+    }
+
     //Schedule array
     $schedule = [];
     
@@ -264,6 +365,22 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
             $is_in_any_area = false;
             $transport_operation_type = get_post_meta($post_id, 'mptbm_operation_area_type', true);
             foreach ($operation_area_ids as $operation_area_id) {
+                if ($price_based === 'fixed_distance') {
+                    $match_type = mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_place_coordinates, $end_place_coordinates, $price_based);
+                    if ($match_type) {
+                        $is_in_any_area = true;
+                        $_SESSION["mptbm_fixed_distance_match_" . $post_id] = $match_type;
+                        ?>
+                        <script>
+                            var selectorClass = `.mptbm_booking_item_<?php echo $post_id; ?>`;
+                            jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
+                            document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                        </script>
+                        <?php
+                        break;
+                    }
+                    continue;
+                }
                 $operation_area_type = get_post_meta($operation_area_id, "mptbm-operation-type", true);
                 if ($transport_operation_type === "geo-matched-operation-area-type") {
                     // Geo-matched logic: show if either pickup or dropoff is in the area
@@ -340,7 +457,17 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                     }
                 }
             }
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("MPTBM Debug: Post ID: $post_id, Area Match Status: " . ($is_in_any_area ? 'Found' : 'Not Found'));
+            }
+
             if (!$is_in_any_area) {
+                if ($price_based === 'fixed_distance') {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log("MPTBM Debug: Transport $post_id rejected - No matching geo-area for fixed_distance.");
+                    }
+                    return false;
+                }
                 ?>
                 <script>
                     var post_id = <?php echo wp_json_encode($post_id); ?>;
@@ -351,9 +478,28 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
             }
         } else {
             // Single operation area
-            mptbm_check_transport_area_geo_fence($post_id, $operation_area_ids, $start_place_coordinates, $end_place_coordinates);
+            if ($price_based === 'fixed_distance') {
+                $match_type = mptbm_check_fixed_distance_area($post_id, $operation_area_ids, $start_place_coordinates, $end_place_coordinates, $price_based);
+                if ($match_type) {
+                    $is_in_any_area = true;
+                    $_SESSION["mptbm_fixed_distance_match_" . $post_id] = $match_type;
+                } else {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log("MPTBM Debug: Transport $post_id rejected - Single area match failed for fixed_distance.");
+                    }
+                    return false;
+                }
+            } else {
+                mptbm_check_transport_area_geo_fence($post_id, $operation_area_ids, $start_place_coordinates, $end_place_coordinates);
+            }
         }
     } else {
+        if ($price_based === 'fixed_distance') {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("MPTBM Debug: Transport $post_id rejected - No Operation Areas assigned while original_price_based is fixed_distance.");
+            }
+            return false;
+        }
         ?>
         <script>
             var post_id = <?php echo wp_json_encode($post_id); ?>;
@@ -375,6 +521,7 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
     $default_start_time = get_post_meta($post_id, "mptbm_default_start_time", true);
     $default_end_time = get_post_meta($post_id, "mptbm_default_end_time", true);
     
+    
     // Build schedule array with proper default handling
     foreach ($days_name as $name) {
         $start_time = get_post_meta($post_id, "mptbm_" . $name . "_start_time", true);
@@ -383,9 +530,12 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
         // If day-specific times are empty, use default times
         if($start_time == '' || $start_time == 'default'){
             $start_time = $default_start_time;
+        } else {
         }
+        
         if($end_time == '' || $end_time == 'default'){
             $end_time = $default_end_time;
+        } else {
         }
         
         // Only add to schedule if we have valid times
@@ -408,11 +558,27 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
         $day_lower = strtolower($day);
         
         if($selected_day_lower == $day_lower){ 
+            $is_overnight = $day_start_time > $day_end_time;
+            $start_valid = false;
+
+            if ($is_overnight) {
+                $start_valid = ($start_time_schedule >= $day_start_time) || ($start_time_schedule <= $day_end_time);
+            } else {
+                $start_valid = ($start_time_schedule >= $day_start_time) && ($start_time_schedule <= $day_end_time);
+            }
+
             // Check if start time is within the schedule
-            if ($start_time_schedule >= $day_start_time && $start_time_schedule <= $day_end_time) {
+            if ($start_valid) {
                 // If return time is specified, check it too
                 if (isset($return_time_schedule) && $return_time_schedule !== "" && $return_time_schedule !== null) {
-                    if ($return_time_schedule >= $day_start_time && $return_time_schedule <= $day_end_time) {
+                    $return_valid = false;
+                    if ($is_overnight) {
+                        $return_valid = ($return_time_schedule >= $day_start_time) || ($return_time_schedule <= $day_end_time);
+                    } else {
+                        $return_valid = ($return_time_schedule >= $day_start_time) && ($return_time_schedule <= $day_end_time);
+                    }
+
+                    if ($return_valid) {
                         return true;
                     }
                 } else {
@@ -425,9 +591,28 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
     // If no specific day schedule found, check if we should use default times
     if (empty($schedule) || !isset($schedule[$selected_day_lower])) {
         if ($default_start_time !== "" && $default_end_time !== "" && $default_start_time !== null && $default_end_time !== null) {
-            if ($start_time_schedule >= floatval($default_start_time) && $start_time_schedule <= floatval($default_end_time)) {
-                if (isset($return_time_schedule) && $return_time_schedule !== "" && $return_time_schedule !== null) {
-                    if ($return_time_schedule >= floatval($default_start_time) && $return_time_schedule <= floatval($default_end_time)) {
+            $def_start = floatval($default_start_time);
+            $def_end = floatval($default_end_time);
+            
+            $is_overnight = $def_start > $def_end;
+            $start_valid = false;
+            
+            if ($is_overnight) {
+                $start_valid = ($start_time_schedule >= $def_start) || ($start_time_schedule <= $def_end);
+            } else {
+                $start_valid = ($start_time_schedule >= $def_start) && ($start_time_schedule <= $def_end);
+            }
+
+            if ($start_valid) {
+                 if (isset($return_time_schedule) && $return_time_schedule !== "" && $return_time_schedule !== null) {
+                    $return_valid = false;
+                    if ($is_overnight) {
+                        $return_valid = ($return_time_schedule >= $def_start) || ($return_time_schedule <= $def_end);
+                    } else {
+                        $return_valid = ($return_time_schedule >= $def_start) && ($return_time_schedule <= $def_end);
+                    }
+                    
+                    if ($return_valid) {
                         return true;
                     }
                 } else {
@@ -613,9 +798,14 @@ $mptbm_passengers = max($mptbm_passengers);
 $selected_max_passenger = isset($_POST['mptbm_max_passenger']) ? intval($_POST['mptbm_max_passenger']) : 0;
 $selected_max_bag = isset($_POST['mptbm_max_bag']) ? intval($_POST['mptbm_max_bag']) : 0;
 
-// Get distance and duration from cookies for price calculation
-$distance = isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '';
-$duration = isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '';
+// Values to show in summary box (prefer user selections from form)
+$summary_passenger = $selected_max_passenger ?: (isset($_POST['mptbm_passengers']) ? absint($_POST['mptbm_passengers']) : '');
+$summary_bag = $selected_max_bag ?: '';
+
+// Get distance and duration from POST (if sent via AJAX fallback) or cookies
+$distance = isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '');
+$duration = isset($_POST['mptbm_duration']) && !empty($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '');
+
 
 // Fallback values for object caching compatibility
 if (empty($distance)) {
@@ -689,20 +879,25 @@ if ($all_posts->found_posts > 0) {
     $vehicle_item_count = 0;
     foreach ($posts as $post) {
         $post_id = $post->ID;
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("MPTBM Debug: Checking Transport Post ID: $post_id");
+        }
         $taxi_max_passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
         $taxi_max_bag = (int) get_post_meta($post_id, 'mptbm_maximum_bag', true);
         if (
             ($selected_max_passenger && $taxi_max_passenger < $selected_max_passenger) ||
             ($selected_max_bag && $taxi_max_bag < $selected_max_bag)
         ) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("MPTBM Debug: Transport $post_id skipped due to passenger/bag filter.");
+            }
             continue; // Skip this taxi, it doesn't meet the filter
         }
         
         $check_schedule = wptbm_get_schedule($post_id, $days_name, $start_date,$start_time_schedule, $return_time_schedule, $start_place_coordinates, $end_place_coordinates, $price_based);
         
-        // Debug: Log schedule check result
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("Schedule check for post {$post_id}: " . ($check_schedule ? 'AVAILABLE' : 'NOT AVAILABLE') . " - Date: {$start_date}, Time: {$start_time_schedule}");
+            error_log("MPTBM Debug: Transport $post_id Schedule Check: " . ($check_schedule ? 'Passed' : 'Failed'));
         }
         
         if ($check_schedule) {
@@ -713,6 +908,10 @@ if ($all_posts->found_posts > 0) {
             
             // Get the price
             $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time);
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("MPTBM Debug: Transport $post_id Calculated Price: $price");
+            }
             
             
             // Only skip display if price is 0 and we're not in zero or custom message mode

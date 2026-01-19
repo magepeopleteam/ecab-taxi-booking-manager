@@ -22,6 +22,9 @@ if (!class_exists('MPTBM_Dependencies')) {
 		// Add AJAX handler for OpenStreetMap search
 		add_action('wp_ajax_mptbm_osm_search', array($this, 'osm_search_proxy'));
 		add_action('wp_ajax_nopriv_mptbm_osm_search', array($this, 'osm_search_proxy'));
+		
+		// Whitelist Google Maps script from CookieAdmin
+		add_filter('script_loader_tag', array('MPTBM_Function', 'whitelist_google_maps_script'), 20, 3);
 	}
         public function language_load(): void
         {
@@ -91,8 +94,10 @@ if (!class_exists('MPTBM_Dependencies')) {
             $is_operation_areas_page = ($screen && $screen->post_type === 'mptbm_operate_areas');
             $is_settings_page = ($screen && isset($_GET['page']) && $_GET['page'] === 'mptbm_settings_page');
             $is_rent_page = ($screen && $screen->post_type === 'mptbm_rent');
+            $is_locations_screen = ($screen && ($screen->id === 'edit-locations' || $screen->taxonomy === 'locations'));
             
-            if (($is_operation_areas_page || $is_settings_page || $is_rent_page) && $map_type === 'openstreetmap') {
+            if (($is_operation_areas_page || $is_settings_page || $is_rent_page || $is_locations_screen)) {
+                if ($map_type === 'openstreetmap') {
                 // Leaflet core - must load BEFORE mptbm_admin_map
                 wp_enqueue_style('leaflet', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css', array(), '1.9.4');
                 wp_enqueue_script('leaflet', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js', array('jquery'), '1.9.4', false);
@@ -105,6 +110,7 @@ if (!class_exists('MPTBM_Dependencies')) {
                 wp_deregister_script('mptbm_admin_map');
                 wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('jquery', 'leaflet', 'leaflet-draw'), time(), true);
             }
+        }
            
             // Trigger the action hook to add additional scripts if needed
             do_action('add_mptbm_admin_script');

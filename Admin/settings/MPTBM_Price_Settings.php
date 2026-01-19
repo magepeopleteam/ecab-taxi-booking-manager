@@ -27,6 +27,8 @@ if (!class_exists('MPTBM_Price_Settings')) {
 			$price_based = $display_map == 'disable' ? 'manual' : $price_based;
 			$distance_price = MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
 			$time_price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
+			$time_price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
+			$fixed_map_price = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_price');
 			$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 			$terms_location_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
 			$location_terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
@@ -40,7 +42,13 @@ if (!class_exists('MPTBM_Price_Settings')) {
 			$distance_duration_selected = $price_based == 'distance_duration' ? 'selected' : '';
 			$distance_duration_selected = $display_map == 'disable' ? 'disabled' : $distance_duration_selected;
 			$fixed_hourly_selected = $price_based == 'fixed_hourly' ? 'selected' : '';
+			$fixed_hourly_selected = $price_based == 'fixed_hourly' ? 'selected' : '';
 			$fixed_hourly_selected = $display_map == 'disable' ? 'disabled' : $fixed_hourly_selected;
+			
+			$fixed_distance_selected = $price_based == 'fixed_distance' ? 'selected' : '';
+			$fixed_distance_selected = $display_map == 'disable' ? 'disabled' : $fixed_distance_selected;
+			
+			$inclusive_selected = $price_based == 'inclusive' ? 'selected' : '';
 			$gm_api_url = admin_url('edit.php?post_type=mptbm_rent&page=mptbm_settings_page');
 
 ?>
@@ -115,12 +123,13 @@ if (!class_exists('MPTBM_Price_Settings')) {
 						<div>
 							<select class="formControl" name="mptbm_price_based" data-collapse-target>
 								<option disabled><?php esc_html_e('Please select ...', 'ecab-taxi-booking-manager'); ?></option>
-								<option value="inclusive" data-option-target data-option-target-multi="#mp_distance #mp_duration #mp_manual" <?php echo esc_attr($distance_selected); ?>><?php esc_html_e('Inclusive', 'ecab-taxi-booking-manager'); ?></option>
+								<option value="inclusive" data-option-target data-option-target-multi="#mp_distance #mp_duration #mp_manual #mp_fixed_map" <?php echo esc_attr($inclusive_selected); ?>><?php esc_html_e('Inclusive', 'ecab-taxi-booking-manager'); ?></option>
 								<option value="distance" data-option-target data-option-target-multi="#mp_distance" <?php echo esc_attr($distance_selected); ?>><?php esc_html_e('Distance as google map', 'ecab-taxi-booking-manager'); ?></option>
 								<option value="duration" data-option-target data-option-target-multi="#mp_duration" <?php echo esc_attr($duration_selected); ?>><?php esc_html_e('Duration/Time as google map', 'ecab-taxi-booking-manager'); ?></option>
 								<option value="distance_duration" data-option-target data-option-target-multi="#mp_distance #mp_duration" <?php echo esc_attr($distance_duration_selected); ?>><?php esc_html_e('Distance + Duration as google map', 'ecab-taxi-booking-manager'); ?></option>
 								<option value="manual" data-option-target data-option-target-multi="#mp_manual" <?php echo esc_attr($price_based == 'manual' ? 'selected' : ''); ?>><?php esc_html_e('Manual as fixed Location', 'ecab-taxi-booking-manager'); ?></option>
 								<option value="fixed_hourly" data-option-target="#mp_duration" <?php echo esc_attr($fixed_hourly_selected); ?>><?php esc_html_e('Fixed Hourly', 'ecab-taxi-booking-manager'); ?></option>
+								<option value="fixed_distance" data-option-target data-option-target-multi="#mp_distance #mp_duration #mp_fixed_map" <?php echo esc_attr($fixed_distance_selected); ?>><?php esc_html_e('Fixed with Map', 'ecab-taxi-booking-manager'); ?></option>
 							</select>
 						</div>
 					</label>
@@ -142,7 +151,19 @@ if (!class_exists('MPTBM_Price_Settings')) {
 							placeholder="<?php esc_html_e('EX:10', 'ecab-taxi-booking-manager'); ?>" />
 					</label>
 				</section>
-				<section data-collapse="#mp_duration" class="<?php echo esc_attr($price_based == 'duration' || $price_based == 'distance_duration' || $price_based == 'fixed_hourly' ? 'mActive' : ''); ?>">
+				</section>
+				
+				<section data-collapse="#mp_fixed_map" class="<?php echo esc_attr($price_based == 'fixed_distance' ? 'mActive' : ''); ?>">
+					<label class="label">
+						<div>
+							<h6><?php esc_html_e('Fixed with map price', 'ecab-taxi-booking-manager'); ?></h6>
+							<span class="desc"><?php esc_html_e('Set the fixed price for map-based trips', 'ecab-taxi-booking-manager'); ?></span>
+						</div>
+						<input class="formControl mp_price_validation" name="mptbm_fixed_map_price" value="<?php echo esc_attr($fixed_map_price); ?>" type="text" placeholder="<?php esc_html_e('EX:10', 'ecab-taxi-booking-manager'); ?>" />
+					</label>
+				</section>
+
+				<section data-collapse="#mp_duration" class="<?php echo esc_attr($price_based == 'duration' || $price_based == 'distance_duration' || $price_based == 'fixed_hourly' || $price_based == 'fixed_distance' ? 'mActive' : ''); ?>">
 					<label class="label">
 						<div>
 							<h6><?php esc_html_e('Price/Hour', 'ecab-taxi-booking-manager'); ?>
@@ -388,6 +409,8 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				update_post_meta($post_id, 'mptbm_km_price', $distance_price);
 				$hour_price = isset($_POST['mptbm_hour_price']) ? sanitize_text_field($_POST['mptbm_hour_price']) : 0;
 				update_post_meta($post_id, 'mptbm_hour_price', $hour_price);
+				$fixed_map_price = isset($_POST['mptbm_fixed_map_price']) ? sanitize_text_field($_POST['mptbm_fixed_map_price']) : 0;
+				update_post_meta($post_id, 'mptbm_fixed_map_price', $fixed_map_price);
 				$manual_price_infos = array();
 				$start_location = isset($_POST['mptbm_manual_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_manual_start_location']) : [];
 				$end_location = isset($_POST['mptbm_manual_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_manual_end_location']) : [];

@@ -210,6 +210,8 @@ A. You need to Re-save permalink settings it will solve the 404. if still does n
 = Q.How its work? =
 A. Woocommerce Events Manager is one of the simple event plugins for WordPress which is based on Woocommerce. It works as an individual event and its payment functionality is handled with WooCommerce so there are no worries about the payment gateway you can use every payment gateway that supports WooCommerce. The interesting part is the event post type is completely different there is no connection with WooCommerce products so you can sell anything from WooCommerce products. 
 
+= Where do I report security bugs found in this plugin? =
+Please report security bugs found in the source code of the Taxi Booking Manager for WooCommerce plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/9e5fc03b-cce7-4df9-a6aa-a019346760d7). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Legal Protection ==
 
@@ -217,6 +219,14 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 2.0.1 = 
+1. Api issues resolved
+2. buffer time for other days issue resolved 
+3. tax issue fixed 
+4. decimel in extra service issue fixed
+5. xss vulnerbility fixed
+6. dropdown issue for manual pricing fixed
+7. date picker in admin issue fixed
 = 2.0.0 = 
 1. Openstreet map implemented
 2. extra service image issue fixed 

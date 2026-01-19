@@ -372,6 +372,17 @@ if (!class_exists('MPTBM_Function')) {
 				} elseif ($price_based == 'distance' && $original_price_based == 'fixed_hourly') {
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
 					$price = $km_price * ((float) $distance / 1000);
+				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_distance') && $original_price_based == 'fixed_distance') {
+					$match_type = isset($_SESSION['mptbm_fixed_distance_match_' . $post_id]) ? $_SESSION['mptbm_fixed_distance_match_' . $post_id] : 'partial';
+					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
+					
+					if ($match_type === 'full') {
+						$price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_price');
+					} else {
+						// Fallback to Distance + Duration
+						$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
+						$price = ($hour_price * ((float) $duration / 3600)) + ($km_price * ((float) $distance / 1000));
+					}
 				}
 				elseif ((trim($price_based) == 'inclusive' || trim($price_based) == 'manual') && trim($original_price_based) == 'manual') {
 					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
@@ -564,13 +575,13 @@ if (!class_exists('MPTBM_Function')) {
 			// Apply filters for dynamic pricing (weather, traffic, etc.) if addons are available
 			if (has_filter('mptbm_calculate_price')) {
 				$extra_data = array();
-				
+
 				// Try to get coordinates from various sources for weather/traffic pricing
 				$pickup_lat = get_transient('mptbm_pickup_lat') ?: get_transient('pickup_lat_transient');
 				$pickup_lng = get_transient('mptbm_pickup_lng') ?: get_transient('pickup_lng_transient');
 				$drop_lat = get_transient('mptbm_drop_lat') ?: get_transient('drop_lat_transient');
 				$drop_lng = get_transient('mptbm_drop_lng') ?: get_transient('drop_lng_transient');
-				
+
 				// Fallback to session data
 				if (empty($pickup_lat) || empty($pickup_lng)) {
 					$pickup_lat = isset($_SESSION['pickup_lat']) ? $_SESSION['pickup_lat'] : '';
@@ -580,7 +591,7 @@ if (!class_exists('MPTBM_Function')) {
 					$drop_lat = isset($_SESSION['drop_lat']) ? $_SESSION['drop_lat'] : '';
 					$drop_lng = isset($_SESSION['drop_lng']) ? $_SESSION['drop_lng'] : '';
 				}
-				
+
 				// Final fallback to POST data (for AJAX requests)
 				if (empty($pickup_lat) || empty($pickup_lng)) {
 					$pickup_lat = isset($_POST['origin_lat']) ? $_POST['origin_lat'] : (isset($_POST['pickup_lat']) ? $_POST['pickup_lat'] : '');
@@ -590,7 +601,7 @@ if (!class_exists('MPTBM_Function')) {
 					$drop_lat = isset($_POST['dest_lat']) ? $_POST['dest_lat'] : (isset($_POST['drop_lat']) ? $_POST['drop_lat'] : '');
 					$drop_lng = isset($_POST['dest_lng']) ? $_POST['dest_lng'] : (isset($_POST['drop_lng']) ? $_POST['drop_lng'] : '');
 				}
-				
+
 				if (!empty($pickup_lat) && !empty($pickup_lng)) {
 					$extra_data['origin_lat'] = floatval($pickup_lat);
 					$extra_data['origin_lng'] = floatval($pickup_lng);
@@ -599,14 +610,20 @@ if (!class_exists('MPTBM_Function')) {
 					$extra_data['dest_lat'] = floatval($drop_lat);
 					$extra_data['dest_lng'] = floatval($drop_lng);
 				}
-				
+
 				$selected_start_date = get_transient('start_date_transient') ?: '';
 				$selected_start_time = get_transient('start_time_schedule_transient') ?: '';
-				
+
 				$price = apply_filters('mptbm_calculate_price', $price, $post_id, $selected_start_date, $selected_start_time, $extra_data);
 			}
 
-			return $price;
+			
+
+			// Removed manual tax addition here because it causes double taxation.
+			// get_price should return the raw base price. WooCommerce and the wc_price helper
+			// will handle tax display and calculation at checkout natively.
+			
+			return (float) $price;
 		}
 
 		public static function get_extra_service_price_by_name($post_id, $service_name)
@@ -987,6 +1004,67 @@ if (!class_exists('MPTBM_Function')) {
 			set_transient($cache_key, $result, 300);
 			
 			return $result;
+		}
+
+		/**
+		 * Whitelist Google Maps API script from CookieAdmin blocking
+		 * 
+		 * @param string $tag The script tag
+		 * @param string $handle The script handle
+		 * @param string $src The script source
+		 * @return string The modified script tag
+		 */
+		public static function whitelist_google_maps_script($tag, $handle, $src) {
+			if ($handle === 'mptbm_map_api') {
+				// Restore the script type to text/javascript if it was changed to text/plain
+				$tag = str_replace('type="text/plain"', 'type="text/javascript"', $tag);
+				
+				// Remove CookieAdmin category attributes that cause blocking
+				$tag = preg_replace('/data-cookieadmin-category="[^"]*"/', '', $tag);
+			}
+			return $tag;
+		}
+
+		
+		// Helper to calculate distance server-side
+		public static function get_server_distance($start_lat, $start_lng, $end_lat, $end_lng) {
+			if (!$start_lat || !$start_lng || !$end_lat || !$end_lng) {
+				return false;
+			}
+			
+			// Try Google Maps Distance Matrix API first if Key exists
+			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'map_api_key');
+			if ($api_key) {
+				$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={$start_lat},{$start_lng}&destinations={$end_lat},{$end_lng}&mode=driving&key={$api_key}";
+				$response = wp_remote_get($url);
+				if (!is_wp_error($response)) {
+					$body = wp_remote_retrieve_body($response);
+					$data = json_decode($body, true);
+					if (isset($data['rows'][0]['elements'][0]['status']) && $data['rows'][0]['elements'][0]['status'] === 'OK') {
+						return [
+							'distance' => $data['rows'][0]['elements'][0]['distance']['value'], // meters
+							'duration' => $data['rows'][0]['elements'][0]['duration']['value']  // seconds
+						];
+					}
+				}
+			}
+
+			// Fallback to OSRM (Open Source Routing Machine)
+			// Note: OSRM uses {lng},{lat} order
+			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$start_lng},{$start_lat};{$end_lng},{$end_lat}?overview=false";
+			$response = wp_remote_get($osrm_url);
+			if (!is_wp_error($response)) {
+				$body = wp_remote_retrieve_body($response);
+				$data = json_decode($body, true);
+				if (isset($data['code']) && $data['code'] === 'Ok' && isset($data['routes'][0])) {
+					return [
+						'distance' => $data['routes'][0]['distance'], // meters
+						'duration' => $data['routes'][0]['duration']  // seconds
+					];
+				}
+			}
+			
+			return false;
 		}
 	}
 	new MPTBM_Function();

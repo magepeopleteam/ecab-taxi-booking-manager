@@ -221,6 +221,8 @@ if (sizeof($all_dates) > 0) {
 				<input type='hidden' id="mptbm_country" name="mptbm_country" value="<?php echo $country; ?>" />
 				<input type='hidden' id="mptbm_restrict_search_country" name="mptbm_restrict_search_country" value="<?php echo $restrict_search_country; ?>" />
 				<input type='hidden' id="mptbm_map_type" name="mptbm_map_type" value="<?php echo esc_attr($map_type); ?>" />
+				<input type="hidden" id="mptbm_calculated_distance" name="mptbm_calculated_distance" value="" />
+				<input type="hidden" id="mptbm_calculated_duration" name="mptbm_calculated_duration" value="" />
 				<div class="inputList">
 					<label class="fdColumn">
 						<input type="hidden" id="mptbm_map_start_date" value="" />
@@ -668,8 +670,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Day-specific time ranges
 	var dayTimeRanges = <?php echo wp_json_encode(isset($day_specific_times) ? $day_specific_times : []); ?>;
 	
-	// Debug: Log the complete day time ranges
-	console.log('Complete Day Time Ranges:', dayTimeRanges);
+	
 	
 	function updateTimeRangeForDay(selectedDate) {
 		if (!selectedDate) return;
@@ -689,14 +690,12 @@ document.addEventListener('DOMContentLoaded', function() {
 			var minTime = Math.min.apply(Math, dayTimes.start);
 			var maxTime = Math.max.apply(Math, dayTimes.end);
 			
-			console.log('Day-specific range for', dayName, ':', minTime, 'to', maxTime);
-			console.log('Available start times for', dayName, ':', dayTimes.start);
-			console.log('Available end times for', dayName, ':', dayTimes.end);
+	
 			
 			// Update the time picker options
 			updateTimePickerOptions(minTime, maxTime);
 		} else {
-			console.log('No specific times for', dayName, ', using global range');
+			
 			// Use global range if no specific day times
 			updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>);
 		}
