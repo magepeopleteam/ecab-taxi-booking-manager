@@ -124,6 +124,12 @@ if (!class_exists('MPTBM_Query')) {
 				'compare' => '=',
 			) : '';
 
+			$price_based_8 = ($price_based == 'fixed_zone' || $price_based == 'fixed_zone_dropoff') ? array(
+				'key' => 'mptbm_price_based',
+				'value' => 'fixed_zone',
+				'compare' => '=',
+			) : '';
+
 			$price_based_7 = $price_based == 'fixed_distance' ? array(
 				'key' => 'mptbm_price_based',
 				'value' => 'fixed_distance',
@@ -149,7 +155,8 @@ if (!class_exists('MPTBM_Query')) {
 					$price_based_3,
 					$price_based_4,
 					$price_based_5,
-					$price_based_7
+					$price_based_7,
+					$price_based_8
 				)
 			);
 

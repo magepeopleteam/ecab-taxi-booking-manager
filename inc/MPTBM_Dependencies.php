@@ -265,12 +265,6 @@ if (!class_exists('MPTBM_Dependencies')) {
 			// Convert Photon GeoJSON format to Nominatim-compatible format
 			$results = array();
 			
-			// Debug: Log the raw response for troubleshooting
-			if ($restrict_to_country === 'yes' && !empty($country_code)) {
-				error_log('OSM Search Debug - Query: ' . $query);
-				error_log('OSM Search Debug - Country Code: ' . $country_code);
-				error_log('OSM Search Debug - Raw Response: ' . json_encode($data));
-			}
 			
 			if (isset($data['features']) && is_array($data['features'])) {
 				foreach ($data['features'] as $feature) {
@@ -319,8 +313,6 @@ if (!class_exists('MPTBM_Dependencies')) {
 						}
 						
 						if (!$country_matches) {
-							// Debug: Log filtered out results
-							error_log('OSM Search Debug - Filtered out result: ' . json_encode($properties));
 							continue; // Skip results from other countries
 						}
 					}

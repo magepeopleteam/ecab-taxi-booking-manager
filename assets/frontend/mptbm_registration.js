@@ -1,5 +1,7 @@
 let mptbm_map;
 let mptbm_map_window;
+var mptbm_start_marker = null;
+var mptbm_end_marker = null;
 
 // OpenStreetMap variables
 var mptbm_osm_map = null;
@@ -242,6 +244,28 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
             query: place,
             fields: ["name", "geometry"],
         };
+
+        // Check if place is a coordinate string (Lat,Lng) to avoid INVALID_REQUEST from Places API
+        // Dictionary-style check or Regex
+        var coordPattern = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+        if (coordPattern.test(place)) {
+            // It's a coordinate string. Manually create marker instead of calling Places API.
+            var parts = place.split(',');
+            var lat = parseFloat(parts[0]);
+            var lng = parseFloat(parts[1]);
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+                var location = new google.maps.LatLng(lat, lng);
+                // Mock a place result object
+                var mockPlace = {
+                    geometry: { location: location },
+                    name: place
+                };
+                mptbmCreateMarker(mockPlace);
+                mptbm_map.setCenter(location);
+                return true;
+            }
+        }
 
         var service = new google.maps.places.PlacesService(mptbm_map);
         // Safari compatibility: use function instead of arrow function
@@ -536,6 +560,7 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery) 
 function mptbm_handle_osm_address_selection(address, type) {
     var lat = parseFloat(address.lat);
     var lng = parseFloat(address.lon);
+    var price_based = jQuery('[name="mptbm_price_based"]').val();
 
     // Remove existing marker for this type
     if (type === 'start' && mptbm_osm_start_marker) {
@@ -551,8 +576,16 @@ function mptbm_handle_osm_address_selection(address, type) {
 
         if (type === 'start') {
             mptbm_osm_start_marker = marker;
+            // For fixed_zone_dropoff, store coordinates
+            if (price_based === 'fixed_zone_dropoff') {
+                window.mptbm_fixed_zone_start_coords = { latitude: lat, longitude: lng };
+            }
         } else if (type === 'end') {
             mptbm_osm_end_marker = marker;
+            // For fixed_zone, store coordinates
+            if (price_based === 'fixed_zone') {
+                window.mptbm_fixed_zone_end_coords = { latitude: lat, longitude: lng };
+            }
         }
 
         // Calculate distance if both markers exist
@@ -712,6 +745,98 @@ function mptbm_calculate_osm_distance() {
     }
 }
 
+function mptbm_calculate_google_route_from_markers() {
+    if (!mptbm_start_marker || !mptbm_end_marker || !mptbm_map) return;
+
+    var directionsService = new google.maps.DirectionsService();
+    var directionsRenderer = new google.maps.DirectionsRenderer();
+    directionsRenderer.setMap(mptbm_map);
+
+    var request = {
+        origin: mptbm_start_marker.getPosition(),
+        destination: mptbm_end_marker.getPosition(),
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC,
+    };
+
+    directionsService.route(request, function (result, status) {
+        if (status === google.maps.DirectionsStatus.OK) {
+            try {
+                var distance = result.routes[0].legs[0].distance.value;
+                var kmOrMileElement = document.getElementById("mptbm_km_or_mile");
+                var kmOrMile = kmOrMileElement ? kmOrMileElement.value : 'km';
+                var distance_text = result.routes[0].legs[0].distance.text;
+                var duration = result.routes[0].legs[0].duration.value;
+                var duration_text = result.routes[0].legs[0].duration.text;
+
+                if (kmOrMile == 'mile') {
+                    var distanceInKilometers = distance / 1000;
+                    var distanceInMiles = distanceInKilometers * 0.621371;
+                    distance_text = distanceInMiles.toFixed(1) + ' miles';
+                }
+
+                var now = new Date();
+                var time = now.getTime();
+                var expireTime = time + 3600 * 1000 * 12;
+                now.setTime(expireTime);
+                var cookieOptions = "; expires=" + now.toUTCString() + "; path=/; SameSite=Lax";
+                document.cookie = "mptbm_distance=" + encodeURIComponent(distance) + cookieOptions;
+                document.cookie = "mptbm_distance_text=" + encodeURIComponent(distance_text) + cookieOptions;
+                document.cookie = "mptbm_duration=" + encodeURIComponent(duration) + cookieOptions;
+                document.cookie = "mptbm_duration_text=" + encodeURIComponent(duration_text) + cookieOptions;
+
+                var mapArea = jQuery('#mptbm_map_area').closest('.mptbm_transport_search_area');
+                if (mapArea.length > 0) {
+                    if (mapArea.find('input[name="mptbm_hidden_distance"]').length === 0) {
+                        mapArea.append('<input type="hidden" name="mptbm_hidden_distance" value="" />');
+                    }
+                    if (mapArea.find('input[name="mptbm_hidden_duration"]').length === 0) {
+                        mapArea.append('<input type="hidden" name="mptbm_hidden_duration" value="" />');
+                    }
+
+                    var explicitDistance = document.getElementById('mptbm_calculated_distance');
+                    if (explicitDistance) {
+                        explicitDistance.value = distance;
+                    }
+                    var explicitDuration = document.getElementById('mptbm_calculated_duration');
+                    if (explicitDuration) {
+                        explicitDuration.value = duration;
+                    }
+
+                    if (mapArea.find('input[name="mptbm_hidden_distance_text"]').length === 0) {
+                        mapArea.append('<input type="hidden" name="mptbm_hidden_distance_text" value="" />');
+                    }
+                    if (mapArea.find('input[name="mptbm_hidden_duration_text"]').length === 0) {
+                        mapArea.append('<input type="hidden" name="mptbm_hidden_duration_text" value="" />');
+                    }
+
+                    mapArea.find('input[name="mptbm_hidden_distance"]').val(distance);
+                    mapArea.find('input[name="mptbm_hidden_duration"]').val(duration);
+                    mapArea.find('input[name="mptbm_hidden_distance_text"]').val(distance_text);
+                    mapArea.find('input[name="mptbm_hidden_duration_text"]').val(duration_text);
+                }
+
+                directionsRenderer.setDirections(result);
+
+                jQuery(".mptbm_total_distance").html(distance_text);
+                jQuery(".mptbm_total_time").html(duration_text);
+                jQuery(".mptbm_distance_time").slideDown("fast");
+
+                // Fit map to show the entire route
+                var bounds = new google.maps.LatLngBounds();
+                result.routes[0].legs.forEach(function (leg) {
+                    bounds.extend(leg.start_location);
+                    bounds.extend(leg.end_location);
+                });
+                mptbm_map.fitBounds(bounds);
+            } catch (error) {
+                console.error('[Google Maps Route] Error:', error);
+            }
+        } else {
+            console.error('[Google Maps Route] Status:', status);
+        }
+    });
+}
 
 function mptbm_init_google_map() {
 
@@ -739,10 +864,33 @@ function mptbm_init_google_map() {
 
         google.maps.event.addListener(start_place_autoload, "place_changed", function () {
             var end_place = document.getElementById("mptbm_map_end_place");
+            var price_based = jQuery('[name="mptbm_price_based"]').val();
 
             // Only sync dropoff with pickup if dropoff is hidden (hourly pricing with disabled dropoff)
             if (end_place && end_place.type === 'hidden') {
                 end_place.value = start_place.value;
+            }
+
+            // For fixed_zone_dropoff, set start marker when pickup is searched
+            if (price_based === 'fixed_zone_dropoff' && start_place_autoload.getPlace()) {
+                var place = start_place_autoload.getPlace();
+                if (place.geometry && place.geometry.location) {
+                    if (typeof mptbm_start_marker !== 'undefined' && mptbm_start_marker) {
+                        mptbm_start_marker.setMap(null);
+                    }
+                    mptbm_start_marker = new google.maps.Marker({
+                        position: place.geometry.location,
+                        map: mptbm_map,
+                        title: place.name || place.formatted_address
+                    });
+                    mptbm_map.setCenter(place.geometry.location);
+                    mptbm_map.setZoom(14);
+
+                    // Calculate route if end marker exists
+                    if (typeof mptbm_end_marker !== 'undefined' && mptbm_end_marker) {
+                        mptbm_calculate_google_route_from_markers();
+                    }
+                }
             }
 
             mptbm_set_cookie_distance_duration(
@@ -789,6 +937,30 @@ function mptbm_init_google_map() {
 
         google.maps.event.addListener(end_place_autoload, "place_changed", function () {
             var start_place = document.getElementById("mptbm_map_start_place");
+            var price_based = jQuery('[name="mptbm_price_based"]').val();
+
+            // For fixed_zone, set end marker when dropoff is searched
+            if (price_based === 'fixed_zone' && end_place_autoload.getPlace()) {
+                var place = end_place_autoload.getPlace();
+                if (place.geometry && place.geometry.location) {
+                    if (typeof mptbm_end_marker !== 'undefined' && mptbm_end_marker) {
+                        mptbm_end_marker.setMap(null);
+                    }
+                    mptbm_end_marker = new google.maps.Marker({
+                        position: place.geometry.location,
+                        map: mptbm_map,
+                        title: place.name || place.formatted_address
+                    });
+                    mptbm_map.setCenter(place.geometry.location);
+                    mptbm_map.setZoom(14);
+
+                    // Calculate route if start marker exists
+                    if (typeof mptbm_start_marker !== 'undefined' && mptbm_start_marker) {
+                        mptbm_calculate_google_route_from_markers();
+                    }
+                }
+            }
+
             mptbm_set_cookie_distance_duration(
                 start_place ? start_place.value : '',
                 end_place ? end_place.value : ''
@@ -846,15 +1018,24 @@ function mptbm_init_google_map() {
 
                 google.maps.event.addListener(startPlaceAutocomplete, "place_changed", function () {
                     var endPlaceInput = document.getElementById('mptbm_map_end_place');
+                    var price_based = $('[name="mptbm_price_based"]').val();
+                    var end_val = endPlaceInput ? endPlaceInput.value : (startPlaceInput ? startPlaceInput.value : '');
+
+                    if (price_based === 'fixed_zone_dropoff' && window.mptbm_fixed_zone_end_coords) {
+                        end_val = window.mptbm_fixed_zone_end_coords.latitude + "," + window.mptbm_fixed_zone_end_coords.longitude;
+                    }
 
                     // Only sync dropoff with pickup if dropoff is hidden (hourly pricing with disabled dropoff)
                     if (endPlaceInput && endPlaceInput.type === 'hidden') {
                         endPlaceInput.value = startPlaceInput.value;
+                        end_val = startPlaceInput.value;
                     }
+
+
 
                     mptbm_set_cookie_distance_duration(
                         startPlaceInput.value,
-                        endPlaceInput ? endPlaceInput.value : startPlaceInput.value
+                        end_val
                     );
                 });
 
@@ -862,8 +1043,12 @@ function mptbm_init_google_map() {
                 startPlaceInput.setAttribute('data-autocomplete-initialized', 'true');
             }
 
-            // Initialize Google Places autocomplete for dropoff location as well (independent of map visibility)
+            // Initialize Google Places autocomplete for dropoff location (only if it exists and is visible)
             var endPlaceInput = document.getElementById('mptbm_map_end_place');
+
+
+
+
             if (endPlaceInput && !endPlaceInput.hasAttribute('data-autocomplete-initialized') && endPlaceInput.type !== 'hidden') {
                 var endPlaceAutocomplete = new google.maps.places.Autocomplete(endPlaceInput);
                 var mptbm_restrict_search_to_country = $('[name="mptbm_restrict_search_country"]').val();
@@ -877,16 +1062,26 @@ function mptbm_init_google_map() {
 
                 google.maps.event.addListener(endPlaceAutocomplete, 'place_changed', function () {
                     var startInput = document.getElementById('mptbm_map_start_place');
+                    var price_based = $('[name="mptbm_price_based"]').val();
+                    var start_val = startInput ? startInput.value : '';
+
+                    if (price_based === 'fixed_zone' && window.mptbm_fixed_zone_start_coords) {
+                        start_val = window.mptbm_fixed_zone_start_coords.latitude + "," + window.mptbm_fixed_zone_start_coords.longitude;
+                    }
+
+
+
                     mptbm_set_cookie_distance_duration(
-                        startInput ? startInput.value : '',
+                        start_val,
                         endPlaceInput ? endPlaceInput.value : ''
                     );
                 });
 
-                // Mark as initialized to prevent duplicate initialization
                 endPlaceInput.setAttribute('data-autocomplete-initialized', 'true');
             }
-        }
+        };
+
+        // Maximum retry attempts to prevent infinite loops
 
         // Initialize Google Places autocomplete on page load with a delay to ensure API is loaded
         setTimeout(function () {
@@ -1025,6 +1220,12 @@ function mptbm_init_google_map() {
         if (price_based === "manual") {
             start_place = document.getElementById("mptbm_manual_start_place");
             end_place = document.getElementById("mptbm_manual_end_place");
+        } else if (price_based === "fixed_zone") {
+            start_place = document.getElementById("mptbm_manual_start_place");
+            end_place = document.getElementById("mptbm_map_end_place");
+        } else if (price_based === "fixed_zone_dropoff") {
+            start_place = document.getElementById("mptbm_map_start_place");
+            end_place = document.getElementById("mptbm_manual_end_place");
         } else {
             start_place = document.getElementById("mptbm_map_start_place");
             end_place = document.getElementById("mptbm_map_end_place");
@@ -1057,6 +1258,18 @@ function mptbm_init_google_map() {
 
 
 
+        // Helper function to safely get value from input or select
+        function getElementValue(element) {
+            if (!element) return '';
+            if (element.tagName === 'SELECT') {
+                return element.value || '';
+            }
+            return element.value || '';
+        }
+
+        let start_place_value = getElementValue(start_place);
+        let end_place_value = getElementValue(end_place);
+
         if (!start_date) {
             target_date.trigger("click");
         } else if (start_time === undefined || start_time === null || start_time === '') {
@@ -1077,12 +1290,12 @@ function mptbm_init_google_map() {
                     .find("input.formControl")
                     .trigger("click");
             }
-        } else if (!start_place.value || (start_place.tagName === 'SELECT' && start_place.options[start_place.selectedIndex].disabled)) {
-            start_place.focus();
+        } else if (!start_place_value || (start_place && start_place.tagName === 'SELECT' && start_place.options[start_place.selectedIndex] && start_place.options[start_place.selectedIndex].disabled)) {
+            if (start_place) start_place.focus();
             // Show error message
-            let startMsg = price_based === 'manual' ? 'Please select a pickup location' : 'Please enter a pickup location';
-            showLocationError(start_place, startMsg);
-        } else if (!end_place.value || (end_place.tagName === 'SELECT' && end_place.options[end_place.selectedIndex].disabled)) {
+            let startMsg = price_based === 'manual' || price_based === 'fixed_zone' ? 'Please select a pickup location' : 'Please enter a pickup location';
+            if (start_place) showLocationError(start_place, startMsg);
+        } else if (!end_place_value || (end_place && end_place.tagName === 'SELECT' && end_place.options[end_place.selectedIndex] && end_place.options[end_place.selectedIndex].disabled)) {
             // Check if dropoff is required (not hidden for hourly)
             let hideDropoff = parent.find('[name="mptbm_original_price_base"]').val() === 'fixed_hourly' &&
                 document.getElementById('mptbm_map_end_place').type === 'hidden';
@@ -1099,7 +1312,16 @@ function mptbm_init_google_map() {
             dLoader(parent.find(".tabsContentNext"));
             mptbm_content_refresh(parent);
             if (price_based !== "manual") {
-                mptbm_set_cookie_distance_duration(start_place.value, end_place.value);
+                let calc_start = start_place_value;
+                let calc_end = end_place_value;
+
+                if (price_based === 'fixed_zone' && window.mptbm_fixed_zone_start_coords) {
+                    calc_start = window.mptbm_fixed_zone_start_coords.latitude + "," + window.mptbm_fixed_zone_start_coords.longitude;
+                } else if (price_based === 'fixed_zone_dropoff' && window.mptbm_fixed_zone_end_coords) {
+                    calc_end = window.mptbm_fixed_zone_end_coords.latitude + "," + window.mptbm_fixed_zone_end_coords.longitude;
+                }
+
+                mptbm_set_cookie_distance_duration(calc_start, calc_end);
             }
             //let price_based = parent.find('[name="mptbm_price_based"]').val();
             function getGeometryLocation(address, callback) {
@@ -1168,6 +1390,160 @@ function mptbm_init_google_map() {
             }
             if (price_based !== 'manual') {
 
+                // For fixed_zone, pickup is from dropdown (term_XX), so we use pre-stored coords
+                // Only geocode the end_place (dropoff search input)
+                // For fixed_zone_dropoff, pickup is from map search, dropoff is from dropdown
+                if (price_based === 'fixed_zone' || price_based === 'fixed_zone_dropoff') {
+                    let searchInput, dropdownCoords, startCoordinates, endCoordinates;
+
+                    if (price_based === 'fixed_zone') {
+                        // fixed_zone: pickup = dropdown, dropoff = map search
+                        searchInput = end_place;
+                        dropdownCoords = window.mptbm_fixed_zone_start_coords || null;
+
+                        let searchInputValue = getElementValue(searchInput);
+                        getCoordinatesAsync(searchInputValue).done(function (searchCoordinates) {
+                            if (!searchCoordinates || searchCoordinates === null) {
+                                dLoaderRemove(parent.find(".tabsContentNext"));
+                                showLocationError(end_place, 'Invalid dropoff location. Please select a valid address.');
+                                end_place.focus();
+                                return;
+                            }
+
+                            startCoordinates = dropdownCoords;
+                            endCoordinates = searchCoordinates;
+
+                            submitFixedZoneSearch();
+                        });
+                    } else {
+                        // fixed_zone_dropoff: pickup = map search, dropoff = dropdown
+                        searchInput = start_place;
+                        dropdownCoords = window.mptbm_fixed_zone_end_coords || null;
+
+                        if (!dropdownCoords) {
+                            dLoaderRemove(parent.find(".tabsContentNext"));
+                            showLocationError(end_place, 'Please select a dropoff location from the dropdown.');
+                            parent.find("#mptbm_manual_end_place").focus();
+                            return;
+                        }
+
+                        let searchInputValue = getElementValue(searchInput);
+                        getCoordinatesAsync(searchInputValue).done(function (searchCoordinates) {
+                            if (!searchCoordinates || searchCoordinates === null) {
+                                dLoaderRemove(parent.find(".tabsContentNext"));
+                                showLocationError(start_place, 'Invalid pickup location. Please select a valid address.');
+                                start_place.focus();
+                                return;
+                            }
+
+                            startCoordinates = searchCoordinates;
+                            endCoordinates = dropdownCoords;
+
+                            submitFixedZoneSearch();
+                        });
+                    }
+
+                    function submitFixedZoneSearch() {
+                        let start_val = getElementValue(start_place);
+                        let end_val = getElementValue(end_place);
+                        if (start_val && end_val && start_date &&
+                            (start_time !== undefined && start_time !== null && start_time !== '') &&
+                            return_date &&
+                            (return_time !== undefined && return_time !== null && return_time !== '')) {
+                            let actionValue;
+                            if (!mptbm_enable_view_search_result_page) {
+                                actionValue = "get_mptbm_map_search_result";
+                                $.ajax({
+                                    type: "POST",
+                                    url: mp_ajax_url,
+                                    data: {
+                                        action: actionValue,
+                                        start_place: start_val,
+                                        start_place_coordinates: JSON.stringify(startCoordinates),
+                                        end_place_coordinates: JSON.stringify(endCoordinates),
+                                        end_place: end_val,
+                                        start_date: start_date,
+                                        start_time: start_time,
+                                        price_based: price_based,
+                                        two_way: two_way,
+                                        waiting_time: waiting_time,
+                                        fixed_time: fixed_time,
+                                        return_date: return_date,
+                                        return_time: return_time,
+                                        mptbm_passengers: parent.find('#mptbm_passengers').val(),
+                                        mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
+                                        mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                                        mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                                        mptbm_original_price_base: mptbm_original_price_base,
+                                        mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
+                                        mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
+                                    },
+                                    success: function (data) {
+                                        if (data.success === false) {
+                                            alert(data.data.message || 'An error occurred. Please try again.');
+                                            dLoaderRemove(parent.find(".tabsContentNext"));
+                                            return;
+                                        }
+                                        target.append(data).promise().done(function () {
+                                            dLoaderRemove(parent.find(".tabsContentNext"));
+                                            parent.find(".nextTab_next").trigger("click");
+                                            if (mptbm_is_ios()) {
+                                                target[0].style.display = 'none';
+                                                void target[0].offsetHeight;
+                                                target[0].style.display = '';
+                                            }
+                                        });
+                                    },
+                                    error: function (response) {
+                                        console.log(response);
+                                    },
+                                });
+                            } else {
+                                actionValue = "get_mptbm_map_search_result_redirect";
+                                $.ajax({
+                                    type: "POST",
+                                    url: mp_ajax_url,
+                                    data: {
+                                        action: actionValue,
+                                        start_place: start_val,
+                                        start_place_coordinates: JSON.stringify(startCoordinates),
+                                        end_place_coordinates: JSON.stringify(endCoordinates),
+                                        end_place: end_val,
+                                        start_date: start_date,
+                                        start_time: start_time,
+                                        price_based: price_based,
+                                        two_way: two_way,
+                                        waiting_time: waiting_time,
+                                        fixed_time: fixed_time,
+                                        return_date: return_date,
+                                        return_time: return_time,
+                                        mptbm_passengers: parent.find('#mptbm_passengers').val(),
+                                        mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
+                                        mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                                        mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                                        mptbm_original_price_base: mptbm_original_price_base,
+                                        mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
+                                        mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
+                                    },
+                                    success: function (data) {
+                                        if (data.success === false) {
+                                            alert(data.data.message || 'An error occurred. Please try again.');
+                                            dLoaderRemove(parent.find(".tabsContentNext"));
+                                            return;
+                                        }
+                                        window.location.href = data.redirect_url;
+                                    },
+                                    error: function (response) {
+                                        console.log(response);
+                                    },
+                                });
+                            }
+                        }
+                    }
+
+                    return; // Exit early for fixed_zone
+                }
+
                 $.when(
                     getCoordinatesAsync(start_place.value),
                     getCoordinatesAsync(end_place.value)
@@ -1214,8 +1590,7 @@ function mptbm_init_google_map() {
                                     mptbm_passengers: parent.find('#mptbm_passengers').val(),
                                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
-                                    mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
-                                    mptbm_original_price_base: mptbm_original_price_base,
+                                    mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
                                     mptbm_original_price_base: mptbm_original_price_base,
                                     mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                     mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -1272,8 +1647,7 @@ function mptbm_init_google_map() {
                                     mptbm_passengers: parent.find('#mptbm_passengers').val(),
                                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
-                                    mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
-                                    mptbm_original_price_base: mptbm_original_price_base,
+                                    mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
                                     mptbm_original_price_base: mptbm_original_price_base,
                                     mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                     mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -1327,7 +1701,7 @@ function mptbm_init_google_map() {
                                 mptbm_passengers: parent.find('#mptbm_passengers').val(),
                                 mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
-                                mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                                mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
                                 mptbm_original_price_base: mptbm_original_price_base,
                                 mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                 mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -1384,7 +1758,7 @@ function mptbm_init_google_map() {
                                 mptbm_passengers: parent.find('#mptbm_passengers').val(),
                                 mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
-                                mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                                mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
                                 mptbm_original_price_base: mptbm_original_price_base,
                                 mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                 mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -1559,9 +1933,93 @@ function mptbm_init_google_map() {
         mptbm_content_refresh(parent);
         let start_place = $(this).val();
         let target = parent.find(".mptbm_manual_end_place");
+        let price_based = parent.find('[name="mptbm_price_based"]').val();
+
+        // For fixed_zone (pickup), place marker on map using geo coordinates
+        if (price_based === "fixed_zone" && start_place) {
+            let selectedOption = $(this).find('option:selected');
+            let geoCoords = selectedOption.data('geo');
+            let locationLabel = selectedOption.data('label') || selectedOption.text();
+
+
+
+            if (geoCoords) {
+                let coords = geoCoords.split(',');
+                let lat = parseFloat(coords[0]);
+                let lng = parseFloat(coords[1]);
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    // Check if using OpenStreetMap or Google Maps
+                    var mapType = document.getElementById('mptbm_map_type');
+
+                    if (mapType && mapType.value === 'openstreetmap') {
+                        // OpenStreetMap (Leaflet)
+                        if (typeof mptbm_osm_map !== 'undefined' && mptbm_osm_map) {
+                            // Clear existing markers
+                            if (typeof mptbm_osm_start_marker !== 'undefined' && mptbm_osm_start_marker) {
+                                mptbm_osm_map.removeLayer(mptbm_osm_start_marker);
+                            }
+                            // Add new marker
+                            mptbm_osm_start_marker = L.marker([lat, lng]).addTo(mptbm_osm_map);
+                            mptbm_osm_map.setView([lat, lng], 14);
+
+                            // Store coordinates for later use
+                            window.mptbm_fixed_zone_start_coords = { latitude: lat, longitude: lng };
+
+
+                            // Calculate route if end marker exists
+                            if (typeof mptbm_osm_end_marker !== 'undefined' && mptbm_osm_end_marker) {
+                                mptbm_calculate_osm_distance();
+                            }
+                        } else {
+
+                        }
+                    } else if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+                        // Google Maps
+                        if (typeof mptbm_map !== 'undefined' && mptbm_map) {
+                            var latLng = new google.maps.LatLng(lat, lng);
+
+                            // Clear existing start marker
+                            if (typeof mptbm_start_marker !== 'undefined' && mptbm_start_marker) {
+                                mptbm_start_marker.setMap(null);
+                            }
+
+                            // Add new marker
+                            mptbm_start_marker = new google.maps.Marker({
+                                position: latLng,
+                                map: mptbm_map,
+                                title: locationLabel
+                            });
+
+                            mptbm_map.setCenter(latLng);
+                            mptbm_map.setZoom(14);
+
+                            // Store coordinates for later use
+                            window.mptbm_fixed_zone_start_coords = { latitude: lat, longitude: lng };
+
+
+                            // Update distance cookie for Google Maps routing
+                            var latLngStr = lat + "," + lng;
+                            var endPlace = document.getElementById('mptbm_map_end_place');
+                            mptbm_set_cookie_distance_duration(latLngStr, endPlace ? endPlace.value : '');
+
+                            // Calculate route if end marker exists
+                            if (typeof mptbm_end_marker !== 'undefined' && mptbm_end_marker) {
+                                mptbm_calculate_google_route_from_markers();
+                            }
+                        }
+                    }
+                }
+            }
+
+
+        } else {
+            // Reset start coordinates if no place selected
+            window.mptbm_fixed_zone_start_coords = null;
+        }
+
         if (start_place) {
             let end_place = "";
-            let price_based = parent.find('[name="mptbm_price_based"]').val();
             if (price_based === "manual") {
                 let post_id = parent.find('[name="mptbm_post_id"]').val();
                 $.ajax({
@@ -1607,6 +2065,72 @@ function mptbm_init_google_map() {
     $(document).on("change", "#mptbm_manual_end_place", function () {
         let parent = $(this).closest(".mptbm_transport_search_area");
         mptbm_content_refresh(parent);
+        let end_place = $(this).val();
+        let price_based = parent.find('[name="mptbm_price_based"]').val();
+
+        // For fixed_zone_dropoff, place marker on map using geo coordinates
+        if (price_based === "fixed_zone_dropoff" && end_place) {
+            let selectedOption = $(this).find('option:selected');
+            let geoCoords = selectedOption.data('geo');
+            let locationLabel = selectedOption.data('label') || selectedOption.text();
+
+
+
+            if (geoCoords) {
+                let coords = geoCoords.split(',');
+                let lat = parseFloat(coords[0]);
+                let lng = parseFloat(coords[1]);
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    var mapType = document.getElementById('mptbm_map_type');
+
+                    if (mapType && mapType.value === 'openstreetmap') {
+                        if (typeof mptbm_osm_map !== 'undefined' && mptbm_osm_map) {
+                            if (typeof mptbm_osm_end_marker !== 'undefined' && mptbm_osm_end_marker) {
+                                mptbm_osm_map.removeLayer(mptbm_osm_end_marker);
+                            }
+                            mptbm_osm_end_marker = L.marker([lat, lng]).addTo(mptbm_osm_map);
+                            mptbm_osm_map.setView([lat, lng], 14);
+                            window.mptbm_fixed_zone_end_coords = { latitude: lat, longitude: lng };
+
+                            // Calculate route if start marker exists
+                            if (typeof mptbm_osm_start_marker !== 'undefined' && mptbm_osm_start_marker) {
+                                mptbm_calculate_osm_distance();
+                            }
+                        }
+                    } else if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+                        if (typeof mptbm_map !== 'undefined' && mptbm_map) {
+                            var latLng = new google.maps.LatLng(lat, lng);
+                            if (typeof mptbm_end_marker !== 'undefined' && mptbm_end_marker) {
+                                mptbm_end_marker.setMap(null);
+                            }
+                            mptbm_end_marker = new google.maps.Marker({
+                                position: latLng,
+                                map: mptbm_map,
+                                title: locationLabel
+                            });
+                            mptbm_map.setCenter(latLng);
+                            mptbm_map.setZoom(14);
+                            window.mptbm_fixed_zone_end_coords = { latitude: lat, longitude: lng };
+
+
+                            // Update distance cookie for Google Maps
+                            var latLngStr = lat + "," + lng;
+                            var startPlace = document.getElementById('mptbm_map_start_place');
+                            mptbm_set_cookie_distance_duration(startPlace ? startPlace.value : '', latLngStr);
+
+                            // Calculate route if start marker exists
+                            if (typeof mptbm_start_marker !== 'undefined' && mptbm_start_marker) {
+                                mptbm_calculate_google_route_from_markers();
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Reset end coordinates if no place selected
+            window.mptbm_fixed_zone_end_coords = null;
+        }
     });
     $(document).on("change", "#mptbm_map_start_place,#mptbm_map_end_place", function () {
         let parent = $(this).closest(".mptbm_transport_search_area");
@@ -1974,6 +2498,43 @@ function mptbm_price_calculation(parent) {
                 }
             });
 
+            // Get coordinates for fixed_zone/fixed_zone_dropoff pricing
+            let start_place_coordinates = null;
+            let end_place_coordinates = null;
+
+            // Try to get from hidden inputs first
+            let start_coords_input = parent.find('input[name="mptbm_start_place_coordinates"]');
+            let end_coords_input = parent.find('input[name="mptbm_end_place_coordinates"]');
+
+            if (start_coords_input.length && start_coords_input.val()) {
+                try {
+                    start_place_coordinates = JSON.parse(start_coords_input.val());
+                } catch (e) {
+                    start_place_coordinates = start_coords_input.val();
+                }
+            } else if (typeof window.mptbm_fixed_zone_start_coords !== 'undefined' && window.mptbm_fixed_zone_start_coords) {
+                start_place_coordinates = window.mptbm_fixed_zone_start_coords;
+            } else if (mptbm_start_marker) {
+                let pos = mptbm_start_marker.getPosition();
+                if (pos) {
+                    start_place_coordinates = { latitude: pos.lat(), longitude: pos.lng() };
+                }
+            }
+
+            if (end_coords_input.length && end_coords_input.val()) {
+                try {
+                    end_place_coordinates = JSON.parse(end_coords_input.val());
+                } catch (e) {
+                    end_place_coordinates = end_coords_input.val();
+                }
+            } else if (typeof window.mptbm_fixed_zone_end_coords !== 'undefined' && window.mptbm_fixed_zone_end_coords) {
+                end_place_coordinates = window.mptbm_fixed_zone_end_coords;
+            } else if (mptbm_end_marker) {
+                let pos = mptbm_end_marker.getPosition();
+                if (pos) {
+                    end_place_coordinates = { latitude: pos.lat(), longitude: pos.lng() };
+                }
+            }
 
             $.ajax({
                 type: 'POST',
@@ -1996,12 +2557,14 @@ function mptbm_price_calculation(parent) {
                     mptbm_passengers: parent.find('#mptbm_passengers').val(),
                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
-                    mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                    mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
                     mptbm_original_price_base: mptbm_original_price_base,
                     mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
                     mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
                     mptbm_distance_text: parent.find('input[name="mptbm_hidden_distance_text"]').val(),
                     mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
+                    start_place_coordinates: start_place_coordinates ? JSON.stringify(start_place_coordinates) : '',
+                    end_place_coordinates: end_place_coordinates ? JSON.stringify(end_place_coordinates) : '',
                 },
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));

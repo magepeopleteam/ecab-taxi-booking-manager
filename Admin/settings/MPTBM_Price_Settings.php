@@ -30,8 +30,39 @@ if (!class_exists('MPTBM_Price_Settings')) {
 			$time_price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 			$fixed_map_price = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_price');
 			$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+			$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
 			$terms_location_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
 			$location_terms = get_terms(array('taxonomy' => 'locations', 'hide_empty' => false));
+
+			$all_zones = array();
+			$location_zones = array(); // Geo-located locations (term_*)
+			$operation_zones = array(); // Operation areas (post_*)
+			
+			if (!empty($location_terms) && !is_wp_error($location_terms)) {
+				foreach ($location_terms as $term) {
+					if (get_term_meta($term->term_id, 'mptbm_geo_location', true)) {
+						$all_zones['term_' . $term->term_id] = $term->name . ' (Location)';
+						$location_zones['term_' . $term->term_id] = $term->name . ' (Location)';
+					}
+				}
+			}
+			$op_areas = get_posts(array(
+				'post_type' => 'mptbm_operate_areas',
+				'posts_per_page' => -1,
+				'meta_query' => array(
+					array(
+						'key' => 'mptbm-operation-type',
+						'value' => 'fixed-operation-area-type'
+					)
+				)
+			));
+			if (!empty($op_areas)) {
+				foreach ($op_areas as $area) {
+					$all_zones['post_' . $area->ID] = $area->post_title . ' (Operation Area)';
+					$operation_zones['post_' . $area->ID] = $area->post_title . ' (Operation Area)';
+				}
+			}
+
 			$waiting_time_check = MPTBM_Function::get_general_settings('taxi_waiting_time', 'enable');
 			$waiting_price = MP_Global_Function::get_post_info($post_id, 'mptbm_waiting_price');
 			$distance_selected = $price_based == 'distance' ? 'selected' : '';
@@ -130,6 +161,7 @@ if (!class_exists('MPTBM_Price_Settings')) {
 								<option value="manual" data-option-target data-option-target-multi="#mp_manual" <?php echo esc_attr($price_based == 'manual' ? 'selected' : ''); ?>><?php esc_html_e('Manual as fixed Location', 'ecab-taxi-booking-manager'); ?></option>
 								<option value="fixed_hourly" data-option-target="#mp_duration" <?php echo esc_attr($fixed_hourly_selected); ?>><?php esc_html_e('Fixed Hourly', 'ecab-taxi-booking-manager'); ?></option>
 								<option value="fixed_distance" data-option-target data-option-target-multi="#mp_distance #mp_duration #mp_fixed_map" <?php echo esc_attr($fixed_distance_selected); ?>><?php esc_html_e('Fixed with Map', 'ecab-taxi-booking-manager'); ?></option>
+								<option value="fixed_zone" data-option-target data-option-target-multi="#mp_fixed_zone" <?php echo esc_attr($price_based == 'fixed_zone' ? 'selected' : ''); ?>><?php esc_html_e('Fixed Zone', 'ecab-taxi-booking-manager'); ?></option>
 							</select>
 						</div>
 					</label>
@@ -212,6 +244,106 @@ if (!class_exists('MPTBM_Price_Settings')) {
 					</div>
 				</section>
 				
+				<!-- Fixed Zone Price -->
+				<section class="bg-light" style="margin-top: 20px;" data-collapse="#mp_fixed_zone">
+					<h6><?php esc_html_e('Fixed Zone Price Settings', 'ecab-taxi-booking-manager'); ?></h6>
+					<span><?php esc_html_e('Set fixed prices between zones. Location → Operation Area, or Operation Area → Location.', 'ecab-taxi-booking-manager'); ?></span>
+				</section>
+				<section class="<?php echo esc_attr($price_based == 'fixed_zone' ? 'mActive' : ''); ?>" data-collapse="#mp_fixed_zone">
+					<div class="mp_settings_area" id="mptbm_fixed_zone_settings">
+						<table>
+							<thead>
+								<tr>
+									<th><?php esc_html_e('Start Zone', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></th>
+									<th><?php esc_html_e('End Zone', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></th>
+									<th><?php esc_html_e('Price', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></th>
+									<th class="_w_100"><?php esc_html_e('Action', 'ecab-taxi-booking-manager'); ?></th>
+								</tr>
+							</thead>
+							<tbody class="mp_sortable_area mp_item_insert">
+								<?php
+								if (sizeof($fixed_zone_prices) > 0) {
+									foreach ($fixed_zone_prices as $fixed_zone_price) {
+										$this->fixed_zone_price_item($location_zones, $operation_zones, $fixed_zone_price);
+									}
+								}
+								?>
+							</tbody>
+						</table>
+						<div class="my-2"></div>
+						<?php MP_Custom_Layout::add_new_button(esc_html__('Add New Price', 'ecab-taxi-booking-manager')); ?>
+						<?php $this->hidden_fixed_zone_price_item($location_zones, $operation_zones); ?>
+					</div>
+					<script>
+					jQuery(document).ready(function($) {
+						// Store zone data for JavaScript access
+						var mptbm_location_zones = <?php echo json_encode($location_zones); ?>;
+						var mptbm_operation_zones = <?php echo json_encode($operation_zones); ?>;
+						
+						function updateEndZoneOptions($startSelect) {
+							var $row = $startSelect.closest('tr');
+							var $endSelect = $row.find('select[name="mptbm_fixed_zone_end_location[]"]');
+							var startValue = $startSelect.val();
+							var currentEndValue = $endSelect.val();
+							
+							// Clear end zone options
+							$endSelect.find('option:not(:first)').remove();
+							
+							if (!startValue) {
+								// If no start zone selected, show all operation areas by default
+								$.each(mptbm_operation_zones, function(id, name) {
+									$endSelect.append('<option value="' + id + '">' + name + '</option>');
+								});
+							} else if (startValue.indexOf('term_') === 0) {
+								// Location selected in Start → Show only Operation Areas in End
+								$.each(mptbm_operation_zones, function(id, name) {
+									$endSelect.append('<option value="' + id + '">' + name + '</option>');
+								});
+							} else if (startValue.indexOf('post_') === 0) {
+								// Operation Area selected in Start → Show only Locations in End
+								$.each(mptbm_location_zones, function(id, name) {
+									$endSelect.append('<option value="' + id + '">' + name + '</option>');
+								});
+							}
+							
+							// Restore previous selection if still valid
+							if (currentEndValue && $endSelect.find('option[value="' + currentEndValue + '"]').length) {
+								$endSelect.val(currentEndValue);
+							}
+							
+							// Reinitialize select2 if active
+							if ($endSelect.hasClass('select2-hidden-accessible')) {
+								$endSelect.trigger('change.select2');
+							}
+						}
+						
+						// Handle start zone change
+						$(document).on('change', '#mptbm_fixed_zone_settings select[name="mptbm_fixed_zone_start_location[]"]', function() {
+							updateEndZoneOptions($(this));
+						});
+						
+						// Initialize on page load for existing rows
+						$('#mptbm_fixed_zone_settings select[name="mptbm_fixed_zone_start_location[]"]').each(function() {
+							// Don't update if end zone already has a valid value (editing existing)
+							var $row = $(this).closest('tr');
+							var $endSelect = $row.find('select[name="mptbm_fixed_zone_end_location[]"]');
+							if (!$endSelect.val()) {
+								updateEndZoneOptions($(this));
+							}
+						});
+						
+						// Handle new row added
+						$(document).on('click', '#mptbm_fixed_zone_settings .mp_add_item', function() {
+							setTimeout(function() {
+								$('#mptbm_fixed_zone_settings .mp_item_insert tr:last select[name="mptbm_fixed_zone_start_location[]"]').each(function() {
+									updateEndZoneOptions($(this));
+								});
+							}, 100);
+						});
+					});
+					</script>
+				</section>
+
 				<section>
 					<label class="label">
 						<div>
@@ -246,6 +378,64 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				<table>
 					<tbody class="mp_hidden_item">
 						<?php $this->location_terms_add_price_item($location_terms); ?>
+					</tbody>
+				</table>
+			</div>
+		<?php
+		}
+		public function fixed_zone_price_item($location_zones, $operation_zones, $fixed_zone = array())
+		{
+			$fixed_zone = $fixed_zone && is_array($fixed_zone) ? $fixed_zone : array();
+			$start_location = array_key_exists('start_location', $fixed_zone) ? $fixed_zone['start_location'] : '';
+			$end_location = array_key_exists('end_location', $fixed_zone) ? $fixed_zone['end_location'] : '';
+			$price = array_key_exists('price', $fixed_zone) ? $fixed_zone['price'] : '';
+			
+			// Combine all zones for start (locations + operation areas)
+			$all_start_zones = array_merge($location_zones, $operation_zones);
+			// Combine all zones for end (will be filtered by JavaScript based on start selection)
+			$all_end_zones = array_merge($location_zones, $operation_zones);
+		?>
+			<tr class="mp_remove_area">
+				<td>
+					<label>
+						<select name="mptbm_fixed_zone_start_location[]" class="formControl add_mp_select2" style="width:100% !important; min-width:150px;">
+							<option value=""><?php esc_html_e('Select Start Zone', 'ecab-taxi-booking-manager'); ?></option>
+							<?php foreach ($all_start_zones as $zone_id => $zone_name) : ?>
+								<?php $selected = ($start_location == $zone_id) ? 'selected' : ''; ?>
+								<option value="<?php echo esc_attr($zone_id); ?>" <?php echo esc_attr($selected); ?>><?php echo esc_html($zone_name); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</label>
+				</td>
+				<td>
+					<label>
+						<select name="mptbm_fixed_zone_end_location[]" class="formControl add_mp_select2" style="width:100% !important; min-width:150px;">
+							<option value=""><?php esc_html_e('Select End Zone', 'ecab-taxi-booking-manager'); ?></option>
+							<?php foreach ($all_end_zones as $zone_id => $zone_name) : ?>
+								<?php $selected = ($end_location == $zone_id) ? 'selected' : ''; ?>
+								<option value="<?php echo esc_attr($zone_id); ?>" <?php echo esc_attr($selected); ?>><?php echo esc_html($zone_name); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</label>
+				</td>
+				<td>
+					<label>
+						<input type="text" name="mptbm_fixed_zone_price[]" class="formControl mp_price_validation" value="<?php echo esc_attr($price); ?>" placeholder="<?php esc_attr_e('EX:10 ', 'ecab-taxi-booking-manager'); ?>" />
+					</label>
+				</td>
+				<td>
+					<?php MP_Custom_Layout::move_remove_button(); ?>
+				</td>
+			</tr>
+		<?php
+		}
+		public function hidden_fixed_zone_price_item($location_zones, $operation_zones)
+		{
+		?>
+			<div class="mp_hidden_content">
+				<table>
+					<tbody class="mp_hidden_item">
+						<?php $this->fixed_zone_price_item($location_zones, $operation_zones); ?>
 					</tbody>
 				</table>
 			</div>
@@ -429,6 +619,29 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				}
 
 				update_post_meta($post_id, 'mptbm_manual_price_info', $manual_price_infos);
+
+				$fixed_zone_price_infos = array();
+				$start_zone = isset($_POST['mptbm_fixed_zone_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_zone_start_location']) : [];
+				$end_zone = isset($_POST['mptbm_fixed_zone_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_zone_end_location']) : [];
+				$zone_price = isset($_POST['mptbm_fixed_zone_price']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_zone_price']) : [];
+
+
+				if (count($start_zone) > 0) {
+					$count = 0;
+					foreach ($start_zone as $key => $location) {
+						$e_zone = isset($end_zone[$key]) ? $end_zone[$key] : '';
+						$z_price = isset($zone_price[$key]) ? $zone_price[$key] : '';
+
+						if ($location && $e_zone && $z_price) {
+							$fixed_zone_price_infos[$count]['start_location'] = $location;
+							$fixed_zone_price_infos[$count]['end_location'] = $e_zone;
+							$fixed_zone_price_infos[$count]['price'] = $z_price;
+							$count++;
+						}
+					}
+				}
+				update_post_meta($post_id, 'mptbm_fixed_zone_price_info', $fixed_zone_price_infos);
+
 				$terms_price_infos = array();
 				$start_terms_location = isset($_POST['mptbm_terms_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_terms_start_location']) : [];
 				$end_terms_location = isset($_POST['mptbm_terms_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_terms_end_location']) : [];

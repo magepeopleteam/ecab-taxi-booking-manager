@@ -118,24 +118,66 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
     $end_place = $end_place ?? isset($_POST['end_place']) ? sanitize_text_field($_POST['end_place']) : '';
     $two_way = $two_way ?? 1;
     $waiting_time = $waiting_time ?? 0;
-    $location_exit = MPTBM_Function::location_exit($post_id, $start_place, $end_place);
-    if ($location_exit && $post_id) {
-        $thumbnail = MP_Global_Function::get_image_url($post_id);
-        $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time);
-
-        // Get price display type and custom message
-        $price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
-        $custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
-
-        // Handle price display based on display type
-        if ($price_display_type === 'custom_message' && $custom_message) {
-            $price_display = '<div class="mptbm-custom-price-message">' . wp_kses_post($custom_message) . '</div>';
-            $raw_price = 0; // Set raw price to 0 for custom message
+    
+    // Get coordinates for fixed_zone/fixed_zone_dropoff geo-fence validation
+    $start_place_coordinates = isset($_POST['start_place_coordinates']) ? $_POST['start_place_coordinates'] : '';
+    $end_place_coordinates = isset($_POST['end_place_coordinates']) ? $_POST['end_place_coordinates'] : '';
+    $price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : '';
+    
+    // For fixed_zone_dropoff, we need to pass start_place_coordinates as geo_fence_coords
+    // because the geo-fence check needs the searched pickup coordinates
+    // For fixed_zone, we pass end_place_coordinates as geo_fence_coords (searched dropoff coordinates)
+    $geo_fence_coords = null;
+    if ($price_based === 'fixed_zone_dropoff' && !empty($start_place_coordinates)) {
+        if (is_array($start_place_coordinates)) {
+            $geo_fence_coords = $start_place_coordinates;
         } else {
-            $wc_price = MP_Global_Function::wc_price($post_id, $price);
-            $raw_price = MP_Global_Function::price_convert_raw($wc_price);
-            $price_display = $wc_price;
+            // Handle JSON string - WordPress may add slashes, so try both ways
+            $decoded = json_decode($start_place_coordinates, true);
+            if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+                // Try with stripslashes in case WordPress added slashes
+                $decoded = json_decode(stripslashes($start_place_coordinates), true);
+            }
+            // Validate the decoded data has the required keys
+            if ($decoded && (isset($decoded['latitude']) || isset($decoded['lat'])) && (isset($decoded['longitude']) || isset($decoded['lng']))) {
+                $geo_fence_coords = $decoded;
+            } else {
+                // Last resort: try to extract coordinates from the string directly
+                if (preg_match('/"latitude":([\d.]+).*"longitude":([\d.]+)/', $start_place_coordinates, $matches)) {
+                    $geo_fence_coords = ['latitude' => floatval($matches[1]), 'longitude' => floatval($matches[2])];
+                } elseif (preg_match('/"lat":([\d.]+).*"lng":([\d.]+)/', $start_place_coordinates, $matches)) {
+                    $geo_fence_coords = ['lat' => floatval($matches[1]), 'lng' => floatval($matches[2])];
+                }
+            }
         }
+    } elseif (($price_based === 'fixed_zone') && !empty($end_place_coordinates)) {
+        if (is_array($end_place_coordinates)) {
+            $geo_fence_coords = $end_place_coordinates;
+        } else {
+            // Handle JSON string - WordPress may add slashes, so try both ways
+            $decoded = json_decode($end_place_coordinates, true);
+            if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+                // Try with stripslashes in case WordPress added slashes
+                $decoded = json_decode(stripslashes($end_place_coordinates), true);
+            }
+            // Validate the decoded data has the required keys
+            if ($decoded && (isset($decoded['latitude']) || isset($decoded['lat'])) && (isset($decoded['longitude']) || isset($decoded['lng']))) {
+                $geo_fence_coords = $decoded;
+        } else {
+                // Last resort: try to extract coordinates from the string directly
+                if (preg_match('/"latitude":([\d.]+).*"longitude":([\d.]+)/', $end_place_coordinates, $matches)) {
+                    $geo_fence_coords = ['latitude' => floatval($matches[1]), 'longitude' => floatval($matches[2])];
+                } elseif (preg_match('/"lat":([\d.]+).*"lng":([\d.]+)/', $end_place_coordinates, $matches)) {
+                    $geo_fence_coords = ['lat' => floatval($matches[1]), 'lng' => floatval($matches[2])];
+                }
+            }
+        }
+    }
+    
+    // location_exit is already checked in choose_vehicles.php, so we can directly display the vehicle
+    // Price, price_display, and raw_price are already calculated in choose_vehicles.php
+    if ($post_id) {
+        $thumbnail = MP_Global_Function::get_image_url($post_id);
 
         $display_features = MP_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');
         $all_features = MP_Global_Function::get_post_info($post_id, 'mptbm_features');
