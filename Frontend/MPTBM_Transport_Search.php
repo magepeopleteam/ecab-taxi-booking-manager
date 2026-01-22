@@ -306,11 +306,55 @@
 				include(MPTBM_Function::template_path('registration/get_end_place.php'));
 				die();
 			}
+			
+			/**
+			 * Validate post access for extra service endpoints
+			 * Ensures post exists, is published, and is correct post type
+			 */
+			private function validate_post_access($post_id) {
+				if (!$post_id || $post_id <= 0) {
+					return false;
+				}
+				
+				$post = get_post($post_id);
+				
+				// Check if post exists
+				if (!$post) {
+					return false;
+				}
+				
+				// Check post type - must be transportation post type
+				if (get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
+					return false;
+				}
+				
+				// Check post status - must be published (not private, draft, etc.)
+				if ($post->post_status !== 'publish') {
+					return false;
+				}
+				
+				return true;
+			}
+			
 			public function get_mptbm_extra_service() {
+				$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
+				
+				// Security check: validate post access
+				if (!$this->validate_post_access($post_id)) {
+					wp_die(esc_html__('Invalid request or post not found.', 'ecab-taxi-booking-manager'), esc_html__('Error', 'ecab-taxi-booking-manager'), array('response' => 403));
+				}
+				
 				include(MPTBM_Function::template_path('registration/extra_service.php'));
 				die();
 			}
 			public function get_mptbm_extra_service_summary() {
+				$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
+				
+				// Security check: validate post access
+				if (!$this->validate_post_access($post_id)) {
+					wp_die(esc_html__('Invalid request or post not found.', 'ecab-taxi-booking-manager'), esc_html__('Error', 'ecab-taxi-booking-manager'), array('response' => 403));
+				}
+				
 				include(MPTBM_Function::template_path('registration/extra_service_summary.php'));
 				die();
 			}

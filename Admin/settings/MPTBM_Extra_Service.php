@@ -270,9 +270,67 @@
 				}
 				return apply_filters( 'filter_mptbm_extra_service_data', $new_extra_service, $post_id );
 			}
+			/**
+			 * Validate post access for extra service endpoints
+			 * For admin: requires edit capability
+			 * For public: validates post exists, is published, and correct post type
+			 */
+			private function validate_ex_service_access($post_id, $service_id) {
+				// If user is logged in and has edit capability, allow access (admin use)
+				if (is_user_logged_in() && current_user_can('edit_posts')) {
+					// Still validate posts exist
+					if ($post_id && !get_post($post_id)) {
+						return false;
+					}
+					if ($service_id && !get_post($service_id)) {
+						return false;
+					}
+					return true;
+				}
+				
+				// For unauthenticated users, validate public access
+				if ($post_id && $post_id > 0) {
+					$post = get_post($post_id);
+					if (!$post) {
+						return false;
+					}
+					// Check post type - must be transportation post type
+					if (get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
+						return false;
+					}
+					// Check post status - must be published (not private, draft, etc.)
+					if ($post->post_status !== 'publish') {
+						return false;
+					}
+				}
+				
+				if ($service_id && $service_id > 0) {
+					$service_post = get_post($service_id);
+					if (!$service_post) {
+						return false;
+					}
+					// Check service post type - must be extra services post type
+					if (get_post_type($service_id) !== 'mptbm_extra_services') {
+						return false;
+					}
+					// Check service post status - must be published (not private, draft, etc.)
+					if ($service_post->post_status !== 'publish') {
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			
 			public function get_mptbm_ex_service() {
-				$post_id    = isset($_REQUEST['post_id']) ?absint($_REQUEST['post_id']): '';
-				$service_id = isset($_REQUEST['ex_id']) ?absint($_REQUEST['ex_id']): '';
+				$post_id    = isset($_REQUEST['post_id']) ? absint($_REQUEST['post_id']) : 0;
+				$service_id = isset($_REQUEST['ex_id']) ? absint($_REQUEST['ex_id']) : 0;
+				
+				// Security check: validate post access
+				if (!$this->validate_ex_service_access($post_id, $service_id)) {
+					wp_die(esc_html__('Invalid request or post not found.', 'ecab-taxi-booking-manager'), esc_html__('Error', 'ecab-taxi-booking-manager'), array('response' => 403));
+				}
+				
 				$this->ex_service_table( $service_id, $post_id );
 				die();
 			}
