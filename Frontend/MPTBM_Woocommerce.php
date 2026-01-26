@@ -306,7 +306,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				// End modification
 				if ($return > 1 && MP_Global_Function::get_settings('mptbm_general_settings', 'enable_return_in_different_date') == 'yes') {
 					$return_target_date = isset($_POST['mptbm_return_date']) ? sanitize_text_field($_POST['mptbm_return_date']) : '';
-					$return_target_time = isset($_POST['mptbm_return_time']) ? sanitize_text_field($_POST['mptbm_time']) : '';
+					$return_target_time = isset($_POST['mptbm_return_time']) ? sanitize_text_field($_POST['mptbm_return_time']) : '';
 					$cart_item_data['mptbm_return_target_date'] = $return_target_date;
 					$cart_item_data['mptbm_return_target_time'] = $return_target_time;
 				}
@@ -514,44 +514,35 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						$return_date = $values['mptbm_return_target_date'] ?? '';
 						$return_time = $values['mptbm_return_target_time'] ?? '';
 
-						if ($return_time !== "") {
-							if ($return_time !== "0") {
-								// Convert return time to hours and minutes
-								$time_parts = explode('.', $return_time);
-								$hours = isset($time_parts[0]) ? $time_parts[0] : 0;
-								$decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
-								$interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
-
-								if ($interval_time == "5" || $interval_time == "15") {
-									if ($decimal_part != 3) {
-										$minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
-									} else {
-										$minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 10 to convert to minutes
-									}
-								} else {
-									$minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
-								}
+						// Combine return date and time into datetime string (like mptbm_date)
+						$return_datetime = $return_date;
+						if (!empty($return_time) && $return_time !== '' && $return_time !== '0') {
+							// Format return_time to H:i format if numeric
+							if (is_numeric($return_time)) {
+								$hours = floor($return_time);
+								$minutes = round(($return_time - $hours) * 100);
+								$return_time_formatted = sprintf('%02d:%02d', $hours, $minutes);
 							} else {
-								$hours = 0;
-								$minutes = 0;
+								$return_time_formatted = $return_time;
 							}
-						} else {
-							$hours = 0;
-							$minutes = 0;
+							$return_datetime = $return_date . ' ' . $return_time_formatted;
 						}
 
-						// Format hours and minutes
-						$return_time_formatted = sprintf('%02d:%02d', $hours, $minutes);
-
-						// Combine date and time if both are available
-						$return_date_time = $return_date ? gmdate("Y-m-d", strtotime($return_date)) : "";
-						if ($return_date_time && $return_time !== "") {
-							$return_date_time .= " " . $return_time_formatted;
+						// Format date and time using same function as journey date/time
+						if (!empty($return_date) && $return_date !== '' && $return_date !== '0') {
+							$formatted_return_date = MP_Global_Function::date_format($return_datetime, 'd M, Y');
+							if ($formatted_return_date && $formatted_return_date !== '01 Jan, 1970') {
+								$item->add_meta_data(mptbm_get_translation('return_date_label', __('Return Date', 'ecab-taxi-booking-manager')), esc_html($formatted_return_date));
+							}
 						}
-
-
-						$item->add_meta_data(mptbm_get_translation('return_date_label', __('Return Date', 'ecab-taxi-booking-manager')), esc_html(MP_Global_Function::date_format($return_date_time)));
-						$item->add_meta_data(mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')), esc_html(MP_Global_Function::date_format($return_date_time, 'time')));
+						
+						if (!empty($return_time) && $return_time !== '' && $return_time !== '0') {
+							$formatted_return_time = MP_Global_Function::date_format($return_datetime, 'time');
+							if ($formatted_return_time) {
+								$item->add_meta_data(mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')), esc_html($formatted_return_time));
+							}
+						}
+						
 						$item->add_meta_data('_mptbm_return_date', $return_date);
 						$item->add_meta_data('_mptbm_return_time', $return_time);
 					}
@@ -910,54 +901,48 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 								$return_date = array_key_exists('mptbm_return_target_date', $cart_item) ? $cart_item['mptbm_return_target_date'] : '';
 								$return_time = array_key_exists('mptbm_return_target_time', $cart_item) ? $cart_item['mptbm_return_target_time'] : '';
-								if ($return_time !== "") {
-									if ($return_time !== "0") {
-										// Convert return time to hours and minutes
-										$time_parts = explode('.', $return_time);
-										$hours = isset($time_parts[0]) ? $time_parts[0] : 0;
-										$decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
-										$interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
-
-										if ($interval_time == "5" || $interval_time == "15") {
-											if ($decimal_part != 3) {
-												$minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
-											} else {
-												$minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 10 to convert to minutes
-											}
-										} else {
-											$minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
-										}
+								
+								// Combine return date and time into datetime string (like mptbm_date)
+								$return_datetime = $return_date;
+								if (!empty($return_time) && $return_time !== '' && $return_time !== '0') {
+									// Format return_time to H:i format if numeric
+									if (is_numeric($return_time)) {
+										$hours = floor($return_time);
+										$minutes = round(($return_time - $hours) * 100);
+										$return_time_formatted = sprintf('%02d:%02d', $hours, $minutes);
 									} else {
-										$hours = 0;
-										$minutes = 0;
+										$return_time_formatted = $return_time;
 									}
-								} else {
-									$hours = 0;
-									$minutes = 0;
+									$return_datetime = $return_date . ' ' . $return_time_formatted;
 								}
 
-								// Format hours and minutes
-								$return_time_formatted = sprintf('%02d:%02d', $hours, $minutes);
-
-								// Combine date and time if both are available
-								$return_date_time = $return_date ? gmdate("Y-m-d", strtotime($return_date)) : "";
-								if ($return_date_time && $return_time !== "") {
-									$return_date_time .= " " . $return_time_formatted;
-								}
-
-
-
+								// Format date and time using same function as journey date/time
+								if (!empty($return_date) && $return_date !== '' && $return_date !== '0') {
+									$formatted_return_date = MP_Global_Function::date_format($return_datetime, 'd M, Y');
+									if ($formatted_return_date && $formatted_return_date !== '01 Jan, 1970') {
 							?>
 								<li>
 									<span class="far fa-calendar-alt"></span>
 									<h6 class="_mR_xs"><?php echo mptbm_get_translation('return_date_label', __('Return Date', 'ecab-taxi-booking-manager')); ?> :</h6>
-									<span><?php echo esc_html(MP_Global_Function::date_format($return_date_time)); ?></span>
+									<span><?php echo esc_html($formatted_return_date); ?></span>
 								</li>
+							<?php 
+									}
+								}
+								
+								if (!empty($return_time) && $return_time !== '' && $return_time !== '0') {
+									$formatted_return_time = MP_Global_Function::date_format($return_datetime, 'time');
+									if ($formatted_return_time) {
+							?>
 								<li>
 									<span class="far fa-clock"></span>
 									<h6 class="_mR_xs"><?php echo mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')); ?> :</h6>
-									<span><?php echo esc_html(MP_Global_Function::date_format($return_date_time, 'time')); ?></span>
+									<span><?php echo esc_html($formatted_return_time); ?></span>
 								</li>
+							<?php 
+									}
+								}
+							?>
 							<?php } ?>
 						<?php } ?>
 						<?php if ($waiting_time && $waiting_time > 0) { ?>
