@@ -18,6 +18,9 @@ $restrict_search_country = MP_Global_Function::get_settings('mptbm_map_api_setti
 $country = MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'no');
 $km_or_mile = MP_Global_Function::get_settings('mp_global_settings', 'km_or_mile', 'km');
 $price_based = $price_based ?? '';
+if (!class_exists('MPTBM_Dependencies_Pro') && in_array($price_based, ['fixed_distance', 'fixed_zone', 'fixed_zone_dropoff'])) {
+	$price_based = 'dynamic';
+}
 $map_type = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'openstreetmap');
 
 set_transient('original_price_based', $price_based);

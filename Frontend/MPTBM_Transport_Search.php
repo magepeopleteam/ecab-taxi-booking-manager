@@ -51,7 +51,7 @@
 					$form_style = sanitize_text_field($_POST['form_style']);
 					$map = sanitize_text_field($_POST['map']); // Changed from $display_map to $map
 					// Include the correct template based on the tab
-					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate' || $tab_id === 'custom') {
+					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate' || $tab_id === 'custom' || $tab_id === 'fixed_distance' || $tab_id === 'fixed_zone' || $tab_id === 'fixed_zone_dropoff') {
 						ob_start(); // Start output buffering
 						
 						if($tab_id === 'distance'){
@@ -63,6 +63,15 @@
 						}else if($tab_id === 'flat-rate'){
 							$price_based = 'manual';
 							$form_style = 'inline';
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'fixed_distance'){
+							$price_based = 'fixed_distance';
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'fixed_zone'){
+							$price_based = 'fixed_zone';
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'fixed_zone_dropoff'){
+							$price_based = 'fixed_zone_dropoff';
 							include MPTBM_Function::template_path('registration/get_details.php');
 						}else if($tab_id === 'custom'){
 							do_action('mptbm_render_custom');

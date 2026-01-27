@@ -51,6 +51,13 @@ $progressbar_class = ($progressbar == 'yes' && $tab == 'no') ? '' : 'dNone';
 						'hourly'   => 'hourly',
 						'manual'   => 'flat-rate',
 					];
+					
+					if (class_exists('MPTBM_Dependencies_Pro')) {
+						$valid_tabs['fixed_map'] = 'fixed_distance';
+						$valid_tabs['fixed_zone_pickup'] = 'fixed_zone';
+						$valid_tabs['fixed_zone_dropoff'] = 'fixed_zone_dropoff';
+					}
+
 					$valid_tabs = apply_filters('mptbm_register_valid_tabs', $valid_tabs);
 					
 
@@ -81,6 +88,14 @@ $progressbar_class = ($progressbar == 'yes' && $tab == 'no') ? '' : 'dNone';
 						$price_based = 'fixed_hourly';
 					} else if ($first_tab == 'manual') {
 						$price_based = 'manual';
+					} else if ($first_tab == 'distance') {
+						$price_based = 'dynamic';
+					} else if ($first_tab == 'fixed_map') {
+						$price_based = 'fixed_distance';
+					} else if ($first_tab == 'fixed_zone_pickup') {
+						$price_based = 'fixed_zone';
+					} else if ($first_tab == 'fixed_zone_dropoff') {
+						$price_based = 'fixed_zone_dropoff';
 					}
 					
 				?>
@@ -103,6 +118,12 @@ $progressbar_class = ($progressbar == 'yes' && $tab == 'no') ? '' : 'dNone';
 								} elseif ($tab_name === 'flat-rate') {
 									
 									$label = mptbm_get_translation('flat_rate_tab_label', __('Flat rate', 'ecab-taxi-booking-manager'));
+								} elseif ($tab_name === 'fixed_distance') {
+									$label = mptbm_get_translation('fixed_distance_tab_label', __('Fixed Distance', 'ecab-taxi-booking-manager'));
+								} elseif ($tab_name === 'fixed_zone') {
+									$label = mptbm_get_translation('fixed_zone_pickup_tab_label', __('Fixed Zone Pickup', 'ecab-taxi-booking-manager'));
+								} elseif ($tab_name === 'fixed_zone_dropoff') {
+									$label = mptbm_get_translation('fixed_zone_dropoff_tab_label', __('Fixed Zone Dropoff', 'ecab-taxi-booking-manager'));
 								}else {
 									$label = ucfirst(str_replace('-', ' ', $tab_name));
 								}
