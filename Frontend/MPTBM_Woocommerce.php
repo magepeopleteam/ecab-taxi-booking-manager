@@ -700,12 +700,6 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							$waiting_time = $waiting_time ? MP_Global_Function::data_sanitize($waiting_time) : '';
 							$return = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_taxi_return');
 							$return = $return ? MP_Global_Function::data_sanitize($return) : '';
-							if ($return > 1 && MP_Global_Function::get_settings('mptbm_general_settings', 'enable_return_in_different_date') == 'yes') {
-								$return_target_date = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_return_date');
-								$return_target_time = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_return_time');
-								$data['mptbm_return_target_date'] = $return_target_date;
-								$data['mptbm_return_target_time'] = $return_target_time;
-							}
 							$fixed_time = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_fixed_hours');
 							$fixed_time = $fixed_time ? MP_Global_Function::data_sanitize($fixed_time) : '';
 							$distance = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_distance');
@@ -714,19 +708,14 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							$duration = $duration ? MP_Global_Function::data_sanitize($duration) : '';
 							$base_price = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_base_price');
 							$base_price = $base_price ? MP_Global_Function::data_sanitize($base_price) : '';
-						$service = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_service_info');
+							$service = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_service_info');
 							$service_info = $service ? MP_Global_Function::data_sanitize($service) : [];
 							$price = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_tp');
 							$price = $price ? MP_Global_Function::data_sanitize($price) : [];
 							$transport_quantity = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_transport_quantity');
 							$quantity = $transport_quantity ? MP_Global_Function::data_sanitize($transport_quantity) : 1;
-						$bags_meta = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_bags');
-						if ($bags_meta !== '') {
-							$data['mptbm_bags'] = absint($bags_meta);
-						}
-							
-							// Add meta array data to the $data array
-							$data = array_merge($meta_array, [
+
+							$data = [
 								'mptbm_id' => $post_id,
 								'mptbm_date' => $date,
 								'mptbm_start_place' => $start_place,
@@ -748,7 +737,15 @@ if (!class_exists('MPTBM_Woocommerce')) {
 								'mptbm_billing_phone' => $order->get_billing_phone(),
 								'mptbm_target_pickup_interval_time' => MPTBM_Function::get_general_settings('mptbm_pickup_interval_time', '30'),
 								'mptbm_transport_quantity' => $quantity
-							]);
+							];
+							
+							if ($return > 1 && MP_Global_Function::get_settings('mptbm_general_settings', 'enable_return_in_different_date') == 'yes') {
+								$data['mptbm_return_target_date'] = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_return_date');
+								$data['mptbm_return_target_time'] = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_return_time');
+							}
+							
+							// Merge meta array data to the $data array
+							$data = array_merge($meta_array, $data);
 
 							// Add passenger and bag data based on pro plugin settings
 				$pro_active = class_exists('MPTBM_Dependencies_Pro');
