@@ -121,7 +121,7 @@ if (!class_exists('MPTBM_Settings')) {
 				'mptbm_return_discount' => esc_html__('This is to way return discount fixed or percentage', 'ecab-taxi-booking-manager'),
 			);
 			$des = apply_filters('mptbm_filter_description_array', $des);
-			return $des[$key];
+			return isset($des[$key]) ? $des[$key] : '';
 		}
 		public static function info_text($key)
 		{

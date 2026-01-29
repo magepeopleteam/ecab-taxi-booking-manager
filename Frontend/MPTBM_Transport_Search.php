@@ -107,6 +107,7 @@
 					));
 				}
 				// Ensure original_price_based is set for proper pricing calculations
+				// Ensure original_price_based is set for proper pricing calculations
 				$price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
 				if ($price_based == 'fixed_distance') {
 					set_transient('original_price_based', 'fixed_distance', HOUR_IN_SECONDS);
@@ -158,6 +159,12 @@
 					$e_lat = isset($end_coords['latitude']) ? $end_coords['latitude'] : '';
 					$e_lng = isset($end_coords['longitude']) ? $end_coords['longitude'] : '';
 					
+					// Set transients for pricing logic in MPTBM_Function::get_price
+					set_transient('pickup_lat_transient', $s_lat, HOUR_IN_SECONDS);
+					set_transient('pickup_lng_transient', $s_lng, HOUR_IN_SECONDS);
+					set_transient('drop_lat_transient', $e_lat, HOUR_IN_SECONDS);
+					set_transient('drop_lng_transient', $e_lng, HOUR_IN_SECONDS);
+
 					$server_data = MPTBM_Function::get_server_distance($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 

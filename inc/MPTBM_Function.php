@@ -372,7 +372,7 @@ if (!class_exists('MPTBM_Function')) {
 				} elseif ($price_based == 'distance' && $original_price_based == 'fixed_hourly') {
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
 					$price = $km_price * ((float) $distance / 1000);
-				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_distance') && $original_price_based == 'fixed_distance') {
+				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_distance' || $price_based == 'fixed_map') && ($original_price_based == 'fixed_distance' || $original_price_based == 'fixed_map')) {
 					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_route_price_info', []);
 					$found_zone_price = false;
 
@@ -389,9 +389,11 @@ if (!class_exists('MPTBM_Function')) {
 							foreach ($fixed_zone_prices as $fixed_zone_price) {
 								$start_location = $fixed_zone_price['start_location'] ?? '';
 								$end_location = $fixed_zone_price['end_location'] ?? '';
-
-								if (self::is_point_in_fixed_zone($start_location, $pickup_coords) && 
-									self::is_point_in_fixed_zone($end_location, $dropoff_coords)) {
+                                
+                                $start_match = self::is_point_in_fixed_zone($start_location, $pickup_coords);
+                                $end_match = self::is_point_in_fixed_zone($end_location, $dropoff_coords);
+                                
+								if ($start_match && $end_match) {
 									$price = (float) ($fixed_zone_price['price'] ?? 0);
 									$found_zone_price = true;
 									break;
@@ -748,6 +750,8 @@ if (!class_exists('MPTBM_Function')) {
 				$coord_key = 'mptbm-coordinates-three';
 				if ($operation_area_type === 'geo-matched-operation-area-type') {
 					$coord_key = 'mptbm-coordinates-four';
+				} elseif ($operation_area_type === 'geo-fence-operation-area-type') {
+					$coord_key = 'mptbm-coordinates-one';
 				}
 				
 				$flat_coords = get_post_meta($area_id, $coord_key, true);
