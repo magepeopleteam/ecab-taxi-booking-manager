@@ -2,6 +2,7 @@ let mptbm_map;
 let mptbm_map_window;
 var mptbm_start_marker = null;
 var mptbm_end_marker = null;
+var mptbm_extra_marker = null;
 
 // OpenStreetMap variables
 var mptbm_osm_map = null;
@@ -9,6 +10,7 @@ var mptbm_osm_markers = [];
 var mptbm_osm_route = null;
 var mptbm_osm_start_marker = null;
 var mptbm_osm_end_marker = null;
+var mptbm_osm_extra_marker = null;
 
 // Function to clean up existing map instance
 function mptbm_cleanup_map() {
@@ -82,14 +84,30 @@ jQuery(document).ready(function ($) {
             }
         }
     });
+
+    // Clear errors on input for extra stop location
+    $(document).on('input change', '#mptbm_map_extra_stop_place', function () {
+        if (this.classList.contains('mptbm-error-field')) {
+            this.classList.remove('mptbm-error-field');
+            var errorMsg = this.parentElement.querySelector('.mptbm-location-error');
+            if (errorMsg) {
+                errorMsg.remove();
+            }
+        }
+    });
 });
 
 function mptbm_set_cookie_distance_duration(start_place, end_place) {
+
+    console.log('[ROUTE DEBUG] mptbm_set_cookie_distance_duration called');
+    console.log('[ROUTE DEBUG] start_place:', start_place);
+    console.log('[ROUTE DEBUG] end_place:', end_place);
 
     // Check if OpenStreetMap is active
     var mapType = document.getElementById('mptbm_map_type');
 
     if (mapType && mapType.value === 'openstreetmap') {
+        console.log('[ROUTE DEBUG] OpenStreetMap is active, exiting');
         return false;
     }
 
@@ -117,17 +135,44 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
         });
     }
 
-    if (start_place && end_place) {
+    // Check if we have enough locations to calculate a route
+    // We need at least start_place and either end_place OR extra_stop
+    var extra_stop = jQuery('#mptbm_map_extra_stop_place').val();
+    console.log('[ROUTE DEBUG] extra_stop value:', extra_stop);
+
+    if (start_place && (end_place || extra_stop)) {
         var directionsService = new google.maps.DirectionsService();
         var directionsRenderer = new google.maps.DirectionsRenderer();
         directionsRenderer.setMap(mptbm_map);
 
+        // If dropoff is not set but extra stop is, use extra stop as temporary destination
+        var actualDestination = end_place || extra_stop;
+        var useExtraAsWaypoint = end_place && extra_stop; // Only use as waypoint if we have both
+
+        console.log('[ROUTE DEBUG] actualDestination:', actualDestination);
+        console.log('[ROUTE DEBUG] useExtraAsWaypoint:', useExtraAsWaypoint);
+
+        var waypoints = [];
+        if (useExtraAsWaypoint) {
+            waypoints.push({
+                location: extra_stop,
+                stopover: true
+            });
+            console.log('[ROUTE DEBUG] Added extra_stop as waypoint');
+        }
+
+        console.log('[ROUTE DEBUG] Total waypoints:', waypoints.length);
+        console.log('[ROUTE DEBUG] Waypoints:', waypoints);
+
         var request = {
             origin: start_place,
-            destination: end_place,
+            destination: actualDestination,
+            waypoints: waypoints,
             travelMode: google.maps.TravelMode.DRIVING,
             unitSystem: google.maps.UnitSystem.METRIC,
         };
+
+        console.log('[ROUTE DEBUG] DirectionsService request:', request);
 
         var now = new Date();
         var time = now.getTime();
@@ -136,21 +181,54 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
 
         // Safari compatibility: use function instead of arrow function
         directionsService.route(request, function (result, status) {
+            console.log('[ROUTE DEBUG] DirectionsService response status:', status);
+            console.log('[ROUTE DEBUG] DirectionsService result:', result);
 
             if (status === google.maps.DirectionsStatus.OK) {
                 try {
-                    var distance = result.routes[0].legs[0].distance.value;
+                    // Sum all legs of the route (important when waypoints/extra stops are used)
+                    var totalDistance = 0;
+                    var totalDuration = 0;
+                    var legs = result.routes[0].legs;
+
+                    console.log('[ROUTE DEBUG] Number of legs:', legs.length);
+                    console.log('[ROUTE DEBUG] Legs data:', legs);
+
+                    for (var i = 0; i < legs.length; i++) {
+                        console.log('[ROUTE DEBUG] Leg', i, '- Distance:', legs[i].distance.value, 'Duration:', legs[i].duration.value);
+                        totalDistance += legs[i].distance.value;
+                        totalDuration += legs[i].duration.value;
+                    }
+
+                    console.log('[ROUTE DEBUG] Total Distance:', totalDistance);
+                    console.log('[ROUTE DEBUG] Total Duration:', totalDuration);
+
+                    var distance = totalDistance;
+                    var duration = totalDuration;
+
                     var kmOrMileElement = document.getElementById("mptbm_km_or_mile");
                     var kmOrMile = kmOrMileElement ? kmOrMileElement.value : 'km';
-                    var distance_text = result.routes[0].legs[0].distance.text;
-                    var duration = result.routes[0].legs[0].duration.value;
-                    var duration_text = result.routes[0].legs[0].duration.text;
+                    var distance_text;
+                    var duration_text;
 
                     if (kmOrMile == 'mile') {
-                        // Convert distance from kilometers to miles
+                        // Convert distance from meters to miles
                         var distanceInKilometers = distance / 1000;
                         var distanceInMiles = distanceInKilometers * 0.621371;
                         distance_text = distanceInMiles.toFixed(1) + ' miles';
+                    } else {
+                        // Convert distance from meters to kilometers
+                        var distanceInKilometers = distance / 1000;
+                        distance_text = distanceInKilometers.toFixed(1) + ' km';
+                    }
+
+                    // Format duration (convert seconds to hours and minutes)
+                    var hours = Math.floor(duration / 3600);
+                    var minutes = Math.round((duration % 3600) / 60);
+                    if (hours > 0) {
+                        duration_text = hours + ' hour' + (hours > 1 ? 's' : '') + ' min';
+                    } else {
+                        duration_text = minutes + ' min';
                     }
 
                     // Safari compatibility: set cookies with proper encoding
@@ -380,6 +458,7 @@ function mptbm_init_osm_map() {
             mptbm_osm_route = null;
             mptbm_osm_start_marker = null;
             mptbm_osm_end_marker = null;
+            mptbm_osm_extra_marker = null;
         } catch (e) {
             console.log("[OSM] Error removing map:", e);
         }
@@ -423,6 +502,11 @@ function mptbm_init_osm_address_search() {
     if (endInput) {
         endInput.removeAttribute('data-osm-autocomplete-initialized');
         mptbm_setup_osm_autocomplete(endInput, 'end');
+    }
+    var extraInput = document.getElementById('mptbm_map_extra_stop_place');
+    if (extraInput) {
+        extraInput.removeAttribute('data-osm-autocomplete-initialized');
+        mptbm_setup_osm_autocomplete(extraInput, 'extra');
     }
 }
 
@@ -567,6 +651,8 @@ function mptbm_handle_osm_address_selection(address, type) {
         mptbm_osm_map.removeLayer(mptbm_osm_start_marker);
     } else if (type === 'end' && mptbm_osm_end_marker) {
         mptbm_osm_map.removeLayer(mptbm_osm_end_marker);
+    } else if (type === 'extra' && mptbm_osm_extra_marker) {
+        mptbm_osm_map.removeLayer(mptbm_osm_extra_marker);
     }
 
     // Create new marker if map exists
@@ -586,15 +672,20 @@ function mptbm_handle_osm_address_selection(address, type) {
             if (price_based === 'fixed_zone') {
                 window.mptbm_fixed_zone_end_coords = { latitude: lat, longitude: lng };
             }
+        } else if (type === 'extra') {
+            mptbm_osm_extra_marker = marker;
         }
 
-        // Calculate distance if both markers exist
-        if (mptbm_osm_start_marker && mptbm_osm_end_marker) {
+        // Calculate distance if we have start marker and either end marker OR extra marker
+        if (mptbm_osm_start_marker && (mptbm_osm_end_marker || mptbm_osm_extra_marker)) {
             mptbm_calculate_osm_distance();
         }
 
         // Fit map to show all markers
-        var group = new L.featureGroup([mptbm_osm_start_marker, mptbm_osm_end_marker].filter(Boolean));
+        var markersToFit = [mptbm_osm_start_marker, mptbm_osm_end_marker];
+        if (mptbm_osm_extra_marker) markersToFit.push(mptbm_osm_extra_marker);
+
+        var group = new L.featureGroup(markersToFit.filter(Boolean));
         if (group.getLayers().length > 0) {
             mptbm_osm_map.fitBounds(group.getBounds().pad(0.1));
         }
@@ -602,16 +693,30 @@ function mptbm_handle_osm_address_selection(address, type) {
 }
 
 function mptbm_calculate_osm_distance() {
-    if (!mptbm_osm_start_marker || !mptbm_osm_end_marker) return;
+    // We need at least start marker and either end marker OR extra marker
+    if (!mptbm_osm_start_marker || (!mptbm_osm_end_marker && !mptbm_osm_extra_marker)) return;
 
     var startLatLng = mptbm_osm_start_marker.getLatLng();
-    var endLatLng = mptbm_osm_end_marker.getLatLng();
 
+    // Use end marker if available, otherwise use extra marker as destination
+    var actualEndMarker = mptbm_osm_end_marker || mptbm_osm_extra_marker;
+    var endLatLng = actualEndMarker.getLatLng();
+
+    // Determine if we should use extra as waypoint (only if we have both end and extra)
+    var useExtraAsWaypoint = mptbm_osm_end_marker && mptbm_osm_extra_marker;
+
+    var urlCoords = startLatLng.lng + ',' + startLatLng.lat;
+
+    if (useExtraAsWaypoint) {
+        var extraLatLng = mptbm_osm_extra_marker.getLatLng();
+        urlCoords += ';' + extraLatLng.lng + ',' + extraLatLng.lat;
+    }
+
+    urlCoords += ';' + endLatLng.lng + ',' + endLatLng.lat;
 
     // Get route from OSRM (Open Source Routing Machine)
     var osrmUrl = 'https://router.project-osrm.org/route/v1/driving/' +
-        startLatLng.lng + ',' + startLatLng.lat + ';' +
-        endLatLng.lng + ',' + endLatLng.lat +
+        urlCoords +
         '?overview=full&geometries=geojson';
 
     fetch(osrmUrl)
@@ -866,7 +971,7 @@ function mptbm_init_google_map() {
             var end_place = document.getElementById("mptbm_map_end_place");
             var price_based = jQuery('[name="mptbm_price_based"]').val();
 
-            // Only sync dropoff with pickup if dropoff is hidden (hourly pricing with disabled dropoff)
+            // Disable auto-syncing dropoff with pickup unless dropoff is hidden
             if (end_place && end_place.type === 'hidden') {
                 end_place.value = start_place.value;
             }
@@ -891,6 +996,14 @@ function mptbm_init_google_map() {
                         mptbm_calculate_google_route_from_markers();
                     }
                 }
+            }
+
+            // Focus on Extra Stop if it exists, otherwise Dropoff
+            var extra_stop = document.getElementById("mptbm_map_extra_stop_place");
+            if (extra_stop && extra_stop.offsetParent !== null) { // Check if visible
+                extra_stop.focus();
+            } else if (end_place && end_place.offsetParent !== null) {
+                end_place.focus();
             }
 
             mptbm_set_cookie_distance_duration(
@@ -1078,6 +1191,59 @@ function mptbm_init_google_map() {
                 });
 
                 endPlaceInput.setAttribute('data-autocomplete-initialized', 'true');
+            }
+
+            // Initialize Google Places autocomplete for EXTRA STOP location
+            var extraStopInput = document.getElementById('mptbm_map_extra_stop_place');
+
+            if (extraStopInput && !extraStopInput.hasAttribute('data-autocomplete-initialized')) {
+                var extraStopAutocomplete = new google.maps.places.Autocomplete(extraStopInput);
+                var mptbm_restrict_search_to_country = $('[name="mptbm_restrict_search_country"]').val();
+                var mptbm_country = $('[name="mptbm_country"]').val();
+
+                if (mptbm_restrict_search_to_country == 'yes') {
+                    extraStopAutocomplete.setComponentRestrictions({
+                        country: [mptbm_country]
+                    });
+                }
+
+                google.maps.event.addListener(extraStopAutocomplete, 'place_changed', function () {
+                    var place = extraStopAutocomplete.getPlace();
+
+                    // Create marker for extra stop
+                    if (place.geometry && place.geometry.location) {
+                        // Remove existing extra marker if present
+                        if (typeof mptbm_extra_marker !== 'undefined' && mptbm_extra_marker) {
+                            mptbm_extra_marker.setMap(null);
+                        }
+
+                        // Create new marker for extra stop
+                        mptbm_extra_marker = new google.maps.Marker({
+                            position: place.geometry.location,
+                            map: mptbm_map,
+                            title: place.name || place.formatted_address,
+                            label: {
+                                text: 'E',
+                                color: 'white',
+                                fontWeight: 'bold'
+                            }
+                        });
+
+                        mptbm_map.setCenter(place.geometry.location);
+                        mptbm_map.setZoom(14);
+                    }
+
+                    // Update the map route when extra stop changes
+                    var startInput = document.getElementById('mptbm_map_start_place');
+                    var endInput = document.getElementById('mptbm_map_end_place');
+
+                    mptbm_set_cookie_distance_duration(
+                        startInput ? startInput.value : '',
+                        endInput ? endInput.value : ''
+                    );
+                });
+
+                extraStopInput.setAttribute('data-autocomplete-initialized', 'true');
             }
         };
 
@@ -1474,6 +1640,7 @@ function mptbm_init_google_map() {
                                         mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                         mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                         mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                                        mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
                                         mptbm_original_price_base: mptbm_original_price_base,
                                         mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                         mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -1521,6 +1688,7 @@ function mptbm_init_google_map() {
                                         mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                         mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                         mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                                        mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
                                         mptbm_original_price_base: mptbm_original_price_base,
                                         mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                         mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -1591,6 +1759,7 @@ function mptbm_init_google_map() {
                                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                     mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                                    mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
                                     mptbm_original_price_base: mptbm_original_price_base,
                                     mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                     mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -1648,6 +1817,7 @@ function mptbm_init_google_map() {
                                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                     mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                                    mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
                                     mptbm_original_price_base: mptbm_original_price_base,
                                     mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                     mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -1702,6 +1872,7 @@ function mptbm_init_google_map() {
                                 mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                                mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
                                 mptbm_original_price_base: mptbm_original_price_base,
                                 mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                 mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -1759,6 +1930,7 @@ function mptbm_init_google_map() {
                                 mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                                mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
                                 mptbm_original_price_base: mptbm_original_price_base,
                                 mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                 mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -2558,6 +2730,7 @@ function mptbm_price_calculation(parent) {
                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                     mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                    mptbm_extra_stop_place: parent.find('input[name="mptbm_extra_stop_place"]').val(),
                     mptbm_original_price_base: mptbm_original_price_base,
                     mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
                     mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),

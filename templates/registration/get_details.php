@@ -341,6 +341,50 @@ if (sizeof($all_dates) > 0) {
 						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
 					</label>
 				</div>
+				<?php 
+					$extra_stop = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
+					$excluded_price_based = ['fixed_zone', 'fixed_zone_dropoff', 'fixed_hourly', 'fixed_price', 'fixed_zone_pickup', 'manual'];
+					if ($extra_stop == 'yes' && !in_array($price_based, $excluded_price_based)) {
+				?>
+					<div class="inputList">
+                        <label class="fdColumn">
+                            <span id="mptbm_toggle_extra_stop" style="cursor: pointer; color: var(--color_theme); display: inline-flex; align-items: center; font-size: 14px; font-weight: 500; margin: 10px 0;">
+                                <i class="fas fa-plus-circle" style="margin-right: 5px;"></i> <?php echo mptbm_get_translation('add_extra_stop_label', __('Add Extra Stop', 'ecab-taxi-booking-manager')); ?>
+                            </span>
+                        </label>
+						<label class="fdColumn mptbm_extra_stop_container" style="display: none;">
+							<span><?php echo mptbm_get_translation('extra_stop_location_label', __('Extra Stop Location', 'ecab-taxi-booking-manager')); ?></span>
+                            <div style="position: relative; width: 100%;">
+							    <input type="text" id="mptbm_map_extra_stop_place" name="mptbm_extra_stop_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_extra_stop_location_placeholder', __('Enter Extra Stop Location', 'ecab-taxi-booking-manager')); ?>" value="" />
+							    <i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
+                            </div>
+                            <span id="mptbm_remove_extra_stop" style="display: inline-block; text-align: right; margin-top: 8px; margin-bottom: 8px; cursor: pointer; color: #dc3545; font-size: 12px; align-self: flex-end;">
+                                <i class="fas fa-times"></i> <?php echo mptbm_get_translation('remove_label', __('Remove', 'ecab-taxi-booking-manager')); ?>
+                            </span>
+						</label>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var toggle = document.getElementById('mptbm_toggle_extra_stop');
+                                var container = document.querySelector('.mptbm_extra_stop_container');
+                                var remove = document.getElementById('mptbm_remove_extra_stop');
+                                var input = document.getElementById('mptbm_map_extra_stop_place');
+
+                                if(toggle && container && remove) {
+                                    toggle.addEventListener('click', function() {
+                                        container.style.display = 'flex';
+                                        toggle.style.display = 'none';
+                                    });
+
+                                    remove.addEventListener('click', function() {
+                                        container.style.display = 'none';
+                                        toggle.style.display = 'inline-flex';
+                                        if(input) input.value = '';
+                                    });
+                                }
+                            });
+                        </script>
+					</div>
+				<?php } ?>
 				<?php if (!($hide_dropoff && $price_based === 'fixed_hourly')): ?>
 <div class="inputList">
     <label class="fdColumn mptbm_manual_end_place">
@@ -417,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
 							<option value="<?php echo esc_attr($i); ?>"><?php echo esc_html($i); ?></option>
 						<?php } ?>
 					</select>
-					<span class="fa fa-shopping-bag mptbm_left_icon allCenter"></span>
+					<span class="fas fa-suitcase mptbm_left_icon allCenter"></span>
 				</label>
 			</div>
 			<?php endif; ?>
@@ -430,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
 							<option value="<?php echo esc_attr($i); ?>"><?php echo esc_html($i); ?></option>
 						<?php } ?>
 					</select>
-					<span class="fas fa-suitcase mptbm_left_icon allCenter"></span>
+					<span class="fa fa-shopping-bag mptbm_left_icon allCenter"></span>
 				</label>
 			</div>
 			<?php endif; ?>

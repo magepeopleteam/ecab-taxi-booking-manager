@@ -14,8 +14,9 @@ if (!function_exists('mptbm_get_translation')) {
 	$duration = $duration ?? (isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '');
 	$label = $label ?? MPTBM_Function::get_name();
 	$date = $date ?? '';
-	$start_place = $start_place ?? '';
-	$end_place = $end_place ?? '';
+	$start_place = $start_place ?? (isset($_REQUEST['mptbm_start_place']) ? sanitize_text_field($_REQUEST['mptbm_start_place']) : '');
+	$end_place = $end_place ?? (isset($_REQUEST['mptbm_end_place']) ? sanitize_text_field($_REQUEST['mptbm_end_place']) : '');
+	$extra_stop_place = $extra_stop_place ?? (isset($_REQUEST['mptbm_extra_stop_place']) ? sanitize_text_field($_REQUEST['mptbm_extra_stop_place']) : '');
 	$two_way = $two_way ?? 1;
 	$waiting_time = $waiting_time ?? 0;
 	$fixed_time = $fixed_time ?? '';
@@ -86,6 +87,46 @@ if (!function_exists('mptbm_get_translation')) {
 					<?php } else { ?>
 						<p class="_textLight_1 "><?php echo esc_html($start_place); ?></p>
 					<?php } ?>
+			
+			<?php 
+			// Display Extra Stop Location if setting is enabled and data exists
+			$extra_stop_enabled = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
+			// Ensure we have the latest value from request if not already set
+			if (empty($extra_stop_place) && isset($_REQUEST['mptbm_extra_stop_place'])) {
+				$extra_stop_place = sanitize_text_field($_REQUEST['mptbm_extra_stop_place']);
+			}
+			
+			if ($extra_stop_enabled === 'yes' && !empty($extra_stop_place) && 
+			    !in_array($price_based, ['fixed_zone', 'fixed_zone_dropoff', 'fixed_hourly', 'fixed_price', 'fixed_zone_pickup'])) {
+			?>
+				<div class="divider"></div>
+				<h6 class="_mB_xs"><?php echo mptbm_get_translation('extra_stop_location_label', __('Extra Stop Location', 'ecab-taxi-booking-manager')); ?></h6>
+				<?php 
+				$extra_stop_display = $extra_stop_place;
+				if ($price_based == 'manual') {
+					$extra_stop_display = MPTBM_Function::get_taxonomy_name_by_slug($extra_stop_place, 'locations');
+				} elseif (strpos($extra_stop_place, 'term_') === 0) {
+					// Resolve term_XX to location name
+					$term_id = absint(str_replace('term_', '', $extra_stop_place));
+					$term = get_term($term_id, 'locations');
+					if ($term && !is_wp_error($term)) {
+						$extra_stop_display = $term->name;
+					} else {
+						// Fallback: try direct DB query
+						global $wpdb;
+						$term_name = $wpdb->get_var($wpdb->prepare(
+							"SELECT name FROM {$wpdb->terms} WHERE term_id = %d",
+							$term_id
+						));
+						if ($term_name) {
+							$extra_stop_display = $term_name;
+						}
+					}
+				}
+				?>
+				<p class="_textLight_1"><?php echo esc_html($extra_stop_display); ?></p>
+			<?php } ?>
+			
 					
 					
 					<?php if (!($price_based == 'fixed_hourly' && $disable_dropoff_hourly === 'disable')): ?>

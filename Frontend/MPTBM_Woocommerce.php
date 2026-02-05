@@ -180,6 +180,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				session_write_close();
 				$start_place = isset($_POST['mptbm_start_place']) ? sanitize_text_field($_POST['mptbm_start_place']) : '';
 				$end_place = isset($_POST['mptbm_end_place']) ? sanitize_text_field($_POST['mptbm_end_place']) : '';
+				$extra_stop_place = isset($_POST['mptbm_extra_stop_place']) ? sanitize_text_field($_POST['mptbm_extra_stop_place']) : '';
 				$waiting_time = isset($_POST['mptbm_waiting_time']) ? sanitize_text_field($_POST['mptbm_waiting_time']) : 0;
 				$return = isset($_POST['mptbm_taxi_return']) ? sanitize_text_field($_POST['mptbm_taxi_return']) : 1;
 				$fixed_hour = isset($_POST['mptbm_fixed_hours']) ? sanitize_text_field($_POST['mptbm_fixed_hours']) : 0;
@@ -270,8 +271,15 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$cart_item_data['mptbm_taxi_return'] = $return;
 				$cart_item_data['mptbm_waiting_time'] = $waiting_time;
 				$cart_item_data['mptbm_start_place'] = wp_strip_all_tags($this->resolve_location_name_static($start_place));
-				$cart_item_data['mptbm_end_place'] = wp_strip_all_tags($this->resolve_location_name_static($end_place));
-				$cart_item_data['mptbm_distance'] = $distance;
+			$cart_item_data['mptbm_end_place'] = wp_strip_all_tags($this->resolve_location_name_static($end_place));
+			
+			// Store extra stop if setting is enabled and value exists
+			$extra_stop_enabled = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
+			if ($extra_stop_enabled === 'yes' && !empty($extra_stop_place)) {
+				$cart_item_data['mptbm_extra_stop_place'] = wp_strip_all_tags($this->resolve_location_name_static($extra_stop_place));
+			}
+			
+			$cart_item_data['mptbm_distance'] = $distance;
 				$cart_item_data['mptbm_distance_text'] = isset($_COOKIE['mptbm_distance_text']) ? sanitize_text_field($_COOKIE['mptbm_distance_text']) : (isset($_POST['mptbm_distance_text']) ? sanitize_text_field($_POST['mptbm_distance_text']) : (isset($_POST['mptbm_hidden_distance_text']) ? sanitize_text_field($_POST['mptbm_hidden_distance_text']) : ''));
 				$cart_item_data['mptbm_duration'] = $duration;
 				$cart_item_data['mptbm_fixed_hours'] = $fixed_hour;
@@ -287,7 +295,6 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			$enable_max_passenger_filter = isset($search_filter_settings['enable_max_passenger_filter']) ? $search_filter_settings['enable_max_passenger_filter'] : 'no';
 			$enable_max_bag_filter = isset($search_filter_settings['enable_max_bag_filter']) ? $search_filter_settings['enable_max_bag_filter'] : 'no';
 			$enable_max_hand_luggage_filter = isset($search_filter_settings['enable_max_hand_luggage_filter']) ? $search_filter_settings['enable_max_hand_luggage_filter'] : 'no';
-
 
 			if ($pro_active && $enable_max_passenger_filter === 'yes') {
 				$max_passenger = isset($_POST['mptbm_max_passenger']) ? absint($_POST['mptbm_max_passenger']) : 1;
@@ -377,10 +384,17 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 					$item_data[] = array('key' => mptbm_get_translation('pickup_label', __('Pickup', 'ecab-taxi-booking-manager')), 'value' => $start_location);
 
-					if (!($original_price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable')) {
-						$item_data[] = array('key' => mptbm_get_translation('dropoff_label', __('Dropoff', 'ecab-taxi-booking-manager')), 'value' => $end_location);
-					}
-
+				if (!($original_price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable')) {
+					$item_data[] = array('key' => mptbm_get_translation('dropoff_label', __('Dropoff', 'ecab-taxi-booking-manager')), 'value' => $end_location);
+				}
+				
+				// Display extra stop if setting is enabled and it exists
+				$extra_stop_enabled = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
+				$extra_stop_location = array_key_exists('mptbm_extra_stop_place', $cart_item) ? $cart_item['mptbm_extra_stop_place'] : '';
+				
+				if ($extra_stop_enabled === 'yes' && !empty($extra_stop_location)) {
+					$item_data[] = array('key' => mptbm_get_translation('extra_stop_location_label', __('Extra Stop Location', 'ecab-taxi-booking-manager')), 'value' => $extra_stop_location);
+				}	
 					$item_data[] = array('key' => mptbm_get_translation('date_label', __('Date', 'ecab-taxi-booking-manager')), 'value' => MP_Global_Function::date_format($date));
 					$item_data[] = array('key' => mptbm_get_translation('time_label', __('Time', 'ecab-taxi-booking-manager')), 'value' => MP_Global_Function::date_format($date, 'time'));
 
@@ -456,6 +470,14 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$item->add_meta_data(mptbm_get_translation('pickup_location_label', __('Pickup Location', 'ecab-taxi-booking-manager')), $start_location);
 				if (!($original_price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable')) {
 					$item->add_meta_data(mptbm_get_translation('dropoff_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')), $end_location);
+				}
+			
+				// Add extra stop if setting is enabled and it exists
+				$extra_stop_enabled = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
+				$extra_stop_location = isset($values['mptbm_extra_stop_place']) ? $values['mptbm_extra_stop_place'] : '';
+				
+				if ($extra_stop_enabled === 'yes' && !empty($extra_stop_location)) {
+					$item->add_meta_data(mptbm_get_translation('extra_stop_location_label', __('Extra Stop Location', 'ecab-taxi-booking-manager')), $extra_stop_location);
 				}
 				$distance = isset($values['mptbm_distance']) ? $values['mptbm_distance'] : '';
 				$distance_text = isset($values['mptbm_distance_text']) ? $values['mptbm_distance_text'] : '';
@@ -625,6 +647,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				if (!($original_price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable')) {
 					$item->add_meta_data('_mptbm_end_place', $end_location);
 				}
+				// Add hidden extra stop meta if it exists
+				if (!empty($extra_stop_location)) {
+					$item->add_meta_data('_mptbm_extra_stop_place', $extra_stop_location);
+				}
 				$item->add_meta_data('_mptbm_taxi_return', $return);
 				$item->add_meta_data('_mptbm_waiting_time', $waiting_time);
 				$item->add_meta_data('_mptbm_fixed_hours', $fixed_time);
@@ -696,6 +722,9 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							$start_place = $start_place ? MP_Global_Function::data_sanitize($start_place) : '';
 							$end_place = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_end_place');
 							$end_place = $end_place ? MP_Global_Function::data_sanitize($end_place) : '';
+							$extra_stop_place = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_extra_stop_place');
+							$extra_stop_place = $extra_stop_place ? MP_Global_Function::data_sanitize($extra_stop_place) : '';
+							
 							$waiting_time = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_waiting_time');
 							$waiting_time = $waiting_time ? MP_Global_Function::data_sanitize($waiting_time) : '';
 							$return = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_taxi_return');
@@ -720,6 +749,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 								'mptbm_date' => $date,
 								'mptbm_start_place' => $start_place,
 								'mptbm_end_place' => $end_place,
+								'mptbm_extra_stop_place' => $extra_stop_place,
 								'mptbm_waiting_time' => $waiting_time,
 								'mptbm_taxi_return' => $return,
 								'mptbm_fixed_hours' => $fixed_time,
@@ -838,6 +868,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			}
 			$bags = array_key_exists('mptbm_bags', $cart_item) ? $cart_item['mptbm_bags'] : '';
 			$hand_luggages = array_key_exists('mptbm_hand_luggage', $cart_item) ? $cart_item['mptbm_hand_luggage'] : '';
+			$extra_stop_location = array_key_exists('mptbm_extra_stop_place', $cart_item) ? $cart_item['mptbm_extra_stop_place'] : '';
 
 			// Check pro plugin settings for displaying features
 			$pro_active = class_exists('MPTBM_Dependencies_Pro');
@@ -862,6 +893,16 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							<span class="fas fa-map-marker-alt"></span>
 							<h6 class="_mR_xs"><?php echo mptbm_get_translation('dropoff_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')); ?> :</h6>
 							<span><?php echo esc_html($end_location); ?></span>
+						</li>
+						<?php endif; ?>
+						<?php 
+						// Display extra stop location if setting is enabled and data exists
+						$extra_stop_enabled = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
+						if ($extra_stop_enabled === 'yes' && !empty($extra_stop_location)): ?>
+						<li>
+							<span class="fas fa-map-marker-alt"></span>
+							<h6 class="_mR_xs"><?php echo mptbm_get_translation('extra_stop_location_label', __('Extra Stop Location', 'ecab-taxi-booking-manager')); ?> :</h6>
+							<span><?php echo esc_html($extra_stop_location); ?></span>
 						</li>
 						<?php endif; ?>
 						<?php

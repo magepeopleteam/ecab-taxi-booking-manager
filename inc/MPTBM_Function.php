@@ -892,8 +892,8 @@ if (!class_exists('MPTBM_Function')) {
 							if (!empty($end_coords)) {
 								$is_in_zone = self::is_point_in_fixed_zone($start_location, $end_coords);
 								if ($is_in_zone) {
-			return true;
-		}
+									return true;
+								}
 							}
 						} else {
 							// Start location must match exactly

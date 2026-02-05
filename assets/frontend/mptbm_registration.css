@@ -125,6 +125,7 @@
 	div.mptbm_transport_search_area #mptbm_taxi_return.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
 	div.mptbm_transport_search_area #mptbm_map_start_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
 	div.mptbm_transport_search_area #mptbm_map_end_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+	div.mptbm_transport_search_area #mptbm_map_extra_stop_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
 	#mptbm_fixed_hours.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
 	div.mptbm_transport_search_area div.mp_input_select .formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
 	div.mptbm_transport_search_area .mptbm_left_icon { position: absolute; left: 1px; bottom: 1px; width: 45px !important; font-size: 25px; color: var(--color_theme); background-color: transparent; border-radius: var(--dbr) 0 0 var(--dbr); height: 46px; margin: 0 !important;}
