@@ -167,6 +167,9 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 				// FIX: Prioritize POST data if available to prevent stale session data from causing price errors
 				// We still keep the session variables for reference but do NOT enforce them if POST is present.
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                     error_log("MPTBM DEBUG: add_cart_item_data - POST distance: " . (isset($_POST['mptbm_distance']) ? $_POST['mptbm_distance'] : 'N/A'));
+                }
 				if (isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance'])) {
 					$distance = absint($_POST['mptbm_distance']);
 					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : 0;
@@ -251,8 +254,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $return, $fixed_hour, $geo_fence_coords);
 				
 				if (defined('WP_DEBUG') && WP_DEBUG) {
-					// error_log('MPTBM DEBUG: Calculated Price: ' . $price);
-					// error_log('MPTBM DEBUG: Geo Fence Coords passed to get_price: ' . print_r($geo_fence_coords, true));
+					 error_log('MPTBM DEBUG: Calculated Price: ' . $price);
+					 error_log('MPTBM DEBUG: Geo Fence Coords passed to get_price: ' . print_r($geo_fence_coords, true));
 				}
 
 				// Send the raw, tax-exclusive price to WooCommerce and let it handle tax calculations at checkout to avoid double taxation.
@@ -322,6 +325,9 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			}
 			$cart_item_data['mptbm_id'] = $post_id;
 			// echo '<pre>';print_r($cart_item_data);echo '</pre>';
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                 error_log("MPTBM DEBUG: add_cart_item_data - Final Cart Item Data: " . print_r($cart_item_data, true));
+            }
 			return $cart_item_data;
 		}
 		public function before_calculate_totals($cart_object)
@@ -343,6 +349,11 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					$value['data']->set_price($total_price);
 					$value['data']->set_regular_price($total_price);
 					$value['data']->set_sale_price($total_price);
+                    
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                         error_log("MPTBM DEBUG: before_calculate_totals - Setting price to: " . $total_price . " for post " . $post_id);
+                    }
+
 					// Force tax status and class from the taxi booking settings to ensure they are respected
 					$tax_status = get_post_meta($post_id, '_tax_status', true) ?: 'none';
 					$tax_class = get_post_meta($post_id, '_tax_class', true) ?: '';

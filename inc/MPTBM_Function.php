@@ -698,11 +698,50 @@ if (!class_exists('MPTBM_Function')) {
 
 			
 
-			// Removed manual tax addition here because it causes double taxation.
-			// get_price should return the raw base price. WooCommerce and the wc_price helper
-			// will handle tax display and calculation at checkout natively.
-			
+
+			// ADJUSTMENT: Conditional Tax Addition
+			// If WC is set to "Inclusive Tax", we manually add tax so the final amount passed to WC includes it.
+			// WC will then treat this higher amount as the "Inclusive Total".
+			// If WC is set to "Exclusive Tax", we pass the base price, and WC adds tax on top.
+			if (function_exists('wc_prices_include_tax') && wc_prices_include_tax()) {
+				$_product = MP_Global_Function::get_post_info($post_id, 'link_wc_product', $post_id);
+				$product = wc_get_product($_product);
+
+				if ($product) {
+					// Apply tax settings from Transport Post Meta
+					$tax_status = get_post_meta($post_id, '_tax_status', true) ?: 'none';
+					$tax_class = get_post_meta($post_id, '_tax_class', true) ?: '';
+					if ($tax_class === 'standard') {
+						$tax_class = '';
+					}
+					
+					$product->set_tax_status($tax_status);
+					$product->set_tax_class($tax_class);
+
+					if ($product->is_taxable()) {
+						$tax_rates = WC_Tax::get_rates($product->get_tax_class());
+						$taxes = WC_Tax::calc_tax($price, $tax_rates, false);
+						$tax_amount = array_sum($taxes);
+
+						if (defined('WP_DEBUG') && WP_DEBUG) {
+							 error_log("MPTBM DEBUG: Inclusive Tax Mode - Manually adding tax: " . $tax_amount . " to base price: " . $price);
+						}
+						
+						$price += $tax_amount;
+					} else {
+						if (defined('WP_DEBUG') && WP_DEBUG) {
+							 error_log("MPTBM DEBUG: Inclusive Tax Mode - Product is NOT taxable based on settings. Tax Status: $tax_status");
+						}
+					}
+				}
+			}
+
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                 error_log("MPTBM DEBUG: get_price returning price: " . $price);
+            }
+
 			return (float) $price;
+
 		}
 
 		public static function get_extra_service_price_by_name($post_id, $service_name)

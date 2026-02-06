@@ -983,7 +983,17 @@ if ($all_posts->found_posts > 0) {
                 $price_display = '<div class="mptbm-custom-price-message" style="font-size: 15px;">' . wp_kses_post($custom_message) . '</div>';
                 $raw_price = 0; // Set raw price to 0 for custom message
             } else {
+                // MPTBM DEBUG: Log price before display formatting
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                     error_log("MPTBM DEBUG: choose_vehicles.php - Raw Price for post $post_id: " . $price);
+                }
+
                 $wc_price = MP_Global_Function::wc_price($post_id, $price);
+                
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                     error_log("MPTBM DEBUG: choose_vehicles.php - Formatted wc_price for post $post_id: " . $wc_price);
+                }
+
                 $raw_price = MP_Global_Function::price_convert_raw($wc_price);
                 $price_display = $wc_price;
             }
