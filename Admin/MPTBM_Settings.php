@@ -36,6 +36,9 @@ if (!class_exists('MPTBM_Settings')) {
 						<li data-tabs-target="#mptbm_settings_date">
 							<span class="pe-1 fas fa-calendar-alt"></span><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?>
 						</li>
+						<li data-tabs-target="#mptbm_settings_base_price">
+							<span class="pe-1 fas fa-tags"></span><?php esc_html_e('Base Price', 'ecab-taxi-booking-manager'); ?>
+						</li>
 						<li data-tabs-target="#mptbm_settings_pricing">
 							<span class="pe-1 fas fa-hand-holding-usd"></span><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?>
 						</li>

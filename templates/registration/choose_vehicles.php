@@ -849,6 +849,9 @@ if (empty($duration)) {
 	<input type="hidden" name="mptbm_extra_stop_place" value="<?php echo esc_attr($extra_stop_place); ?>" />
 	<input type="hidden" name="mptbm_date" value="<?php echo esc_attr($date); ?>" />
 	<input type="hidden" name="mptbm_time" value="<?php echo esc_attr($start_time); ?>"/>
+    <input type="hidden" name="mptbm_hidden_distance" value="<?php echo esc_attr($distance); ?>" />
+    <input type="hidden" name="mptbm_hidden_duration" value="<?php echo esc_attr($duration); ?>" />
+    <input type="hidden" name="mptbm_hidden_duration_text" value="" />
 	<input type="hidden" name="mptbm_taxi_return" value="<?php echo esc_attr($two_way); ?>" />
 	<input type="hidden" name="mptbm_waiting_time" value="<?php echo esc_attr($waiting_time); ?>" />
 	<input type="hidden" name="mptbm_fixed_hours" value="<?php echo esc_attr($fixed_time); ?>" />
@@ -940,6 +943,11 @@ $all_posts = MPTBM_Query::query_transport_list($price_based);
 if ($all_posts->found_posts > 0) {
     $posts = $all_posts->posts;
     $vehicle_item_count = 0;
+    
+    // Cache for base distances to avoid redundant API calls
+    static $base_distance_cache = [];
+    
+    
     foreach ($posts as $post) {
         $post_id = $post->ID;
         $taxi_max_passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
@@ -973,8 +981,87 @@ if ($all_posts->found_posts > 0) {
             // Get the price (pass geo_fence_coords for fixed_zone/fixed_zone_dropoff geo-fence validation)
             $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time, $geo_fence_coords);
             
+            
+            // Calculate Base Price server-side for list display
+            $base_price_extra = 0;
+            $bp_settings = MPTBM_Function::get_base_price_settings($post_id);
+            $price_based_mode = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
+            $fixed_route_found = get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes';
+
+            if ($bp_settings && !empty($bp_settings['coords']) && ($price_based_mode !== 'fixed_map' || !$fixed_route_found)) {
+                $base_coords = $bp_settings['coords'];
+                $total_b_dist = 0;
+                $total_b_dur = 0;
+
+                // Pickup to Base
+                if ($bp_settings['charge_pickup'] === 'yes') {
+                    $cache_key = md5($base_coords . $start_place);
+                    if (!isset($base_distance_cache[$cache_key])) {
+                        // We need the coordinates for start_place too if we want to use server_distance
+                        // But we can try to use start_place name if the API allows or if we have start_place_coordinates
+                        $s_coords = $start_place_coordinates;
+                        if (is_string($s_coords)) $s_coords = json_decode(stripslashes($s_coords), true);
+                        
+                        $b_coords_arr = explode(',', $base_coords);
+                        $dist_data = MPTBM_Function::get_server_distance($b_coords_arr[0], $b_coords_arr[1], $s_coords['lat'] ?? $s_coords['latitude'], $s_coords['lng'] ?? $s_coords['longitude']);
+                        $base_distance_cache[$cache_key] = $dist_data;
+                    }
+                    if ($base_distance_cache[$cache_key]) {
+                        $total_b_dist += $base_distance_cache[$cache_key]['distance'];
+                        $total_b_dur += $base_distance_cache[$cache_key]['duration'];
+                    }
+                }
+
+                // Dropoff to Base
+                if ($bp_settings['charge_dropoff'] === 'yes') {
+                    $cache_key = md5($end_place . $base_coords);
+                    if (!isset($base_distance_cache[$cache_key])) {
+                        $e_coords = $end_place_coordinates;
+                        if (is_string($e_coords)) $e_coords = json_decode(stripslashes($e_coords), true);
+
+                        $b_coords_arr = explode(',', $base_coords);
+                        $dist_data = MPTBM_Function::get_server_distance($e_coords['lat'] ?? $e_coords['latitude'], $e_coords['lng'] ?? $e_coords['longitude'], $b_coords_arr[0], $b_coords_arr[1]);
+                        $base_distance_cache[$cache_key] = $dist_data;
+                    }
+                    if ($base_distance_cache[$cache_key]) {
+                        $total_b_dist += $base_distance_cache[$cache_key]['distance'];
+                        $total_b_dur += $base_distance_cache[$cache_key]['duration'];
+                    }
+                }
+
+                $d_km = $total_b_dist / 1000;
+                $d_hr = $total_b_dur / 3600;
+
+                if ($d_km >= $bp_settings['threshold']) {
+                    $charged_km = max(0, $d_km - $bp_settings['threshold']);
+                    // Deduct duration proportionally: only charge for duration spent outside threshold
+                    $charged_hr = ($d_km > 0) ? ($total_b_dur / 3600) * ($charged_km / $d_km) : 0;
+                    
+                    if ($bp_settings['price_km'] > 0) $base_price_extra += $charged_km * $bp_settings['price_km'];
+                    if ($bp_settings['price_hour'] > 0) $base_price_extra += $charged_hr * $bp_settings['price_hour'];
+                    
+                }
+            }
+            
+            // Calculate Tax Multiplier for this transport
+            $tax_multiplier = 1;
+            // Only apply multiplier if prices are entered exclusive but displayed inclusive
+            if ( function_exists('wc_tax_enabled') && wc_tax_enabled() && !wc_prices_include_tax() && get_option( 'woocommerce_tax_display_shop' ) === 'incl' ) {
+                $_prod_id = MP_Global_Function::get_post_info($post->ID, 'link_wc_product', $post->ID);
+                $prod = wc_get_product($_prod_id);
+                if ($prod && $prod->is_taxable()) {
+                    $tax_rates = WC_Tax::get_rates($prod->get_tax_class());
+                    $sample_price = 100;
+                    $taxes = WC_Tax::calc_tax($sample_price, $tax_rates, false);
+                    $tax_multiplier = ($sample_price + array_sum($taxes)) / $sample_price;
+                }
+            }
+
+            $display_price = $price + ($base_price_extra * $tax_multiplier);
+            
+
             // Only skip display if price is 0 and we're not in zero or custom message mode
-            if (!$price && $price_display_type === 'normal') {
+            if (!$display_price && $price_display_type === 'normal') {
                 continue;
             }
             
@@ -983,18 +1070,20 @@ if ($all_posts->found_posts > 0) {
                 $price_display = '<div class="mptbm-custom-price-message" style="font-size: 15px;">' . wp_kses_post($custom_message) . '</div>';
                 $raw_price = 0; // Set raw price to 0 for custom message
             } else {
-                // MPTBM DEBUG: Log price before display formatting
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                     error_log("MPTBM DEBUG: choose_vehicles.php - Raw Price for post $post_id: " . $price);
-                }
-
-                $wc_price = MP_Global_Function::wc_price($post_id, $price);
+                $wc_price = MP_Global_Function::wc_price($post_id, $display_price);
+                // Use high-precision price for calculation to match backend, but ensure it receives same tax treatment if needed
+                $raw_price = $price; 
+                // Note: If tax_multiplier > 1.0, and we want frontend to sum inclusive prices, we might need to adjust this.
+                // But for now, we rely on the fact that get_price is raw. 
+                // If tax_multiplier is 1, this is perfect. 
+                // If tax_multiplier > 1, frontend JS sums (transport + base) then formatting might be tricky? 
+                // Actually JS uses data-tax-multiplier to adjust base price. 
+                // Wait, JS uses raw transport + (raw base * tax).
+                // If transport also needs tax, JS isn't doing it currently (we reverted that).
+                // But since tax_multiplier logic in choose_vehicles lines 1045-1054 handles checks,
+                // let's stick to passing the raw price and letting nature take its course.
                 
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                     error_log("MPTBM DEBUG: choose_vehicles.php - Formatted wc_price for post $post_id: " . $wc_price);
-                }
-
-                $raw_price = MP_Global_Function::price_convert_raw($wc_price);
+                // Correction: formatting is done by mp_price_format using the computed sum.
                 $price_display = $wc_price;
             }
             

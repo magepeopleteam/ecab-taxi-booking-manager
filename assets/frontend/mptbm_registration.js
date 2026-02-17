@@ -12,6 +12,145 @@ var mptbm_osm_start_marker = null;
 var mptbm_osm_end_marker = null;
 var mptbm_osm_extra_marker = null;
 
+// Base Price global variables
+var mptbm_base_to_pickup_data = { distance: 0, duration: 0 };
+var mptbm_dropoff_to_base_data = { distance: 0, duration: 0 };
+
+function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
+    if (!settings || !settings.coords || (!pickup && !dropoff)) {
+        if (callback) callback({ distance: 0, duration: 0 });
+        return;
+    }
+
+    var mapType = document.getElementById('mptbm_map_type');
+    var isOSM = mapType && mapType.value === 'openstreetmap';
+
+    if (isOSM) {
+        mptbm_calculate_base_distances_osm(settings, pickup, dropoff, callback);
+    } else {
+        mptbm_calculate_base_distances_google(settings, pickup, dropoff, callback);
+    }
+}
+
+function mptbm_calculate_base_distances_google(settings, pickup, dropoff, callback) {
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        if (callback) callback({ distance: 0, duration: 0 });
+        return;
+    }
+
+    var service = new google.maps.DistanceMatrixService();
+    var origins = [];
+    var destinations = [];
+
+    // Charge Pickup: Base -> Pickup
+    if (settings.charge_pickup === 'yes' && pickup) {
+        origins.push(settings.coords);
+        destinations.push(pickup);
+    }
+
+    // Charge Dropoff: Dropoff -> Base
+    if (settings.charge_dropoff === 'yes' && dropoff) {
+        origins.push(dropoff);
+        destinations.push(settings.coords);
+    }
+
+    if (origins.length === 0) {
+        if (callback) callback({ distance: 0, duration: 0 });
+        return;
+    }
+
+    service.getDistanceMatrix({
+        origins: origins,
+        destinations: destinations,
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC,
+    }, function (response, status) {
+        var result = { distance: 0, duration: 0 };
+        if (status === 'OK') {
+            var idx = 0;
+            // The results are in order of origins. Since each origin has one destination in our mapping:
+            // If we have both pickup and dropoff, origins[0] is Base, destinations[0] is Pickup.
+            // origins[1] is Dropoff, destinations[1] is Base.
+            // Wait, getDistanceMatrix returns a matrix (origins x destinations).
+            // This might result in 4 results if we pass [Base, Dropoff] and [Pickup, Base].
+            // We only need (Base, Pickup) and (Dropoff, Base).
+
+            // To keep it simple, let's just loop and pick the diagonal if we structured it right, 
+            // but DistanceMatrix is more like a grid.
+
+            // Better: use two separate requests or just parse the matrix correctly.
+            // Response.rows[i].elements[j]
+
+            if (settings.charge_pickup === 'yes' && pickup) {
+                var element = response.rows[idx].elements[idx];
+                if (element.status === 'OK') {
+                    result.distance += element.distance.value;
+                    result.duration += element.duration.value;
+                }
+                idx++;
+            }
+            if (settings.charge_dropoff === 'yes' && dropoff) {
+                var element = response.rows[idx].elements[idx];
+                if (element.status === 'OK') {
+                    result.distance += element.distance.value;
+                    result.duration += element.duration.value;
+                }
+            }
+        }
+        if (callback) callback(result);
+    });
+}
+
+function mptbm_calculate_base_distances_osm(settings, pickup, dropoff, callback) {
+    // For OSM, we need coordinates. If pickup/dropoff are names, we might need geocoding first.
+    // However, the plugin seems to handle coordinate selection for OSM.
+
+    var baseCoords = settings.coords.split(',');
+    var baseLat = baseCoords[0].trim();
+    var baseLng = baseCoords[1].trim();
+
+    // We'll use the OSRM API directly or via a proxy if needed.
+    // For now, let's assume we can use the same project OSRM as used in mptbm_calculate_osm_distance
+
+    var totalDistance = 0;
+    var totalDuration = 0;
+    var pending = 0;
+
+    function handleResult(data) {
+        if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+            totalDistance += data.routes[0].distance;
+            totalDuration += data.routes[0].duration;
+        }
+        pending--;
+        if (pending === 0 && callback) {
+            callback({ distance: totalDistance, duration: totalDuration });
+        }
+    }
+
+    // Since OSRM handles point-to-point, we might need two calls if we don't want a single route.
+    // Actually, we can't easily geocode names in JS here without an API.
+    // Let's see if we have coordinates for pickup/dropoff.
+
+    var startCoords = window.mptbm_fixed_zone_start_coords; // If set by mptbm_handle_osm_address_selection
+    var endCoords = window.mptbm_fixed_zone_end_coords;
+
+    if (settings.charge_pickup === 'yes' && startCoords) {
+        pending++;
+        var url = 'https://router.project-osrm.org/route/v1/driving/' + baseLng + ',' + baseLat + ';' + startCoords.longitude + ',' + startCoords.latitude + '?overview=false';
+        fetch(url).then(r => r.json()).then(handleResult).catch(() => { pending--; if (pending === 0) callback({ distance: totalDistance, duration: totalDuration }); });
+    }
+
+    if (settings.charge_dropoff === 'yes' && endCoords) {
+        pending++;
+        var url = 'https://router.project-osrm.org/route/v1/driving/' + endCoords.longitude + ',' + endCoords.latitude + ';' + baseLng + ',' + baseLat + '?overview=false';
+        fetch(url).then(r => r.json()).then(handleResult).catch(() => { pending--; if (pending === 0) callback({ distance: totalDistance, duration: totalDuration }); });
+    }
+
+    if (pending === 0 && callback) {
+        callback({ distance: 0, duration: 0 });
+    }
+}
+
 // Function to clean up existing map instance
 function mptbm_cleanup_map() {
     if (mptbm_map) {
@@ -99,15 +238,11 @@ jQuery(document).ready(function ($) {
 
 function mptbm_set_cookie_distance_duration(start_place, end_place) {
 
-    console.log('[ROUTE DEBUG] mptbm_set_cookie_distance_duration called');
-    console.log('[ROUTE DEBUG] start_place:', start_place);
-    console.log('[ROUTE DEBUG] end_place:', end_place);
 
     // Check if OpenStreetMap is active
     var mapType = document.getElementById('mptbm_map_type');
 
     if (mapType && mapType.value === 'openstreetmap') {
-        console.log('[ROUTE DEBUG] OpenStreetMap is active, exiting');
         return false;
     }
 
@@ -138,7 +273,6 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
     // Check if we have enough locations to calculate a route
     // We need at least start_place and either end_place OR extra_stop
     var extra_stop = jQuery('#mptbm_map_extra_stop_place').val();
-    console.log('[ROUTE DEBUG] extra_stop value:', extra_stop);
 
     if (start_place && (end_place || extra_stop)) {
         var directionsService = new google.maps.DirectionsService();
@@ -149,8 +283,6 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
         var actualDestination = end_place || extra_stop;
         var useExtraAsWaypoint = end_place && extra_stop; // Only use as waypoint if we have both
 
-        console.log('[ROUTE DEBUG] actualDestination:', actualDestination);
-        console.log('[ROUTE DEBUG] useExtraAsWaypoint:', useExtraAsWaypoint);
 
         var waypoints = [];
         if (useExtraAsWaypoint) {
@@ -158,11 +290,8 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
                 location: extra_stop,
                 stopover: true
             });
-            console.log('[ROUTE DEBUG] Added extra_stop as waypoint');
         }
 
-        console.log('[ROUTE DEBUG] Total waypoints:', waypoints.length);
-        console.log('[ROUTE DEBUG] Waypoints:', waypoints);
 
         var request = {
             origin: start_place,
@@ -172,7 +301,6 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
             unitSystem: google.maps.UnitSystem.METRIC,
         };
 
-        console.log('[ROUTE DEBUG] DirectionsService request:', request);
 
         var now = new Date();
         var time = now.getTime();
@@ -181,8 +309,6 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
 
         // Safari compatibility: use function instead of arrow function
         directionsService.route(request, function (result, status) {
-            console.log('[ROUTE DEBUG] DirectionsService response status:', status);
-            console.log('[ROUTE DEBUG] DirectionsService result:', result);
 
             if (status === google.maps.DirectionsStatus.OK) {
                 try {
@@ -191,17 +317,12 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
                     var totalDuration = 0;
                     var legs = result.routes[0].legs;
 
-                    console.log('[ROUTE DEBUG] Number of legs:', legs.length);
-                    console.log('[ROUTE DEBUG] Legs data:', legs);
 
                     for (var i = 0; i < legs.length; i++) {
-                        console.log('[ROUTE DEBUG] Leg', i, '- Distance:', legs[i].distance.value, 'Duration:', legs[i].duration.value);
                         totalDistance += legs[i].distance.value;
                         totalDuration += legs[i].duration.value;
                     }
 
-                    console.log('[ROUTE DEBUG] Total Distance:', totalDistance);
-                    console.log('[ROUTE DEBUG] Total Duration:', totalDuration);
 
                     var distance = totalDistance;
                     var duration = totalDuration;
@@ -662,16 +783,10 @@ function mptbm_handle_osm_address_selection(address, type) {
 
         if (type === 'start') {
             mptbm_osm_start_marker = marker;
-            // For fixed_zone_dropoff, store coordinates
-            if (price_based === 'fixed_zone_dropoff') {
-                window.mptbm_fixed_zone_start_coords = { latitude: lat, longitude: lng };
-            }
+            window.mptbm_fixed_zone_start_coords = { latitude: lat, longitude: lng };
         } else if (type === 'end') {
             mptbm_osm_end_marker = marker;
-            // For fixed_zone, store coordinates
-            if (price_based === 'fixed_zone') {
-                window.mptbm_fixed_zone_end_coords = { latitude: lat, longitude: lng };
-            }
+            window.mptbm_fixed_zone_end_coords = { latitude: lat, longitude: lng };
         } else if (type === 'extra') {
             mptbm_osm_extra_marker = marker;
         }
@@ -2360,15 +2475,28 @@ function mptbm_price_calculation(parent) {
     let total = 0;
     let post_id = parseInt(parent.find('[name="mptbm_post_id"]').val());
     if (post_id > 0) {
-        total =
-            total +
-            parseFloat(parent.find('[name="mptbm_post_id"]').attr("data-price"));
+        let quantityInput = parent.find(`.mp_quantity_input[data-post-id="${post_id}"]`);
+        let quantityVal = quantityInput.length ? parseInt(quantityInput.val()) || 1 : 1;
+
+        // Use the unit price of transport
+        let unit_transport_price = parseFloat(parent.find('[name="mptbm_post_id"]').data("unit-transport-price") || parent.find('[name="mptbm_post_id"]').attr("data-price") / quantityVal || 0);
+        let base_transport_price = unit_transport_price * quantityVal;
+
+        let unit_base_price_extra = parseFloat(parent.find('[name="mptbm_post_id"]').attr("data-unit-base-price") || 0);
+        let tax_multiplier_val = parseFloat(parent.find('[name="mptbm_post_id"]').attr("data-tax-multiplier") || 1);
+
+
+        let base_price_extra = unit_base_price_extra * quantityVal * tax_multiplier_val;
+
+        total = total + base_transport_price + base_price_extra;
+
+
         parent.find(".mptbm_extra_service_item").each(function () {
             let service_name = jQuery(this)
                 .find('[name="mptbm_extra_service[]"]')
                 .val();
             if (service_name) {
-                let ex_target = jQuery(this).find('[name="mptbm_extra_service_qty[]');
+                let ex_target = jQuery(this).find('[name="mptbm_extra_service_qty[]"]'); // Added missing ] also
                 let ex_qty = parseInt(ex_target.val());
                 let ex_price = ex_target.data("price");
                 ex_price = ex_price && ex_price > 0 ? ex_price : 0;
@@ -2381,6 +2509,62 @@ function mptbm_price_calculation(parent) {
     // iOS DOM reflow workaround
     if (mptbm_is_ios()) {
         el.hide().show(0);
+    }
+}
+
+/**
+ * Calculates distance from Base Location to Pickup and Dropoff to Base Location
+ */
+function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
+    if (!settings || !settings.coords || !pickup || !dropoff) {
+        callback({ distance: 0, duration: 0 });
+        return;
+    }
+
+    // Check if we should use OSM (if Google is not defined or explicitly using OSM)
+    // We check for mptbm_osm_map to see if OSM is the active map provider
+    if (typeof google === 'undefined' || typeof mptbm_osm_map !== 'undefined') {
+        mptbm_calculate_base_distances_osm(settings, pickup, dropoff, callback);
+        return;
+    }
+
+    let base_coords = settings.coords;
+    let total_distance = 0;
+    let total_duration = 0;
+    let pending_calls = 0;
+
+    let check_complete = function () {
+        if (pending_calls === 0) {
+            callback({ distance: total_distance, duration: total_duration });
+        }
+    };
+
+    let calculate = function (origin, destination) {
+        pending_calls++;
+        let service = new google.maps.DistanceMatrixService();
+        service.getDistanceMatrix({
+            origins: [origin],
+            destinations: [destination],
+            travelMode: 'DRIVING',
+        }, function (response, status) {
+            if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
+                total_distance += response.rows[0].elements[0].distance.value;
+                total_duration += response.rows[0].elements[0].duration.value;
+            }
+            pending_calls--;
+            check_complete();
+        });
+    };
+
+    if (settings.charge_pickup === 'yes') {
+        calculate(base_coords, pickup);
+    }
+    if (settings.charge_dropoff === 'yes') {
+        calculate(dropoff, base_coords);
+    }
+
+    if (pending_calls === 0) {
+        callback({ distance: 0, duration: 0 });
     }
 }
 (function ($) {
@@ -2433,20 +2617,16 @@ function mptbm_price_calculation(parent) {
         let postId = $this.data('post-id');
         let parent = $this.closest('.mptbm_transport_search_area');
 
-        // Keeping all original variables
         let target_summary = parent.find('.mptbm_transport_summary');
         let target_extra_service = parent.find('.mptbm_extra_service');
         let target_extra_service_summary = parent.find('.mptbm_extra_service_summary');
         let all_quantity_selectors = parent.find('.mptbm_quantity_selector');
         let target_quantity_selector = parent.find('.mptbm_quantity_selector_' + postId);
 
-        // Toggle logic for quantity selector
         if (target_quantity_selector.length && target_quantity_selector.hasClass('mptbm_booking_item_hidden')) {
-            // Hide all first, then show selected one
             all_quantity_selectors.addClass('mptbm_booking_item_hidden');
             target_quantity_selector.removeClass('mptbm_booking_item_hidden');
         } else {
-            // If already visible or doesn't exist, hide all
             all_quantity_selectors.addClass('mptbm_booking_item_hidden');
         }
 
@@ -2455,9 +2635,11 @@ function mptbm_price_calculation(parent) {
         target_extra_service_summary.slideDown(400).html('');
         parent.find('[name="mptbm_post_id"]').val('');
         parent.find('.mptbm_checkout_area').html('');
+
         if ($this.hasClass('active_select')) {
             $this.removeClass('active_select');
             mp_all_content_change($this);
+            target_summary.slideUp(400);
         } else {
             parent.find('.mptbm_transport_select.active_select').each(function () {
                 $(this).removeClass('active_select');
@@ -2466,19 +2648,18 @@ function mptbm_price_calculation(parent) {
                 let transport_name = $this.attr('data-transport-name');
                 let transport_price = parseFloat($this.attr('data-transport-price'));
                 let post_id = $this.attr('data-post-id');
-                target_summary.find('.mptbm_product_name').html(transport_name);
+
                 let quantityInput = parent.find(`.mp_quantity_input[data-post-id="${post_id}"]`);
                 let quantityVal = quantityInput.length ? parseInt(quantityInput.val()) || 1 : 1;
 
-                // Check if there's a custom message
+                target_summary.find('.mptbm_product_name').html(transport_name);
+
                 let customMessage = $this.closest('.mptbm_booking_item').find('.mptbm-custom-price-message').html();
                 if (customMessage) {
-                    // If there's a custom message, show it with quantity
                     target_summary.find('.mptbm_product_price').html(
                         'x' + quantityVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span> ' + customMessage
                     );
                 } else {
-                    // If no custom message, show price as before
                     target_summary.find('.mptbm_product_price').html(
                         'x' + quantityVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span> ' + mp_price_format(transport_price * quantityVal)
                     );
@@ -2488,45 +2669,66 @@ function mptbm_price_calculation(parent) {
                 $('.mptbm_booking_item').removeClass('selected');
                 $this.closest('.mptbm_booking_item').addClass('selected');
 
-
                 mp_all_content_change($this);
-                parent.find('[name="mptbm_post_id"]').val(post_id).attr('data-price', transport_price).promise().done(function () {
+
+                parent.find('[name="mptbm_post_id"]').val(post_id);
+                parent.find('[name="mptbm_post_id"]').attr('data-price', transport_price * quantityVal);
+                parent.find('[name="mptbm_post_id"]').attr('data-unit-transport-price', transport_price);
+                parent.find('[name="mptbm_post_id"]').attr('data-base-price-calculated', 0);
+                parent.find('[name="mptbm_post_id"]').attr('data-unit-base-price', 0);
+
+                // --- BASE PRICE CALCULATION ---
+                // FIX: Use the server-calculated base price directly to avoid discrepancies (1.30 difference)
+                // The server has already calculated this using high-precision coordinates and settings.
+                // We should trust it instead of re-calculating on the client side which might use slightly different logic/API.
+
+                let calcBasePrice = function (callback) {
+                    let server_base_price = parseFloat($this.attr('data-unit-base-price') || 0);
+                    callback(server_base_price);
+                };
+
+                calcBasePrice(function (base_p) {
+                    parent.find('[name="mptbm_post_id"]').attr('data-base-price-calculated', base_p * quantityVal);
+                    parent.find('[name="mptbm_post_id"]').attr('data-unit-base-price', base_p);
+                    let total_b = base_p * quantityVal;
+
+                    // Update the new inline base price detail in summary.php
+                    let detail_container = parent.find('.mptbm_base_price_detail');
+                    if (base_p > 0) {
+                        let b_html = '<div class="_textTheme" style="font-size: 13px; margin-top: 5px; padding-left: 25px;">' +
+                            'Base Price: ' + mp_price_format(total_b) + '</div>';
+                        detail_container.html(b_html).show();
+                    } else {
+                        detail_container.html('').hide();
+                    }
+
                     mptbm_price_calculation(parent);
                 });
+
+                // Fetch extra services
                 $.ajax({
                     type: 'POST',
                     url: mp_ajax_url,
-                    data: {
-                        "action": "get_mptbm_extra_service",
-                        "post_id": post_id,
-                    },
-                    beforeSend: function () {
-                        dLoader(parent.find('.tabsContentNext'));
-                    },
+                    data: { "action": "get_mptbm_extra_service", "post_id": post_id },
+                    beforeSend: function () { dLoader(parent.find('.tabsContentNext')); },
                     success: function (data) {
                         target_extra_service.html(data);
                         checkAndToggleBookNowButton(parent);
-                        // iOS DOM reflow workaround
                         if (mptbm_is_ios()) {
                             target_extra_service[0].style.display = 'none';
                             void target_extra_service[0].offsetHeight;
                             target_extra_service[0].style.display = '';
                         }
-                    },
-                    error: function (response) {
-                        console.log(response);
                     }
                 }).promise().done(function () {
                     $.ajax({
                         type: 'POST',
                         url: mp_ajax_url,
-                        data: {
-                            "action": "get_mptbm_extra_service_summary",
-                            "post_id": post_id,
-                        },
+                        data: { "action": "get_mptbm_extra_service_summary", "post_id": post_id },
                         success: function (data) {
+                            if (!data || data.length < 100) {
+                            }
                             target_extra_service_summary.html(data).promise().done(function () {
-                                // Check if there are extra services before scrolling
                                 if (target_extra_service.find('[name="mptbm_extra_service[]"]').length > 0) {
                                     target_summary.slideDown(400);
                                     target_extra_service.slideDown(400);
@@ -2539,16 +2741,12 @@ function mptbm_price_calculation(parent) {
                                 } else {
                                     checkAndToggleBookNowButton(parent);
                                 }
-                                // iOS DOM reflow workaround
                                 if (mptbm_is_ios()) {
                                     target_extra_service_summary[0].style.display = 'none';
                                     void target_extra_service_summary[0].offsetHeight;
                                     target_extra_service_summary[0].style.display = '';
                                 }
                             });
-                        },
-                        error: function (response) {
-                            console.log(response);
                         }
                     });
                 });
@@ -2654,6 +2852,7 @@ function mptbm_price_calculation(parent) {
         let link_id = $(this).attr('data-wc_link_id');
         let quantity = parseInt(parent.find(`.mp_quantity_input[data-post-id="${post_id}"]`).val()) || 1;
         let mptbm_original_price_base = parent.find('[name="mptbm_original_price_base"]').val();
+        let mptbm_threshold_base_price = parent.find('[name="mptbm_post_id"]').attr('data-base-price-calculated') || 0;
 
         if (start_place !== '' && end_place !== '' && link_id && post_id) {
             let extra_service_name = {};
@@ -2734,10 +2933,10 @@ function mptbm_price_calculation(parent) {
                     mptbm_original_price_base: mptbm_original_price_base,
                     mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
                     mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
-                    mptbm_distance_text: parent.find('input[name="mptbm_hidden_distance_text"]').val(),
                     mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
                     start_place_coordinates: start_place_coordinates ? JSON.stringify(start_place_coordinates) : '',
                     end_place_coordinates: end_place_coordinates ? JSON.stringify(end_place_coordinates) : '',
+                    mptbm_threshold_base_price: mptbm_threshold_base_price
                 },
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));

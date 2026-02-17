@@ -256,9 +256,11 @@ if (!class_exists('MPTBM_Function')) {
 			usort($all_dates, "MP_Global_Function::sort_date");
 			return $all_dates;
 		}
-		//*************Price*********************************//
+        //*************Price*********************************//
 		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0, $end_coords = null)
 		{
+			$price = 0;
+			delete_transient('mptbm_fixed_route_found_' . $post_id);
 			
 			// Force fresh pricing calculations to prevent caching issues on repeated searches
 			$is_transport_result_page = false;
@@ -396,6 +398,7 @@ if (!class_exists('MPTBM_Function')) {
 								if ($start_match && $end_match) {
 									$price = (float) ($fixed_zone_price['price'] ?? 0);
 									$found_zone_price = true;
+                                    set_transient('mptbm_fixed_route_found_' . $post_id, 'yes', MINUTE_IN_SECONDS);
 									break;
 								}
 							}
@@ -699,47 +702,6 @@ if (!class_exists('MPTBM_Function')) {
 			
 
 
-			// ADJUSTMENT: Conditional Tax Addition
-			// If WC is set to "Inclusive Tax", we manually add tax so the final amount passed to WC includes it.
-			// WC will then treat this higher amount as the "Inclusive Total".
-			// If WC is set to "Exclusive Tax", we pass the base price, and WC adds tax on top.
-			if (function_exists('wc_prices_include_tax') && wc_prices_include_tax()) {
-				$_product = MP_Global_Function::get_post_info($post_id, 'link_wc_product', $post_id);
-				$product = wc_get_product($_product);
-
-				if ($product) {
-					// Apply tax settings from Transport Post Meta
-					$tax_status = get_post_meta($post_id, '_tax_status', true) ?: 'none';
-					$tax_class = get_post_meta($post_id, '_tax_class', true) ?: '';
-					if ($tax_class === 'standard') {
-						$tax_class = '';
-					}
-					
-					$product->set_tax_status($tax_status);
-					$product->set_tax_class($tax_class);
-
-					if ($product->is_taxable()) {
-						$tax_rates = WC_Tax::get_rates($product->get_tax_class());
-						$taxes = WC_Tax::calc_tax($price, $tax_rates, false);
-						$tax_amount = array_sum($taxes);
-
-						if (defined('WP_DEBUG') && WP_DEBUG) {
-							 error_log("MPTBM DEBUG: Inclusive Tax Mode - Manually adding tax: " . $tax_amount . " to base price: " . $price);
-						}
-						
-						$price += $tax_amount;
-					} else {
-						if (defined('WP_DEBUG') && WP_DEBUG) {
-							 error_log("MPTBM DEBUG: Inclusive Tax Mode - Product is NOT taxable based on settings. Tax Status: $tax_status");
-						}
-					}
-				}
-			}
-
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                 error_log("MPTBM DEBUG: get_price returning price: " . $price);
-            }
-
 			return (float) $price;
 
 		}
@@ -809,9 +771,7 @@ if (!class_exists('MPTBM_Function')) {
 				}
 				
 				// Point in polygon check
-				$inside = self::point_in_polygon($lat, $lng, $polygon);
-				
-				return $inside;
+				return self::point_in_polygon($lat, $lng, $polygon);
 			}
 			// Check if end_location is a location term (term_XX)
 			elseif (strpos($end_location, 'term_') === 0) {
@@ -836,13 +796,29 @@ if (!class_exists('MPTBM_Function')) {
 				
 				// Consider within 1km radius as "within zone" for location terms
 				$radius_km = 1;
-				$is_within = $distance <= $radius_km;
-				
-
-				return $is_within;
+				return $distance <= $radius_km;
 			}
 			
 			return false;
+		}
+
+		public static function get_base_price_settings($post_id) {
+			$location_id = MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_location');
+			$coords = '';
+			if ($location_id) {
+				$coords = get_term_meta($location_id, 'mptbm_geo_location', true);
+			}
+			
+			$settings = [
+				'location_id' => $location_id,
+				'coords'      => $coords,
+				'price_km'    => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_km', 0),
+				'price_hour'  => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_hour', 0),
+				'threshold'   => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_min_threshold', 0),
+				'charge_pickup' => MP_Global_Function::get_post_info($post_id, 'mptbm_charge_base_pickup', 'no'),
+				'charge_dropoff' => MP_Global_Function::get_post_info($post_id, 'mptbm_charge_base_dropoff', 'no'),
+			];
+			return $settings;
 		}
 		
 		/**
