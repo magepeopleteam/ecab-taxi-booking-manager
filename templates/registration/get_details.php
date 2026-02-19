@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
 							<option value="<?php echo esc_attr($i); ?>"><?php echo esc_html($i); ?></option>
 						<?php } ?>
 					</select>
-					<span class="fa fa-shopping-bag mptbm_left_icon allCenter"></span>
+					<span class="fa fa-suitcase-rolling mptbm_left_icon allCenter"></span>
 				</label>
 			</div>
 			<?php endif; ?>

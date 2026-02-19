@@ -1037,7 +1037,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						<?php if ($pro_active && $enable_max_bag_filter === 'yes') { ?>
 							<?php if ($bags !== '' || $bags === 0 || $bags === '0') { ?>
 							<li>
-								<span class="fa fa-shopping-bag"></span>
+								<span class="fa fa-suitcase-rolling"></span>
 								<h6 class="_mR_xs"><?php esc_html_e('Number of Bags', 'ecab-taxi-booking-manager'); ?> :</h6>
 								<span><?php echo esc_html($bags); ?></span>
 							</li>

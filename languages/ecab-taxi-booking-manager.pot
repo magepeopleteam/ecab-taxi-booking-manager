@@ -1350,6 +1350,9 @@ msgstr ""
 msgid "Maximum Bag Label"
 msgstr ""
 
+msgid "Maximum Hand Luggage Label"
+msgstr ""
+
 #: Admin/MPTBM_Settings_Global.php:451
 msgid "Number of Passengers Label"
 msgstr ""
@@ -1904,6 +1907,17 @@ msgstr ""
 #: Admin/settings/MPTBM_General_Settings.php:73
 #: templates/registration/get_details.php:318
 msgid "Maximum Bag"
+msgstr ""
+
+#: Admin/settings/MPTBM_General_Settings.php:83
+#: templates/registration/get_details.php:471
+msgid "Maximum Hand Luggage"
+msgstr ""
+
+msgid "Hand Luggage"
+msgstr ""
+
+msgid "Number of Hand Luggage"
 msgstr ""
 
 #: Admin/settings/MPTBM_General_Settings.php:82
