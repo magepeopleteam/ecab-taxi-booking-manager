@@ -23,7 +23,6 @@
 			}
 			private function load_file(): void {
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Dummy_Import.php';
-			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Hidden_Product.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_CPT.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Taxonomy_Meta.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Quick_Setup.php';
