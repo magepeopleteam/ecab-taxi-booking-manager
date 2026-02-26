@@ -192,7 +192,7 @@ if (!class_exists('MPTBM_Dependencies')) {
 			// Check nonce for security
 			check_ajax_referer('mptbm_osm_search', 'nonce');
 			
-			$query = isset($_GET['q']) ? sanitize_text_field($_GET['q']) : '';
+			$query = isset($_REQUEST['q']) ? sanitize_text_field($_REQUEST['q']) : '';
 			
 			if (empty($query)) {
 				wp_send_json_error('No search query provided');

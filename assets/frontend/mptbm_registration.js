@@ -701,9 +701,20 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery) 
     container.style.display = 'block';
 
     // Use WordPress AJAX proxy
-    var ajaxUrl = mptbm_ajax.ajax_url + '?action=mptbm_osm_search&nonce=' + mptbm_ajax.osm_nonce + '&q=' + encodeURIComponent(query);
+    var body = new URLSearchParams();
+    body.append('action', 'mptbm_osm_search');
+    body.append('nonce', mptbm_ajax.osm_nonce);
+    body.append('q', query);
 
-    fetch(ajaxUrl)
+    fetch(mptbm_ajax.ajax_url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: body,
+        credentials: 'same-origin'
+    })
         .then(response => {
             return response.json();
         })
