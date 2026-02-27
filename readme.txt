@@ -16,9 +16,12 @@ Taxi Booking & Cab Booking for WooCommerce. Chauffeur service with fare calculat
 E-cab is a professional Taxi Booking and Chauffeur Service plugin for WooCommerce. Automate your business with a precise fare calculator, distance-based pricing, and integrated map support (OpenStreetMap and Google Maps).
 Whether you offer airport transfers, luxury chauffeur services, or local cab bookings, this system handles everything from ride scheduling to secure checkout. Give your customers a seamless way to book rides online with real-time price estimation and automated dispatch management.
 
-==See E-cab in Action:==
+== See E-cab in Action ==
+
 https://www.youtube.com/watch?v=N1NlvhcJ7D8
-*Note: This video demonstrates the full ecosystem. Advanced features like the Driver Panel, Geo-Fencing, and Google Calendar Sync are available in the [Pro Version](https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce/).*
+
+Note: This video demonstrates the full ecosystem. Advanced features like the Driver Panel, Geo-Fencing, and Google Calendar Sync are available in the Pro Version:
+https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce/
 
 ## Make Yourself Comfortable With:
 🧶 [View Live Taxi Booking Demo](https://demo.ecabtaxi.com/)
