@@ -247,17 +247,13 @@ function mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_pl
     $operation_area_type = get_post_meta($operation_area_id, "mptbm-operation-type", true);
     
     // Determine meta key based on operation type
-    $coord_key = '';
     if ($operation_area_type === "geo-matched-operation-area-type") {
         $coord_key = "mptbm-coordinates-four";
-    } elseif ($operation_area_type === "fixed-operation-area-type") {
-        $coord_key = "mptbm-coordinates-three";
     } elseif ($operation_area_type === "geo-fence-operation-area-type") {
         $coord_key = "mptbm-coordinates-one";
-    }
-
-    if (!$coord_key) {
-        return false;
+    } else {
+        // Default: fixed-operation-area-type (single polygon) or unset
+        $coord_key = "mptbm-coordinates-three";
     }
 
     $flat_operation_area_coordinates = get_post_meta($operation_area_id, $coord_key, true);
@@ -271,8 +267,8 @@ function mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_pl
     }
     // Check if BOTH pickup and dropoff are in polygon
 
-    $start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : json_decode($start_place_coordinates, true);
-    $end_coords = is_array($end_place_coordinates) ? $end_place_coordinates : json_decode($end_place_coordinates, true);
+    $start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : json_decode(stripslashes($start_place_coordinates), true);
+    $end_coords = is_array($end_place_coordinates) ? $end_place_coordinates : json_decode(stripslashes($end_place_coordinates), true);
 
     $start_in_area = false;
     $end_in_area = false;
@@ -363,6 +359,10 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                 if ($price_based === 'fixed_distance' || $price_based === 'fixed_map') {
                     $match_type = mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_place_coordinates, $end_place_coordinates, $price_based);
                     if ($match_type) {
+                        // For fixed_map with 'both in' operation type, only a full match counts
+                        if ($price_based === 'fixed_map' && $transport_operation_type === 'fixed-operation-area-type' && $match_type !== 'full') {
+                            continue;
+                        }
                         $is_in_any_area = true;
                         $_SESSION["mptbm_fixed_distance_match_" . $post_id] = $match_type;
                         ?>
@@ -435,7 +435,7 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
             }
 
             if (!$is_in_any_area) {
-                if ($price_based === 'fixed_distance') {
+                if ($price_based === 'fixed_distance' || $price_based === 'fixed_map') {
                     return false;
                 }
                 ?>
@@ -448,11 +448,23 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
             }
         } else {
             // Single operation area
-            if ($price_based === 'fixed_distance') {
+            if ($price_based === 'fixed_distance' || $price_based === 'fixed_map') {
                 $match_type = mptbm_check_fixed_distance_area($post_id, $operation_area_ids, $start_place_coordinates, $end_place_coordinates, $price_based);
                 if ($match_type) {
+                    // For fixed_map with 'both in' operation type, only a full match (both in area) counts
+                    $transport_operation_type_single = get_post_meta($post_id, 'mptbm_operation_area_type', true);
+                    if ($price_based === 'fixed_map' && $transport_operation_type_single === 'fixed-operation-area-type' && $match_type !== 'full') {
+                        return false;
+                    }
                     $is_in_any_area = true;
                     $_SESSION["mptbm_fixed_distance_match_" . $post_id] = $match_type;
+                    ?>
+                    <script>
+                        var selectorClass = `.mptbm_booking_item_<?php echo $post_id; ?>`;
+                        jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
+                        document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                    </script>
+                    <?php
                 } else {
                     return false;
                 }
@@ -461,7 +473,7 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
             }
         }
     } else {
-        if ($price_based === 'fixed_distance') {
+        if ($price_based === 'fixed_distance' || $price_based === 'fixed_map') {
             return false;
         }
         ?>
