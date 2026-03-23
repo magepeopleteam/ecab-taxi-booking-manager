@@ -314,7 +314,7 @@
 					// Convert slug to proper WordPress page URL
 					$redirect_url = MPTBM_Function::get_page_url_from_slug($redirect_slug);
 					
-					echo wp_json_encode($redirect_url);
+					echo esc_url_raw($redirect_url);
 				die(); // Ensure further execution stops after outputting the JavaScript
 			}
 

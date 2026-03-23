@@ -200,6 +200,50 @@ function removeLocationErrors() {
     });
 }
 
+function mptbm_resolve_redirect_url(response) {
+    if (!response) {
+        return '';
+    }
+
+    if (typeof response === 'object') {
+        if (response.redirect_url) {
+            return response.redirect_url;
+        }
+
+        if (response.data && response.data.redirect_url) {
+            return response.data.redirect_url;
+        }
+
+        return '';
+    }
+
+    if (typeof response === 'string') {
+        var cleaned = response.trim();
+
+        if (!cleaned) {
+            return '';
+        }
+
+        try {
+            var parsed = JSON.parse(cleaned);
+
+            if (typeof parsed === 'string') {
+                cleaned = parsed;
+            } else if (parsed && typeof parsed === 'object') {
+                return parsed.redirect_url || (parsed.data && parsed.data.redirect_url) || '';
+            }
+        } catch (error) {
+            // Keep the raw response when it is already a plain URL.
+        }
+
+        return cleaned
+            .replace(/^"+|"+$/g, '')
+            .replace(/\\\//g, '/');
+    }
+
+    return '';
+}
+
 // Add event listeners to clear errors when user starts typing
 jQuery(document).ready(function ($) {
     // Clear errors on input for pickup location
@@ -1500,7 +1544,8 @@ function mptbm_init_google_map() {
         let start_place;
         let end_place;
         let price_based = parent.find('[name="mptbm_price_based"]').val();
-        let two_way = parent.find('[name="mptbm_taxi_return"]').val();
+        let two_way_field = parent.find('[name="mptbm_taxi_return"]');
+        let two_way = two_way_field.length ? two_way_field.val() : '1';
         let waiting_time = parent.find('[name="mptbm_waiting_time"]').val();
         let fixed_time = parent.find('[name="mptbm_fixed_hours"]').val();
         let mptbm_original_price_base = parent.find('[name="mptbm_original_price_base"]').val();
@@ -1525,8 +1570,9 @@ function mptbm_init_google_map() {
         let start_date = target_date.val();
         let return_date;
         let return_time;
+        let has_return_fields = return_target_date.length > 0 && return_target_time.length > 0;
 
-        if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1 && price_based != 'fixed_hourly') {
+        if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1 && price_based != 'fixed_hourly' && has_return_fields) {
             return_date = return_target_date.val();
             return_time = return_target_time.val();
 
@@ -1571,11 +1617,11 @@ function mptbm_init_google_map() {
                 .find("input.formControl")
                 .trigger("click");
         } else if (!return_date) {
-            if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1) {
+            if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1 && has_return_fields) {
                 return_target_date.trigger("click");
             }
         } else if (return_time === undefined || return_time === null || return_time === '') {
-            if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1) {
+            if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1 && has_return_fields) {
                 parent
                     .find("#mptbm_map_return_time")
                     .closest(".mp_input_select")
@@ -1825,7 +1871,15 @@ function mptbm_init_google_map() {
                                             dLoaderRemove(parent.find(".tabsContentNext"));
                                             return;
                                         }
-                                        window.location.href = data.redirect_url;
+
+                                        var redirectUrl = mptbm_resolve_redirect_url(data);
+                                        if (!redirectUrl) {
+                                            dLoaderRemove(parent.find(".tabsContentNext"));
+                                            alert('Unable to open the search results page. Please try again.');
+                                            return;
+                                        }
+
+                                        window.location.href = redirectUrl;
                                     },
                                     error: function (response) {
                                         console.log(response);
@@ -1959,8 +2013,14 @@ function mptbm_init_google_map() {
                                         return;
                                     }
 
-                                    var cleanedURL = data.replace(/"/g, ""); // Remove all double quotes from the string
-                                    window.location.href = cleanedURL; // Redirect to the URL received from the server
+                                    var redirectUrl = mptbm_resolve_redirect_url(data);
+                                    if (!redirectUrl) {
+                                        dLoaderRemove(parent.find(".tabsContentNext"));
+                                        alert('Unable to open the search results page. Please try again.');
+                                        return;
+                                    }
+
+                                    window.location.href = redirectUrl;
                                 },
                                 error: function (response) {
                                     console.log(response);
@@ -2074,8 +2134,14 @@ function mptbm_init_google_map() {
                                     return;
                                 }
 
-                                var cleanedURL = data.replace(/"/g, ""); // Remove all double quotes from the string
-                                window.location.href = cleanedURL; // Redirect to the URL received from the server
+                                var redirectUrl = mptbm_resolve_redirect_url(data);
+                                if (!redirectUrl) {
+                                    dLoaderRemove(parent.find(".tabsContentNext"));
+                                    alert('Unable to open the search results page. Please try again.');
+                                    return;
+                                }
+
+                                window.location.href = redirectUrl;
                             },
                             error: function (response) {
                                 console.log(response);
