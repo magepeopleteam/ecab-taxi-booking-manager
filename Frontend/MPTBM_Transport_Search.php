@@ -51,7 +51,7 @@
 					$form_style = sanitize_text_field($_POST['form_style']);
 					$map = sanitize_text_field($_POST['map']); // Changed from $display_map to $map
 					// Include the correct template based on the tab
-					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate' || $tab_id === 'custom') {
+					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate' || $tab_id === 'custom' || $tab_id === 'fixed_distance' || $tab_id === 'fixed_zone' || $tab_id === 'fixed_zone_dropoff') {
 						ob_start(); // Start output buffering
 						
 						if($tab_id === 'distance'){
@@ -63,6 +63,15 @@
 						}else if($tab_id === 'flat-rate'){
 							$price_based = 'manual';
 							$form_style = 'inline';
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'fixed_distance'){
+							$price_based = 'fixed_distance';
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'fixed_zone'){
+							$price_based = 'fixed_zone';
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'fixed_zone_dropoff'){
+							$price_based = 'fixed_zone_dropoff';
 							include MPTBM_Function::template_path('registration/get_details.php');
 						}else if($tab_id === 'custom'){
 							do_action('mptbm_render_custom');
@@ -97,9 +106,7 @@
 						'_transient_timeout_' . $pattern
 					));
 				}
-				if (defined('WP_DEBUG') && WP_DEBUG) {
-					error_log("MPTBM Debug: Search Result AJAX called. POST data: " . print_r($_POST, true));
-				}
+				// Ensure original_price_based is set for proper pricing calculations
 				// Ensure original_price_based is set for proper pricing calculations
 				$price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
 				if ($price_based == 'fixed_distance') {
@@ -152,6 +159,12 @@
 					$e_lat = isset($end_coords['latitude']) ? $end_coords['latitude'] : '';
 					$e_lng = isset($end_coords['longitude']) ? $end_coords['longitude'] : '';
 					
+					// Set transients for pricing logic in MPTBM_Function::get_price
+					set_transient('pickup_lat_transient', $s_lat, HOUR_IN_SECONDS);
+					set_transient('pickup_lng_transient', $s_lng, HOUR_IN_SECONDS);
+					set_transient('drop_lat_transient', $e_lat, HOUR_IN_SECONDS);
+					set_transient('drop_lng_transient', $e_lng, HOUR_IN_SECONDS);
+
 					$server_data = MPTBM_Function::get_server_distance($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 
@@ -204,9 +217,6 @@
 						"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
 						'_transient_timeout_' . $pattern
 					));
-				}
-				if (defined('WP_DEBUG') && WP_DEBUG) {
-					error_log("MPTBM Debug: Search Result Redirect AJAX called. POST data: " . print_r($_POST, true));
 				}
 				// Ensure original_price_based is set for proper pricing calculations
 				$price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
@@ -304,7 +314,7 @@
 					// Convert slug to proper WordPress page URL
 					$redirect_url = MPTBM_Function::get_page_url_from_slug($redirect_slug);
 					
-					echo wp_json_encode($redirect_url);
+					echo esc_url_raw($redirect_url);
 				die(); // Ensure further execution stops after outputting the JavaScript
 			}
 
@@ -312,11 +322,55 @@
 				include(MPTBM_Function::template_path('registration/get_end_place.php'));
 				die();
 			}
+			
+			/**
+			 * Validate post access for extra service endpoints
+			 * Ensures post exists, is published, and is correct post type
+			 */
+			private function validate_post_access($post_id) {
+				if (!$post_id || $post_id <= 0) {
+					return false;
+				}
+				
+				$post = get_post($post_id);
+				
+				// Check if post exists
+				if (!$post) {
+					return false;
+				}
+				
+				// Check post type - must be transportation post type
+				if (get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
+					return false;
+				}
+				
+				// Check post status - must be published (not private, draft, etc.)
+				if ($post->post_status !== 'publish') {
+					return false;
+				}
+				
+				return true;
+			}
+			
 			public function get_mptbm_extra_service() {
+				$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
+				
+				// Security check: validate post access
+				if (!$this->validate_post_access($post_id)) {
+					wp_die(esc_html__('Invalid request or post not found.', 'ecab-taxi-booking-manager'), esc_html__('Error', 'ecab-taxi-booking-manager'), array('response' => 403));
+				}
+				
 				include(MPTBM_Function::template_path('registration/extra_service.php'));
 				die();
 			}
 			public function get_mptbm_extra_service_summary() {
+				$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
+				
+				// Security check: validate post access
+				if (!$this->validate_post_access($post_id)) {
+					wp_die(esc_html__('Invalid request or post not found.', 'ecab-taxi-booking-manager'), esc_html__('Error', 'ecab-taxi-booking-manager'), array('response' => 403));
+				}
+				
 				include(MPTBM_Function::template_path('registration/extra_service_summary.php'));
 				die();
 			}

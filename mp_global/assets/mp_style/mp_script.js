@@ -195,7 +195,7 @@ function mp_resize_bg_image_area(target, bg_url) {
 			});
 		}
 	});
-	$(document).on('click', '[data-href]', function () {
+	$(document).on('click', '.mpStyle [data-href]', function () {
 		let href = $(this).data('href');
 		if (href) {
 			window.location.href = href;
@@ -282,19 +282,19 @@ function mp_all_content_change($this) {
 		parent.find('[data-read-open]').html(close_text);
 		content_text_change($(this));
 	});
-	$(document).on('click', '[data-all-change]', function () {
+	$(document).on('click', '.mpStyle [data-all-change]', function () {
 		mp_all_content_change($(this));
 	});
-	$(document).on('click', '[data-icon-change]', function () {
+	$(document).on('click', '.mpStyle [data-icon-change]', function () {
 		content_icon_change($(this));
 	});
-	$(document).on('click', '[data-text-change]', function () {
+	$(document).on('click', '.mpStyle [data-text-change]', function () {
 		content_text_change($(this));
 	});
-	$(document).on('click', '[data-class-change]', function () {
+	$(document).on('click', '.mpStyle [data-class-change]', function () {
 		content_class_change($(this));
 	});
-	$(document).on('click', '[data-value-change]', function () {
+	$(document).on('click', '.mpStyle [data-value-change]', function () {
 		content_input_value_change($(this));
 	});
 	$(document).on('keyup change', '.mpStyle [data-input-text]', function () {
@@ -568,7 +568,7 @@ function mp_sticky_management() {
 	});
 
 	// Handle click event for collapse target
-	$(document).on('click', '[data-collapse-target]', function () {
+	$(document).on('click', '.mpStyle [data-collapse-target]', function () {
 		let currentTarget = $(this);
 		let target_id = currentTarget.data('collapse-target');
 		let close_id = currentTarget.data('close-target');
@@ -640,14 +640,14 @@ function mp_sticky_management() {
 		});
 	});
 	// radio
-	$(document).on('click', '[data-radio]', function () {
+	$(document).on('click', '.mpStyle [data-radio]', function () {
 		let target = $(this).closest('label');
 		let value = $(this).attr('data-radio');
 		target.find('.customRadio').removeClass('active');
 		$(this).addClass('active');
 		target.find('input').val(value).trigger('change');
 	});
-	$(document).on('click', '.groupRadioBox [data-group-radio]', function () {
+	$(document).on('click', '.mpStyle .groupRadioBox [data-group-radio]', function () {
 		let parent = $(this).closest('.groupRadioBox');
 		let $this = $(this);
 		let value = $this.data('group-radio');

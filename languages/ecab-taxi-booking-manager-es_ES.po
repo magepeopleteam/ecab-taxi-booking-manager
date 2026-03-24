@@ -1771,6 +1771,20 @@ msgstr "Equipaje Máximo"
 msgid "Maximum Bag Label"
 msgstr ""
 
+#: Admin/settings/MPTBM_General_Settings.php:83
+#: templates/registration/get_details.php:471
+msgid "Maximum Hand Luggage"
+msgstr "Equipaje de mano Máximo"
+
+msgid "Maximum Hand Luggage Label"
+msgstr ""
+
+msgid "Hand Luggage"
+msgstr "Equipaje de mano"
+
+msgid "Number of Hand Luggage"
+msgstr "Número de equipaje de mano"
+
 #: Admin/MPTBM_Settings_Global.php:539
 msgid "Maximum number of API requests allowed per minute per API key"
 msgstr ""

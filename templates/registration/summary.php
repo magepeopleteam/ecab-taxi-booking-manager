@@ -14,8 +14,9 @@ if (!function_exists('mptbm_get_translation')) {
 	$duration = $duration ?? (isset($_COOKIE['mptbm_duration']) ?absint($_COOKIE['mptbm_duration']): '');
 	$label = $label ?? MPTBM_Function::get_name();
 	$date = $date ?? '';
-	$start_place = $start_place ?? '';
-	$end_place = $end_place ?? '';
+	$start_place = $start_place ?? (isset($_REQUEST['mptbm_start_place']) ? sanitize_text_field($_REQUEST['mptbm_start_place']) : '');
+	$end_place = $end_place ?? (isset($_REQUEST['mptbm_end_place']) ? sanitize_text_field($_REQUEST['mptbm_end_place']) : '');
+	$extra_stop_place = $extra_stop_place ?? (isset($_REQUEST['mptbm_extra_stop_place']) ? sanitize_text_field($_REQUEST['mptbm_extra_stop_place']) : '');
 	$two_way = $two_way ?? 1;
 	$waiting_time = $waiting_time ?? 0;
 	$fixed_time = $fixed_time ?? '';
@@ -39,8 +40,12 @@ if (!function_exists('mptbm_get_translation')) {
 		$show_summary = false;
 	}
 	$disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
-	// Check feature filter setting
-	$enable_filter_features = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_filter_via_features', 'no');
+	// Check pro plugin settings for passenger and bag filters
+	$pro_active = class_exists('MPTBM_Dependencies_Pro');
+	$search_filter_settings = $pro_active ? get_option('mptbm_search_filter_settings', array()) : array();
+	$enable_max_passenger_filter = isset($search_filter_settings['enable_max_passenger_filter']) ? $search_filter_settings['enable_max_passenger_filter'] : 'no';
+	$enable_max_bag_filter = isset($search_filter_settings['enable_max_bag_filter']) ? $search_filter_settings['enable_max_bag_filter'] : 'no';
+	$enable_max_hand_luggage_filter = isset($search_filter_settings['enable_max_hand_luggage_filter']) ? $search_filter_settings['enable_max_hand_luggage_filter'] : 'no';
 ?>
 	<?php if ($show_summary): ?>
 	<div class="leftSidebar">
@@ -59,20 +64,105 @@ if (!function_exists('mptbm_get_translation')) {
 					<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_location_label', __('Pickup Location', 'ecab-taxi-booking-manager')); ?></h6>
 					<?php if($price_based == 'manual'){ ?>
 						<p class="_textLight_1 "><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $start_place,'locations' )); ?></p>
-					<?php }else{ ?>
+					<?php } elseif (($price_based == 'fixed_zone') && strpos($start_place, 'term_') === 0) {
+						// Resolve term_XX to location name
+						$term_id = absint(str_replace('term_', '', $start_place));
+						$start_place_display = $start_place;
+						$term = get_term($term_id, 'locations');
+						if ($term && !is_wp_error($term)) {
+							$start_place_display = $term->name;
+						} else {
+							// Fallback: try direct DB query
+							global $wpdb;
+							$term_name = $wpdb->get_var($wpdb->prepare(
+								"SELECT name FROM {$wpdb->terms} WHERE term_id = %d",
+								$term_id
+							));
+							if ($term_name) {
+								$start_place_display = $term_name;
+							}
+						}
+						?>
+						<p class="_textLight_1 "><?php echo esc_html($start_place_display); ?></p>
+					<?php } else { ?>
 						<p class="_textLight_1 "><?php echo esc_html($start_place); ?></p>
 					<?php } ?>
+			
+			<?php 
+			// Display Extra Stop Location if setting is enabled and data exists
+			$extra_stop_enabled = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
+			// Ensure we have the latest value from request if not already set
+			if (empty($extra_stop_place) && isset($_REQUEST['mptbm_extra_stop_place'])) {
+				$extra_stop_place = sanitize_text_field($_REQUEST['mptbm_extra_stop_place']);
+			}
+			
+			if ($extra_stop_enabled === 'yes' && !empty($extra_stop_place) && 
+			    !in_array($price_based, ['fixed_zone', 'fixed_zone_dropoff', 'fixed_hourly', 'fixed_price', 'fixed_zone_pickup'])) {
+			?>
+				<div class="divider"></div>
+				<h6 class="_mB_xs"><?php echo mptbm_get_translation('extra_stop_location_label', __('Extra Stop Location', 'ecab-taxi-booking-manager')); ?></h6>
+				<?php 
+				$extra_stop_display = $extra_stop_place;
+				if ($price_based == 'manual') {
+					$extra_stop_display = MPTBM_Function::get_taxonomy_name_by_slug($extra_stop_place, 'locations');
+				} elseif (strpos($extra_stop_place, 'term_') === 0) {
+					// Resolve term_XX to location name
+					$term_id = absint(str_replace('term_', '', $extra_stop_place));
+					$term = get_term($term_id, 'locations');
+					if ($term && !is_wp_error($term)) {
+						$extra_stop_display = $term->name;
+					} else {
+						// Fallback: try direct DB query
+						global $wpdb;
+						$term_name = $wpdb->get_var($wpdb->prepare(
+							"SELECT name FROM {$wpdb->terms} WHERE term_id = %d",
+							$term_id
+						));
+						if ($term_name) {
+							$extra_stop_display = $term_name;
+						}
+					}
+				}
+				?>
+				<p class="_textLight_1"><?php echo esc_html($extra_stop_display); ?></p>
+			<?php } ?>
+			
 					
 					
 					<?php if (!($price_based == 'fixed_hourly' && $disable_dropoff_hourly === 'disable')): ?>
 						<div class="divider"></div>
 						<div>
 							<h6 class="_mB_xs"><?php echo mptbm_get_translation('dropoff_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')); ?></h6>
-							<?php if($price_based == 'manual'){ ?>
-								<p class="_textLight_1 "><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug( $end_place,'locations' )); ?></p>
-							<?php }else{ ?>
-								<p class="_textLight_1 "><?php echo esc_html($end_place); ?></p>
-							<?php } ?>
+							<?php 
+							$end_place_display = $end_place;
+							if($price_based == 'manual'){ 
+								$end_place_display = MPTBM_Function::get_taxonomy_name_by_slug( $end_place,'locations' );
+							} elseif(($price_based == 'fixed_zone' || $price_based == 'fixed_zone_dropoff') && strpos($end_place, 'term_') === 0) {
+								// Resolve term_XX to location name
+								$term_id = absint(str_replace('term_', '', $end_place));
+								$term = get_term($term_id, 'locations');
+								if ($term && !is_wp_error($term)) {
+									$end_place_display = $term->name;
+								} else {
+									// Fallback: try to get by slug
+									$term = get_term_by('slug', $end_place, 'locations');
+									if ($term && !is_wp_error($term)) {
+										$end_place_display = $term->name;
+									} else {
+										// Final fallback: try direct DB query
+										global $wpdb;
+										$term_name = $wpdb->get_var($wpdb->prepare(
+											"SELECT name FROM {$wpdb->terms} WHERE term_id = %d",
+											$term_id
+										));
+										if ($term_name) {
+											$end_place_display = $term_name;
+										}
+									}
+								}
+							}
+							?>
+							<p class="_textLight_1 "><?php echo esc_html($end_place_display); ?></p>
 
 						</div>
 					<?php endif; ?>
@@ -162,33 +252,55 @@ if (!function_exists('mptbm_get_translation')) {
 						<p class="_textLight_1"><?php echo esc_html($waiting_time); ?>&nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
 					<?php } ?>
 					<div class="divider"></div>
-					<?php if ($enable_filter_features == 'yes') { ?>
+					<?php if ($pro_active && $enable_max_passenger_filter === 'yes') { ?>
+						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('passengers_label', __('Passengers', 'ecab-taxi-booking-manager')); ?></h6>
 						<p class="_textLight_1 mptbm_summary_passenger">
 							<?php
-							if (!empty($summary_passenger) || $summary_passenger === 0) {
-								echo esc_html($summary_passenger);
+							$selected_passenger = isset($_REQUEST['mptbm_max_passenger']) ? absint($_REQUEST['mptbm_max_passenger']) : '';
+							if ($selected_passenger !== '') {
+								echo esc_html($selected_passenger);
+							} else {
+								echo '—';
 							}
 							?>
 						</p>
-						
-						<div class="divider"></div>
-						<?php if($summary_bag>0){ ?>
-						<h6 class="_mB_xs"><?php echo mptbm_get_translation('bags_label', __('Bags', 'ecab-taxi-booking-manager')); ?></h6>
-						<p class="_textLight_1 mptbm_summary_bag">
-							<?php
-							if (!empty($summary_bag) || $summary_bag === 0) {
-								echo esc_html($summary_bag);
-							}
-							?>
-						</p>
-						<?php } ?>
 					<?php } ?>
+
+					<?php if ($pro_active && $enable_max_bag_filter === 'yes') { ?>
+				<div class="divider"></div>
+				<h6 class="_mB_xs"><?php echo mptbm_get_translation('bags_label', __('Bags', 'ecab-taxi-booking-manager')); ?></h6>
+				<p class="_textLight_1 mptbm_summary_bag">
+					<?php
+					$selected_bag = isset($_REQUEST['mptbm_max_bag']) ? absint($_REQUEST['mptbm_max_bag']) : '';
+					if ($selected_bag !== '') {
+						echo esc_html($selected_bag);
+					} else {
+						echo '—';
+					}
+					?>
+				</p>
+			<?php } ?>
+			<?php if ($pro_active && $enable_max_hand_luggage_filter === 'yes') { ?>
+				<div class="divider"></div>
+				<h6 class="_mB_xs"><?php echo mptbm_get_translation('hand_luggage_label', __('Hand Luggage', 'ecab-taxi-booking-manager')); ?></h6>
+				<p class="_textLight_1 mptbm_summary_hand_luggage">
+					<?php
+					$selected_hand_luggage = isset($_REQUEST['mptbm_max_hand_luggage']) ? absint($_REQUEST['mptbm_max_hand_luggage']) : '';
+					if ($selected_hand_luggage !== '') {
+						echo esc_html($selected_hand_luggage);
+					} else {
+						echo '—';
+					}
+					?>
+				</p>
+			<?php } ?>
 					<?php if($fixed_time && $fixed_time>0){ ?>
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')); ?></h6>
 						<p class="_textLight_1"><?php echo esc_html($fixed_time); ?> &nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
 					<?php } ?>
+					
 					<div class="mptbm_transport_summary">
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo esc_html($label) . ' ' . esc_html__(' Details', 'ecab-taxi-booking-manager') ?></h6>
@@ -203,6 +315,7 @@ if (!function_exists('mptbm_get_translation')) {
 								<span class="mptbm_product_price _textTheme"></span>
 							<?php endif; ?>
 						</div>
+						<div class="mptbm_base_price_detail"></div>
 						<div class="mptbm_extra_service_summary"></div>
 						<div class="divider"></div>
 						<div class="justifyBetween">
@@ -221,12 +334,19 @@ if (!function_exists('mptbm_get_translation')) {
 	<?php endif; ?>
 <?php
 // Populate passengers/bags summary from the current form selections (if available)
-add_action('wp_footer', function() { ?>
+add_action('wp_footer', function() {
+    // Get values from request if available (for initial load)
+    $initial_passenger = isset($_REQUEST['mptbm_max_passenger']) ? absint($_REQUEST['mptbm_max_passenger']) : '';
+    $initial_bag = isset($_REQUEST['mptbm_max_bag']) ? absint($_REQUEST['mptbm_max_bag']) : '';
+    $initial_hand_luggage = isset($_REQUEST['mptbm_max_hand_luggage']) ? absint($_REQUEST['mptbm_max_hand_luggage']) : '';
+    ?>
 <script>
     (function($){
         function updateSummaryCounts() {
-            var passenger = $('#mptbm_max_passenger').val() || $('#mptbm_passengers').val() || '';
-            var bag = $('#mptbm_max_bag').val() || '';
+            var passenger = $('#mptbm_max_passenger').val() || $('#mptbm_passengers').val() || '<?php echo esc_js($initial_passenger); ?>' || '';
+            var bag = $('#mptbm_max_bag').val() || '<?php echo esc_js($initial_bag); ?>' || '';
+            var hand_luggage = $('#mptbm_max_hand_luggage').val() || '<?php echo esc_js($initial_hand_luggage); ?>' || '';
+
             // Fallback to data stored on selected vehicle (if present)
             var selectedItem = $('.mptbm_single_item.active');
             if (!passenger && selectedItem.length) {
@@ -235,12 +355,26 @@ add_action('wp_footer', function() { ?>
             if (!bag && selectedItem.length) {
                 bag = selectedItem.data('bag');
             }
+            if (!hand_luggage && selectedItem.length) {
+                hand_luggage = selectedItem.data('hand_luggage');
+            }
+
             $('.mptbm_summary_passenger').text(passenger ? passenger : '—');
             $('.mptbm_summary_bag').text(bag ? bag : '—');
+            $('.mptbm_summary_hand_luggage').text(hand_luggage ? hand_luggage : '—');
+            
+            // DEBUG: Log summary updates
+            if (typeof console !== 'undefined') {
+                console.log('=== SUMMARY UPDATE ===');
+                console.log('Passenger:', passenger);
+                console.log('Bag:', bag);
+                console.log('Hand Luggage:', hand_luggage);
+            }
         }
+
         $(document).ready(function(){
             updateSummaryCounts();
-            $(document).on('change', '#mptbm_max_passenger, #mptbm_passengers, #mptbm_max_bag', updateSummaryCounts);
+            $(document).on('change', '#mptbm_max_passenger, #mptbm_passengers, #mptbm_max_bag, #mptbm_max_hand_luggage', updateSummaryCounts);
             $(document).on('click', '.mptbm_single_item', updateSummaryCounts);
         });
     })(jQuery);

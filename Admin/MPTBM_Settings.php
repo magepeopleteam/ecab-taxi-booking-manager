@@ -36,6 +36,17 @@ if (!class_exists('MPTBM_Settings')) {
 						<li data-tabs-target="#mptbm_settings_date">
 							<span class="pe-1 fas fa-calendar-alt"></span><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?>
 						</li>
+
+						<?php if (
+    class_exists('MPTBM_Plugin_Pro') &&
+    isset($_SERVER['HTTP_HOST']) &&
+    $_SERVER['HTTP_HOST'] !== 'chichesterstationtaxis.co.uk'
+) { ?>
+    <li data-tabs-target="#mptbm_settings_base_price">
+        <span class="pe-1 fas fa-tags"></span>
+        <?php esc_html_e('Base Price', 'ecab-taxi-booking-manager'); ?>
+    </li>
+<?php } ?>
 						<li data-tabs-target="#mptbm_settings_pricing">
 							<span class="pe-1 fas fa-hand-holding-usd"></span><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?>
 						</li>
@@ -121,7 +132,7 @@ if (!class_exists('MPTBM_Settings')) {
 				'mptbm_return_discount' => esc_html__('This is to way return discount fixed or percentage', 'ecab-taxi-booking-manager'),
 			);
 			$des = apply_filters('mptbm_filter_description_array', $des);
-			return $des[$key];
+			return isset($des[$key]) ? $des[$key] : '';
 		}
 		public static function info_text($key)
 		{

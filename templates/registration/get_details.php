@@ -18,6 +18,9 @@ $restrict_search_country = MP_Global_Function::get_settings('mptbm_map_api_setti
 $country = MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'no');
 $km_or_mile = MP_Global_Function::get_settings('mp_global_settings', 'km_or_mile', 'km');
 $price_based = $price_based ?? '';
+if (!class_exists('MPTBM_Dependencies_Pro') && in_array($price_based, ['fixed_distance', 'fixed_zone', 'fixed_zone_dropoff'])) {
+	$price_based = 'dynamic';
+}
 $map_type = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'openstreetmap');
 
 set_transient('original_price_based', $price_based);
@@ -60,11 +63,6 @@ if ($mptbm_available_for_all_time == false) {
 		$transport_schedule = MPTBM_Function::get_schedule($value);
 		if (!empty($transport_schedule)) {
 			$all_schedules[] = $transport_schedule;
-			
-			// Debug: Log each transport's schedule
-			if (defined('WP_DEBUG') && WP_DEBUG) {
-				error_log("Transport {$value} schedule: " . print_r($transport_schedule, true));
-			}
 		}
 	}
 	
@@ -81,25 +79,7 @@ if ($mptbm_available_for_all_time == false) {
 				}
 				$day_specific_times[$day]['start'][] = $start_time;
 				$day_specific_times[$day]['end'][] = $end_time;
-				
-				// Debug: Log schedule data
-				if (defined('WP_DEBUG') && WP_DEBUG) {
-					error_log("Schedule for {$day}: start={$start_time}, end={$end_time}");
-				}
 			}
-		}
-	}
-	
-	// Debug: Log final day specific times
-	if (defined('WP_DEBUG') && WP_DEBUG) {
-		error_log("Final day specific times: " . print_r($day_specific_times, true));
-	}
-	
-	// Debug: Log Wednesday specifically
-	if (isset($day_specific_times['wednesday'])) {
-		if (defined('WP_DEBUG') && WP_DEBUG) {
-			error_log("Wednesday times - Start: " . print_r($day_specific_times['wednesday']['start'], true));
-			error_log("Wednesday times - End: " . print_r($day_specific_times['wednesday']['end'], true));
 		}
 	}
 	
@@ -183,19 +163,24 @@ if (sizeof($all_dates) > 0) {
 	$search_filter_settings = $pro_active ? get_option('mptbm_search_filter_settings', array()) : array();
 	$enable_max_passenger_filter = isset($search_filter_settings['enable_max_passenger_filter']) ? $search_filter_settings['enable_max_passenger_filter'] : 'no';
 	$enable_max_bag_filter = isset($search_filter_settings['enable_max_bag_filter']) ? $search_filter_settings['enable_max_bag_filter'] : 'no';
+	$enable_max_hand_luggage_filter = isset($search_filter_settings['enable_max_hand_luggage_filter']) ? $search_filter_settings['enable_max_hand_luggage_filter'] : 'no';
 
 	// Use actual meta keys for dropdowns
 	$mptbm_bags = [];
 	$mptbm_passengers = [];
+	$mptbm_hand_luggage = [];
 	$mptbm_all_transport_id = MP_Global_Function::get_all_post_id('mptbm_rent');
 	foreach ($mptbm_all_transport_id as $post_id) {
 		$bag = (int) get_post_meta($post_id, 'mptbm_maximum_bag', true);
 		$passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
+		$hand_luggage = (int) get_post_meta($post_id, 'mptbm_maximum_hand_luggage', true);
 		if ($bag > 0) $mptbm_bags[] = $bag;
 		if ($passenger > 0) $mptbm_passengers[] = $passenger;
+		if ($hand_luggage > 0) $mptbm_hand_luggage[] = $hand_luggage;
 	}
 	$max_bag = !empty($mptbm_bags) ? max($mptbm_bags) : 1;
 	$max_passenger = !empty($mptbm_passengers) ? max($mptbm_passengers) : 1;
+	$max_hand_luggage = !empty($mptbm_hand_luggage) ? max($mptbm_hand_luggage) : 1;
 	
 	$disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
 	if ($price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
@@ -208,7 +193,7 @@ if (sizeof($all_dates) > 0) {
 ?>	
 	<div class="<?php echo esc_attr($area_class); ?> ">
 	
-		<div class="_dLayout mptbm_search_area <?php echo esc_attr($form_style_class); ?> <?php echo esc_attr($price_based == 'manual' ? 'mAuto' : ''); ?>">
+		<div class="_dLayout mptbm_search_area <?php echo esc_attr($form_style_class); ?> <?php echo esc_attr(($price_based == 'manual') ? 'mAuto' : ''); ?>">
 			<div class="mpForm">
 				<input type="hidden" id="mptbm_km_or_mile" name="mptbm_km_or_mile" value="<?php echo esc_attr($km_or_mile); ?>" />
 				<input type="hidden" name="mptbm_price_based" value="<?php echo esc_attr($price_based); ?>" />
@@ -295,24 +280,111 @@ if (sizeof($all_dates) > 0) {
 				<div class="inputList">
 					<label class="fdColumn ">
 						<span><?php echo mptbm_get_translation('pickup_location_label', __('Pickup Location', 'ecab-taxi-booking-manager')); ?></span>
-						<?php if ($price_based == 'manual') {
+						<?php
+						if (!function_exists('mptbm_resolve_location_label')) {
+							function mptbm_resolve_location_label($location_raw) {
+								$label = '';
+								
+								if (strpos($location_raw, 'term_') === 0) {
+									$term_id = absint(str_replace('term_', '', $location_raw));
+									// Direct database query for term name
+									global $wpdb;
+									$label = $wpdb->get_var($wpdb->prepare(
+										"SELECT name FROM {$wpdb->terms} WHERE term_id = %d",
+										$term_id
+									));
+								} elseif (strpos($location_raw, 'post_') === 0) {
+									$zone_id = absint(str_replace('post_', '', $location_raw));
+									$label = get_the_title($zone_id);
+								}
+
+								if (!$label) {
+									$label = MPTBM_Function::get_taxonomy_name_by_slug($location_raw, 'locations');
+								}
+
+								if (!$label) {
+									$label = $location_raw; // final fallback
+								}
+
+								return $label;
+							}
+						}
+
+						if ($price_based == 'manual' || $price_based == 'fixed_zone') {
 						?>
-							<?php $all_start_locations = MPTBM_Function::get_all_start_location(); ?>
+							<?php $all_start_locations = MPTBM_Function::get_all_start_location('', $price_based); ?>
 							<select id="mptbm_manual_start_place" class="mptbm_manual_start_place formControl">
 								<option selected disabled><?php echo mptbm_get_translation('select_pick_up_location_label', __(' Select Pick-Up Location', 'ecab-taxi-booking-manager')); ?></option>
 								<?php if (sizeof($all_start_locations) > 0) { ?>
 									<?php foreach ($all_start_locations as $start_location) { ?>
-										<option class="textCapitalize" value="<?php echo esc_attr($start_location); ?>"><?php echo esc_html(MPTBM_Function::get_taxonomy_name_by_slug($start_location, 'locations')); ?></option>
+										<?php
+											$start_label = mptbm_resolve_location_label($start_location);
+											// Get geo coordinates for fixed_zone locations
+											$geo_coords = '';
+											if ($price_based === 'fixed_zone' && strpos($start_location, 'term_') === 0) {
+												$term_id = absint(str_replace('term_', '', $start_location));
+												$geo_location = get_term_meta($term_id, 'mptbm_geo_location', true);
+												if ($geo_location) {
+													$geo_coords = $geo_location; // format: "lat,lng"
+												}
+											}
+										?>
+										<option class="textCapitalize" value="<?php echo esc_attr($start_location); ?>" <?php echo $geo_coords ? 'data-geo="' . esc_attr($geo_coords) . '"' : ''; ?> data-label="<?php echo esc_attr($start_label); ?>"><?php echo esc_html($start_label); ?></option>
 									<?php } ?>
 								<?php } ?>
 							</select>
+						<?php } elseif ($price_based == 'fixed_zone_dropoff') { ?>
+							<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_pick_up_location_label', __('Enter Pick-Up Location', 'ecab-taxi-booking-manager')); ?>" value="" />
 						<?php } else { ?>
 							<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_pick_up_location_label', __('Enter Pick-Up Location', 'ecab-taxi-booking-manager')); ?>" value="" />
-							
 						<?php } ?>
 						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
 					</label>
 				</div>
+				<?php 
+					$extra_stop = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
+					$excluded_price_based = ['fixed_zone', 'fixed_zone_dropoff', 'fixed_hourly', 'fixed_price', 'fixed_zone_pickup', 'manual'];
+					if ($extra_stop == 'yes' && !in_array($price_based, $excluded_price_based)) {
+				?>
+					<div class="inputList">
+                        <label class="fdColumn">
+                            <span id="mptbm_toggle_extra_stop" style="cursor: pointer; color: var(--color_theme); display: inline-flex; align-items: center; font-size: 14px; font-weight: 500; margin: 10px 0;">
+                                <i class="fas fa-plus-circle" style="margin-right: 5px;"></i> <?php echo mptbm_get_translation('add_extra_stop_label', __('Add Extra Stop', 'ecab-taxi-booking-manager')); ?>
+                            </span>
+                        </label>
+						<label class="fdColumn mptbm_extra_stop_container" style="display: none;">
+							<span><?php echo mptbm_get_translation('extra_stop_location_label', __('Extra Stop Location', 'ecab-taxi-booking-manager')); ?></span>
+                            <div style="position: relative; width: 100%;">
+							    <input type="text" id="mptbm_map_extra_stop_place" name="mptbm_extra_stop_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_extra_stop_location_placeholder', __('Enter Extra Stop Location', 'ecab-taxi-booking-manager')); ?>" value="" />
+							    <i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
+                            </div>
+                            <span id="mptbm_remove_extra_stop" style="display: inline-block; text-align: right; margin-top: 8px; margin-bottom: 8px; cursor: pointer; color: #dc3545; font-size: 12px; align-self: flex-end;">
+                                <i class="fas fa-times"></i> <?php echo mptbm_get_translation('remove_label', __('Remove', 'ecab-taxi-booking-manager')); ?>
+                            </span>
+						</label>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var toggle = document.getElementById('mptbm_toggle_extra_stop');
+                                var container = document.querySelector('.mptbm_extra_stop_container');
+                                var remove = document.getElementById('mptbm_remove_extra_stop');
+                                var input = document.getElementById('mptbm_map_extra_stop_place');
+
+                                if(toggle && container && remove) {
+                                    toggle.addEventListener('click', function() {
+                                        container.style.display = 'flex';
+                                        toggle.style.display = 'none';
+                                    });
+
+                                    remove.addEventListener('click', function() {
+                                        container.style.display = 'none';
+                                        toggle.style.display = 'inline-flex';
+                                        if(input) input.value = '';
+                                    });
+                                }
+                            });
+                        </script>
+					</div>
+				<?php } ?>
 				<?php if (!($hide_dropoff && $price_based === 'fixed_hourly')): ?>
 <div class="inputList">
     <label class="fdColumn mptbm_manual_end_place">
@@ -320,6 +392,27 @@ if (sizeof($all_dates) > 0) {
         <?php if ($price_based == 'manual') { ?>
             <select class="formControl mptbm_map_end_place" id="mptbm_manual_end_place">
                 <option class="textCapitalize" selected disabled><?php echo mptbm_get_translation('select_destination_location_label', __(' Select Destination Location', 'ecab-taxi-booking-manager')); ?></option>
+            </select>
+        <?php } elseif ($price_based == 'fixed_zone_dropoff') { ?>
+            <?php $all_end_locations = MPTBM_Function::get_all_start_location('', $price_based); ?>
+            <select id="mptbm_manual_end_place" class="formControl mptbm_map_end_place">
+                <option selected disabled><?php echo mptbm_get_translation('select_destination_location_label', __(' Select Destination Location', 'ecab-taxi-booking-manager')); ?></option>
+                <?php if (sizeof($all_end_locations) > 0) { ?>
+                    <?php foreach ($all_end_locations as $end_location) { ?>
+                        <?php
+                            $end_label = mptbm_resolve_location_label($end_location);
+                            $geo_coords = '';
+                            if (strpos($end_location, 'term_') === 0) {
+                                $term_id = absint(str_replace('term_', '', $end_location));
+                                $geo_location = get_term_meta($term_id, 'mptbm_geo_location', true);
+                                if ($geo_location) {
+                                    $geo_coords = $geo_location;
+                                }
+                            }
+                        ?>
+                        <option class="textCapitalize" value="<?php echo esc_attr($end_location); ?>" <?php echo $geo_coords ? 'data-geo="' . esc_attr($geo_coords) . '"' : ''; ?> data-label="<?php echo esc_attr($end_label); ?>"><?php echo esc_html($end_label); ?></option>
+                    <?php } ?>
+                <?php } ?>
             </select>
         <?php } else { ?>
             <input type="text" id="mptbm_map_end_place" class="formControl textCapitalize" placeholder="<?php echo mptbm_get_translation('enter_dropoff_location_placeholder', __(' Enter Drop-Off Location', 'ecab-taxi-booking-manager')); ?>" value="" />
@@ -360,18 +453,31 @@ document.addEventListener('DOMContentLoaded', function() {
 				</div>
 				<?php endif; ?>
 				<?php if ($pro_active && $enable_max_bag_filter === 'yes'): ?>
-				<div class="inputList mp_input_select">
-					<label class="fdColumn">
-						<span> <?php echo mptbm_get_translation('max_bag_label', __('Maximum Bag', 'ecab-taxi-booking-manager')); ?> </span>
-						<select id="mptbm_max_bag" class="formControl" name="mptbm_max_bag">
-							<?php for ($i = 0; $i <= $max_bag; $i++) { ?>
-								<option value="<?php echo esc_attr($i); ?>"><?php echo esc_html($i); ?></option>
-							<?php } ?>
-						</select>
-						<span class="fa fa-shopping-bag mptbm_left_icon allCenter"></span>
-					</label>
-				</div>
-				<?php endif; ?>
+			<div class="inputList mp_input_select">
+				<label class="fdColumn">
+					<span> <?php echo mptbm_get_translation('max_bag_label', __('Maximum Bag', 'ecab-taxi-booking-manager')); ?> </span>
+					<select id="mptbm_max_bag" class="formControl" name="mptbm_max_bag">
+						<?php for ($i = 0; $i <= $max_bag; $i++) { ?>
+							<option value="<?php echo esc_attr($i); ?>"><?php echo esc_html($i); ?></option>
+						<?php } ?>
+					</select>
+					<span class="fas fa-suitcase mptbm_left_icon allCenter"></span>
+				</label>
+			</div>
+			<?php endif; ?>
+			<?php if ($pro_active && $enable_max_hand_luggage_filter === 'yes'): ?>
+			<div class="inputList mp_input_select">
+				<label class="fdColumn">
+					<span><?php echo mptbm_get_translation('max_hand_luggage_label', __('Maximum Hand Luggage', 'ecab-taxi-booking-manager')); ?></span>
+					<select id="mptbm_max_hand_luggage" class="formControl" name="mptbm_max_hand_luggage">
+						<?php for ($i = 0; $i <= $max_hand_luggage; $i++) { ?>
+							<option value="<?php echo esc_attr($i); ?>"><?php echo esc_html($i); ?></option>
+						<?php } ?>
+					</select>
+					<span class="fa fa-suitcase-rolling mptbm_left_icon allCenter"></span>
+				</label>
+			</div>
+			<?php endif; ?>
 			
 				<?php
 				$location_page_url = MPTBM_Function::get_page_url_from_slug(MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_find_location_page'));
@@ -606,7 +712,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		</style>
 		<?php endif; ?>
 		<span class="mptbm-map-warning" style="display:none"><?php _e('Map Authentication Failed! Please contact site admin.','ecab-taxi-booking-manager'); ?></span>
-		<div class="mptbm_map_area fdColumn" style="display: <?php echo ($price_based != 'manual' && $map === 'yes' && !($hide_dropoff && $price_based === 'fixed_hourly')) ? 'block' : 'none'; ?>;">
+		<div class="mptbm_map_area fdColumn" style="display: <?php echo (($price_based != 'manual') && $map === 'yes' && !($hide_dropoff && $price_based === 'fixed_hourly')) ? 'block' : 'none'; ?>;">
 			<div class="fullHeight">
 				<?php if($map_type === 'openstreetmap'): ?>
 					<div id="mptbm_map_area"></div>

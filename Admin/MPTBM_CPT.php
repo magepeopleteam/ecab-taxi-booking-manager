@@ -17,11 +17,10 @@ if (!class_exists('MPTBM_CPT')) {
 			add_filter('manage_edit-mptbm_rent_sortable_columns', array($this, 'mptbm_rent_sortable_columns'));
 		}
 
-		public function mptbm_rent_custom_column($columns,$post_id){
-			switch($columns){
+		public function mptbm_rent_custom_column($columns, $post_id) {
+			switch ($columns) {
 				case 'mptbm_price_based':
-					$mptbm_price_based = esc_html__(get_post_meta($post_id,'mptbm_price_based',true));
-				
+					$mptbm_price_based = esc_html__(get_post_meta($post_id, 'mptbm_price_based', true));
 					$item_price_based = [
 						'inclusive' => 'Inclusive',
 						'distance' => 'Distance as google map',
@@ -29,35 +28,67 @@ if (!class_exists('MPTBM_CPT')) {
 						'distance_duration' => 'Distance + Duration as google map',
 						'manual' => 'Manual as fixed Location',
 						'fixed_hourly' => 'Fixed Hourly',
+						'fixed_zone' => 'Fixed Zone',
+						'fixed_map' => 'Fixed with map price',
+						'fixed_distance' => 'Fixed with Map',
+						'fixed_zone_pickup' => 'Fixed Zone Pickup',
+						'fixed_zone_dropoff' => 'Fixed Zone Dropoff'
 					];
-					foreach($item_price_based as $kay => $value):
-						echo esc_html(($kay==$mptbm_price_based)?$value:'');
-					endforeach;
-				break;
+					
+					$label = isset($item_price_based[$mptbm_price_based]) ? $item_price_based[$mptbm_price_based] : $mptbm_price_based;
+					echo esc_html($label);
+					break;
 				case 'mptbm_km_price':
-					$mptbm_km_price = get_post_meta($post_id,'mptbm_km_price',true);
-					echo esc_html($mptbm_km_price?$mptbm_km_price:'');
-				break;
+					$mptbm_km_price = get_post_meta($post_id, 'mptbm_km_price', true);
+					echo esc_html($mptbm_km_price ? $mptbm_km_price : '');
+					break;
 				case 'mptbm_hour_price':
-					$mptbm_hour_price = get_post_meta($post_id,'mptbm_hour_price',true);
-					echo esc_html($mptbm_hour_price?$mptbm_hour_price:'');
-				break;
-				case 'mptbm_waiting_price':
-					$mptbm_waiting_price = get_post_meta($post_id,'mptbm_waiting_price',true);
-					echo esc_html($mptbm_waiting_price?$mptbm_waiting_price:'');
-				break;
+					$mptbm_hour_price = get_post_meta($post_id, 'mptbm_hour_price', true);
+					echo esc_html($mptbm_hour_price ? $mptbm_hour_price : '');
+					break;
+				case 'mptbm_operation_area_type':
+					$op_type = get_post_meta($post_id, 'mptbm_operation_area_type', true);
+					$op_types = [
+						'fixed-operation-area-type' => __('Fixed Operation Area', 'ecab-taxi-booking-manager'),
+						'fixed-map-operation-area-type' => __('Fixed Map Operation Area', 'ecab-taxi-booking-manager'),
+						'geo-fence-operation-area-type' => __('Geo Fence Operation Area', 'ecab-taxi-booking-manager'),
+						'geo-matched-operation-area-type' => __('Geo-Matched Operation Area', 'ecab-taxi-booking-manager'),
+					];
+					echo esc_html(isset($op_types[$op_type]) ? $op_types[$op_type] : $op_type);
+					break;
+				case 'mptbm_operation_areas':
+					$selected_areas = get_post_meta($post_id, 'mptbm_selected_operation_areas', true);
+					$area_names = [];
+					if (is_array($selected_areas)) {
+						foreach ($selected_areas as $area_id) {
+							$title = get_the_title($area_id);
+							if ($title) {
+								$area_names[] = $title;
+							}
+						}
+					}
+					echo esc_html(implode(', ', $area_names));
+					break;
 			}
 		}
 
-		public function mptbm_rent_columns($columns)
-		{
+		public function mptbm_rent_columns($columns) {
 			unset($columns['date']);
+			// Remove Waiting Price and Author
+			unset($columns['mptbm_waiting_price']);
+			unset($columns['author']);
+			
 			$columns['mptbm_price_based'] = esc_html__('Price based', 'ecab-taxi-booking-manager');
-			$columns['mptbm_km_price']      =  esc_html__('Kilometer price', 'ecab-taxi-booking-manager');
-			$columns['mptbm_hour_price']      =  esc_html__('Hourly price', 'ecab-taxi-booking-manager');
-			$columns['mptbm_waiting_price']      =  esc_html__('Waiting price', 'ecab-taxi-booking-manager');
-			$columns['author']      =  esc_html__('Author', 'ecab-taxi-booking-manager');
-			$columns['date']        = esc_html__('Date', 'ecab-taxi-booking-manager');
+			$columns['mptbm_km_price'] = esc_html__('Kilometer price', 'ecab-taxi-booking-manager');
+			$columns['mptbm_hour_price'] = esc_html__('Hourly price', 'ecab-taxi-booking-manager');
+			
+			// Add Operation Area columns if Pro is active
+			if (class_exists('MPTBM_Dependencies_Pro') || class_exists('MPTBM_Plugin_Pro')) {
+				$columns['mptbm_operation_area_type'] = esc_html__('Operation Area Type', 'ecab-taxi-booking-manager');
+				$columns['mptbm_operation_areas'] = esc_html__('Operation Areas', 'ecab-taxi-booking-manager');
+			}
+			
+			$columns['date'] = esc_html__('Date', 'ecab-taxi-booking-manager');
 			return $columns;
 		}
 

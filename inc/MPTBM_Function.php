@@ -256,9 +256,11 @@ if (!class_exists('MPTBM_Function')) {
 			usort($all_dates, "MP_Global_Function::sort_date");
 			return $all_dates;
 		}
-		//*************Price*********************************//
-		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0)
+        //*************Price*********************************//
+		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0, $end_coords = null)
 		{
+			$price = 0;
+			delete_transient('mptbm_fixed_route_found_' . $post_id);
 			
 			// Force fresh pricing calculations to prevent caching issues on repeated searches
 			$is_transport_result_page = false;
@@ -372,16 +374,96 @@ if (!class_exists('MPTBM_Function')) {
 				} elseif ($price_based == 'distance' && $original_price_based == 'fixed_hourly') {
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
 					$price = $km_price * ((float) $distance / 1000);
-				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_distance') && $original_price_based == 'fixed_distance') {
-					$match_type = isset($_SESSION['mptbm_fixed_distance_match_' . $post_id]) ? $_SESSION['mptbm_fixed_distance_match_' . $post_id] : 'partial';
-					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
+				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_distance' || $price_based == 'fixed_map') && ($original_price_based == 'fixed_distance' || $original_price_based == 'fixed_map')) {
+					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_route_price_info', []);
+					$found_zone_price = false;
+
+					if (!empty($fixed_zone_prices) && is_array($fixed_zone_prices)) {
+						$pickup_lat = get_transient('pickup_lat_transient');
+						$pickup_lng = get_transient('pickup_lng_transient');
+						$dropoff_lat = get_transient('drop_lat_transient');
+						$dropoff_lng = get_transient('drop_lng_transient');
+
+						if ($pickup_lat && $pickup_lng && $dropoff_lat && $dropoff_lng) {
+							$pickup_coords = ['lat' => $pickup_lat, 'lng' => $pickup_lng];
+							$dropoff_coords = ['lat' => $dropoff_lat, 'lng' => $dropoff_lng];
+
+							foreach ($fixed_zone_prices as $fixed_zone_price) {
+								$start_location = $fixed_zone_price['start_location'] ?? '';
+								$end_location = $fixed_zone_price['end_location'] ?? '';
+                                
+                                $start_match = self::is_point_in_fixed_zone($start_location, $pickup_coords);
+                                $end_match = self::is_point_in_fixed_zone($end_location, $dropoff_coords);
+                                
+								if ($start_match && $end_match) {
+									$price = (float) ($fixed_zone_price['price'] ?? 0);
+									$found_zone_price = true;
+                                    set_transient('mptbm_fixed_route_found_' . $post_id, 'yes', MINUTE_IN_SECONDS);
+									break;
+								}
+							}
+						}
+					}
+
+					if (!$found_zone_price) {
+						$match_type = isset($_SESSION['mptbm_fixed_distance_match_' . $post_id]) ? $_SESSION['mptbm_fixed_distance_match_' . $post_id] : 'partial';
+						$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
+						
+						$fixed_map_price = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_price');
+						if ($match_type === 'full' && (float)$fixed_map_price > 0) {
+							$price = (float) $fixed_map_price;
+						} else {
+							// Fallback to Distance + Duration
+							$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
+							$price = ($hour_price * ((float) $duration / 3600)) + ($km_price * ((float) $distance / 1000));
+						}
+					}
+				}
+				elseif (($price_based == 'inclusive' || $price_based == 'fixed_zone' || $price_based == 'fixed_zone_dropoff') && ($original_price_based == 'fixed_zone' || $original_price_based == 'fixed_zone_dropoff')) {
+					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
 					
-					if ($match_type === 'full') {
-						$price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_price');
-					} else {
-						// Fallback to Distance + Duration
-						$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
-						$price = ($hour_price * ((float) $duration / 3600)) + ($km_price * ((float) $distance / 1000));
+					if (!empty($fixed_zone_prices) && is_array($fixed_zone_prices)) {
+						// Use original_price_based to determine the mode (pickup vs dropoff)
+						$mode = $original_price_based ?: $price_based;
+						
+						foreach ($fixed_zone_prices as $index => $fixed_zone_price) {
+							$start_location = $fixed_zone_price['start_location'] ?? '';
+							$end_location = $fixed_zone_price['end_location'] ?? '';
+							
+							if ($mode === 'fixed_zone_dropoff') {
+								// For dropoff: destination_place must match end_location exactly
+								if ($destination_place !== $end_location) {
+									continue;
+								}
+								// Check if start (pickup) is in the zone using geo-fence
+								// In dropoff mode, end_coords parameter contains the searched pickup coordinates
+								if (!empty($end_coords)) {
+									$is_in_zone = self::is_point_in_fixed_zone($start_location, $end_coords);
+									if ($is_in_zone) {
+										$price = (float) ($fixed_zone_price['price'] ?? 0);
+										break;
+									}
+								}
+							} else {
+								// For pickup (fixed_zone): start_place must match start_location exactly
+								if ($start_place !== $start_location) {
+									continue;
+								}
+								// Check if destination is in the end zone using geo-fence
+								if (!empty($end_coords)) {
+									$is_in_zone = self::is_point_in_fixed_zone($end_location, $end_coords);
+									if ($is_in_zone) {
+										$price = (float) ($fixed_zone_price['price'] ?? 0);
+										break;
+									}
+								} else {
+									if ($destination_place === $end_location) {
+										$price = (float) ($fixed_zone_price['price'] ?? 0);
+										break;
+									}
+								}
+							}
+						}
 					}
 				}
 				elseif ((trim($price_based) == 'inclusive' || trim($price_based) == 'manual') && trim($original_price_based) == 'manual') {
@@ -619,11 +701,9 @@ if (!class_exists('MPTBM_Function')) {
 
 			
 
-			// Removed manual tax addition here because it causes double taxation.
-			// get_price should return the raw base price. WooCommerce and the wc_price helper
-			// will handle tax display and calculation at checkout natively.
-			
+
 			return (float) $price;
+
 		}
 
 		public static function get_extra_service_price_by_name($post_id, $service_name)
@@ -642,10 +722,154 @@ if (!class_exists('MPTBM_Function')) {
 			}
 			return $price;
 		}
+		/**
+		 * Check if coordinates fall within a fixed_zone end location (operation area polygon or location term radius)
+		 * 
+		 * @param string $end_location The end_location from fixed_zone config (post_XX or term_XX)
+		 * @param array $end_coords Array with 'latitude' and 'longitude' keys
+		 * @return bool True if coordinates are within the zone
+		 */
+		public static function is_point_in_fixed_zone($end_location, $end_coords) {
+			if (empty($end_location) || empty($end_coords)) {
+				return false;
+			}
+			
+			// Normalize coordinates format
+			$lat = isset($end_coords['latitude']) ? floatval($end_coords['latitude']) : (isset($end_coords['lat']) ? floatval($end_coords['lat']) : 0);
+			$lng = isset($end_coords['longitude']) ? floatval($end_coords['longitude']) : (isset($end_coords['lng']) ? floatval($end_coords['lng']) : 0);
+			
+			if ($lat == 0 && $lng == 0) {
+				return false;
+			}
+			
+			// Check if end_location is an operation area (post_XX)
+			if (strpos($end_location, 'post_') === 0) {
+				$area_id = absint(str_replace('post_', '', $end_location));
+				$operation_area_type = get_post_meta($area_id, 'mptbm-operation-type', true);
+				
+				// Get polygon coordinates
+				$coord_key = 'mptbm-coordinates-three';
+				if ($operation_area_type === 'geo-matched-operation-area-type') {
+					$coord_key = 'mptbm-coordinates-four';
+				} elseif ($operation_area_type === 'geo-fence-operation-area-type') {
+					$coord_key = 'mptbm-coordinates-one';
+				}
+				
+				$flat_coords = get_post_meta($area_id, $coord_key, true);
+				
+				if (!is_array($flat_coords) || count($flat_coords) < 6) {
+					return false;
+				}
+				
+				// Convert flat array to polygon format
+				$polygon = [];
+				for ($i = 0; $i < count($flat_coords); $i += 2) {
+					$polygon[] = [
+						'latitude' => floatval($flat_coords[$i]),
+						'longitude' => floatval($flat_coords[$i + 1])
+					];
+				}
+				
+				// Point in polygon check
+				return self::point_in_polygon($lat, $lng, $polygon);
+			}
+			// Check if end_location is a location term (term_XX)
+			elseif (strpos($end_location, 'term_') === 0) {
+				$term_id = absint(str_replace('term_', '', $end_location));
+				$geo_location = get_term_meta($term_id, 'mptbm_geo_location', true);
+				
+				if (empty($geo_location)) {
+					return false;
+				}
+				
+				// Parse term geo location (format: "lat,lng")
+				$term_coords = explode(',', $geo_location);
+				if (count($term_coords) !== 2) {
+					return false;
+				}
+				
+				$term_lat = floatval(trim($term_coords[0]));
+				$term_lng = floatval(trim($term_coords[1]));
+				
+				// Calculate distance between points (in km)
+				$distance = self::haversine_distance($lat, $lng, $term_lat, $term_lng);
+				
+				// Consider within 1km radius as "within zone" for location terms
+				$radius_km = 1;
+				return $distance <= $radius_km;
+			}
+			
+			return false;
+		}
+
+		public static function get_base_price_settings($post_id) {
+			$location_id = MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_location');
+			$coords = '';
+			if ($location_id) {
+				$coords = get_term_meta($location_id, 'mptbm_geo_location', true);
+			}
+			
+			$settings = [
+				'location_id' => $location_id,
+				'coords'      => $coords,
+				'price_km'    => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_km', 0),
+				'price_hour'  => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_hour', 0),
+				'threshold'   => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_min_threshold', 0),
+				'charge_pickup' => MP_Global_Function::get_post_info($post_id, 'mptbm_charge_base_pickup', 'no'),
+				'charge_dropoff' => MP_Global_Function::get_post_info($post_id, 'mptbm_charge_base_dropoff', 'no'),
+			];
+			return $settings;
+		}
+		
+		/**
+		 * Point in polygon algorithm (ray casting)
+		 */
+		private static function point_in_polygon($lat, $lng, $polygon) {
+			$inside = false;
+			$n = count($polygon);
+			
+			for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
+				$xi = $polygon[$i]['latitude'];
+				$yi = $polygon[$i]['longitude'];
+				$xj = $polygon[$j]['latitude'];
+				$yj = $polygon[$j]['longitude'];
+				
+				$intersect = (($yi > $lng) != ($yj > $lng)) &&
+					($lat < ($xj - $xi) * ($lng - $yi) / ($yj - $yi + 0.0000001) + $xi);
+				
+				if ($intersect) {
+					$inside = !$inside;
+				}
+			}
+			
+			return $inside;
+		}
+		
+		/**
+		 * Calculate distance between two points using Haversine formula
+		 */
+		private static function haversine_distance($lat1, $lng1, $lat2, $lng2) {
+			$earth_radius = 6371; // km
+			
+			$lat1_rad = deg2rad($lat1);
+			$lat2_rad = deg2rad($lat2);
+			$delta_lat = deg2rad($lat2 - $lat1);
+			$delta_lng = deg2rad($lng2 - $lng1);
+			
+			$a = sin($delta_lat / 2) * sin($delta_lat / 2) +
+				cos($lat1_rad) * cos($lat2_rad) *
+				sin($delta_lng / 2) * sin($delta_lng / 2);
+			
+			$c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+			
+			return $earth_radius * $c;
+		}
+		
 		//************Location*******************//
-		public static function location_exit($post_id, $start_place, $destination_place)
+		public static function location_exit($post_id, $start_place, $destination_place, $end_coords = null)
 		{
 			$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
+			$original_price_based = get_transient('original_price_based');
 
 			if ($price_based == 'manual') {
 				$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
@@ -663,91 +887,175 @@ if (!class_exists('MPTBM_Function')) {
 					return $exit > 0;
 				}
 				return false;
-			}
-			return true;
-		}
-		public static function get_all_start_location($post_id = '')
-		{
-			$all_location = [];
-			if ($post_id && $post_id > 0) {
-				$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
-				$terms_location_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_start_location', []);
-				if (sizeof($manual_prices) > 0) {
-					foreach ($manual_prices as $manual_price) {
-						$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
-						if ($start_location) {
-							$all_location[] = $start_location;
+			} elseif ($price_based == 'fixed_zone' || $price_based == 'fixed_zone_dropoff') {
+				$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
+				
+				// Use original_price_based to determine the mode (pickup vs dropoff)
+				$mode = $original_price_based ?: $price_based;
+				
+				if (!empty($fixed_zone_prices) && is_array($fixed_zone_prices)) {
+					foreach ($fixed_zone_prices as $index => $fixed_zone_price) {
+						$start_location = $fixed_zone_price['start_location'] ?? '';
+						$end_location = $fixed_zone_price['end_location'] ?? '';
+						
+						if ($mode === 'fixed_zone_dropoff') {
+							// Destination must match end_location
+							if ($destination_place !== $end_location) {
+								continue;
+							}
+							// Start must be in zone
+							if (!empty($end_coords)) {
+								$is_in_zone = self::is_point_in_fixed_zone($start_location, $end_coords);
+								if ($is_in_zone) {
+									return true;
+								}
+							}
+						} else {
+							// Start location must match exactly
+							if ($start_place !== $start_location) {
+								continue;
+							}
+							
+							// For end_location, we need to check if destination coordinates fall within the zone
+							if (!empty($end_coords)) {
+								$is_in_zone = self::is_point_in_fixed_zone($end_location, $end_coords);
+								if ($is_in_zone) {
+									return true;
+								}
+							} else {
+								if ($destination_place === $end_location) {
+									return true;
+								}
+							}
 						}
 					}
 				}
+				return false; // No matching fixed zone price found
+			}
+			// For other pricing modes (dynamic, fixed_distance, fixed_hourly, etc.), return true by default
+			// as location_exit check is not required for those modes
+			return true;
+		}
+		public static function get_all_start_location($post_id = '', $price_based = 'manual')
+		{
+			$all_location = [];
+			
+			$should_include_manual = ($price_based === 'manual' || $price_based === '');
+			$should_include_fixed_zone = ($price_based === 'fixed_zone' || $price_based === 'fixed_zone_dropoff');
+
+			$collect_locations = function($prices) use (&$all_location, $price_based) {
+				if (sizeof($prices) > 0) {
+					foreach ($prices as $price_row) {
+						$location = ($price_based === 'fixed_zone_dropoff') ? ($price_row['end_location'] ?? '') : ($price_row['start_location'] ?? '');
+						
+						if (!$location) {
+							continue;
+						}
+
+						if ($price_based === 'fixed_zone' || $price_based === 'fixed_zone_dropoff') {
+							// Only allow taxonomy locations with geo-location flag; skip operation areas
+							if (strpos($location, 'term_') !== 0) {
+								continue;
+							}
+							$term_id = absint(str_replace('term_', '', $location));
+							$has_geo = get_term_meta($term_id, 'mptbm_geo_location', true);
+							if (!$has_geo) {
+								continue;
+							}
+						}
+
+						$all_location[] = $location;
+					}
+				}
+			};
+
+			if ($post_id && $post_id > 0) {
+				if ($should_include_manual) {
+				$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+					$terms_location_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
+					$collect_locations($manual_prices);
+					$collect_locations($terms_location_prices);
+				}
+				if ($should_include_fixed_zone) {
+					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
+					$collect_locations($fixed_zone_prices);
+				}
 			} else {
-				$all_posts = MPTBM_Query::query_transport_list('manual');
+				$query_price_based = $price_based ? $price_based : 'manual';
+				$all_posts = MPTBM_Query::query_transport_list($query_price_based);
 				if ($all_posts->found_posts > 0) {
 					$posts = $all_posts->posts;
 					foreach ($posts as $post) {
 						$post_id = $post->ID;
+						if ($should_include_manual) {
 						$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 						$terms_location_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
-						if (sizeof($manual_prices) > 0) {
-							foreach ($manual_prices as $manual_price) {
-								$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
-								if ($start_location) {
-									$all_location[] = $start_location;
-								}
-							}
+							$collect_locations($manual_prices);
+							$collect_locations($terms_location_prices);
 						}
-						if (sizeof($terms_location_prices) > 0) {
-							foreach ($terms_location_prices as $terms_location_price) {
-								$start_location = array_key_exists('start_location', $terms_location_price) ? $terms_location_price['start_location'] : '';
-								if ($start_location) {
-									$all_location[] = $start_location;
-								}
-							}
+						if ($should_include_fixed_zone) {
+							$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
+							$collect_locations($fixed_zone_prices);
 						}
 					}
 				}
 			}
 			return array_unique($all_location);
 		}
-		public static function get_end_location($start_place, $post_id = '')
+		public static function get_end_location($start_place, $post_id = '', $price_based = 'manual')
 		{
 			$all_location = [];
-			if ($post_id && $post_id > 0) {
-				$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
-				if (sizeof($manual_prices) > 0) {
-					foreach ($manual_prices as $manual_price) {
-						$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
-						$end_location = array_key_exists('end_location', $manual_price) ? $manual_price['end_location'] : '';
+			$should_include_manual = ($price_based === 'manual' || $price_based === '');
+			$should_include_fixed_zone = ($price_based === 'fixed_zone');
+
+			$collect_locations = function($prices) use (&$all_location, $start_place, $price_based) {
+				if (sizeof($prices) > 0) {
+					foreach ($prices as $price_row) {
+						$start_location = array_key_exists('start_location', $price_row) ? $price_row['start_location'] : '';
+						$end_location = array_key_exists('end_location', $price_row) ? $price_row['end_location'] : '';
 						if ($start_location && $end_location && $start_location == $start_place) {
+							if ($price_based === 'fixed_zone') {
+								// Only allow taxonomy locations with geo-location flag; skip operation areas
+								if (strpos($end_location, 'term_') !== 0) {
+									continue;
+								}
+								$term_id = absint(str_replace('term_', '', $end_location));
+								$has_geo = get_term_meta($term_id, 'mptbm_geo_location', true);
+								if (!$has_geo) {
+									continue;
+								}
+							}
 							$all_location[] = $end_location;
 						}
 					}
 				}
+			};
+
+			if ($post_id && $post_id > 0) {
+				if ($should_include_manual) {
+					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+					$collect_locations($manual_prices);
+				}
+				if ($should_include_fixed_zone) {
+					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
+					$collect_locations($fixed_zone_prices);
+				}
 			} else {
-				$all_posts = MPTBM_Query::query_transport_list('manual');
+				$query_price_based = $price_based ? $price_based : 'manual';
+				$all_posts = MPTBM_Query::query_transport_list($query_price_based);
 				if ($all_posts->found_posts > 0) {
 					$posts = $all_posts->posts;
 					foreach ($posts as $post) {
 						$post_id = $post->ID;
+						if ($should_include_manual) {
 						$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 						$terms_location_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
-						if (sizeof($manual_prices) > 0) {
-							foreach ($manual_prices as $manual_price) {
-								$start_location = array_key_exists('start_location', $manual_price) ? $manual_price['start_location'] : '';
-								$end_location = array_key_exists('end_location', $manual_price) ? $manual_price['end_location'] : '';
-								if ($start_location && $end_location && $start_location == $start_place) {
-									$all_location[] = $end_location;
-								}
-							}
+							$collect_locations($manual_prices);
+							$collect_locations($terms_location_prices);
 						}
-						if (sizeof($terms_location_prices) > 0) {
-							foreach ($terms_location_prices as $terms_location_price) {
-								$start_location = array_key_exists('start_location', $terms_location_price) ? $terms_location_price['start_location'] : '';
-								$end_location = array_key_exists('end_location', $terms_location_price) ? $terms_location_price['end_location'] : '';
-								if ($start_location && $end_location && $start_location == $start_place) {
-									$all_location[] = $end_location;
-								}
-							}
+						if ($should_include_fixed_zone) {
+							$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
+							$collect_locations($fixed_zone_prices);
 						}
 					}
 				}

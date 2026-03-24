@@ -300,6 +300,17 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					),
 					array(
+						'name' => 'mptbm_extra_stop_between_pickup_dropoff',
+						'label' => $label . ' ' . esc_html__('Add an extra stop between pickup and dropoff location', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Select yes if you want to enable adding an extra stop between pickup and dropoff location', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'no',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no' => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
 						'name' => 'enable_filter_via_features',
 						'label' => $label . ' ' . esc_html__('Enable filter via features', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('Select yes if you want to enable filter via passenger and bags', 'ecab-taxi-booking-manager'),

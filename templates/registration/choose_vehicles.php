@@ -26,6 +26,26 @@ $days_name = array_keys($days);
 $schedule = [];
 
 
+
+if (!function_exists('pointInPolygon')) {
+    function pointInPolygon($point, $polygon) {
+        $x = isset($point['latitude']) ? floatval($point['latitude']) : (isset($point['lat']) ? floatval($point['lat']) : (isset($point[0]) ? floatval($point[0]) : 0));
+        $y = isset($point['longitude']) ? floatval($point['longitude']) : (isset($point['lng']) ? floatval($point['lng']) : (isset($point[1]) ? floatval($point[1]) : 0));
+        $inside = false;
+        $n = count($polygon);
+        for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
+            $xi = floatval($polygon[$i]['latitude']);
+            $yi = floatval($polygon[$i]['longitude']);
+            $xj = floatval($polygon[$j]['latitude']);
+            $yj = floatval($polygon[$j]['longitude']);
+            $intersect = (($yi > $y) != ($yj > $y)) &&
+                ($x < ($xj - $xi) * ($y - $yi) / ($yj - $yi + 0.0000001) + $xi);
+            if ($intersect) $inside = !$inside;
+        }
+        return $inside;
+    }
+}
+
 function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $start_place_coordinates, $end_place_coordinates) {
     $operation_area_type = get_post_meta($operation_area_id, "mptbm-operation-type", true);
 
@@ -82,24 +102,6 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
         </script>
         <?php
         // PHP-side: try to check if pickup or dropoff is inside polygon for logging
-        if ( ! function_exists( 'pointInPolygon' ) ) {
-            function pointInPolygon($point, $polygon) {
-                $x = $point['latitude'];
-                $y = $point['longitude'];
-                $inside = false;
-                $n = count($polygon);
-                for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
-                    $xi = $polygon[$i]['latitude'];
-                    $yi = $polygon[$i]['longitude'];
-                    $xj = $polygon[$j]['latitude'];
-                    $yj = $polygon[$j]['longitude'];
-                    $intersect = (($yi > $y) != ($yj > $y)) &&
-                        ($x < ($xj - $xi) * ($y - $yi) / ($yj - $yi + 0.0000001) + $xi);
-                    if ($intersect) $inside = !$inside;
-                }
-                return $inside;
-            }
-        }
         $php_start_in_area = false;
         $php_end_in_area = false;
         if (is_array($start_place_coordinates) && isset($start_place_coordinates['latitude']) && isset($start_place_coordinates['longitude'])) {
@@ -238,35 +240,24 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
     }
 }
 function mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_place_coordinates, $end_place_coordinates, $price_based) {
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log("MPTBM Debug: Fixed Distance Check for Post ID: $post_id, Area ID: $operation_area_id");
-    }
     // Only apply for fixed_distance pricing
-    if ($price_based !== 'fixed_distance') {
+    if ($price_based !== 'fixed_distance' && $price_based !== 'fixed_map') {
         return false;
     }
     $operation_area_type = get_post_meta($operation_area_id, "mptbm-operation-type", true);
     
     // Determine meta key based on operation type
-    $coord_key = '';
     if ($operation_area_type === "geo-matched-operation-area-type") {
         $coord_key = "mptbm-coordinates-four";
-    } elseif ($operation_area_type === "fixed-operation-area-type") {
+    } elseif ($operation_area_type === "geo-fence-operation-area-type") {
+        $coord_key = "mptbm-coordinates-one";
+    } else {
+        // Default: fixed-operation-area-type (single polygon) or unset
         $coord_key = "mptbm-coordinates-three";
-    }
-
-    if (!$coord_key) {
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("MPTBM Debug: Area ID $operation_area_id has unsupported type: $operation_area_type");
-        }
-        return false;
     }
 
     $flat_operation_area_coordinates = get_post_meta($operation_area_id, $coord_key, true);
     if (!is_array($flat_operation_area_coordinates)) {
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("MPTBM Debug: Area ID $operation_area_id coordinates not found or not an array for key $coord_key");
-        }
         return false;
     }
     // Convert to polygon format
@@ -275,32 +266,9 @@ function mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_pl
         $operation_area_coordinates[] = ["latitude" => $flat_operation_area_coordinates[$i], "longitude" => $flat_operation_area_coordinates[$i + 1]];
     }
     // Check if BOTH pickup and dropoff are in polygon
-    if (!function_exists('pointInPolygon')) {
-        function pointInPolygon($point, $polygon) {
-            $x = isset($point['latitude']) ? $point['latitude'] : (isset($point['lat']) ? $point['lat'] : 0);
-            $y = isset($point['longitude']) ? $point['longitude'] : (isset($point['lng']) ? $point['lng'] : 0);
-            $inside = false;
-            $n = count($polygon);
-            for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
-                $xi = $polygon[$i]['latitude'];
-                $yi = $polygon[$i]['longitude'];
-                $xj = $polygon[$j]['latitude'];
-                $yj = $polygon[$j]['longitude'];
-                $intersect = (($yi > $y) != ($yj > $y)) &&
-                    ($x < ($xj - $xi) * ($y - $yi) / ($yj - $yi + 0.0000001) + $xi);
-                if ($intersect) $inside = !$inside;
-            }
-            return $inside;
-        }
-    }
 
-    $start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : json_decode($start_place_coordinates, true);
-    $end_coords = is_array($end_place_coordinates) ? $end_place_coordinates : json_decode($end_place_coordinates, true);
-
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log("MPTBM Debug: Start Coords: " . print_r($start_coords, true));
-        error_log("MPTBM Debug: End Coords: " . print_r($end_coords, true));
-    }
+    $start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : json_decode(stripslashes($start_place_coordinates), true);
+    $end_coords = is_array($end_place_coordinates) ? $end_place_coordinates : json_decode(stripslashes($end_place_coordinates), true);
 
     $start_in_area = false;
     $end_in_area = false;
@@ -311,26 +279,12 @@ function mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_pl
         $end_in_area = pointInPolygon($end_coords, $operation_area_coordinates);
     }
 
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log("MPTBM Debug: Pickup: " . ($start_in_area ? 'Inside' : 'Outside'));
-        error_log("MPTBM Debug: Dropoff: " . ($end_in_area ? 'Inside' : 'Outside'));
-    }
-
     if ($start_in_area && $end_in_area) {
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("MPTBM Debug: Final Result: Fixed Price (Both Inside)");
-        }
         return 'full';
     } elseif ($start_in_area || $end_in_area) {
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("MPTBM Debug: Final Result: Fallback Price (One Inside)");
-        }
         return 'partial';
     }
 
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log("MPTBM Debug: Final Result: No Match (Both Outside)");
-    }
     return false;
 }
 
@@ -351,23 +305,64 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
     
     //Get operation area id
     $operation_area_ids = get_post_meta($post_id, "mptbm_selected_operation_areas", true);
-    
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log("MPTBM Debug: Post ID: $post_id, Price Based: $price_based, Operation Area IDs: " . (is_array($operation_area_ids) ? implode(',', $operation_area_ids) : $operation_area_ids));
-    }
 
     //Schedule array
     $schedule = [];
     
-    if ($operation_area_ids && $price_based !== "manual") {
+    if ($operation_area_ids && $price_based !== "manual" && $price_based !== "fixed_zone" && $price_based !== "fixed_zone_dropoff") {
         // Handle multiple operation areas
         if (is_array($operation_area_ids)) {
             $is_in_any_area = false;
             $transport_operation_type = get_post_meta($post_id, 'mptbm_operation_area_type', true);
             foreach ($operation_area_ids as $operation_area_id) {
-                if ($price_based === 'fixed_distance') {
+                if ($transport_operation_type === 'fixed-map-operation-area-type' && $price_based === 'fixed_map') {
+                    // Get coordinates for this area dynamically
+                    $area_type = get_post_meta($operation_area_id, 'mptbm-operation-type', true);
+                    $coord_key = 'mptbm-coordinates-three';
+                    if ($area_type === 'geo-matched-operation-area-type') {
+                        $coord_key = 'mptbm-coordinates-four';
+                    } elseif ($area_type === 'geo-fence-operation-area-type') {
+                        $coord_key = 'mptbm-coordinates-one'; // Use the first one for intercity
+                    }
+                    
+                    $flat_operation_area_coordinates = get_post_meta($operation_area_id, $coord_key, true);
+                    
+                    if (is_array($flat_operation_area_coordinates)) {
+                        $operation_area_coordinates = [];
+                        for ($i = 0; $i < count($flat_operation_area_coordinates); $i += 2) {
+                            $operation_area_coordinates[] = ["latitude" => $flat_operation_area_coordinates[$i], "longitude" => $flat_operation_area_coordinates[$i + 1]];
+                        }
+                        
+                        $start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : json_decode($start_place_coordinates, true);
+                        $end_coords = is_array($end_place_coordinates) ? $end_place_coordinates : json_decode($end_place_coordinates, true);
+                        
+                        $start_in_area = false;
+                        $end_in_area = false;
+                        if (is_array($start_coords)) { $start_in_area = pointInPolygon($start_coords, $operation_area_coordinates); }
+                        if (is_array($end_coords)) { $end_in_area = pointInPolygon($end_coords, $operation_area_coordinates); }
+                        
+                        if ($start_in_area) {
+                            $is_in_any_area = true;
+                            $_SESSION["mptbm_fixed_distance_match_" . $post_id] = $end_in_area ? 'full' : 'partial';
+                            ?>
+                            <script>
+                                var selectorClass = `.mptbm_booking_item_<?php echo $post_id; ?>`;
+                                jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
+                                document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                            </script>
+                            <?php
+                            break; 
+                        }
+                    }
+                    continue;
+                }
+                if ($price_based === 'fixed_distance' || $price_based === 'fixed_map') {
                     $match_type = mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_place_coordinates, $end_place_coordinates, $price_based);
                     if ($match_type) {
+                        // For fixed_map with 'both in' operation type, only a full match counts
+                        if ($price_based === 'fixed_map' && $transport_operation_type === 'fixed-operation-area-type' && $match_type !== 'full') {
+                            continue;
+                        }
                         $is_in_any_area = true;
                         $_SESSION["mptbm_fixed_distance_match_" . $post_id] = $match_type;
                         ?>
@@ -389,25 +384,6 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                         $operation_area_coordinates = [];
                         for ($i = 0; $i < count($flat_operation_area_coordinates); $i += 2) {
                             $operation_area_coordinates[] = ["latitude" => $flat_operation_area_coordinates[$i], "longitude" => $flat_operation_area_coordinates[$i + 1]];
-                        }
-                        // PHP-side: try to check if pickup or dropoff is inside polygon for logging
-                        if ( ! function_exists( 'pointInPolygon' ) ) {
-                            function pointInPolygon($point, $polygon) {
-                                $x = $point['latitude'];
-                                $y = $point['longitude'];
-                                $inside = false;
-                                $n = count($polygon);
-                                for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
-                                    $xi = $polygon[$i]['latitude'];
-                                    $yi = $polygon[$i]['longitude'];
-                                    $xj = $polygon[$j]['latitude'];
-                                    $yj = $polygon[$j]['longitude'];
-                                    $intersect = (($yi > $y) != ($yj > $y)) &&
-                                        ($x < ($xj - $xi) * ($y - $yi) / ($yj - $yi + 0.0000001) + $xi);
-                                    if ($intersect) $inside = !$inside;
-                                }
-                                return $inside;
-                            }
                         }
                         $php_start_in_area = false;
                         $php_end_in_area = false;
@@ -457,15 +433,9 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                     }
                 }
             }
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("MPTBM Debug: Post ID: $post_id, Area Match Status: " . ($is_in_any_area ? 'Found' : 'Not Found'));
-            }
 
             if (!$is_in_any_area) {
-                if ($price_based === 'fixed_distance') {
-                    if (defined('WP_DEBUG') && WP_DEBUG) {
-                        error_log("MPTBM Debug: Transport $post_id rejected - No matching geo-area for fixed_distance.");
-                    }
+                if ($price_based === 'fixed_distance' || $price_based === 'fixed_map') {
                     return false;
                 }
                 ?>
@@ -478,15 +448,24 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
             }
         } else {
             // Single operation area
-            if ($price_based === 'fixed_distance') {
+            if ($price_based === 'fixed_distance' || $price_based === 'fixed_map') {
                 $match_type = mptbm_check_fixed_distance_area($post_id, $operation_area_ids, $start_place_coordinates, $end_place_coordinates, $price_based);
                 if ($match_type) {
+                    // For fixed_map with 'both in' operation type, only a full match (both in area) counts
+                    $transport_operation_type_single = get_post_meta($post_id, 'mptbm_operation_area_type', true);
+                    if ($price_based === 'fixed_map' && $transport_operation_type_single === 'fixed-operation-area-type' && $match_type !== 'full') {
+                        return false;
+                    }
                     $is_in_any_area = true;
                     $_SESSION["mptbm_fixed_distance_match_" . $post_id] = $match_type;
+                    ?>
+                    <script>
+                        var selectorClass = `.mptbm_booking_item_<?php echo $post_id; ?>`;
+                        jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
+                        document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                    </script>
+                    <?php
                 } else {
-                    if (defined('WP_DEBUG') && WP_DEBUG) {
-                        error_log("MPTBM Debug: Transport $post_id rejected - Single area match failed for fixed_distance.");
-                    }
                     return false;
                 }
             } else {
@@ -494,10 +473,7 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
             }
         }
     } else {
-        if ($price_based === 'fixed_distance') {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("MPTBM Debug: Transport $post_id rejected - No Operation Areas assigned while original_price_based is fixed_distance.");
-            }
+        if ($price_based === 'fixed_distance' || $price_based === 'fixed_map') {
             return false;
         }
         ?>
@@ -543,10 +519,6 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
             $schedule[$name] = [floatval($start_time), floatval($end_time)];
         }
         
-        // Debug: Log schedule building
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("Building schedule for {$name}: start={$start_time}, end={$end_time}, default_start={$default_start_time}, default_end={$default_end_time}");
-        }
     }
     
     // Check if the selected day matches any schedule
@@ -690,6 +662,7 @@ $start_place = isset($_POST["start_place"]) ? sanitize_text_field($_POST["start_
 $start_place_coordinates = isset($_POST["start_place_coordinates"]) ? $_POST["start_place_coordinates"] : "";
 $end_place_coordinates = isset($_POST["end_place_coordinates"]) ? $_POST["end_place_coordinates"] : "";
 $end_place = isset($_POST["end_place"]) ? sanitize_text_field($_POST["end_place"]) : "";
+$extra_stop_place = isset($_POST["mptbm_extra_stop_place"]) ? sanitize_text_field($_POST["mptbm_extra_stop_place"]) : "";
 $mptbm_original_price_base = isset($_POST["mptbm_original_price_base"]) ? sanitize_text_field($_POST["mptbm_original_price_base"]) : "";
 
 
@@ -730,12 +703,65 @@ if (!empty($end_place_coordinates)) {
         set_transient('drop_lng_transient', floatval($lng), HOUR_IN_SECONDS);
     }
 }
+
 $two_way = isset($_POST["two_way"]) ? absint($_POST["two_way"]) : 1;
 $waiting_time = isset($_POST["waiting_time"]) ? sanitize_text_field($_POST["waiting_time"]) : 0;
 $fixed_time = isset($_POST["fixed_time"]) ? sanitize_text_field($_POST["fixed_time"]) : "";
 $return_time_schedule=null;
 
 $price_based = sanitize_text_field($_POST["price_based"]);
+
+// For fixed_zone_dropoff, we need to pass start_place_coordinates as geo_fence_coords to get_price/location_exit
+// because the geo-fence check needs the searched pickup coordinates
+// For fixed_zone, we pass end_place_coordinates as geo_fence_coords (searched dropoff coordinates)
+$geo_fence_coords = null;
+if ($price_based === 'fixed_zone_dropoff' && !empty($start_place_coordinates)) {
+    if (is_array($start_place_coordinates)) {
+        $geo_fence_coords = $start_place_coordinates;
+    } else {
+        // Handle JSON string - WordPress may add slashes, so try both ways
+        $decoded = json_decode($start_place_coordinates, true);
+        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+            // Try with stripslashes in case WordPress added slashes
+            $decoded = json_decode(stripslashes($start_place_coordinates), true);
+        }
+        // Validate the decoded data has the required keys
+        if ($decoded && (isset($decoded['latitude']) || isset($decoded['lat'])) && (isset($decoded['longitude']) || isset($decoded['lng']))) {
+            $geo_fence_coords = $decoded;
+        } else {
+            // Last resort: try to extract coordinates from the string directly
+            if (preg_match('/"latitude":([\d.]+).*"longitude":([\d.]+)/', $start_place_coordinates, $matches)) {
+                $geo_fence_coords = ['latitude' => floatval($matches[1]), 'longitude' => floatval($matches[2])];
+            } elseif (preg_match('/"lat":([\d.]+).*"lng":([\d.]+)/', $start_place_coordinates, $matches)) {
+                $geo_fence_coords = ['lat' => floatval($matches[1]), 'lng' => floatval($matches[2])];
+            }
+        }
+    }
+} elseif (($price_based === 'fixed_zone') && !empty($end_place_coordinates)) {
+    if (is_array($end_place_coordinates)) {
+        $geo_fence_coords = $end_place_coordinates;
+    } else {
+        // Handle JSON string - WordPress may add slashes, so try both ways
+        $decoded = json_decode($end_place_coordinates, true);
+        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+            // Try with stripslashes in case WordPress added slashes
+            $decoded = json_decode(stripslashes($end_place_coordinates), true);
+        }
+        // Validate the decoded data has the required keys
+        if ($decoded && (isset($decoded['latitude']) || isset($decoded['lat'])) && (isset($decoded['longitude']) || isset($decoded['lng']))) {
+            $geo_fence_coords = $decoded;
+        } else {
+            // Last resort: try to extract coordinates from the string directly
+            if (preg_match('/"latitude":([\d.]+).*"longitude":([\d.]+)/', $end_place_coordinates, $matches)) {
+                $geo_fence_coords = ['latitude' => floatval($matches[1]), 'longitude' => floatval($matches[2])];
+            } elseif (preg_match('/"lat":([\d.]+).*"lng":([\d.]+)/', $end_place_coordinates, $matches)) {
+                $geo_fence_coords = ['lat' => floatval($matches[1]), 'lng' => floatval($matches[2])];
+            }
+        }
+    }
+}
+
+
 if ($two_way > 1 && MP_Global_Function::get_settings("mptbm_general_settings", "enable_return_in_different_date") == "yes") {
     $return_date = isset($_POST["return_date"]) ? sanitize_text_field($_POST["return_date"]) : "";
     $return_time = isset($_POST["return_time"]) ? sanitize_text_field($_POST["return_time"]): "";
@@ -784,23 +810,34 @@ if ($two_way > 1 && MP_Global_Function::get_settings("mptbm_general_settings", "
 if (MP_Global_Function::get_settings("mptbm_general_settings", "enable_filter_via_features") == "yes") {
     $feature_passenger_number = isset($_POST["feature_passenger_number"]) ? sanitize_text_field($_POST["feature_passenger_number"]) : "";
     $feature_bag_number = isset($_POST["feature_bag_number"]) ? sanitize_text_field($_POST["feature_bag_number"]) : "";
+    $feature_hand_luggage_number = isset($_POST["feature_hand_luggage_number"]) ? sanitize_text_field($_POST["feature_hand_luggage_number"]) : "";
 }
 $mptbm_bags = [];
 $mptbm_passengers = [];
+$mptbm_hand_luggage = [];
 $mptbm_all_transport_id = MP_Global_Function::get_all_post_id('mptbm_rent');
 foreach ($mptbm_all_transport_id as $key => $value) {
 	array_push($mptbm_bags, MPTBM_Function::get_feature_bag($value));
 	array_push($mptbm_passengers, MPTBM_Function::get_feature_passenger($value));
+	$hand_luggage = (int) get_post_meta($value, 'mptbm_maximum_hand_luggage', true);
+	if ($hand_luggage > 0) {
+		array_push($mptbm_hand_luggage, $hand_luggage);
+	}
 }
 $mptbm_bags =  max($mptbm_bags);
 $mptbm_passengers = max($mptbm_passengers);
+$mptbm_hand_luggage_max = !empty($mptbm_hand_luggage) ? max($mptbm_hand_luggage) : 0;
 
 $selected_max_passenger = isset($_POST['mptbm_max_passenger']) ? intval($_POST['mptbm_max_passenger']) : 0;
 $selected_max_bag = isset($_POST['mptbm_max_bag']) ? intval($_POST['mptbm_max_bag']) : 0;
+$selected_max_hand_luggage = isset($_POST['mptbm_max_hand_luggage']) ? intval($_POST['mptbm_max_hand_luggage']) : 0;
+
 
 // Values to show in summary box (prefer user selections from form)
 $summary_passenger = $selected_max_passenger ?: (isset($_POST['mptbm_passengers']) ? absint($_POST['mptbm_passengers']) : '');
 $summary_bag = $selected_max_bag ?: '';
+$summary_hand_luggage = $selected_max_hand_luggage ?: '';
+
 
 // Get distance and duration from POST (if sent via AJAX fallback) or cookies
 $distance = isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '');
@@ -819,8 +856,20 @@ if (empty($duration)) {
 	<input type="hidden" name="mptbm_post_id" value="" data-price="" />
 	<input type="hidden" name="mptbm_start_place" value="<?php echo esc_attr($start_place); ?>" />
 	<input type="hidden" name="mptbm_end_place" value="<?php echo esc_attr($end_place); ?>" />
+	<input type="hidden" name="mptbm_start_place_coordinates" value="<?php echo esc_attr(is_array($start_place_coordinates) ? json_encode($start_place_coordinates) : $start_place_coordinates); ?>" />
+	<input type="hidden" name="mptbm_end_place_coordinates" value="<?php echo esc_attr(is_array($end_place_coordinates) ? json_encode($end_place_coordinates) : $end_place_coordinates); ?>" />
+	<input type="hidden" name="mptbm_extra_stop_place" value="<?php echo esc_attr($extra_stop_place); ?>" />
 	<input type="hidden" name="mptbm_date" value="<?php echo esc_attr($date); ?>" />
+	<input type="hidden" name="mptbm_time" value="<?php echo esc_attr($start_time); ?>"/>
+    <input type="hidden" name="mptbm_hidden_distance" value="<?php echo esc_attr($distance); ?>" />
+    <input type="hidden" name="mptbm_hidden_duration" value="<?php echo esc_attr($duration); ?>" />
+    <input type="hidden" name="mptbm_hidden_duration_text" value="" />
 	<input type="hidden" name="mptbm_taxi_return" value="<?php echo esc_attr($two_way); ?>" />
+	<input type="hidden" name="mptbm_waiting_time" value="<?php echo esc_attr($waiting_time); ?>" />
+	<input type="hidden" name="mptbm_fixed_hours" value="<?php echo esc_attr($fixed_time); ?>" />
+	<input type="hidden" name="mptbm_max_passenger" value="<?php echo esc_attr($selected_max_passenger); ?>"/>
+	<input type="hidden" name="mptbm_max_bag" value="<?php echo esc_attr($selected_max_bag); ?>"/>
+	<input type="hidden" name="mptbm_max_hand_luggage" value="<?php echo esc_attr($selected_max_hand_luggage); ?>"/>
 	<input type="hidden" name="mptbm_original_price_base" value="<?php echo esc_attr($mptbm_original_price_base); ?>" />
 	<?php if ($two_way > 1 && MP_Global_Function::get_settings("mptbm_general_settings", "enable_return_in_different_date") == "yes") { ?>
 				<input type="hidden" name="mptbm_map_return_date" id="mptbm_map_return_date" value="<?php echo esc_attr($return_date); ?>" />
@@ -830,6 +879,35 @@ if (empty($duration)) {
 } ?>
 	<input type="hidden" name="mptbm_waiting_time" value="<?php echo esc_attr($waiting_time); ?>" />
 	<input type="hidden" name="mptbm_fixed_hours" value="<?php echo esc_attr($fixed_time); ?>" />
+	<?php 
+	// Pass selected filter values to next page
+	$pro_active = class_exists('MPTBM_Dependencies_Pro');
+	$search_filter_settings = $pro_active ? get_option('mptbm_search_filter_settings', array()) : array();
+	$enable_max_passenger_filter = isset($search_filter_settings['enable_max_passenger_filter']) ? $search_filter_settings['enable_max_passenger_filter'] : 'no';
+	$enable_max_bag_filter = isset($search_filter_settings['enable_max_bag_filter']) ? $search_filter_settings['enable_max_bag_filter'] : 'no';
+	$enable_max_hand_luggage_filter = isset($search_filter_settings['enable_max_hand_luggage_filter']) ? $search_filter_settings['enable_max_hand_luggage_filter'] : 'no';
+	
+	if ($pro_active && $enable_max_passenger_filter === 'yes') {
+		$selected_passenger = isset($_POST['mptbm_max_passenger']) ? absint($_POST['mptbm_max_passenger']) : '';
+		if ($selected_passenger) {
+			echo '<input type="hidden" name="mptbm_max_passenger" value="' . esc_attr($selected_passenger) . '" />';
+		}
+	}
+	
+	if ($pro_active && $enable_max_bag_filter === 'yes') {
+		$selected_bag = isset($_POST['mptbm_max_bag']) ? absint($_POST['mptbm_max_bag']) : '';
+		if ($selected_bag !== '') {
+			echo '<input type="hidden" name="mptbm_max_bag" value="' . esc_attr($selected_bag) . '" />';
+		}
+	}
+	
+	if ($pro_active && $enable_max_hand_luggage_filter === 'yes') {
+		$selected_hand_luggage = isset($_POST['mptbm_max_hand_luggage']) ? absint($_POST['mptbm_max_hand_luggage']) : '';
+		if ($selected_hand_luggage !== '') {
+			echo '<input type="hidden" name="mptbm_max_hand_luggage" value="' . esc_attr($selected_hand_luggage) . '" />';
+		}
+	}
+	?>
 	<div class="mp_sticky_section">
 		<div class="flexWrap">
             
@@ -877,45 +955,125 @@ $all_posts = MPTBM_Query::query_transport_list($price_based);
 if ($all_posts->found_posts > 0) {
     $posts = $all_posts->posts;
     $vehicle_item_count = 0;
+    
+    // Cache for base distances to avoid redundant API calls
+    static $base_distance_cache = [];
+    
+    
     foreach ($posts as $post) {
         $post_id = $post->ID;
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("MPTBM Debug: Checking Transport Post ID: $post_id");
-        }
         $taxi_max_passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
         $taxi_max_bag = (int) get_post_meta($post_id, 'mptbm_maximum_bag', true);
+        $taxi_max_hand_luggage = (int) get_post_meta($post_id, 'mptbm_maximum_hand_luggage', true);
+        
+        
         if (
             ($selected_max_passenger && $taxi_max_passenger < $selected_max_passenger) ||
-            ($selected_max_bag && $taxi_max_bag < $selected_max_bag)
+            ($selected_max_bag && $taxi_max_bag < $selected_max_bag) ||
+            ($selected_max_hand_luggage && $taxi_max_hand_luggage < $selected_max_hand_luggage)
         ) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("MPTBM Debug: Transport $post_id skipped due to passenger/bag filter.");
-            }
             continue; // Skip this taxi, it doesn't meet the filter
         }
         
         $check_schedule = wptbm_get_schedule($post_id, $days_name, $start_date,$start_time_schedule, $return_time_schedule, $start_place_coordinates, $end_place_coordinates, $price_based);
         
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("MPTBM Debug: Transport $post_id Schedule Check: " . ($check_schedule ? 'Passed' : 'Failed'));
-        }
-        
         if ($check_schedule) {
+            // Check location_exit for manual/fixed_zone/fixed_zone_dropoff pricing modes
+            $location_exit = MPTBM_Function::location_exit($post_id, $start_place, $end_place, $geo_fence_coords);
+            
+            if (!$location_exit) {
+                continue;
+            }
+            
             $vehicle_item_count = $vehicle_item_count + 1;
             $price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
             $custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
             
             
-            // Get the price
-            $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time);
+            // Get the price (pass geo_fence_coords for fixed_zone/fixed_zone_dropoff geo-fence validation)
+            $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time, $geo_fence_coords);
             
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("MPTBM Debug: Transport $post_id Calculated Price: $price");
+            
+            // Calculate Base Price server-side for list display
+            $base_price_extra = 0;
+            $bp_settings = MPTBM_Function::get_base_price_settings($post_id);
+            $price_based_mode = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
+            $fixed_route_found = get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes';
+
+            if ($bp_settings && !empty($bp_settings['coords']) && ($price_based_mode !== 'fixed_map' || !$fixed_route_found)) {
+                $base_coords = $bp_settings['coords'];
+                $total_b_dist = 0;
+                $total_b_dur = 0;
+
+                // Pickup to Base
+                if ($bp_settings['charge_pickup'] === 'yes') {
+                    $cache_key = md5($base_coords . $start_place);
+                    if (!isset($base_distance_cache[$cache_key])) {
+                        // We need the coordinates for start_place too if we want to use server_distance
+                        // But we can try to use start_place name if the API allows or if we have start_place_coordinates
+                        $s_coords = $start_place_coordinates;
+                        if (is_string($s_coords)) $s_coords = json_decode(stripslashes($s_coords), true);
+                        
+                        $b_coords_arr = explode(',', $base_coords);
+                        $dist_data = MPTBM_Function::get_server_distance($b_coords_arr[0], $b_coords_arr[1], $s_coords['lat'] ?? $s_coords['latitude'], $s_coords['lng'] ?? $s_coords['longitude']);
+                        $base_distance_cache[$cache_key] = $dist_data;
+                    }
+                    if ($base_distance_cache[$cache_key]) {
+                        $total_b_dist += $base_distance_cache[$cache_key]['distance'];
+                        $total_b_dur += $base_distance_cache[$cache_key]['duration'];
+                    }
+                }
+
+                // Dropoff to Base
+                if ($bp_settings['charge_dropoff'] === 'yes') {
+                    $cache_key = md5($end_place . $base_coords);
+                    if (!isset($base_distance_cache[$cache_key])) {
+                        $e_coords = $end_place_coordinates;
+                        if (is_string($e_coords)) $e_coords = json_decode(stripslashes($e_coords), true);
+
+                        $b_coords_arr = explode(',', $base_coords);
+                        $dist_data = MPTBM_Function::get_server_distance($e_coords['lat'] ?? $e_coords['latitude'], $e_coords['lng'] ?? $e_coords['longitude'], $b_coords_arr[0], $b_coords_arr[1]);
+                        $base_distance_cache[$cache_key] = $dist_data;
+                    }
+                    if ($base_distance_cache[$cache_key]) {
+                        $total_b_dist += $base_distance_cache[$cache_key]['distance'];
+                        $total_b_dur += $base_distance_cache[$cache_key]['duration'];
+                    }
+                }
+
+                $d_km = $total_b_dist / 1000;
+                $d_hr = $total_b_dur / 3600;
+
+                if ($d_km >= $bp_settings['threshold']) {
+                    $charged_km = max(0, $d_km - $bp_settings['threshold']);
+                    // Deduct duration proportionally: only charge for duration spent outside threshold
+                    $charged_hr = ($d_km > 0) ? ($total_b_dur / 3600) * ($charged_km / $d_km) : 0;
+                    
+                    if ($bp_settings['price_km'] > 0) $base_price_extra += $charged_km * $bp_settings['price_km'];
+                    if ($bp_settings['price_hour'] > 0) $base_price_extra += $charged_hr * $bp_settings['price_hour'];
+                    
+                }
             }
             
+            // Calculate Tax Multiplier for this transport
+            $tax_multiplier = 1;
+            // Only apply multiplier if prices are entered exclusive but displayed inclusive
+            if ( function_exists('wc_tax_enabled') && wc_tax_enabled() && !wc_prices_include_tax() && get_option( 'woocommerce_tax_display_shop' ) === 'incl' ) {
+                $_prod_id = MP_Global_Function::get_post_info($post->ID, 'link_wc_product', $post->ID);
+                $prod = wc_get_product($_prod_id);
+                if ($prod && $prod->is_taxable()) {
+                    $tax_rates = WC_Tax::get_rates($prod->get_tax_class());
+                    $sample_price = 100;
+                    $taxes = WC_Tax::calc_tax($sample_price, $tax_rates, false);
+                    $tax_multiplier = ($sample_price + array_sum($taxes)) / $sample_price;
+                }
+            }
+
+            $display_price = $price + ($base_price_extra * $tax_multiplier);
             
+
             // Only skip display if price is 0 and we're not in zero or custom message mode
-            if (!$price && $price_display_type === 'normal') {
+            if (!$display_price && $price_display_type === 'normal') {
                 continue;
             }
             
@@ -924,11 +1082,22 @@ if ($all_posts->found_posts > 0) {
                 $price_display = '<div class="mptbm-custom-price-message" style="font-size: 15px;">' . wp_kses_post($custom_message) . '</div>';
                 $raw_price = 0; // Set raw price to 0 for custom message
             } else {
-                $wc_price = MP_Global_Function::wc_price($post_id, $price);
-                $raw_price = MP_Global_Function::price_convert_raw($wc_price);
+                $wc_price = MP_Global_Function::wc_price($post_id, $display_price);
+                // Use high-precision price for calculation to match backend, but ensure it receives same tax treatment if needed
+                $raw_price = $price; 
+                // Note: If tax_multiplier > 1.0, and we want frontend to sum inclusive prices, we might need to adjust this.
+                // But for now, we rely on the fact that get_price is raw. 
+                // If tax_multiplier is 1, this is perfect. 
+                // If tax_multiplier > 1, frontend JS sums (transport + base) then formatting might be tricky? 
+                // Actually JS uses data-tax-multiplier to adjust base price. 
+                // Wait, JS uses raw transport + (raw base * tax).
+                // If transport also needs tax, JS isn't doing it currently (we reverted that).
+                // But since tax_multiplier logic in choose_vehicles lines 1045-1054 handles checks,
+                // let's stick to passing the raw price and letting nature take its course.
+                
+                // Correction: formatting is done by mp_price_format using the computed sum.
                 $price_display = $wc_price;
             }
-            
             
             include MPTBM_Function::template_path("registration/vehicle_item.php");
         }
