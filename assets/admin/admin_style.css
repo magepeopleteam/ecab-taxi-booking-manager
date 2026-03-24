@@ -19,7 +19,9 @@
 #mp_meta_box_panel .postbox-header .handle-actions {
   margin-top: 0;
 }
-#mp_meta_box_panel .postbox-header .handle-actions .handle-order-higher, #mp_meta_box_panel .postbox-header .handle-actions .handle-order-lower, #mp_meta_box_panel .postbox-header .handle-actions .toggle-indicator {
+#mp_meta_box_panel .postbox-header .handle-actions .handle-order-higher, 
+#mp_meta_box_panel .postbox-header .handle-actions .handle-order-lower, 
+#mp_meta_box_panel .postbox-header .handle-actions .toggle-indicator {
   color: var(--mptbm-white);
 }
 #mp_meta_box_panel .postbox-header h2 span {
@@ -41,6 +43,13 @@
   color: #fff;
   font-weight: normal;
   position: relative;
+}
+#mp_meta_box_panel .mptbm_settings .tabLists li.active i{
+  color: #fff;
+}
+
+#mp_meta_box_panel .mptbm_settings .tabLists li span{
+  color: #333;
 }
 #mp_meta_box_panel .mptbm_settings .tabLists li.active span{
   color: #fff;
@@ -70,7 +79,7 @@
 #mp_meta_box_panel .leftTabs [data-tabs-target]::after {
   border: 0;
 }
-#mp_meta_box_panel .mptbm_settings .tabLists li span {
+#mp_meta_box_panel .mptbm_settings .tabLists li i {
   margin-right:10px;
   color: var(--color_theme);
 }
@@ -493,6 +502,10 @@ div.mp_global_settings .mpPanel .mpPanelBody .mpTabs .tabLists {
   width: auto;
 }
 
+#mp_meta_box_panel .mptbm_settings .tabLists .mptbm-sidebar-toggle{
+  display: none;
+}
+
 @media only screen and (min-width: 10px) {
   div.mpStyle .mp_sticky_area.mpSticky {
     position: relative;
@@ -505,4 +518,53 @@ div.mp_global_settings .mpPanel .mpPanelBody .mpTabs .tabLists {
   }
 }
 
-/*# sourceMappingURL=admin_style.css.map */
+@media (max-width: 1400px) {
+  #mp_meta_box_panel .mptbm_settings .tabLists {
+    width: auto;
+    border-right: 1px solid #ddd;
+    position: relative;
+  }
+  #mp_meta_box_panel .mptbm_settings .tabLists.mptbm-sidebar-collapsed{
+    width: 30%;
+  }
+  
+  #mp_meta_box_panel .mptbm_settings .tabLists .mptbm-sidebar-toggle{
+    display: block;
+    position: absolute;
+    top: 40px;
+    right: -20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    color: var(--color_theme);
+    width: 20px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 2;
+  }
+   
+  
+  #mp_meta_box_panel .mptbm_settings .tabLists li .menu-text {
+    display: none;
+  }
+
+  #mp_meta_box_panel .mptbm_settings .leftTabs-collapsed .tabLists li .menu-text {
+    display: block;
+  }
+
+  #mp_meta_box_panel .mptbm_settings .leftTabs-collapsed .tabLists li i{
+    margin-right:10px;
+  }
+
+  #mp_meta_box_panel .mptbm_settings .tabLists li i{
+    margin-right: 0;
+  }
+
+  #mp_meta_box_panel .mptbm_settings .tabsContent{
+    width: auto;
+    padding-left: 40px;
+  }
+  
+}

@@ -29,55 +29,57 @@ if (!class_exists('MPTBM_Settings')) {
 			<input type="hidden" name="mptbm_post_id" value="<?php echo esc_attr($post_id); ?>" />
 			<div class="mpStyle mptbm_settings">
 				<div class="mpTabs leftTabs">
-					<ul class="tabLists">
-						<li data-tabs-target="#mptbm_general_info">
-							<span class="pe-1 fas fa-tools"></span><?php esc_html_e('General Info', 'ecab-taxi-booking-manager'); ?>
+					<ul class="tabLists mptbm-sidebar">
+						<div class="mptbm-sidebar-toggle">
+							<i class="mi mi-angle-right"></i>
+						</div>
+						<li data-tabs-target="#mptbm_general_info" title="<?php esc_html_e('General Info', 'ecab-taxi-booking-manager'); ?>">
+							<i class="fas fa-tools"></i> <span class="menu-text"><?php esc_html_e('General Info', 'ecab-taxi-booking-manager'); ?></span>
 						</li>
-						<li data-tabs-target="#mptbm_settings_date">
-							<span class="pe-1 fas fa-calendar-alt"></span><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?>
+						<li data-tabs-target="#mptbm_settings_date" title="<?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?>">
+							<i class="fas fa-calendar-alt"></i><span class="menu-text"><?php esc_html_e('Date', 'ecab-taxi-booking-manager'); ?></span>
 						</li>
 
 						<?php if (
-    class_exists('MPTBM_Plugin_Pro') &&
-    isset($_SERVER['HTTP_HOST']) &&
-    $_SERVER['HTTP_HOST'] !== 'chichesterstationtaxis.co.uk'
-) { ?>
-    <li data-tabs-target="#mptbm_settings_base_price">
-        <span class="pe-1 fas fa-tags"></span>
-        <?php esc_html_e('Base Price', 'ecab-taxi-booking-manager'); ?>
-    </li>
-<?php } ?>
-						<li data-tabs-target="#mptbm_settings_pricing">
-							<span class="pe-1 fas fa-hand-holding-usd"></span><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?>
+							class_exists('MPTBM_Plugin_Pro') &&
+							isset($_SERVER['HTTP_HOST']) &&
+							$_SERVER['HTTP_HOST'] !== 'chichesterstationtaxis.co.uk'
+						) { ?>
+							<li data-tabs-target="#mptbm_settings_base_price" title="<?php esc_html_e('Base Price', 'ecab-taxi-booking-manager'); ?>">
+								<i class="fas fa-tags"></i> <span class="menu-text"><?php esc_html_e('Base Price', 'ecab-taxi-booking-manager'); ?></span>
+							</li>
+						<?php } ?>
+						<li data-tabs-target="#mptbm_settings_pricing" title="<?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?>">
+							<i class="fas fa-hand-holding-usd"></i><span class="menu-text"><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?></span>
 						</li>
 						<?php if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) { ?>
-						<li data-tabs-target="#mptbm_peak_hour_pricing">
-							<span class="pe-1 fas fa-clock"></span><?php esc_html_e('Peak Hour Pricing', 'ecab-taxi-booking-manager'); ?>
+						<li data-tabs-target="#mptbm_peak_hour_pricing" title="<?php esc_html_e('Peak Hour Pricing', 'ecab-taxi-booking-manager'); ?>">
+							<i class="fas fa-clock"></i><span class="menu-text"><?php esc_html_e('Peak Hour Pricing', 'ecab-taxi-booking-manager'); ?></span>
 						</li>
 						<?php } ?>
 						<?php if (class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) { ?>
-						<li data-tabs-target="#mptbm_distance_tier_pricing">
-							<span class="pe-1 fas fa-route"></span><?php esc_html_e('Distance Tier Pricing', 'ecab-taxi-booking-manager'); ?>
+						<li data-tabs-target="#mptbm_distance_tier_pricing" title="<?php esc_html_e('Distance Tier Pricing', 'ecab-taxi-booking-manager'); ?>">
+							<i class="fas fa-route"></i><span class="menu-text"><?php esc_html_e('Distance Tier Pricing', 'ecab-taxi-booking-manager'); ?></span>
 						</li>
 						<?php } ?>
-						<li data-tabs-target="#mptbm_settings_ex_service">
-							<span class="pe-1 fas fa-puzzle-piece"></span><?php esc_html_e('Extra Service', 'ecab-taxi-booking-manager'); ?>
+						<li data-tabs-target="#mptbm_settings_ex_service" title="<?php esc_html_e('Extra Service', 'ecab-taxi-booking-manager'); ?>">
+							<i class="fas fa-puzzle-piece"></i><span class="menu-text"><?php esc_html_e('Extra Service', 'ecab-taxi-booking-manager'); ?></span>
 						</li>
 						<?php
 						if (class_exists('MPTBM_Plugin_Pro')) {
 						?>
-							<li data-tabs-target="#mptbm_setting_operation_area">
-								<span class="pe-1 fas fa-map-marker-alt"></span><?php esc_html_e('Operation Area', 'ecab-taxi-booking-manager'); ?>
+							<li data-tabs-target="#mptbm_setting_operation_area" title="<?php esc_html_e('Operation Area', 'ecab-taxi-booking-manager'); ?>">
+								<i class="fas fa-map-marker-alt"></i><span class="menu-text"><?php esc_html_e('Operation Area', 'ecab-taxi-booking-manager'); ?></span>
 							</li>
 							<?php do_action('add_mptbm_settings_tab_after_ex_service'); ?>
 						<?php
 						}
 						?>
-						<li data-tabs-target="#wbtm_settings_tax">
-							<span class="fas fa-hand-holding-usd"></span><?php esc_html_e('Tax Configure', 'ecab-taxi-booking-manager'); ?>
+						<li data-tabs-target="#wbtm_settings_tax" title="<?php esc_html_e('Tax Configure', 'ecab-taxi-booking-manager'); ?>">
+							<i class="fas fa-hand-holding-usd"></i><span class="menu-text"><?php esc_html_e('Tax Configure', 'ecab-taxi-booking-manager'); ?></span>
 						</li>
 					</ul>
-					<div class="tabsContent" style= "padding: 1% !important;">
+					<div class="tabsContent">
 						<?php do_action('add_mptbm_settings_tab_content', $post_id); ?>
 					</div>
 				</div>
