@@ -59,4 +59,11 @@
 			});
 		});
 	}
+	
+    $(document).on('click', '.mptbm-sidebar-toggle', function() {
+        $('.mptbm-sidebar-toggle i').toggleClass('mi-angle-right mi-angle-left');
+        $('.tabLists.mptbm-sidebar').closest('.leftTabs').toggleClass('leftTabs-collapsed');
+        $('.tabLists.mptbm-sidebar').toggleClass('mptbm-sidebar-collapsed');
+    });
+
 }(jQuery));
