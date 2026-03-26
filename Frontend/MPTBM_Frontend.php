@@ -12,13 +12,12 @@
 				$this->load_file();
 				add_filter('single_template', array($this, 'load_single_template'));
 			}
-			private function load_file(): void {
-				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Shortcodes.php';
-				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Transport_Search.php';
-				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Woocommerce.php';
-				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Wc_Checkout_Fields_Helper.php';
-				
-			}
+		private function load_file(): void {
+			require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Shortcodes.php';
+			require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Transport_Search.php';
+			require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Woocommerce.php';
+			require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Vehicle_Form_Frontend.php';
+		}
 			public function load_single_template($template): string {
 				global $post;
 				if ($post->post_type && $post->post_type == MPTBM_Function::get_cpt()) {

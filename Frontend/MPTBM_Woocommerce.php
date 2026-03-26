@@ -314,8 +314,22 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					$cart_item_data['mptbm_return_target_date'] = $return_target_date;
 					$cart_item_data['mptbm_return_target_time'] = $return_target_time;
 				}
-				$cart_item_data['original_price_based'] = isset($_POST['mptbm_original_price_base']) && $_POST['mptbm_original_price_base'] ? sanitize_text_field($_POST['mptbm_original_price_base']) : (isset($_POST['mptbm_price_based']) ? sanitize_text_field($_POST['mptbm_price_based']) : '');
-				$cart_item_data = apply_filters('mptbm_add_cart_item', $cart_item_data, $post_id);
+			$cart_item_data['original_price_based'] = isset($_POST['mptbm_original_price_base']) && $_POST['mptbm_original_price_base'] ? sanitize_text_field($_POST['mptbm_original_price_base']) : (isset($_POST['mptbm_price_based']) ? sanitize_text_field($_POST['mptbm_price_based']) : '');
+
+			// ── Vehicle-Select custom form data ──────────────────────────────
+			// Pick up mptbm_vf_* fields submitted from the vehicle-select form
+			// and store them in cart item data so checkout & orders can access them.
+			foreach ( $_POST as $post_key => $post_val ) {
+				if ( strpos( $post_key, 'mptbm_vf_' ) === 0 ) {
+					if ( is_array( $post_val ) ) {
+						$cart_item_data[ $post_key ] = array_map( 'sanitize_text_field', $post_val );
+					} else {
+						$cart_item_data[ $post_key ] = sanitize_text_field( $post_val );
+					}
+				}
+			}
+
+			$cart_item_data = apply_filters('mptbm_add_cart_item', $cart_item_data, $post_id);
 			}
 			$cart_item_data['mptbm_id'] = $post_id;
 			// echo '<pre>';print_r($cart_item_data);echo '</pre>';
@@ -826,7 +840,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							
 
 							$booking_data = apply_filters('add_mptbm_booking_data', $data, $post_id);
-							self::add_cpt_data('mptbm_booking', $booking_data['mptbm_billing_name'], $booking_data);
+							$booking_post_id = self::add_cpt_data('mptbm_booking', $booking_data['mptbm_billing_name'], $booking_data);
+							if ($booking_post_id) {
+								do_action('mptbm_booking_created', $booking_post_id, $order_id);
+							}
 
 							if (sizeof($service_info) > 0) {
 								foreach ($service_info as $service) {
@@ -1244,6 +1261,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$mptbm_pin = $meta_data['mptbm_user_id'] . $meta_data['mptbm_order_id'] . $meta_data['mptbm_id'] . $post_id;
 				update_post_meta($post_id, 'mptbm_pin', $mptbm_pin);
 			}
+			return $post_id;
 		}
 		/****************************/
 		public function mptbm_add_to_cart()

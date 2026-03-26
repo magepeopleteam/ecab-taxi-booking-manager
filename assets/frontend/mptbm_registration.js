@@ -2712,11 +2712,13 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
         target_extra_service_summary.slideDown(400).html('');
         parent.find('[name="mptbm_post_id"]').val('');
         parent.find('.mptbm_checkout_area').html('');
+        removeVehicleSelectForm(parent);
 
         if ($this.hasClass('active_select')) {
             $this.removeClass('active_select');
             mp_all_content_change($this);
             target_summary.slideUp(400);
+            checkAndToggleBookNowButton(parent);
         } else {
             parent.find('.mptbm_transport_select.active_select').each(function () {
                 $(this).removeClass('active_select');
@@ -2806,23 +2808,34 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                             if (!data || data.length < 100) {
                             }
                             target_extra_service_summary.html(data).promise().done(function () {
-                                if (target_extra_service.find('[name="mptbm_extra_service[]"]').length > 0) {
-                                    target_summary.slideDown(400);
-                                    target_extra_service.slideDown(400);
-                                    target_extra_service_summary.slideDown(400);
-                                    pageScrollTo(target_extra_service);
-                                }
-                                dLoaderRemove(parent.find('.tabsContentNext'));
-                                if (!target_extra_service.find('[name="mptbm_extra_service[]"]').length) {
-                                    parent.find('.mptbm_book_now[type="button"]').trigger('click');
-                                } else {
-                                    checkAndToggleBookNowButton(parent);
-                                }
-                                if (mptbm_is_ios()) {
-                                    target_extra_service_summary[0].style.display = 'none';
-                                    void target_extra_service_summary[0].offsetHeight;
-                                    target_extra_service_summary[0].style.display = '';
-                                }
+                                loadVehicleSelectForm(parent, post_id, $this.closest('.mptbm_booking_item'), function (hasVehicleForm) {
+                                    let extraServicesAvailable = target_extra_service.find('[name="mptbm_extra_service[]"]').length > 0;
+
+                                    if (extraServicesAvailable) {
+                                        target_summary.slideDown(400);
+                                        target_extra_service.slideDown(400);
+                                        target_extra_service_summary.slideDown(400);
+                                    }
+
+                                    dLoaderRemove(parent.find('.tabsContentNext'));
+
+                                    if (!extraServicesAvailable && !hasVehicleForm) {
+                                        parent.find('.mptbm_book_now[type="button"]').trigger('click');
+                                    } else {
+                                        checkAndToggleBookNowButton(parent);
+                                        if (hasVehicleForm) {
+                                            pageScrollTo(parent.find('.mptbm-vfb-select-container'));
+                                        } else if (extraServicesAvailable) {
+                                            pageScrollTo(target_extra_service);
+                                        }
+                                    }
+
+                                    if (mptbm_is_ios()) {
+                                        target_extra_service_summary[0].style.display = 'none';
+                                        void target_extra_service_summary[0].offsetHeight;
+                                        target_extra_service_summary[0].style.display = '';
+                                    }
+                                });
                             });
                         }
                     });
@@ -2854,11 +2867,155 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
         checkAndToggleBookNowButton(parent);
     });
 
+    function removeVehicleSelectForm(parent) {
+        parent.find('.mptbm-vfb-select-container').remove();
+        parent.removeData('mptbm_vfb_sel_data');
+        parent.data('mptbm_has_vehicle_form', false);
+    }
+
+    function loadVehicleSelectForm(parent, postId, targetVehicle, callback) {
+        removeVehicleSelectForm(parent);
+
+        if (!postId) {
+            if (typeof callback === 'function') {
+                callback(false);
+            }
+            return;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: mp_ajax_url,
+            dataType: 'json',
+            data: {
+                action: 'mptbm_vfb_get_vehicle_form',
+                vehicle_id: postId
+            },
+            success: function (response) {
+                let hasForm = !!(response && response.success && response.data && response.data.html);
+                parent.data('mptbm_has_vehicle_form', hasForm);
+
+                if (hasForm) {
+                    let $container = $('<div class="mptbm-vfb-select-container"></div>').html(response.data.html);
+                    let $targetVehicle = targetVehicle && targetVehicle.length ? targetVehicle : parent.find('.mptbm_booking_item.selected').last();
+
+                    if ($targetVehicle.length) {
+                        $targetVehicle.after($container);
+                    } else if (parent.find('.mptbm_extra_service').length) {
+                        parent.find('.mptbm_extra_service').before($container);
+                    } else {
+                        parent.find('.tabsContentNext').last().append($container);
+                    }
+                }
+
+                if (typeof callback === 'function') {
+                    callback(hasForm);
+                }
+            },
+            error: function () {
+                parent.data('mptbm_has_vehicle_form', false);
+                if (typeof callback === 'function') {
+                    callback(false);
+                }
+            }
+        });
+    }
+
+    function validateVehicleSelectForm(parent) {
+        let valid = true;
+        let container = parent.find('.mptbm-vfb-select-container');
+
+        if (!container.length) {
+            return true;
+        }
+
+        container.find('.mptbm-vfb-sel-row').each(function () {
+            let $row = $(this);
+            let $requiredFields = $row.find('[required]');
+
+            $row.find('.mptbm-vfb-sel-error-msg').remove();
+            $row.find('.mptbm-vfb-sel-required-error').removeClass('mptbm-vfb-sel-required-error');
+
+            if (!$requiredFields.length) {
+                return;
+            }
+
+            let $radioFields = $row.find('input[type="radio"][data-uid]');
+            let $checkboxFields = $row.find('input[type="checkbox"][data-uid]');
+            let $textField = $row.find('.mptbm-vfb-sel-input').first();
+            let hasValue = false;
+
+            if ($radioFields.length) {
+                hasValue = $radioFields.filter(':checked').length > 0;
+            } else if ($checkboxFields.length) {
+                hasValue = $checkboxFields.filter(':checked').length > 0;
+            } else {
+                hasValue = $.trim($textField.val()) !== '';
+            }
+
+            if (!hasValue) {
+                valid = false;
+
+                if ($radioFields.length) {
+                    $radioFields.addClass('mptbm-vfb-sel-required-error');
+                } else if ($checkboxFields.length) {
+                    $checkboxFields.addClass('mptbm-vfb-sel-required-error');
+                } else {
+                    $textField.addClass('mptbm-vfb-sel-required-error');
+                }
+
+                let label = $row.find('label').first().text().replace('*', '').trim();
+                $row.append('<span class="mptbm-vfb-sel-error-msg">' + label + ' is required.</span>');
+            }
+        });
+
+        return valid;
+    }
+
+    function collectVehicleSelectFormData(parent) {
+        let data = {};
+        let container = parent.find('.mptbm-vfb-select-container');
+
+        if (!container.length) {
+            return data;
+        }
+
+        container.find('[data-uid]').each(function () {
+            let $field = $(this);
+            let uid = $field.data('uid');
+
+            if (!uid) {
+                return;
+            }
+
+            if ($field.is(':checkbox')) {
+                if (!data[uid]) {
+                    data[uid] = [];
+                }
+                if ($field.is(':checked')) {
+                    data[uid].push($field.val());
+                }
+            } else if ($field.is(':radio')) {
+                if ($field.is(':checked')) {
+                    data[uid] = $field.val();
+                } else if (typeof data[uid] === 'undefined') {
+                    data[uid] = '';
+                }
+            } else {
+                data[uid] = $field.val();
+            }
+        });
+
+        parent.data('mptbm_vfb_sel_data', data);
+        return data;
+    }
+
     function checkAndToggleBookNowButton(parent) {
         // Check if there are any extra services present
         let extraServicesAvailable = parent.find('[name="mptbm_extra_service[]"]').length > 0;
+        let vehicleFormAvailable = !!parent.data('mptbm_has_vehicle_form');
 
-        if (extraServicesAvailable) {
+        if (extraServicesAvailable || vehicleFormAvailable) {
             parent.find('.mptbm_book_now[type="button"]').show();
         } else {
             parent.find('.mptbm_book_now[type="button"]').hide();
@@ -2932,8 +3089,17 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
         let mptbm_threshold_base_price = parent.find('[name="mptbm_post_id"]').attr('data-base-price-calculated') || 0;
 
         if (start_place !== '' && end_place !== '' && link_id && post_id) {
+            if (!validateVehicleSelectForm(parent)) {
+                let firstError = parent.find('.mptbm-vfb-sel-required-error').first();
+                if (firstError.length) {
+                    pageScrollTo(firstError);
+                }
+                return false;
+            }
+
             let extra_service_name = {};
             let extra_service_qty = {};
+            let vehicleFormData = collectVehicleSelectFormData(parent);
             let count = 0;
             parent.find('[name="mptbm_extra_service[]"]').each(function () {
                 let ex_name = $(this).val();
@@ -2984,37 +3150,43 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 }
             }
 
+            let addToCartData = {
+                action: "mptbm_add_to_cart",
+                //"product_id": post_id,
+                transport_quantity: quantity,
+                link_id: link_id,
+                mptbm_start_place: start_place,
+                mptbm_end_place: end_place,
+                mptbm_waiting_time: mptbm_waiting_time,
+                mptbm_taxi_return: mptbm_taxi_return,
+                mptbm_fixed_hours: mptbm_fixed_hours,
+                mptbm_date: date,
+                mptbm_return_date: return_target_date,
+                mptbm_return_time: return_target_time,
+                mptbm_extra_service: extra_service_name,
+                mptbm_extra_service_qty: extra_service_qty,
+                mptbm_passengers: parent.find('#mptbm_passengers').val(),
+                mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
+                mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                mptbm_extra_stop_place: parent.find('input[name="mptbm_extra_stop_place"]').val(),
+                mptbm_original_price_base: mptbm_original_price_base,
+                mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
+                mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
+                mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
+                start_place_coordinates: start_place_coordinates ? JSON.stringify(start_place_coordinates) : '',
+                end_place_coordinates: end_place_coordinates ? JSON.stringify(end_place_coordinates) : '',
+                mptbm_threshold_base_price: mptbm_threshold_base_price
+            };
+
+            $.each(vehicleFormData, function (uid, value) {
+                addToCartData['mptbm_vf_' + uid] = value;
+            });
+
             $.ajax({
                 type: 'POST',
                 url: mp_ajax_url,
-                data: {
-                    action: "mptbm_add_to_cart",
-                    //"product_id": post_id,
-                    transport_quantity: quantity,
-                    link_id: link_id,
-                    mptbm_start_place: start_place,
-                    mptbm_end_place: end_place,
-                    mptbm_waiting_time: mptbm_waiting_time,
-                    mptbm_taxi_return: mptbm_taxi_return,
-                    mptbm_fixed_hours: mptbm_fixed_hours,
-                    mptbm_date: date,
-                    mptbm_return_date: return_target_date,
-                    mptbm_return_time: return_target_time,
-                    mptbm_extra_service: extra_service_name,
-                    mptbm_extra_service_qty: extra_service_qty,
-                    mptbm_passengers: parent.find('#mptbm_passengers').val(),
-                    mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
-                    mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
-                    mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                    mptbm_extra_stop_place: parent.find('input[name="mptbm_extra_stop_place"]').val(),
-                    mptbm_original_price_base: mptbm_original_price_base,
-                    mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
-                    mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
-                    mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
-                    start_place_coordinates: start_place_coordinates ? JSON.stringify(start_place_coordinates) : '',
-                    end_place_coordinates: end_place_coordinates ? JSON.stringify(end_place_coordinates) : '',
-                    mptbm_threshold_base_price: mptbm_threshold_base_price
-                },
+                data: addToCartData,
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));
                 },
