@@ -213,7 +213,7 @@ if (sizeof($all_dates) > 0) {
 						<input type="hidden" id="mptbm_map_start_date" value="" />
 						<span><?php echo mptbm_get_translation('pickup_date_label', __('Pickup Date', 'ecab-taxi-booking-manager')); ?></span>
 						<input type="text" id="mptbm_start_date" class="formControl" placeholder="<?php echo mptbm_get_translation('select_date_label', __('Select Date', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
-						<span class="far fa-calendar-alt mptbm_left_icon allCenter"></span>
+						<span class="mi mi-calendar mptbm_left_icon allCenter"></span>
 					</label>
 				</div>
 
@@ -222,7 +222,7 @@ if (sizeof($all_dates) > 0) {
 					<label class="fdColumn">
 						<span><?php echo mptbm_get_translation('pickup_time_label', __('Pickup Time', 'ecab-taxi-booking-manager')); ?></span>
 						<input type="text" id="mptbm_start_time" class="formControl" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
-						<span class="far fa-clock mptbm_left_icon allCenter"></span>
+						<span class="mi mi-clock-three mptbm_left_icon allCenter"></span>
 					</label>
 
 					<ul class="mp_input_select_list start_time_list">
@@ -338,7 +338,7 @@ if (sizeof($all_dates) > 0) {
 						<?php } else { ?>
 							<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_pick_up_location_label', __('Enter Pick-Up Location', 'ecab-taxi-booking-manager')); ?>" value="" />
 						<?php } ?>
-						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
+						<i class="mi mi-marker mptbm_left_icon allCenter"></i>
 					</label>
 				</div>
 				<?php 
@@ -356,7 +356,7 @@ if (sizeof($all_dates) > 0) {
 							<span><?php echo mptbm_get_translation('extra_stop_location_label', __('Extra Stop Location', 'ecab-taxi-booking-manager')); ?></span>
                             <div style="position: relative; width: 100%;">
 							    <input type="text" id="mptbm_map_extra_stop_place" name="mptbm_extra_stop_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_extra_stop_location_placeholder', __('Enter Extra Stop Location', 'ecab-taxi-booking-manager')); ?>" value="" />
-							    <i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
+							    <i class="mi mi-marker mptbm_left_icon allCenter"></i>
                             </div>
                             <span id="mptbm_remove_extra_stop" style="display: inline-block; text-align: right; margin-top: 8px; margin-bottom: 8px; cursor: pointer; color: #dc3545; font-size: 12px; align-self: flex-end;">
                                 <i class="fas fa-times"></i> <?php echo mptbm_get_translation('remove_label', __('Remove', 'ecab-taxi-booking-manager')); ?>
@@ -417,7 +417,7 @@ if (sizeof($all_dates) > 0) {
         <?php } else { ?>
             <input type="text" id="mptbm_map_end_place" class="formControl textCapitalize" placeholder="<?php echo mptbm_get_translation('enter_dropoff_location_placeholder', __(' Enter Drop-Off Location', 'ecab-taxi-booking-manager')); ?>" value="" />
         <?php } ?>
-        <i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
+        <i class="mi mi-marker mptbm_left_icon allCenter"></i>
     </label>
 </div>
 <?php else: ?>
@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
 								<option value="1" selected><?php echo mptbm_get_translation('one_way_label', __('One Way', 'ecab-taxi-booking-manager')); ?></option>
 								<option data-option-target="#different_date_return" value="2"><?php echo mptbm_get_translation('return_label', __('Return', 'ecab-taxi-booking-manager')); ?></option>
 							</select>
-							<i class="fas fa-exchange-alt mptbm_left_icon allCenter"></i>
+							<i class="mi mi-exchange mptbm_left_icon allCenter"></i>
 						</label>
 					</div>
 					<?php
@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
 								<option value="5">5 <?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></option>
 								<option value="6">6 <?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></option>
 							</select>
-							<i class="far fa-clock mptbm_left_icon allCenter"></i>
+							<i class="mi mi-hourglass-start mptbm_left_icon allCenter"></i>
 						</label>
 					</div>
 				<?php } ?>
