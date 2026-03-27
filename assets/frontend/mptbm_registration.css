@@ -501,6 +501,12 @@ div.mptbm_transport_search_area button.mptbm_transport_select:hover span{
 	div.mptbm_transport_search_area div.tabsContentNext{
         padding: 10px;
 	}
+	.mpTabsNext .tabItemNext.active [class*="circleIcon"]::after{
+		border-width:1px;
+	}
+	.mpTabsNext .tabItemNext [class*="circleIcon"]::after{
+		border-width:1px;
+	}
 	.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]{
 		border: 1px solid var(--color_theme);
 	}
