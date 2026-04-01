@@ -518,7 +518,7 @@ div.mp_global_settings .mpPanel .mpPanelBody .mpTabs .tabLists {
   }
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 960px) {
   #mp_meta_box_panel .mptbm_settings .tabLists {
     width: auto;
     border-right: 1px solid #ddd;
