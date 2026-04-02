@@ -90,8 +90,8 @@
 	div.mptbm_transport_search_area .mptbm_search_area h3 {text-transform: uppercase;color: #152C5B;}
 	div.mptbm_transport_search_area .mptbm_search_area label {font-weight: 400;color: #152C5B;}
 	div.mptbm_transport_search_area .mptbm_search_area label .formControl {
-		height: 47px;background-color: #F5F6F8;color: #222222;font-weight: 400;
-		padding: var(--dmp_xs) 35px var(--dmp_xs) var(--dmp_xs);border-color: #EBECEE;
+		height: 36px;background-color: #F5F6F8;color: #222222;font-weight: 400;
+		border-color: #EBECEE;
 		background-image: url('../../mp_global/assets/images/arrow_down.png'); background-repeat: no-repeat; background-position: calc(100% - var(--dmp_xs)); background-size: auto;
 		-webkit-appearance: none;
 	}
@@ -118,17 +118,34 @@
 		margin-top: 20px;
 		z-index: 10;
 	}
-	div.mptbm_transport_search_area #mptbm_start_date.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+	div.mptbm_transport_search_area #mptbm_start_date.formControl,
+	div.mptbm_transport_search_area div.mp_input_select .formControl,
+	div.mptbm_transport_search_area #mptbm_map_start_place.formControl,
+	div.mptbm_transport_search_area #mptbm_map_end_place.formControl,
+	div.mptbm_transport_search_area #mptbm_taxi_return.formControl  {
+		padding: 10px;
+		padding-left:35px;
+	}
 	div.mptbm_transport_search_area #mptbm_return_date.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
 	div.mptbm_transport_search_area #mptbm_manual_start_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
 	div.mptbm_transport_search_area #mptbm_manual_end_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area #mptbm_taxi_return.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area #mptbm_map_start_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area #mptbm_map_end_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
+ 
+
 	div.mptbm_transport_search_area #mptbm_map_extra_stop_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
 	#mptbm_fixed_hours.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area div.mp_input_select .formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area .mptbm_left_icon { position: absolute; left: 1px; bottom: 1px; width: 45px !important; font-size: 25px; color: var(--color_theme); background-color: transparent; border-radius: var(--dbr) 0 0 var(--dbr); height: 46px; margin: 0 !important;}
+
+	.mptbm_transport_search_area  .mpForm  .mptbm_left_icon { 
+		position: absolute; 
+		left: 1px; 
+		bottom: 1px; 
+		width: 35px ; 
+		height: 35px; 
+		font-size:20px; 
+		color: var(--color_theme); 
+		background-color: transparent; 
+		border-radius: var(--dbr) 0 0 var(--dbr); 
+		margin: 0 !important;
+	}
 	/*********************/
 	div.mptbm_transport_search_area .leftSidebar h3 {color: #152C5B; font-size: 24px;font-weight: 700;text-transform: uppercase;}
 	div.mptbm_transport_search_area .leftSidebar h6 {color: #152C5B;font-size: 17px;font-weight: 600;}
@@ -232,13 +249,7 @@
 	div.mptbm_transport_search_area div.mptbm_list_details [class*="_min_150"],
 	div.mptbm_transport_search_area button.mptbm_transport_select {width: auto;min-width: 100px;}
 }
-@media only screen and (max-width: 600px) {
-	div.mptbm_transport_search_area .mptbm_search_area {padding: 20px;}
-	div.mptbm_transport_search_area .mpTabsNext .tabItemNext { min-height: 60px; }
-	div.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"] {width: 30px;height: 30px;min-width: 30px;font-size: var(--fs);}
-	div.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]::after {top: 15px;left: calc(50% + 15px);}
-	div.mptbm_transport_search_area .mpTabsNext .tabItemNext .circleTitle {font-size: 12px;top: 35px;}
-}
+
 .mptbm_transport_search_area{
 	margin: 0 auto;
 }
@@ -480,3 +491,33 @@ div.mptbm_transport_search_area button.mptbm_transport_select:hover span{
   .mp_quantity_input:focus {
 	outline: none;
   }
+@media only screen and (max-width: 600px) {
+	div.mptbm_transport_search_area .mptbm_search_area {
+		padding: 10px;
+	}
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext { min-height: 60px; }
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"] {width: 30px;height: 30px;min-width: 30px;font-size: var(--fs);}
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]::after {top: 15px;left: calc(50% + 15px);}
+	div.mptbm_transport_search_area div.tabsContentNext{
+        padding: 10px;
+	}
+	.mpTabsNext .tabItemNext.active [class*="circleIcon"]::after{
+		border-width:1px;
+	}
+	.mpTabsNext .tabItemNext [class*="circleIcon"]::after{
+		border-width:1px;
+	}
+	.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]{
+		border: 1px solid var(--color_theme);
+	}
+	.mptbm_transport_search_area .mpTabsNext .tabItemNext.active [class*="circleIcon"]{
+	font-size: 14px;
+	}
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext .circleTitle {
+		font-size: 10px;
+		top: 35px;
+	}
+	.mptbm_transport_search_area .tabListsNext{
+		padding: 20px 0;
+	}
+}
