@@ -185,6 +185,11 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
         // Get extra info for this vehicle
         $extra_info = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_info', '');
         $has_extra_info = !empty(trim($extra_info));
+        $vehicle_form_exists = false;
+        if (class_exists('MPTBM_Form_Helper')) {
+            $vehicle_type = get_post_meta($post_id, 'mptbm_rent_type', true);
+            $vehicle_form_exists = (bool) MPTBM_Form_Helper::get_vehicle_form_by_target($post_id, $vehicle_type, 'vehicle_selection');
+        }
 ?>
         <div class="mptbm-vehicle-wrapper" style="width: 100%; display: block;">
             <div class="_dFlex mptbm_booking_item <?php echo $has_extra_info ? 'mptbm-has-extra-info' : ''; ?> <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" data-placeholder>
@@ -265,9 +270,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                             
                             <?php 
                             // Hook for peak hour badge display
-                            // error_log("VEHICLE ITEM DEBUG: About to call mptbm_after_vehicle_price hook for post_id: $post_id");
                             do_action('mptbm_after_vehicle_price', $post_id, $price_display); 
-                            // error_log("VEHICLE ITEM DEBUG: mptbm_after_vehicle_price hook called for post_id: $post_id");
                             ?>
                             
                             <?php if (class_exists('MPTBM_Plugin_Pro')) { 
@@ -294,7 +297,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                             <?php } ?>
                             <?php if ($enable_inventory == 'yes' && $available_quantity > 0) { ?>
                                 <div class="mptbm-button-container" style="position: relative;">
-                                    <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs" style="<?php echo $has_extra_info ? 'padding-right: 35px;' : ''; ?>">
+                                    <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-has-vehicle-form="<?php echo $vehicle_form_exists ? '1' : '0'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs" style="<?php echo $has_extra_info ? 'padding-right: 35px;' : ''; ?>">
                                     <span class="" data-icon></span>
                                     <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
                                 </button>
@@ -310,7 +313,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                                 </button>
                             <?php } else { ?>
                                 <div class="mptbm-button-container" style="position: relative;">
-                                    <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs" style="<?php echo $has_extra_info ? 'padding-right: 35px;' : ''; ?>">
+                                    <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-has-vehicle-form="<?php echo $vehicle_form_exists ? '1' : '0'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs" style="<?php echo $has_extra_info ? 'padding-right: 35px;' : ''; ?>">
                                     <span class="" data-icon></span>
                                     <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
                                 </button>

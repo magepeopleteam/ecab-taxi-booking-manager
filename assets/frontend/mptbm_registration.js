@@ -2717,6 +2717,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
             $this.removeClass('active_select');
             mp_all_content_change($this);
             target_summary.slideUp(400);
+            $(document).trigger('mptbm_vehicle_unselected', [postId, parent, $this]);
         } else {
             parent.find('.mptbm_transport_select.active_select').each(function () {
                 $(this).removeClass('active_select');
@@ -2753,6 +2754,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 parent.find('[name="mptbm_post_id"]').attr('data-unit-transport-price', transport_price);
                 parent.find('[name="mptbm_post_id"]').attr('data-base-price-calculated', 0);
                 parent.find('[name="mptbm_post_id"]').attr('data-unit-base-price', 0);
+                $(document).trigger('mptbm_vehicle_selected', [post_id, '', parent, $this]);
 
                 // --- BASE PRICE CALCULATION ---
                 // FIX: Use the server-calculated base price directly to avoid discrepancies (1.30 difference)
@@ -2813,11 +2815,15 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                                     pageScrollTo(target_extra_service);
                                 }
                                 dLoaderRemove(parent.find('.tabsContentNext'));
-                                if (!target_extra_service.find('[name="mptbm_extra_service[]"]').length) {
-                                    parent.find('.mptbm_book_now[type="button"]').trigger('click');
-                                } else {
-                                    checkAndToggleBookNowButton(parent);
-                                }
+              if (!target_extra_service.find('[name="mptbm_extra_service[]"]').length) {
+                  if (String($this.data('has-vehicle-form')) !== '1') {
+                      parent.find('.mptbm_book_now[type="button"]').trigger('click');
+                  } else {
+                      checkAndToggleBookNowButton(parent);
+                  }
+              } else {
+                  checkAndToggleBookNowButton(parent);
+              }
                                 if (mptbm_is_ios()) {
                                     target_extra_service_summary[0].style.display = 'none';
                                     void target_extra_service_summary[0].offsetHeight;
@@ -2857,8 +2863,9 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
     function checkAndToggleBookNowButton(parent) {
         // Check if there are any extra services present
         let extraServicesAvailable = parent.find('[name="mptbm_extra_service[]"]').length > 0;
+        let selectedVehicleHasForm = String(parent.find('.mptbm_transport_select.active_select').first().data('has-vehicle-form')) === '1';
 
-        if (extraServicesAvailable) {
+        if (extraServicesAvailable || selectedVehicleHasForm) {
             parent.find('.mptbm_book_now[type="button"]').show();
         } else {
             parent.find('.mptbm_book_now[type="button"]').hide();
@@ -3013,7 +3020,9 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
                     start_place_coordinates: start_place_coordinates ? JSON.stringify(start_place_coordinates) : '',
                     end_place_coordinates: end_place_coordinates ? JSON.stringify(end_place_coordinates) : '',
-                    mptbm_threshold_base_price: mptbm_threshold_base_price
+                    mptbm_threshold_base_price: mptbm_threshold_base_price,
+                    mptbm_vehicle_form_data: parent.find('input[name="mptbm_vehicle_form_data"]').val(),
+                    mptbm_vehicle_form_id: parent.find('input[name="mptbm_vehicle_form_id"]').val()
                 },
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));
