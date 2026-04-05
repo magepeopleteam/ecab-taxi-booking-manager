@@ -45,11 +45,6 @@
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Base_Price_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Tax_Settings.php';
 				//****************Woocommerce Checkout*********************** */
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Billing.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Fields.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Order.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Settings.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Shipping.php';
 
 			}
 		public function add_dummy_data() {
