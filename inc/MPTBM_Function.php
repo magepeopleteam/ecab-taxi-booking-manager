@@ -391,7 +391,7 @@ if (!class_exists('MPTBM_Function')) {
 							foreach ($fixed_zone_prices as $fixed_zone_price) {
 								$start_location = $fixed_zone_price['start_location'] ?? '';
 								$end_location = $fixed_zone_price['end_location'] ?? '';
-                                
+
                                 $start_match = self::is_point_in_fixed_zone($start_location, $pickup_coords);
                                 $end_match = self::is_point_in_fixed_zone($end_location, $dropoff_coords);
                                 
@@ -406,9 +406,23 @@ if (!class_exists('MPTBM_Function')) {
 					}
 
 					if (!$found_zone_price) {
+
+                        $area_based_pricing = get_post_meta( $post_id, 'mptbm_operation_area_pricing', array() );
+
 						$match_type = isset($_SESSION['mptbm_fixed_distance_match_' . $post_id]) ? $_SESSION['mptbm_fixed_distance_match_' . $post_id] : 'partial';
-						$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
-						
+
+                        $match_operation_area_id = isset($_SESSION['mptbm_operation_area_match_' . $post_id]) ? $_SESSION['mptbm_operation_area_match_' . $post_id] : '';
+
+                        $area_price_data = [];
+                        if( $match_operation_area_id && is_array( $area_based_pricing ) && !empty( $area_based_pricing[0] ) ){
+                            $area_post_id = 'post_'.$match_operation_area_id;
+                            $area_price_data = isset( $area_based_pricing[0][$area_post_id] ) ? $area_based_pricing[0][$area_post_id] : [];
+                        }
+
+
+
+                        $km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
+
 						$fixed_map_price = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_price');
 						if ($match_type === 'full' && (float)$fixed_map_price > 0) {
 							$price = (float) $fixed_map_price;

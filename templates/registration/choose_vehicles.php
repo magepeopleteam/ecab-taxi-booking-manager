@@ -340,6 +340,11 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                         $end_in_area = false;
                         if (is_array($start_coords)) { $start_in_area = pointInPolygon($start_coords, $operation_area_coordinates); }
                         if (is_array($end_coords)) { $end_in_area = pointInPolygon($end_coords, $operation_area_coordinates); }
+
+
+                        if( $end_in_area && $start_in_area){
+                            $_SESSION["mptbm_operation_area_match_" . $post_id] = $operation_area_id;
+                        }
                         
                         if ($start_in_area) {
                             $is_in_any_area = true;
