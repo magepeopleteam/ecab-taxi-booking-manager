@@ -413,6 +413,7 @@ if (!class_exists('MPTBM_Function')) {
 
                         $match_operation_area_id = isset($_SESSION['mptbm_operation_area_match_' . $post_id]) ? $_SESSION['mptbm_operation_area_match_' . $post_id] : '';
 
+
                         $area_price_data = [];
                         if( $match_operation_area_id && is_array( $area_based_pricing ) && !empty( $area_based_pricing[0] ) ){
                             $area_post_id = 'post_'.$match_operation_area_id;
@@ -420,15 +421,29 @@ if (!class_exists('MPTBM_Function')) {
                         }
 
 
-
                         $km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
-
 						$fixed_map_price = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_price');
+                        $hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
+
+                        if( is_array( $area_price_data ) && !empty( $area_price_data ) ){
+                            if(isset( $area_price_data['fixed'] ) &&  $area_price_data['fixed'] > 0){
+                                $fixed_map_price = $area_price_data['fixed'];
+                            }
+
+                            if(isset( $area_price_data['per_km'] ) &&  $area_price_data['per_km'] > 0){
+                                $km_price = $area_price_data['per_km'];
+                            }
+
+                            if(isset( $area_price_data['per_hour'] ) &&  $area_price_data['per_hour'] > 0){
+                                $hour_price = $area_price_data['per_hour'];
+                            }
+
+                        }
+
 						if ($match_type === 'full' && (float)$fixed_map_price > 0) {
 							$price = (float) $fixed_map_price;
 						} else {
 							// Fallback to Distance + Duration
-							$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 							$price = ($hour_price * ((float) $duration / 3600)) + ($km_price * ((float) $distance / 1000));
 						}
 					}
