@@ -257,10 +257,6 @@ if (!class_exists('MPTBM_Price_Settings')) {
                 ?>
                 <section class="<?php echo esc_attr($price_based == 'fixed_distance' ? 'mActive' : ''); ?>" data-collapse="#mp_fixed_map_routes">
                     <input type="hidden" id="mptbm_operation_zones" value='<?php echo json_encode($operation_zones); ?>'>
-                    <button id="addPrice">Add Price</button>
-                    <div id="priceContainer">
-
-                    </div>
 
                     <div id="priceContainer">
 
@@ -279,36 +275,37 @@ if (!class_exists('MPTBM_Price_Settings')) {
                                        $fixed_per_hour = isset( $value['per_hour'] ) ? $value['per_hour'] : '';
                                         ?>
 
-                                <div class="row">
+                                        <div class="row">
 
-                                    <select class="areaSelect">
-                                        <option value="">Select Area</option>
+                                            <select class="mptbm_areaSelect">
+                                                <option value="">Select Area</option>
 
-                                        <?php foreach ($operation_zones as $key => $name) : ?>
-                                            <option value="<?php echo esc_attr($key); ?>"
-                                                <?php selected($area_key, $key); ?>>
-                                                <?php echo esc_html($name); ?>
-                                            </option>
-                                        <?php endforeach; ?>
+                                                <?php foreach ($operation_zones as $key => $name) : ?>
+                                                    <option value="<?php echo esc_attr($key); ?>"
+                                                        <?php selected($area_key, $key); ?>>
+                                                        <?php echo esc_html($name); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
 
-                                    </select>
+                                            </select>
 
-                                    <input type="number" class="fixed" value="<?php echo esc_attr( $fixed_price ); ?>" placeholder="Fixed Price">
+                                            <input type="number" class="mptbm_area_fixed_price" value="<?php echo esc_attr( $fixed_price ); ?>" placeholder="Fixed Price">
 
-                                    <input type="number" class="km" value="<?php echo esc_attr( $per_km_price ); ?>" placeholder="Per KM">
+                                            <input type="number" class="mptbm_area_km_price" value="<?php echo esc_attr( $per_km_price ); ?>" placeholder="Per KM">
 
-                                    <input type="number" class="hour" value="<?php echo esc_attr( $fixed_per_hour ); ?>" placeholder="Per Hour">
+                                            <input type="number" class="mptbm_area_hour_price" value="<?php echo esc_attr( $fixed_per_hour ); ?>" placeholder="Per Hour">
 
-                                    <button type="button" class="remove">Remove</button>
+                                            <button type="button" class="mptbm_area_remove"><?php esc_html_e('Remove', 'ecab-taxi-booking-manager')?></button>
 
-                                </div>
+                                        </div>
                                     <?php endif; ?>
                             <?php endforeach; ?>
                             <?php endforeach; ?>
                         <?php endif; ?>
 
                     </div>
-                    <button id="saveData">Save</button>
+                    <button id="mptbm_addAreaPrice" style="float: right"><?php esc_html_e('Add Area Price +', 'ecab-taxi-booking-manager')?></button>
+                    <button id="mptbm_saveAreaData"><?php esc_html_e('Save', 'ecab-taxi-booking-manager')?></button>
                 </section>
 				
 				<!-- Fixed Map Route Overrides -->

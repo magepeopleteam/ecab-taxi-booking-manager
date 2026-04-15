@@ -72,7 +72,7 @@
 	const mptbm_areas = JSON.parse($("#mptbm_operation_zones").val());
 	let selectedAreas = [];
 	// Add Row
-	$(document).on("click","#addPrice", function (e) {
+	$(document).on("click","#mptbm_addAreaPrice", function (e) {
 		e.preventDefault();
 		addRow();
 	});
@@ -96,19 +96,19 @@
 		});
 
 		let row = $(`
-        <div class="row">
-            <select class="areaSelect">${options}</select>
-            <input type="number" class="fixed" placeholder="Fixed Price">
-            <input type="number" class="km" placeholder="Per KM">
-            <input type="number" class="hour" placeholder="Per Hour">
-            <button class="remove">Remove</button>
-        </div>
-    `);
+			<div class="row">
+				<select class="mptbm_areaSelect">${options}</select>
+				<input type="number" class="mptbm_area_fixed_price" placeholder="Fixed Price">
+				<input type="number" class="mptbm_area_km_price" placeholder="Per KM">
+				<input type="number" class="mptbm_area_hour_price" placeholder="Per Hour">
+				<button class="mptbm_area_remove">Remove</button>
+			</div>
+		`);
 
 		$("#priceContainer").append(row);
 	}
 	// Select Area
-	$(document).on("change", ".areaSelect", function () {
+	$(document).on("change", ".mptbm_areaSelect", function () {
 		let val = $(this).val();
 
 		if (val && !selectedAreas.includes(val)) {
@@ -116,9 +116,9 @@
 		}
 	});
 	// Remove Row
-	$(document).on("click", ".remove", function () {
+	$(document).on("click", ".mptbm_area_remove", function () {
 		let row = $(this).closest(".row");
-		let area = row.find(".areaSelect").val();
+		let area = row.find(".mptbm_areaSelect").val();
 
 		if (area) {
 			selectedAreas = selectedAreas.filter(a => a !== area);
@@ -127,17 +127,17 @@
 		row.remove();
 	});
 	// Save Data
-	$(document).on("click", "#saveData", function (e) {
+	$(document).on("click", "#mptbm_saveAreaData", function (e) {
 		e.preventDefault();
 
 		let area_price_data = {};
 
 		$("#priceContainer .row").each(function () {
 
-			let area = $(this).find(".areaSelect").val();
-			let fixed_price = $(this).find(".fixed").val();
-			let km_price = $(this).find(".km").val();
-			let hour_price = $(this).find(".hour").val();
+			let area = $(this).find(".mptbm_areaSelect").val();
+			let fixed_price = $(this).find(".mptbm_area_fixed_price").val();
+			let km_price = $(this).find(".mptbm_area_km_price").val();
+			let hour_price = $(this).find(".mptbm_area_hour_price").val();
 
 			if (area) {
 				area_price_data[area] = {
