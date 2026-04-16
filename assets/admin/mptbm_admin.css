@@ -50,4 +50,9 @@
     display: table;
     clear: both;
   }
+  .mptbm_saveAreaData{
+    padding: 0px 10px;
+    background-color: #ef2f81;
+    color: #f6f6f6;
+  }
   

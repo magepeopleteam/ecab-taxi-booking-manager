@@ -72,7 +72,7 @@
 	const mptbm_areas = JSON.parse($("#mptbm_operation_zones").val());
 	let selectedAreas = [];
 	// Add Row
-	$(document).on("click","#mptbm_addAreaPrice", function (e) {
+	$(document).on("click",".mptbm_addAreaPrice", function (e) {
 		e.preventDefault();
 		addRow();
 	});
@@ -105,7 +105,9 @@
 			</div>
 		`);
 
-		$("#priceContainer").append(row);
+		$("#mptbm_priceContainer").append(row);
+
+		$("#mptbm_saveAreaData").fadeIn(300);
 	}
 	// Select Area
 	$(document).on("change", ".mptbm_areaSelect", function () {
@@ -130,9 +132,13 @@
 	$(document).on("click", "#mptbm_saveAreaData", function (e) {
 		e.preventDefault();
 
+		let $this = $(this);
+
 		let area_price_data = {};
 
-		$("#priceContainer .row").each(function () {
+		$this.text('Saving...');
+
+		$("#mptbm_priceContainer .row").each(function () {
 
 			let area = $(this).find(".mptbm_areaSelect").val();
 			let fixed_price = $(this).find(".mptbm_area_fixed_price").val();
@@ -164,12 +170,14 @@
 				console.log("Sending...", area_price_data);
 			},
 			success: function (res) {
-				console.log(res);
-				target.html("Saved successfully");
+				$this.text('Saved');
 			},
 			error: function (err) {
 				console.log("Error:", err);
-			}
+			},
+			complete: function (res) {
+				$this.text('Save');
+			},
 		});
 	});
 

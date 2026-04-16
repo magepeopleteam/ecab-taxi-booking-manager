@@ -249,6 +249,7 @@ if (!class_exists('MPTBM_Price_Settings')) {
 					</div>
 				</section>
 
+                <!-- Operation Area based Pricing -->
                 <section class="bg-light" style="margin-top: 20px;" data-collapse="#mp_fixed_map_routes">
                     <h6><?php esc_html_e('Operation Area Based Price Set', 'ecab-taxi-booking-manager'); ?></h6>
                     <span><?php esc_html_e('Set different pricing for each operation area based on transport type, distance, or time. Easily manage fixed, per km, and per hour rates without creating duplicate transports.', 'ecab-taxi-booking-manager'); ?></span>
@@ -258,13 +259,14 @@ if (!class_exists('MPTBM_Price_Settings')) {
                 <section class="<?php echo esc_attr($price_based == 'fixed_distance' ? 'mActive' : ''); ?>" data-collapse="#mp_fixed_map_routes">
                     <input type="hidden" id="mptbm_operation_zones" value='<?php echo json_encode($operation_zones); ?>'>
 
-                    <div id="priceContainer">
+                    <div id="mptbm_priceContainer">
 
                         <?php
                         $pricing = get_post_meta( $post_id, 'mptbm_operation_area_pricing' );
-                        if (!empty($pricing)) : ?>
-
-                            <?php foreach ($pricing as $key => $values) :
+                        $show_save_btn = 'none';
+                        if (!empty($pricing)) :
+                            $show_save_btn = 'block';
+                            foreach ($pricing as $key => $values) :
 
                                 foreach ($values as $area_key => $value) :
 
@@ -304,10 +306,15 @@ if (!class_exists('MPTBM_Price_Settings')) {
                         <?php endif; ?>
 
                     </div>
-                    <button id="mptbm_addAreaPrice" style="float: right"><?php esc_html_e('Add Area Price +', 'ecab-taxi-booking-manager')?></button>
-                    <button id="mptbm_saveAreaData"><?php esc_html_e('Save', 'ecab-taxi-booking-manager')?></button>
+
+                    <div class="mptbm_area_based_pricing_set" style="display: flex; justify-content: space-between">
+                        <?php MP_Custom_Layout::add_new_button(esc_html__('Add Area Price', 'ecab-taxi-booking-manager'), 'mptbm_addAreaPrice'); ?>
+                        <button class="mptbm_saveAreaData" id="mptbm_saveAreaData" style="display: <?php echo esc_attr( $show_save_btn );?>"><?php esc_html_e('Save', 'ecab-taxi-booking-manager')?></button>
+                    </div>
+
+<!--                    <button id="mptbm_addAreaPrice" style="float: right">--><?php //esc_html_e('Add Area Price +', 'ecab-taxi-booking-manager')?><!--</button>-->
                 </section>
-				
+
 				<!-- Fixed Map Route Overrides -->
 				<section class="bg-light" style="margin-top: 20px;" data-collapse="#mp_fixed_map_routes">
 					<h6><?php esc_html_e('Fixed Map Route Overrides', 'ecab-taxi-booking-manager'); ?></h6>
