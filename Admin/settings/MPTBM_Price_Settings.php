@@ -264,7 +264,7 @@ if (!class_exists('MPTBM_Price_Settings')) {
                         <?php
                         $pricing = get_post_meta( $post_id, 'mptbm_operation_area_pricing' );
                         $show_save_btn = 'none';
-                        if (!empty($pricing)) :
+                        if ( !empty( $pricing[0] ) ) :
                             $show_save_btn = 'block';
                             foreach ($pricing as $key => $values) :
 
@@ -911,7 +911,7 @@ if (!class_exists('MPTBM_Price_Settings')) {
             $post_id = isset( $_POST['post_id'] ) ? intval( wp_unslash($_POST['post_id'] ) ) : '';
             $pricing = json_decode( sanitize_text_field( wp_unslash( $_POST['area_price_data'] ) ), true );
 
-            if ( !$post_id || empty( $pricing ) ) {
+            if ( !$post_id ) {
                 wp_send_json_error('Invalid data');
             }
             // Save to meta
