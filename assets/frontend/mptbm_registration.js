@@ -391,7 +391,8 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
                     var hours = Math.floor(duration / 3600);
                     var minutes = Math.round((duration % 3600) / 60);
                     if (hours > 0) {
-                        duration_text = hours + ' hour' + (hours > 1 ? 's' : '') + ' min';
+                        // duration_text = hours + ' hour' + (hours > 1 ? 's' : '') + ' min';
+                        duration_text = hours + ' hour' + (hours > 1 ? 's' : '') + ' ' + minutes + ' min';
                     } else {
                         duration_text = minutes + ' min';
                     }
