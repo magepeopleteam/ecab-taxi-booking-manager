@@ -48,6 +48,15 @@ $min_schedule_value = 0;
 $max_schedule_value = 24;
 $loop = 1;
 $day_specific_times = [];
+$mptbm_dom_token = function_exists('wp_generate_uuid4') ? str_replace('-', '', wp_generate_uuid4()) : str_replace('.', '', uniqid('', true));
+$start_date_hidden_id = 'mptbm-map-start-date-' . $mptbm_dom_token;
+$start_date_visible_id = 'mptbm-start-date-' . $mptbm_dom_token;
+$start_time_hidden_id = 'mptbm-map-start-time-' . $mptbm_dom_token;
+$start_time_visible_id = 'mptbm-start-time-' . $mptbm_dom_token;
+$return_date_hidden_id = 'mptbm-map-return-date-' . $mptbm_dom_token;
+$return_date_visible_id = 'mptbm-return-date-' . $mptbm_dom_token;
+$return_time_hidden_id = 'mptbm-map-return-time-' . $mptbm_dom_token;
+$return_time_visible_id = 'mptbm-return-time-' . $mptbm_dom_token;
 
 foreach ($mptbm_all_transport_id as $key => $value) {
 	if (MP_Global_Function::get_post_info($value, 'mptbm_available_for_all_time') == 'on') {
@@ -210,18 +219,18 @@ if (sizeof($all_dates) > 0) {
 				<input type="hidden" id="mptbm_calculated_duration" name="mptbm_calculated_duration" value="" />
 				<div class="inputList">
 					<label class="fdColumn">
-						<input type="hidden" id="mptbm_map_start_date" value="" />
+						<input type="hidden" id="<?php echo esc_attr($start_date_hidden_id); ?>" class="mptbm_map_start_date" value="" />
 						<span><?php echo mptbm_get_translation('pickup_date_label', __('Pickup Date', 'ecab-taxi-booking-manager')); ?></span>
-						<input type="text" id="mptbm_start_date" class="formControl" placeholder="<?php echo mptbm_get_translation('select_date_label', __('Select Date', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
+						<input type="text" id="<?php echo esc_attr($start_date_visible_id); ?>" class="formControl mptbm_start_date" placeholder="<?php echo mptbm_get_translation('select_date_label', __('Select Date', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
 						<span class="far fa-calendar-alt mptbm_left_icon allCenter"></span>
 					</label>
 				</div>
 
 				<div class="inputList mp_input_select">
-					<input type="hidden" id="mptbm_map_start_time" value="" />
+					<input type="hidden" id="<?php echo esc_attr($start_time_hidden_id); ?>" class="mptbm_map_start_time" value="" />
 					<label class="fdColumn">
 						<span><?php echo mptbm_get_translation('pickup_time_label', __('Pickup Time', 'ecab-taxi-booking-manager')); ?></span>
-						<input type="text" id="mptbm_start_time" class="formControl" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
+						<input type="text" id="<?php echo esc_attr($start_time_visible_id); ?>" class="formControl start_time_input mptbm_start_time" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
 						<span class="far fa-clock mptbm_left_icon allCenter"></span>
 					</label>
 
@@ -509,17 +518,17 @@ document.addEventListener('DOMContentLoaded', function() {
 						<div class="inputList" data-collapse="#different_date_return">
 							
 							<label class="fdColumn">
-								<input type="hidden" id="mptbm_map_return_date" value="" />
+								<input type="hidden" id="<?php echo esc_attr($return_date_hidden_id); ?>" class="mptbm_map_return_date" value="" />
 								<span><?php echo mptbm_get_translation('return_date_label', __('Return Date', 'ecab-taxi-booking-manager')); ?></span>
-								<input type="text" id="mptbm_return_date" class="formControl" placeholder="<?php echo mptbm_get_translation('select_date_label', __('Select Date', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
+								<input type="text" id="<?php echo esc_attr($return_date_visible_id); ?>" class="formControl mptbm_return_date" placeholder="<?php echo mptbm_get_translation('select_date_label', __('Select Date', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
 								<span class="far fa-calendar-alt mptbm_left_icon allCenter"></span>
 							</label>
 						</div>
 						<div class="inputList mp_input_select" data-collapse="#different_date_return">
-						<input type="hidden" id="mptbm_map_return_time" value="" />
+						<input type="hidden" id="<?php echo esc_attr($return_time_hidden_id); ?>" class="mptbm_map_return_time" value="" />
 	<label class="fdColumn">
 		<span><?php echo mptbm_get_translation('return_time_label', __('Return Time', 'ecab-taxi-booking-manager')); ?></span>
-		<input type="text" id="mptbm_return_time" class="formControl" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
+		<input type="text" id="<?php echo esc_attr($return_time_visible_id); ?>" class="formControl mptbm_map_return_time_input mptbm_return_time" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
 		<span class="far fa-clock mptbm_left_icon allCenter"></span>
 	</label>
 
@@ -773,97 +782,92 @@ document.addEventListener('DOMContentLoaded', function() {
 		</div>
 	</div>
 	<script>
-	// Day-specific time ranges
-	var dayTimeRanges = <?php echo wp_json_encode(isset($day_specific_times) ? $day_specific_times : []); ?>;
-	
-	
-	
-	function updateTimeRangeForDay(selectedDate) {
-		if (!selectedDate) return;
-		
-		// Get the day name from the selected date
-		var date = new Date(selectedDate);
-		var dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-		var dayName = dayNames[date.getDay()];
-		
-		
-		
-		// Find the time range for this specific day
-		var dayTimes = dayTimeRanges[dayName];
-		if (dayTimes && dayTimes.start.length > 0 && dayTimes.end.length > 0) {
-			// For each day, find the earliest start time and latest end time
-			// This ensures we get the correct range for that specific day
-			var minTime = Math.min.apply(Math, dayTimes.start);
-			var maxTime = Math.max.apply(Math, dayTimes.end);
-			
-	
-			
-			// Update the time picker options
-			updateTimePickerOptions(minTime, maxTime);
-		} else {
-			
-			// Use global range if no specific day times
+	(function ($) {
+		var dayTimeRanges = <?php echo wp_json_encode(isset($day_specific_times) ? $day_specific_times : []); ?>;
+		var startDateSelector = '#<?php echo esc_js($start_date_visible_id); ?>';
+		var returnDateSelector = '#<?php echo esc_js($return_date_visible_id); ?>';
+
+		function updateTimeRangeForDay(selectedDate, updateTimePickerOptions) {
+			if (!selectedDate) {
+				return;
+			}
+
+			var date = new Date(selectedDate);
+			var dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+			var dayName = dayNames[date.getDay()];
+			var dayTimes = dayTimeRanges[dayName];
+
+			if (dayTimes && dayTimes.start.length > 0 && dayTimes.end.length > 0) {
+				var minTime = Math.min.apply(Math, dayTimes.start);
+				var maxTime = Math.max.apply(Math, dayTimes.end);
+				updateTimePickerOptions(minTime, maxTime);
+				return;
+			}
+
 			updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>);
 		}
-	}
-	
-	function updateTimePickerOptions(minTime, maxTime) {
-		// Convert to minutes for easier calculation
-		var minMinutes = Math.floor(minTime) * 60 + (minTime % 1) * 100;
-		var maxMinutes = Math.floor(maxTime) * 60 + (maxTime % 1) * 100;
-		var intervalTime = <?php echo $interval_time; ?>;
-		
-		// Clear existing options
-		jQuery('.start_time_list li').remove();
-		jQuery('.return_time_list li').remove();
-		
-		// Generate new options
-		for (var i = minMinutes; i <= maxMinutes; i += intervalTime) {
-			var hours = Math.floor(i / 60);
-			var minutes = i % 60;
-			var dataValue = hours + (minutes / 100);
-			var timeFormatted = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
-			var dataTime = String(hours).padStart(2, '0') + '.' + String(minutes).padStart(2, '0');
-			
-			// Add to start time list
-			jQuery('.start_time_list').append('<li data-value="' + dataValue.toFixed(2) + '" data-time="' + dataTime + '">' + timeFormatted + '</li>');
-			
-			// Add to return time list
-			jQuery('.return_time_list').append('<li data-value="' + dataValue.toFixed(2) + '" data-time="' + dataTime + '">' + timeFormatted + '</li>');
-		}
-		
-		
-	}
-	
-	
-	
-	// Update time range when date is selected
-	jQuery(document).ready(function() {
-		// Initialize with global range on page load
-		updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>);
-		
-		jQuery('#mptbm_start_date').on('change', function() {
-			updateTimeRangeForDay(jQuery(this).val());
-		});
-		
-		jQuery('#mptbm_return_date').on('change', function() {
-			updateTimeRangeForDay(jQuery(this).val());
-		});
-		
-		// Also trigger on date picker selection
-		jQuery(document).on('click', '.ui-datepicker-calendar td a', function() {
-			setTimeout(function() {
-				var selectedDate = jQuery('#mptbm_start_date').val();
-				if (selectedDate) {
-					updateTimeRangeForDay(selectedDate);
+
+		$(function () {
+			var $startDateInput = $(startDateSelector);
+			var $returnDateInput = $(returnDateSelector);
+			if (!$startDateInput.length) {
+				return;
+			}
+
+			var $searchArea = $startDateInput.closest('.mptbm_search_area');
+			if (!$searchArea.length) {
+				$searchArea = $startDateInput.closest('.mptbm_transport_search_area');
+			}
+
+			function updateTimePickerOptions(minTime, maxTime) {
+				var minMinutes = Math.floor(minTime) * 60 + (minTime % 1) * 100;
+				var maxMinutes = Math.floor(maxTime) * 60 + (maxTime % 1) * 100;
+				var intervalTime = <?php echo $interval_time; ?>;
+				var $startTimeList = $searchArea.find('.start_time_list').first();
+				var $returnTimeList = $searchArea.find('.return_time_list').first();
+
+				$startTimeList.empty();
+				$returnTimeList.empty();
+
+				for (var i = minMinutes; i <= maxMinutes; i += intervalTime) {
+					var hours = Math.floor(i / 60);
+					var minutes = i % 60;
+					var dataValue = hours + (minutes / 100);
+					var timeFormatted = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
+					var dataTime = String(hours).padStart(2, '0') + '.' + String(minutes).padStart(2, '0');
+					var optionHtml = '<li data-value="' + dataValue.toFixed(2) + '" data-time="' + dataTime + '">' + timeFormatted + '</li>';
+
+					$startTimeList.append(optionHtml);
+					$returnTimeList.append(optionHtml);
 				}
-			}, 100);
+			}
+
+			updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>);
+
+			$startDateInput.on('change', function () {
+				updateTimeRangeForDay($(this).val(), updateTimePickerOptions);
+			});
+
+			if ($returnDateInput.length) {
+				$returnDateInput.on('change', function () {
+					updateTimeRangeForDay($(this).val(), updateTimePickerOptions);
+				});
+			}
+
+			$(document).on('click', '.ui-datepicker-calendar td a', function () {
+				setTimeout(function () {
+					var selectedDate = $startDateInput.val();
+					if (selectedDate) {
+						updateTimeRangeForDay(selectedDate, updateTimePickerOptions);
+					}
+				}, 100);
+			});
 		});
-	});
+	})(jQuery);
 	</script>
-	
-	<?php do_action('mp_load_date_picker_js', '#mptbm_start_date', $all_dates); ?>
-	<?php do_action('mp_load_date_picker_js', '#mptbm_return_date', $all_dates); ?>
+
+	<?php do_action('mp_load_date_picker_js', '#' . $start_date_visible_id, $all_dates); ?>
+	<?php do_action('mp_load_date_picker_js', '#' . $return_date_visible_id, $all_dates); ?>
 <?php } else { ?>
 	<div class="dLayout">
 		<h3 class="_textDanger_textCenter">

@@ -1537,10 +1537,10 @@ function mptbm_init_google_map() {
             .val();
 
         let target = parent.find(".tabsContentNext");
-        let target_date = parent.find("#mptbm_map_start_date");
-        let return_target_date = parent.find("#mptbm_map_return_date");
-        let target_time = parent.find("#mptbm_map_start_time");
-        let return_target_time = parent.find("#mptbm_map_return_time");
+        let target_date = parent.find(".mptbm_map_start_date").first();
+        let return_target_date = parent.find(".mptbm_map_return_date").first();
+        let target_time = parent.find(".mptbm_map_start_time").first();
+        let return_target_time = parent.find(".mptbm_map_return_time").first();
         let start_place;
         let end_place;
         let price_based = parent.find('[name="mptbm_price_based"]').val();
@@ -1577,7 +1577,7 @@ function mptbm_init_google_map() {
             return_time = return_target_time.val();
 
             // Get the actual time from the data-time attribute (consistent with start_time)
-            let selectedReturnTimeElement = parent.find("#mptbm_map_return_time").closest(".mp_input_select").find("li[data-value='" + return_time + "']");
+            let selectedReturnTimeElement = return_target_time.closest(".mp_input_select").find("li[data-value='" + return_time + "']");
             if (selectedReturnTimeElement.length) {
                 return_time = selectedReturnTimeElement.attr('data-time');
             }
@@ -1588,7 +1588,7 @@ function mptbm_init_google_map() {
         }
         let start_time = target_time.val();
         // Get the actual time from the data-time attribute
-        let selectedTimeElement = parent.find("#mptbm_map_start_time").closest(".mp_input_select").find("li[data-value='" + start_time + "']");
+        let selectedTimeElement = target_time.closest(".mp_input_select").find("li[data-value='" + start_time + "']");
         if (selectedTimeElement.length) {
             start_time = selectedTimeElement.attr('data-time');
 
@@ -1612,7 +1612,7 @@ function mptbm_init_google_map() {
             target_date.trigger("click");
         } else if (start_time === undefined || start_time === null || start_time === '') {
             parent
-                .find("#mptbm_map_start_time")
+                .find(".mptbm_map_start_time")
                 .closest(".mp_input_select")
                 .find("input.formControl")
                 .trigger("click");
@@ -1623,7 +1623,7 @@ function mptbm_init_google_map() {
         } else if (return_time === undefined || return_time === null || return_time === '') {
             if (mptbm_enable_return_in_different_date == 'yes' && two_way != 1 && has_return_fields) {
                 parent
-                    .find("#mptbm_map_return_time")
+                    .find(".mptbm_map_return_time")
                     .closest(".mp_input_select")
                     .find("input.formControl")
                     .trigger("click");
@@ -2152,15 +2152,25 @@ function mptbm_init_google_map() {
             }
         }
     });
-    $(document).on("change", "#mptbm_map_start_date", function () {
-        // Clear the time slots list
-        $('#mptbm_map_start_time').siblings('.start_time_list').empty();
-        $('.start_time_input,#mptbm_map_start_time').val('');
-        let mptbm_enable_return_in_different_date = $('[name="mptbm_enable_return_in_different_date"]').val();
-        let mptbm_buffer_end_minutes = parseInt($('[name="mptbm_buffer_end_minutes"]').val()) || 0;
-        let mptbm_first_calendar_date = $('[name="mptbm_first_calendar_date"]').val();
+    $(document).on("change", ".mptbm_map_start_date", function () {
+        let currentField = $(this);
+        let parent = mptbm_get_search_parent(currentField);
+        let startTimeField = parent.find(".mptbm_map_start_time").first();
+        let startTimeList = startTimeField.siblings('.start_time_list');
+        let returnDateField = parent.find(".mptbm_return_date").first();
 
-        var selectedDate = $('#mptbm_map_start_date').val();
+        // Clear the time slots list
+        startTimeList.empty();
+        parent.find('.start_time_input').val('');
+        startTimeField.val('');
+        let mptbm_enable_return_in_different_date = parent.find('[name="mptbm_enable_return_in_different_date"]').val();
+        let mptbm_buffer_end_minutes = parseInt(parent.find('[name="mptbm_buffer_end_minutes"]').val(), 10) || 0;
+        let mptbm_first_calendar_date = parent.find('[name="mptbm_first_calendar_date"]').val();
+
+        var selectedDate = currentField.val();
+        if (!selectedDate) {
+            return;
+        }
         var formattedDate = $.datepicker.parseDate('yy-mm-dd', selectedDate);
 
         // Get today's date in YYYY-MM-DD format
@@ -2177,19 +2187,19 @@ function mptbm_init_google_map() {
             var currentMinutes = currentTime.getMinutes();
             var currentTotalMinutes = (currentHour * 60) + currentMinutes;
 
-            $('.start_time_list-no-dsiplay li').each(function () {
+            parent.find('.start_time_list-no-dsiplay li').each(function () {
                 const timeValue = parseFloat($(this).attr('data-value'));
                 const timeInMinutes = Math.floor(timeValue) * 60 + ((timeValue % 1) * 100);
 
                 // Only show times that are after the buffer period
                 if (timeInMinutes > mptbm_buffer_end_minutes) {
-                    $('#mptbm_map_start_time').siblings('.start_time_list').append($(this).clone());
+                    startTimeList.append($(this).clone());
                 }
             });
         } else if (selectedDate == mptbm_first_calendar_date) {
 
             // For the first available date (which might be today or tomorrow depending on buffer)
-            $('.start_time_list-no-dsiplay li').each(function () {
+            parent.find('.start_time_list-no-dsiplay li').each(function () {
                 const timeValue = parseFloat($(this).attr('data-value'));
                 const timeInMinutes = Math.floor(timeValue) * 60 + ((timeValue % 1) * 100);
 
@@ -2197,98 +2207,93 @@ function mptbm_init_google_map() {
                 if (mptbm_buffer_end_minutes > 1440) {
                     const adjustedBufferMinutes = mptbm_buffer_end_minutes - 1440;
                     if (timeInMinutes > adjustedBufferMinutes) {
-                        $('#mptbm_map_start_time')
-                            .siblings('.start_time_list')
-                            .append($(this).clone());
+                        startTimeList.append($(this).clone());
                     }
 
                 } else if (mptbm_buffer_end_minutes < 1440 && mptbm_buffer_end_minutes > 0) {
                     // ✅ If buffer does not extend to tomorrow, show time after buffer end time
                     if (timeInMinutes >= mptbm_buffer_end_minutes) {
-                        $('#mptbm_map_start_time')
-                            .siblings('.start_time_list')
-                            .append($(this).clone());
+                        startTimeList.append($(this).clone());
                     }
 
                 } else {
                     // For other dates or no buffer, show all times
-                    $('#mptbm_map_start_time')
-                        .siblings('.start_time_list')
-                        .append($(this).clone());
+                    startTimeList.append($(this).clone());
                 }
             });
         }
         else {
             // For future dates, show all available times
-            $('.start_time_list-no-dsiplay li').each(function () {
-                $('#mptbm_map_start_time').siblings('.start_time_list').append($(this).clone());
+            parent.find('.start_time_list-no-dsiplay li').each(function () {
+                startTimeList.append($(this).clone());
             });
         }
 
         // Update the return date picker if needed
-        if (mptbm_enable_return_in_different_date == 'yes') {
-            $('#mptbm_return_date').datepicker('option', 'minDate', formattedDate);
+        if (mptbm_enable_return_in_different_date == 'yes' && returnDateField.length && returnDateField.hasClass('hasDatepicker')) {
+            returnDateField.datepicker('option', 'minDate', formattedDate);
         }
 
-        let parent = $(this).closest(".mptbm_transport_search_area");
         mptbm_content_refresh(parent);
-        parent
-            .find("#mptbm_map_start_time")
-            .closest(".mp_input_select")
+        startTimeField.closest(".mp_input_select")
             .find("input.formControl")
             .trigger("click");
     });
 
 
-    $(document).on("change", "#mptbm_map_return_date", function () {
-        let mptbm_enable_return_in_different_date = $('[name="mptbm_enable_return_in_different_date"]').val();
+    $(document).on("change", ".mptbm_map_return_date", function () {
+        let currentField = $(this);
+        let parent = mptbm_get_search_parent(currentField);
+        let mptbm_enable_return_in_different_date = parent.find('[name="mptbm_enable_return_in_different_date"]').val();
+        let startTimeField = parent.find(".mptbm_map_start_time").first();
+        let startDateField = parent.find(".mptbm_map_start_date").first();
+        let returnTimeField = parent.find(".mptbm_map_return_time").first();
+        let returnTimeList = returnTimeField.siblings('.mp_input_select_list');
 
         if (mptbm_enable_return_in_different_date == 'yes') {
-            var selectedTime = parseFloat($('#mptbm_map_start_time').val());
-            var selectedDate = $('#mptbm_map_start_date').val();
-            var dateValue = $('#mptbm_map_return_date').val();
+            var selectedTime = parseFloat(startTimeField.val());
+            var selectedDate = startDateField.val();
+            var dateValue = currentField.val();
 
             // Check if the return date is the same as the pickup date
             if (selectedDate == dateValue) {
-                $('#return_time_list').show();
                 // Clear existing options
-                $('#mptbm_map_return_time').siblings('.mp_input_select_list').empty();
-                $('.mptbm_map_return_time_input').val('');
+                returnTimeList.empty();
+                parent.find('.mptbm_map_return_time_input').val('');
                 // If return date is the same as the pickup date, show only times after pickup time
-                $('.mp_input_select_list li').each(function () {
+                parent.find('.return_time_list-no-dsiplay li').each(function () {
                     var timeValue = parseFloat($(this).attr('data-value'));
                     if (timeValue > selectedTime) {
-                        $('#mptbm_map_return_time').siblings('.mp_input_select_list').append($(this).clone());
+                        returnTimeList.append($(this).clone());
                     }
                 });
             } else {
                 // Clear existing options
-                $('#mptbm_map_return_time').siblings('.mp_input_select_list').empty();
-                $('.mptbm_map_return_time_input').val('');
-                $('.return_time_list-no-dsiplay li').each(function () {
+                returnTimeList.empty();
+                parent.find('.mptbm_map_return_time_input').val('');
+                parent.find('.return_time_list-no-dsiplay li').each(function () {
                     var timeValue = parseFloat($(this).attr('data-value'));
-                    $('#mptbm_map_return_time').siblings('.mp_input_select_list').append($(this).clone());
+                    returnTimeList.append($(this).clone());
                 });
             }
         }
 
         // Trigger refresh and display logic
-        let parent = $(this).closest(".mptbm_transport_search_area");
         mptbm_content_refresh(parent);
-        parent.find("#mptbm_map_return_time").closest(".mp_input_select").find("input.formControl").trigger("click");
+        returnTimeField.closest(".mp_input_select").find("input.formControl").trigger("click");
     });
 
 
     $(document).on("click", ".start_time_list li", function () {
         let selectedValue = $(this).attr('data-value');
-        $('#mptbm_map_start_time').val(selectedValue).trigger('change');
+        $(this).closest('.mp_input_select').find('.mptbm_map_start_time').first().val(selectedValue).trigger('change');
     });
     $(document).on("click", ".return_time_list li", function () {
         let selectedValue = $(this).attr('data-value');
-        $('#mptbm_map_return_time').val(selectedValue).trigger('change');
+        $(this).closest('.mp_input_select').find('.mptbm_map_return_time').first().val(selectedValue).trigger('change');
     });
-    $(document).on("change", "#mptbm_map_start_time", function () {
-        let parent = $(this).closest(".mptbm_transport_search_area");
+    $(document).on("change", ".mptbm_map_start_time", function () {
+        let parent = mptbm_get_search_parent($(this));
         mptbm_content_refresh(parent);
         parent.find("#mptbm_map_start_place").focus();
     });
@@ -2539,6 +2544,14 @@ jQuery(document).ready(function ($) {
         }
     }, 1000);
 });
+
+function mptbm_get_search_parent(target) {
+    let parent = target.closest(".mptbm_transport_search_area");
+    if (!parent.length) {
+        parent = target.closest(".mptbm_search_area");
+    }
+    return parent;
+}
 
 function mptbm_content_refresh(parent) {
     parent.find('[name="mptbm_post_id"]').val("");
@@ -2921,8 +2934,8 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
         let end_place = parent.find('[name="mptbm_end_place"]').val();
         let mptbm_waiting_time = parent.find('[name="mptbm_waiting_time"]').val();
         let mptbm_taxi_return = parent.find('[name="mptbm_taxi_return"]').val();
-        let return_target_date = parent.find("#mptbm_map_return_date").val();
-        let return_target_time = parent.find("#mptbm_map_return_time").val();
+        let return_target_date = parent.find(".mptbm_map_return_date").first().val();
+        let return_target_time = parent.find(".mptbm_map_return_time").first().val();
         let mptbm_fixed_hours = parent.find('[name="mptbm_fixed_hours"]').val();
         let post_id = parent.find('[name="mptbm_post_id"]').val();
         let date = parent.find('[name="mptbm_date"]').val();
@@ -3237,6 +3250,12 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
     // Handle select dropdown search functionality
     $(document).on('click', '#mptbm_manual_start_place, #mptbm_manual_end_place', function (e) {
 
+        // On touch devices, use the native select picker (iOS/Android wheel picker)
+        // to avoid position:fixed issues with virtual keyboards and layout viewport shifts.
+        var isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        if (isTouchDevice) {
+            return;
+        }
 
         var $select = $(this);
         var selectId = $select.attr('id');
@@ -3422,8 +3441,13 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
         });
     });
 
-    // Prevent native dropdown behavior for manual select elements
+    // Prevent native dropdown behavior for manual select elements on non-touch devices only.
+    // Touch devices (iOS/Android) must keep native behavior so the OS wheel picker works.
     $(document).on('focus mousedown keydown', '#mptbm_manual_start_place, #mptbm_manual_end_place', function (e) {
+        var isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        if (isTouchDevice) {
+            return;
+        }
         // Only prevent if it's not already handled by our custom dropdown
         if (!$(e.target).closest('.mptbm-custom-select-wrapper').length) {
             if (e.type === 'focus' || e.type === 'mousedown' ||
