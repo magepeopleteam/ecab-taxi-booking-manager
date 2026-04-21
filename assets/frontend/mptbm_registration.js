@@ -3235,6 +3235,16 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
         });
     });
 
+    // Fixed by Shahnur - 2026-04-21 01:52 PM (Asia/Dhaka)
+    function mptbmShouldUseNativeTouchSelect() {
+        var userAgent = window.navigator.userAgent || '';
+        var platform = window.navigator.platform || '';
+        var maxTouchPoints = window.navigator.maxTouchPoints || 0;
+
+        // iPadOS can report itself as MacIntel, so keep the native select for Apple touch devices.
+        return /iPad|iPhone|iPod/.test(userAgent) || (platform === 'MacIntel' && maxTouchPoints > 1);
+    }
+
     // Handle select dropdown search functionality
     $(document).on('click', '#mptbm_manual_start_place, #mptbm_manual_end_place', function (e) {
 
@@ -3245,6 +3255,10 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
 
         // Remove any existing custom search elements
         $('.mptbm-custom-select-wrapper').remove();
+
+        if (mptbmShouldUseNativeTouchSelect()) {
+            return;
+        }
 
         // Check if select has options (dropoff might be empty initially)
         var $options = $select.find('option:not([disabled])');
@@ -3425,6 +3439,10 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
 
     // Prevent native dropdown behavior for manual select elements
     $(document).on('focus mousedown keydown', '#mptbm_manual_start_place, #mptbm_manual_end_place', function (e) {
+        if (mptbmShouldUseNativeTouchSelect()) {
+            return;
+        }
+
         // Only prevent if it's not already handled by our custom dropdown
         if (!$(e.target).closest('.mptbm-custom-select-wrapper').length) {
             if (e.type === 'focus' || e.type === 'mousedown' ||
