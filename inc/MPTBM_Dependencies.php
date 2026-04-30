@@ -80,6 +80,8 @@ if (!class_exists('MPTBM_Dependencies')) {
             // custom
             wp_enqueue_style('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.css', array(), time());
             wp_enqueue_style('admin_style', MPTBM_PLUGIN_URL . '/assets/admin/admin_style.css', array(), time());
+            wp_enqueue_style('mptbm_taxi_add_edit', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_taxi_add_edit.css', array(), time());
+            wp_enqueue_script('mptbm_taxi_add_edit', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_taxi_add_edit.js', array('jquery'), time(), true);
             wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), time(), true);
             wp_enqueue_script('mptbm_tooltip', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_tooltip.js', array('jquery'), time(), true);
             
@@ -99,19 +101,24 @@ if (!class_exists('MPTBM_Dependencies')) {
             
             if (($is_operation_areas_page || $is_settings_page || $is_rent_page || $is_locations_screen)) {
                 if ($map_type === 'openstreetmap') {
-                // Leaflet core - must load BEFORE mptbm_admin_map
-                wp_enqueue_style('leaflet', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css', array(), '1.9.4');
-                wp_enqueue_script('leaflet', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js', array('jquery'), '1.9.4', false);
-                
-                // Leaflet.draw for polygon drawing - must load AFTER leaflet but BEFORE mptbm_admin_map
-                wp_enqueue_style('leaflet-draw', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css', array('leaflet'), '1.0.4');
-                wp_enqueue_script('leaflet-draw', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js', array('leaflet'), '1.0.4', false);
-                
-                // Re-enqueue mptbm_admin_map with Leaflet dependencies
-                wp_deregister_script('mptbm_admin_map');
-                wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('jquery', 'leaflet', 'leaflet-draw'), time(), true);
+                    // Leaflet core - must load BEFORE mptbm_admin_map
+                    wp_enqueue_style('leaflet', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css', array(), '1.9.4');
+                    wp_enqueue_script('leaflet', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js', array('jquery'), '1.9.4', false);
+
+                    // Leaflet.draw for polygon drawing - must load AFTER leaflet but BEFORE mptbm_admin_map
+                    wp_enqueue_style('leaflet-draw', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css', array('leaflet'), '1.0.4');
+                    wp_enqueue_script('leaflet-draw', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js', array('leaflet'), '1.0.4', false);
+
+                    // Re-enqueue mptbm_admin_map with Leaflet dependencies
+                    wp_deregister_script('mptbm_admin_map');
+                    wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('jquery', 'leaflet', 'leaflet-draw'), time(), true);
+                }
             }
-        }
+
+            wp_localize_script('mptbm_admin', 'mptbm_admin_ajax', array(
+                'admin_ajax_url' => admin_url('admin-ajax.php'),
+                'admin_nonce' => wp_create_nonce('mptbm_osm_search')
+            ));
            
             // Trigger the action hook to add additional scripts if needed
             do_action('add_mptbm_admin_script');
