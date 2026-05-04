@@ -249,3 +249,491 @@ input:checked + .mptbm_taxi_slider:before { transform: translateX(22px); }
     font-size: 14px;
     font-weight: 600;
 }
+
+/*Pricing*/
+.mptbm_taxi_pricing_wrapper {
+    max-width: 1000px;
+    margin: 20px auto;
+    background: #f8fafc;
+    padding: 25px;
+    border-radius: 15px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Header Tabs */
+.mptbm_taxi_pricing_header_tabs {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+.mptbm_taxi_pricing_tab_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.mptbm_taxi_pricing_tab_item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.mptbm_taxi_pricing_tab_item i {
+    font-size: 20px;
+    margin-right: 12px;
+    color: #64748b;
+}
+
+.mptbm_taxi_pricing_tab_item.active {
+    border-color: #4f46e5;
+    background: #f5f3ff;
+}
+
+.mptbm_taxi_pricing_tab_item.active i { color: #4f46e5; }
+
+/* Accordion Row */
+.mptbm_taxi_pricing_container {
+    background: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    border: 1px solid #e2e8f0;
+}
+
+.mptbm_taxi_pricing_item {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.mptbm_taxi_pricing_item.active_row {
+    border-color: #4f46e5;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
+}
+
+.mptbm_taxi_pricing_row_head {
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    background: #fff;
+}
+
+.mptbm_taxi_pricing_label {
+    flex-grow: 1;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* Radio Slider Style */
+.mptbm_taxi_pricing_radio_toggle {
+    position: relative;
+    width: 42px;
+    height: 22px;
+    margin-right: 15px;
+}
+
+.mptbm_taxi_pricing_input { opacity: 0; width: 0; height: 0; }
+
+.mptbm_taxi_pricing_slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.mptbm_taxi_pricing_slider:before {
+    position: absolute;
+    content: "";
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.mptbm_taxi_pricing_input:checked + .mptbm_taxi_pricing_slider { background-color: #4f46e5; }
+.mptbm_taxi_pricing_input:checked + .mptbm_taxi_pricing_slider:before { transform: translateX(20px); }
+
+/* Form Content */
+.mptbm_taxi_pricing_row_content {
+    padding: 25px;
+    background: #fbfbfb;
+    border-top: 1px solid #f1f5f9;
+    display: none;
+}
+
+.mptbm_taxi_pricing_form_grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.mptbm_taxi_pricing_field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #475569;
+}
+
+.mptbm_taxi_pricing_field input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
+
+/* Info Alert */
+.mptbm_taxi_pricing_info_alert {
+    background: #e6fffa;
+    border: 1px solid #b2f5ea;
+    color: #2c7a7b;
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+}
+
+/* Route Row Design */
+.mptbm_taxi_pricing_route_row {
+    display: flex;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.mptbm_taxi_pricing_select_wrap { flex: 2; }
+.mptbm_taxi_pricing_input_wrap { flex: 1; }
+
+.mptbm_taxi_pricing_route_row select,
+.mptbm_taxi_pricing_route_row input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #4a5568;
+    outline: none;
+}
+
+/* Action Buttons */
+.mptbm_taxi_pricing_action_btns {
+    display: flex;
+    gap: 8px;
+}
+
+.mptbm_taxi_pricing_clone_btn,
+.mptbm_taxi_pricing_delete_btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    transition: 0.2s;
+}
+
+.mptbm_taxi_pricing_clone_btn { background: #ebf4ff; color: #3182ce; }
+.mptbm_taxi_pricing_delete_btn { background: #fff5f5; color: #e53e3e; }
+
+.mptbm_taxi_pricing_clone_btn:hover { background: #bee3f8; }
+.mptbm_taxi_pricing_delete_btn:hover { background: #fed7d7; }
+
+/* Add Button */
+.mptbm_taxi_pricing_add_action {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+.mptbm_taxi_pricing_add_route_full_btn {
+    background: #00a676;
+    color: #fff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 166, 118, 0.2);
+}
+
+/*Operation Area*/
+/* Container & Head */
+#row_operation_area {
+    border: 1px solid #e2e8f0;
+    border-radius: 15px;
+    background: #fff;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+#row_operation_area.active_row {
+    border-color: #4f46e5;
+    box-shadow: 0 10px 25px rgba(79, 70, 229, 0.1);
+}
+
+.mptbm_taxi_pricing_row_content {
+    padding: 25px;
+    background: #f8fafc;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* Basic Fields - Inline Card Style */
+.mptbm_taxi_pricing_basic_fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.mptbm_taxi_pricing_field_inline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    padding: 15px 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    transition: 0.2s;
+}
+
+.mptbm_taxi_pricing_field_inline:hover {
+    border-color: #cbd5e1;
+}
+
+.mptbm_taxi_pricing_field_inline label {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1e293b;
+    display: flex;
+    flex-direction: column;
+}
+
+.mptbm_taxi_pricing_field_inline label i {
+    color: #94a3b8;
+    margin-left: 5px;
+    font-size: 12px;
+}
+
+.mptbm_taxi_pricing_field_inline label span {
+    font-weight: 400;
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.mptbm_taxi_pricing_field_inline input {
+    width: 180px;
+    padding: 10px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    text-align: right;
+    font-weight: 600;
+    color: #4f46e5;
+}
+
+/* Sub Sections (Modern Card) */
+.mptbm_taxi_pricing_sub_section {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 25px;
+}
+
+.mptbm_taxi_pricing_sub_header h4 {
+    font-size: 16px;
+    color: #1e293b;
+    margin-bottom: 5px;
+}
+
+.mptbm_taxi_pricing_sub_header p {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+/* Area Row Fields */
+.mptbm_taxi_pricing_area_row {
+    display: flex;
+    gap: 10px;
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.mptbm_taxi_pricing_area_row select,
+.mptbm_taxi_pricing_area_row input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.mptbm_taxi_pricing_remove_link {
+    color: #ef4444;
+    background: none;
+    border: none;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0 10px;
+}
+
+/* Table Design */
+.mptbm_taxi_pricing_table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    margin-top: 10px;
+}
+
+.mptbm_taxi_pricing_table th {
+    text-align: left;
+    padding: 10px;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+}
+
+.mptbm_taxi_pricing_table td {
+    background: #f8fafc;
+    padding: 12px;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.mptbm_taxi_pricing_table td:first-child { border-left: 1px solid #e2e8f0; border-radius: 10px 0 0 10px; }
+.mptbm_taxi_pricing_table td:last-child { border-right: 1px solid #e2e8f0; border-radius: 0 10px 10px 0; }
+
+.mptbm_taxi_pricing_table select,
+.mptbm_taxi_pricing_table input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+}
+
+/* Action Icons */
+.mptbm_taxi_pricing_del_icon {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.mptbm_taxi_pricing_expand_icon {
+    background: #e0e7ff;
+    color: #4f46e5;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Footer Buttons */
+.mptbm_taxi_pricing_footer_actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    align-items: center;
+}
+
+.mptbm_taxi_pricing_pink_btn {
+    background: #fff;
+    border: 1px dashed #4f46e5;
+    color: #4f46e5;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.mptbm_taxi_pricing_pink_btn:hover {
+    background: #f5f3ff;
+}
+
+.mptbm_taxi_pricing_save_btn {
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+}
+.mptbm_taxi_pricing_area_pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 15px 0;
+}
+
+:root {
+    --primary-indigo: #4f46e5;
+    --accent-orange: #f97316;
+    --bg-light-blue: #f0f7ff;
+    --border-gray: #e2e8f0;
+    --text-slate: #64748b;
+}
+.mptbm_taxi_pricing_pill {
+    padding: 8px 16px;
+    border: 1px solid var(--border-gray);
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.mptbm_taxi_pricing_pill.selected {
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+    background: #fff7ed;
+    font-weight: 600;
+}
+
+.mptbm_taxi_pricing_active_indicator {
+    font-size: 12px;
+    color: var(--text-slate);
+}
+
+.mptbm_taxi_pricing_active_indicator span {
+    background: #fff7ed;
+    color: var(--accent-orange);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 5px;
+    font-weight: 600;
+}

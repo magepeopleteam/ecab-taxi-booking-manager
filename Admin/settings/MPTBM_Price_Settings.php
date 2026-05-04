@@ -789,6 +789,7 @@ if (!class_exists('MPTBM_Price_Settings')) {
 		}
 		public function save_price_settings($post_id)
 		{
+            error_log( print_r( [ '$_POSTPrice'  =>$_POST ], true ) );
 			if (
 				!isset($_POST['mptbm_price_settings_nonce']) ||
 				!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['mptbm_price_settings_nonce'])), 'mptbm_price_settings_action')
