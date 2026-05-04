@@ -277,6 +277,317 @@ class MPTBM_Rent_Custom_Editor
 
                     </div>
 
+                    <!--Pricing-->
+                    <div class="mptbm_taxi_pricing_wrapper">
+                        <div class="mptbm_taxi_pricing_header_tabs">
+                            <h3 class="mptbm_taxi_pricing_main_title">Select Pricing Model</h3>
+                            <div class="mptbm_taxi_pricing_tab_grid">
+
+                                <div class="mptbm_taxi_pricing_tab_item active" data-id="inclusive">
+                                    <i class="fas fa-random"></i>
+                                    <div class="mptbm_taxi_pricing_tab_info">
+                                        <h4>Inclusive</h4>
+                                        <span>Multiple Models</span>
+                                    </div>
+                                </div>
+
+                                <div class="mptbm_taxi_pricing_tab_item " data-id="distance">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <div class="mptbm_taxi_pricing_tab_info">
+                                        <h4>Distance</h4>
+                                        <span>Based on KM</span>
+                                    </div>
+                                </div>
+                                <div class="mptbm_taxi_pricing_tab_item" data-id="duration">
+                                    <i class="fas fa-clock"></i>
+                                    <div class="mptbm_taxi_pricing_tab_info">
+                                        <h4>Duration</h4>
+                                        <span>Based on time</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="mptbm_taxi_pricing_container">
+                            <div class="mptbm_taxi_pricing_inner_header">
+                                <h3>Configure Pricing Rules</h3>
+                                <p>Select only one active pricing rule for this taxi model.</p>
+                            </div>
+
+                            <div class="mptbm_taxi_pricing_group">
+
+                                <div class="mptbm_taxi_pricing_item" id="row_distance">
+                                    <div class="mptbm_taxi_pricing_row_head">
+                                        <label class="mptbm_taxi_pricing_radio_toggle">
+                                            <input type="radio" name="mptbm_price_based" value="distance" class="mptbm_taxi_pricing_input" checked>
+                                            <span class="mptbm_taxi_pricing_slider"></span>
+                                        </label>
+                                        <span class="mptbm_taxi_pricing_label"><i class="fas fa-map-marker-alt"></i> Distance</span>
+                                        <span class="mptbm_taxi_pricing_status_tag">ACTIVE</span>
+                                    </div>
+                                    <div class="mptbm_taxi_pricing_row_content">
+                                        <div class="mptbm_taxi_pricing_form_grid">
+                                            <div class="mptbm_taxi_pricing_field">
+                                                <label>Price per KM</label>
+                                                <input name="mptbm_km_price" type="text" placeholder="1.2">
+                                            </div>
+                                            <!--<div class="mptbm_taxi_pricing_field">
+                                                <label>Min. Distance (km)</label>
+                                                <input type="text" placeholder="2">
+                                            </div>-->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mptbm_taxi_pricing_item" id="row_duration">
+                                    <div class="mptbm_taxi_pricing_row_head">
+                                        <label class="mptbm_taxi_pricing_radio_toggle">
+                                            <input type="radio" name="mptbm_price_based" value="duration" class="mptbm_taxi_pricing_input">
+                                            <span class="mptbm_taxi_pricing_slider"></span>
+                                        </label>
+                                        <span class="mptbm_taxi_pricing_label"><i class="fas fa-clock"></i> Duration</span>
+                                        <span class="mptbm_taxi_pricing_status_tag">OFF</span>
+                                    </div>
+                                    <div class="mptbm_taxi_pricing_row_content">
+                                        <div class="mptbm_taxi_pricing_form_grid">
+                                            <div class="mptbm_taxi_pricing_field">
+                                                <label>Price per Hour</label>
+                                                <input name="mptbm_hour_price" type="text" placeholder="0.5">
+                                            </div>
+                                            <!--<div class="mptbm_taxi_pricing_field">
+                                                <label>Minimum Time (min)</label>
+                                                <input type="text" placeholder="5">
+                                            </div>-->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mptbm_taxi_pricing_item" id="row_dist_dur">
+                                    <div class="mptbm_taxi_pricing_row_head">
+                                        <label class="mptbm_taxi_pricing_radio_toggle">
+                                            <input type="radio" name="mptbm_price_based" value="distance_duration" class="mptbm_taxi_pricing_input">
+                                            <span class="mptbm_taxi_pricing_slider"></span>
+                                        </label>
+                                        <span class="mptbm_taxi_pricing_label"><i class="fas fa-bolt"></i> Distance + Duration</span>
+                                        <span class="mptbm_taxi_pricing_status_tag">OFF</span>
+                                    </div>
+                                    <div class="mptbm_taxi_pricing_row_content">
+                                        <div class="mptbm_taxi_pricing_form_grid">
+                                            <!--<div class="mptbm_taxi_pricing_field">
+                                                <label>Base Fare</label>
+                                                <input type="text" placeholder="5.00">
+                                            </div>-->
+                                            <div class="mptbm_taxi_pricing_field">
+                                                <label>Price per KM</label>
+                                                <input name="mptbm_km_price" type="text" placeholder="1.00">
+                                            </div>
+                                            <div class="mptbm_taxi_pricing_field">
+                                                <label>Price per Hour</label>
+                                                <input name="mptbm_hour_price" type="text" placeholder="0.20">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mptbm_taxi_pricing_item" id="row_hourly">
+                                    <div class="mptbm_taxi_pricing_row_head">
+                                        <label class="mptbm_taxi_pricing_radio_toggle">
+                                            <input type="radio" name="mptbm_price_based" value="fixed_hourly" class="mptbm_taxi_pricing_input">
+                                            <span class="mptbm_taxi_pricing_slider"></span>
+                                        </label>
+                                        <span class="mptbm_taxi_pricing_label"><i class="fas fa-history"></i> Fixed Hourly</span>
+                                        <span class="mptbm_taxi_pricing_status_tag">OFF</span>
+                                    </div>
+                                    <div class="mptbm_taxi_pricing_row_content">
+                                        <div class="mptbm_taxi_pricing_form_grid">
+                                            <div class="mptbm_taxi_pricing_field">
+                                                <label>Hourly Rate</label>
+                                                <input name="mptbm_hour_price" type="text" placeholder="20.00">
+                                            </div>
+                                            <!--<div class="mptbm_taxi_pricing_field">
+                                                <label>Minimum Hours</label>
+                                                <input type="text" placeholder="1">
+                                            </div>-->
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="mptbm_taxi_pricing_item" id="row_operation_area">
+                                    <div class="mptbm_taxi_pricing_row_head">
+                                        <label class="mptbm_taxi_pricing_radio_toggle">
+                                            <input type="radio" name="mptbm_price_based" value="fixed_distance" class="mptbm_taxi_pricing_input">
+                                            <span class="mptbm_taxi_pricing_slider"></span>
+                                        </label>
+                                        <span class="mptbm_taxi_pricing_label"><i class="fas fa-pencil-alt"></i> Operation Area</span>
+                                        <span class="mptbm_taxi_pricing_status_tag">OFF</span>
+                                    </div>
+
+                                    <div class="mptbm_taxi_pricing_row_content">
+
+                                        <div class="mptbm_taxi_pricing_selection_group">
+                                            <label>SELECT OPERATION AREAS — multiple allowed</label>
+                                            <div class="mptbm_taxi_pricing_area_pills">
+                                                <button class="mptbm_taxi_pricing_pill selected"><i class="fas fa-check"></i> Dhaka</button>
+                                                <button class="mptbm_taxi_pricing_pill selected"><i class="fas fa-check"></i> Chittagong</button>
+                                                <button class="mptbm_taxi_pricing_pill">Sylhet</button>
+                                                <button class="mptbm_taxi_pricing_pill">Rajshahi</button>
+                                                <button class="mptbm_taxi_pricing_pill">Khulna</button>
+                                                <button class="mptbm_taxi_pricing_pill">Barisal</button>
+                                            </div>
+                                            <div class="mptbm_taxi_pricing_active_indicator">
+                                                Active: <span>Dhaka</span> <span>Chittagong</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="mptbm_taxi_pricing_basic_fields">
+                                            <div class="mptbm_taxi_pricing_field_inline">
+                                                <label>Price/KM <i class="fas fa-question-circle"></i> <span>Set Price per KM</span></label>
+                                                <input name="mptbm_km_price" type="text" value="1.2">
+                                            </div>
+                                            <div class="mptbm_taxi_pricing_field_inline">
+                                                <label>Fixed with map price <span>Set the fixed price for map-based trips</span></label>
+                                                <input name="mptbm_fixed_map_price" type="text" placeholder="EX: 10">
+                                            </div>
+                                            <div class="mptbm_taxi_pricing_field_inline">
+                                                <label>Price/Hour <i class="fas fa-question-circle"></i> <span>Set Price per Hour</span></label>
+                                                <input name="mptbm_hour_price" type="text" value="10">
+                                            </div>
+                                        </div>
+
+                                        <div class="mptbm_taxi_pricing_sub_section">
+                                            <div class="mptbm_taxi_pricing_sub_header">
+                                                <h4>Operation Area Based Price Set</h4>
+                                                <p>Set different pricing for each operation area. Easily manage fixed, per km, and per hour rates.</p>
+                                            </div>
+                                            <div class="mptbm_taxi_pricing_area_list">
+                                                <div class="mptbm_taxi_pricing_area_row">
+                                                    <select><option>dhaka jone (Operation Area)</option></select>
+                                                    <input type="text" placeholder="20">
+                                                    <input type="text" placeholder="1">
+                                                    <input type="text" placeholder="44">
+                                                    <button type="button" class="mptbm_taxi_pricing_remove_link">Remove</button>
+                                                </div>
+                                            </div>
+                                            <div class="mptbm_taxi_pricing_footer_actions">
+                                                <button type="button" class="mptbm_taxi_pricing_pink_btn mptbm_taxi_pricing_add_area_btn">+ Add Area Price</button>
+                                                <button type="button" class="mptbm_taxi_pricing_save_btn">Save</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="mptbm_taxi_pricing_sub_section">
+                                            <div class="mptbm_taxi_pricing_sub_header">
+                                                <h4>Fixed Map Route Overrides</h4>
+                                                <p>Define fixed prices for specific routes when using "Fixed with Map" mode.</p>
+                                            </div>
+                                            <table class="mptbm_taxi_pricing_table">
+                                                <thead>
+                                                <tr>
+                                                    <th>Start Zone *</th>
+                                                    <th>End Zone *</th>
+                                                    <th>Price *</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody class="mptbm_taxi_pricing_route_list">
+                                                <tr>
+                                                    <td><select name="mptbm_fixed_map_route_start_location[]"><option>mohammad pur bus stand (Location)</option></select></td>
+                                                    <td><select name="mptbm_fixed_map_route_end_location[]"><option>dhaka jone (Operation Area)</option></select></td>
+                                                    <td><input name="mptbm_fixed_map_route_price[]" type="text" placeholder="EX: 10"></td>
+                                                    <td>
+                                                        <div class="mptbm_taxi_pricing_table_actions">
+                                                            <button class="mptbm_taxi_pricing_del_icon"><i class="fas fa-trash"></i></button>
+                                                            <button class="mptbm_taxi_pricing_expand_icon"><i class="fas fa-expand-arrows-alt"></i></button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                            <button type="button" class="mptbm_taxi_pricing_pink_btn mptbm_taxi_pricing_add_route_btn">+ Add New Route</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mptbm_taxi_pricing_item" id="row_manual">
+                                    <div class="mptbm_taxi_pricing_row_head">
+                                        <label class="mptbm_taxi_pricing_radio_toggle">
+                                            <input type="radio" name="mptbm_price_based" value="manual" class="mptbm_taxi_pricing_input">
+                                            <span class="mptbm_taxi_pricing_slider"></span>
+                                        </label>
+                                        <span class="mptbm_taxi_pricing_label"><i class="fas fa-route"></i> Manual Routes</span>
+                                        <span class="mptbm_taxi_pricing_status_tag">OFF</span>
+                                    </div>
+
+                                    <div class="mptbm_taxi_pricing_row_content">
+                                        <div class="mptbm_taxi_pricing_info_alert">
+                                            <i class="far fa-lightbulb"></i>
+                                            <span>Routes not covered here fall back to the active pricing model.</span>
+                                        </div>
+
+                                        <div class="mptbm_taxi_pricing_manual_list">
+                                            <div class="mptbm_taxi_pricing_route_row">
+                                                <div class="mptbm_taxi_pricing_select_wrap">
+                                                    <select name="mptbm_terms_start_location[]"><option>Chittagong</option></select>
+                                                </div>
+                                                <div class="mptbm_taxi_pricing_select_wrap">
+                                                    <select name="mptbm_terms_end_location[]"><option>End city...</option></select>
+                                                </div>
+                                                <div class="mptbm_taxi_pricing_input_wrap">
+                                                    <input name="mptbm_location_terms_price[]" type="text" placeholder="e.g., 250 - F">
+                                                </div>
+                                                <div class="mptbm_taxi_pricing_action_btns">
+                                                    <button type="button" class="mptbm_taxi_pricing_clone_btn"><i class="far fa-copy"></i></button>
+                                                    <button type="button" class="mptbm_taxi_pricing_delete_btn"><i class="fas fa-times"></i></button>
+                                                </div>
+                                            </div>
+
+                                            <div class="mptbm_taxi_pricing_route_row">
+                                                <div class="mptbm_taxi_pricing_select_wrap">
+                                                    <select name="mptbm_terms_start_location[]"><option>Chittagong</option></select>
+                                                </div>
+                                                <div class="mptbm_taxi_pricing_select_wrap">
+                                                    <select name="mptbm_terms_end_location[]"><option>Rajshahi</option></select>
+                                                </div>
+                                                <div class="mptbm_taxi_pricing_input_wrap">
+                                                    <input name="mptbm_location_terms_price[]" type="text" value="111">
+                                                </div>
+                                                <div class="mptbm_taxi_pricing_action_btns">
+                                                    <button type="button" class="mptbm_taxi_pricing_clone_btn"><i class="far fa-copy"></i></button>
+                                                    <button type="button" class="mptbm_taxi_pricing_delete_btn"><i class="fas fa-times"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mptbm_taxi_pricing_add_action">
+                                            <button type="button" class="mptbm_taxi_pricing_add_route_full_btn">+ Add Route</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mptbm_taxi_pricing_item" id="row_zone">
+                                    <div class="mptbm_taxi_pricing_row_head">
+                                        <label class="mptbm_taxi_pricing_radio_toggle">
+                                            <input type="radio" name="mptbm_price_based" value="fixed_zone" class="mptbm_taxi_pricing_input">
+                                            <span class="mptbm_taxi_pricing_slider"></span>
+                                        </label>
+                                        <span class="mptbm_taxi_pricing_label"><i class="fas fa-building"></i>Fixed Zone</span>
+                                        <span class="mptbm_taxi_pricing_status_tag">OFF</span>
+                                    </div>
+                                    <div class="mptbm_taxi_pricing_row_content">
+                                        <div class="mptbm_taxi_pricing_form_grid">
+                                            <div class="mptbm_taxi_pricing_field">
+                                                <label>Flat Fare per Zone</label>
+                                                <input type="text" placeholder="10.00">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mptbm_taxi_footer">
                         <button class="mptbm_taxi_btn_prev">← Previous</button>
                         <span class="mptbm_taxi_step_counter">Step 1 of 5</span>
@@ -300,10 +611,10 @@ class MPTBM_Rent_Custom_Editor
             wp_die('Security check failed');
         }
 
-        error_log( print_r( [ '$_POST' => $_POST ], true ) );
+//        error_log( print_r( [ '$_POST' => $_POST ], true ) );
 
         $post_id = intval($_POST['post_id']);
-        $title   = sanitize_text_field($_POST['title']);
+        $title   =  isset($_POST['title'] ) ? sanitize_text_field($_POST['title']) : 'TEst';
 
         $data = [
             'post_title'  => $title,
