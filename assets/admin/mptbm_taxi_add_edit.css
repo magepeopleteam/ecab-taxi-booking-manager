@@ -19,6 +19,43 @@
     margin: 0 auto;
 }
 
+.mptbm_post_title {
+    background: #fff;
+    padding: 15px 18px;
+    margin: 15px 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.mptbm_post_title label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.mptbm_post_title input[type="text"] {
+    width: 100%;
+    max-width: 600px;
+    padding: 10px 14px;
+    font-size: 15px;
+    /*border: 1px solid #d0d7de;*/
+    border: unset;
+    border-radius: 8px;
+    background: #fff;
+    transition: all 0.2s ease;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.mptbm_post_title input[type="text"]:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 3px rgba(34,113,177,0.15);
+}
+
+.mptbm_post_title input[type="text"]::placeholder {
+    color: #8c8f94;
+}
+
 /* Stepper */
 .mptbm_taxi_stepper {
     display: flex;
@@ -251,16 +288,6 @@ input:checked + .mptbm_taxi_slider:before { transform: translateX(22px); }
 }
 
 /*Pricing*/
-.mptbm_taxi_pricing_wrapper {
-    max-width: 1000px;
-    margin: 20px auto;
-    background: #f8fafc;
-    padding: 25px;
-    border-radius: 15px;
-    font-family: 'Inter', sans-serif;
-}
-
-/* Header Tabs */
 .mptbm_taxi_pricing_header_tabs {
     background: #fff;
     padding: 20px;
