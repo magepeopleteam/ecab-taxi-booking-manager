@@ -66,4 +66,119 @@
         $('.tabLists.mptbm-sidebar').toggleClass('mptbm-sidebar-collapsed');
     });
 
+
+
+//NEW Feature
+	const mptbm_areas = JSON.parse($("#mptbm_operation_zones").val());
+	let selectedAreas = [];
+	// Add Row
+	$(document).on("click",".mptbm_addAreaPrice", function (e) {
+		e.preventDefault();
+		addRow();
+	});
+	function addRow() {
+		let availableAreas = {};
+
+		$.each(mptbm_areas, function (key, value) {
+			if (!selectedAreas.includes(key)) {
+				availableAreas[key] = value;
+			}
+		});
+		if (Object.keys(availableAreas).length === 0) {
+			alert("All areas already added");
+			return;
+		}
+
+		let options = '<option value="">Select Area</option>';
+
+		$.each(availableAreas, function (key, value) {
+			options += `<option value="${key}">${value}</option>`;
+		});
+
+		let row = $(`
+			<div class="row">
+				<select class="mptbm_areaSelect">${options}</select>
+				<input type="number" class="mptbm_area_fixed_price" placeholder="Fixed Price">
+				<input type="number" class="mptbm_area_km_price" placeholder="Per KM">
+				<input type="number" class="mptbm_area_hour_price" placeholder="Per Hour">
+				<button class="mptbm_area_remove">Remove</button>
+			</div>
+		`);
+
+		$("#mptbm_priceContainer").append(row);
+
+		$("#mptbm_saveAreaData").fadeIn(300);
+	}
+	// Select Area
+	$(document).on("change", ".mptbm_areaSelect", function () {
+		let val = $(this).val();
+
+		if (val && !selectedAreas.includes(val)) {
+			selectedAreas.push(val);
+		}
+	});
+	// Remove Row
+	$(document).on("click", ".mptbm_area_remove", function () {
+		let row = $(this).closest(".row");
+		let area = row.find(".mptbm_areaSelect").val();
+
+		if (area) {
+			selectedAreas = selectedAreas.filter(a => a !== area);
+		}
+
+		row.remove();
+	});
+	// Save Data
+	$(document).on("click", "#mptbm_saveAreaData", function (e) {
+		e.preventDefault();
+
+		let $this = $(this);
+
+		let area_price_data = {};
+
+		$this.text('Saving...');
+
+		$("#mptbm_priceContainer .row").each(function () {
+
+			let area = $(this).find(".mptbm_areaSelect").val();
+			let fixed_price = $(this).find(".mptbm_area_fixed_price").val();
+			let km_price = $(this).find(".mptbm_area_km_price").val();
+			let hour_price = $(this).find(".mptbm_area_hour_price").val();
+
+			if (area) {
+				area_price_data[area] = {
+					fixed: fixed_price,
+					per_km: km_price,
+					per_hour: hour_price
+				};
+			}
+		});
+
+		let post_id = $('[name="mptbm_post_id"]').val();
+		let target = $("#result"); // make sure this exists
+
+		$.ajax({
+			type: 'POST',
+			url: mp_ajax_url,
+			data: {
+				action: "mptbm_operation_area_price_data_set",
+				area_price_data: JSON.stringify(area_price_data),
+				post_id: post_id,
+				nonce: MPTBM_Ajax.nonce
+			},
+			beforeSend: function () {
+				console.log("Sending...", area_price_data);
+			},
+			success: function (res) {
+				$this.text('Saved');
+			},
+			error: function (err) {
+				console.log("Error:", err);
+			},
+			complete: function (res) {
+				$this.text('Save');
+			},
+		});
+	});
+
 }(jQuery));

@@ -13,6 +13,8 @@ if (!class_exists('MPTBM_Price_Settings')) {
 		{
 			add_action('add_mptbm_settings_tab_content', [$this, 'price_settings'], 10, 1);
 			add_action('save_post', [$this, 'save_price_settings'], 10, 1);
+
+			add_action('wp_ajax_mptbm_operation_area_price_data_set', [$this, 'mptbm_operation_area_price_data_set']);
 		}
 		public function price_settings($post_id)
 		{
@@ -246,7 +248,73 @@ if (!class_exists('MPTBM_Price_Settings')) {
 						<?php $this->hidden_manual_price_item($location_terms); ?>
 					</div>
 				</section>
-				
+
+                <!-- Operation Area based Pricing -->
+                <section class="bg-light" style="margin-top: 20px;" data-collapse="#mp_fixed_map_routes">
+                    <h6><?php esc_html_e('Operation Area Based Price Set', 'ecab-taxi-booking-manager'); ?></h6>
+                    <span><?php esc_html_e('Set different pricing for each operation area based on transport type, distance, or time. Easily manage fixed, per km, and per hour rates without creating duplicate transports.', 'ecab-taxi-booking-manager'); ?></span>
+                </section>
+                <?php
+                ?>
+                <section class="<?php echo esc_attr($price_based == 'fixed_distance' ? 'mActive' : ''); ?>" data-collapse="#mp_fixed_map_routes">
+                    <input type="hidden" id="mptbm_operation_zones" value='<?php echo json_encode($operation_zones); ?>'>
+
+                    <div id="mptbm_priceContainer">
+
+                        <?php
+                        $pricing = get_post_meta( $post_id, 'mptbm_operation_area_pricing' );
+                        $show_save_btn = 'none';
+                        if ( !empty( $pricing[0] ) ) :
+                            $show_save_btn = 'block';
+                            foreach ($pricing as $key => $values) :
+
+                                foreach ($values as $area_key => $value) :
+
+                                    if( !empty( $value ) ) :
+
+                                       $fixed_price = isset( $value['fixed'] ) ? $value['fixed'] : 0;
+                                       $per_km_price = isset( $value['per_km'] ) ? $value['per_km'] : '';
+                                       $fixed_per_hour = isset( $value['per_hour'] ) ? $value['per_hour'] : '';
+                                        ?>
+
+                                        <div class="row">
+
+                                            <select class="mptbm_areaSelect">
+                                                <option value="">Select Area</option>
+
+                                                <?php foreach ($operation_zones as $key => $name) : ?>
+                                                    <option value="<?php echo esc_attr($key); ?>"
+                                                        <?php selected($area_key, $key); ?>>
+                                                        <?php echo esc_html($name); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+
+                                            </select>
+
+                                            <input type="number" class="mptbm_area_fixed_price" value="<?php echo esc_attr( $fixed_price ); ?>" placeholder="Fixed Price">
+
+                                            <input type="number" class="mptbm_area_km_price" value="<?php echo esc_attr( $per_km_price ); ?>" placeholder="Per KM">
+
+                                            <input type="number" class="mptbm_area_hour_price" value="<?php echo esc_attr( $fixed_per_hour ); ?>" placeholder="Per Hour">
+
+                                            <button type="button" class="mptbm_area_remove"><?php esc_html_e('Remove', 'ecab-taxi-booking-manager')?></button>
+
+                                        </div>
+                                    <?php endif; ?>
+                            <?php endforeach; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+
+                    </div>
+
+                    <div class="mptbm_area_based_pricing_set" style="display: flex; justify-content: space-between">
+                        <?php MP_Custom_Layout::add_new_button(esc_html__('Add Area Price', 'ecab-taxi-booking-manager'), 'mptbm_addAreaPrice'); ?>
+                        <button class="mptbm_saveAreaData" id="mptbm_saveAreaData" style="display: <?php echo esc_attr( $show_save_btn );?>"><?php esc_html_e('Save', 'ecab-taxi-booking-manager')?></button>
+                    </div>
+
+<!--                    <button id="mptbm_addAreaPrice" style="float: right">--><?php //esc_html_e('Add Area Price +', 'ecab-taxi-booking-manager')?><!--</button>-->
+                </section>
+
 				<!-- Fixed Map Route Overrides -->
 				<section class="bg-light" style="margin-top: 20px;" data-collapse="#mp_fixed_map_routes">
 					<h6><?php esc_html_e('Fixed Map Route Overrides', 'ecab-taxi-booking-manager'); ?></h6>
@@ -833,6 +901,24 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				update_post_meta($post_id, 'mptbm_custom_price_message', $custom_price_message);
 			}
 		}
+
+        function mptbm_operation_area_price_data_set() {
+
+            if (!current_user_can('edit_posts')) {
+                wp_send_json_error('Permission denied');
+            }
+
+            $post_id = isset( $_POST['post_id'] ) ? intval( wp_unslash($_POST['post_id'] ) ) : '';
+            $pricing = json_decode( sanitize_text_field( wp_unslash( $_POST['area_price_data'] ) ), true );
+
+            if ( !$post_id ) {
+                wp_send_json_error('Invalid data');
+            }
+            // Save to meta
+            update_post_meta( $post_id, 'mptbm_operation_area_pricing', $pricing);
+
+            wp_send_json_success('Saved successfully');
+        }
 	}
 	new MPTBM_Price_Settings();
 }

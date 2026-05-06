@@ -302,6 +302,9 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
     if (isset($_SESSION["mptbm_fixed_distance_match_" . $post_id])) {
         unset($_SESSION["mptbm_fixed_distance_match_" . $post_id]);
     }
+    if (isset($_SESSION["mptbm_operation_area_match_" . $post_id])) {
+        unset($_SESSION["mptbm_operation_area_match_" . $post_id]);
+    }
     
     //Get operation area id
     $operation_area_ids = get_post_meta($post_id, "mptbm_selected_operation_areas", true);
@@ -365,6 +368,9 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                         }
                         $is_in_any_area = true;
                         $_SESSION["mptbm_fixed_distance_match_" . $post_id] = $match_type;
+
+                        $_SESSION["mptbm_operation_area_match_" . $post_id] = $operation_area_id;
+
                         ?>
                         <script>
                             var selectorClass = `.mptbm_booking_item_<?php echo $post_id; ?>`;
