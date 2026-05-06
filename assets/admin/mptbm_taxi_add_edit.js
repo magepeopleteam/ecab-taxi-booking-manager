@@ -192,24 +192,64 @@
             $('.mptbm_taxi_pricing_route_list').append(tr);
         });
 
+        $('.mptbm_taxi_pricing_add_zone_btn').on('click', function() {
+            var tr = $('.mptbm_taxi_pricing_fixed_zone_list tr:first').clone();
+            tr.find('input').val('');
+            $('.mptbm_taxi_pricing_fixed_zone_list').append(tr);
+        });
 
-    $('.mptbm_taxi_pricing_area_pills').on('click', '.mptbm_taxi_pricing_pill', function(e) {
+
+    function getOperationType() {
+        return $('#mptbm_operation_area_type').val();
+    }
+    function updateHiddenInput() {
+        let values = [];
+
+        $('.mptbm_taxi_pricing_pill.selected').each(function () {
+            values.push($(this).data('id'));
+        });
+
+        $('#mptbm_selected_operation_areas').val(values.join(','));
+    }
+    $('.mptbm_taxi_pricing_area_pills').on('click', '.mptbm_taxi_pricing_pill', function (e) {
         e.preventDefault();
-        var $this = $(this);
-        var areaName = $this.text().trim();
-        if ($this.hasClass('selected')) {
-            $this.removeClass('selected');
-            $this.find('i').remove();
-        } else {
+
+        let $this = $(this);
+        let type = getOperationType();
+
+        // SINGLE SELECT MODE
+        if (type === 'geo-matched-operation-area-type') {
+
+            $('.mptbm_taxi_pricing_pill')
+                .removeClass('selected')
+                .find('i').remove();
+
             $this.addClass('selected');
+
             if ($this.find('i').length === 0) {
                 $this.prepend('<i class="fas fa-check"></i> ');
             }
+
+        }
+        // MULTI SELECT MODE
+        else {
+
+            if ($this.hasClass('selected')) {
+                $this.removeClass('selected');
+                $this.find('i').remove();
+            } else {
+                $this.addClass('selected');
+
+                if ($this.find('i').length === 0) {
+                    $this.prepend('<i class="fas fa-check"></i> ');
+                }
+            }
         }
 
+        // 🔥 UPDATE EVERYTHING AFTER CLICK
+        updateHiddenInput();
         updateActiveIndicator();
     });
-
     function updateActiveIndicator() {
         var activeAreas = [];
 
@@ -245,6 +285,58 @@
         updatePricingContainer();
     });
     updatePricingContainer();
+
+    function handleGroup(selector) {
+        let selectedValues = [];
+
+        // collect selected values (only same group)
+        $(selector).each(function () {
+            let val = $(this).val();
+            if (val) {
+                selectedValues.push(val);
+            }
+        });
+
+        // reset options (only same group)
+        $(selector).find('option').prop('disabled', false);
+
+        // disable duplicates inside same group
+        $(selector).each(function () {
+            let current = $(this);
+
+            selectedValues.forEach(function (value) {
+                current.find('option[value="' + value + '"]')
+                    .not(':selected')
+                    .prop('disabled', true);
+            });
+        });
+    }
+
+    function updateSelections() {
+        handleGroup('select[name="mptbm_fixed_map_route_start_location[]"]');
+        handleGroup('select[name="mptbm_fixed_map_route_end_location[]"]');
+    }
+
+    // on change
+    $(document).on('change', '.mptbm_fixed_map_route_start_location', function () {
+        updateSelections();
+    });
+    // on change
+    $(document).on('change', '.mptbm_fixed_map_route_end_location', function () {
+        updateSelections();
+    });
+    // on change
+    $(document).on('change', '.mptbm_operation_area_type', function () {
+        $('#mptbm_selected_operation_areas').val('');
+        $('.mptbm_taxi_pricing_pill')
+            .removeClass('selected')
+            .find('i').remove();
+        $('.mptbm_taxi_pricing_active_indicator').html('Active: ');
+    });
+
+    // on load
+    updateSelections();
+
 
 /*Extra Service*/
     $('#mptbm_ex_service_setting_add_btn').on('click', function() {
