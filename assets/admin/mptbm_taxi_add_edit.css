@@ -764,3 +764,149 @@ input:checked + .mptbm_taxi_slider:before { transform: translateX(22px); }
     margin-right: 5px;
     font-weight: 600;
 }
+
+/*Extra Service*/
+:root {
+    --mptbm-primary: #4e44e7;
+    --mptbm-bg: #f8faff;
+    --mptbm-border: #e2e8f0;
+    --mptbm-text: #334155;
+    --mptbm-subtext: #64748b;
+}
+
+.mptbm_taxi_ex_service_container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: white;
+    border: 1px solid var(--mptbm-border);
+    border-radius: 8px;
+    max-width: 1000px;
+    margin: 20px auto;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* Header & Toggle */
+.mptbm_taxi_ex_service_header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--mptbm-bg);
+    border-bottom: 1px solid var(--mptbm-border);
+}
+
+.mptbm_taxi_ex_service_main_title { margin: 0; font-size: 18px; color: var(--mptbm-text); }
+.mptbm_taxi_ex_service_subtitle { margin: 5px 0 0; font-size: 13px; color: var(--mptbm-subtext); }
+
+.mptbm_taxi_ex_service_toggle_wrapper { display: flex; align-items: center; gap: 10px; }
+.mptbm_taxi_ex_service_switch {
+    position: relative; display: inline-block; width: 44px; height: 22px;
+}
+.mptbm_taxi_ex_service_switch input { opacity: 0; width: 0; height: 0; }
+.mptbm_taxi_ex_service_slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc; transition: .4s; border-radius: 34px;
+}
+.mptbm_taxi_ex_service_slider:before {
+    position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background-color: white; transition: .4s; border-radius: 50%;
+}
+input:checked + .mptbm_taxi_ex_service_slider { background-color: var(--mptbm-primary); }
+input:checked + .mptbm_taxi_ex_service_slider:before { transform: translateX(22px); }
+
+/* Table & Inputs */
+.mptbm_taxi_ex_service_body { padding: 20px; }
+.mptbm_taxi_ex_service_filter_row { margin-bottom: 20px; font-size: 14px; font-weight: bold; }
+
+.mptbm_taxi_ex_service_table { width: 100%; border-collapse: collapse; }
+.mptbm_taxi_ex_service_table th {
+    text-align: left; padding: 12px; border-bottom: 2px solid var(--mptbm-bg);
+    color: var(--mptbm-text); font-size: 14px;
+}
+.mptbm_taxi_ex_service_table td { padding: 12px 8px; border-bottom: 1px solid #f0f0f0; }
+
+.mptbm_taxi_ex_service_input, .mptbm_taxi_ex_service_select {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--mptbm-border);
+    border-radius: 4px; color: var(--mptbm-text); box-sizing: border-box;
+}
+
+/* Icon Design */
+.mptbm_taxi_ex_service_icon_box {
+    width: 45px; height: 45px; border: 1px solid var(--mptbm-border);
+    border-radius: 6px; display: flex; align-items: center;
+    justify-content: center; position: relative; font-size: 20px;
+}
+.mptbm_taxi_ex_service_remove_icon {
+    position: absolute; top: -5px; right: -5px; background: #d9534f;
+    color: white; border-radius: 50%; width: 16px; height: 16px;
+    font-size: 12px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+}
+
+/* Footer & Buttons */
+.mptbm_taxi_ex_service_footer { display: flex; justify-content: flex-end; margin-top: 20px; }
+.mptbm_taxi_ex_service_add_btn {
+    padding: 10px 20px; border: 1px solid var(--mptbm-primary);
+    background: transparent; color: var(--mptbm-primary); border-radius: 4px;
+    cursor: pointer; font-weight: 600; transition: 0.3s;
+}
+.mptbm_taxi_ex_service_add_btn:hover { background: var(--mptbm-primary); color: white; }
+
+.mptbm_taxi_ex_service_btn_del, .mptbm_taxi_ex_service_btn_drag {
+    background: #fff; border: 1px solid var(--mptbm-border);
+    padding: 5px 8px; border-radius: 4px; cursor: pointer; margin-left: 4px;
+}
+
+/* Disabled State */
+.mptbm_disabled { opacity: 0.5; pointer-events: none; }
+/* Core Input & Select Styling */
+.mptbm_taxi_ex_service_input,
+.mptbm_taxi_ex_service_select {
+    width: 100%;
+    height: 40px;
+    padding: 8px 12px; /* 12px left padding for clean alignment */
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #1f2937;
+    font-size: 14px;
+    font-family: inherit;
+    text-align: left; /* Forces all text to the left */
+    transition: all 0.2s ease-in-out;
+    box-sizing: border-box;
+    outline: none;
+    display: block;
+}
+
+/* Specific adjustment for the price field (Number Input) */
+/* Previously this was centered; now it aligns left with the rest */
+.mptbm_center {
+    text-align: left !important;
+    font-weight: 500;
+}
+
+/* Textarea Alignment Fix */
+textarea.mptbm_taxi_ex_service_select {
+    height: 40px;
+    resize: none;
+    line-height: 22px; /* Centers text vertically for single line look */
+    white-space: nowrap;
+    overflow: hidden;
+    padding-top: 9px; /* Fine-tuning vertical alignment */
+}
+
+/* Select Dropdown Alignment */
+select.mptbm_taxi_ex_service_select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 30px;
+}
+
+/* Focus and Hover states remain consistent */
+.mptbm_taxi_ex_service_input:focus,
+.mptbm_taxi_ex_service_select:focus {
+    border-color: #4e44e7;
+    box-shadow: 0 0 0 3px rgba(78, 68, 231, 0.1);
+}

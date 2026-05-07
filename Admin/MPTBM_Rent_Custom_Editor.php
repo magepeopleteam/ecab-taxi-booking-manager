@@ -97,235 +97,18 @@ class MPTBM_Rent_Custom_Editor
                     </div>
 
                     <?php
+
                     self::taxi_content_tabs_set( $post_id );
 
                     self::general_information_set( $post_id );
 
-                    self::pricing_set( $post_id );
+                    self::pricing_settings( $post_id );
+
+                    self::extra_service_settings( $post_id );
+
+                    self::date_configuration_set( $post_id );
+
                     ?>
-
-                    <div class="mptbm_taxi_extra" data-step="3">
-                        <div class="mptbm_ex_service_setting_container">
-                            <div class="mptbm_ex_service_setting_header">
-                                <h2>Extra Services</h2>
-                                <p>Add additional services that customers can book with this taxi</p>
-                            </div>
-
-                            <div id="mptbm_ex_service_setting_list">
-                                <div class="mptbm_ex_service_setting_row">
-                                    <div class="mptbm_ex_service_setting_field">
-                                        <label>Service Name</label>
-                                        <input type="text" placeholder="e.g., Airport Assistance - Service name">
-                                    </div>
-                                    <div class="mptbm_ex_service_setting_field mptbm_flex_grow">
-                                        <label>Description</label>
-                                        <input type="text" placeholder="e.g., Help with luggage and directions">
-                                    </div>
-                                    <div class="mptbm_ex_service_setting_field mptbm_small">
-                                        <label>Price</label>
-                                        <input type="text" placeholder="e.g., 50 - Service">
-                                    </div>
-                                    <div class="mptbm_ex_service_setting_field mptbm_qty">
-                                        <label>Qty</label>
-                                        <input type="number" value="1">
-                                    </div>
-                                    <button type="button" class="mptbm_ex_service_setting_remove">&times;</button>
-                                </div>
-                            </div>
-
-                            <div class="mptbm_ex_service_setting_footer">
-                                <button type="button" id="mptbm_ex_service_setting_add_btn">+ Add Extra Service</button>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="mptbm_taxi_datetime" data-step="4">
-                        <div class="mptbm_container">
-                            <div class="mptbm_card">
-                                <div class="mptbm_section_header">
-                                    <h3>General Date Configuration</h3>
-                                    <p>Here you can configure general date</p>
-                                </div>
-
-                                <div class="mptbm_form_group">
-                                    <label>Date Type <span>*</span></label>
-                                    <small>Specifies the date type: "Repeated" for recurring dates, or "Particular" for a specific date</small>
-                                    <div class="mptbm_select_wrapper">
-                                        <select>
-                                            <option>Repeated</option>
-                                            <option>Particular</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="mptbm_form_group">
-                                    <label>Repeated Start Date <span>*</span></label>
-                                    <small>Sets the start date for recurring services</small>
-                                    <input type="text" placeholder="mm/dd/yyyy">
-                                </div>
-
-                                <div class="mptbm_form_group">
-                                    <label>Repeated after <span>*</span></label>
-                                    <small>Defines the number of days after which the service or event will repeat</small>
-                                    <input type="number" value="1">
-                                </div>
-
-                                <div class="mptbm_form_group">
-                                    <label>Maximum Advanced Day Booking <span>*</span></label>
-                                    <small>Sets the maximum number of days in advance a booking can be made</small>
-                                    <input type="number" value="60">
-                                </div>
-
-                                <div class="mptbm_switch_wrapper">
-                                    <label class="mptbm_switch">
-                                        <input type="checkbox" checked>
-                                        <span class="mptbm_slider"></span>
-                                    </label>
-                                    <div class="mptbm_switch_text">
-                                        <strong>Make Transport Available For 24 Hours</strong>
-                                        <p>By default slider is ON but you can keep it off by switching this option</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mptbm_card">
-                                <div class="mptbm_section_header">
-                                    <h3>Schedule Date Configuration</h3>
-                                    <p>Here you can configure Schedule date.</p>
-                                </div>
-                                <div class="mptbm_schedule_container">
-                                    <div class="mptbm_schedule_header">
-                                        <h3>Schedule Date Configuration</h3>
-                                        <p>Here you can configure Schedule date.</p>
-                                    </div>
-
-                                    <table class="mptbm_schedule_table">
-                                        <thead>
-                                        <tr>
-                                            <th style="width: 20%;">Day</th>
-                                            <th style="width: 35%;">Start Time</th>
-                                            <th style="width: 10%; text-align: center;">To</th>
-                                            <th style="width: 35%;">End Time</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr>
-                                            <td>Monday</td>
-                                            <td>
-                                                <div class="mptbm_custom_select">
-                                                    <select>
-                                                        <option>Default</option>
-                                                    </select>
-                                                </div>
-                                            </td>
-                                            <td class="mptbm_to_text">To</td>
-                                            <td>
-                                                <div class="mptbm_custom_select">
-                                                    <select>
-                                                        <option>Default</option>
-                                                    </select>
-                                                </div>
-                                            </td>
-                                        </tr>
-
-                                        <tr class="mptbm_row_active">
-                                            <td>Tuesday</td>
-                                            <td>
-                                                <div class="mptbm_custom_select mptbm_select_focused">
-                                                    <select>
-                                                        <option>Select...</option>
-                                                        <option>Default</option>
-                                                        <option>Please select</option>
-                                                        <option>12:00 am</option>
-                                                        <option>1:00 am</option>
-                                                        <option>2:00 am</option>
-                                                        <option>6:00 am</option>
-                                                        <option>12:00 pm</option>
-                                                        <option>6:00 pm</option>
-                                                    </select>
-                                                </div>
-                                            </td>
-                                            <td class="mptbm_to_text">To</td>
-                                            <td>
-                                                <div class="mptbm_custom_select">
-                                                    <select><option>Select...</option></select>
-                                                </div>
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td>Wednesday</td>
-                                            <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                            <td class="mptbm_to_text">To</td>
-                                            <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Thursday</td>
-                                            <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                            <td class="mptbm_to_text">To</td>
-                                            <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Friday</td>
-                                            <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                            <td class="mptbm_to_text">To</td>
-                                            <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Saturday</td>
-                                            <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                            <td class="mptbm_to_text">To</td>
-                                            <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Sunday</td>
-                                            <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                            <td class="mptbm_to_text">To</td>
-                                            <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <div class="mptbm_card">
-                                <div class="mptbm_section_header">
-                                    <h3>Off Days & Dates Configuration</h3>
-                                    <p>Here you can configure Off Days & Dates.</p>
-                                </div>
-
-                                <div class="mptbm_form_group">
-                                    <label>Off Day</label>
-                                    <small>Select checkbox for off day</small>
-                                    <div class="mptbm_checkbox_row">
-                                        <label><input type="checkbox"> Monday</label>
-                                        <label><input type="checkbox"> Tuesday</label>
-                                        <label><input type="checkbox"> Wednesday</label>
-                                        <label><input type="checkbox"> Thursday</label>
-                                        <label><input type="checkbox"> Friday</label>
-                                        <label><input type="checkbox"> Saturday</label>
-                                        <label><input type="checkbox"> Sunday</label>
-                                    </div>
-                                </div>
-
-                                <div class="mptbm_form_group">
-                                    <label>Off Dates</label>
-                                    <small>Add off dates</small>
-                                    <div id="mptbm_off_dates_container">
-                                        <div class="mptbm_date_input_row">
-                                            <input type="text" placeholder="mm/dd/yyyy">
-                                            <button class="mptbm_btn_remove">Remove</button>
-                                        </div>
-                                    </div>
-                                    <div class="mptbm_btn_container">
-                                        <button id="mptbm_add_off_date" class="mptbm_btn_orange">+ Add New Off Date</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
 
                     <div class="mptbm_taxi_advanced" data-step="5">Advanced</div>
 
@@ -643,7 +426,334 @@ class MPTBM_Rent_Custom_Editor
 
         </div>
     <?php }
-    public static function pricing_set( $post_id ){
+    public static function date_configuration_set( $post_id ){ ?>
+        <div class="mptbm_taxi_datetime" data-step="4">
+            <div class="mptbm_container">
+                <div class="mptbm_card">
+                    <div class="mptbm_section_header">
+                        <h3>General Date Configuration</h3>
+                        <p>Here you can configure general date</p>
+                    </div>
+
+                    <div class="mptbm_form_group">
+                        <label>Date Type <span>*</span></label>
+                        <small>Specifies the date type: "Repeated" for recurring dates, or "Particular" for a specific date</small>
+                        <div class="mptbm_select_wrapper">
+                            <select>
+                                <option>Repeated</option>
+                                <option>Particular</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mptbm_form_group">
+                        <label>Repeated Start Date <span>*</span></label>
+                        <small>Sets the start date for recurring services</small>
+                        <input type="text" placeholder="mm/dd/yyyy">
+                    </div>
+
+                    <div class="mptbm_form_group">
+                        <label>Repeated after <span>*</span></label>
+                        <small>Defines the number of days after which the service or event will repeat</small>
+                        <input type="number" value="1">
+                    </div>
+
+                    <div class="mptbm_form_group">
+                        <label>Maximum Advanced Day Booking <span>*</span></label>
+                        <small>Sets the maximum number of days in advance a booking can be made</small>
+                        <input type="number" value="60">
+                    </div>
+
+                    <div class="mptbm_switch_wrapper">
+                        <label class="mptbm_switch">
+                            <input type="checkbox" checked>
+                            <span class="mptbm_slider"></span>
+                        </label>
+                        <div class="mptbm_switch_text">
+                            <strong>Make Transport Available For 24 Hours</strong>
+                            <p>By default slider is ON but you can keep it off by switching this option</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mptbm_card">
+                    <div class="mptbm_section_header">
+                        <h3>Schedule Date Configuration</h3>
+                        <p>Here you can configure Schedule date.</p>
+                    </div>
+                    <div class="mptbm_schedule_container">
+                        <div class="mptbm_schedule_header">
+                            <h3>Schedule Date Configuration</h3>
+                            <p>Here you can configure Schedule date.</p>
+                        </div>
+
+                        <table class="mptbm_schedule_table">
+                            <thead>
+                            <tr>
+                                <th style="width: 20%;">Day</th>
+                                <th style="width: 35%;">Start Time</th>
+                                <th style="width: 10%; text-align: center;">To</th>
+                                <th style="width: 35%;">End Time</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Monday</td>
+                                <td>
+                                    <div class="mptbm_custom_select">
+                                        <select>
+                                            <option>Default</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td class="mptbm_to_text">To</td>
+                                <td>
+                                    <div class="mptbm_custom_select">
+                                        <select>
+                                            <option>Default</option>
+                                        </select>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr class="mptbm_row_active">
+                                <td>Tuesday</td>
+                                <td>
+                                    <div class="mptbm_custom_select mptbm_select_focused">
+                                        <select>
+                                            <option>Select...</option>
+                                            <option>Default</option>
+                                            <option>Please select</option>
+                                            <option>12:00 am</option>
+                                            <option>1:00 am</option>
+                                            <option>2:00 am</option>
+                                            <option>6:00 am</option>
+                                            <option>12:00 pm</option>
+                                            <option>6:00 pm</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td class="mptbm_to_text">To</td>
+                                <td>
+                                    <div class="mptbm_custom_select">
+                                        <select><option>Select...</option></select>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Wednesday</td>
+                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
+                                <td class="mptbm_to_text">To</td>
+                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
+                            </tr>
+                            <tr>
+                                <td>Thursday</td>
+                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
+                                <td class="mptbm_to_text">To</td>
+                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
+                            </tr>
+                            <tr>
+                                <td>Friday</td>
+                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
+                                <td class="mptbm_to_text">To</td>
+                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
+                            </tr>
+                            <tr>
+                                <td>Saturday</td>
+                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
+                                <td class="mptbm_to_text">To</td>
+                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
+                            </tr>
+                            <tr>
+                                <td>Sunday</td>
+                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
+                                <td class="mptbm_to_text">To</td>
+                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mptbm_card">
+                    <div class="mptbm_section_header">
+                        <h3>Off Days & Dates Configuration</h3>
+                        <p>Here you can configure Off Days & Dates.</p>
+                    </div>
+
+                    <div class="mptbm_form_group">
+                        <label>Off Day</label>
+                        <small>Select checkbox for off day</small>
+                        <div class="mptbm_checkbox_row">
+                            <label><input type="checkbox"> Monday</label>
+                            <label><input type="checkbox"> Tuesday</label>
+                            <label><input type="checkbox"> Wednesday</label>
+                            <label><input type="checkbox"> Thursday</label>
+                            <label><input type="checkbox"> Friday</label>
+                            <label><input type="checkbox"> Saturday</label>
+                            <label><input type="checkbox"> Sunday</label>
+                        </div>
+                    </div>
+
+                    <div class="mptbm_form_group">
+                        <label>Off Dates</label>
+                        <small>Add off dates</small>
+                        <div id="mptbm_off_dates_container">
+                            <div class="mptbm_date_input_row">
+                                <input type="text" placeholder="mm/dd/yyyy">
+                                <button class="mptbm_btn_remove">Remove</button>
+                            </div>
+                        </div>
+                        <div class="mptbm_btn_container">
+                            <button id="mptbm_add_off_date" class="mptbm_btn_orange">+ Add New Off Date</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php }
+    public static function extra_service_display( $post_id ){
+
+        $display            = MP_Global_Function::get_post_info( $post_id, 'display_mptbm_extra_services', 'on' );
+        $service_id         = get_post_meta( $post_id, 'mptbm_extra_services_id', true);
+        $active             = $display == 'off' ? '' : 'mActive';
+        $checked            = $display == 'off' ? '' : 'checked';
+        $all_ex_services_id = MPTBM_Query::query_post_id( 'mptbm_extra_services' );
+        ?>
+        <div class="mptbm_taxi_ex_service_container">
+            <div class="mptbm_taxi_ex_service_header">
+                <div class="mptbm_taxi_ex_service_title_group">
+                    <h2 class="mptbm_taxi_ex_service_main_title">Extra Service</h2>
+                    <p class="mptbm_taxi_ex_service_subtitle">Manage optional services and their pricing for trips.</p>
+                </div>
+                <div class="mptbm_taxi_ex_service_toggle_wrapper">
+                    <label class="mptbm_taxi_ex_service_switch">
+                        <input type="checkbox" id="mptbm_taxi_ex_service_master_toggle" name="display_mptbm_extra_services" <?php echo esc_attr($checked); ?>>
+                        <span class="mptbm_taxi_ex_service_slider"></span>
+                    </label>
+                    <span class="mptbm_taxi_ex_service_toggle_label">ON</span>
+                </div>
+            </div>
+
+            <div class="mptbm_taxi_ex_service_body">
+                <div class="mptbm_taxi_ex_service_filter_row">
+                    <label>Select extra option:</label>
+                    <select class="formControl" name="mptbm_extra_services_id">
+                        <option value=""><?php esc_html_e( 'Select extra option', 'ecab-taxi-booking-manager' ); ?></option>
+                        <option value="<?php echo esc_attr( $post_id ); ?>" <?php echo esc_attr( $service_id == $post_id ? 'selected' : '' ); ?>><?php esc_html_e( 'Custom', 'ecab-taxi-booking-manager' ); ?></option>
+                        <?php if ( sizeof( $all_ex_services_id ) > 0 ) { ?>
+                            <?php foreach ( $all_ex_services_id as $ex_services_id ) { ?>
+                                <option value="<?php echo esc_attr( $ex_services_id ); ?>" <?php echo esc_attr( $service_id == $ex_services_id ? 'selected' : '' ); ?>><?php echo esc_html(get_the_title( $ex_services_id )); ?></option>
+                            <?php } ?>
+                        <?php } ?>
+                    </select>
+                </div>
+
+                <table class="mptbm_taxi_ex_service_table">
+                    <thead>
+                    <tr>
+                        <th>Icon</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Price ($)</th>
+                        <th>Qty Box Type</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody id="mptbm_taxi_ex_service_tbody">
+                    <?php
+                    $extra_services = MP_Global_Function::get_post_info( $post_id, 'mptbm_extra_service_infos', array() );
+//                    error_log( print_r( [ '$extra_services' => $extra_services, '$post_id' => $post_id ], true ) );
+
+                    if ( $extra_services && is_array( $extra_services ) && sizeof( $extra_services ) > 0 ) {
+                        foreach ( $extra_services as $extra_service ) {
+                            self::extra_service_item( $extra_service );
+                        }
+                    }
+                    ?>
+                    </tbody>
+                </table>
+
+                <div class="mptbm_taxi_ex_service_footer">
+                    <button id="mptbm_taxi_ex_service_add_btn" class="mptbm_taxi_ex_service_add_btn">+ Add New Service</button>
+                </div>
+            </div>
+        </div>
+    <?php }
+
+    public static function extra_service_item( $field = array() ) {
+        $field         = $field ?: array();
+        $service_icon  = array_key_exists( 'service_icon', $field ) ? $field['service_icon'] : '';
+        $service_image = array_key_exists( 'service_image', $field ) ? $field['service_image'] : '';
+        $service_name  = array_key_exists( 'service_name', $field ) ? $field['service_name'] : '';
+        $service_price = array_key_exists( 'service_price', $field ) ? $field['service_price'] : '';
+        $input_type    = array_key_exists( 'service_qty_type', $field ) ? $field['service_qty_type'] : 'inputbox';
+        $description   = array_key_exists( 'extra_service_description', $field ) ? $field['extra_service_description'] : '';
+        $icon          = $image = "";
+
+        // Handle service_icon (for backward compatibility)
+        if ( $service_icon ) {
+            if ( preg_match( '/\s/', $service_icon ) ) {
+                $icon = $service_icon;
+            } else {
+                $image = $service_icon;
+            }
+        }
+
+        // Handle separate service_image field
+        if ( $service_image ) {
+            $image = $service_image;
+        }
+        ?>
+        <tr class="mptbm_taxi_ex_service_row">
+            <td>
+                <div class="mptbm_taxi_ex_service_icon_box">
+                    <span class="mptbm_taxi_ex_service_icon_placeholder">😊</span>
+                    <span class="mptbm_taxi_ex_service_remove_icon">×</span>
+                </div>
+            </td>
+            <td><input type="text" name="service_name[]" class="mptbm_taxi_ex_service_input" value="<?php echo esc_attr( $service_name ); ?>"></td>
+            <td>
+                <textarea class="mptbm_taxi_ex_service_select" name="extra_service_description[]">
+                    <?php echo esc_html( $description ); ?>
+                </textarea>
+            </td>
+            <td><input
+                type="number" class="mptbm_taxi_ex_service_input mptbm_center"
+                step="0.01"
+                min="0"
+                name="service_price[]"
+                placeholder="<?php esc_attr_e( 'EX: 10.50', 'ecab-taxi-booking-manager' ); ?>"
+                value="<?php echo esc_attr( $service_price ); ?>"
+                ></td>
+            <td>
+                <select name="service_qty_type[]" class='mptbm_taxi_ex_service_select mideum'>
+                    <option value="inputbox" <?php echo esc_attr( $input_type == 'inputbox' ? 'selected' : '' ); ?>><?php esc_html_e( 'Input Box', 'ecab-taxi-booking-manager' ); ?></option>
+                    <option value="dropdown" <?php echo esc_attr( $input_type == 'dropdown' ? 'selected' : '' ); ?>><?php esc_html_e( 'Dropdown List', 'ecab-taxi-booking-manager' ); ?></option>
+                </select>
+            </td>
+            <td class="mptbm_taxi_ex_service_actions">
+                <button class="mptbm_taxi_ex_service_btn_del">🗑️</button>
+                <button class="mptbm_taxi_ex_service_btn_drag">✥</button>
+            </td>
+        </tr>
+    <?php }
+    public static function extra_service_settings( $post_id ){
+//        $extra_services = MP_Global_Function::get_post_info( $post_id, 'mptbm_extra_service_infos', array() );
+
+        wp_nonce_field( 'mptbm_extra_service_nonce', 'mptbm_extra_service_nonce' );
+        ?>
+        <div class="mptbm_taxi_extra" data-step="3">
+            <div class="mptbm_ex_service_setting_container">
+                <?php
+                self::extra_service_display( $post_id );
+                ?>
+            </div>
+        </div>
+    <?php }
+
+    public static function pricing_settings( $post_id ){
         /*$initial_price = MP_Global_Function::get_post_info($post_id, 'mptbm_initial_price');
         $min_price = MP_Global_Function::get_post_info($post_id, 'mptbm_min_price');
         $return_min_price = MP_Global_Function::get_post_info($post_id, 'mptbm_min_price_return');
@@ -1009,6 +1119,10 @@ class MPTBM_Rent_Custom_Editor
                             </div>
                         </div>
                     </div>
+
+                    <?php
+//                    self::extra_service_display($post_id);
+                    ?>
 
                 </div>
             </div>

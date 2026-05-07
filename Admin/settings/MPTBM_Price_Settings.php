@@ -797,7 +797,6 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				return; // Exit if nonce is invalid
 			}
 			if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
-                error_log( print_r( [ '$_POSTPrice'  =>$_POST ], true ) );
 				if (isset($_POST['mptbm_initial_price']) && !is_serialized($_POST['mptbm_initial_price']) && current_user_can('manage_options')) {
 					$initial_price = filter_var($_POST['mptbm_initial_price'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
 					update_post_meta($post_id, 'mptbm_initial_price', $initial_price);
