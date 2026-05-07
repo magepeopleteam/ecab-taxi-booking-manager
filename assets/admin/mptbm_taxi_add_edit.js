@@ -107,6 +107,7 @@
         e.preventDefault();
 
         let formData = $(this).serialize();
+        console.log( formData );
 
         $.ajax({
             url: ajaxurl,
@@ -339,37 +340,53 @@
 
 
 /*Extra Service*/
-    $('#mptbm_ex_service_setting_add_btn').on('click', function() {
-        const newRow = `
-            <div class="mptbm_ex_service_setting_row" style="display:none;">
-                <div class="mptbm_ex_service_setting_field">
-                    <label>Service Name</label>
-                    <input type="text" placeholder="e.g., Airport Assistance - Service name">
-                </div>
-                <div class="mptbm_ex_service_setting_field mptbm_flex_grow">
-                    <label>Description</label>
-                    <input type="text" placeholder="e.g., Help with luggage and directions">
-                </div>
-                <div class="mptbm_ex_service_setting_field mptbm_small">
-                    <label>Price</label>
-                    <input type="text" placeholder="e.g., 50 - Service">
-                </div>
-                <div class="mptbm_ex_service_setting_field mptbm_qty">
-                    <label>Qty</label>
-                    <input type="number" value="1">
-                </div>
-                <button type="button" class="mptbm_ex_service_setting_remove">&times;</button>
-            </div>`;
+    $(document).on('change','#mptbm_taxi_ex_service_master_toggle', function(e) {
+        e.preventDefault();
+        const isChecked = $(this).is(':checked');
+        const label = $(this).closest('.mptbm_taxi_ex_service_toggle_wrapper').find('.mptbm_taxi_ex_service_toggle_label');
 
-        $(newRow).appendTo('#mptbm_ex_service_setting_list').fadeIn(200);
+        alert('clicked');
+        if(isChecked) {
+            label.text('ON');
+            $('.mptbm_taxi_ex_service_body').removeClass('mptbm_disabled');
+        } else {
+            label.text('OFF');
+            $('.mptbm_taxi_ex_service_body').addClass('mptbm_disabled');
+        }
+    });
+
+    // 2. Delete Row Functionality
+    $(document).on('click', '.mptbm_taxi_ex_service_btn_del', function(e) {
+        e.preventDefault();
+        if(confirm('Are you sure you want to remove this service?')) {
+            $(this).closest('tr').fadeOut(300, function() { $(this).remove(); });
+        }
+    });
+
+    // 3. Add New Row Functionality
+    $('#mptbm_taxi_ex_service_add_btn').on('click', function(e) {
+        e.preventDefault();
+        const newRow = `
+            <tr class="mptbm_taxi_ex_service_row">
+                <td>
+                    <div class="mptbm_taxi_ex_service_icon_box">
+                        <span class="mptbm_taxi_ex_service_icon_placeholder">🛡️</span>
+                        <span class="mptbm_taxi_ex_service_remove_icon">×</span>
+                    </div>
+                </td>
+                <td><input type="text" class="mptbm_taxi_ex_service_input" placeholder="Service Name"></td>
+                <td><select class="mptbm_taxi_ex_service_select"><option>Lore</option></select></td>
+                <td><input type="number" class="mptbm_taxi_ex_service_input mptbm_center" value="0"></td>
+                <td><select class="mptbm_taxi_ex_service_select"><option>Input Box</option></select></td>
+                <td class="mptbm_taxi_ex_service_actions">
+                    <button class="mptbm_taxi_ex_service_btn_del">🗑️</button>
+                    <button class="mptbm_taxi_ex_service_btn_drag">✥</button>
+                </td>
+            </tr>`;
+        $('#mptbm_taxi_ex_service_tbody').append(newRow);
     });
 
     // Function to remove a row (using delegation for dynamic elements)
-    $('#mptbm_ex_service_setting_list').on('click', '.mptbm_ex_service_setting_remove', function() {
-        $(this).closest('.mptbm_ex_service_setting_row').fadeOut(200, function() {
-            $(this).remove();
-        });
-    });
 
 
     /*Date Configuration*/

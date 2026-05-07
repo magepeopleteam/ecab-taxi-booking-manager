@@ -228,10 +228,12 @@
 				}
 			}
 			public function save_ex_service( $post_id ) {
+                error_log( print_r( [ '$_POSTffff' => $_POST ], true ) );
 				if (!isset($_POST['mptbm_transportation_type_nonce']) || !wp_verify_nonce(sanitize_text_field( wp_unslash ($_POST['mptbm_transportation_type_nonce'])), 'mptbm_transportation_type_nonce') && defined('DOING_AUTOSAVE') && DOING_AUTOSAVE && !current_user_can('edit_post', $post_id)) {
 					return;
 				}
 				if ( get_post_type( $post_id ) == MPTBM_Function::get_cpt() ) {
+//                    error_log( print_r( [ 'display_mptbm_extra_services' => $_POST['display_mptbm_extra_services'] ], true ) );
 					$display = isset($_POST['display_mptbm_extra_services']) && sanitize_text_field($_POST['display_mptbm_extra_services'])? 'on' : 'off';
 					update_post_meta( $post_id, 'display_mptbm_extra_services', $display );
 					$ex_id = isset($_POST['mptbm_extra_services_id']) ? sanitize_text_field($_POST['mptbm_extra_services_id']) : $post_id;
