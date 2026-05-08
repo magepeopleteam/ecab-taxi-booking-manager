@@ -123,6 +123,54 @@
 
     });
 
+    // 1. Master Toggle Feature Functionality
+    $('#mptbm_taxi_feature_master_toggle').on('change', function(e) {
+        e.preventDefault();
+        const isChecked = $(this).is(':checked');
+        if( isChecked ){
+            $('.mptbm_taxi_feature_body').fadeIn();
+            $('.mptbm_taxi_feature_switch_text').text('On');
+        }else{
+            $('.mptbm_taxi_feature_body').fadeOut();
+            $('.mptbm_taxi_feature_switch_text').text('Off');
+        }
+
+        // $(this).closest('.mptbm_taxi_feature_switch').find('span').text(isChecked ? 'ON' : 'OFF');
+    });
+
+    $(document).on('click', '.mptbm_taxi_feature_btn_del', function(e) {
+        e.preventDefault();
+        if(confirm('Are you sure you want to remove this feature?')) {
+            $(this).closest('.mptbm_taxi_feature_row').fadeOut(300, function() {
+                $(this).remove();
+            });
+        }
+    });
+
+    $(document).on('click', '.mptbm_taxi_feature_remove_icon', function(e) {
+        e.preventDefault();
+        $(this).siblings('i').attr('class', 'fa-solid fa-image'); // Reset to placeholder
+    });
+
+    $('#mptbm_taxi_feature_add_row').on('click', function(e) {
+        e.preventDefault();
+        const newRow = `
+            <div class="mptbm_taxi_feature_row" style="display:none;">
+                <div class="mptbm_taxi_feature_icon_box">
+                    <i class="fa-solid fa-gear"></i>
+                    <div class="mptbm_taxi_feature_remove_icon"><i class="fa-solid fa-xmark"></i></div>
+                </div>
+                <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_label[]" placeholder="Label">
+                <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_text[]" placeholder="Value">
+                <div class="mptbm_taxi_feature_actions">
+                    <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_del">🗑️</button>
+                        <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_move">✥</button>
+                </div>
+            </div>`;
+
+        $(newRow).appendTo('#mptbm_taxi_feature_list').fadeIn(300);
+    });
+
 
     /*Pricing*/
         $('.mptbm_taxi_pricing_input').on('change', function() {
@@ -345,16 +393,38 @@
         const isChecked = $(this).is(':checked');
         const label = $(this).closest('.mptbm_taxi_ex_service_toggle_wrapper').find('.mptbm_taxi_ex_service_toggle_label');
 
-        alert('clicked');
         if(isChecked) {
             label.text('ON');
             $('.mptbm_taxi_ex_service_body').removeClass('mptbm_disabled');
+            $('#mptbm_taxi_ex_service_body').fadeIn();
         } else {
             label.text('OFF');
             $('.mptbm_taxi_ex_service_body').addClass('mptbm_disabled');
+            $('#mptbm_taxi_ex_service_body').fadeOut();
         }
     });
 
+    // 2. Delete Row Functionality
+    $(document).on('change', '#mptbm_extra_services_id', function(e) {
+        let service_id = $(this).val();
+        let nonce = $('#mptbm_extra_service_nonce').val();
+
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'mptbm_get_services_data',
+                service_id: service_id,
+                post_id: 37,
+                nonce: nonce
+            },
+            success: function (response) {
+                console.log(response);
+                $("#mptbm_taxi_ex_service_tbody").html(response.data.service_date);
+            }
+        });
+
+    });
     // 2. Delete Row Functionality
     $(document).on('click', '.mptbm_taxi_ex_service_btn_del', function(e) {
         e.preventDefault();
@@ -370,14 +440,23 @@
             <tr class="mptbm_taxi_ex_service_row">
                 <td>
                     <div class="mptbm_taxi_ex_service_icon_box">
-                        <span class="mptbm_taxi_ex_service_icon_placeholder">🛡️</span>
+                        <span class="mptbm_taxi_ex_service_icon_placeholder">😊</span>
                         <span class="mptbm_taxi_ex_service_remove_icon">×</span>
                     </div>
                 </td>
-                <td><input type="text" class="mptbm_taxi_ex_service_input" placeholder="Service Name"></td>
-                <td><select class="mptbm_taxi_ex_service_select"><option>Lore</option></select></td>
+                <td><input type="text" name="service_name[]" placeholder="Service Name" class="mptbm_taxi_ex_service_input" value=""></td>
+                <td>
+                    <textarea class="mptbm_taxi_ex_service_select" name="extra_service_description[]" placeholder="Desc..">
+                        Load
+                    </textarea>
+                </td>
                 <td><input type="number" class="mptbm_taxi_ex_service_input mptbm_center" value="0"></td>
-                <td><select class="mptbm_taxi_ex_service_select"><option>Input Box</option></select></td>
+                <td>
+                    <select class="mptbm_taxi_ex_service_select">
+                         <option value="inputbox">Input Box</option>
+                        <option value="dropdown">Dropdown List</option>
+                    </select>
+                </td>
                 <td class="mptbm_taxi_ex_service_actions">
                     <button class="mptbm_taxi_ex_service_btn_del">🗑️</button>
                     <button class="mptbm_taxi_ex_service_btn_drag">✥</button>
@@ -406,6 +485,111 @@
         $(this).parent('.mptbm_date_input_row').slideUp(200, function() {
             $(this).remove();
         });
+    });
+
+
+    /*Date And Advanced*/
+    /**
+     * 1. Section Toggle Logic
+     * Disables/Enables entire sections based on the header switch.
+     */
+    $('.mptbm_taxi_advanced_toggle input').on('change', function(e) {
+        e.preventDefault();
+        const isChecked = $(this).is(':checked');
+        const $card = $(this).closest('.mptbm_taxi_advanced_card');
+        const $content = $card.find('.mptbm_taxi_advanced_card_body, .mptbm_taxi_advanced_table_container, .mptbm_taxi_advanced_tax_alert');
+
+        if (!isChecked) {
+            $content.css({
+                'opacity': '0.5',
+                'pointer-events': 'none',
+                'filter': 'grayscale(1)'
+            });
+            $content.find('input, select, button').prop('disabled', true);
+        } else {
+            $content.css({
+                'opacity': '1',
+                'pointer-events': 'auto',
+                'filter': 'none'
+            });
+            $content.find('input, select, button').prop('disabled', false);
+        }
+    });
+
+    /**
+     * 2. Schedule "Default" Syncing
+     * If the "Default" row is changed, update all sub-rows that are set to "Default".
+     */
+    $('.mptbm_taxi_advanced_row_default select').on('change', function(e) {
+        e.preventDefault();
+        const type = $(this).parent().attr('class'); // Detect if it's start or end col
+        const val = $(this).val();
+
+        $('.mptbm_taxi_advanced_weekly_list .mptbm_taxi_advanced_table_row').each(function(e) {
+            e.preventDefault();
+            const $targetSelect = $(this).find('.' + type.split(' ')[0] + ' select');
+            if ($targetSelect.val() === "Default") {
+                // In a real app, you might trigger a visual flash or just update data
+                console.log("Syncing default values...");
+            }
+        });
+    });
+
+    /**
+     * 3. Driver Selection Update
+     * Updates the info box when a different driver is selected.
+     */
+    $('.mptbm_taxi_advanced_driver_select_row select').on('change', function(e) {
+        e.preventDefault();
+        const selectedDriver = $(this).val();
+        const $infoBox = $('.mptbm_taxi_advanced_driver_info_box');
+
+        // Example data mapping
+        const driverData = {
+            "John Conner": { username: "John", email: "eyesblade30@gmail.com" },
+            "Sarah Connor": { username: "SarahC", email: "sarah.c@sky.net" }
+        };
+
+        if (driverData[selectedDriver]) {
+            $infoBox.find('.mptbm_taxi_advanced_info_col:eq(0) p').text(selectedDriver);
+            $infoBox.find('.mptbm_taxi_advanced_info_col:eq(1) p').text(driverData[selectedDriver].username);
+            $infoBox.find('.mptbm_taxi_advanced_info_col:eq(2) p').text(driverData[selectedDriver].email);
+        }
+    });
+
+    /**
+     * 4. Navigation Button Actions
+     */
+    $('.mptbm_taxi_advanced_btn_primary').on('click', function(e) {
+        e.preventDefault();
+        alert("Proceeding to Step 4...");
+    });
+
+    $('.mptbm_taxi_advanced_btn_secondary:contains("Save Draft")').on('click', function(e) {
+        e.preventDefault();
+        $(this).text("Saving...").prop('disabled', true);
+        setTimeout(() => {
+            $(this).text("Save Draft").prop('disabled', false);
+            alert("Draft Saved Successfully!");
+        }, 1000);
+    });
+
+    /**
+     * 5. Add New Off Date (Dynamic Row Example)
+     */
+    $('.mptbm_taxi_advanced_btn_primary_alt').on('click', function(e) {
+        e.preventDefault();
+        const newDateRow = `
+            <div class="mptbm_taxi_advanced_dynamic_date" style="margin-top:10px; display:flex; gap:10px;">
+                <input type="date" class="mptbm_taxi_advanced_input_wrap" style="width:200px">
+                <button class="mptbm_taxi_advanced_remove_date" style="color:red; border:none; background:none; cursor:pointer;">&times; Remove</button>
+            </div>`;
+        $(this).parent().append(newDateRow);
+    });
+
+    $(document).on('click', '.mptbm_taxi_advanced_remove_date', function(e) {
+        e.preventDefault();
+        $(this).parent().remove();
     });
 
 
