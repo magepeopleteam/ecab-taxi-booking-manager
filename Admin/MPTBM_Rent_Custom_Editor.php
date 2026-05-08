@@ -1,6 +1,14 @@
 <?php
+/*
+ * @Author 		rubelcuet10@gmail.com
+ * Copyright: 	mage-people.com
+ */
+if (!defined('ABSPATH')) {
+    die;
+} // Cannot access pages directly.
 
-class MPTBM_Rent_Custom_Editor
+if (!class_exists('MPTBM_Rent_Custom_Editor')) {
+    class MPTBM_Rent_Custom_Editor
 {
     public function __construct() {
         add_action('admin_menu', [$this, 'register_menu']);
@@ -104,17 +112,17 @@ class MPTBM_Rent_Custom_Editor
 
                     self::pricing_settings( $post_id );
 
-                    self::extra_service_settings( $post_id );
+//                    self::extra_service_settings( $post_id );
 
                     self::date_configuration_set( $post_id );
 
                     ?>
 
-                    <div class="mptbm_taxi_advanced" data-step="5">Advanced</div>
+                    <div class="mptbm_taxi_advanced" data-step="4">Advanced</div>
 
                     <div class="mptbm_taxi_footer">
                         <button class="mptbm_taxi_btn_prev">← Previous</button>
-                        <span class="mptbm_taxi_step_counter">Step 1 of 5</span>
+                        <span class="mptbm_taxi_step_counter">Step 1 of 4</span>
                         <button class="mptbm_taxi_btn_next">Next →</button>
                     </div>
 
@@ -131,32 +139,32 @@ class MPTBM_Rent_Custom_Editor
             <div class="mptbm_taxi_step mptbm_taxi_active" data-step="1" data-icon="fas fa-clipboard-list">
                 <div class="mptbm_taxi_icon"><i class="fas fa-clipboard-list"></i></div>
                 <div class="mptbm_taxi_label">General Information</div>
-                <div class="mptbm_taxi_subtext">Step 1 of 5</div>
+                <div class="mptbm_taxi_subtext">Step 1 of 3</div>
             </div>
             <div class="mptbm_taxi_line"></div>
             <div class="mptbm_taxi_step" data-step="2" data-icon="fas fa-dollar-sign">
                 <div class="mptbm_taxi_icon"><i class="fas fa-dollar-sign"></i></div>
                 <div class="mptbm_taxi_label">Pricing Configuration</div>
-                <div class="mptbm_taxi_subtext">Step 2 of 5</div>
+                <div class="mptbm_taxi_subtext">Step 2 of 3</div>
             </div>
-            <div class="mptbm_taxi_line"></div>
+            <!--<div class="mptbm_taxi_line"></div>
             <div class="mptbm_taxi_step" data-step="3" data-icon="fas fa-magic">
                 <div class="mptbm_taxi_icon"><i class="fas fa-magic"></i></div>
                 <div class="mptbm_taxi_label">Extra Services</div>
                 <div class="mptbm_taxi_subtext">Step 3 of 5</div>
-            </div>
+            </div>-->
             <div class="mptbm_taxi_line"></div>
-            <div class="mptbm_taxi_step" data-step="4" data-icon="fas fa-calendar-alt">
+            <div class="mptbm_taxi_step" data-step="3" data-icon="fas fa-calendar-alt">
                 <div class="mptbm_taxi_icon"><i class="far fa-calendar-alt"></i></div>
                 <div class="mptbm_taxi_label">Operational Date Time</div>
-                <div class="mptbm_taxi_subtext">Step 4 of 5</div>
+                <div class="mptbm_taxi_subtext">Step 3 of 3</div>
             </div>
-            <div class="mptbm_taxi_line"></div>
-            <div class="mptbm_taxi_step" data-step="5" data-icon="fas fa-cog">
+            <!--<div class="mptbm_taxi_line"></div>
+            <div class="mptbm_taxi_step" data-step="4" data-icon="fas fa-cog">
                 <div class="mptbm_taxi_icon"><i class="fas fa-cog"></i></div>
                 <div class="mptbm_taxi_label">Advanced</div>
-                <div class="mptbm_taxi_subtext">Step 5 of 5</div>
-            </div>
+                <div class="mptbm_taxi_subtext">Step 4 of 4</div>
+            </div>-->
         </div>
     <?php }
 
@@ -177,9 +185,7 @@ class MPTBM_Rent_Custom_Editor
         $max_passenger = MP_Global_Function::get_post_info($post_id, 'mptbm_maximum_passenger');
         $max_bag = MP_Global_Function::get_post_info($post_id, 'mptbm_maximum_bag');
         $max_hand_luggage = MP_Global_Function::get_post_info($post_id, 'mptbm_maximum_hand_luggage');
-        $display_features = MP_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');
-        $features_active = $display_features == 'off' ? '' : 'mActive';
-        $features_checked = $display_features == 'off' ? '' : 'checked';
+
         $extra_info = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_info', '');
         $all_features = MP_Global_Function::get_post_info($post_id, 'mptbm_features');
         if (!$all_features) {
@@ -229,13 +235,13 @@ class MPTBM_Rent_Custom_Editor
                         <input name="mptbm_maximum_bag" type="text" value="<?php echo esc_attr( $max_bag );?>" placeholder="EX:4">
                     </div>
                     <div class="mptbm_taxi_field">
-                        <label>Extra Info</label>
-                        <p class="mptbm_taxi_help">Add any additional information about this vehicle that you want to display to customers</p>
+                        <label>Maximum hand luggage</label>
+                        <p class="mptbm_taxi_help">Filters services by the maximum number of hand luggage allowed</p>
                         <input name="mptbm_maximum_hand_luggage" type="text" value="<?php echo esc_attr( $max_hand_luggage );?>" placeholder="EX:2">
                     </div>
                     <div class="mptbm_taxi_field">
-                        <label>Capacity</label>
-                        <p class="mptbm_taxi_help">Number of passengers</p>
+                        <label>Extra Info</label>
+                        <p class="mptbm_taxi_help">Add any additional information about this vehicle that you want to display to customers</p>
                         <textarea name="mptbm_extra_info" rows="4" placeholder="Enter additional information about this vehicle..."><?php echo esc_html( $extra_info );?></textarea>
                     </div>
                 </div>
@@ -424,200 +430,103 @@ class MPTBM_Rent_Custom_Editor
                 </div>
             </div>
 
+            <?php
+                self::taxi_feature_add_remove( $post_id, $all_features );
+            ?>
+
+        </div>
+    <?php }
+
+        public static function features_item($features = array()) {
+            $label = array_key_exists('label', $features) ? $features['label'] : '';
+            $text = array_key_exists('text', $features) ? $features['text'] : '';
+            $icon = array_key_exists('icon', $features) ? $features['icon'] : '';
+            $image = array_key_exists('image', $features) ? $features['image'] : '';
+            ?>
+
+            <div id="mptbm_taxi_feature_list">
+                <div class="mptbm_taxi_feature_row">
+                    <div class="mptbm_taxi_feature_icon_box">
+                        <i class="fa-solid fa-car"></i>
+                        <div class="mptbm_taxi_feature_remove_icon"><i class="fa-solid fa-xmark"></i></div>
+                    </div>
+                    <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_label[]" value="<?php echo esc_attr($label); ?>"/>
+                    <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_text[]" value="<?php echo esc_attr($text); ?>"/>
+                    <div class="mptbm_taxi_feature_actions">
+                        <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_del">🗑️</button>
+                        <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_move">✥</button>
+                    </div>
+                </div>
+            </div>
+            <?php
+        }
+    public static function taxi_feature_add_remove( $post_id, $all_features ){
+        $display_features = MP_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');
+        $features_active = $display_features == 'off' ? 'Off' : 'On';
+        $display = $display_features == 'off' ? 'none' : 'block';
+        $features_checked = $display_features == 'off' ? '' : 'checked';
+        ?>
+        <div class="mptbm_taxi_feature_container">
+            <div class="mptbm_taxi_feature_header">
+                <div class="mptbm_taxi_feature_title_area">
+                    <h2>Vehicle Features</h2>
+                    <p>Configure additional vehicle features and specifications.</p>
+                </div>
+                <div class="mptbm_taxi_feature_switch">
+
+                    <span class="mptbm_taxi_feature_switch_text"><?php echo esc_attr( $features_active );?></span>
+                    <label class="mptbm_taxi_feature_toggle">
+                        <input type="checkbox" id="mptbm_taxi_feature_master_toggle" name="display_mptbm_features" <?php echo esc_attr( $features_checked );?>>
+                        <span class="mptbm_taxi_feature_slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="mptbm_taxi_feature_body" style="display: <?php echo esc_attr( $display );?>">
+                <div class="mptbm_taxi_feature_labels">
+                    <div>Icon/Image</div>
+                    <div>Label</div>
+                    <div>Text</div>
+                    <div>Action</div>
+                </div>
+
+                <div id="mptbm_taxi_feature_list">
+                    <?php
+
+                    if (is_array($all_features) && sizeof($all_features) > 0) {
+                        foreach ($all_features as $features) {
+                            self::features_item($features);
+                        }
+                    } else {
+                        self::features_item();
+                    }
+                    ?>
+                </div>
+
+                <div class="mptbm_taxi_feature_footer">
+                    <button class="mptbm_taxi_feature_add_btn" id="mptbm_taxi_feature_add_row">
+                        <i class="fa-solid fa-plus"></i> Add New Item
+                    </button>
+                </div>
+            </div>
+
+
         </div>
     <?php }
     public static function date_configuration_set( $post_id ){ ?>
-        <div class="mptbm_taxi_datetime" data-step="4">
+        <div class="mptbm_taxi_datetime" data-step="3">
             <div class="mptbm_container">
-                <div class="mptbm_card">
-                    <div class="mptbm_section_header">
-                        <h3>General Date Configuration</h3>
-                        <p>Here you can configure general date</p>
-                    </div>
-
-                    <div class="mptbm_form_group">
-                        <label>Date Type <span>*</span></label>
-                        <small>Specifies the date type: "Repeated" for recurring dates, or "Particular" for a specific date</small>
-                        <div class="mptbm_select_wrapper">
-                            <select>
-                                <option>Repeated</option>
-                                <option>Particular</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mptbm_form_group">
-                        <label>Repeated Start Date <span>*</span></label>
-                        <small>Sets the start date for recurring services</small>
-                        <input type="text" placeholder="mm/dd/yyyy">
-                    </div>
-
-                    <div class="mptbm_form_group">
-                        <label>Repeated after <span>*</span></label>
-                        <small>Defines the number of days after which the service or event will repeat</small>
-                        <input type="number" value="1">
-                    </div>
-
-                    <div class="mptbm_form_group">
-                        <label>Maximum Advanced Day Booking <span>*</span></label>
-                        <small>Sets the maximum number of days in advance a booking can be made</small>
-                        <input type="number" value="60">
-                    </div>
-
-                    <div class="mptbm_switch_wrapper">
-                        <label class="mptbm_switch">
-                            <input type="checkbox" checked>
-                            <span class="mptbm_slider"></span>
-                        </label>
-                        <div class="mptbm_switch_text">
-                            <strong>Make Transport Available For 24 Hours</strong>
-                            <p>By default slider is ON but you can keep it off by switching this option</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mptbm_card">
-                    <div class="mptbm_section_header">
-                        <h3>Schedule Date Configuration</h3>
-                        <p>Here you can configure Schedule date.</p>
-                    </div>
-                    <div class="mptbm_schedule_container">
-                        <div class="mptbm_schedule_header">
-                            <h3>Schedule Date Configuration</h3>
-                            <p>Here you can configure Schedule date.</p>
-                        </div>
-
-                        <table class="mptbm_schedule_table">
-                            <thead>
-                            <tr>
-                                <th style="width: 20%;">Day</th>
-                                <th style="width: 35%;">Start Time</th>
-                                <th style="width: 10%; text-align: center;">To</th>
-                                <th style="width: 35%;">End Time</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Monday</td>
-                                <td>
-                                    <div class="mptbm_custom_select">
-                                        <select>
-                                            <option>Default</option>
-                                        </select>
-                                    </div>
-                                </td>
-                                <td class="mptbm_to_text">To</td>
-                                <td>
-                                    <div class="mptbm_custom_select">
-                                        <select>
-                                            <option>Default</option>
-                                        </select>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr class="mptbm_row_active">
-                                <td>Tuesday</td>
-                                <td>
-                                    <div class="mptbm_custom_select mptbm_select_focused">
-                                        <select>
-                                            <option>Select...</option>
-                                            <option>Default</option>
-                                            <option>Please select</option>
-                                            <option>12:00 am</option>
-                                            <option>1:00 am</option>
-                                            <option>2:00 am</option>
-                                            <option>6:00 am</option>
-                                            <option>12:00 pm</option>
-                                            <option>6:00 pm</option>
-                                        </select>
-                                    </div>
-                                </td>
-                                <td class="mptbm_to_text">To</td>
-                                <td>
-                                    <div class="mptbm_custom_select">
-                                        <select><option>Select...</option></select>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>Wednesday</td>
-                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                <td class="mptbm_to_text">To</td>
-                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                            </tr>
-                            <tr>
-                                <td>Thursday</td>
-                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                <td class="mptbm_to_text">To</td>
-                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                            </tr>
-                            <tr>
-                                <td>Friday</td>
-                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                <td class="mptbm_to_text">To</td>
-                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                            </tr>
-                            <tr>
-                                <td>Saturday</td>
-                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                <td class="mptbm_to_text">To</td>
-                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                            </tr>
-                            <tr>
-                                <td>Sunday</td>
-                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                                <td class="mptbm_to_text">To</td>
-                                <td><div class="mptbm_custom_select"><select><option>Select...</option></select></div></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="mptbm_card">
-                    <div class="mptbm_section_header">
-                        <h3>Off Days & Dates Configuration</h3>
-                        <p>Here you can configure Off Days & Dates.</p>
-                    </div>
-
-                    <div class="mptbm_form_group">
-                        <label>Off Day</label>
-                        <small>Select checkbox for off day</small>
-                        <div class="mptbm_checkbox_row">
-                            <label><input type="checkbox"> Monday</label>
-                            <label><input type="checkbox"> Tuesday</label>
-                            <label><input type="checkbox"> Wednesday</label>
-                            <label><input type="checkbox"> Thursday</label>
-                            <label><input type="checkbox"> Friday</label>
-                            <label><input type="checkbox"> Saturday</label>
-                            <label><input type="checkbox"> Sunday</label>
-                        </div>
-                    </div>
-
-                    <div class="mptbm_form_group">
-                        <label>Off Dates</label>
-                        <small>Add off dates</small>
-                        <div id="mptbm_off_dates_container">
-                            <div class="mptbm_date_input_row">
-                                <input type="text" placeholder="mm/dd/yyyy">
-                                <button class="mptbm_btn_remove">Remove</button>
-                            </div>
-                        </div>
-                        <div class="mptbm_btn_container">
-                            <button id="mptbm_add_off_date" class="mptbm_btn_orange">+ Add New Off Date</button>
-                        </div>
-                    </div>
-                </div>
+                <?php
+                do_action( 'mptbm_date_and_advanced_settings', $post_id );
+                ?>
             </div>
         </div>
     <?php }
     public static function extra_service_display( $post_id ){
 
         $display            = MP_Global_Function::get_post_info( $post_id, 'display_mptbm_extra_services', 'on' );
-        $service_id         = get_post_meta( $post_id, 'mptbm_extra_services_id', true);
-        $active             = $display == 'off' ? '' : 'mActive';
+        $service_id         = (int)get_post_meta( $post_id, 'mptbm_extra_services_id', true);
+        $active             = $display == 'off' ? 'none' : 'block';
         $checked            = $display == 'off' ? '' : 'checked';
         $all_ex_services_id = MPTBM_Query::query_post_id( 'mptbm_extra_services' );
         ?>
@@ -636,10 +545,10 @@ class MPTBM_Rent_Custom_Editor
                 </div>
             </div>
 
-            <div class="mptbm_taxi_ex_service_body">
+            <div class="mptbm_taxi_ex_service_body" id="mptbm_taxi_ex_service_body" style="display: <?php echo esc_attr( $active );?>">
                 <div class="mptbm_taxi_ex_service_filter_row">
                     <label>Select extra option:</label>
-                    <select class="formControl" name="mptbm_extra_services_id">
+                    <select class="formControl" id="mptbm_extra_services_id" name="mptbm_extra_services_id">
                         <option value=""><?php esc_html_e( 'Select extra option', 'ecab-taxi-booking-manager' ); ?></option>
                         <option value="<?php echo esc_attr( $post_id ); ?>" <?php echo esc_attr( $service_id == $post_id ? 'selected' : '' ); ?>><?php esc_html_e( 'Custom', 'ecab-taxi-booking-manager' ); ?></option>
                         <?php if ( sizeof( $all_ex_services_id ) > 0 ) { ?>
@@ -663,14 +572,7 @@ class MPTBM_Rent_Custom_Editor
                     </thead>
                     <tbody id="mptbm_taxi_ex_service_tbody">
                     <?php
-                    $extra_services = MP_Global_Function::get_post_info( $post_id, 'mptbm_extra_service_infos', array() );
-//                    error_log( print_r( [ '$extra_services' => $extra_services, '$post_id' => $post_id ], true ) );
-
-                    if ( $extra_services && is_array( $extra_services ) && sizeof( $extra_services ) > 0 ) {
-                        foreach ( $extra_services as $extra_service ) {
-                            self::extra_service_item( $extra_service );
-                        }
-                    }
+                        self::extra_service_item( $post_id, $service_id );
                     ?>
                     </tbody>
                 </table>
@@ -682,8 +584,23 @@ class MPTBM_Rent_Custom_Editor
         </div>
     <?php }
 
-    public static function extra_service_item( $field = array() ) {
-        $field         = $field ?: array();
+    public static function service_table_display(){ ?>
+
+    <?php }
+
+    public static function extra_service_item( $post_id, $service_id ) {
+
+        if( $service_id && $service_id !== $post_id ){
+            $extra_services = MP_Global_Function::get_post_info( $service_id, 'mptbm_extra_service_infos', array() );
+        }else{
+            $extra_services = MP_Global_Function::get_post_info( $post_id, 'mptbm_extra_service_infos', array() );
+        }
+
+        if ( $extra_services && is_array( $extra_services ) && sizeof( $extra_services ) > 0 ) {
+            foreach ( $extra_services as $field ) {
+
+
+//        $field         = $field ?: array();
         $service_icon  = array_key_exists( 'service_icon', $field ) ? $field['service_icon'] : '';
         $service_image = array_key_exists( 'service_image', $field ) ? $field['service_image'] : '';
         $service_name  = array_key_exists( 'service_name', $field ) ? $field['service_name'] : '';
@@ -713,7 +630,9 @@ class MPTBM_Rent_Custom_Editor
                     <span class="mptbm_taxi_ex_service_remove_icon">×</span>
                 </div>
             </td>
-            <td><input type="text" name="service_name[]" class="mptbm_taxi_ex_service_input" value="<?php echo esc_attr( $service_name ); ?>"></td>
+            <td>
+                <input type="text" name="service_name[]" class="mptbm_taxi_ex_service_input" value="<?php echo esc_attr( $service_name ); ?>">
+            </td>
             <td>
                 <textarea class="mptbm_taxi_ex_service_select" name="extra_service_description[]">
                     <?php echo esc_html( $description ); ?>
@@ -738,10 +657,11 @@ class MPTBM_Rent_Custom_Editor
                 <button class="mptbm_taxi_ex_service_btn_drag">✥</button>
             </td>
         </tr>
-    <?php }
+        <?php
+            }
+        }
+    }
     public static function extra_service_settings( $post_id ){
-//        $extra_services = MP_Global_Function::get_post_info( $post_id, 'mptbm_extra_service_infos', array() );
-
         wp_nonce_field( 'mptbm_extra_service_nonce', 'mptbm_extra_service_nonce' );
         ?>
         <div class="mptbm_taxi_extra" data-step="3">
@@ -754,18 +674,6 @@ class MPTBM_Rent_Custom_Editor
     <?php }
 
     public static function pricing_settings( $post_id ){
-        /*$initial_price = MP_Global_Function::get_post_info($post_id, 'mptbm_initial_price');
-        $min_price = MP_Global_Function::get_post_info($post_id, 'mptbm_min_price');
-        $return_min_price = MP_Global_Function::get_post_info($post_id, 'mptbm_min_price_return');
-        $return_discount = MP_Global_Function::get_post_info($post_id, 'mptbm_return_discount');
-        $display_map = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'enable');
-
-        $price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
-        $custom_price_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
-
-        $waiting_time_check = MPTBM_Function::get_general_settings('taxi_waiting_time', 'enable');
-        $waiting_price = MP_Global_Function::get_post_info($post_id, 'mptbm_waiting_price');*/
-
         $price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
         $distance_price = MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
         $time_price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
@@ -809,7 +717,10 @@ class MPTBM_Rent_Custom_Editor
                 $operation_area[$area->ID] = $area->post_title;
             }
         }
+
+
         $merged_location_area = array_merge($operation_zones, $location_zones);
+
 
         $operation_area_str = '';
         if( is_array( $selected_operation_areas ) && !empty( $selected_operation_areas ) ){
@@ -818,7 +729,6 @@ class MPTBM_Rent_Custom_Editor
 
         $all_operation_area_infos = MPTBM_Query::query_operation_area_list('mptbm_operate_areas');
 
-//        error_log( print_r( [ '$fixed_zone_prices' => $fixed_zone_prices ], true ) );
         ?>
         <div class="mptbm_taxi_container mptbm_taxi_pricing_wrapper" data-step="2">
             <?php wp_nonce_field('mptbm_price_settings_action', 'mptbm_price_settings_nonce'); ?>
@@ -852,7 +762,6 @@ class MPTBM_Rent_Custom_Editor
 
                 </div>
             </div>
-
             <div class="mptbm_taxi_pricing_container">
                 <div class="mptbm_taxi_pricing_inner_header">
                     <h3>Configure Pricing Rules</h3>
@@ -1061,7 +970,7 @@ class MPTBM_Rent_Custom_Editor
                                     <p>Define fixed prices for specific routes when using "Fixed with Map" mode.</p>
                                 </div>
                                 <?php
-                                self::render_fixed_with_map_price_rows($fixed_map_route_prices, $merged_location_area, 'mptbm_taxi_pricing_route_list' );
+                                self::render_fixed_with_map_price_rows($fixed_map_route_prices, $merged_location_area, 'mptbm_taxi_pricing_route_list', $location_zones );
                                 ?>
 
                                 <button type="button" class="mptbm_taxi_pricing_pink_btn mptbm_taxi_pricing_add_route_btn">+ Add New Route</button>
@@ -1112,7 +1021,7 @@ class MPTBM_Rent_Custom_Editor
                                     <p>Define fixed prices for specific routes when using "Fixed with Map" mode.</p>
                                 </div>
                                 <?php
-                                self::render_fixed_with_map_price_rows($fixed_map_route_prices, $merged_location_area, 'mptbm_taxi_pricing_fixed_zone_list');
+                                self::render_fixed_with_map_price_rows($fixed_map_route_prices, $merged_location_area, 'mptbm_taxi_pricing_fixed_zone_list', $location_zones );
                                 ?>
 
                                 <button type="button" class="mptbm_taxi_pricing_pink_btn mptbm_taxi_pricing_add_zone_btn">+ Add New Route</button>
@@ -1120,16 +1029,21 @@ class MPTBM_Rent_Custom_Editor
                         </div>
                     </div>
 
-                    <?php
-//                    self::extra_service_display($post_id);
-                    ?>
-
                 </div>
             </div>
+
+
+            <div class="mptbm_ex_service_setting_container">
+                <?php
+                wp_nonce_field( 'mptbm_extra_service_nonce', 'mptbm_extra_service_nonce' );
+                self::extra_service_display( $post_id );
+                ?>
+            </div>
         </div>
+
     <?php }
 
-    public static function render_fixed_with_map_price_rows( $fixed_map_route_prices, $merged_location_area, $append_body ) {
+    public static function render_fixed_with_map_price_rows( $fixed_map_route_prices, $merged_location_area, $append_body, $location_zones ) {
 
 //        error_log( print_r( [ '$fixed_map_route_prices' =>$fixed_map_route_prices, '$merged_location_area' => $merged_location_area ], true ) );
         ?>
@@ -1160,7 +1074,7 @@ class MPTBM_Rent_Custom_Editor
                     </td>
                     <td>
                         <select name="mptbm_fixed_map_route_end_location[]" class="mptbm_fixed_map_route_end_location">
-                            <?php foreach ($merged_location_area as $key => $label): ?>
+                            <?php foreach ($location_zones as $key => $label): ?>
                                 <option value="<?php echo $key; ?>"
                                     <?php selected($route['end_location'], $key); ?>>
                                     <?php echo $label; ?>
@@ -1380,4 +1294,5 @@ class MPTBM_Rent_Custom_Editor
 
 }
 
-new MPTBM_Rent_Custom_Editor();
+    new MPTBM_Rent_Custom_Editor();
+}

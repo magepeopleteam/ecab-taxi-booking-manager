@@ -287,6 +287,203 @@ input:checked + .mptbm_taxi_slider:before { transform: translateX(22px); }
     font-weight: 600;
 }
 
+:root {
+    --mptbm-primary: #3f41b5;
+    --mptbm-bg: #f8faff;
+    --mptbm-border: #e2e8f0;
+    --mptbm-text: #334155;
+    --mptbm-text-light: #64748b;
+    --mptbm-white: #ffffff;
+    --mptbm-danger: #ef4444;
+}
+
+.mptbm_taxi_feature_container {
+    /*max-width: 900px;*/
+    margin: 0 auto;
+    background: var(--mptbm-white);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border: 1px solid var(--mptbm-border);
+}
+
+/* Header Styles */
+.mptbm_taxi_feature_header {
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fcfdfe;
+    border-bottom: 1px solid var(--mptbm-border);
+}
+
+.mptbm_taxi_feature_title_area h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.mptbm_taxi_feature_title_area p {
+    margin: 5px 0 0;
+    font-size: 13px;
+    color: var(--mptbm-text-light);
+}
+
+.mptbm_taxi_feature_switch {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.mptbm_taxi_feature_toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+}
+
+.mptbm_taxi_feature_toggle input { opacity: 0; width: 0; height: 0; }
+
+.mptbm_taxi_feature_slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.mptbm_taxi_feature_slider:before {
+    position: absolute;
+    content: "";
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .mptbm_taxi_feature_slider { background-color: var(--mptbm-primary); }
+input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px); }
+
+/* Table/Row Styles */
+.mptbm_taxi_feature_body { padding: 20px 30px; }
+
+.mptbm_taxi_feature_labels {
+    display: grid;
+    grid-template-columns: 80px 1fr 1.5fr 100px;
+    gap: 20px;
+    margin-bottom: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mptbm-text-light);
+    padding: 0 10px;
+}
+
+.mptbm_taxi_feature_row {
+    display: grid;
+    grid-template-columns: 80px 1fr 1.5fr 100px;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 5px;
+    transition: opacity 0.3s;
+}
+
+.mptbm_taxi_feature_container.disabled .mptbm_taxi_feature_body {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.mptbm_taxi_feature_icon_box {
+    width: 70px;
+    height: 50px;
+    border: 1px solid var(--mptbm-border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: #fafbfc;
+    color: var(--mptbm-text-light);
+}
+
+.mptbm_taxi_feature_remove_icon {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--mptbm-danger);
+    color: white;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid white;
+}
+
+.mptbm_taxi_feature_input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid var(--mptbm-border);
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+    color: var(--mptbm-text);
+}
+.mptbm_taxi_feature_input:focus {
+    outline: none;
+    border-color: var(--mptbm-primary);
+}
+.mptbm_taxi_feature_actions {
+    display: flex;
+    gap: 8px;
+}
+.mptbm_taxi_feature_btn_icon {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--mptbm-border);
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+.mptbm_taxi_feature_btn_del { color: var(--mptbm-danger); }
+.mptbm_taxi_feature_btn_move { color: var(--mptbm-primary); cursor: grab; }
+.mptbm_taxi_feature_btn_icon:hover { background: #f8fafc; }
+
+.mptbm_taxi_feature_footer {
+    padding: 10px 30px 30px;
+    display: flex;
+    justify-content: flex-end;
+}
+.mptbm_taxi_feature_add_btn {
+    background: var(--mptbm-primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+.mptbm_taxi_feature_add_btn:hover { background: #333596; }
+
+
+
+
 /*Pricing*/
 .mptbm_taxi_pricing_header_tabs {
     background: #fff;
