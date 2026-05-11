@@ -81,7 +81,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
 
         ?>
-        <div class="wrap">
+        <div class="wrap mp_settings_area">
 
             <form class="mptbm_rent_form" method="post" action="<?php echo admin_url('admin-post.php'); ?>">
                 <input type="hidden" name="action" value="save_mptbm_rent">
@@ -515,7 +515,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
     <?php }
     public static function date_configuration_set( $post_id ){ ?>
         <div class="mptbm_taxi_datetime" data-step="3">
-            <div class="mptbm_container">
+            <div class="mptbm_taxi_container">
                 <?php
                 do_action( 'mptbm_date_and_advanced_settings', $post_id );
                 ?>
