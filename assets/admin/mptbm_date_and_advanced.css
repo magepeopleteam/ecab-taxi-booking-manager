@@ -18,7 +18,7 @@
 }
 
 .mptbm_taxi_advanced_wrapper {
-    max-width: 960px;
+    /*max-width: 960px;*/
     margin: 0 auto;
 }
 
@@ -40,6 +40,8 @@
     border-radius: 6px;
     margin-bottom: 20px;
     overflow: hidden;
+    padding: 15px;
+    margin-top: 10px;
 }
 
 .mptbm_taxi_advanced_card_header {
@@ -107,7 +109,7 @@
 .mptbm_taxi_advanced_toggle {
     position: relative;
     display: inline-block;
-    width: 44px;
+    /*width: 44px;*/
     height: 22px;
 }
 
