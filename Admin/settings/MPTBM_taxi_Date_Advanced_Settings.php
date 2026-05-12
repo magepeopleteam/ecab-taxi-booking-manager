@@ -8,7 +8,6 @@ class MPTBM_taxi_Date_Advanced_Settings
     }
 
     public function mptbm_date_and_advanced_settings( $post_id ){
-        error_log( print_r( [ '$post_id' => $post_id ], true ) );
         ?>
         <div class="mptbm_taxi_advanced_wrapper">
             <header class="mptbm_taxi_advanced_main_header">
@@ -447,11 +446,106 @@ class MPTBM_taxi_Date_Advanced_Settings
                 </div>
             </div>
 
+            <?php
+
+            $drivers = $this->get_driver_list();
+            $selected_driver = get_post_meta($post_id,'mptbm_selected_driver',true);
+            $selected_driver = $selected_driver ? $selected_driver:'';
+
+            $service_status = get_post_meta($post_id,'mptbm_service_status',true);
+            $service_status = $service_status ? $service_status:'';
+
+            wp_nonce_field( 'mptbm_transportation_type_nonce', 'mptbm_transportation_type_nonce' );
+            ?>
+            <section class="mptbm_taxi_advanced_card">
+                <div class="mptbm_taxi_advanced_card_header">
+                    <div class="mptbm_taxi_advanced_title_block">
+                        <h3>Driver Settings</h3>
+                        <p>Here you can set a driver who's role is driver in registration.</p>
+                    </div>
+                </div>
+                <div class="mptbm_taxi_advanced_card_body">
+                    <div class="mptbm_taxi_advanced_driver_select_row">
+                        <label>Select Driver <br><small>Select a driver from this list.</small></label>
+                        <select name="mptbm_selected_driver" id="mptbm_selected_driver">
+                            <option value="" ><?php esc_html_e('Select driver', 'mptbm_plugin_pro'); ?></option>
+                            <?php  foreach ( $drivers as $driver ):
+//                                error_log( print_r( [ '$driver' => $driver ], true ) );
+                                ?>
+                                <option <?php echo $selected_driver == $driver->ID? 'selected':''; ?> value="<?php echo  $driver->ID; ?>"><?php echo  $driver->display_name; ?></option>
+                                <?php
+                                if($selected_driver == $driver->ID){
+                                    $driver_id=$driver->ID;
+                                    $name=$driver->display_name;
+                                    $username=$driver->user_login;
+                                    $email=$driver->user_email;
+                                }
+                                ?>
+                            <?php  endforeach; ?>
+                        </select>
+                        <input type="hidden" name="mptbm_service_status" value="<?php echo esc_html($service_status); ?>">
+                    </div>
+                    <div class="mptbm_taxi_advanced_driver_info_box">
+                        <?php if ( $selected_driver == isset($driver_id) ) : ?>
+                            <?php if(isset($name)): ?>
+                                <div class="mptbm_taxi_advanced_info_col">
+                                    <label><?php esc_html_e("DRIVER'S NAME", 'mptbm_plugin_pro'); ?></label>
+                                    <p><?php echo esc_html($name); ?></p>
+                                </div>
+                            <?php endif;
+                            if(isset($username)):
+                            ?>
+                            <div class="mptbm_taxi_advanced_info_col">
+                                <label><?php esc_html_e('USERNAME', 'mptbm_plugin_pro'); ?></label>
+                                <p><?php echo esc_html($username); ?></p>
+                            </div>
+                            <?php endif;
+                            if(isset($email)):
+                            ?>
+                                <div class="mptbm_taxi_advanced_info_col">
+                                    <label><?php esc_html_e('EMAIL', 'mptbm_plugin_pro'); ?></label>
+                                    <p><?php echo esc_html($email); ?></p>
+                                </div>
+                            <?php
+                            endif;
+                        endif; ?>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mptbm_taxi_advanced_card">
+                <div class="mptbm_taxi_advanced_card_header">
+                    <div class="mptbm_taxi_advanced_title_block">
+                        <h3>Tax Settings Information</h3>
+                        <p>Configure and manage tax settings</p>
+                    </div>
+                    <label class="mptbm_taxi_advanced_toggle">
+                        <input type="checkbox">
+                        <span class="mptbm_taxi_advanced_slider"></span>
+                    </label>
+                </div>
+                <div class="mptbm_taxi_advanced_tax_alert">
+                    <span class="mptbm_taxi_advanced_alert_icon">i</span>
+                    <p>Tax not active. Please add Tax settings from woocommerce.</p>
+                </div>
+            </section>
+
             <!-- End Off days and date config -->
         </div>
         <?php
     }
 
+    public function get_driver_list()
+    {
+        $args = array(
+            'role'    => 'mptbm_driver_role', // The role you're looking for
+            'orderby' => 'user_nicename',
+            'order'   => 'ASC'
+        );
+        $user_query = new WP_User_Query($args);
+        $drivers = $user_query->get_results();
+        return  $drivers;
+    }
     public function default_text($day) {
         if ($day == 'default') {
             esc_html_e('Please select', 'ecab-taxi-booking-manager');
