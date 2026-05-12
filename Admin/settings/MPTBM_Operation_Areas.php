@@ -876,8 +876,14 @@ if (!class_exists('MPTBM_Operation_Areas')) {
         }
         public function save_operate_areas_tab_settings($post_id)
         {
-            if (!isset($_POST['mptbm_operate_areas_tab']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['mptbm_operate_areas_tab'])), 'mptbm_operate_areas_tab') && defined('DOING_AUTOSAVE') && DOING_AUTOSAVE && !current_user_can('edit_post', $post_id)) {
+            /*if (!isset($_POST['mptbm_operate_areas_tab']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['mptbm_operate_areas_tab'])), 'mptbm_operate_areas_tab') && defined('DOING_AUTOSAVE') && DOING_AUTOSAVE && !current_user_can('edit_post', $post_id)) {
                 return;
+            }*/
+            if (
+                !isset($_POST['mptbm_price_settings_nonce']) ||
+                !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['mptbm_price_settings_nonce'])), 'mptbm_price_settings_action')
+            ) {
+                return; // Exit if nonce is invalid
             }
             if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
                 // Save operation type
@@ -885,7 +891,18 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                 update_post_meta($post_id, 'mptbm_operation_area_type', $operation_type);
 
                 // Save selected operation areas
-                $selected_areas = isset($_POST['mptbm_selected_operation_areas']) ? array_map('intval', $_POST['mptbm_selected_operation_areas']) : array();
+//                $selected_areas = isset($_POST['mptbm_selected_operation_areas']) && is_array( $_POST['mptbm_selected_operation_areas'] ) ? array_map('intval', $_POST['mptbm_selected_operation_areas']) : array();
+
+                if( isset($_POST['mptbm_selected_operation_areas']) && is_array( $_POST['mptbm_selected_operation_areas'] ) ){
+                    $selected_areas = array_map('intval', $_POST['mptbm_selected_operation_areas']);
+                }else{
+                    $selected_areas_str = sanitize_text_field( wp_unslash( $_POST['mptbm_selected_operation_areas'] ) );
+                    if( empty( $selected_areas_str ) ){
+                        $selected_areas = array();
+                    }else{
+                        $selected_areas = explode(",", $selected_areas_str);
+                    }
+                }
                 
                 // For geo-matched operation area, ensure only one area is selected
                 if ($operation_type === 'geo-matched-operation-area-type' && count($selected_areas) > 1) {
