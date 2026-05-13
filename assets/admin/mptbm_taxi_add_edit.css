@@ -1,3 +1,140 @@
+/* Main Wrapper */
+.mptbm_rent_editor_wrapper{
+    background: #ffffff;
+    border: 1px solid #dfe4ea;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+
+/* Header */
+.mptbm_rent_editor_header{
+    background: #f3f6fa;
+    padding: 18px 20px;
+    border-bottom: 1px solid #e3e8ef;
+}
+
+.mptbm_rent_editor_title{
+    margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.mptbm_rent_editor_subtitle{
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+
+/* Body */
+.mptbm_rent_editor_body{
+    padding: 20px;
+}
+
+
+/* Field Group */
+.mptbm_rent_field_group{
+    margin-bottom: 24px;
+}
+
+.mptbm_rent_label{
+    display: block;
+    margin-bottom: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.mptbm_rent_required{
+    color: #dc2626;
+}
+
+
+/* Input */
+.mptbm_rent_input{
+    width: 100%;
+    height: 44px;
+    border: 1px solid #cfd6dd;
+    border-radius: 10px;
+    padding: 0 14px;
+    font-size: 15px;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.mptbm_rent_input:focus{
+    outline: none;
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.mptbm_rent_input::placeholder{
+    color: #9ca3af;
+}
+
+
+/* WP Editor */
+.mptbm_rent_editor_area{
+    border: 1px solid #cfd6dd;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.mptbm_rent_editor_area .wp-editor-container{
+    border: none !important;
+}
+
+.mptbm_rent_editor_area .mce-toolbar-grp{
+    background: #f6f7f7 !important;
+    border-bottom: 1px solid #dcdcde !important;
+}
+
+.mptbm_rent_editor_area .quicktags-toolbar{
+    background: #f6f7f7;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.mptbm_rent_editor_area .wp-switch-editor{
+    border-color: #dcdcde !important;
+}
+
+.mptbm_rent_editor_area textarea.wp-editor-area{
+    padding: 14px !important;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.mptbm_rent_editor_area iframe{
+    min-height: 240px !important;
+}
+
+
+/* Responsive */
+@media(max-width:768px){
+
+    .mptbm_rent_editor_header{
+        padding: 16px;
+    }
+
+    .mptbm_rent_editor_body{
+        padding: 16px;
+    }
+
+    .mptbm_rent_editor_title{
+        font-size: 20px;
+    }
+
+}
+
+
+
+
 :root {
     --mptbm-primary: #6333ff;
     --mptbm-bg: #f8f9fd;
@@ -595,6 +732,11 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
     background: #fbfbfb;
     border-top: 1px solid #f1f5f9;
     display: none;
+}
+.mptbm_taxi_pricing_field1{
+    padding: 5px 10px;
+    border: 1px solid #dddddd;
+    border-radius: 10px;
 }
 
 .mptbm_taxi_pricing_form_grid {
