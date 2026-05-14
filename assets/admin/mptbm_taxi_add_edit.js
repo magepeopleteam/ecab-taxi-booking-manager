@@ -353,7 +353,8 @@
             price_based = 'inclusive';
             $("#mptbm_distance_price").fadeIn();
             $("#mptbm_price_per_hour").fadeIn();
-            $("#mptbm_manual_routes").fadeIn();
+            // $("#mptbm_manual_routes").fadeIn();
+            $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeIn();
 
 
             let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
@@ -369,6 +370,7 @@
 
             let primary_shortcode = "<code>[mptbm_booking price_based='dynamic']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
+            $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
         }else if(clicked_tab_id === 'mptbm_row_duration' ){
             price_based = 'duration';
             $("#mptbm_price_per_hour").fadeIn();
@@ -377,6 +379,7 @@
 
             let primary_shortcode = "<code>[mptbm_booking price_based='dynamic']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
+            $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
         }else if(clicked_tab_id === 'mptbm_row_dist_dur' ){
             price_based = 'distance_duration';
             $("#mptbm_distance_price").fadeIn();
@@ -386,6 +389,7 @@
 
             let primary_shortcode = "<code>[mptbm_booking price_based='dynamic']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
+            $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
         }else if(clicked_tab_id === 'mptbm_row_hourly' ){
             price_based = 'fixed_hourly';
             $("#mptbm_price_per_hour").fadeIn();
@@ -394,6 +398,7 @@
 
             let primary_shortcode = "<code>[mptbm_booking price_based='fixed_hourly']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
+            $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
         }else if(clicked_tab_id === 'mptbm_row_operation_area' ){
             price_based = 'fixed_distance';
             $("#mptbm_operation_area").fadeIn();
@@ -402,6 +407,7 @@
 
             let primary_shortcode = "<code>[mptbm_booking price_based='fixed_map']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
+            $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
         }else if(clicked_tab_id === 'mptbm_row_manual' ){
             price_based = 'manual';
             $("#mptbm_manual_routes").fadeIn();
@@ -410,6 +416,7 @@
 
             let primary_shortcode = "<code>[mptbm_booking price_based='manual']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
+            $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
         }else if(clicked_tab_id === 'mptbm_row_zone' ){
             price_based = 'fixed_zone';
             $("#mptbm_row_zone").fadeIn();
@@ -418,14 +425,16 @@
 
             let primary_shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
+            $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
         }else{
             price_based = 'inclusive';
             $("#mptbm_distance_price").fadeIn();
             $("#mptbm_fixed_pricing").fadeIn();
             $("#mptbm_price_per_hour").fadeIn();
-            $("#mptbm_manual_routes").fadeIn();
+            // $("#mptbm_manual_routes").fadeIn();
             let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
             $("#mptbm_shortcode_example_code").html(shortcode);
+            $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeIn();
         }
 
         $('input[name="mptbm_price_based"]').val(price_based);
@@ -493,8 +502,22 @@
 
     });
 
+    $(document).on('change','#mptbm_taxi_inclusive_manual_locations', function(e) {
+        e.preventDefault();
+        const isChecked = $(this).is(':checked');
+        const label = $(this).closest('.manual_routes_and_fixed_fare_toggle_wrapper').find('.mptbm_manual_routes_and_fixed_fare_toggle_label');
+
+        if(isChecked) {
+            label.text('ON');
+            $("#mptbm_manual_routes").fadeIn();
+        } else {
+            label.text('OFF');
+            $("#mptbm_manual_routes").fadeOut();
+        }
+    });
 
 /*Extra Service*/
+
     $(document).on('change','#mptbm_taxi_ex_service_master_toggle', function(e) {
         e.preventDefault();
         const isChecked = $(this).is(':checked');

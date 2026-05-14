@@ -1153,9 +1153,37 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                 <input name="mptbm_hour_price" value="<?php echo esc_attr( $time_price );?>" type="text" placeholder="0.20">
                             </div>
 
+
+                            <?php
+                            $routes_and_fixed_fare = 'none';
+                            if( $price_based === 'inclusive' ){
+                                $routes_and_fixed_fare = 'flex';
+                                $checked = '';
+                            }
+//                            error_log( print_r( [ '$routes_and_fixed_fare' => $routes_and_fixed_fare ], true ) );
+                            ?>
+                            <div class="mptbm_manual_routes_and_fixed_fare_overrides" id="mptbm_manual_routes_and_fixed_fare_overrides" style="display: <?php echo esc_attr( $routes_and_fixed_fare );?>">
+                                <div class="mptbm_taxi_ex_service_title_group">
+                                    <h2 class="mptbm_taxi_ex_service_main_title">Manual Pricing</h2>
+                                    <p class="mptbm_taxi_ex_service_subtitle">Manage manual routes and fixed fare overrides .</p>
+                                </div>
+                                <div class="manual_routes_and_fixed_fare_toggle_wrapper">
+                                    <label class="mptbm_taxi_ex_service_switch">
+                                        <input type="checkbox" id="mptbm_taxi_inclusive_manual_locations" <?php echo esc_attr($checked); ?>>
+                                        <span class="mptbm_taxi_ex_service_slider"></span>
+                                    </label>
+                                    <span class="mptbm_manual_routes_and_fixed_fare_toggle_label">ON</span>
+                                </div>
+                            </div>
+
+                            <?php
+                            if( $price_based === 'inclusive' ){
+                                $show_manual = 'none';
+                            }
+                            ?>
                             <div class="mptbm_taxi_pricing_field1"
                                  id="mptbm_manual_routes"
-                                 style="display: <?php echo ( $price_based === 'inclusive' || $price_based === 'manual'  ) ? 'block' : 'none'; ?>">
+                                 style="display: <?php echo ( $price_based === 'manual'  ) ? 'block' : 'none'; ?>">
                                 <div class="mptbm_taxi_pricing_row_head">
                                     <span class="mptbm_taxi_pricing_label"><i class="fas fa-route"></i> Manual Routes</span>
                                 </div>
