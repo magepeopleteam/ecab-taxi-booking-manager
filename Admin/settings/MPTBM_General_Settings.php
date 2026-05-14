@@ -52,6 +52,7 @@
 				}
 				?>
                 <div class="tabsItem" data-tabs="#mptbm_general_info">
+                    <input type="hidden" name="return_url" value="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>">
                     <h2 ><?php esc_html_e('General Information Settings', 'ecab-taxi-booking-manager'); ?></h2>
 					<p><?php esc_html_e('Basic Configuration', 'ecab-taxi-booking-manager'); ?></p>
                     <div class="mp_settings_area">

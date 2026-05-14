@@ -1,4 +1,63 @@
 /* Main Wrapper */
+/* FULL PAGE LAYOUT */
+.mp_settings_area {
+    margin: 0;
+}
+
+/* FIXED HEADER */
+.mptbm_fixed_header {
+    position: fixed;
+    top: 32px; /* WordPress admin bar */
+    left: 160px; /* admin menu width */
+    right: 0;
+    height: 60px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 999;
+}
+
+/* SCROLL CONTENT */
+.mptbm_scroll_content {
+    margin-top: 80px;
+    margin-bottom: 80px;
+    padding: 20px;
+}
+
+/* FIXED FOOTER */
+.mptbm_fixed_footer {
+    position: fixed;
+    bottom: 0;
+    left: 160px;
+    right: 0;
+    height: 70px;
+    background: #fff;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 999;
+}
+
+/* HEADER TITLE */
+.mptbm_page_title {
+    margin: 0;
+    font-size: 18px;
+}
+
+/* BUTTON AREA */
+.mptbm_footer_right button,
+.mptbm_footer_right .button {
+    margin-left: 10px;
+}
+.mptbm_footer_right {
+   width: 100%;
+}
+
 .mptbm_rent_editor_wrapper{
     background: #ffffff;
     border: 1px solid #dfe4ea;
@@ -1248,4 +1307,248 @@ select.mptbm_taxi_ex_service_select {
 .mptbm_taxi_ex_service_select:focus {
     border-color: #4e44e7;
     box-shadow: 0 0 0 3px rgba(78, 68, 231, 0.1);
+}
+
+/*SHORTCODE DESCRIBE*/
+:root {
+    --mptbm-bg-blue: #f0f7ff;
+    --mptbm-border-blue: #d1e5ff;
+    --mptbm-text-dark: #002b5e;
+    --mptbm-text-muted: #64748b;
+    --mptbm-code-bg: #e6f1fe;
+    --mptbm-white: #ffffff;
+}
+
+.mptbm_shortcode_container {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    max-width: 900px;
+    margin: 20px auto;
+    color: var(--mptbm-text-dark);
+}
+
+/* Header Styles */
+.mptbm_shortcode_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 15px;
+}
+
+.mptbm_shortcode_header_left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mptbm_shortcode_icon_main {
+    width: 32px;
+    height: 32px;
+    color: #8b5e3c; /* Brownish clipboard color from image */
+}
+
+.mptbm_shortcode_header_text h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.mptbm_shortcode_header_text p {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: var(--mptbm-text-muted);
+}
+
+.mptbm_shortcode_toggle {
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+/* Body Styles */
+.mptbm_shortcode_body {
+    background-color: var(--mptbm-bg-blue);
+    border: 1px solid var(--mptbm-border-blue);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.mptbm_shortcode_sub_title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--mptbm-text-dark);
+    margin: 0 0 12px 0;
+}
+
+.mptbm_shortcode_inline_icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* Code Blocks */
+.mptbm_shortcode_code_box {
+    background-color: var(--mptbm-white);
+    border: 1px solid var(--mptbm-border-blue);
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+}
+
+.mptbm_shortcode_code_box code {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 14px;
+    color: #2563eb;
+}
+
+.mptbm_shortcode_primary_code {
+    background-color: var(--mptbm-code-bg);
+}
+
+.mptbm_shortcode_divider {
+    height: 1px;
+    background-color: var(--mptbm-border-blue);
+    margin: 24px 0;
+    opacity: 0.5;
+}
+
+/* Parameter Grid */
+.mptbm_shortcode_grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.mptbm_shortcode_param_item {
+    background-color: var(--mptbm-white);
+    border: 1px solid var(--mptbm-border-blue);
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 13px;
+}
+
+.mptbm_shortcode_param_item code {
+    font-family: 'Consolas', monospace;
+    color: #1e40af;
+}
+
+/* Example Box */
+.mptbm_shortcode_example_wrapper {
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid var(--mptbm-border-blue);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.mptbm_shortcode_example_code {
+    background-color: var(--mptbm-code-bg);
+    text-align: left;
+    padding: 12px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .mptbm_shortcode_grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mptbm_shortcode_toggle div {
+    transition: transform 0.3s ease;
+    transform: rotate(0deg);
+}
+
+.mptbm_shortcode_toggle div.mptbm_rotate {
+    transform: rotate(180deg);
+}
+.mptbm_taxi_pricing_tab_item_pro {
+    position: relative;
+    display: inline-block;
+    /*padding-right: 50px; !* space for PRO badge *!*/
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.mptbm_taxi_pricing_tab_item_pro::after {
+    content: "PRO";
+    position: absolute;
+    top: -8px;
+    right: 0;
+    background: #ff3b30;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    line-height: 1;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+
+/*Pro feature*/
+.mptbm_pro_taxi_pricing_tab_item {
+    position: relative;
+    display: inline-block;
+    padding-right: 55px;
+    cursor: pointer;
+}
+
+/* PRO badge */
+.mptbm_pro_taxi_pricing_tab_item::after {
+    content: "PRO";
+    position: absolute;
+    top: -8px;
+    right: 0;
+    background: #ff2d2d;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Popup overlay */
+.mptbm_pro_popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 99999;
+}
+
+/* Popup box */
+.mptbm_pro_popup_content {
+    background: #fff;
+    width: 340px;
+    max-width: 90%;
+    margin: 12% auto;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    position: relative;
+}
+
+/* close button */
+.mptbm_pro_close_popup {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+/* download button */
+.mptbm_pro_download_btn {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 14px;
+    background: #28a745;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
 }

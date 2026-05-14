@@ -355,34 +355,77 @@
             $("#mptbm_price_per_hour").fadeIn();
             $("#mptbm_manual_routes").fadeIn();
 
+
+            let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
+            $("#mptbm_shortcode_example_code").html(shortcode);
+
+            let primary_shortcode = "<code>[mptbm_booking price_based='dynamic']</code>";
+            $("#mptbm_shortcode_primary_code").html(primary_shortcode);
         }else if(clicked_tab_id === 'mptbm_distance' ){
             price_based = 'distance';
             $("#mptbm_distance_price").fadeIn();
+            let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
+            $("#mptbm_shortcode_example_code").html(shortcode);
+
+            let primary_shortcode = "<code>[mptbm_booking price_based='dynamic']</code>";
+            $("#mptbm_shortcode_primary_code").html(primary_shortcode);
         }else if(clicked_tab_id === 'mptbm_row_duration' ){
             price_based = 'duration';
             $("#mptbm_price_per_hour").fadeIn();
+            let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
+            $("#mptbm_shortcode_example_code").html(shortcode);
+
+            let primary_shortcode = "<code>[mptbm_booking price_based='dynamic']</code>";
+            $("#mptbm_shortcode_primary_code").html(primary_shortcode);
         }else if(clicked_tab_id === 'mptbm_row_dist_dur' ){
             price_based = 'distance_duration';
             $("#mptbm_distance_price").fadeIn();
             $("#mptbm_price_per_hour").fadeIn();
+            let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
+            $("#mptbm_shortcode_example_code").html(shortcode);
+
+            let primary_shortcode = "<code>[mptbm_booking price_based='dynamic']</code>";
+            $("#mptbm_shortcode_primary_code").html(primary_shortcode);
         }else if(clicked_tab_id === 'mptbm_row_hourly' ){
             price_based = 'fixed_hourly';
             $("#mptbm_price_per_hour").fadeIn();
+            let shortcode = "<code>[mptbm_booking price_based='fixed_hourly' form='horizontal' progressbar='yes' map='yes']</code>";
+            $("#mptbm_shortcode_example_code").html(shortcode);
+
+            let primary_shortcode = "<code>[mptbm_booking price_based='fixed_hourly']</code>";
+            $("#mptbm_shortcode_primary_code").html(primary_shortcode);
         }else if(clicked_tab_id === 'mptbm_row_operation_area' ){
             price_based = 'fixed_distance';
             $("#mptbm_operation_area").fadeIn();
+            let shortcode = "<code>[mptbm_booking price_based='fixed_map' form='horizontal' progressbar='yes' map='yes']</code>";
+            $("#mptbm_shortcode_example_code").html(shortcode);
+
+            let primary_shortcode = "<code>[mptbm_booking price_based='fixed_map']</code>";
+            $("#mptbm_shortcode_primary_code").html(primary_shortcode);
         }else if(clicked_tab_id === 'mptbm_row_manual' ){
             price_based = 'manual';
             $("#mptbm_manual_routes").fadeIn();
+            let shortcode = "<code>[mptbm_booking price_based='manual' form='horizontal' progressbar='yes' map='yes']</code>";
+            $("#mptbm_shortcode_example_code").html(shortcode);
+
+            let primary_shortcode = "<code>[mptbm_booking price_based='manual']</code>";
+            $("#mptbm_shortcode_primary_code").html(primary_shortcode);
         }else if(clicked_tab_id === 'mptbm_row_zone' ){
             price_based = 'fixed_zone';
             $("#mptbm_row_zone").fadeIn();
+            let shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup' form='horizontal' progressbar='yes' map='yes']</code>";
+            $("#mptbm_shortcode_example_code").html(shortcode);
+
+            let primary_shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup']</code>";
+            $("#mptbm_shortcode_primary_code").html(primary_shortcode);
         }else{
             price_based = 'inclusive';
             $("#mptbm_distance_price").fadeIn();
             $("#mptbm_fixed_pricing").fadeIn();
             $("#mptbm_price_per_hour").fadeIn();
             $("#mptbm_manual_routes").fadeIn();
+            let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
+            $("#mptbm_shortcode_example_code").html(shortcode);
         }
 
         $('input[name="mptbm_price_based"]').val(price_based);
@@ -654,6 +697,28 @@
     $(document).on('click', '.mptbm_taxi_advanced_remove_date', function(e) {
         e.preventDefault();
         $(this).parent().remove();
+    });
+
+    $(document).on('click', '.mptbm_shortcode_header', function (e) {
+        e.preventDefault();
+        let container = $(this).closest('.mptbm_shortcode_container');
+        let body = container.find('.mptbm_shortcode_body');
+        let arrow = container.find('.mptbm_shortcode_toggle div');
+        body.stop(true, true).slideToggle(300);
+        arrow.toggleClass('mptbm_rotate');
+    });
+
+
+    $(document).on('click', '.mptbm_taxi_pricing_tab_item_pro', function(){
+        $('#mptbm_pro_popup').fadeIn();
+    });
+    $(document).on( 'click','.mptbm_pro_close_popup', function(){
+        $('#mptbm_pro_popup').fadeOut();
+    });
+    $(document).on('click', '#mptbm_pro_popup',function(e){
+        if (e.target === this) {
+            $(this).fadeOut();
+        }
     });
 
 
