@@ -896,7 +896,7 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                 if( isset($_POST['mptbm_selected_operation_areas']) && is_array( $_POST['mptbm_selected_operation_areas'] ) ){
                     $selected_areas = array_map('intval', $_POST['mptbm_selected_operation_areas']);
                 }else{
-                    $selected_areas_str = sanitize_text_field( wp_unslash( $_POST['mptbm_selected_operation_areas'] ) );
+                    $selected_areas_str = isset( $_POST['mptbm_selected_operation_areas'] ) ? sanitize_text_field( wp_unslash( $_POST['mptbm_selected_operation_areas'] ) ) : [];
                     if( empty( $selected_areas_str ) ){
                         $selected_areas = array();
                     }else{
