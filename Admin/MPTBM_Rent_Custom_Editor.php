@@ -16,12 +16,20 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             add_action('admin_init', [$this, 'redirect_add_new']);
 
 
-    //        add_action('admin_ajax_save_mptbm_rent', [$this, 'save_mptbm_rent_callback'] );
-            add_action('wp_ajax_save_mptbm_rent', [$this, 'save_mptbm_rent_callback']);
-    //        add_action('wp_ajax_nopriv_save_mptbm_rent', [$this, 'save_mptbm_rent_callback']);
+//            add_action('wp_ajax_save_mptbm_rent', [$this, 'save_mptbm_rent_callback']);
 
+            add_action('save_post', [ $this, 'mptbm_save_feature_image' ] );
+        }
 
-
+        function mptbm_save_feature_image( $post_id ){
+            if(isset($_POST['mptbm_feature_image_id'])){
+                $image_id = intval( sanitize_text_field( $_POST['mptbm_feature_image_id'] ) );
+                if($image_id){
+                    set_post_thumbnail($post_id, $image_id);
+                }else{
+                    delete_post_thumbnail($post_id);
+                }
+            }
         }
 
         function save_mptbm_rent_callback() {
@@ -158,111 +166,166 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
         <?php }
         public function render_page() {
 
-                $post_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
-                $title   = $post_id ? get_the_title($post_id) : 'New Rent';
-                $pro_active = class_exists('MPTBM_Dependencies_Pro');
-                $old_editor_url = admin_url(
-                    'post.php?post=' . $post_id . '&action=edit&editor=old'
-                );
-                ?>
-                <div class="wrap mp_settings_area">
+            $post_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
+            $title   = $post_id ? get_the_title($post_id) : 'New Rent';
+            $pro_active = class_exists('MPTBM_Dependencies_Pro');
+            $old_editor_url = admin_url(
+                'post.php?post=' . $post_id . '&action=edit&editor=old'
+            );
+            ?>
+            <div class="wrap mp_settings_area">
 
-                    <div class="mptbm_pro_taxi_pricing_tab_item">
-                        <?php esc_html_e( 'Pro Feature', 'ecab-taxi-booking-manager' ); ?>
+                <div class="mptbm_pro_taxi_pricing_tab_item">
+                    <?php esc_html_e( 'Pro Feature', 'ecab-taxi-booking-manager' ); ?>
+                </div>
+                <div id="mptbm_pro_popup" class="mptbm_pro_popup">
+                    <div class="mptbm_pro_popup_content">
+                        <span class="mptbm_pro_close_popup">&times;</span>
+                        <h3><?php esc_html_e( 'Pro Feature', 'ecab-taxi-booking-manager' ); ?></h3>
+                        <p>
+
+                            <?php esc_html_e( 'This PRO feature unlocks advanced taxi pricing options, priority support,
+                            and detailed analytics tools.', 'ecab-taxi-booking-manager' ); ?>
+                        </p>
+                        <a target="_blank" href="https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce/" class="mptbm_pro_download_btn">
+                            <?php esc_html_e( 'Buy Download Pro Plugin', 'ecab-taxi-booking-manager' ); ?>
+                        </a>
                     </div>
-                    <div id="mptbm_pro_popup" class="mptbm_pro_popup">
-                        <div class="mptbm_pro_popup_content">
-                            <span class="mptbm_pro_close_popup">&times;</span>
-                            <h3><?php esc_html_e( 'Pro Feature', 'ecab-taxi-booking-manager' ); ?></h3>
-                            <p>
+                </div>
 
-                                <?php esc_html_e( 'This PRO feature unlocks advanced taxi pricing options, priority support,
-                                and detailed analytics tools.', 'ecab-taxi-booking-manager' ); ?>
-                            </p>
-                            <a target="_blank" href="https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce/" class="mptbm_pro_download_btn">
-                                <?php esc_html_e( 'Buy Download Pro Plugin', 'ecab-taxi-booking-manager' ); ?>
+                <form class="mptbm_rent_form" method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+
+                    <input type="hidden" name="return_url" value="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>">
+                    <input type="hidden" name="action" value="save_mptbm_rent">
+                    <input type="hidden" name="post_id" value="<?php echo esc_attr($post_id); ?>">
+
+                    <?php wp_nonce_field('save_mptbm_rent_nonce'); ?>
+
+                    <!-- FIXED HEADER -->
+                    <div class="mptbm_fixed_header">
+
+                        <div class="">
+                            <a class="mptbm-link" href="<?php echo admin_url('edit.php?post_type=mptbm_rent'); ?>">
+                                <span class="dashicons dashicons-arrow-left-alt"></span>
+                                <?php esc_html_e( 'Back to Transports', 'ecab-taxi-booking-manager' ); ?>
                             </a>
                         </div>
+
+                        <div class="mptbm_header_left">
+                            <h1 class="mptbm_page_title">
+                                <?php echo esc_html($title); ?>
+                            </h1>
+                        </div>
+
+                        <div class="mptbm_header_right">
+
+                            <?php submit_button($post_id ? 'Update' : 'Publish', 'primary', '', false); ?>
+                            <a href="<?php echo esc_url($old_editor_url); ?>" class="button">
+                                <?php esc_html_e( 'Open classic Editor', 'ecab-taxi-booking-manager' ); ?>
+                            </a>
+
+                        </div>
+
+                    </div>
+                    <!-- SCROLLABLE CONTENT -->
+                    <div class="mptbm_scroll_content" style="display: flex; flex-direction: row">
+                        <div class="mptbm_taxi_wrapper">
+                            <?php
+                            self::taxi_content_tabs_set($post_id);
+                            self::general_information_set( $post_id, $pro_active );
+                            self::pricing_settings( $post_id, $pro_active );
+                            self::date_configuration_set($post_id);
+                            ?>
+                        </div>
+                        <?php
+                        self::feature_image_add( $post_id );
+                        ?>
                     </div>
 
-                    <form class="mptbm_rent_form" method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+                    <!-- FIXED FOOTER -->
+                    <div class="mptbm_fixed_footer">
 
-                        <input type="hidden" name="return_url" value="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>">
-                        <input type="hidden" name="action" value="save_mptbm_rent">
-                        <input type="hidden" name="post_id" value="<?php echo esc_attr($post_id); ?>">
+                        <div class="mptbm_footer_right">
 
-                        <?php wp_nonce_field('save_mptbm_rent_nonce'); ?>
+                            <div class="mptbm_taxi_footer">
 
-                        <!-- FIXED HEADER -->
-                        <div class="mptbm_fixed_header">
+                                <button type="button" class="mptbm_taxi_btn_prev">
+                                    <?php esc_html_e( '← Previous', 'ecab-taxi-booking-manager' ); ?>
+                                </button>
 
-                            <div class="">
-                                <a class="mptbm-link" href="<?php echo admin_url('edit.php?post_type=mptbm_rent'); ?>">
-                                    <span class="dashicons dashicons-arrow-left-alt"></span>
-                                    <?php esc_html_e( 'Back to Transports', 'ecab-taxi-booking-manager' ); ?>
-                                </a>
-                            </div>
+                                <span class="mptbm_taxi_step_counter">
+                                    <?php esc_html_e( 'Step 1 of 3', 'ecab-taxi-booking-manager' ); ?>
+                                </span>
 
-                            <div class="mptbm_header_left">
-                                <h1 class="mptbm_page_title">
-                                    <?php echo esc_html($title); ?>
-                                </h1>
-                            </div>
-
-                            <div class="mptbm_header_right">
-
-                                <?php submit_button($post_id ? 'Update' : 'Publish', 'primary', '', false); ?>
-                                <a href="<?php echo esc_url($old_editor_url); ?>" class="button">
-                                    <?php esc_html_e( 'Open classic Editor', 'ecab-taxi-booking-manager' ); ?>
-                                </a>
-
-                            </div>
-
-                        </div>
-                        <!-- SCROLLABLE CONTENT -->
-                        <div class="mptbm_scroll_content">
-
-                            <div class="mptbm_taxi_wrapper">
-
-                                <?php
-                                self::taxi_content_tabs_set($post_id);
-                                self::general_information_set( $post_id, $pro_active );
-                                self::pricing_settings( $post_id, $pro_active );
-                                self::date_configuration_set($post_id);
-                                ?>
+                                <button type="button" class="mptbm_taxi_btn_next">
+                                    <?php esc_html_e( 'Next →', 'ecab-taxi-booking-manager' ); ?>
+                                </button>
 
                             </div>
 
                         </div>
 
-                        <!-- FIXED FOOTER -->
-                        <div class="mptbm_fixed_footer">
+                    </div>
+                </form>
+            </div>
+            <?php
+        }
 
-                            <div class="mptbm_footer_right">
-
-                                <div class="mptbm_taxi_footer">
-
-                                    <button type="button" class="mptbm_taxi_btn_prev">
-                                        <?php esc_html_e( '← Previous', 'ecab-taxi-booking-manager' ); ?>
-                                    </button>
-
-                                    <span class="mptbm_taxi_step_counter">
-                                        <?php esc_html_e( 'Step 1 of 3', 'ecab-taxi-booking-manager' ); ?>
-                                    </span>
-
-                                    <button type="button" class="mptbm_taxi_btn_next">
-                                        <?php esc_html_e( 'Next →', 'ecab-taxi-booking-manager' ); ?>
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-                    </form>
-                </div>
-                <?php
+        public static function feature_image_add( $post_id ) {
+            $image_id = get_post_thumbnail_id( $post_id );
+            $image_url = '';
+            if ( $image_id ) {
+                $image_url = wp_get_attachment_image_url( $image_id, 'medium' );
             }
+            ?>
+            <div class="mptbm_feature_image_card">
+                <div class="mptbm_feature_image_head">
+                    <h2>Featured Image</h2>
+                    <p>Main event thumbnail</p>
+                </div>
+                <div class="mptbm_feature_image_body">
+                    <input
+                            type="hidden"
+                            id="mptbm_feature_image_id"
+                            name="mptbm_feature_image_id"
+                            value="<?php echo esc_attr( $image_id ); ?>"
+                    >
+                    <div
+                            class="mptbm_feature_image_wrapper"
+                            data-has-image="<?php echo $image_id ? '1' : '0'; ?>"
+                    >
+                        <div class="mptbm_feature_image_preview">
+
+                            <?php if ( $image_url ) : ?>
+                                <img
+                                        src="<?php echo esc_url( $image_url ); ?>"
+                                        alt=""
+                                >
+                            <?php else : ?>
+                                <div class="mptbm_feature_image_placeholder">
+                                    Select Event Image
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="mptbm_feature_image_actions">
+                            <button
+                                    type="button"
+                                    class="button button-primary mptbm_feature_image_select"
+                            >
+                                Select Image
+                            </button>
+                            <button
+                                    type="button"
+                                    class="button mptbm_feature_image_remove"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php
+        }
 
         public static function taxi_title_description_set( $post_id ){ ?>
             <div class="mptbm_rent_editor_wrapper">
@@ -837,7 +900,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             </div>
         <?php }
         public static function date_configuration_set( $post_id ){ ?>
-            <div class="mptbm_taxi_datetime" data-step="3">
+            <div class="mptbm_taxi_container mptbm_taxi_datetime" data-step="3">
                 <div class="mptbm_taxi_container">
                     <?php
                     do_action( 'mptbm_date_and_advanced_settings', $post_id );

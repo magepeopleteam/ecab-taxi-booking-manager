@@ -761,4 +761,54 @@
 
 
 
+    /*Feature Images*/
+    let mptbm_feature_image_frame;
+    // Select Image
+    $('.mptbm_feature_image_select').on('click', function (e) {
+        e.preventDefault();
+        if (mptbm_feature_image_frame) {
+            mptbm_feature_image_frame.open();
+            return;
+        }
+        mptbm_feature_image_frame = wp.media({
+            title: 'Select Featured Image',
+            button: {
+                text: 'Use Image'
+            },
+            multiple: false,
+            library: {
+                type: 'image'
+            }
+        });
+        mptbm_feature_image_frame.on('select', function () {
+            let attachment = mptbm_feature_image_frame
+                .state()
+                .get('selection')
+                .first()
+                .toJSON();
+            // Save Image ID
+            $('#mptbm_feature_image_id').val(attachment.id);
+
+            // Preview Image
+            $('.mptbm_feature_image_preview').html(
+                '<img src="' + attachment.url + '" alt="">'
+            );
+            $('.mptbm_feature_image_wrapper')
+                .attr('data-has-image', '1');
+        });
+        mptbm_feature_image_frame.open();
+    });
+    // Remove Image
+    $('.mptbm_feature_image_remove').on('click', function (e) {
+        e.preventDefault();
+        $('#mptbm_feature_image_id').val('');
+
+        $('.mptbm_feature_image_preview').html(
+            '<div class="mptbm_feature_image_placeholder">Select Event Image</div>'
+        );
+        $('.mptbm_feature_image_wrapper')
+            .attr('data-has-image', '0');
+    });
+
+
 }(jQuery));
