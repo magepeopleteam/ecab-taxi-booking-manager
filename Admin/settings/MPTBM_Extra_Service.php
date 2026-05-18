@@ -253,7 +253,7 @@
 				$extra_count               = count( $extra_names );
 
 				for ( $i = 0; $i < $extra_count; $i ++ ) {
-					if ( $extra_names[ $i ] && $extra_price[ $i ] >= 0 ) {
+					if ( $extra_names[ $i ]  ) {
 						$icon = $image = "";
 						if ( isset( $extra_icon[ $i ] ) && $extra_icon[ $i ] ) {
 							if ( preg_match( '/\s/', $extra_icon[ $i ] ) ) {
@@ -270,6 +270,8 @@
 						$new_extra_service[ $i ]['extra_service_description'] = $extra_service_description[ $i ] ?? '';
 					}
 				}
+
+                error_log( print_r( [ '$new_extra_service' => $new_extra_service ], true ) );
 				return apply_filters( 'filter_mptbm_extra_service_data', $new_extra_service, $post_id );
 			}
 			/**

@@ -566,6 +566,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 
 /* Table/Row Styles */
 .mptbm_taxi_feature_body { padding: 20px 30px; }
+.mptbm_taxi_inventory_manage_body { padding: 20px 30px; }
 
 .mptbm_taxi_feature_labels {
     display: grid;
@@ -591,6 +592,11 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 .mptbm_taxi_feature_container.disabled .mptbm_taxi_feature_body {
     opacity: 0.5;
     pointer-events: none;
+}
+
+.mptbm_taxi_inventory_manage_body {
+    /*opacity: 0.5;*/
+    /*pointer-events: none;*/
 }
 
 .mptbm_taxi_feature_icon_box {
@@ -1563,4 +1569,94 @@ select.mptbm_taxi_ex_service_select {
     color: #fff;
     text-decoration: none;
     border-radius: 5px;
+}
+
+/*Inventory ManageMent*/
+
+.mptbm_taxi_inventory_settings_card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    width: 100%;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.mptbm_taxi_inventory_form_row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    transition: background-color 0.2s ease;
+}
+
+/* Adds a divider line between rows except the last one */
+.mptbm_taxi_inventory_form_row:not(:last-child) {
+    border-bottom: 1px solid var(--mptbm-border-color);
+}
+
+.mptbm_taxi_inventory_field_info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-right: 16px;
+}
+
+.mptbm_taxi_inventory_field_title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--mptbm-text-primary);
+}
+
+.mptbm_taxi_inventory_field_description {
+    font-size: 13px;
+    color: var(--mptbm-text-secondary);
+    line-height: 1.4;
+}
+
+.mptbm_taxi_inventory_field_input_wrapper {
+    flex-shrink: 0;
+}
+
+.mptbm_taxi_inventory_styled_input {
+    width: 200px;
+    height: 42px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--mptbm-text-primary);
+    background-color: var(--mptbm-bg-surface);
+    border: 1px solid var(--mptbm-border-color);
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+/* Focus and interactive states */
+.mptbm_taxi_inventory_styled_input:focus {
+    border-color: var(--mptbm-brand-primary);
+    box-shadow: 0 0 0 4px var(--mptbm-brand-focus-ring);
+}
+
+.mptbm_taxi_inventory_styled_input:hover {
+    border-color: #cbd5e1;
+}
+
+.mptbm_taxi_inventory_styled_input:focus:hover {
+    border-color: var(--mptbm-brand-primary);
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 640px) {
+    .mptbm_taxi_inventory_form_row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .mptbm_taxi_inventory_field_input_wrapper,
+    .mptbm_taxi_inventory_styled_input {
+        width: 100%;
+    }
 }

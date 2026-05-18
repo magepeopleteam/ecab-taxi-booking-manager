@@ -685,7 +685,13 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 </div>
 
                 <?php
-                    self::taxi_feature_add_remove( $post_id, $all_features );
+
+                if (class_exists('MPTBM_Plugin_Pro')) {
+                    self::taxi_inventory_manages($post_id, $all_features);
+                }
+
+                self::taxi_feature_add_remove( $post_id, $all_features );
+
                 ?>
 
             </div>
@@ -761,6 +767,69 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <button class="mptbm_taxi_feature_add_btn" id="mptbm_taxi_feature_add_row">
                             <i class="fa-solid fa-plus"></i> Add New Item
                         </button>
+                    </div>
+                </div>
+
+
+            </div>
+        <?php }
+        public static function taxi_inventory_manages( $post_id, $all_features ){
+            $display_features = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_inventory', 'no');
+            $features_active = $display_features == 'no' ? 'Off' : 'On';
+            $display = $display_features == 'no' ? 'none' : 'block';
+            $features_checked = $display_features == 'no' ? '' : 'checked';
+            ?>
+            <div class="mptbm_taxi_feature_container">
+                <div class="mptbm_taxi_feature_header">
+                    <div class="mptbm_taxi_feature_title_area">
+                        <h2>Enable Inventory</h2>
+                        <p>Enable or disable inventory management for this vehicle</p>
+                    </div>
+                    <div class="mptbm_taxi_feature_switch">
+
+                        <span class="mptbm_taxi_inventory_switch_text"><?php echo esc_attr( $features_active );?></span>
+                        <label class="mptbm_taxi_feature_toggle">
+                            <input type="checkbox" id="mptbm_enable_inventory" name="mptbm_enable_inventory" <?php echo esc_attr( $features_checked );?>>
+                            <span class="mptbm_taxi_feature_slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mptbm_taxi_inventory_manage_body" style="display: <?php echo esc_attr( $display );?>">
+                    <div class="mptbm_taxi_inventory_settings_card">
+                            <div class="mptbm_taxi_inventory_form_row">
+                                <div class="mptbm_taxi_inventory_field_info">
+                                    <label for="vehicle-quantity" class="mptbm_taxi_inventory_field_title">Quantity</label>
+                                    <p class="mptbm_taxi_inventory_field_description">Enter the quantity of vehicles available</p>
+                                </div>
+                                <div class="mptbm_taxi_inventory_field_input_wrapper">
+                                    <input
+                                            type="number"
+                                            id="vehicle-quantity"
+                                            name="mptbm_quantity"
+                                            min="1"
+                                            value="<?php echo esc_attr(MP_Global_Function::get_post_info($post_id, 'mptbm_quantity', 1)); ?>"
+                                            class="mptbm_taxi_inventory_styled_input"
+                                            placeholder="<?php esc_html_e('EX:5', 'ecab-taxi-booking-manager'); ?>">
+                                </div>
+                            </div>
+
+                            <div class="mptbm_taxi_inventory_form_row">
+                                <div class="mptbm_taxi_inventory_field_info">
+                                    <label for="interval-time" class="mptbm_taxi_inventory_field_title">Transport Booking Interval Time (minutes)</label>
+                                    <p class="mptbm_taxi_inventory_field_description">Set the interval time between bookings in minutes</p>
+                                </div>
+                                <div class="mptbm_taxi_inventory_field_input_wrapper">
+                                    <input type="number"
+                                           id="interval-time"
+                                           name="mptbm_booking_interval_time"
+                                           min="0"
+                                           value="<?php echo esc_attr(MP_Global_Function::get_post_info($post_id, 'mptbm_booking_interval_time', 0)); ?>"
+                                           class="mptbm_taxi_inventory_styled_input"
+                                           placeholder="<?php esc_html_e('EX:30', 'ecab-taxi-booking-manager'); ?>"
+                                    >
+                                </div>
+                            </div>
                     </div>
                 </div>
 
@@ -1365,7 +1434,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </td>
                         <td>
                             <select name="mptbm_fixed_map_route_end_location[]" class="mptbm_fixed_map_route_end_location">
-                                <?php foreach ($merged_location_area as $key => $label): ?>
+                                <?php foreach ($location_zones as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                        >
                                         <?php echo $label; ?>
@@ -1418,7 +1487,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <tr>
                         <td>
                             <select name="mptbm_zone_to_zone_route_start_location[]" class="mptbm_fixed_map_route_start_location">
-                                <?php foreach ($merged_location_area as $key => $label): ?>
+                                <?php foreach ( $merged_location_area as $key => $label ): ?>
                                     <option value="<?php echo $key; ?>"
                                         <?php selected($route['start_location'], $key); ?>>
                                         <?php echo $label; ?>
@@ -1428,7 +1497,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </td>
                         <td>
                             <select name="mptbm_zone_to_zone_route_end_location[]" class="mptbm_fixed_map_route_end_location">
-                                <?php foreach ($location_zones as $key => $label): ?>
+                                <?php foreach ( $merged_location_area as $key => $label ): ?>
                                     <option value="<?php echo $key; ?>"
                                         <?php selected($route['end_location'], $key); ?>>
                                         <?php echo $label; ?>
@@ -1460,7 +1529,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 ?>
                     <tr>
                         <td>
-                            <select name="mptbm_fixed_map_route_start_location[]" class="mptbm_fixed_map_route_start_location">
+                            <select name="mptbm_zone_to_zone_route_start_location[]" class="mptbm_fixed_map_route_start_location">
                                 <?php foreach ($merged_location_area as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                         >
@@ -1470,7 +1539,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             </select>
                         </td>
                         <td>
-                            <select name="mptbm_fixed_map_route_end_location[]" class="mptbm_fixed_map_route_end_location">
+                            <select name="mptbm_zone_to_zone_route_end_location[]" class="mptbm_fixed_map_route_end_location">
                                 <?php foreach ($merged_location_area as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                        >
@@ -1481,7 +1550,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </td>
                         <td>
                             <input
-                                    name="mptbm_fixed_map_route_price[]"
+                                    name="mptbm_zone_to_zone_route_price[]"
                                     type="text"
                                     value=""
                                     placeholder="EX: 10"
@@ -1506,6 +1575,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
         public static function render_location_price_rows($terms_location_prices, $location_terms) {
 
+//            error_log( print_r( [ '$terms_location_prices' => $terms_location_prices, '$location_terms' => $location_terms ], true ) );
             $location_map = [];
             foreach ($location_terms as $term) {
                 $location_map[$term->slug] = $term->name;
