@@ -878,6 +878,30 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				}
 				update_post_meta($post_id, 'mptbm_fixed_map_route_price_info', $fixed_map_route_price_infos);
 
+
+				$zone_to_zone_route_price_infos = array();
+				$start_zone_to_zone_route = isset($_POST['mptbm_zone_to_zone_route_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_start_location']) : [];
+				$end_zone_to_zone_route = isset($_POST['mptbm_zone_to_zone_route_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_end_location']) : [];
+				$zone_to_zone_route_price = isset($_POST['mptbm_zone_to_zone_route_price']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_price']) : [];
+
+				if (count($start_zone_to_zone_route) > 0) {
+					$count = 0;
+					foreach ($start_zone_to_zone_route as $key => $location) {
+						$e_route = isset($end_zone_to_zone_route[$key]) ? $end_zone_to_zone_route[$key] : '';
+						$r_price = isset($zone_to_zone_route_price[$key]) ? $zone_to_zone_route_price[$key] : '';
+
+						if ($location && $e_route && $r_price) {
+                            $zone_to_zone_route_price_infos[$count]['start_location'] = $location;
+                            $zone_to_zone_route_price_infos[$count]['end_location'] = $e_route;
+                            $zone_to_zone_route_price_infos[$count]['price'] = $r_price;
+							$count++;
+						}
+					}
+				}
+
+                error_log( print_r( [ '$zone_to_zone_route_price_infos'  =>$zone_to_zone_route_price_infos ], true ) );
+				update_post_meta($post_id, 'mptbm_fixed_zone_price_info', $zone_to_zone_route_price_infos);
+
 				$terms_price_infos = array();
 				$start_terms_location = isset($_POST['mptbm_terms_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_terms_start_location']) : [];
 				$end_terms_location = isset($_POST['mptbm_terms_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_terms_end_location']) : [];
