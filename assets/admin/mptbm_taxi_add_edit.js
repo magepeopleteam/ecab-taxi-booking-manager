@@ -138,6 +138,21 @@
         // $(this).closest('.mptbm_taxi_feature_switch').find('span').text(isChecked ? 'ON' : 'OFF');
     });
 
+    // 1. Inventory Toggle Functionality
+    $('#mptbm_enable_inventory').on('change', function(e) {
+        e.preventDefault();
+        const isChecked = $(this).is(':checked');
+        if( isChecked ){
+            $('.mptbm_taxi_inventory_manage_body').fadeIn();
+            $('.mptbm_taxi_inventory_switch_text').text('On');
+        }else{
+            $('.mptbm_taxi_inventory_manage_body').fadeOut();
+            $('.mptbm_taxi_inventory_switch_text').text('Off');
+        }
+
+        // $(this).closest('.mptbm_taxi_feature_switch').find('span').text(isChecked ? 'ON' : 'OFF');
+    });
+
     $(document).on('click', '.mptbm_taxi_feature_btn_del', function(e) {
         e.preventDefault();
         if(confirm('Are you sure you want to remove this feature?')) {
@@ -235,13 +250,13 @@
             }
         });
 
-        $('.mptbm_taxi_pricing_add_route_btn').on('click', function() {
+        $(document).on('click','.mptbm_taxi_pricing_add_route_btn', function() {
             var tr = $('.mptbm_taxi_pricing_route_list tr:first').clone();
             tr.find('input').val('');
             $('.mptbm_taxi_pricing_route_list').append(tr);
         });
 
-        $('.mptbm_taxi_pricing_add_zone_btn').on('click', function() {
+        $(document).on('click', '.mptbm_taxi_pricing_add_zone_btn', function() {
             var tr = $('.mptbm_taxi_pricing_zone_to_zone_route_list tr:first').clone();
             tr.find('input').val('');
             $('.mptbm_taxi_pricing_zone_to_zone_route_list').append(tr);
@@ -471,7 +486,7 @@
 
     function updateSelections() {
         handleGroup('select[name="mptbm_fixed_map_route_start_location[]"]');
-        handleGroup('select[name="mptbm_fixed_map_route_end_location[]"]');
+        // handleGroup('select[name="mptbm_fixed_map_route_end_location[]"]');
     }
 
     // on change
