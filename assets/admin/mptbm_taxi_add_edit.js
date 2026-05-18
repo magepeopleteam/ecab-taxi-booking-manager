@@ -242,9 +242,9 @@
         });
 
         $('.mptbm_taxi_pricing_add_zone_btn').on('click', function() {
-            var tr = $('.mptbm_taxi_pricing_fixed_zone_list tr:first').clone();
+            var tr = $('.mptbm_taxi_pricing_zone_to_zone_route_list tr:first').clone();
             tr.find('input').val('');
-            $('.mptbm_taxi_pricing_fixed_zone_list').append(tr);
+            $('.mptbm_taxi_pricing_zone_to_zone_route_list').append(tr);
         });
 
 
