@@ -1676,11 +1676,47 @@ select.mptbm_taxi_ex_service_select {
     border-bottom:1px solid #eee;
 }
 
+.mptbm_taxi_operation_area_type_title{
+    margin: 12px 0;
+    font-weight: normal;
+    font-size: 14px;
+}
+
 .mptbm_feature_image_head h2{
     margin:0 0 5px;
     font-size:18px;
     font-weight:600;
 }
+.mptbm_operation_area_create_link {
+    margin: 15px 0;
+}
+
+.mptbm_create_area_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #0073aa, #00a0d2);
+    color: #fff !important;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 115, 170, 0.25);
+    transition: all 0.3s ease;
+}
+
+.mptbm_create_area_btn:hover {
+    background: linear-gradient(135deg, #005f8d, #008ec2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 115, 170, 0.35);
+    color: #fff;
+}
+
+.mptbm_create_area_btn:active {
+    transform: scale(0.98);
+}
+
 
 .mptbm_feature_image_head p{
     margin:0;

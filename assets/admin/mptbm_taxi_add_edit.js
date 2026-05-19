@@ -273,6 +273,12 @@
             values.push($(this).data('id'));
         });
 
+        if (values.length > 0) {
+           $("#mptbm_taxi_operation_area_pricing_section").fadeIn();
+        } else {
+            $("#mptbm_taxi_operation_area_pricing_section").fadeOut();
+        }
+
         $('#mptbm_selected_operation_areas').val(values.join(','));
     }
     $('.mptbm_taxi_pricing_area_pills').on('click', '.mptbm_taxi_pricing_pill', function (e) {
@@ -499,6 +505,15 @@
     });
     // on change
     $(document).on('change', '.mptbm_operation_area_type', function () {
+
+        let selected_type = $(this).val();
+
+        if( selected_type === 'geo-fence-operation-area-type' ){
+            $('.mptbm_taxi_pricing_area_pills').fadeOut();
+        }else{
+            $('.mptbm_taxi_pricing_area_pills').fadeIn();
+        }
+
         $('#mptbm_selected_operation_areas').val('');
         $('.mptbm_taxi_pricing_pill')
             .removeClass('selected')
