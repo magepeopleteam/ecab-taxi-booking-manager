@@ -232,6 +232,7 @@
 					return;
 				}
 				if ( get_post_type( $post_id ) == MPTBM_Function::get_cpt() ) {
+
 					$display = isset($_POST['display_mptbm_extra_services']) && sanitize_text_field($_POST['display_mptbm_extra_services'])? 'on' : 'off';
 					update_post_meta( $post_id, 'display_mptbm_extra_services', $display );
 					$ex_id = isset($_POST['mptbm_extra_services_id']) ? sanitize_text_field($_POST['mptbm_extra_services_id']) : $post_id;
@@ -250,10 +251,11 @@
 				$extra_qty_type            =  isset($_POST['service_qty_type']) ? array_map('sanitize_text_field',$_POST['service_qty_type']) : [];
 				$extra_service_description =  isset($_POST['extra_service_description']) ? array_map('sanitize_textarea_field',$_POST['extra_service_description']) : [];
 				$extra_count               = count( $extra_names );
+
 				for ( $i = 0; $i < $extra_count; $i ++ ) {
-					if ( $extra_names[ $i ] && $extra_price[ $i ] >= 0 ) {
+					if ( $extra_names[ $i ]  ) {
 						$icon = $image = "";
-						if ( $extra_icon[ $i ] ) {
+						if ( isset( $extra_icon[ $i ] ) && $extra_icon[ $i ] ) {
 							if ( preg_match( '/\s/', $extra_icon[ $i ] ) ) {
 								$icon = $extra_icon[ $i ];
 							} else {
@@ -268,6 +270,8 @@
 						$new_extra_service[ $i ]['extra_service_description'] = $extra_service_description[ $i ] ?? '';
 					}
 				}
+
+                error_log( print_r( [ '$new_extra_service' => $new_extra_service ], true ) );
 				return apply_filters( 'filter_mptbm_extra_service_data', $new_extra_service, $post_id );
 			}
 			/**

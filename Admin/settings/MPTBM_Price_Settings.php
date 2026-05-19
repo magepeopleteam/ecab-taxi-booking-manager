@@ -789,6 +789,7 @@ if (!class_exists('MPTBM_Price_Settings')) {
 		}
 		public function save_price_settings($post_id)
 		{
+//            error_log( print_r( [ '$_POSTPrice'  =>$_POST ], true ) );
 			if (
 				!isset($_POST['mptbm_price_settings_nonce']) ||
 				!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['mptbm_price_settings_nonce'])), 'mptbm_price_settings_action')
@@ -877,11 +878,36 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				}
 				update_post_meta($post_id, 'mptbm_fixed_map_route_price_info', $fixed_map_route_price_infos);
 
+
+				$zone_to_zone_route_price_infos = array();
+				$start_zone_to_zone_route = isset($_POST['mptbm_zone_to_zone_route_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_start_location']) : [];
+				$end_zone_to_zone_route = isset($_POST['mptbm_zone_to_zone_route_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_end_location']) : [];
+				$zone_to_zone_route_price = isset($_POST['mptbm_zone_to_zone_route_price']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_price']) : [];
+
+				if (count($start_zone_to_zone_route) > 0) {
+					$count = 0;
+					foreach ($start_zone_to_zone_route as $key => $location) {
+						$e_route = isset($end_zone_to_zone_route[$key]) ? $end_zone_to_zone_route[$key] : '';
+						$r_price = isset($zone_to_zone_route_price[$key]) ? $zone_to_zone_route_price[$key] : '';
+
+						if ($location && $e_route && $r_price) {
+                            $zone_to_zone_route_price_infos[$count]['start_location'] = $location;
+                            $zone_to_zone_route_price_infos[$count]['end_location'] = $e_route;
+                            $zone_to_zone_route_price_infos[$count]['price'] = $r_price;
+							$count++;
+						}
+					}
+				}
+				update_post_meta($post_id, 'mptbm_fixed_zone_price_info', $zone_to_zone_route_price_infos);
+
 				$terms_price_infos = array();
 				$start_terms_location = isset($_POST['mptbm_terms_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_terms_start_location']) : [];
 				$end_terms_location = isset($_POST['mptbm_terms_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_terms_end_location']) : [];
 				$terms_price = isset($_POST['mptbm_location_terms_price']) ? array_map('sanitize_text_field', $_POST['mptbm_location_terms_price']) : [];
-				if (sizeof($start_terms_location) > 1 && sizeof($end_terms_location) > 1 && sizeof($terms_price) > 0) {
+
+
+				if (sizeof($start_terms_location) > 0 && sizeof($end_terms_location) > 0 && sizeof($terms_price) > 0) {
+                    
 					$count = 0;
 					foreach ($start_terms_location as $key => $location) {
 						if ($location && $end_terms_location[$key] && $terms_price[$key]) {
@@ -891,7 +917,9 @@ if (!class_exists('MPTBM_Price_Settings')) {
 							$count++;
 						}
 					}
-				}
+                }
+
+
 				update_post_meta($post_id, 'mptbm_terms_price_info', $terms_price_infos);
 				$waiting_price = isset($_POST['mptbm_waiting_price']) ? sanitize_text_field($_POST['mptbm_waiting_price']) : '';
 				update_post_meta($post_id, 'mptbm_waiting_price', $waiting_price);

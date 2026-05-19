@@ -1,0 +1,245 @@
+:root {
+    --mptbm-bg: #f5f7fb;
+    --mptbm-primary: #211a9b;
+    --mptbm-light-blue: #e8ecff;
+    --mptbm-border: #e2e8f0;
+    --mptbm-text-dark: #334155;
+    --mptbm-text-muted: #64748b;
+    --mptbm-error-bg: #fff1f2;
+    --mptbm-error-text: #b91c1c;
+}
+
+.mptbm_taxi_advanced_body {
+    background-color: var(--mptbm-bg);
+    margin: 0;
+    padding: 30px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--mptbm-text-dark);
+}
+
+.mptbm_taxi_advanced_wrapper {
+    /*max-width: 960px;*/
+    margin: 0 auto;
+}
+
+.mptbm_taxi_advanced_main_header h1 {
+    font-size: 22px;
+    margin-bottom: 5px;
+}
+
+.mptbm_taxi_advanced_main_header p {
+    color: var(--mptbm-text-muted);
+    font-size: 13px;
+    margin-bottom: 30px;
+}
+
+/* Card Styling */
+.mptbm_taxi_advanced_card {
+    background: #fff;
+    border: 1px solid var(--mptbm-border);
+    border-radius: 6px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    padding: 15px;
+    margin-top: 10px;
+}
+
+.mptbm_taxi_advanced_card_header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mptbm_taxi_advanced_title_block h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.mptbm_taxi_advanced_title_block p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: var(--mptbm-text-muted);
+}
+
+.mptbm_taxi_advanced_card_body {
+    padding: 20px;
+}
+
+/* Form Elements */
+.mptbm_taxi_advanced_form_row {
+    margin-bottom: 15px;
+}
+
+.mptbm_taxi_advanced_field_group {
+    display: flex;
+    align-items: flex-start;
+}
+
+.mptbm_taxi_advanced_field_group label {
+    width: 300px;
+    font-size: 13px;
+    font-weight: 600;
+    padding-top: 10px;
+}
+
+.mptbm_taxi_advanced_input_wrap {
+    flex: 1;
+}
+
+.mptbm_taxi_advanced_input_wrap select,
+.mptbm_taxi_advanced_input_wrap input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--mptbm-border);
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.mptbm_taxi_advanced_input_wrap small {
+    display: block;
+    font-size: 11px;
+    color: var(--mptbm-text-muted);
+    margin-top: 4px;
+}
+
+/* Switches */
+.mptbm_taxi_advanced_toggle {
+    position: relative;
+    display: inline-block;
+    /*width: 44px;*/
+    height: 22px;
+}
+
+.mptbm_taxi_advanced_toggle input { opacity: 0; width: 0; height: 0; }
+
+.mptbm_taxi_advanced_slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 34px;
+}
+
+.mptbm_taxi_advanced_slider:before {
+    position: absolute;
+    content: "";
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .mptbm_taxi_advanced_slider { background-color: var(--mptbm-primary); }
+input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px); }
+
+/* Table Section */
+.mptbm_taxi_advanced_table_head {
+    display: flex;
+    background: #f8fafc;
+    padding: 12px 20px;
+    font-weight: 600;
+    font-size: 13px;
+    border-bottom: 1px solid var(--mptbm-border);
+}
+
+.mptbm_taxi_advanced_table_row {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.mptbm_taxi_advanced_col_day { flex: 1.5; font-size: 13px; font-weight: 500; }
+.mptbm_taxi_advanced_col_start, .mptbm_taxi_advanced_col_end { flex: 2; }
+.mptbm_taxi_advanced_col_start select, .mptbm_taxi_advanced_col_end select { width: 100%; padding: 8px; border: 1px solid var(--mptbm-border); border-radius: 4px; }
+.mptbm_taxi_advanced_col_to { flex: 0.5; text-align: center; font-size: 13px; font-weight: 600; }
+
+/* Mid-Page Nav */
+.mptbm_taxi_advanced_mid_nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #fff;
+    border-bottom: 1px solid var(--mptbm-border);
+}
+
+.mptbm_taxi_advanced_btn_secondary {
+    background: var(--mptbm-light-blue);
+    color: var(--mptbm-primary);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 13px;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.mptbm_taxi_advanced_btn_primary {
+    background: var(--mptbm-primary);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.mptbm_taxi_advanced_step_text { font-size: 12px; color: var(--mptbm-text-muted); }
+
+/* Driver Info Box */
+.mptbm_taxi_advanced_driver_info_box {
+    display: flex;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    border-radius: 4px;
+    margin-top: 20px;
+}
+
+.mptbm_taxi_advanced_info_col {
+    flex: 1;
+    padding: 15px;
+}
+
+.mptbm_taxi_advanced_info_col label {
+    font-size: 11px;
+    color: var(--mptbm-text-muted);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.mptbm_taxi_advanced_info_col p { margin: 0; font-size: 13px; font-weight: 500; }
+
+/* Tax Alert */
+.mptbm_taxi_advanced_tax_alert {
+    margin: 20px;
+    padding: 15px;
+    background: var(--mptbm-error-bg);
+    border: 1px solid #fecaca;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    color: var(--mptbm-error-text);
+}
+
+.mptbm_taxi_advanced_alert_icon {
+    width: 18px; height: 18px;
+    border: 1px solid var(--mptbm-error-text);
+    border-radius: 50%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    font-style: italic;
+    margin-right: 12px;
+}
+
+.mptbm_taxi_advanced_tax_alert p { margin: 0; font-size: 13px; }

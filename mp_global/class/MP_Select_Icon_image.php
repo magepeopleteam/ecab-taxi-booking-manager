@@ -29,7 +29,7 @@
                     </div>
                     <div class="mp_add_icon_image_button_area <?php echo esc_attr($button_active_class); ?>">
                         <div class="flexEqual">
-                        <button class="_mpBtn_xs mp_icon_add" type="button" data-target-popup="#mp_add_icon_popup">
+                        <button class="_mpBtn_xs mp_icon_add" type="button" data-target-popup="0.#mp_add_icon_popup">
                             <span class="fas fa-plus"></span><?php esc_html_e('Icon', 'ecab-taxi-booking-manager'); ?></button>
                         </div>
                     </div>

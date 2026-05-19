@@ -32,6 +32,8 @@
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Analytics_Dashboard.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_API_Documentation.php';
 
+			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Rent_Custom_Editor.php';
+
 				
 				//****************Global settings************************//
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Settings_Global.php';
@@ -44,6 +46,8 @@
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Date_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Base_Price_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Tax_Settings.php';
+                require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_taxi_Date_Advanced_Settings.php';
+                require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_AJax_Handler.php';
 				//****************Woocommerce Checkout*********************** */
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Billing.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Fields.php';
