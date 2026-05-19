@@ -14,7 +14,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             add_action('admin_post_save_mptbm_rent', [$this, 'save_post']);
             add_action('admin_init', [$this, 'redirect_default_editor']);
             add_action('admin_init', [$this, 'redirect_add_new']);
-
+            add_action('admin_head', [$this, 'hide_admin_notices_css']);
 
 //            add_action('wp_ajax_save_mptbm_rent', [$this, 'save_mptbm_rent_callback']);
 
@@ -413,16 +413,10 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                      data-icon="<?php echo esc_attr( 'fas fa-clipboard-list' ); ?>">
 
                     <div class="mptbm_taxi_icon">
-                        <i class="fas fa-clipboard-list" aria-hidden="true"></i>
+                        <span class="mptbm_taxi_step_number">1</span>
+                        <span class="mptbm_taxi_label"><?php esc_html_e( 'General Information', 'ecab-taxi-booking-manager' ); ?></span>
                     </div>
 
-                    <div class="mptbm_taxi_label">
-                        <?php esc_html_e( 'General Information', 'ecab-taxi-booking-manager' ); ?>
-                    </div>
-
-                    <div class="mptbm_taxi_subtext">
-                        <?php esc_html_e( 'Step 1 of 3', 'ecab-taxi-booking-manager' ); ?>
-                    </div>
                 </div>
 
                 <div class="mptbm_taxi_line"></div>
@@ -433,16 +427,10 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                      data-icon="<?php echo esc_attr( 'fas fa-dollar-sign' ); ?>">
 
                     <div class="mptbm_taxi_icon">
-                        <i class="fas fa-dollar-sign" aria-hidden="true"></i>
+                        <span class="mptbm_taxi_step_number">2</span>
+                        <span class="mptbm_taxi_label"><?php esc_html_e( 'Pricing Configuration', 'ecab-taxi-booking-manager' ); ?></span>
                     </div>
 
-                    <div class="mptbm_taxi_label">
-                        <?php esc_html_e( 'Pricing Configuration', 'ecab-taxi-booking-manager' ); ?>
-                    </div>
-
-                    <div class="mptbm_taxi_subtext">
-                        <?php esc_html_e( 'Step 2 of 3', 'ecab-taxi-booking-manager' ); ?>
-                    </div>
                 </div>
 
                 <div class="mptbm_taxi_line"></div>
@@ -453,16 +441,10 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                      data-icon="<?php echo esc_attr( 'fas fa-calendar-alt' ); ?>">
 
                     <div class="mptbm_taxi_icon">
-                        <i class="far fa-calendar-alt" aria-hidden="true"></i>
+                        <span class="mptbm_taxi_step_number">3</span>
+                        <span class="mptbm_taxi_label"><?php esc_html_e( 'Operational Date Time', 'ecab-taxi-booking-manager' ); ?></span>
                     </div>
 
-                    <div class="mptbm_taxi_label">
-                        <?php esc_html_e( 'Operational Date Time', 'ecab-taxi-booking-manager' ); ?>
-                    </div>
-
-                    <div class="mptbm_taxi_subtext">
-                        <?php esc_html_e( 'Step 3 of 3', 'ecab-taxi-booking-manager' ); ?>
-                    </div>
                 </div>
 
             </div>
@@ -1815,6 +1797,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     )
                 );
                 exit;
+            }
+        }
+
+        public function hide_admin_notices_css() {
+            if (isset($_GET['page']) && $_GET['page'] === 'mptbm-rent-edit') {
+                echo '<style>.notice, .update-nag, div.error, div.updated, #message { display: none !important; }</style>';
             }
         }
 
