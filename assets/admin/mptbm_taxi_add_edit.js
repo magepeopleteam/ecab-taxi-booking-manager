@@ -300,9 +300,7 @@
                 $this.prepend('<i class="fas fa-check"></i> ');
             }
 
-        }
-        // MULTI SELECT MODE
-        else {
+        }else {
 
             if ($this.hasClass('selected')) {
                 $this.removeClass('selected');
@@ -367,21 +365,29 @@
     $(document).on('click', '.mptbm_taxi_pricing_tab_item_area', function () {
         let clicked_tab_id = $(this).data('id');
         let price_based = '';
+        let is_operation_selected = $("#mptbm_is_selected_operation_area").val();
         // mptbm_hide_all_pricing_content();
         $('.mptbm_taxi_pricing_tab_item_area').removeClass('active');
         $(this).addClass('active');
         if(clicked_tab_id === 'mptbm_row_operation_area' ){
             price_based = 'fixed_distance';
-            $("#mptbm_fixed_map_area_pricing").fadeIn();
-            $("#mptbm_fixed_zone_area_pricing").fadeOut();
+            if( is_operation_selected == 1 ){
+                $("#mptbm_fixed_map_area_pricing").fadeIn();
+                $("#mptbm_operation_area_settings").fadeIn();
+                $("#mptbm_fixed_zone_area_pricing").fadeOut();
+            }
+
         }else if(clicked_tab_id === 'mptbm_row_zone' ){
             price_based = 'fixed_zone';
-            $("#mptbm_fixed_zone_area_pricing").fadeIn();
-            $("#mptbm_fixed_map_area_pricing").fadeOut();
+            if( is_operation_selected == 1 ) {
+                $("#mptbm_fixed_zone_area_pricing").fadeIn();
+                $("#mptbm_fixed_map_area_pricing").fadeOut();
+                $("#mptbm_operation_area_settings").fadeOut();
 
-            $("#mptbm_distance_price").fadeOut();
-            $("#mptbm_fixed_pricing").fadeOut();
-            $("#mptbm_price_per_hour").fadeOut();
+                $("#mptbm_distance_price").fadeOut();
+                $("#mptbm_fixed_pricing").fadeOut();
+                $("#mptbm_price_per_hour").fadeOut();
+            }
         }
         $('input[name="mptbm_price_based"]').val(price_based);
     });
