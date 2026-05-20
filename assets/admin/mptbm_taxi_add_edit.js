@@ -364,6 +364,28 @@
         $("#mptbm_row_zone").fadeOut();
     }
 
+    $(document).on('click', '.mptbm_taxi_pricing_tab_item_area', function () {
+        let clicked_tab_id = $(this).data('id');
+        let price_based = '';
+        // mptbm_hide_all_pricing_content();
+        $('.mptbm_taxi_pricing_tab_item_area').removeClass('active');
+        $(this).addClass('active');
+        if(clicked_tab_id === 'mptbm_row_operation_area' ){
+            price_based = 'fixed_distance';
+            $("#mptbm_fixed_map_area_pricing").fadeIn();
+            $("#mptbm_fixed_zone_area_pricing").fadeOut();
+        }else if(clicked_tab_id === 'mptbm_row_zone' ){
+            price_based = 'fixed_zone';
+            $("#mptbm_fixed_zone_area_pricing").fadeIn();
+            $("#mptbm_fixed_map_area_pricing").fadeOut();
+
+            $("#mptbm_distance_price").fadeOut();
+            $("#mptbm_fixed_pricing").fadeOut();
+            $("#mptbm_price_per_hour").fadeOut();
+        }
+        $('input[name="mptbm_price_based"]').val(price_based);
+    });
+
     $(document).on('click', '.mptbm_taxi_pricing_tab_item', function () {
         let clicked_tab_id = $(this).data('id');
         let price_based = '';
@@ -429,6 +451,20 @@
             let primary_shortcode = "<code>[mptbm_booking price_based='fixed_map']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
             $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
+
+            let activeDataId = $('.mptbm_taxi_pricing_tab_item_area.active').data('id');
+
+            if( activeDataId === 'mptbm_row_operation_area' ){
+                $("#mptbm_distance_price").fadeIn();
+                $("#mptbm_fixed_pricing").fadeIn();
+                $("#mptbm_price_per_hour").fadeIn();
+            }else{
+                $("#mptbm_distance_price").fadeOut();
+                $("#mptbm_fixed_pricing").fadeOut();
+                $("#mptbm_price_per_hour").fadeOut();
+            }
+
+
         }else if(clicked_tab_id === 'mptbm_row_manual' ){
             price_based = 'manual';
             $("#mptbm_manual_routes").fadeIn();
@@ -446,7 +482,7 @@
 
             let primary_shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
-            $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
+            $("#mptbm_taxi_operation_area_pricing_section").fadeOut();
         }else{
             price_based = 'inclusive';
             $("#mptbm_distance_price").fadeIn();

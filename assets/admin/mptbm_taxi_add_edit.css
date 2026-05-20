@@ -1764,3 +1764,54 @@ select.mptbm_taxi_ex_service_select {
     height:40px !important;
     border-radius:10px !important;
 }
+
+.mptbm_taxi_pricing_tab_item_area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.mptbm_taxi_pricing_tab_item_area:hover {
+    background: #f9fafb;
+    border-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.mptbm_taxi_pricing_tab_item_area.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+}
+
+.mptbm_taxi_pricing_tab_item_area .tab-title {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.mptbm_taxi_pricing_tab_item_area .tab-icon {
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mptbm_taxi_pricing_tab_item_area.active .tab-title,
+.mptbm_taxi_pricing_tab_item_area.active .tab-icon {
+    color: #ffffff;
+}
+
+.mptbm_operation_area_tab_holder{
+    display: flex;
+    gap: 15px;
+    margin: 10px;
+}

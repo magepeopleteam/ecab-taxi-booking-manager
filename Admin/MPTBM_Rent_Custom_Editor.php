@@ -1180,21 +1180,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         }
 //                        error_log( print_r( [ '$pricing_tab' => $pricing_tab ], true ) );
                         ?>
-                        <div class=" <?php echo esc_attr( $pricing_tab );?> <?php echo esc_attr(($price_based === 'fixed_distance') ? 'active' : ''); ?>" data-id="mptbm_row_operation_area">
+                        <div class=" <?php echo esc_attr( $pricing_tab );?> <?php echo esc_attr(($price_based === 'fixed_distance' || $price_based === 'fixed_zone' ) ? 'active' : ''); ?>" data-id="mptbm_row_operation_area">
                             <i class="fas fa-draw-polygon" aria-hidden="true"></i>
 
                             <div class="mptbm_taxi_pricing_tab_info">
                                 <h4><?php esc_html_e('Operation Area', 'ecab-taxi-booking-manager'); ?></h4>
                                 <span><?php esc_html_e('Based on Operation Area', 'ecab-taxi-booking-manager'); ?></span>
-                            </div>
-                        </div>
-
-                        <div class="<?php echo esc_attr( $pricing_tab );?> <?php echo esc_attr(($price_based === 'fixed_zone') ? 'active' : ''); ?>" data-id="mptbm_row_zone">
-                            <i class="fas fa-globe-americas" aria-hidden="true"></i>
-
-                            <div class="mptbm_taxi_pricing_tab_info">
-                                <h4><?php esc_html_e('Fixed Zone', 'ecab-taxi-booking-manager'); ?></h4>
-                                <span><?php esc_html_e('Based on Zones', 'ecab-taxi-booking-manager'); ?></span>
                             </div>
                         </div>
 
@@ -1285,24 +1276,10 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             </div>
 
                            <?php
-                           self::manage_operation_area_pricing( $price_based, $selected_operation_type, $all_operation_area_infos, $selected_operation_areas, $operation_area, $fixed_map_route_prices, $merged_location_area, $location_zones );
+                           self::manage_operation_area_pricing( $price_based, $selected_operation_type, $all_operation_area_infos, $selected_operation_areas, $operation_area, $fixed_map_route_prices, $merged_location_area, $location_zones, $fixed_zone_prices );
                            ?>
 
-                            <div class="mptbm_taxi_pricing_field"
-                                 id="mptbm_row_zone"
-                                 style="display: <?php echo ( $price_based === 'fixed_zone'  ) ? 'block' : 'none'; ?>">
-                                <div class="mptbm_taxi_pricing_sub_section">
-                                    <div class="mptbm_taxi_pricing_sub_header">
-                                        <h4><?php esc_html_e( 'Fixed Route & Zone Pricing', 'ecab-taxi-booking-manager' ); ?></h4>
-                                        <p><?php esc_html_e( 'Define fixed prices for specific routes between zones or locations for "Fixed Zone" mode.', 'ecab-taxi-booking-manager' ); ?></p>
-                                    </div>
-                                    <?php
-                                    self::render_fixed_zone_price_rows($fixed_zone_prices, $merged_location_area, 'mptbm_taxi_pricing_zone_to_zone_route_list', $location_zones );
-                                    ?>
 
-                                    <button type="button" class="mptbm_taxi_pricing_pink_btn mptbm_taxi_pricing_add_zone_btn">+ <?php esc_html_e( 'Add New Route', 'ecab-taxi-booking-manager' ); ?></button>
-                                </div>
-                            </div>
 
                         </div>
                         <?php
@@ -1323,11 +1300,28 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
         <?php }
 
-        public static function manage_operation_area_pricing( $price_based, $selected_operation_type, $all_operation_area_infos, $selected_operation_areas, $operation_area, $fixed_map_route_prices, $merged_location_area, $location_zones ){
+        public static function manage_operation_area_pricing( $price_based, $selected_operation_type, $all_operation_area_infos, $selected_operation_areas, $operation_area, $fixed_map_route_prices, $merged_location_area, $location_zones, $fixed_zone_prices ){
+//            error_log( print_r( [ '$price_based' => $price_based ], true ) );
             ?>
             <div class="mptbm_taxi_pricing_field1"
                  id="mptbm_operation_area"
-                 style="display: <?php echo ( $price_based === 'fixed_distance'  ) ? 'block' : 'none'; ?>">
+                 style="display: <?php echo ( $price_based === 'fixed_distance' || $price_based === 'fixed_zone' ) ? 'block' : 'none'; ?>">
+
+
+                <div class="mptbm_operation_area_tab_holder">
+
+                    <div class="mptbm_taxi_pricing_tab_item_area <?php echo esc_attr(($price_based === 'fixed_distance') ? 'active' : ''); ?>" data-id="mptbm_row_operation_area">
+                        <span class="tab-icon">🚕</span>
+                        <span class="tab-title"><?php esc_html_e('Fixed With Map', 'ecab-taxi-booking-manager'); ?></span>
+                    </div>
+
+                    <div class="mptbm_taxi_pricing_tab_item_area <?php echo esc_attr(($price_based === 'fixed_zone') ? 'active' : ''); ?>" data-id="mptbm_row_zone">
+                        <span class="tab-icon">📍</span>
+                        <span class="tab-title"><?php esc_html_e('Fixed Zone', 'ecab-taxi-booking-manager'); ?></span>
+                    </div>
+                </div>
+
+
                 <div class="mptbm_taxi_pricing_row_head">
                     <span class="mptbm_taxi_pricing_label"><i class="fas fa-pencil-alt"></i> <?php esc_html_e('Operation Area', 'ecab-taxi-booking-manager'); ?></span>
                 </div>
@@ -1438,17 +1432,43 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     }
                     ?>
 
-                    <div class="mptbm_taxi_pricing_sub_section" id="mptbm_taxi_operation_area_pricing_section" style="display: <?php echo esc_attr( $area_based_pricing );?>">
-                        <div class="mptbm_taxi_pricing_sub_header">
-                            <h4><?php esc_html_e( 'Fixed Map Route Overrides', 'ecab-taxi-booking-manager' ); ?></h4>
-                            <p><?php esc_html_e( 'Define fixed prices for specific routes when using "Fixed with Map" mode.', 'ecab-taxi-booking-manager' ); ?></p>
-                        </div>
-                        <?php
-                        self::render_fixed_with_map_price_rows($fixed_map_route_prices, $merged_location_area, 'mptbm_taxi_pricing_route_list', $location_zones );
-                        ?>
+                    <div class="">
+                        <div class="mptbm_taxi_pricing_sub_section"
+                             id="mptbm_fixed_map_area_pricing"
+                             style="display: <?php echo ( $price_based === 'fixed_distance'  ) ? 'block' : 'none'; ?>">
 
-                        <button type="button" class="mptbm_taxi_pricing_pink_btn mptbm_taxi_pricing_add_route_btn">+ <?php esc_html_e( 'Add New Route', 'ecab-taxi-booking-manager' ); ?></button>
+                            <div class="mptbm_taxi_pricing_sub_header">
+                                <h4><?php esc_html_e( 'Fixed Map Route Overrides', 'ecab-taxi-booking-manager' ); ?></h4>
+                                <p><?php esc_html_e( 'Define fixed prices for specific routes when using "Fixed with Map" mode.', 'ecab-taxi-booking-manager' ); ?></p>
+                            </div>
+                            <div class=""  style="display: <?php echo esc_attr( $area_based_pricing );?>" >
+                                <?php
+                                self::render_fixed_with_map_price_rows($fixed_map_route_prices, $merged_location_area, 'mptbm_taxi_pricing_route_list', $location_zones );
+                                ?>
+                            </div>
+                            <button type="button" class="mptbm_taxi_pricing_pink_btn mptbm_taxi_pricing_add_route_btn">+ <?php esc_html_e( 'Add New Route', 'ecab-taxi-booking-manager' ); ?></button>
+                        </div>
+
+                        <div class="mptbm_taxi_pricing_field"
+                             id="mptbm_fixed_zone_area_pricing"
+                             style="display: <?php echo ( $price_based === 'fixed_zone'  ) ? 'block' : 'none'; ?>">
+                            <div class="mptbm_taxi_pricing_sub_section">
+                                <div class="mptbm_taxi_pricing_sub_header">
+                                    <h4><?php esc_html_e( 'Fixed Route & Zone Pricing', 'ecab-taxi-booking-manager' ); ?></h4>
+                                    <p><?php esc_html_e( 'Define fixed prices for specific routes between zones or locations for "Fixed Zone" mode.', 'ecab-taxi-booking-manager' ); ?></p>
+                                </div>
+                                 <div class=""  style="display: <?php echo esc_attr( $area_based_pricing );?>" >
+                                <?php
+                                    self::render_fixed_zone_price_rows($fixed_zone_prices, $merged_location_area, 'mptbm_taxi_pricing_zone_to_zone_route_list', $location_zones );
+                                ?>
+                                 </div>
+
+                                <button type="button" class="mptbm_taxi_pricing_pink_btn mptbm_taxi_pricing_add_zone_btn">+ <?php esc_html_e( 'Add New Route', 'ecab-taxi-booking-manager' ); ?></button>
+                            </div>
+                        </div>
                     </div>
+
+
                 </div>
             </div>
         <?php }
