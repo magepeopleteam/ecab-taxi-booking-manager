@@ -430,6 +430,7 @@
     $(document).on('click', '.mptbm_taxi_pricing_tab_item_area', function () {
         let clicked_tab_id = $(this).data('id');
         let price_based = '';
+        let rules = '';
         let is_operation_selected = $("#mptbm_is_selected_operation_area").val();
         // mptbm_hide_all_pricing_content();
         $('.mptbm_taxi_pricing_tab_item_area').removeClass('active');
@@ -449,6 +450,22 @@
             let primary_shortcode = "<code>[mptbm_booking price_based='fixed_map']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
 
+            rules = `<div class="mptbm_pricing_rules_card">
+                            <h4>Fixed Map Zone-based Pricing</h4>
+                            <p>Zone-based fixed pricing or fallback calculation.</p>
+                            <div class="mptbm_pricing_rules_formula">
+                                First checks predefined zone route price
+                                If matched → fixed route price is applied
+                                If not matched → fallback calculation:
+                                Hourly + Distance pricing OR
+                                Operation area pricing override
+
+                                Formula (fallback):
+
+                                (Hour Price × Duration) + (KM Price × Distance)
+                            </div>
+                        </div>`;
+
         }else if(clicked_tab_id === 'mptbm_row_zone' ){
             price_based = 'fixed_zone';
             if( is_operation_selected == 1 ) {
@@ -466,13 +483,28 @@
             $("#mptbm_shortcode_example_code").html(shortcode);
             let primary_shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
+
+            rules = `<div class="mptbm_pricing_rules_card">
+                            <h4>Fixed Zone Based Pricing </h4>
+                            <p>Price depends on selected start & end zones:</p>
+                            <div class="">
+                                If pickup and dropoff zones match predefined route → fixed price applied
+                                Otherwise geo-zone matching is used
+                                Different logic for pickup vs dropoff mode
+                                Result:
+                                Fixed route price if matched
+                            </div>
+                        </div>`;
         }
         $('input[name="mptbm_price_based"]').val(price_based);
+
+        $("#mptbm_pricing_rules_grid").html(rules);
     });
 
     $(document).on('click', '.mptbm_taxi_pricing_tab_item', function () {
         let clicked_tab_id = $(this).data('id');
         let price_based = '';
+        let rules = '';
         mptbm_hide_all_pricing_content();
         $('.mptbm_taxi_pricing_tab_item').removeClass('active');
         $(this).addClass('active');
@@ -489,6 +521,15 @@
 
             let primary_shortcode = "<code>[mptbm_booking price_based='dynamic']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
+
+            rules = `<div class="mptbm_pricing_rules_card">
+                                <h4>Inclusive (Distance + Duration) Based Pricing</h4>
+                                <p>Price is calculated using both time and distance.</p>
+                                <div class="mptbm_pricing_rules_formula">
+                                    (Hourly Rate × Duration) + (KM Rate × Distance)
+                                </div>
+                            </div>`;
+
         }else if(clicked_tab_id === 'mptbm_distance' ){
             price_based = 'distance';
             $("#mptbm_distance_price").fadeIn();
@@ -498,6 +539,14 @@
             let primary_shortcode = "<code>[mptbm_booking price_based='dynamic']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
             $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
+
+            rules = `<div class="mptbm_pricing_rules_card">
+                                <h4>Distance Based Pricing</h4>
+                                <p>Only distance is used for calculation.</p>
+                                <div class="mptbm_pricing_rules_formula">
+                                    KM Rate × Distance
+                                </div>
+                            </div>`;
         }else if(clicked_tab_id === 'mptbm_row_duration' ){
             price_based = 'duration';
             $("#mptbm_price_per_hour").fadeIn();
@@ -507,6 +556,15 @@
             let primary_shortcode = "<code>[mptbm_booking price_based='dynamic']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
             $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
+
+            rules = `<div class="mptbm_pricing_rules_card">
+                        <h4>Duration Based Pricing</h4>
+                        <p>Only travel time is considered.</p>
+                        <div class="mptbm_pricing_rules_formula">
+                            Hourly Rate × Duration
+                        </div>
+                    </div>`;
+
         }else if(clicked_tab_id === 'mptbm_row_dist_dur' ){
             price_based = 'distance_duration';
             $("#mptbm_distance_price").fadeIn();
@@ -517,6 +575,15 @@
             let primary_shortcode = "<code>[mptbm_booking price_based='dynamic']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
             $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
+
+            rules = `<div class="mptbm_pricing_rules_card">
+                        <h4> Distance + Duration Based Pricing</h4>
+                        <p>Combines both distance and time pricing.</p>
+                        <div class="mptbm_pricing_rules_formula">
+                            (Hourly Rate × Duration) + (KM Rate × Distance)
+                        </div>
+                    </div>`;
+
         }else if(clicked_tab_id === 'mptbm_row_hourly' ){
             price_based = 'fixed_hourly';
             $("#mptbm_price_per_hour").fadeIn();
@@ -526,6 +593,15 @@
             let primary_shortcode = "<code>[mptbm_booking price_based='fixed_hourly']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
             $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
+
+            rules = `<div class="mptbm_pricing_rules_card">
+                        <h4>Fixed Hourly Based Pricing</h4>
+                        <p>Fixed hourly pricing applied.</p>
+                        <div class="mptbm_pricing_rules_formula">
+                            Hour Rate × Fixed Time
+                        </div>
+                    </div>`;
+
         }else if(clicked_tab_id === 'mptbm_row_operation_area' ){
             price_based = 'fixed_distance';
             $("#mptbm_operation_area").fadeIn();
@@ -538,17 +614,74 @@
 
             let activeDataId = $('.mptbm_taxi_pricing_tab_item_area.active').data('id');
 
+
+
             if( activeDataId === 'mptbm_row_operation_area' ){
                 $("#mptbm_distance_price").fadeIn();
                 $("#mptbm_fixed_pricing").fadeIn();
                 $("#mptbm_price_per_hour").fadeIn();
-            }else{
+
+
+
+                rules = `<div class="mptbm_pricing_rules_card">
+                            <h4>Fixed Map Zone-based Pricing</h4>
+                            <p>Zone-based fixed pricing or fallback calculation.</p>
+                            <div class="mptbm_pricing_rules_formula">
+                                First checks predefined zone route price
+                                If matched → fixed route price is applied
+                                If not matched → fallback calculation:
+                                Hourly + Distance pricing OR
+                                Operation area pricing override
+
+                                Formula (fallback):
+
+                                (Hour Price × Duration) + (KM Price × Distance)
+                            </div>
+                        </div>`;
+            }else if( activeDataId === 'mptbm_row_zone' ){
                 $("#mptbm_distance_price").fadeOut();
                 $("#mptbm_fixed_pricing").fadeOut();
                 $("#mptbm_price_per_hour").fadeOut();
+                rules = `<div class="mptbm_pricing_rules_card">
+                            <h4>Fixed Zone Based Pricing </h4>
+                            <p>Price depends on selected start & end zones:</p>
+                            <div class="">
+                                If pickup and dropoff zones match predefined route → fixed price applied
+                                Otherwise geo-zone matching is used
+                                Different logic for pickup vs dropoff mode
+                                Result:
+                                Fixed route price if matched
+                            </div>
+                        </div>`;
+            }else{
+                $("#mptbm_distance_price").fadeIn();
+                $("#mptbm_fixed_pricing").fadeIn();
+                $("#mptbm_price_per_hour").fadeIn();
+
+                let is_operation_selected = $("#mptbm_is_selected_operation_area").val();
+                if( is_operation_selected == 1 ) {
+                    $("#mptbm_fixed_map_area_pricing").fadeIn();
+                }
+
+                $('.mptbm_taxi_pricing_tab_item_area').removeClass( 'active');
+                rules = `<div class="mptbm_pricing_rules_card">
+                            <h4>Fixed Map Zone-based Pricing</h4>
+                            <p>Zone-based fixed pricing or fallback calculation.</p>
+                            <div class="mptbm_pricing_rules_formula">
+                                First checks predefined zone route price
+                                If matched → fixed route price is applied
+                                If not matched → fallback calculation:
+                                Hourly + Distance pricing OR
+                                Operation area pricing override
+
+                                Formula (fallback):
+
+                                (Hour Price × Duration) + (KM Price × Distance)
+                            </div>
+                        </div>`;
+
+                $('#mptbm_taxi_pricing_fixed_map').addClass('active');
             }
-
-
         }else if(clicked_tab_id === 'mptbm_row_manual' ){
             price_based = 'manual';
             $("#mptbm_manual_routes").fadeIn();
@@ -558,6 +691,15 @@
             let primary_shortcode = "<code>[mptbm_booking price_based='manual']</code>";
             $("#mptbm_shortcode_primary_code").html(primary_shortcode);
             $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
+
+            rules = `<div class="mptbm_pricing_rules_card">
+                        <h4>Manual Pricing </h4>
+                        <p>Admin-defined exact route pricing.</p>
+                        <div class="mptbm_pricing_rules_formula">
+                            Fixed Route Price
+                        </div>
+                    </div>`;
+
         }else if(clicked_tab_id === 'mptbm_row_zone' ){
             price_based = 'fixed_zone';
             $("#mptbm_row_zone").fadeIn();
@@ -576,9 +718,19 @@
             let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
             $("#mptbm_shortcode_example_code").html(shortcode);
             $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeIn();
+
+            rules = `<div class="mptbm_pricing_rules_card">
+                            <h4>Inclusive (Distance + Duration) Based Pricing</h4>
+                            <p>Price is calculated using both time and distance.</p>
+                            <div class="mptbm_pricing_rules_formula">
+                                (Hourly Rate × Duration) + (KM Rate × Distance)
+                            </div>
+                        </div>`;
         }
 
         $('input[name="mptbm_price_based"]').val(price_based);
+
+        $("#mptbm_pricing_rules_grid").html(rules);
         // alert(clicked_tab_id );
     });
 

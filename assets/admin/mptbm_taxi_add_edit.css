@@ -1929,3 +1929,70 @@ select.mptbm_taxi_ex_service_select {
     transition: 0.3s ease;
     box-shadow: 0 6px 14px rgba(249, 115, 22, 0.12);
 }
+
+/*Display Pricing Rules*/
+.mptbm_pricing_rules_wrapper {
+    background: #f9fafb;
+    padding: 28px;
+    border-radius: 16px;
+}
+.mptbm_pricing_rules_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+}
+.mptbm_pricing_rules_card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 18px;
+    transition: 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.mptbm_pricing_rules_card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+.mptbm_pricing_rules_card h4 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+}
+.mptbm_pricing_rules_card p {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.5;
+}
+.mptbm_pricing_rules_formula {
+    background: #f3f4f6;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    border-left: 3px solid #3b82f6;
+}
+
+.mptbm_pricing_rules_card h4 {
+    color: #111827;
+}
+.mptbm_pricing_rules_card .mptbm_pricing_rules_formula {
+    border-left: 4px solid #f97316;
+    background: #e5e7eb;
+    color: #111827;
+}
+.mptbm_pricing_rules_card::before {
+    content: "ACTIVE";
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #f97316;
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+}
