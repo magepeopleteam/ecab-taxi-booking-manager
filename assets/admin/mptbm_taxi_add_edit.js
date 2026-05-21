@@ -3,7 +3,7 @@
 
         let currentStep = 1;
         let totalSteps = $('.mptbm_taxi_step').length;
-        function updateStep(step) {
+        function updateStep_old(step) {
             if (step < 1 || step > totalSteps) return;
             currentStep = step;
             $('.mptbm_taxi_step').each(function () {
@@ -31,13 +31,67 @@
             $('.mptbm_taxi_btn_prev').prop('disabled', step === 1);
             $('.mptbm_taxi_btn_next').text(step === totalSteps ? 'Submit' : 'Next →');
         }
+
+        function updateStep(step) {
+
+            if (step < 1 || step > totalSteps) return;
+
+            currentStep = step;
+
+            $('.mptbm_taxi_step').each(function () {
+
+                let itemStep = $(this).data('step');
+                let iconBox = $(this).find('.mptbm_taxi_icon i');
+                let originalIcon = $(this).data('icon');
+
+                $(this).removeClass('mptbm_taxi_active completed');
+
+                if (itemStep < step) {
+                    $(this).addClass('completed');
+                    iconBox.removeClass().addClass('fas fa-check');
+                }
+                else if (itemStep == step) {
+                    $(this).addClass('mptbm_taxi_active');
+                    iconBox.removeClass().addClass(originalIcon);
+                }
+                else {
+                    iconBox.removeClass().addClass(originalIcon);
+                }
+            });
+
+            $('.mptbm_taxi_wrapper > [data-step]').hide();
+            $('.mptbm_taxi_wrapper > [data-step="' + step + '"]').show();
+
+            $('.mptbm_taxi_step_counter').text('Step ' + step + ' of ' + totalSteps);
+
+            $('.mptbm_taxi_btn_prev').prop('disabled', step === 1);
+
+            if (step === totalSteps) {
+
+                $('.mptbm_taxi_btn_next')
+                    .text('Submit')
+                    .attr('type', 'submit')
+                    .removeClass('button-next')
+                    .addClass('button-submit');
+
+            } else {
+
+                $('.mptbm_taxi_btn_next')
+                    .text('Next →')
+                    .attr('type', 'button')
+                    .removeClass('button-submit')
+                    .addClass('button-next');
+            }
+        }
+
+
         $('.mptbm_taxi_step').on('click', function () {
             updateStep($(this).data('step'));
         });
         $('.mptbm_taxi_btn_next').on('click', function (e) {
-            e.preventDefault();
 
             if (currentStep < totalSteps) {
+                e.preventDefault();
                 updateStep(currentStep + 1);
             } else {
                 // last step → submit form
@@ -387,6 +441,13 @@
                 $("#mptbm_operation_area_settings").fadeIn();
                 $("#mptbm_fixed_zone_area_pricing").fadeOut();
             }
+            $("#mptbm_operation_area_settings").fadeIn();
+
+            let shortcode = "<code>[mptbm_booking price_based='fixed_map' form='horizontal' progressbar='yes' map='yes']</code>";
+            $("#mptbm_shortcode_example_code").html(shortcode);
+
+            let primary_shortcode = "<code>[mptbm_booking price_based='fixed_map']</code>";
+            $("#mptbm_shortcode_primary_code").html(primary_shortcode);
 
         }else if(clicked_tab_id === 'mptbm_row_zone' ){
             price_based = 'fixed_zone';
@@ -399,6 +460,12 @@
                 $("#mptbm_fixed_pricing").fadeOut();
                 $("#mptbm_price_per_hour").fadeOut();
             }
+            $("#mptbm_operation_area_settings").fadeOut();
+
+            let shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup' form='horizontal' progressbar='yes' map='yes']</code>";
+            $("#mptbm_shortcode_example_code").html(shortcode);
+            let primary_shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup']</code>";
+            $("#mptbm_shortcode_primary_code").html(primary_shortcode);
         }
         $('input[name="mptbm_price_based"]').val(price_based);
     });

@@ -1728,6 +1728,10 @@ select.mptbm_taxi_ex_service_select {
     padding:18px;
 }
 
+.mptbm_taxi_pricing_selection_group{
+    margin: 20px 0;
+}
+
 .mptbm_feature_image_preview{
     width:100%;
     height:220px;
@@ -1814,4 +1818,114 @@ select.mptbm_taxi_ex_service_select {
     display: flex;
     gap: 15px;
     margin: 10px;
+}
+
+/*Custom Message BOx*/
+.mptbm_taxi_toggle_header {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 24px;
+    margin-top: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+.mptbm_taxi_toggle_header:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+.mptbm_custom_message_label {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.mptbm_custom_message_title_holder h6 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.4;
+}
+.mptbm_custom_message_title_holder .desc {
+    display: block;
+    margin-top: 6px;
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.6;
+}
+.mptbm_custom_message_input {
+    width: 100%;
+    min-height: 120px;
+    padding: 14px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    background: #f9fafb;
+    font-size: 15px;
+    color: #111827;
+    resize: vertical;
+    transition: all 0.3s ease;
+    outline: none;
+    box-sizing: border-box;
+}
+.mptbm_custom_message_input:focus {
+    border-color: #2563eb;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+.mptbm_custom_message_input::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+@media (max-width: 768px) {
+    .mptbm_taxi_toggle_header {
+        padding: 18px;
+    }
+
+    .mptbm_custom_message_title_holder h6 {
+        font-size: 16px;
+    }
+
+    .mptbm_custom_message_input {
+        font-size: 14px;
+    }
+}
+
+/*Selected Area Empty */
+.mptbm_empty_selected_area {
+    position: relative;
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    border-left: 5px solid #f97316;
+    padding: 18px 20px 18px 50px;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 4px 10px rgba(249, 115, 22, 0.08);
+}
+.mptbm_empty_selected_area::before {
+    content: "⚠";
+    position: absolute;
+    left: 18px;
+    top: 18px;
+    font-size: 22px;
+    color: #ea580c;
+    font-weight: bold;
+}
+.mptbm_empty_selected_area_text {
+    display: block;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #9a3412;
+    font-weight: 500;
+}
+.mptbm_required {
+    color: #dc2626;
+    font-size: 18px;
+    font-weight: 700;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+.mptbm_empty_selected_area:hover {
+    transform: translateY(-1px);
+    transition: 0.3s ease;
+    box-shadow: 0 6px 14px rgba(249, 115, 22, 0.12);
 }

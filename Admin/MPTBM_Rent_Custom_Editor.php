@@ -663,6 +663,19 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <?php }?>
                     </div>
                 </div>
+
+                <div class="mptbm_taxi_toggle_header">
+                    <section>
+                        <label class="label">
+                            <div>
+                                <h6><?php esc_html_e('Charge for Base to Dropoff?', 'ecab-taxi-booking-manager'); ?></h6>
+                                <span class="desc"><?php esc_html_e('Enable to charge for distance/time from dropoff location back to base location', 'ecab-taxi-booking-manager'); ?></span>
+                            </div>
+                            <?php MP_Custom_Layout::switch_button('mptbm_charge_base_dropoff', $charge_base_dropoff == 'yes' ? 'checked' : ''); ?>
+                        </label>
+                    </section>
+                </div>
+
                 <?php }?>
 
                 <div class="mptbm_taxi_section mptbm_taxi_toggle_box">
@@ -680,27 +693,17 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </select>
                     </div>
                     <div class="mptbm_taxi_toggle_header" id="mptbm_custom_message_show" style="display: <?php echo esc_attr($price_display_type == 'custom_message' ? 'block' : 'none'); ?>" >
-                        <div class="label">
-                            <div>
+                        <div class="mptbm_custom_message_label">
+                            <div class="mptbm_custom_message_title_holder">
                                 <h6><?php esc_html_e('Custom Price Message', 'ecab-taxi-booking-manager'); ?></h6>
                                 <span class="desc"><?php esc_html_e('Message to display instead of price (e.g. "Price pending confirmation")', 'ecab-taxi-booking-manager'); ?></span>
                             </div>
-                            <textarea class="formControl" name="mptbm_custom_price_message" rows="3"><?php echo esc_textarea($custom_price_message); ?></textarea>
+                            <textarea class="mptbm_custom_message_input" name="mptbm_custom_price_message" rows="3"><?php echo esc_textarea($custom_price_message); ?></textarea>
                         </div>
                     </div>
 
                     <?php if( $pro_active ){?>
-                        <div class="mptbm_taxi_toggle_header">
-                            <section>
-                                <label class="label">
-                                    <div>
-                                        <h6><?php esc_html_e('Charge for Base to Dropoff?', 'ecab-taxi-booking-manager'); ?></h6>
-                                        <span class="desc"><?php esc_html_e('Enable to charge for distance/time from dropoff location back to base location', 'ecab-taxi-booking-manager'); ?></span>
-                                    </div>
-                                    <?php MP_Custom_Layout::switch_button('mptbm_charge_base_dropoff', $charge_base_dropoff == 'yes' ? 'checked' : ''); ?>
-                                </label>
-                            </section>
-                        </div>
+
                     <?php }?>
                 </div>
 
@@ -1318,7 +1321,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
         <?php }
 
         public static function manage_operation_area_pricing( $price_based, $selected_operation_type, $all_operation_area_infos, $selected_operation_areas, $operation_area, $fixed_map_route_prices, $merged_location_area, $location_zones, $fixed_zone_prices ){
-//            error_log( print_r( [ '$selected_operation_areas' => $selected_operation_areas ], true ) );
             $is_operation_areas = 0;
             if( is_array( $selected_operation_areas ) && !empty( $selected_operation_areas ) ){
                 $is_operation_areas = 1;
@@ -1422,7 +1424,20 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                 </button>
 
                             <?php endforeach; ?>
+
                         </div>
+
+                        <?php if( $is_operation_areas === 0 ){?>
+                            <div class="mptbm_empty_selected_area">
+                                <span class="mptbm_required">*</span>
+                                <span class="mptbm_empty_selected_area_text">
+                                    <?php esc_html_e( 'You have not selected any operation area.
+                                    For fixed map or fixed zone pricing setup,
+                                    you need to select at least one operation area and save settings first.', 'ecab-taxi-booking-manager' ); ?>
+                                </span>
+                            </div>
+                        <?php }?>
+
                         <div class="mptbm_operation_area_create_link" style="display: <?php echo esc_attr( $show_area_create );?>">
                             <a href="<?php echo admin_url('edit.php?post_type=mptbm_operate_areas'); ?>" class="mptbm_create_area_btn">
                                 + <?php esc_html_e( 'Create Operation Area', 'ecab-taxi-booking-manager' ); ?>

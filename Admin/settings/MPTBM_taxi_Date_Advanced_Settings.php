@@ -87,10 +87,10 @@ class MPTBM_taxi_Date_Advanced_Settings
                         <h6><?php esc_html_e('Repeated Start Date', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></h6>
                         <span class="desc"><?php esc_html_e('Sets the start date for recurring services', 'ecab-taxi-booking-manager'); ?></span>
                     </div>
-                    <div class="">
+                    <label class="label">
                         <input type="hidden" name="mptbm_repeated_start_date" value="<?php echo esc_attr($hidden_repeated_start_date); ?>" required/>
                         <input type="text" readonly required class="formControl date_type" value="<?php echo esc_attr($visible_repeated_start_date); ?>" placeholder="<?php echo esc_attr($now); ?>"/>
-                    </div>
+                    </label>
                 </div>
             </div>
 
