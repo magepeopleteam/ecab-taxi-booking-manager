@@ -175,9 +175,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             ?>
             <div class="wrap mp_settings_area">
 
-                <div class="mptbm_pro_taxi_pricing_tab_item">
-                    <?php esc_html_e( 'Pro Feature', 'ecab-taxi-booking-manager' ); ?>
-                </div>
+
                 <div id="mptbm_pro_popup" class="mptbm_pro_popup">
                     <div class="mptbm_pro_popup_content">
                         <span class="mptbm_pro_close_popup">&times;</span>
@@ -471,17 +469,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
         }
 
         public static function general_information_set( $post_id, $pro_active ){
-            $initial_price = MP_Global_Function::get_post_info($post_id, 'mptbm_initial_price');
-            $min_price = MP_Global_Function::get_post_info($post_id, 'mptbm_min_price');
-            $return_min_price = MP_Global_Function::get_post_info($post_id, 'mptbm_min_price_return');
-            $return_discount = MP_Global_Function::get_post_info($post_id, 'mptbm_return_discount');
-            $display_map = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'enable');
 
             $price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
             $custom_price_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
-
-            $waiting_time_check = MPTBM_Function::get_general_settings('taxi_waiting_time', 'enable');
-            $waiting_price = MP_Global_Function::get_post_info($post_id, 'mptbm_waiting_price');
 
 
             $max_passenger = MP_Global_Function::get_post_info($post_id, 'mptbm_maximum_passenger');
@@ -552,49 +542,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     </div>
                 </div>
 
-                <div class="mptbm_taxi_section mptbm_taxi_toggle_box">
-                    <div class="mptbm_taxi_toggle_header">
-                        <div class="mptbm_taxi_toggle_info">
-                            <label class="mptbm_taxi_switch">
-                                <input type="checkbox" checked class="mptbm_taxi_toggle_trigger" data-target="#baseFareContent">
-                                <span class="mptbm_taxi_slider"></span>
-                            </label>
-                            <div class="mptbm_taxi_toggle_text">
-                                <strong><?php esc_html_e( 'Base Fare Settings', 'ecab-taxi-booking-manager' ); ?></strong>
-                                <p><?php esc_html_e( 'Starting fare added at trip start regardless of distance. Toggle off to remove the base charge entirely.', 'ecab-taxi-booking-manager' ); ?></p>
-                            </div>
-                        </div>
-                        <span class="mptbm_taxi_status_badge"><?php esc_html_e( 'ON', 'ecab-taxi-booking-manager' ); ?></span>
-                    </div>
 
-                    <div id="baseFareContent" class="mptbm_taxi_grid mptbm_taxi_toggle_content">
-                        <div class="mptbm_taxi_field">
-                            <label><?php esc_html_e( 'Initial Price', 'ecab-taxi-booking-manager' ); ?></label>
-                            <p class="mptbm_taxi_help"><?php esc_html_e( 'Starting fare added at trip start regardless of distance', 'ecab-taxi-booking-manager' ); ?></p>
-                            <input name="mptbm_initial_price" type="text"  value="<?php echo esc_attr( $initial_price );?>">
-                        </div>
-                        <div class="mptbm_taxi_field">
-                            <label><?php esc_html_e( 'Minimum Price', 'ecab-taxi-booking-manager' ); ?></label>
-                            <p class="mptbm_taxi_help"><?php esc_html_e( 'Floor fare applied when calculated price is lower', 'ecab-taxi-booking-manager' ); ?></p>
-                            <input name="mptbm_min_price" type="text"  value="<?php echo esc_attr( $min_price );?>">
-                        </div>
-                        <div class="mptbm_taxi_field">
-                            <label><?php esc_html_e( 'Return Minimum Price', 'ecab-taxi-booking-manager' ); ?></label>
-                            <p class="mptbm_taxi_help"><?php esc_html_e( 'Minimum fare applied on return trips', 'ecab-taxi-booking-manager' ); ?></p>
-                            <input name="mptbm_min_price_return" type="text" value="<?php echo esc_attr( $return_min_price );?>" placeholder="<?php esc_html_e( 'e.g., 40 - Min fare for return', 'ecab-taxi-booking-manager' ); ?>">
-                        </div>
-                        <div class="mptbm_taxi_field">
-                            <label><?php esc_html_e( 'Return Discount', 'ecab-taxi-booking-manager' ); ?></label>
-                            <p class="mptbm_taxi_help"><?php esc_html_e( 'Discount applied to return trips — fixed or %', 'ecab-taxi-booking-manager' ); ?></p>
-                            <input name="mptbm_return_discount" type="text" value="<?php echo esc_attr( $return_discount );?>" placeholder="<?php esc_html_e( 'e.g., 10 - Discount amount or %', 'ecab-taxi-booking-manager' ); ?>">
-                        </div>
-                        <div class="mptbm_taxi_field">
-                            <label><?php esc_html_e( 'Waiting Time Price/Hour', 'ecab-taxi-booking-manager' ); ?></label>
-                            <p class="mptbm_taxi_help"><?php esc_html_e( 'Specifies the price charged per hour for waiting time', 'ecab-taxi-booking-manager' ); ?></p>
-                            <input name="mptbm_waiting_price" type="text" value="<?php echo esc_attr( $waiting_price );?>" placeholder="<?php esc_html_e( 'EX:10', 'ecab-taxi-booking-manager' ); ?>">
-                        </div>
-                    </div>
-                </div>
 
                 <?php if( $pro_active ){?>
                 <div class="mptbm_taxi_section mptbm_taxi_toggle_box">
@@ -725,11 +673,20 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                 <p><?php esc_html_e( 'Configure how fares are shown to customers', 'ecab-taxi-booking-manager' ); ?></p>
                             </div>
                         </div>
-                        <select class="formControl" name="mptbm_price_display_type" data-collapse-target="">
+                        <select class="formControl" name="mptbm_price_display_type" id="mptbm_price_display_type" data-collapse-target="">
                             <option value="normal" <?php selected($price_display_type, 'normal'); ?>><?php esc_html_e('Normal Price', 'ecab-taxi-booking-manager'); ?></option>
                             <option value="zero" <?php selected($price_display_type, 'zero'); ?>><?php esc_html_e('Show as Zero (0.00)', 'ecab-taxi-booking-manager'); ?></option>
                             <option value="custom_message" <?php selected($price_display_type, 'custom_message'); ?>><?php esc_html_e('Show Custom Message', 'ecab-taxi-booking-manager'); ?></option>
                         </select>
+                    </div>
+                    <div class="mptbm_taxi_toggle_header" id="mptbm_custom_message_show" style="display: <?php echo esc_attr($price_display_type == 'custom_message' ? 'block' : 'none'); ?>" >
+                        <div class="label">
+                            <div>
+                                <h6><?php esc_html_e('Custom Price Message', 'ecab-taxi-booking-manager'); ?></h6>
+                                <span class="desc"><?php esc_html_e('Message to display instead of price (e.g. "Price pending confirmation")', 'ecab-taxi-booking-manager'); ?></span>
+                            </div>
+                            <textarea class="formControl" name="mptbm_custom_price_message" rows="3"><?php echo esc_textarea($custom_price_message); ?></textarea>
+                        </div>
                     </div>
 
                     <?php if( $pro_active ){?>
@@ -1044,6 +1001,62 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             }
         }
 
+        public static function initial_base_pricing( $post_id ){
+
+            $initial_price = MP_Global_Function::get_post_info($post_id, 'mptbm_initial_price');
+            $min_price = MP_Global_Function::get_post_info($post_id, 'mptbm_min_price');
+            $return_min_price = MP_Global_Function::get_post_info($post_id, 'mptbm_min_price_return');
+            $return_discount = MP_Global_Function::get_post_info($post_id, 'mptbm_return_discount');
+
+            $waiting_time_check = MPTBM_Function::get_general_settings('taxi_waiting_time', 'enable');
+            $waiting_price = MP_Global_Function::get_post_info($post_id, 'mptbm_waiting_price');
+            ?>
+            <div class="mptbm_taxi_section mptbm_taxi_toggle_box">
+                <div class="mptbm_taxi_toggle_header">
+                    <div class="mptbm_taxi_toggle_info">
+                        <label class="mptbm_taxi_switch">
+                            <input type="checkbox" checked class="mptbm_taxi_toggle_trigger" data-target="#baseFareContent">
+                            <span class="mptbm_taxi_slider"></span>
+                        </label>
+                        <div class="mptbm_taxi_toggle_text">
+                            <strong><?php esc_html_e( 'Base Fare Settings', 'ecab-taxi-booking-manager' ); ?></strong>
+                            <p><?php esc_html_e( 'Starting fare added at trip start regardless of distance. Toggle off to remove the base charge entirely.', 'ecab-taxi-booking-manager' ); ?></p>
+                        </div>
+                    </div>
+                    <span class="mptbm_taxi_status_badge"><?php esc_html_e( 'ON', 'ecab-taxi-booking-manager' ); ?></span>
+                </div>
+
+                <div id="baseFareContent" class="mptbm_taxi_grid mptbm_taxi_toggle_content">
+                    <div class="mptbm_taxi_field">
+                        <label><?php esc_html_e( 'Initial Price', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Starting fare added at trip start regardless of distance', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_initial_price" type="text"  value="<?php echo esc_attr( $initial_price );?>">
+                    </div>
+                    <div class="mptbm_taxi_field">
+                        <label><?php esc_html_e( 'Minimum Price', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Floor fare applied when calculated price is lower', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_min_price" type="text"  value="<?php echo esc_attr( $min_price );?>">
+                    </div>
+                    <div class="mptbm_taxi_field">
+                        <label><?php esc_html_e( 'Return Minimum Price', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Minimum fare applied on return trips', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_min_price_return" type="text" value="<?php echo esc_attr( $return_min_price );?>" placeholder="<?php esc_html_e( 'e.g., 40 - Min fare for return', 'ecab-taxi-booking-manager' ); ?>">
+                    </div>
+                    <div class="mptbm_taxi_field">
+                        <label><?php esc_html_e( 'Return Discount', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Discount applied to return trips — fixed or %', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_return_discount" type="text" value="<?php echo esc_attr( $return_discount );?>" placeholder="<?php esc_html_e( 'e.g., 10 - Discount amount or %', 'ecab-taxi-booking-manager' ); ?>">
+                    </div>
+                <?php if ($waiting_time_check == 'enable') { ?>
+                    <div class="mptbm_taxi_field">
+                        <label><?php esc_html_e( 'Waiting Time Price/Hour', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Specifies the price charged per hour for waiting time', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_waiting_price" type="text" value="<?php echo esc_attr( $waiting_price );?>" placeholder="<?php esc_html_e( 'EX:10', 'ecab-taxi-booking-manager' ); ?>">
+                    </div>
+                <?php }?>
+                </div>
+            </div>
+        <?php }
         public static function pricing_settings( $post_id, $pro_active ){
 
             $price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
@@ -1113,6 +1126,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             <div class="mptbm_taxi_container mptbm_taxi_pricing_wrapper" data-step="2">
                 <?php wp_nonce_field('mptbm_price_settings_action', 'mptbm_price_settings_nonce'); ?>
                 <input type="hidden" name="mptbm_selected_operation_areas" id="mptbm_selected_operation_areas" value="<?php echo esc_html( $operation_area_str );?>">
+                <?php
+                self::initial_base_pricing( $post_id );
+                ?>
                 <div class="mptbm_taxi_pricing_header_tabs" style="display: block">
                     <h3 class="mptbm_taxi_pricing_main_title"><?php esc_html_e( 'Select Pricing Model', 'ecab-taxi-booking-manager' ); ?></h3>
                     <div class="mptbm_taxi_pricing_tab_grid">
@@ -1232,7 +1248,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                             }
                             $checked = '';
-//                            error_log( print_r( [ '$routes_and_fixed_fare' => $routes_and_fixed_fare ], true ) );
                             ?>
                             <div class="mptbm_manual_routes_and_fixed_fare_overrides" id="mptbm_manual_routes_and_fixed_fare_overrides" style="display: <?php echo esc_attr( $routes_and_fixed_fare );?>">
                                 <div class="mptbm_taxi_ex_service_title_group">
@@ -1276,7 +1291,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             </div>
 
                            <?php
-                           self::manage_operation_area_pricing( $price_based, $selected_operation_type, $all_operation_area_infos, $selected_operation_areas, $operation_area, $fixed_map_route_prices, $merged_location_area, $location_zones, $fixed_zone_prices );
+                            if( $pro_active ){
+                                self::manage_operation_area_pricing( $price_based, $selected_operation_type, $all_operation_area_infos, $selected_operation_areas, $operation_area, $fixed_map_route_prices, $merged_location_area, $location_zones, $fixed_zone_prices );
+                            }
                            ?>
 
 
@@ -1361,7 +1378,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             $show_area_create = '';
                         }
                         if( $selected_operation_type == 'geo-fence-operation-area-type' ){?>
-                            <section id="geo-fence-operation-area-section" class="<?php echo ($selected_operation_type == 'geo-fence-operation-area-type') ? 'mActive' : ''; ?>" data-collapse="#geo-fence-operation-area-type">
+                            <section id="geo-fence-operation-area-section" class="<?php echo ($selected_operation_type === 'geo-fence-operation-area-type') ? 'mActive' : ''; ?>" data-collapse="#geo-fence-operation-area-type">
                                 <label class="label">
                                     <div>
                                         <h6><?php esc_html_e('Select Geo Fence Operation Area', 'ecab-taxi-booking-manager'); ?></h6>

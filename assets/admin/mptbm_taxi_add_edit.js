@@ -138,6 +138,17 @@
         // $(this).closest('.mptbm_taxi_feature_switch').find('span').text(isChecked ? 'ON' : 'OFF');
     });
 
+    // 1. Custom Message Toggle
+    $(document).on('change', '#mptbm_price_display_type', function(e) {
+        let changeValue = $(this).val();
+        if( changeValue === 'custom_message' ){
+            $("#mptbm_custom_message_show").fadeIn();
+        }else{
+            $("#mptbm_custom_message_show").fadeOut();
+        }
+
+    });
+
     // 1. Inventory Toggle Functionality
     $('#mptbm_enable_inventory').on('change', function(e) {
         e.preventDefault();

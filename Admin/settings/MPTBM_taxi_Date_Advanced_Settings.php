@@ -89,7 +89,7 @@ class MPTBM_taxi_Date_Advanced_Settings
                     </div>
                     <div class="">
                         <input type="hidden" name="mptbm_repeated_start_date" value="<?php echo esc_attr($hidden_repeated_start_date); ?>" required/>
-                        <input type="text" readonly required name="" class="formControl date_type" value="<?php echo esc_attr($visible_repeated_start_date); ?>" placeholder="<?php echo esc_attr($now); ?>"/>
+                        <input type="text" readonly required class="formControl date_type" value="<?php echo esc_attr($visible_repeated_start_date); ?>" placeholder="<?php echo esc_attr($now); ?>"/>
                     </div>
                 </div>
             </div>
