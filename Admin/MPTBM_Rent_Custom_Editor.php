@@ -219,16 +219,25 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <!-- SCROLLABLE CONTENT -->
                     <div class="mptbm_scroll_content" style="display: flex; flex-direction: row">
                         <div class="mptbm_taxi_wrapper">
-                            <?php
-                            self::taxi_content_tabs_set($post_id);
-                            self::general_information_set( $post_id, $pro_active );
-                            self::pricing_settings( $post_id, $pro_active );
-                            self::date_configuration_set($post_id);
-                            ?>
+
+                            <div class="mptbm_taxi_header_holder">
+                                <?php self::taxi_content_tabs_set($post_id); ?>
+                            </div>
+                            <div class="mptbm_taxi_container_holder">
+                                <div class="mptbm_taxi_content_container">
+                                    <?php
+                                    self::general_information_set( $post_id, $pro_active );
+                                    self::pricing_settings( $post_id, $pro_active );
+                                    self::date_configuration_set($post_id);
+                                    ?>
+                                </div>
+                                <div class="">
+                                    <?php self::feature_image_add( $post_id ); ?>
+                                </div>
+                            </div>
+
                         </div>
-                        <?php
-                        self::feature_image_add( $post_id );
-                        ?>
+
                     </div>
 
                     <!-- FIXED FOOTER -->
@@ -409,9 +418,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <?php esc_html_e( 'General Information', 'ecab-taxi-booking-manager' ); ?>
                     </div>
 
-                    <div class="mptbm_taxi_subtext">
-                        <?php esc_html_e( 'Step 1 of 3', 'ecab-taxi-booking-manager' ); ?>
-                    </div>
                 </div>
 
                 <div class="mptbm_taxi_line"></div>
@@ -428,10 +434,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <div class="mptbm_taxi_label">
                         <?php esc_html_e( 'Pricing Configuration', 'ecab-taxi-booking-manager' ); ?>
                     </div>
-
-                    <div class="mptbm_taxi_subtext">
-                        <?php esc_html_e( 'Step 2 of 3', 'ecab-taxi-booking-manager' ); ?>
-                    </div>
                 </div>
 
                 <div class="mptbm_taxi_line"></div>
@@ -447,10 +449,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                     <div class="mptbm_taxi_label">
                         <?php esc_html_e( 'Operational Date Time', 'ecab-taxi-booking-manager' ); ?>
-                    </div>
-
-                    <div class="mptbm_taxi_subtext">
-                        <?php esc_html_e( 'Step 3 of 3', 'ecab-taxi-booking-manager' ); ?>
                     </div>
                 </div>
 
@@ -851,7 +849,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             </div>
         <?php }
         public static function date_configuration_set( $post_id ){ ?>
-            <div class="mptbm_taxi_container mptbm_taxi_datetime" data-step="3">
+            <div class="mptbm_taxi_container mptbm_taxi_datetime" data-step="3" style="display: none">
                 <div class="mptbm_taxi_container">
                     <?php
                     do_action( 'mptbm_date_and_advanced_settings', $post_id );
@@ -1126,7 +1124,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             $all_operation_area_infos = MPTBM_Query::query_operation_area_list('mptbm_operate_areas');
 
             ?>
-            <div class="mptbm_taxi_container mptbm_taxi_pricing_wrapper" data-step="2">
+            <div class="mptbm_taxi_container mptbm_taxi_pricing_wrapper" data-step="2" style="display: none">
                 <?php wp_nonce_field('mptbm_price_settings_action', 'mptbm_price_settings_nonce'); ?>
                 <input type="hidden" name="mptbm_selected_operation_areas" id="mptbm_selected_operation_areas" value="<?php echo esc_html( $operation_area_str );?>">
                 <?php
