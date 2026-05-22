@@ -32,6 +32,7 @@
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Analytics_Dashboard.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_API_Documentation.php';
 
+			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Transportation.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Rent_Custom_Editor.php';
 
 				

@@ -836,6 +836,41 @@
         }
     });
 
+
+/*Base Fare Settings*/
+    $(document).on('change','#mptbm_display_taxi_base_fare_pricing', function(e) {
+        e.preventDefault();
+        const isChecked = $(this).is(':checked');
+        const label = $(this).closest('#mptbm_taxi_base_fare_toggle_container').find('.mptbm_display_taxi_base_fare_pricing_level');
+
+        if(isChecked) {
+            label.text('ON');
+            $('.mptbm_taxi_base_price_body').removeClass('mptbm_disabled');
+            $('#mptbm_taxi_base_price_body').fadeIn();
+        } else {
+            label.text('OFF');
+            $('.mptbm_taxi_base_price_body').addClass('mptbm_disabled');
+            $('#mptbm_taxi_base_price_body').fadeOut();
+        }
+    });
+
+/*Base Location Settings*/
+    $(document).on('change','#mptbm_display_taxi_base_location_pricing', function(e) {
+        e.preventDefault();
+        const isChecked = $(this).is(':checked');
+        const label = $(this).closest('#mptbm_taxi_base_location_toggle_container').find('.mptbm_display_taxi_base_location_pricing_level');
+
+        if(isChecked) {
+            label.text('ON');
+            $('.mptbm_taxi_base_location_price_body').removeClass('mptbm_disabled');
+            $('#mptbm_taxi_base_location_price_body').fadeIn();
+        } else {
+            label.text('OFF');
+            $('.mptbm_taxi_base_location_price_body').addClass('mptbm_disabled');
+            $('#mptbm_taxi_base_location_price_body').fadeOut();
+        }
+    });
+
     // 2. Delete Row Functionality
     $(document).on('change', '#mptbm_extra_services_id', function(e) {
         let service_id = $(this).val();
