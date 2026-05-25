@@ -231,8 +231,11 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     self::date_configuration_set($post_id);
                                     ?>
                                 </div>
-                                <div class="">
-                                    <?php self::feature_image_add( $post_id ); ?>
+                                <div class="mptbm_right_side_section">
+                                    <?php
+                                    do_action( 'mptbm_right_side_section', $post_id );
+//                                    self::right_side_section( $post_id );
+                                    ?>
                                 </div>
                             </div>
 
@@ -269,62 +272,51 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             <?php
         }
 
-        public static function feature_image_add( $post_id ) {
-            $image_id = get_post_thumbnail_id( $post_id );
-            $image_url = '';
-            if ( $image_id ) {
-                $image_url = wp_get_attachment_image_url( $image_id, 'medium' );
-            }
-            ?>
-            <div class="mptbm_feature_image_card">
-                <div class="mptbm_feature_image_head">
-                    <h2><?php esc_html_e( 'Featured Image', 'ecab-taxi-booking-manager' ); ?></h2>
-                    <p><?php esc_html_e( 'Main event thumbnail', 'ecab-taxi-booking-manager' ); ?></p>
-                </div>
-                <div class="mptbm_feature_image_body">
-                    <input
-                            type="hidden"
-                            id="mptbm_feature_image_id"
-                            name="mptbm_feature_image_id"
-                            value="<?php echo esc_attr( $image_id ); ?>"
-                    >
-                    <div
-                            class="mptbm_feature_image_wrapper"
-                            data-has-image="<?php echo $image_id ? '1' : '0'; ?>"
-                    >
-                        <div class="mptbm_feature_image_preview">
+        public static function general_data_configuration( $max_passenger, $max_bag, $max_hand_luggage, $extra_info ){ ?>
+            <div class="mptbm_rent_editor_wrapper">
 
-                            <?php if ( $image_url ) : ?>
-                                <img
-                                        src="<?php echo esc_url( $image_url ); ?>"
-                                        alt=""
-                                >
-                            <?php else : ?>
-                                <div class="mptbm_feature_image_placeholder">
-                                    <?php esc_html_e( 'Select Transportation Image', 'ecab-taxi-booking-manager' ); ?>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                        <div class="mptbm_feature_image_actions">
-                            <button
-                                    type="button"
-                                    class="button button-primary mptbm_feature_image_select"
-                            >
-                                <?php esc_html_e( 'Select Image', 'ecab-taxi-booking-manager' ); ?>
-                            </button>
-                            <button
-                                    type="button"
-                                    class="button mptbm_feature_image_remove"
-                            >
-                                <?php esc_html_e( 'Remove', 'ecab-taxi-booking-manager' ); ?>
-                            </button>
-                        </div>
+                <!-- Header -->
+                <div class="mptbm_rent_editor_header">
+
+                    <h2 class="mptbm_rent_editor_title">
+                        <?php esc_html_e( 'General Data Configuration', 'ecab-taxi-booking-manager' ); ?>
+                    </h2>
+
+                    <p class="mptbm_rent_editor_subtitle">
+                        <?php esc_html_e( 'Here you can configure general data', 'ecab-taxi-booking-manager' ); ?>
+                    </p>
+
+                </div>
+
+
+                <!-- Body -->
+                <div class="mptbm_rent_editor_body" style="display: grid;  grid-template-columns: 1fr 1fr; gap:20px">
+
+                    <div class="mptbm_rent_field_group">
+                        <label><?php esc_html_e( 'Maximum Passenger', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Filters services by the maximum number of passengers allowed', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_maximum_passenger" type="text" value="<?php echo esc_attr( $max_passenger );?>" placeholder="<?php esc_html_e( 'EX:4', 'ecab-taxi-booking-manager' ); ?>">
                     </div>
-                </div>
-            </div>
-            <?php
-        }
+                    <div class="mptbm_rent_field_group">
+                        <label><?php esc_html_e( 'Maximum Bag', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Filters services by the maximum number of bags allowed', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_maximum_bag" type="text" value="<?php echo esc_attr( $max_bag );?>" placeholder="<?php esc_html_e( 'EX:4', 'ecab-taxi-booking-manager' ); ?>">
+                    </div>
+                    <div class="mptbm_rent_field_group">
+                        <label><?php esc_html_e( 'Maximum hand luggage', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Filters services by the maximum number of hand luggage allowed', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_maximum_hand_luggage" type="text" value="<?php echo esc_attr( $max_hand_luggage );?>" placeholder="<?php esc_html_e( 'EX:2', 'ecab-taxi-booking-manager' ); ?>">
+                    </div>
+                    <div class="mptbm_rent_field_group">
+                        <label>Extra Info</label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Add any additional information about this vehicle that you want to display to customers', 'ecab-taxi-booking-manager' ); ?></p>
+                        <textarea name="mptbm_extra_info" rows="4" placeholder="Enter additional information about this vehicle..."><?php echo esc_html( $extra_info );?></textarea>
+                    </div>
 
+                </div>
+
+            </div>
+        <?php }
         public static function taxi_title_description_set( $post_id ){ ?>
             <div class="mptbm_rent_editor_wrapper">
 
@@ -344,7 +336,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                 <!-- Body -->
                 <div class="mptbm_rent_editor_body">
-
                     <!-- Title -->
                     <div class="mptbm_rent_field_group">
 
@@ -363,8 +354,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         >
 
                     </div>
-
-
                     <!-- Description -->
                     <div class="mptbm_rent_field_group" style="display: none">
 
@@ -393,7 +382,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </div>
 
                     </div>
-
                 </div>
 
             </div>
@@ -407,11 +395,10 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                 <!-- STEP 1 -->
                 <div class="mptbm_taxi_step mptbm_taxi_active"
-                     data-step="<?php echo esc_attr( 1 ); ?>"
-                     data-icon="<?php echo esc_attr( 'fas fa-clipboard-list' ); ?>">
+                     data-step="<?php echo esc_attr(1); ?>">
 
                     <div class="mptbm_taxi_icon">
-                        <i class="fas fa-clipboard-list" aria-hidden="true"></i>
+                        1
                     </div>
 
                     <div class="mptbm_taxi_label">
@@ -424,32 +411,32 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                 <!-- STEP 2 -->
                 <div class="mptbm_taxi_step"
-                     data-step="<?php echo esc_attr( 2 ); ?>"
-                     data-icon="<?php echo esc_attr( 'fas fa-dollar-sign' ); ?>">
+                     data-step="<?php echo esc_attr(2); ?>">
 
                     <div class="mptbm_taxi_icon">
-                        <i class="fas fa-dollar-sign" aria-hidden="true"></i>
+                        2
                     </div>
 
                     <div class="mptbm_taxi_label">
                         <?php esc_html_e( 'Pricing Configuration', 'ecab-taxi-booking-manager' ); ?>
                     </div>
+
                 </div>
 
                 <div class="mptbm_taxi_line"></div>
 
                 <!-- STEP 3 -->
                 <div class="mptbm_taxi_step"
-                     data-step="<?php echo esc_attr( 3 ); ?>"
-                     data-icon="<?php echo esc_attr( 'fas fa-calendar-alt' ); ?>">
+                     data-step="<?php echo esc_attr(3); ?>">
 
                     <div class="mptbm_taxi_icon">
-                        <i class="far fa-calendar-alt" aria-hidden="true"></i>
+                        3
                     </div>
 
                     <div class="mptbm_taxi_label">
                         <?php esc_html_e( 'Operational Date Time', 'ecab-taxi-booking-manager' ); ?>
                     </div>
+
                 </div>
 
             </div>
@@ -502,37 +489,13 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 <?php wp_nonce_field('mptbm_transportation_type_nonce', 'mptbm_transportation_type_nonce');
 
                 self::taxi_title_description_set( $post_id );
+                
+                self::general_data_configuration( $max_passenger, $max_bag, $max_hand_luggage, $extra_info );
+
                 ?>
-                <div class="mptbm_taxi_section">
-                    <h3 class="mptbm_taxi_section_title"><?php esc_html_e( 'General Date Configuration', 'ecab-taxi-booking-manager' ); ?></h3>
-                    <p class="mptbm_taxi_section_desc"><?php esc_html_e( 'Here you can configure general date', 'ecab-taxi-booking-manager' ); ?></p>
 
-                    <div class="mptbm_taxi_grid">
-                        <div class="mptbm_taxi_field">
-                            <label><?php esc_html_e( 'Maximum Passenger', 'ecab-taxi-booking-manager' ); ?></label>
-                            <p class="mptbm_taxi_help"><?php esc_html_e( 'Filters services by the maximum number of passengers allowed', 'ecab-taxi-booking-manager' ); ?></p>
-                            <input name="mptbm_maximum_passenger" type="text" value="<?php echo esc_attr( $max_passenger );?>" placeholder="<?php esc_html_e( 'EX:4', 'ecab-taxi-booking-manager' ); ?>">
-                        </div>
-                        <div class="mptbm_taxi_field">
-                            <label><?php esc_html_e( 'Maximum Bag', 'ecab-taxi-booking-manager' ); ?></label>
-                            <p class="mptbm_taxi_help"><?php esc_html_e( 'Filters services by the maximum number of bags allowed', 'ecab-taxi-booking-manager' ); ?></p>
-                            <input name="mptbm_maximum_bag" type="text" value="<?php echo esc_attr( $max_bag );?>" placeholder="<?php esc_html_e( 'EX:4', 'ecab-taxi-booking-manager' ); ?>">
-                        </div>
-                        <div class="mptbm_taxi_field">
-                            <label><?php esc_html_e( 'Maximum hand luggage', 'ecab-taxi-booking-manager' ); ?></label>
-                            <p class="mptbm_taxi_help"><?php esc_html_e( 'Filters services by the maximum number of hand luggage allowed', 'ecab-taxi-booking-manager' ); ?></p>
-                            <input name="mptbm_maximum_hand_luggage" type="text" value="<?php echo esc_attr( $max_hand_luggage );?>" placeholder="<?php esc_html_e( 'EX:2', 'ecab-taxi-booking-manager' ); ?>">
-                        </div>
-                        <div class="mptbm_taxi_field">
-                            <label>Extra Info</label>
-                            <p class="mptbm_taxi_help"><?php esc_html_e( 'Add any additional information about this vehicle that you want to display to customers', 'ecab-taxi-booking-manager' ); ?></p>
-                            <textarea name="mptbm_extra_info" rows="4" placeholder="Enter additional information about this vehicle..."><?php echo esc_html( $extra_info );?></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mptbm_taxi_section mptbm_taxi_toggle_box">
-                    <div class="mptbm_taxi_toggle_header">
+                <div class="mptbm_rent_editor_wrapper">
+                    <div class="mptbm_rent_editor_header" style="display: flex; justify-content: space-between">
                         <div class="mptbm_taxi_toggle_info">
                             <div class="mptbm_taxi_toggle_text">
                                 <strong><?php esc_html_e( 'Price Display Settings', 'ecab-taxi-booking-manager' ); ?></strong>
@@ -545,7 +508,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             <option value="custom_message" <?php selected($price_display_type, 'custom_message'); ?>><?php esc_html_e('Show Custom Message', 'ecab-taxi-booking-manager'); ?></option>
                         </select>
                     </div>
-                    <div class="mptbm_taxi_toggle_header" id="mptbm_custom_message_show" style="display: <?php echo esc_attr($price_display_type == 'custom_message' ? 'block' : 'none'); ?>" >
+                    <div class="mptbm_taxi_toggle_header" id="mptbm_custom_message_show" style="display: <?php echo esc_attr($price_display_type == 'custom_message' ? 'block' : 'none'); ?>; border: unset" >
                         <div class="mptbm_custom_message_label">
                             <div class="mptbm_custom_message_title_holder">
                                 <h6><?php esc_html_e('Custom Price Message', 'ecab-taxi-booking-manager'); ?></h6>
@@ -554,10 +517,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             <textarea class="mptbm_custom_message_input" name="mptbm_custom_price_message" rows="3"><?php echo esc_textarea($custom_price_message); ?></textarea>
                         </div>
                     </div>
-
-                    <?php if( $pro_active ){?>
-
-                    <?php }?>
                 </div>
 
                 <?php
@@ -849,12 +808,10 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             </div>
         <?php }
         public static function date_configuration_set( $post_id ){ ?>
-            <div class="mptbm_taxi_container mptbm_taxi_datetime" data-step="3" style="display: none">
-                <div class="mptbm_taxi_container">
-                    <?php
-                    do_action( 'mptbm_date_and_advanced_settings', $post_id );
-                    ?>
-                </div>
+            <div class="mptbm_taxi_container " data-step="3" style="display: none">
+                <?php
+                do_action( 'mptbm_date_and_advanced_settings', $post_id );
+                ?>
             </div>
         <?php }
         public static function extra_service_display( $post_id ){
@@ -1010,7 +967,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
 
 
-            <div class="mptbm_taxi_toggle_container" id="mptbm_taxi_base_fare_toggle_container">
+            <div class="mptbm_rent_editor_wrapper" id="mptbm_taxi_base_fare_toggle_container">
                 <div class="mptbm_taxi_ex_service_header">
                     <div class="mptbm_taxi_ex_service_title_group">
                         <h2 class="mptbm_taxi_ex_service_main_title"><?php esc_html_e( 'Base Fare Settings', 'ecab-taxi-booking-manager' ); ?></h2>
@@ -1135,8 +1092,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 }
                 ?>
 
-                <div class="mptbm_taxi_pricing_header_tabs" style="display: block">
-                    <h3 class="mptbm_taxi_pricing_main_title"><?php esc_html_e( 'Select Pricing Model', 'ecab-taxi-booking-manager' ); ?></h3>
+                <div class="mptbm_rent_editor_wrapper" style="display: block">
+                    <div class="mptbm_rent_editor_header">
+                        <h3 class="mptbm_taxi_pricing_main_title">
+                            <?php esc_html_e( 'Select Pricing Model', 'ecab-taxi-booking-manager' ); ?>
+                        </h3>
+                    </div>
                     <div class="mptbm_taxi_pricing_tab_grid">
                         <input type="hidden" name="mptbm_price_based" value="<?php echo esc_attr( $price_based );?>" class="mptbm_taxi_pricing_input" >
 
@@ -1214,9 +1175,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                     </div>
                 </div>
-                <div class="mptbm_taxi_pricing_container">
-                    <div class="mptbm_taxi_pricing_inner_header">
-                        <h3><?php esc_html_e( 'Configure Pricing Rules', 'ecab-taxi-booking-manager' ); ?></h3>
+                <div class="mptbm_rent_editor_wrapper">
+                    <div class="mptbm_rent_editor_header">
+                        <h3 class="mptbm_taxi_pricing_main_title"><?php esc_html_e( 'Configure Pricing Rules', 'ecab-taxi-booking-manager' ); ?></h3>
                         <p><?php esc_html_e( 'Select only one active pricing rule for this taxi model.', 'ecab-taxi-booking-manager' ); ?></p>
                     </div>
 
@@ -1319,7 +1280,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 </div>
 
 
-                <div class="mptbm_ex_service_setting_container">
+                <div class="mptbm_rent_editor_wrapper">
                     <?php
                     wp_nonce_field( 'mptbm_extra_service_nonce', 'mptbm_extra_service_nonce' );
                     self::extra_service_display( $post_id );

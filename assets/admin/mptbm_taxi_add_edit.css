@@ -98,7 +98,7 @@
 
 /* Field Group */
 .mptbm_rent_field_group{
-    margin-bottom: 24px;
+    /*margin-bottom: 24px;*/
 }
 
 .mptbm_rent_label{
@@ -302,6 +302,26 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
+}
+
+.mptbm_rent_field_group input{
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--mptbm-border);
+    border-radius: 8px;
+    box-sizing: border-box;
+    background-color: #fafafa;
+    transition: 0.2s;
+}
+
+.mptbm_rent_field_group textarea{
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--mptbm-border);
+    border-radius: 8px;
+    box-sizing: border-box;
+    background-color: #fafafa;
+    transition: 0.2s;
 }
 
 .mptbm_taxi_field label {
@@ -657,8 +677,8 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 .mptbm_taxi_pricing_tab_grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
+    gap: 10px;
+    padding: 15px;
 }
 
 .mptbm_taxi_pricing_tab_item {
@@ -688,7 +708,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 .mptbm_taxi_pricing_container {
     background: #fff;
     border-radius: 12px;
-    padding: 25px;
+    padding: 10px;
     border: 1px solid #e2e8f0;
 }
 
@@ -752,8 +772,8 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 
 /* Form Content */
 .mptbm_taxi_pricing_row_content {
-    padding: 25px;
-    background: #fbfbfb;
+    padding: 10px;
+    /*background: #fbfbfb;*/
     border-top: 1px solid #f1f5f9;
     display: none;
 }
@@ -881,12 +901,6 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 #row_operation_area.active_row {
     border-color: #4f46e5;
     box-shadow: 0 10px 25px rgba(79, 70, 229, 0.1);
-}
-
-.mptbm_taxi_pricing_row_content {
-    padding: 25px;
-    background: #f8fafc;
-    border-top: 1px solid #f1f5f9;
 }
 
 /* Basic Fields - Inline Card Style */
@@ -1143,7 +1157,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
     border: 1px solid var(--mptbm-border);
     border-radius: 8px;
     max-width: 1000px;
-    margin: 20px auto;
+    /*margin: 20px auto;*/
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
@@ -1372,7 +1386,7 @@ select.mptbm_taxi_ex_service_select {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
+    padding: 10px 10px;
     margin-bottom: 15px;
 }
 
@@ -1685,13 +1699,25 @@ select.mptbm_taxi_ex_service_select {
 }
 
 /*Feature Inages*/
+
+.mptbm_right_side_section{
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
+    border: 1px solid #e5e7eb;
+    margin: 10px;
+}
+
 .mptbm_feature_image_card{
-    width:300px;
-    background:#fff;
-    border-radius:18px;
-    overflow:hidden;
-    box-shadow:0 4px 20px rgba(0,0,0,.08);
-    border:1px solid #e5e7eb;
+    width: 100%;
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
 }
 
 .mptbm_feature_image_head{
@@ -1955,8 +1981,8 @@ select.mptbm_taxi_ex_service_select {
 
 /*Display Pricing Rules*/
 .mptbm_pricing_rules_wrapper {
-    background: #f9fafb;
-    padding: 28px;
+    /*background: #f9fafb;*/
+    padding: 10px;
     border-radius: 16px;
 }
 .mptbm_pricing_rules_grid {
@@ -2040,10 +2066,10 @@ select.mptbm_taxi_ex_service_select {
 .mptbm_taxi_step{
     position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 14px;
-    padding: 16px 20px;
-    min-width: 240px;
+    gap: 1px;
+    padding: 15px 15px;
     border-radius: 16px;
     background: #f8fafc;
     border: 1px solid transparent;
@@ -2082,7 +2108,7 @@ select.mptbm_taxi_ex_service_select {
     width: 52px;
     height: 52px;
     min-width: 52px;
-    border-radius: 14px;
+    border-radius: 50%;
     background: #ffffff;
     display: flex;
     align-items: center;
