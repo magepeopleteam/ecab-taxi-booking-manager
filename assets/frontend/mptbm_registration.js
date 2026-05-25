@@ -662,29 +662,57 @@ function mptbm_init_osm_address_search() {
 
 
     if (startInput) {
-        startInput.removeAttribute('data-osm-autocomplete-initialized');
         mptbm_setup_osm_autocomplete(startInput, 'start');
     }
     if (endInput) {
-        endInput.removeAttribute('data-osm-autocomplete-initialized');
         mptbm_setup_osm_autocomplete(endInput, 'end');
     }
     var extraInput = document.getElementById('mptbm_map_extra_stop_place');
     if (extraInput) {
-        extraInput.removeAttribute('data-osm-autocomplete-initialized');
         mptbm_setup_osm_autocomplete(extraInput, 'extra');
     }
 }
 
-function mptbm_setup_osm_autocomplete(input, type) {
-    // Check if autocomplete is already initialized on this input
-    if (input.hasAttribute('data-osm-autocomplete-initialized')) {
+function mptbm_cleanup_osm_autocomplete(input) {
+    if (!input || !input._mptbmOsmAutocomplete) {
         return;
     }
 
+    var state = input._mptbmOsmAutocomplete;
 
-    var debounceTimer;
-    var currentSearchQuery = '';
+    if (state.debounceTimer) {
+        clearTimeout(state.debounceTimer);
+    }
+
+    if (state.abortController) {
+        state.abortController.abort();
+    }
+
+    if (state.handlers) {
+        input.removeEventListener('input', state.handlers.input);
+        window.removeEventListener('scroll', state.handlers.positionDropdown);
+        window.removeEventListener('resize', state.handlers.positionDropdown);
+        document.removeEventListener('click', state.handlers.documentClick);
+    }
+
+    if (state.container && state.container.parentNode) {
+        state.container.parentNode.removeChild(state.container);
+    }
+
+    delete input._mptbmOsmAutocomplete;
+    input.removeAttribute('data-osm-autocomplete-initialized');
+}
+
+function mptbm_setup_osm_autocomplete(input, type) {
+    mptbm_cleanup_osm_autocomplete(input);
+
+    var autocompleteState = {
+        abortController: null,
+        container: null,
+        currentSearchQuery: '',
+        debounceTimer: null,
+        handlers: null
+    };
     var resultsContainer = document.createElement('div');
     resultsContainer.className = 'mptbm-osm-autocomplete';
     resultsContainer.setAttribute('data-autocomplete-type', type);
@@ -692,6 +720,8 @@ function mptbm_setup_osm_autocomplete(input, type) {
 
     // Append to body to avoid parent overflow issues
     document.body.appendChild(resultsContainer);
+    autocompleteState.container = resultsContainer;
+    input._mptbmOsmAutocomplete = autocompleteState;
 
     // Mark input as initialized
     input.setAttribute('data-osm-autocomplete-initialized', 'true');
@@ -710,38 +740,52 @@ function mptbm_setup_osm_autocomplete(input, type) {
 
     }
 
-    input.addEventListener('input', function (e) {
-        clearTimeout(debounceTimer);
+    function handleInput(e) {
+        clearTimeout(autocompleteState.debounceTimer);
         var query = e.target.value.trim();
 
         if (query.length < 3) {
+            if (autocompleteState.abortController) {
+                autocompleteState.abortController.abort();
+                autocompleteState.abortController = null;
+            }
             resultsContainer.style.display = 'none';
-            currentSearchQuery = '';
+            autocompleteState.currentSearchQuery = '';
             return;
         }
 
         // Store the current query
-        currentSearchQuery = query;
+        autocompleteState.currentSearchQuery = query;
 
-        debounceTimer = setTimeout(function () {
+        autocompleteState.debounceTimer = setTimeout(function () {
             positionDropdown();
-            mptbm_search_osm_address(query, resultsContainer, input, type, currentSearchQuery);
+            mptbm_search_osm_address(query, resultsContainer, input, type, autocompleteState.currentSearchQuery, autocompleteState);
         }, 300);
-    });
+    }
+
+    input.addEventListener('input', handleInput);
 
     // Reposition on scroll or resize
     window.addEventListener('scroll', positionDropdown);
     window.addEventListener('resize', positionDropdown);
 
     // Hide results when clicking outside
-    document.addEventListener('click', function (e) {
+    function handleDocumentClick(e) {
         if (e.target !== input && !resultsContainer.contains(e.target)) {
             resultsContainer.style.display = 'none';
         }
-    });
+    }
+
+    document.addEventListener('click', handleDocumentClick);
+
+    autocompleteState.handlers = {
+        input: handleInput,
+        positionDropdown: positionDropdown,
+        documentClick: handleDocumentClick
+    };
 }
 
-function mptbm_search_osm_address(query, container, input, type, expectedQuery) {
+function mptbm_search_osm_address(query, container, input, type, expectedQuery, autocompleteState) {
     container.innerHTML = '<div style="padding: 10px; text-align: center; color: #666;">Searching...</div>';
     container.style.display = 'block';
 
@@ -751,6 +795,16 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery) 
     body.append('nonce', mptbm_ajax.osm_nonce);
     body.append('q', query);
 
+    var abortController = null;
+    if (autocompleteState && typeof AbortController !== 'undefined') {
+        if (autocompleteState.abortController) {
+            autocompleteState.abortController.abort();
+        }
+
+        abortController = new AbortController();
+        autocompleteState.abortController = abortController;
+    }
+
     fetch(mptbm_ajax.ajax_url, {
         method: 'POST',
         headers: {
@@ -758,12 +812,17 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery) 
             'X-Requested-With': 'XMLHttpRequest'
         },
         body: body,
-        credentials: 'same-origin'
+        credentials: 'same-origin',
+        signal: abortController ? abortController.signal : undefined
     })
         .then(response => {
             return response.json();
         })
         .then(response => {
+            if (autocompleteState && autocompleteState.abortController === abortController) {
+                autocompleteState.abortController = null;
+            }
+
             // Check if this response is still relevant (user hasn't typed more)
             var currentValue = input.value.trim();
             if (expectedQuery && currentValue !== expectedQuery) {
@@ -812,6 +871,14 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery) 
             container.style.display = 'block';
         })
         .catch(error => {
+            if (autocompleteState && autocompleteState.abortController === abortController) {
+                autocompleteState.abortController = null;
+            }
+
+            if (error && error.name === 'AbortError') {
+                return;
+            }
+
             console.error('[OSM Search] Fetch error:', error);
             container.innerHTML = '<div style="padding: 10px; color: #f00;">Search failed. Please try again.</div>';
             container.style.display = 'block';
