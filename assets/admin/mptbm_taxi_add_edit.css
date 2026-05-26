@@ -1992,8 +1992,8 @@ select.mptbm_taxi_ex_service_select {
 }
 .mptbm_pricing_rules_card {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
+    border-bottom: 1px solid #e5e7eb;
+    /*border-radius: 14px;*/
     padding: 18px;
     transition: 0.3s ease;
     position: relative;
@@ -2029,7 +2029,7 @@ select.mptbm_taxi_ex_service_select {
     color: #111827;
 }
 .mptbm_pricing_rules_card .mptbm_pricing_rules_formula {
-    border-left: 4px solid #f97316;
+    border-left: 1px solid #f97316;
     background: #e5e7eb;
     color: #111827;
 }

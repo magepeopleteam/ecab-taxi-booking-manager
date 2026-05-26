@@ -1180,13 +1180,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <h3 class="mptbm_taxi_pricing_main_title"><?php esc_html_e( 'Configure Pricing Rules', 'ecab-taxi-booking-manager' ); ?></h3>
                         <p><?php esc_html_e( 'Select only one active pricing rule for this taxi model.', 'ecab-taxi-booking-manager' ); ?></p>
                     </div>
-
-                    <div class="mptbm_pricing_rules_wrapper">
-                       <?php
-                       self::pricing_rules_display( $price_based );
-                       ?>
-                    </div>
-
                     <div class="mptbm_taxi_pricing_group" >
                         <div class="mptbm_taxi_pricing_row_content" style="display: flex; flex-direction: column; gap: 10px">
 
@@ -1217,7 +1210,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             <?php
                             $routes_and_fixed_fare = 'none';
                             if( $price_based === 'inclusive' ){
-                                $routes_and_fixed_fare = 'flex';
+//                                $routes_and_fixed_fare = 'flex';
 
                             }
                             $checked = '';
@@ -1272,8 +1265,14 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
 
                         </div>
+                        <div class="mptbm_pricing_rules_wrapper">
+                            <?php
+                            self::pricing_rules_display( $price_based );
+                            self::shortcode_description( $price_based );
+                            ?>
+                        </div>
                         <?php
-                        self::shortcode_description( $price_based );
+
                         ?>
                     </div>
 

@@ -483,8 +483,8 @@
                 $("#mptbm_distance_price").fadeIn();
                 $("#mptbm_price_per_hour").fadeIn();
                 // $("#mptbm_manual_routes").fadeIn();
-                $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeIn();
-                $('#mptbm_taxi_inclusive_manual_locations').prop('checked', false);
+               /* $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeIn();
+                $('#mptbm_taxi_inclusive_manual_locations').prop('checked', false);*/
 
                 let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
                 $("#mptbm_shortcode_example_code").html(shortcode);
