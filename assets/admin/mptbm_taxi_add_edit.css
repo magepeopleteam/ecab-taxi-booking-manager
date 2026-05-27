@@ -2047,124 +2047,195 @@ select.mptbm_taxi_ex_service_select {
 }
 
 
-/*Header Tabs*/
-/* HEADER WRAPPER */
-.mptbm_taxi_header_holder{
+/* ================================================================
+   MODERN MULTI-STEP PROGRESS WIZARD
+   ================================================================ */
+
+/* -- Header Container -- */
+.mptbm_taxi_header_holder {
     background: #ffffff;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
-    /*margin-bottom: 30px;*/
-    border: 1px solid #edf0f5;
+    padding: 20px 28px;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.03);
+    border: 1px solid #eef2f6;
+    margin-bottom: 6px;
 }
-.mptbm_taxi_stepper{
+
+/* -- Stepper Flex Row -- */
+.mptbm_taxi_stepper {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 15px;
+    justify-content: center;
+    gap: 0;
+    max-width: 780px;
+    margin: 0 auto;
+    position: relative;
 }
-.mptbm_taxi_step{
+
+/* -- Individual Step -- */
+.mptbm_taxi_step {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1px;
-    padding: 10px 10px;
-    border-radius: 16px;
-    background: #f8fafc;
-    border: 1px solid transparent;
-    transition: all .35s ease;
+    gap: 10px;
     cursor: pointer;
-    opacity: .7;
-}
-.mptbm_taxi_step:hover{
-    transform: translateY(-3px);
-    background: #ffffff;
-    border-color: #dbe4ff;
-    box-shadow: 0 8px 25px rgba(34,113,177,0.08);
-    opacity: 1;
-}
-.mptbm_taxi_step.mptbm_taxi_active{
-    background: linear-gradient(135deg, #e8f3ff, #d7ebff);
-    border: 1px solid #b9d9ff;
-    color: #2271b1;
-    opacity: 1;
-    box-shadow: 0 8px 25px rgba(34,113,177,0.12);
-}
-.mptbm_taxi_step.mptbm_taxi_active .mptbm_taxi_icon{
-    background: #2271b1;
-    color: #ffffff;
+    z-index: 2;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
 }
 
-.mptbm_taxi_step.mptbm_taxi_active .mptbm_taxi_label{
-    color: #135e96;
+.mptbm_taxi_step:hover {
+    transform: translateY(-2px);
 }
-.mptbm_taxi_step.completed{
-    background: #ecfdf3;
-    border-color: #ccebd8;
-    opacity: 1;
+
+.mptbm_taxi_step:hover .mptbm_taxi_icon {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
 }
-.mptbm_taxi_icon{
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
+
+/* -- Numbered Circle Indicator -- */
+.mptbm_taxi_icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
     border-radius: 50%;
-    background: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    color: #2271b1;
-    transition: all .35s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    font-size: 16px;
+    font-weight: 700;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f1f4f9;
+    color: #6b7280;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 2px solid transparent;
+    line-height: 1;
+    user-select: none;
 }
-.mptbm_taxi_active .mptbm_taxi_icon{
-    background: rgba(255,255,255,0.15);
+
+/* -- Active Step Circle -- */
+.mptbm_taxi_step.mptbm_taxi_active .mptbm_taxi_icon {
+    background: var(--mptbm-primary);
     color: #ffffff;
-    backdrop-filter: blur(10px);
+    border-color: var(--mptbm-primary);
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: scale(1.04);
 }
-.mptbm_taxi_step.completed .mptbm_taxi_icon{
-    background: #22c55e;
+
+/* -- Completed Step Circle -- */
+.mptbm_taxi_step.completed .mptbm_taxi_icon {
+    background: var(--mptbm-primary);
     color: #ffffff;
+    border-color: var(--mptbm-primary);
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06), 0 4px 14px rgba(0, 0, 0, 0.10);
 }
-.mptbm_taxi_label{
-    font-size: 12px;
+
+/* -- Step Label -- */
+.mptbm_taxi_label {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.35;
+    color: #6b7280;
+    text-align: center;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+    transition: color 0.3s ease;
+}
+
+.mptbm_taxi_step.mptbm_taxi_active .mptbm_taxi_label {
+    color: #1e293b;
     font-weight: 600;
-    line-height: 1.4;
+}
+
+.mptbm_taxi_step.completed .mptbm_taxi_label {
+    color: #374151;
+    font-weight: 500;
+}
+
+.mptbm_taxi_step:hover .mptbm_taxi_label {
     color: #1e293b;
 }
-.mptbm_taxi_active .mptbm_taxi_label{
-    color: #ffffff;
-}
-.mptbm_taxi_line{
-    flex: 1;
-    height: 4px;
+
+/* -- Connecting Progress Line -- */
+.mptbm_taxi_line {
+    flex: 1 1 auto;
+    min-width: 20px;
+    max-width: 140px;
+    height: 3px;
+    background: #e5e9f0;
     border-radius: 30px;
-    background: linear-gradient(to right,#dbe4ff,#edf2ff);
     position: relative;
-    overflow: hidden;
+    align-self: center;
+    margin: 0 8px;
+    margin-bottom: 28px;
+    transition: background 0.4s ease;
 }
-.mptbm_taxi_line::before{
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 0%;
-    height: 100%;
-    background: linear-gradient(to right,#2271b1,#4f9cff);
-    transition: width .4s ease;
+
+.mptbm_taxi_step.completed + .mptbm_taxi_line {
+    background: var(--mptbm-primary);
 }
-.mptbm_taxi_step.completed + .mptbm_taxi_line::before{
-    width: 100%;
-}
-@media(max-width: 991px){
-    .mptbm_taxi_stepper{
+
+/* ================================================================
+   RESPONSIVE : Stack vertically on narrow screens
+   ================================================================ */
+@media (max-width: 768px) {
+    .mptbm_taxi_header_holder {
+        padding: 16px 12px;
+    }
+
+    .mptbm_taxi_stepper {
         flex-direction: column;
         align-items: stretch;
+        gap: 12px;
+        max-width: 100%;
     }
-    .mptbm_taxi_line{
-        width: 4px;
-        height: 40px;
-        margin: auto;
+
+    .mptbm_taxi_step {
+        flex-direction: row;
+        gap: 14px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: #f9fafb;
+        transition: background 0.25s ease;
+    }
+
+    .mptbm_taxi_step:hover {
+        background: #f1f5f9;
+    }
+
+    .mptbm_taxi_step.mptbm_taxi_active {
+        background: color-mix(in srgb, var(--mptbm-primary) 8%, #ffffff);
+    }
+
+    .mptbm_taxi_step.completed {
+        background: color-mix(in srgb, var(--mptbm-primary) 8%, #ffffff);
+    }
+
+    .mptbm_taxi_icon {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        font-size: 14px;
+    }
+
+    .mptbm_taxi_label {
+        white-space: normal;
+        text-align: left;
+        font-size: 13px;
+    }
+
+    .mptbm_taxi_line {
+        min-width: 3px;
+        max-width: 3px;
+        height: 24px;
+        margin: 0 auto;
+        margin-left: 18px;
+        flex: none;
+        align-self: flex-start;
+    }
+
+    .mptbm_taxi_step.completed + .mptbm_taxi_line {
+        background: var(--mptbm-primary);
     }
 }
