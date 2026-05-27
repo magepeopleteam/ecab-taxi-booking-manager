@@ -675,8 +675,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 <div id="mptbm_taxi_feature_list">
                     <div class="mptbm_taxi_feature_row">
                         <div class="mptbm_taxi_feature_icon_box">
-                            <i class="fa-solid fa-car"></i>
-                            <div class="mptbm_taxi_feature_remove_icon"><i class="fa-solid fa-xmark"></i></div>
+                            <i class="fas fa-car"></i>
+                            <div class="mptbm_taxi_feature_remove_icon"><i class="fas fa-times"></i></div>
                         </div>
                         <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_label[]" value="<?php echo esc_attr($label); ?>"/>
                         <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_text[]" value="<?php echo esc_attr($text); ?>"/>
@@ -733,7 +733,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                     <div class="mptbm_taxi_feature_footer">
                         <button class="mptbm_taxi_feature_add_btn" id="mptbm_taxi_feature_add_row">
-                            <i class="fa-solid fa-plus"></i> <?php esc_html_e( 'Add New Item', 'ecab-taxi-booking-manager' ); ?>
+                            <i class="fas fa-plus"></i> <?php esc_html_e( 'Add New Item', 'ecab-taxi-booking-manager' ); ?>
                         </button>
                     </div>
                 </div>
