@@ -876,9 +876,7 @@
                     </td>
                     <td><input type="text" name="service_name[]" placeholder="Service Name" class="mptbm_taxi_ex_service_input" value=""></td>
                     <td>
-                        <textarea class="mptbm_taxi_ex_service_select" name="extra_service_description[]" placeholder="Desc..">
-                            Load
-                        </textarea>
+                        <textarea class="mptbm_taxi_ex_service_select" name="extra_service_description[]" placeholder="Desc.."></textarea>
                     </td>
                     <td><input type="number" class="mptbm_taxi_ex_service_input mptbm_center" value="0"></td>
                     <td>

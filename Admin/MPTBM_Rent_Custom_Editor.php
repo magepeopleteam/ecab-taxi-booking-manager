@@ -99,9 +99,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 <!-- Header Section -->
                 <div class="mptbm_shortcode_header">
                     <div class="mptbm_shortcode_header_left">
-                        <div class="mptbm_shortcode_icon_main">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                        </div>
                         <div class="mptbm_shortcode_header_text">
                             <h3> <?php esc_html_e( 'Shortcode Usage Guide', 'ecab-taxi-booking-manager' ); ?></h3>
                             <p> <?php esc_html_e( 'Click to view the shortcode for Distance-based pricing', 'ecab-taxi-booking-manager' ); ?></p>
@@ -922,9 +919,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <input type="text" name="service_name[]" class="mptbm_taxi_ex_service_input" value="<?php echo esc_attr( $service_name ); ?>">
                 </td>
                 <td>
-                    <textarea class="mptbm_taxi_ex_service_select" name="extra_service_description[]">
-                        <?php echo esc_html( $description ); ?>
-                    </textarea>
+                    <textarea class="mptbm_taxi_ex_service_select" name="extra_service_description[]"><?php echo esc_html( $description ); ?></textarea>
                 </td>
                 <td><input
                     type="number" class="mptbm_taxi_ex_service_input mptbm_center"
@@ -1097,6 +1092,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <h3 class="mptbm_taxi_pricing_main_title">
                             <?php esc_html_e( 'Select Pricing Model', 'ecab-taxi-booking-manager' ); ?>
                         </h3>
+                        <p class="mptbm_rent_editor_subtitle">
+                            <?php esc_html_e( 'Choose the pricing model that applies to this service.', 'ecab-taxi-booking-manager' ); ?>
+                        </p>
                     </div>
                     <div class="mptbm_taxi_pricing_tab_grid">
                         <input type="hidden" name="mptbm_price_based" value="<?php echo esc_attr( $price_based );?>" class="mptbm_taxi_pricing_input" >
@@ -1181,7 +1179,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <p><?php esc_html_e( 'Select only one active pricing rule for this taxi model.', 'ecab-taxi-booking-manager' ); ?></p>
                     </div>
                     <div class="mptbm_taxi_pricing_group" >
-                        <div class="mptbm_taxi_pricing_row_content" style="display: flex; flex-direction: column; gap: 10px">
+                        <div class="mptbm_taxi_pricing_row_content">
 
                             <div class="mptbm_taxi_pricing_field"
                                  id="mptbm_distance_price"
