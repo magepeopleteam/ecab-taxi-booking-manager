@@ -192,7 +192,7 @@
 
         $(document).on('click', '.mptbm_taxi_feature_remove_icon', function(e) {
             e.preventDefault();
-            $(this).siblings('i').attr('class', 'fa-solid fa-image'); // Reset to placeholder
+            $(this).siblings('i').attr('class', 'fas fa-image'); // Reset to placeholder
         });
 
         $('#mptbm_taxi_feature_add_row').on('click', function(e) {
@@ -200,8 +200,8 @@
             const newRow = `
                 <div class="mptbm_taxi_feature_row" style="display:none;">
                     <div class="mptbm_taxi_feature_icon_box">
-                        <i class="fa-solid fa-gear"></i>
-                        <div class="mptbm_taxi_feature_remove_icon"><i class="fa-solid fa-xmark"></i></div>
+                        <i class="fas fa-gear"></i>
+                        <div class="mptbm_taxi_feature_remove_icon"><i class="fas fa-times"></i></div>
                     </div>
                     <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_label[]" placeholder="Label">
                     <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_text[]" placeholder="Value">
