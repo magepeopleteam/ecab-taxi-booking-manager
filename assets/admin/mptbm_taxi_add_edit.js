@@ -12,21 +12,14 @@
             $('.mptbm_taxi_step').each(function () {
 
                 let itemStep = $(this).data('step');
-                let iconBox = $(this).find('.mptbm_taxi_icon i');
-                let originalIcon = $(this).data('icon');
 
                 $(this).removeClass('mptbm_taxi_active completed');
 
                 if (itemStep < step) {
                     $(this).addClass('completed');
-                    iconBox.removeClass().addClass('fas fa-check');
                 }
                 else if (itemStep == step) {
                     $(this).addClass('mptbm_taxi_active');
-                    iconBox.removeClass().addClass(originalIcon);
-                }
-                else {
-                    iconBox.removeClass().addClass(originalIcon);
                 }
             });
 
