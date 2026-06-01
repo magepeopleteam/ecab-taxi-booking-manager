@@ -5,8 +5,46 @@ class MPTBM_Transportation
     public function __construct(){
 
         add_action( 'admin_menu', array( $this, 'mptbm_transportation_lists_menu' ) );
+
+        add_action( 'admin_menu', array( $this, 'reorder_mptbm_submenu' ), 999 );
+
         add_action('admin_post_mptbm_trash_transport',  array( $this, 'mptbm_trash_transport_callback' ) );
     }
+
+    public function reorder_mptbm_submenu() {
+
+        global $submenu;
+
+        $parent = 'edit.php?post_type=mptbm_rent';
+
+        if ( isset( $submenu[$parent] ) ) {
+            $new_order = array();
+            foreach ( $submenu[$parent] as $item ) {
+
+                if ( isset($item[2]) && $item[2] === 'mptbm_transportation_lists' ) {
+                    array_unshift( $new_order, $item );
+                } else {
+                    $new_order[] = $item;
+                }
+            }
+
+            $submenu[$parent] = $new_order;
+        }
+    }
+
+
+//esc_html_e('ON', 'ecab-taxi-booking-manager');
+    public function mptbm_transportation_lists_menu() {
+
+        add_submenu_page(
+            'edit.php?post_type=mptbm_rent',
+            'Transportation Lists',
+            'Transportation Lists',
+            'manage_options',
+            'mptbm_transportation_lists',
+            array( $this, 'mptbm_transportation_lists_page' )
+        );
+        }
 
     function mptbm_trash_transport_callback() {
 
@@ -27,19 +65,6 @@ class MPTBM_Transportation
         wp_redirect(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_transportation_lists'));
         exit;
     }
-    public function mptbm_transportation_lists_menu() {
-
-        add_submenu_page(
-            'edit.php?post_type=mptbm_rent',
-            __( 'Transportation Lists', 'mage-eventpress' ),
-            __( 'Transportation Lists', 'mage-eventpress' ),
-            'manage_woocommerce',
-            'mptbm_transportation_lists',
-            array( $this, 'mptbm_transportation_lists_page' )
-        );
-    }
-
-
 
     public function mptbm_transportation_lists_page() {
 
@@ -190,17 +215,17 @@ class MPTBM_Transportation
             <div>
 
                 <h1 class="mptbm_transportation_lists_page_title">
-                    Transportation
+                    <?php esc_html_e('Transportation', 'ecab-taxi-booking-manager');?>
                 </h1>
 
                 <div class="mptbm_transportation_lists_tabs">
 
                     <a href="#" class="mptbm_transportation_lists_tab_active">
-                        All (<?php echo esc_attr( $total_posts );?>)
+                        <?php esc_html_e('All', 'ecab-taxi-booking-manager');?> (<?php echo esc_attr( $total_posts );?>)
                     </a>
 
                     <a href="#">
-                        Published (<?php echo esc_attr( $total_posts );?>)
+                        <?php esc_html_e('Published', 'ecab-taxi-booking-manager');?> (<?php echo esc_attr( $total_posts );?>)
                     </a>
 
                 </div>
@@ -211,7 +236,7 @@ class MPTBM_Transportation
 
                 <span class="dashicons dashicons-plus-alt2"></span>
 
-                Add New Transportation
+                <?php esc_html_e('Add New Transportation', 'ecab-taxi-booking-manager');?>
 
             </a>
 
@@ -220,10 +245,47 @@ class MPTBM_Transportation
         <?php
     }
 
+    private static function mptbm_get_current_month_sales_total() {
+
+        $start_date = date('Y-m-01 00:00:00');
+        $end_date   = date('Y-m-t 23:59:59');
+
+        $args = array(
+            'post_type'      => 'mptbm_booking',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'meta_query'     => array(
+                array(
+                    'key'     => 'mptbm_date',
+                    'value'   => array($start_date, $end_date),
+                    'compare' => 'BETWEEN',
+                    'type'    => 'DATETIME'
+                )
+            )
+        );
+
+        $query = new WP_Query($args);
+
+        $total = 0;
+
+        while ( $query->have_posts() ) {
+            $query->the_post();
+
+            $price = get_post_meta(get_the_ID(), 'mptbm_tp', true);
+            $total += floatval($price);
+        }
+
+        wp_reset_postdata();
+
+        return number_format($total, 2, '.', '');
+    }
+
     /**
      * Stats
      */
     private function mptbm_transportation_lists_stats( $total_posts ) {
+
+        $total_revenue = self::mptbm_get_current_month_sales_total();
         ?>
 
         <div class="mptbm_transportation_lists_stats_wrapper">
@@ -236,11 +298,11 @@ class MPTBM_Transportation
 
                 <div>
                     <div class="mptbm_transportation_lists_stats_label">
-                        ACTIVE FLEET
+                        <?php esc_html_e('ACTIVE FLEET', 'ecab-taxi-booking-manager');?>
                     </div>
 
                     <div class="mptbm_transportation_lists_stats_value">
-                        <?php echo esc_attr( $total_posts );?> Vehicles
+                        <?php echo esc_attr( $total_posts );?>  <?php esc_html_e('Vehicles', 'ecab-taxi-booking-manager');?>
                     </div>
                 </div>
 
@@ -254,11 +316,11 @@ class MPTBM_Transportation
 
                 <div>
                     <div class="mptbm_transportation_lists_stats_label">
-                        TOTAL ROUTES
+                        <?php esc_html_e('TOTAL ROUTES', 'ecab-taxi-booking-manager');?>
                     </div>
 
                     <div class="mptbm_transportation_lists_stats_value">
-                        24 Daily
+                        <?php esc_html_e('24 Daily', 'ecab-taxi-booking-manager');?>
                     </div>
                 </div>
 
@@ -272,11 +334,11 @@ class MPTBM_Transportation
 
                 <div>
                     <div class="mptbm_transportation_lists_stats_label">
-                        AVG. REVENUE
+                        <?php esc_html_e('AVG. REVENUE', 'ecab-taxi-booking-manager');?>
                     </div>
 
                     <div class="mptbm_transportation_lists_stats_value">
-                        $1,420/mo
+                        <?php echo esc_attr( $total_revenue ); ' '.esc_html_e('/mo', 'ecab-taxi-booking-manager');?>
                     </div>
                 </div>
 
@@ -298,11 +360,11 @@ class MPTBM_Transportation
             <div class="mptbm_transportation_lists_filter_left">
 
                 <select class="mptbm_transportation_lists_bulk_select">
-                    <option>Bulk actions</option>
+                    <option> <?php esc_html_e('Bulk actions', 'ecab-taxi-booking-manager');?></option>
                 </select>
 
                 <button class="mptbm_transportation_lists_apply_btn">
-                    Apply
+                    <?php esc_html_e('Apply', 'ecab-taxi-booking-manager');?>
                 </button>
 
             </div>
@@ -311,9 +373,9 @@ class MPTBM_Transportation
 
                 <span class="dashicons dashicons-search"></span>
 
-                <input type="text" placeholder="Search Transportation...">
+                <input name="mptbm_search_by_title" id="mptbm_search_by_title" type="text" placeholder="Search Transportation...">
 
-                <button>Search</button>
+                <button><?php esc_html_e('Search', 'ecab-taxi-booking-manager');?></button>
 
             </div>
 
@@ -329,7 +391,7 @@ class MPTBM_Transportation
 
         ?>
 
-        <div class="mptbm_transportation_lists_card">
+        <div class="mptbm_transportation_lists_card" data-transport-title="<?php echo esc_attr( $item['title'] );?>">
 
             <div class="mptbm_transportation_lists_image_area">
 
@@ -385,7 +447,7 @@ class MPTBM_Transportation
 
                         <div class="mptbm_transportation_lists_meta_label">
                             <span class="dashicons dashicons-money-alt"></span>
-                            KM PRICE
+                            <?php esc_html_e('KM PRICE', 'ecab-taxi-booking-manager');?>
                         </div>
 
                         <div class="mptbm_transportation_lists_meta_value">
@@ -398,7 +460,7 @@ class MPTBM_Transportation
 
                         <div class="mptbm_transportation_lists_meta_label">
                             <span class="dashicons dashicons-clock"></span>
-                            HOURLY PRICE
+                            <?php esc_html_e('HOURLY PRICE', 'ecab-taxi-booking-manager');?>
                         </div>
 
                         <div class="mptbm_transportation_lists_meta_value">
@@ -411,7 +473,7 @@ class MPTBM_Transportation
 
                         <div class="mptbm_transportation_lists_meta_label">
                             <span class="dashicons dashicons-admin-tools"></span>
-                            MODEL
+                            <?php esc_html_e('MODEL', 'ecab-taxi-booking-manager');?>
                         </div>
 
                         <div class="mptbm_transportation_lists_meta_value_black">
@@ -424,7 +486,7 @@ class MPTBM_Transportation
 
                         <div class="mptbm_transportation_lists_meta_label">
                             <span class="dashicons dashicons-yes-alt"></span>
-                            STATUS
+                            <?php esc_html_e('STATUS', 'ecab-taxi-booking-manager');?>
                         </div>
 
                         <div class="mptbm_transportation_lists_meta_status">
@@ -461,16 +523,16 @@ class MPTBM_Transportation
 
             <div class="mptbm_transportation_lists_footer_text">
 
-                Showing
+                <?php esc_html_e('Showing', 'ecab-taxi-booking-manager');?>
                 <?php echo esc_html( $start_item ); ?>
                 -
                 <?php echo esc_html( $end_item ); ?>
 
-                of
+                <?php esc_html_e('of', 'ecab-taxi-booking-manager');?>
 
                 <?php echo esc_html( $total_posts ); ?>
 
-                Transportation Items
+                <?php esc_html_e('Transportation Items', 'ecab-taxi-booking-manager');?>
 
             </div>
 

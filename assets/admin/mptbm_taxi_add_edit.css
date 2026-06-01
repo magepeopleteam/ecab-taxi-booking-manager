@@ -807,7 +807,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 .mptbm_taxi_pricing_row_content {
     padding: 16px;
     border-top: 1px solid #f1f5f9;
-    display: flex;
+    /*display: flex;*/
     flex-wrap: wrap;
     gap: 16px;
 }

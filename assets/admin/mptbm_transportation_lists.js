@@ -41,4 +41,36 @@ jQuery(document).ready(function($){
         }
     });
 
+    /*Search Fields*/
+    function filterCards() {
+
+        let value = $('#mptbm_search_input').val().toLowerCase();
+
+        $('.mptbm_transportation_lists_card').each(function () {
+
+            let title = $(this).data('transport-title').toLowerCase();
+
+            if (title.indexOf(value) > -1) {
+
+                // smooth show
+                $(this).stop(true, true).slideDown(250);
+
+            } else {
+
+                // smooth hide
+                $(this).stop(true, true).slideUp(250);
+            }
+        });
+    }
+
+    // live typing search
+    $('#mptbm_search_input').on('keyup', function () {
+        filterCards();
+    });
+
+    // button search
+    $('#mptbm_search_btn').on('click', function () {
+        filterCards();
+    });
+
 });
