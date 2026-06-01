@@ -228,6 +228,10 @@ class MPTBM_Transportation
                         <?php esc_html_e('Published', 'ecab-taxi-booking-manager');?> (<?php echo esc_attr( $total_posts );?>)
                     </a>
 
+                    <a href="#">
+                        <?php esc_html_e('Trashed', 'ecab-taxi-booking-manager');?> (<?php echo esc_attr( $total_posts );?>)
+                    </a>
+
                 </div>
 
             </div>

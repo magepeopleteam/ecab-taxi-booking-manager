@@ -284,6 +284,12 @@
             $('.mptbm_taxi_pricing_route_list').append(tr);
         });
 
+        $(document).on('click','.mptbm_taxi_pricing_add_zone_to_zone_route_btn', function() {
+            var tr = $('.mptbm_taxi_pricing_zone_to_zone_route_list tr:first').clone();
+            tr.find('input').val('');
+            $('.mptbm_taxi_pricing_zone_to_zone_route_list').append(tr);
+        });
+
         $(document).on('click', '.mptbm_taxi_pricing_add_zone_btn', function() {
             var tr = $('.mptbm_taxi_pricing_zone_to_zone_route_list tr:first').clone();
             tr.find('input').val('');
@@ -1093,4 +1099,21 @@
         });
 
     });
+
+
+    $('.mptbm_operation_area_fixed_map_type_tab').on('click', function () {
+        let type = $(this).data('operation-area-type');
+        $('.mptbm_operation_area_fixed_map_type_tab').removeClass('active');
+        $(this).addClass('active');
+
+        $('input[name="mptbm_operation_area_fixed_map_type"]').val(type);
+
+        $('.mptbm_operation_area_fixed_map_type_content').hide();
+
+        $('#mptbm_operation_area_fixed_map_' + type).fadeIn(200);
+    });
+    let activeType = $('.mptbm_operation_area_fixed_map_type_tab.active')
+        .data('operation-area-type');
+    $('input[name="mptbm_operation_area_fixed_map_type"]').val(activeType);
+
 }(jQuery));

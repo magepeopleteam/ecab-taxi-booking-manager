@@ -2299,3 +2299,40 @@ select.mptbm_taxi_ex_service_select {
         margin: 0;
     }
 }
+
+.mptbm_operation_area_fixed_map_type_tabs {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.mptbm_operation_area_fixed_map_type_tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .2s ease;
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+}
+
+.mptbm_operation_area_fixed_map_type_tab:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+
+.mptbm_operation_area_fixed_map_type_tab.active {
+    border-color: #222;
+    color: #222;
+}
+
+.mptbm_operation_area_fixed_map_type_tab .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}

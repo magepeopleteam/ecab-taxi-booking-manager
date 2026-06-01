@@ -879,6 +879,30 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				update_post_meta($post_id, 'mptbm_fixed_map_route_price_info', $fixed_map_route_price_infos);
 
 
+
+				$mptbm_fixed_map_area_to_area_price_info = array();
+				$start_map_area_to_area_route = isset($_POST['mptbm_fixed_map_route_zone_to_zone_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_map_route_zone_to_zone_start_location']) : [];
+				$end_map_area_to_area_route = isset($_POST['mptbm_fixed_map_route_zone_to_zone_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_map_route_zone_to_zone_end_location']) : [];
+				$map_route_area_to_area_price = isset($_POST['mptbm_fixed_map_route_zone_to_zone_price']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_map_route_zone_to_zone_price']) : [];
+
+				if (count($start_map_area_to_area_route) > 0) {
+					$count = 0;
+					foreach ($start_map_area_to_area_route as $key => $location) {
+						$e_route = isset($end_map_area_to_area_route[$key]) ? $end_map_area_to_area_route[$key] : '';
+						$r_price = isset($map_route_area_to_area_price[$key]) ? $map_route_area_to_area_price[$key] : '';
+
+						if ($location && $e_route && $r_price) {
+                            $mptbm_fixed_map_area_to_area_price_info[$count]['start_location'] = $location;
+                            $mptbm_fixed_map_area_to_area_price_info[$count]['end_location'] = $e_route;
+                            $mptbm_fixed_map_area_to_area_price_info[$count]['price'] = $r_price;
+							$count++;
+						}
+					}
+				}
+				update_post_meta( $post_id, 'mptbm_fixed_map_area_to_area_price_info', $mptbm_fixed_map_area_to_area_price_info);
+                $price_display_type = isset($_POST['mptbm_operation_area_fixed_map_type']) ? sanitize_text_field($_POST['mptbm_operation_area_fixed_map_type']) : 'zone_to_location';
+                update_post_meta( $post_id, 'mptbm_operation_area_fixed_map_type', $price_display_type);
+
 				$zone_to_zone_route_price_infos = array();
 				$start_zone_to_zone_route = isset($_POST['mptbm_zone_to_zone_route_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_start_location']) : [];
 				$end_zone_to_zone_route = isset($_POST['mptbm_zone_to_zone_route_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_end_location']) : [];

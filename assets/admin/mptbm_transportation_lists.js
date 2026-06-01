@@ -64,12 +64,12 @@ jQuery(document).ready(function($){
     }
 
     // live typing search
-    $('#mptbm_search_input').on('keyup', function () {
+    $(document).on('keyup','#mptbm_search_input', function () {
         filterCards();
     });
 
     // button search
-    $('#mptbm_search_btn').on('click', function () {
+    $(document).on('click','#mptbm_search_btn', function () {
         filterCards();
     });
 
