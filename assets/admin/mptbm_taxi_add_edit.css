@@ -2440,3 +2440,11 @@ select.mptbm_taxi_ex_service_select {
         width: 100%;
     }
 }
+
+.mptbm_distance_tier_pricing_settings_holder,
+.mptbm_taxi_peak_hour_pricing_addon {
+    border: 1px solid #dfe6ee;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 10px 0;
+}

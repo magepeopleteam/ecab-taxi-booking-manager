@@ -191,7 +191,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <div class="mptbm_fixed_header">
 
                         <div class="">
-                            <a class="mptbm-link" href="<?php echo admin_url('edit.php?post_type=mptbm_rent'); ?>">
+                            <a class="mptbm-link" href="<?php echo admin_url('admin.php?page=mptbm_transportation_lists'); ?>">
                                 <span class="dashicons dashicons-arrow-left-alt"></span>
                                 <?php esc_html_e( 'Back to Transports', 'ecab-taxi-booking-manager' ); ?>
                             </a>
@@ -1276,21 +1276,18 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     ?>
                 </div>
 
+            <?php  if ( class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) {?>
                 <div class="mptbm_distance_tier_pricing_settings_holder">
-                    <?php
-                    if ( class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) {
-                        do_action('add_mptbm_settings_tab_content_tier', $post_id);
-                    }
-                    ?>
+                    <?php do_action('add_mptbm_settings_tab_content_tier', $post_id); ?>
                 </div>
+            <?php }
+            ?>
 
+            <?php if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) { ?>
                 <div class="mptbm_taxi_peak_hour_pricing_addon">
-                    <?php
-                    if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) {
-                        do_action('add_mptbm_settings_pick_hour_content', $post_id);
-                    }
-                    ?>
+                    <?php do_action('add_mptbm_settings_pick_hour_content', $post_id); ?>
                 </div>
+            <?php }?>
 
             </div>
 
