@@ -2339,7 +2339,7 @@ select.mptbm_taxi_ex_service_select {
 }
 
 /*Area Based Pricing*/
-.motbm_area_based_wrapper {
+.mptbm_area_based_wrapper {
     background: #f4f7fb;
     border: 1px solid #dfe6ee;
     border-radius: 12px;

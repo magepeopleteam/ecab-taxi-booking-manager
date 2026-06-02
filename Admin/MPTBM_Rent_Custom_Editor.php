@@ -1224,11 +1224,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                 </div>
                             </div>
 
-                            <?php
-                            if( $price_based === 'inclusive' ){
-                                $show_manual = 'none';
-                            }
-                            ?>
                             <div class="mptbm_taxi_pricing_field1"
                                  id="mptbm_manual_routes"
                                  style="display: <?php echo ( $price_based === 'manual'  ) ? 'block' : 'none'; ?>">
@@ -1280,6 +1275,23 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     self::extra_service_display( $post_id );
                     ?>
                 </div>
+
+                <div class="mptbm_distance_tier_pricing_settings_holder">
+                    <?php
+                    if ( class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) {
+                        do_action('add_mptbm_settings_tab_content_tier', $post_id);
+                    }
+                    ?>
+                </div>
+
+                <div class="mptbm_taxi_peak_hour_pricing_addon">
+                    <?php
+                    if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) {
+                        do_action('add_mptbm_settings_pick_hour_content', $post_id);
+                    }
+                    ?>
+                </div>
+
             </div>
 
         <?php }
@@ -1505,27 +1517,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </div>
                     </div>
                     <?php }?>
-
-                    <!--<div class="mptbm_taxi_pricing_sub_section">
-                        <div class="mptbm_taxi_pricing_sub_header">
-                            <h4>Operation Area Based Price Set</h4>
-                            <p>Set different pricing for each operation area. Easily manage fixed, per km, and per hour rates.</p>
-                        </div>
-                        <div class="mptbm_taxi_pricing_area_list">
-                            <div class="mptbm_taxi_pricing_area_row">
-                                <select><option>dhaka jone (Operation Area)</option></select>
-                                <input type="text" placeholder="20">
-                                <input type="text" placeholder="1">
-                                <input type="text" placeholder="44">
-                                <button type="button" class="mptbm_taxi_pricing_remove_link">Remove</button>
-                            </div>
-                        </div>
-                        <div class="mptbm_taxi_pricing_footer_actions">
-                            <button type="button" class="mptbm_taxi_pricing_pink_btn mptbm_taxi_pricing_add_area_btn">+ Add Area Price</button>
-                            <button type="button" class="mptbm_taxi_pricing_save_btn">Save</button>
-                        </div>
-                    </div>-->
-
                     <?php
                     $area_based_pricing = 'none';
                     if( !empty( $all_operation_area_infos ) && !empty( $selected_operation_areas ) ){
@@ -1536,9 +1527,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                     ?>
 
-                    <div class="">
+                    <div class="mptbm_taxi_area_pricing">
                         <?php
-                        self::render_fixed_with_map_area_based_pricing( $post_id, $operation_zones );
+                        self::render_fixed_with_map_area_based_pricing( $post_id, $operation_zones, $price_based );
                         ?>
                         <div class="mptbm_taxi_pricing_sub_section"
                              id="mptbm_fixed_map_area_pricing"
@@ -1558,12 +1549,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                         <div class="mptbm_operation_area_fixed_map_type_tab <?php echo ( $operation_area_fixed_map_type === 'zone_to_location' || empty( $operation_area_fixed_map_type ) ) ? 'active' : ''; ?>"
                                              data-operation-area-type="zone_to_location">
                                             <span class="dashicons dashicons-location-alt"></span>
-                                            <span>Zone To Location</span>
+                                            <span><?php esc_html_e( 'Zone To Location', 'ecab-taxi-booking-manager' ); ?></span>
                                         </div>
                                         <div class="mptbm_operation_area_fixed_map_type_tab <?php echo ( $operation_area_fixed_map_type === 'zone_to_zone' ) ? 'active' : ''; ?>"
                                              data-operation-area-type="zone_to_zone">
                                             <span class="dashicons dashicons-randomize"></span>
-                                            <span>Zone To Zone</span>
+                                            <span><?php esc_html_e( 'Zone To Zone', 'ecab-taxi-booking-manager' ); ?></span>
                                         </div>
                                     </div>
 
@@ -1621,7 +1612,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 </div>
             </div>
         <?php }
-        public static function render_fixed_with_map_area_based_pricing($post_id, $operation_zones)
+        public static function render_fixed_with_map_area_based_pricing($post_id, $operation_zones, $price_based )
         {
             if (!is_array($operation_zones) || empty($operation_zones)) {
                 return;
@@ -1636,7 +1627,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
             ?>
 
-            <div class="motbm_area_based_wrapper">
+            <div class="mptbm_area_based_wrapper" id="mptbm_area_based_wrapper"
+                 style="display: <?php echo ( $price_based === 'fixed_distance' ) ? 'block' : 'none'; ?>">
                 <div class="bg-light mActive" style="margin-top: 20px;" data-collapse="#mp_fixed_map_routes">
                     <h4>Operation Area Based Price Set</h4>
                     <span>Set different pricing for each operation area based on transport type, distance, or time. Easily manage fixed, per km, and per hour rates without creating duplicate transports.</span>

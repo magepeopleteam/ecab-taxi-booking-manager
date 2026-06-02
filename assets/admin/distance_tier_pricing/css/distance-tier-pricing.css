@@ -1,0 +1,114 @@
+/* Distance Tier Pricing Frontend Styles */
+.mptbm-distance-tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.mptbm-distance-tier-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.mptbm-distance-tier-badge:hover::before {
+    left: 100%;
+}
+
+.mptbm-distance-tier-badge {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: 2px solid #28a745;
+}
+
+.mptbm-distance-tier-badge .badge-icon {
+    font-size: 14px;
+    line-height: 1;
+    display: inline-block;
+}
+
+.mptbm-distance-tier-badge .badge-text {
+    font-size: 11px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Badge positioning in vehicle cards */
+.mptbm-tier-pricing-savings-ticket-container {
+    position: relative;
+    margin-bottom: 8px;
+}
+
+.mptbm-distance-tier-badge {
+    display: block;
+    width: fit-content;
+    margin: 0 auto 8px auto;
+    text-align: center;
+}
+
+/* Hover effects */
+.mptbm-distance-tier-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+/* Badge tooltip on hover */
+.mptbm-distance-tier-badge[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 4px;
+}
+
+.mptbm-distance-tier-badge[title]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+    margin-bottom: -4px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .mptbm-distance-tier-badge {
+        padding: 4px 8px;
+        font-size: 10px;
+        gap: 4px;
+    }
+
+    .mptbm-distance-tier-badge .badge-icon {
+        font-size: 12px;
+    }
+
+    .mptbm-distance-tier-badge .badge-text {
+        font-size: 9px;
+    }
+}

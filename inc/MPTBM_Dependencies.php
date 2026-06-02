@@ -90,6 +90,23 @@ if (!class_exists('MPTBM_Dependencies')) {
             wp_enqueue_script('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.js', array('jquery'), time(), true);
             wp_enqueue_style('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.css', array(), time());
 
+            $editor_type = isset( $_GET['editor'] ) ? sanitize_text_field( wp_unslash( $_GET['editor'] ) ) : 'new';
+            if ( $editor_type !== 'old') {
+                if ( class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) {
+                    wp_enqueue_style('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css', array(), time());
+                    wp_enqueue_style('distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/css/distance-tier-pricing.css', array(), time());
+
+                    wp_enqueue_script('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js', array('jquery'), time(), true);
+                    wp_enqueue_script('distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/js/distance-tier-pricing.js', array('jquery'), time(), true);
+                }
+
+                if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) {
+                    error_log( print_r( [ 'here' => 'ok'], true ) );
+                    wp_enqueue_style('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css', array(), time());
+                    wp_enqueue_script('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js', array('jquery'), time(), true);
+                }
+            }
+
             // No transport templates
             wp_enqueue_script('mptbm-no-transport-templates', MPTBM_PLUGIN_URL . '/assets/admin/js/no-transport-templates.js', array('jquery'), time(), true);
             

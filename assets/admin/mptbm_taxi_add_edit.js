@@ -412,6 +412,7 @@
                     $("#mptbm_fixed_zone_area_pricing").fadeOut();
                 }
                 $("#mptbm_operation_area_settings").fadeIn();
+                $("#mptbm_area_based_wrapper").fadeIn();
 
                 let shortcode = "<code>[mptbm_booking price_based='fixed_map' form='horizontal' progressbar='yes' map='yes']</code>";
                 $("#mptbm_shortcode_example_code").html(shortcode);
@@ -447,6 +448,7 @@
                     $("#mptbm_price_per_hour").fadeOut();
                 }
                 $("#mptbm_operation_area_settings").fadeOut();
+                $("#mptbm_area_based_wrapper").fadeOut();
 
                 let shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup' form='horizontal' progressbar='yes' map='yes']</code>";
                 $("#mptbm_shortcode_example_code").html(shortcode);
