@@ -1116,4 +1116,70 @@
         .data('operation-area-type');
     $('input[name="mptbm_operation_area_fixed_map_type"]').val(activeType);
 
+
+
+    /*Area Based Pricing*/
+    // Add row
+    $('.motbm_area_based_add').on('click', function () {
+
+        let $clone = $('.motbm_area_based_row:first').clone();
+
+        $clone.find('select').val('');
+        $clone.find('input').val('');
+
+        $('.motbm_area_based_items').append($clone);
+
+        motbm_area_based_refresh_options();
+    });
+    // Remove row
+    $(document).on('click', '.motbm_area_based_remove', function () {
+
+        if ($('.motbm_area_based_row').length > 1) {
+            $(this).closest('.motbm_area_based_row').remove();
+            motbm_area_based_refresh_options();
+        }
+
+    });
+    // Change dropdown
+    $(document).on('change', '.motbm_area_based_post', function () {
+        motbm_area_based_refresh_options();
+    });
+    function motbm_area_based_refresh_options() {
+
+        let selectedValues = [];
+
+        $('.motbm_area_based_post').each(function () {
+
+            let value = $(this).val();
+
+            if (value) {
+                selectedValues.push(value);
+            }
+        });
+        $('.motbm_area_based_post').each(function () {
+
+            let currentValue = $(this).val();
+
+            $(this).find('option').prop('disabled', false);
+
+            $(this).find('option').each(function () {
+
+                let optionValue = $(this).val();
+
+                if (
+                    optionValue &&
+                    optionValue !== currentValue &&
+                    selectedValues.includes(optionValue)
+                ) {
+                    $(this).prop('disabled', true);
+                }
+
+            });
+
+        });
+
+    }
+    // Initial load (for edit screen)
+    motbm_area_based_refresh_options();
+
 }(jQuery));

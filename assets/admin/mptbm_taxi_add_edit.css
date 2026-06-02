@@ -820,6 +820,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
     padding: 5px 10px;
     border: 1px solid #dddddd;
     border-radius: 10px;
+    margin: 10px 0;
 }
 
 .mptbm_taxi_pricing_form_grid {
@@ -2335,4 +2336,107 @@ select.mptbm_taxi_ex_service_select {
     width: 16px;
     height: 16px;
     font-size: 16px;
+}
+
+/*Area Based Pricing*/
+.motbm_area_based_wrapper {
+    background: #f4f7fb;
+    border: 1px solid #dfe6ee;
+    border-radius: 12px;
+    padding: 15px;
+    /*margin-top: 15px;*/
+}
+.motbm_area_based_card {
+    background: #f9fbfd;
+    border: 1px solid #e5e9f0;
+    border-radius: 12px;
+    padding: 18px;
+    margin-top: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.motbm_area_based_header {
+    padding-bottom: 14px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e5e9f0;
+}
+.motbm_area_based_title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d2327;
+}
+.motbm_area_based_desc {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+.motbm_area_based_row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e6eaf0;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    transition: 0.2s ease;
+}
+
+.motbm_area_based_row:hover {
+    border-color: #cfd6e4;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.motbm_area_based_row select,
+.motbm_area_based_row input {
+    height: 38px;
+    border: 1px solid #d9dee7;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    outline: none;
+    background: #fff;
+}
+
+.motbm_area_based_row select {
+    min-width: 180px;
+}
+
+.motbm_area_based_row input {
+    width: 120px;
+}
+
+.motbm_area_based_add {
+    margin-top: 10px;
+    background: #2271b1;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.motbm_area_based_remove {
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .motbm_area_based_row {
+        flex-wrap: wrap;
+    }
+
+    .motbm_area_based_row select,
+    .motbm_area_based_row input {
+        width: 100%;
+    }
 }

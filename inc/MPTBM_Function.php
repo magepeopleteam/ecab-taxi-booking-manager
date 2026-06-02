@@ -855,34 +855,68 @@ if (!class_exists('MPTBM_Function')) {
 					$price = $km_price * ((float) $distance / 1000);
 				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_distance' || $price_based == 'fixed_map') && ($original_price_based == 'fixed_distance' || $original_price_based == 'fixed_map')) {
 					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_route_price_info', []);
+
+					$fixed_map_area_to_area_price_info = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_area_to_area_price_info', []);
+					$operation_area_fixed_map_type = MP_Global_Function::get_post_info($post_id, 'mptbm_operation_area_fixed_map_type', 'zone_to_location');
+
 					$found_zone_price = false;
 
-					if (!empty($fixed_zone_prices) && is_array($fixed_zone_prices)) {
-						$pickup_lat = get_transient('pickup_lat_transient');
-						$pickup_lng = get_transient('pickup_lng_transient');
-						$dropoff_lat = get_transient('drop_lat_transient');
-						$dropoff_lng = get_transient('drop_lng_transient');
+                    if( $operation_area_fixed_map_type === 'zone_to_location' ){
+                        if (!empty($fixed_zone_prices) && is_array($fixed_zone_prices)) {
+                            $pickup_lat = get_transient('pickup_lat_transient');
+                            $pickup_lng = get_transient('pickup_lng_transient');
+                            $dropoff_lat = get_transient('drop_lat_transient');
+                            $dropoff_lng = get_transient('drop_lng_transient');
 
-						if ($pickup_lat && $pickup_lng && $dropoff_lat && $dropoff_lng) {
-							$pickup_coords = ['lat' => $pickup_lat, 'lng' => $pickup_lng];
-							$dropoff_coords = ['lat' => $dropoff_lat, 'lng' => $dropoff_lng];
+                            if ($pickup_lat && $pickup_lng && $dropoff_lat && $dropoff_lng) {
+                                $pickup_coords = ['lat' => $pickup_lat, 'lng' => $pickup_lng];
+                                $dropoff_coords = ['lat' => $dropoff_lat, 'lng' => $dropoff_lng];
 
-							foreach ($fixed_zone_prices as $fixed_zone_price) {
-								$start_location = $fixed_zone_price['start_location'] ?? '';
-								$end_location = $fixed_zone_price['end_location'] ?? '';
+                                foreach ($fixed_zone_prices as $fixed_zone_price) {
+                                    $start_location = $fixed_zone_price['start_location'] ?? '';
+                                    $end_location = $fixed_zone_price['end_location'] ?? '';
 
-                                $start_match = self::is_point_in_fixed_zone($start_location, $pickup_coords);
-                                $end_match = self::is_point_in_fixed_zone($end_location, $dropoff_coords);
+                                    $start_match = self::is_point_in_fixed_zone($start_location, $pickup_coords);
+                                    $end_match = self::is_point_in_fixed_zone($end_location, $dropoff_coords);
 
-								if ($start_match && $end_match) {
-									$price = (float) ($fixed_zone_price['price'] ?? 0);
-									$found_zone_price = true;
-                                    set_transient('mptbm_fixed_route_found_' . $post_id, 'yes', MINUTE_IN_SECONDS);
-									break;
-								}
-							}
-						}
-					}
+                                    if ($start_match && $end_match) {
+                                        $price = (float) ($fixed_zone_price['price'] ?? 0);
+                                        $found_zone_price = true;
+                                        set_transient('mptbm_fixed_route_found_' . $post_id, 'yes', MINUTE_IN_SECONDS);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }else{
+                        if (!empty($fixed_map_area_to_area_price_info) && is_array($fixed_map_area_to_area_price_info)) {
+                            $area_to_area_pickup_lat = get_transient('pickup_lat_transient');
+                            $area_to_area_pickup_lng = get_transient('pickup_lng_transient');
+                            $area_to_area_dropoff_lat = get_transient('drop_lat_transient');
+                            $area_to_area_dropoff_lng = get_transient('drop_lng_transient');
+
+                            if ($area_to_area_pickup_lat && $area_to_area_pickup_lng && $area_to_area_dropoff_lat && $area_to_area_dropoff_lng) {
+                                $area_to_area_pickup_coords = ['lat' => $area_to_area_pickup_lat, 'lng' => $area_to_area_pickup_lng];
+                                $area_to_area_dropoff_coords = ['lat' => $area_to_area_dropoff_lat, 'lng' => $area_to_area_dropoff_lng];
+
+                                foreach ($fixed_map_area_to_area_price_info as $fixed_map_area_to_area_price) {
+                                    $area_to_area_start_location = $fixed_map_area_to_area_price['start_location'] ?? '';
+                                    $area_to_area_end_location = $fixed_map_area_to_area_price['end_location'] ?? '';
+
+                                    $area_to_area_start_match = self::is_point_in_fixed_zone($area_to_area_start_location, $area_to_area_pickup_coords);
+                                    $area_to_area_end_match = self::is_point_in_fixed_zone($area_to_area_end_location, $area_to_area_dropoff_coords);
+
+                                    if ($area_to_area_start_match && $area_to_area_end_match ) {
+                                        $price = (float) ($fixed_map_area_to_area_price['price'] ?? 0);
+                                        $found_zone_price = true;
+                                        set_transient('mptbm_fixed_route_found_' . $post_id, 'yes', MINUTE_IN_SECONDS);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
 
 					if (!$found_zone_price) {
 
