@@ -878,6 +878,28 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				}
 				update_post_meta($post_id, 'mptbm_fixed_map_route_price_info', $fixed_map_route_price_infos);
 
+				$mptbm_fixed_map_area_to_area_price_info = array();
+				$start_map_area_to_area_route = isset($_POST['mptbm_fixed_map_route_zone_to_zone_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_map_route_zone_to_zone_start_location']) : [];
+				$end_map_area_to_area_route = isset($_POST['mptbm_fixed_map_route_zone_to_zone_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_map_route_zone_to_zone_end_location']) : [];
+				$map_route_area_to_area_price = isset($_POST['mptbm_fixed_map_route_zone_to_zone_price']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_map_route_zone_to_zone_price']) : [];
+
+				if (count($start_map_area_to_area_route) > 0) {
+					$count = 0;
+					foreach ($start_map_area_to_area_route as $key => $location) {
+						$e_route = isset($end_map_area_to_area_route[$key]) ? $end_map_area_to_area_route[$key] : '';
+						$r_price = isset($map_route_area_to_area_price[$key]) ? $map_route_area_to_area_price[$key] : '';
+
+						if ($location && $e_route && $r_price) {
+                            $mptbm_fixed_map_area_to_area_price_info[$count]['start_location'] = $location;
+                            $mptbm_fixed_map_area_to_area_price_info[$count]['end_location'] = $e_route;
+                            $mptbm_fixed_map_area_to_area_price_info[$count]['price'] = $r_price;
+							$count++;
+						}
+					}
+				}
+				update_post_meta( $post_id, 'mptbm_fixed_map_area_to_area_price_info', $mptbm_fixed_map_area_to_area_price_info);
+                $price_display_type = isset($_POST['mptbm_operation_area_fixed_map_type']) ? sanitize_text_field($_POST['mptbm_operation_area_fixed_map_type']) : 'zone_to_location';
+                update_post_meta( $post_id, 'mptbm_operation_area_fixed_map_type', $price_display_type);
 
 				$zone_to_zone_route_price_infos = array();
 				$start_zone_to_zone_route = isset($_POST['mptbm_zone_to_zone_route_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_start_location']) : [];
@@ -920,6 +942,8 @@ if (!class_exists('MPTBM_Price_Settings')) {
                 }
 
 
+
+
 				update_post_meta($post_id, 'mptbm_terms_price_info', $terms_price_infos);
 				$waiting_price = isset($_POST['mptbm_waiting_price']) ? sanitize_text_field($_POST['mptbm_waiting_price']) : '';
 				update_post_meta($post_id, 'mptbm_waiting_price', $waiting_price);
@@ -927,8 +951,49 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				update_post_meta($post_id, 'mptbm_price_display_type', $price_display_type);
 				$custom_price_message = isset($_POST['mptbm_custom_price_message']) ? sanitize_textarea_field($_POST['mptbm_custom_price_message']) : '';
 				update_post_meta($post_id, 'mptbm_custom_price_message', $custom_price_message);
+
+                $this->get_area_based_pricing( $post_id, $_POST );
 			}
 		}
+
+        public function get_area_based_pricing( $post_id, $POST ){
+
+            $area_based_pricing = [];
+
+            if (
+                !empty($POST['mptbm_area_based_post']) &&
+                is_array($POST['mptbm_area_based_post'])
+            ) {
+
+                foreach ($POST['mptbm_area_based_post'] as $index => $area_post_id ) {
+                    $area_post_id = trim($area_post_id);
+                    if (empty($area_post_id)) {
+                        continue;
+                    }
+
+                    $area_based_pricing[$area_post_id] = [
+                        'fixed' => isset($POST['mptbm_area_based_fixed'][$index])
+                            ? sanitize_text_field($POST['mptbm_area_based_fixed'][$index])
+                            : '',
+
+                        'per_km' => isset($POST['mptbm_area_based_per_km'][$index])
+                            ? sanitize_text_field($POST['mptbm_area_based_per_km'][$index])
+                            : '',
+
+                        'per_hour' => isset($POST['mptbm_area_based_per_hour'][$index])
+                            ? sanitize_text_field($POST['mptbm_area_based_per_hour'][$index])
+                            : '',
+                    ];
+                }
+            }
+
+            if ( !$post_id ) {
+                wp_send_json_error('Invalid data');
+            }
+
+            update_post_meta( $post_id, 'mptbm_operation_area_pricing', $area_based_pricing);
+
+        }
 
         function mptbm_operation_area_price_data_set() {
 
@@ -942,6 +1007,7 @@ if (!class_exists('MPTBM_Price_Settings')) {
             if ( !$post_id ) {
                 wp_send_json_error('Invalid data');
             }
+
             // Save to meta
             update_post_meta( $post_id, 'mptbm_operation_area_pricing', $pricing);
 

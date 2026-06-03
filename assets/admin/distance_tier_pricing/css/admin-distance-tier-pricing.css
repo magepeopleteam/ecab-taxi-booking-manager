@@ -1,0 +1,556 @@
+/* Distance Tier Pricing Admin Styles */
+.mptbm_distance_tier_pricing_settings {
+    margin: 20px 0;
+}
+
+/* Multi-Range Tier Card Styles */
+.tier-card {
+    background: #fff;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.tier-header {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e1e5e9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.tier-name-section h6 {
+    margin: 0 0 8px 0;
+    color: #495057;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.tier-name-section input {
+    min-width: 200px;
+}
+
+.tier-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.add-range-btn, .remove-tier-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.add-range-btn {
+    background: #28a745;
+    color: white;
+}
+
+.add-range-btn:hover {
+    background: #218838;
+}
+
+.remove-tier-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.remove-tier-btn:hover {
+    background: #c82333;
+}
+
+.ranges-container {
+    padding: 20px;
+}
+
+.range-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.range-item:last-child {
+    margin-bottom: 0;
+}
+
+.range-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    align-items: end;
+}
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.field-group label {
+    margin-bottom: 5px;
+}
+
+.field-group span {
+    font-size: 12px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.field-group .formControl {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.preview-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.range-preview {
+    text-align: center;
+    padding: 8px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.preview-empty {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.action-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-range-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.remove-range-btn:hover {
+    background: #c82333;
+}
+
+/* Responsive adjustments for multi-range */
+@media (max-width: 1200px) {
+    .range-fields {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    .tier-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .tier-actions {
+        justify-content: center;
+    }
+    
+    .range-fields {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .range-fields {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .tier-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .add-range-btn, .remove-tier-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.mptbm_distance_tier_pricing_settings .table-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 20px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mptbm_distance_tier_pricing_settings table {
+    width: 100%;
+    min-width: 900px; /* force horizontal scroll on smaller containers */
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    table-layout: fixed;
+    display: inline-table; /* allow scroll container to size independently */
+}
+
+.mptbm_distance_tier_pricing_settings table th {
+    background: #f8f9fa;
+    padding: 12px 8px;
+    border: 1px solid #dee2e6;
+    font-weight: 600;
+    font-size: 13px;
+    text-align: center;
+    color: #495057;
+}
+
+.mptbm_distance_tier_pricing_settings table td {
+    padding: 8px;
+    border: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.mptbm_distance_tier_pricing_settings table th:first-child,
+.mptbm_distance_tier_pricing_settings table td:first-child {
+    width: 20%;
+    text-align: left;
+}
+
+.mptbm_distance_tier_pricing_settings table th:nth-child(2),
+.mptbm_distance_tier_pricing_settings table td:nth-child(2),
+.mptbm_distance_tier_pricing_settings table th:nth-child(3),
+.mptbm_distance_tier_pricing_settings table td:nth-child(3) {
+    width: 15%;
+}
+
+.mptbm_distance_tier_pricing_settings table th:nth-child(4),
+.mptbm_distance_tier_pricing_settings table td:nth-child(4) {
+    width: 20%;
+}
+
+.mptbm_distance_tier_pricing_settings table th:nth-child(5),
+.mptbm_distance_tier_pricing_settings table td:nth-child(5) {
+    width: 10%;
+}
+
+.mptbm_distance_tier_pricing_settings table th:nth-child(6),
+.mptbm_distance_tier_pricing_settings table td:nth-child(6) {
+    width: 10%;
+}
+
+.mptbm_distance_tier_pricing_settings table th:nth-child(7),
+.mptbm_distance_tier_pricing_settings table td:nth-child(7) {
+    width: 15%;
+    text-align: center;
+}
+
+.mptbm_distance_tier_pricing_settings table th:nth-child(8),
+.mptbm_distance_tier_pricing_settings table td:nth-child(8) {
+    width: 16%;
+    text-align: center;
+}
+
+.mptbm_distance_tier_pricing_settings .formControl {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.mptbm_distance_tier_pricing_settings .formControl:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.mptbm_distance_tier_pricing_settings .formControl.error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.mptbm_distance_tier_pricing_settings .validation-message {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+.mptbm_distance_tier_pricing_settings .mp_add_new_button {
+    background: #007cba;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.mptbm_distance_tier_pricing_settings .mp_add_new_button:hover {
+    background: #005a87;
+}
+
+.mptbm_distance_tier_pricing_settings .mp_add_new_button i {
+    margin-right: 8px;
+}
+
+.mptbm_distance_tier_pricing_settings .buttonGroup {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.mptbm_distance_tier_pricing_settings ._mpBtn_themeButton_xs {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.mptbm_distance_tier_pricing_settings ._mpBtn_themeButton_xs:hover {
+    background: #545b62;
+}
+
+.mptbm_distance_tier_pricing_settings ._whiteButton_xs {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.mptbm_distance_tier_pricing_settings ._whiteButton_xs:hover {
+    background: #c82333;
+}
+
+.mptbm_distance_tier_pricing_settings .fas {
+    font-size: 10px;
+}
+
+/* Tier Preview Styling */
+.mptbm_distance_tier_pricing_settings .tier-preview {
+    text-align: center;
+    padding: 8px;
+}
+
+.mptbm_distance_tier_pricing_settings .preview-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mptbm_distance_tier_pricing_settings .preview-empty {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .mptbm_distance_tier_pricing_settings .table-wrapper {
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .mptbm_distance_tier_pricing_settings table {
+        min-width: 600px;
+    }
+
+    .mptbm_distance_tier_pricing_settings table th,
+    .mptbm_distance_tier_pricing_settings table td {
+        padding: 6px 4px;
+        font-size: 12px;
+    }
+
+    .mptbm_distance_tier_pricing_settings .formControl {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+}
+
+/* Hidden content for dynamic addition */
+.mptbm_distance_tier_pricing_settings .mp_hidden_content {
+    display: none;
+}
+
+/* Sortable placeholder */
+.mptbm_distance_tier_pricing_settings .ui-state-highlight {
+    background: #f8f9fa !important;
+    border: 2px dashed #dee2e6 !important;
+    height: 50px;
+    visibility: visible !important;
+}
+
+/* Section styling */
+.mptbm_distance_tier_pricing_settings .bg-light {
+    background: #f8f9fa;
+    padding: 15px;
+    margin: 20px 0 15px 0;
+    border-radius: 8px;
+    border-left: 4px solid #007cba;
+}
+
+.mptbm_distance_tier_pricing_settings .bg-light h6 {
+    margin: 0 0 8px 0;
+    color: #495057;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.mptbm_distance_tier_pricing_settings .bg-light span {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* Label styling */
+.mptbm_distance_tier_pricing_settings .label {
+    margin-bottom: 25px;
+}
+
+.mptbm_distance_tier_pricing_settings .label h6 {
+    margin: 0 0 8px 0;
+    color: #495057;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.mptbm_distance_tier_pricing_settings .label .desc {
+    color: #6c757d;
+    font-size: 12px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Form control styling */
+.mptbm_distance_tier_pricing_settings .formControl {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.mptbm_distance_tier_pricing_settings .formControl:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.mptbm_distance_tier_pricing_settings .formControl:disabled {
+    background-color: #e9ecef;
+    opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .mptbm_distance_tier_pricing_settings table {
+        min-width: 800px;
+    }
+}
+
+@media (max-width: 992px) {
+    .mptbm_distance_tier_pricing_settings table {
+        min-width: 700px;
+    }
+
+    .mptbm_distance_tier_pricing_settings table th:first-child,
+    .mptbm_distance_tier_pricing_settings table td:first-child {
+        width: 25%;
+    }
+}
+
+@media (max-width: 768px) {
+    .mptbm_distance_tier_pricing_settings table {
+        min-width: 600px;
+    }
+
+    .mptbm_distance_tier_pricing_settings .mp_add_new_button {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Loading state */
+.mptbm_distance_tier_pricing_settings .loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.mptbm_distance_tier_pricing_settings .loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+}
+
+/* Success/Error messages */
+.mptbm_distance_tier_pricing_settings .notice {
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.mptbm_distance_tier_pricing_settings .notice-success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.mptbm_distance_tier_pricing_settings .notice-error {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}

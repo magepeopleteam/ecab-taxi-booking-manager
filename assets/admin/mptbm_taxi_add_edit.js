@@ -284,6 +284,12 @@
             $('.mptbm_taxi_pricing_route_list').append(tr);
         });
 
+        $(document).on('click','.mptbm_taxi_pricing_add_zone_to_zone_route_btn', function() {
+            var tr = $('.mptbm_taxi_pricing_zone_to_zone_route_list tr:first').clone();
+            tr.find('input').val('');
+            $('.mptbm_taxi_pricing_zone_to_zone_route_list').append(tr);
+        });
+
         $(document).on('click', '.mptbm_taxi_pricing_add_zone_btn', function() {
             var tr = $('.mptbm_taxi_pricing_zone_to_zone_route_list tr:first').clone();
             tr.find('input').val('');
@@ -406,6 +412,7 @@
                     $("#mptbm_fixed_zone_area_pricing").fadeOut();
                 }
                 $("#mptbm_operation_area_settings").fadeIn();
+                $("#mptbm_area_based_wrapper").fadeIn();
 
                 let shortcode = "<code>[mptbm_booking price_based='fixed_map' form='horizontal' progressbar='yes' map='yes']</code>";
                 $("#mptbm_shortcode_example_code").html(shortcode);
@@ -441,6 +448,7 @@
                     $("#mptbm_price_per_hour").fadeOut();
                 }
                 $("#mptbm_operation_area_settings").fadeOut();
+                $("#mptbm_area_based_wrapper").fadeOut();
 
                 let shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup' form='horizontal' progressbar='yes' map='yes']</code>";
                 $("#mptbm_shortcode_example_code").html(shortcode);
@@ -1093,4 +1101,87 @@
         });
 
     });
+
+
+    $('.mptbm_operation_area_fixed_map_type_tab').on('click', function () {
+        let type = $(this).data('operation-area-type');
+        $('.mptbm_operation_area_fixed_map_type_tab').removeClass('active');
+        $(this).addClass('active');
+
+        $('input[name="mptbm_operation_area_fixed_map_type"]').val(type);
+
+        $('.mptbm_operation_area_fixed_map_type_content').hide();
+
+        $('#mptbm_operation_area_fixed_map_' + type).fadeIn(200);
+    });
+    let activeType = $('.mptbm_operation_area_fixed_map_type_tab.active')
+        .data('operation-area-type');
+    $('input[name="mptbm_operation_area_fixed_map_type"]').val(activeType);
+
+
+
+    /*Area Based Pricing*/
+    // Add row
+    $('.motbm_area_based_add').on('click', function () {
+
+        let $clone = $('.motbm_area_based_row:first').clone();
+
+        $clone.find('select').val('');
+        $clone.find('input').val('');
+
+        $('.motbm_area_based_items').append($clone);
+
+        motbm_area_based_refresh_options();
+    });
+    // Remove row
+    $(document).on('click', '.motbm_area_based_remove', function () {
+
+        if ($('.motbm_area_based_row').length > 1) {
+            $(this).closest('.motbm_area_based_row').remove();
+            motbm_area_based_refresh_options();
+        }
+
+    });
+    // Change dropdown
+    $(document).on('change', '.motbm_area_based_post', function () {
+        motbm_area_based_refresh_options();
+    });
+    function motbm_area_based_refresh_options() {
+
+        let selectedValues = [];
+
+        $('.motbm_area_based_post').each(function () {
+
+            let value = $(this).val();
+
+            if (value) {
+                selectedValues.push(value);
+            }
+        });
+        $('.motbm_area_based_post').each(function () {
+
+            let currentValue = $(this).val();
+
+            $(this).find('option').prop('disabled', false);
+
+            $(this).find('option').each(function () {
+
+                let optionValue = $(this).val();
+
+                if (
+                    optionValue &&
+                    optionValue !== currentValue &&
+                    selectedValues.includes(optionValue)
+                ) {
+                    $(this).prop('disabled', true);
+                }
+
+            });
+
+        });
+
+    }
+    // Initial load (for edit screen)
+    motbm_area_based_refresh_options();
+
 }(jQuery));
