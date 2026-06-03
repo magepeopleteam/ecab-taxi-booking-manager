@@ -1448,48 +1448,37 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             $show_area = 'none';
                             $show_area_create = '';
                         }
-                        if( $selected_operation_type == 'geo-fence-operation-area-type' ){?>
-                            <section id="geo-fence-operation-area-section" class="<?php echo ($selected_operation_type === 'geo-fence-operation-area-type') ? 'mActive' : ''; ?>" data-collapse="#geo-fence-operation-area-type">
-                                <label class="label">
-                                    <div>
-                                        <h6><?php esc_html_e('Select Geo Fence Operation Area', 'ecab-taxi-booking-manager'); ?></h6>
-                                        <span class="desc"><?php esc_html_e('Select a geo fence operation area', 'ecab-taxi-booking-manager'); ?></span>
-                                    </div>
-                                    <select class="formControl" name="mptbm_selected_operation_areas[]" id="mptbm_selected_geo_fence_area">
-                                        <option value=""><?php esc_html_e('Select Geo Fence Area', 'ecab-taxi-booking-manager'); ?></option>
-                                        <?php
-                                        foreach ( $all_operation_area_infos as $area_info ) {
-                                            if ($area_info['operation_type'] == 'geo-fence-operation-area-type') {
-                                                $selected = in_array($area_info['post_id'], $selected_operation_areas) ? 'selected' : '';
-                                                echo '<option value="' . esc_attr($area_info['post_id']) . '" ' . $selected . '>' . esc_html(get_the_title($area_info['post_id'])) . '</option>';
-                                            }
-                                        }
-                                        ?>
-                                    </select>
-                                </label>
-                            </section>
-                        <?php } else{
+
                         ?>
                         <label><?php esc_html_e( 'SELECT OPERATION AREAS — multiple allowed', 'ecab-taxi-booking-manager' ); ?></label>
 
                         <div class="mptbm_taxi_pricing_area_pills" style="display: <?php echo esc_attr( $show_area )?>">
                             <?php
-
-                            foreach ( $operation_area as $id => $name): ?>
+                            foreach ( $all_operation_area_infos as $key => $area_info ):
+                                $id = $area_info['post_id'];
+                                ?>
 
                                 <?php
                                 $is_selected = in_array($id, $selected_operation_areas);
+
+                                $is_geo_fence = 0;
+                                $is_geo_fence_display = 'block';
+                                if ( $area_info['operation_type'] == 'geo-fence-operation-area-type') {
+                                    $is_geo_fence = 1;
+                                }
                                 ?>
 
                                 <button
                                         type="button"
                                         class="mptbm_taxi_pricing_pill <?php echo $is_selected ? 'selected' : ''; ?>"
-                                        data-id="<?php echo $id; ?>"
+                                        data-id="<?php echo esc_attr( $id ); ?>"
+                                        data-geo-fance = "<?php echo esc_attr( $is_geo_fence );?>"
+                                        style="display: <?php echo esc_attr( $is_geo_fence_display );?>"
                                 >
                                     <?php if ($is_selected): ?>
                                         <i class="fas fa-check"></i>
                                     <?php endif; ?>
-                                    <?php echo $name; ?>
+                                    <?php echo esc_attr( get_the_title($area_info['post_id'] ) ); ?>
                                 </button>
 
                             <?php endforeach; ?>
@@ -1513,7 +1502,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             </a>
                         </div>
                     </div>
-                    <?php }?>
+
                     <?php
                     $area_based_pricing = 'none';
                     if( !empty( $all_operation_area_infos ) && !empty( $selected_operation_areas ) ){

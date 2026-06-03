@@ -322,7 +322,7 @@
             let type = getOperationType();
 
             // SINGLE SELECT MODE
-            if (type === 'geo-matched-operation-area-type') {
+            if (type === 'geo-matched-operation-area-type' || type === 'geo-fence-operation-area-type' ) {
 
                 $('.mptbm_taxi_pricing_pill')
                     .removeClass('selected')
@@ -352,6 +352,18 @@
             updateHiddenInput();
             updateActiveIndicator();
         });
+
+        function togglePricingAreaButtons() {
+            let operationType = $('#mptbm_operation_area_type').val();
+            $('.mptbm_taxi_pricing_pill').fadeOut();
+            if (operationType === 'geo-fence-operation-area-type') {
+                $('.mptbm_taxi_pricing_pill[data-geo-fance="1"]').fadeIn();
+            } else {
+                $('.mptbm_taxi_pricing_pill[data-geo-fance="0"]').fadeIn();
+            }
+        }
+        togglePricingAreaButtons();
+
         function updateActiveIndicator() {
             var activeAreas = [];
 
@@ -410,6 +422,10 @@
                     $("#mptbm_fixed_map_area_pricing").fadeIn();
                     $("#mptbm_operation_area_settings").fadeIn();
                     $("#mptbm_fixed_zone_area_pricing").fadeOut();
+
+                    $("#mptbm_distance_price").fadeIn();
+                    $("#mptbm_fixed_pricing").fadeIn();
+                    $("#mptbm_price_per_hour").fadeIn();
                 }
                 $("#mptbm_operation_area_settings").fadeIn();
                 $("#mptbm_area_based_wrapper").fadeIn();
@@ -442,13 +458,13 @@
                     $("#mptbm_fixed_zone_area_pricing").fadeIn();
                     $("#mptbm_fixed_map_area_pricing").fadeOut();
                     $("#mptbm_operation_area_settings").fadeOut();
-
-                    $("#mptbm_distance_price").fadeOut();
-                    $("#mptbm_fixed_pricing").fadeOut();
-                    $("#mptbm_price_per_hour").fadeOut();
                 }
                 $("#mptbm_operation_area_settings").fadeOut();
                 $("#mptbm_area_based_wrapper").fadeOut();
+
+                $("#mptbm_distance_price").fadeOut();
+                $("#mptbm_fixed_pricing").fadeOut();
+                $("#mptbm_price_per_hour").fadeOut();
 
                 let shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup' form='horizontal' progressbar='yes' map='yes']</code>";
                 $("#mptbm_shortcode_example_code").html(shortcode);
@@ -749,19 +765,13 @@
         // on change
         $(document).on('change', '.mptbm_operation_area_type', function () {
 
-            let selected_type = $(this).val();
-
-            if( selected_type === 'geo-fence-operation-area-type' ){
-                $('.mptbm_taxi_pricing_area_pills').fadeOut();
-            }else{
-                $('.mptbm_taxi_pricing_area_pills').fadeIn();
-            }
-
             $('#mptbm_selected_operation_areas').val('');
             $('.mptbm_taxi_pricing_pill')
                 .removeClass('selected')
                 .find('i').remove();
             $('.mptbm_taxi_pricing_active_indicator').html('Active: ');
+
+            togglePricingAreaButtons();
         });
 
         // on load
