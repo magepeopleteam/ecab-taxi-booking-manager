@@ -17,10 +17,13 @@
 
 /******************************************************************** ************************************************/
 @media only screen and (min-width: 10px) {
-	div.mptbm_transport_search_area {width: 100%;max-width: 1200px;
+	div.mptbm_transport_search_area {
+		width: 100%;
+		max-width: 1200px;
 		box-shadow: 0 0 10px #ddd;
 		border-radius: 12px;
 		background-color: #FFF;
+		margin: 0 auto;
 	}
 	div.mptbm_transport_search_area div.tabsContentNext {
 		padding:15px;
