@@ -589,7 +589,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             </div>
         <?php }
 
-        public static function enable_base_location_charges( $post_id ){
+        public static function enable_base_location_charges( $post_id, $pro_active ){
             $base_price_location = MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_location', '');
             $base_price_km = MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_km', '');
             $base_price_hour = MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_hour', '');
@@ -608,20 +608,43 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             ?>
 
             <div class="mptbm_taxi_toggle_container" id="mptbm_taxi_base_location_toggle_container">
+
                 <div class="mptbm_taxi_ex_service_header">
                     <div class="mptbm_taxi_ex_service_title_group">
                         <h2 class="mptbm_taxi_ex_service_main_title"><?php esc_html_e( 'Enable Base Location Charges', 'ecab-taxi-booking-manager' ); ?></h2>
                         <p><?php esc_html_e( 'Apply additional charges based on distance between taxi base location and pickup/drop-off points.', 'ecab-taxi-booking-manager' ); ?></p>
                     </div>
                     <div class="mptbm_taxi_ex_service_toggle_wrapper">
-                        <label class="mptbm_taxi_ex_service_switch">
-                            <input type="checkbox" id="mptbm_display_taxi_base_location_pricing" name="mptbm_display_taxi_base_location_pricing"  class="mptbm_taxi_toggle_trigger" <?php echo esc_attr( $checked );?>>
-                            <span class="mptbm_taxi_slider"></span>
-                        </label>
-                        <span class="mptbm_taxi_ex_service_toggle_label mptbm_display_taxi_base_location_pricing_level"><?php esc_html_e( 'ON', 'ecab-taxi-booking-manager' ); ?></span>
+
+                        <?php if ( $pro_active ): ?>
+
+                            <label class="mptbm_taxi_ex_service_switch">
+                                <input type="checkbox"
+                                       id="mptbm_display_taxi_base_location_pricing"
+                                       name="mptbm_display_taxi_base_location_pricing"
+                                       class="mptbm_taxi_toggle_trigger"
+                                    <?php echo esc_attr($checked); ?>>
+                                <span class="mptbm_taxi_slider"></span>
+                            </label>
+                            <span class="mptbm_taxi_ex_service_toggle_label">
+                                <?php esc_html_e('ON', 'ecab-taxi-booking-manager'); ?>
+                            </span>
+                        <?php else: ?>
+
+                            <abel class="mptbm_taxi_ex_service_switch mptbm_locked_switch">
+                                <input type="checkbox" disabled>
+                                <span class="mptbm_taxi_slider mptbm_locked"></span>
+                            </abel>
+
+                            <span class="mptbm_taxi_ex_service_toggle_label mptbm_pro_locked_text">
+                                🔒 Pro Feature
+                            </span>
+                        <?php endif; ?>
                     </div>
+
                 </div>
 
+                <?php if( $pro_active ){?>
                 <div class="mptbm_taxi_ex_service_body" id="mptbm_taxi_base_location_price_body" style="display: <?php echo esc_attr( $active );?>">
                     <div class="mptbm_taxi_base_price_row">
                         <div class="mptbm_taxi_field">
@@ -717,13 +740,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     </div>
 
                 </div>
-
+                <?php }?>
             </div>
-
-
-
-
-
         <?php }
         public static function features_item($features = array()) {
                 $label = array_key_exists('label', $features) ? $features['label'] : '';
@@ -1140,9 +1158,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 <?php
                 self::initial_base_pricing( $post_id );
 
-                if( $pro_active ) {
-                    self::enable_base_location_charges($post_id);
-                }
+//                if( $pro_active ) {
+                    self::enable_base_location_charges( $post_id, $pro_active );
+//                }
                 ?>
 
                 <div class="mptbm_rent_editor_wrapper" style="display: block">
@@ -1420,7 +1438,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                                         Formula (fallback):
 
-                                        (Hour Price × Duration) + (KM Price × Distance)', 'ecab-taxi-booking-manager' ); ?>First checks predefined zone route price
+                                        (Hour Price × Duration) + (KM Price × Distance)', 'ecab-taxi-booking-manager' ); ?><?php esc_html_e( 'First checks predefined zone route price', 'ecab-taxi-booking-manager' ); ?>
                         </div>
 
                     </div>
@@ -1570,7 +1588,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     }
 
                     $operation_area_fixed_map_type = MP_Global_Function::get_post_info($post_id, 'mptbm_operation_area_fixed_map_type', []);
-
                     ?>
 
                     <div class="mptbm_taxi_area_pricing">

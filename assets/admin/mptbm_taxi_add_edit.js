@@ -1194,4 +1194,24 @@
     // Initial load (for edit screen)
     motbm_area_based_refresh_options();
 
+    $(document).on('click', '.mptbm_locked_switch', function(e) {
+        e.preventDefault();
+
+        // avoid duplicate button
+        if ($('.mptbm_pro_upgrade_btn').length) return;
+
+        const btn = `
+            <div class="mptbm_pro_upgrade_wrap">
+                <a href="https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce/"
+                   target="_blank"
+                   class="button button-primary mptbm_pro_upgrade_btn">
+                    Upgrade to Pro
+                </a>
+            </div>
+        `;
+
+        $(this).closest('.mptbm_taxi_ex_service_toggle_wrapper')
+            .append(btn);
+    });
+
 }(jQuery));

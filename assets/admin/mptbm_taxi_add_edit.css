@@ -2448,3 +2448,36 @@ select.mptbm_taxi_ex_service_select {
     padding: 15px;
     margin: 10px 0;
 }
+
+.mptbm_pro_locked_box select {
+    background: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.mptbm_pro_notice {
+    color: #d63638;
+    font-weight: 500;
+}
+
+.mptbm_locked_switch {
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.mptbm_taxi_slider.mptbm_locked {
+    background: #ccc;
+}
+
+.mptbm_pro_locked_text {
+    color: #d63638;
+    font-weight: 600;
+}
+.mptbm_pro_upgrade_wrap {
+    margin-top: 10px;
+}
+
+.mptbm_pro_upgrade_btn {
+    background: #d63638;
+    border-color: #d63638;
+}
