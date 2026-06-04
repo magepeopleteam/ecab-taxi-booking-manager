@@ -236,12 +236,10 @@ class MPTBM_Transportation
 
             </div>
 
-            <a href="#" class="mptbm_transportation_lists_add_btn">
-
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=mptbm-rent-edit' ) ); ?>"
+               class="mptbm_transportation_lists_add_btn">
                 <span class="dashicons dashicons-plus-alt2"></span>
-
-                <?php esc_html_e('Add New Transportation', 'ecab-taxi-booking-manager');?>
-
+                <?php esc_html_e( 'Add New Transportation', 'ecab-taxi-booking-manager' ); ?>
             </a>
 
         </div>
