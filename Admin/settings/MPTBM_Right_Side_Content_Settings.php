@@ -16,6 +16,8 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
 
             add_action('wp_ajax_mptbm_taxi_add_tag',  [ $this, 'mptbm_taxi_add_tag' ] );
             add_action('wp_ajax_mptbm_taxi_remove_tag', [ $this, 'mptbm_taxi_remove_tag' ] );
+
+
         }
 
 

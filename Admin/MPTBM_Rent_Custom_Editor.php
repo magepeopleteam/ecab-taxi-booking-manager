@@ -19,6 +19,64 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 //            add_action('wp_ajax_save_mptbm_rent', [$this, 'save_mptbm_rent_callback']);
 
             add_action('save_post', [ $this, 'mptbm_save_taxi_data' ] );
+
+            add_filter('redirect_post_location', [ $this, 'my_custom_post_redirect' ], 10, 2);
+
+            add_action('edit_form_after_title', function () {
+                ?>
+                <input type="hidden" name="editor_type" value="old">
+                <?php
+            });
+            add_action('admin_notices', [ $this, 'mptbm_add_custom_editor_button' ] );
+
+        }
+
+        function mptbm_add_custom_editor_button($post) {
+            global $post;
+
+            if (!$post || $post->post_type !== 'mptbm_rent') {
+                return;
+            }
+
+            $url = admin_url(
+                'admin.php?page=mptbm-rent-edit&post_id=' . $post->ID
+            );
+
+            ?>
+            <div class="mptbm-editor-btn-wrap">
+                <a href="<?php echo esc_url($url); ?>" class="page-title-action">
+                    Open Custom Editor
+                </a>
+            </div>
+
+            <style>
+                .mptbm-editor-btn-wrap{
+                    margin:0 0 10px 0;
+                }
+            </style>
+            <?php
+        }
+
+
+        function my_custom_post_redirect($location, $post_id) {
+
+            if (isset($_POST['editor_type'])) {
+
+                if ($_POST['editor_type'] === 'old') {
+
+                    return admin_url(
+                        'post.php?post=' . $post_id . '&action=edit&editor=old'
+                    );
+
+                } elseif ($_POST['editor_type'] === 'custom') {
+
+                    return admin_url(
+                        'admin.php?page=mptbm-rent-edit&post_id=' . $post_id
+                    );
+                }
+            }
+
+            return $location;
         }
 
         function mptbm_save_taxi_data( $post_id ){
@@ -180,6 +238,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 </div>
 
                 <form class="mptbm_rent_form" method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+
+                    <input type="hidden" name="editor_type" value="custom">
 
                     <input type="hidden" name="return_url" value="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>">
                     <input type="hidden" name="action" value="save_mptbm_rent">
@@ -674,7 +734,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                 <div id="mptbm_taxi_feature_list">
                     <div class="mptbm_taxi_feature_row">
-                        <div class="mptbm_taxi_feature_icon_box">
+                        <div class="mptbm_taxi_feature_icon_box" data-target-popup="#mp_add_icon_popup">
                             <i class="fas fa-car"></i>
                             <div class="mptbm_taxi_feature_remove_icon"><i class="fas fa-times"></i></div>
                         </div>
