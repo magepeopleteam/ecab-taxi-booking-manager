@@ -1196,7 +1196,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
     background: white;
     border: 1px solid var(--mptbm-border);
     border-radius: 8px;
-    max-width: 1000px;
+    /*max-width: 1000px;*/
     /*margin: 20px auto;*/
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
@@ -1206,8 +1206,8 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
     background: white;
     border: 1px solid var(--mptbm-border);
     border-radius: 8px;
-    max-width: 1000px;
-    margin: 20px auto;
+    /*max-width: 1000px;*/
+    /*margin: 20px auto;*/
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
@@ -2447,4 +2447,37 @@ select.mptbm_taxi_ex_service_select {
     border-radius: 12px;
     padding: 15px;
     margin: 10px 0;
+}
+
+.mptbm_pro_locked_box select {
+    background: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.mptbm_pro_notice {
+    color: #d63638;
+    font-weight: 500;
+}
+
+.mptbm_locked_switch {
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.mptbm_taxi_slider.mptbm_locked {
+    background: #ccc;
+}
+
+.mptbm_pro_locked_text {
+    color: #d63638;
+    font-weight: 600;
+}
+.mptbm_pro_upgrade_wrap {
+    margin-top: 10px;
+}
+
+.mptbm_pro_upgrade_btn {
+    background: #d63638;
+    border-color: #d63638;
 }

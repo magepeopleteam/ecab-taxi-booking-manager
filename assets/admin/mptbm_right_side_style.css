@@ -114,3 +114,217 @@
     border-radius: 50%;
     background: rgba(59,130,246,0.06);
 }
+
+/*Category*/
+/* Container & General Layout */
+.mptbm_taxi_category_container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    max-width: 360px;
+    width: 100%;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.mptbm_taxi_category_card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.mptbm_taxi_category_label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 2px;
+}
+
+.mptbm_taxi_category_subtext {
+    display: block;
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.mptbm_taxi_category_helptext {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
+/* Flex group for dropdown + add button */
+.mptbm_taxi_category_flex_group {
+    display: flex;
+    gap: 8px;
+}
+
+/* Input & Select Styling */
+.mptbm_taxi_category_select,
+.mptbm_taxi_category_input {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #334155;
+    background-color: #fff;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.mptbm_taxi_category_select:focus,
+.mptbm_taxi_category_input:focus {
+    border-color: #4f46e5;
+}
+
+/* Action Buttons */
+.mptbm_taxi_category_btn_add {
+    width: 40px;
+    height: 40px;
+    background: #4f46e5;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.mptbm_taxi_category_btn_add:hover {
+    background: #4338ca;
+}
+
+.mptbm_taxi_category_btn_save {
+    background: #4f46e5;
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.mptbm_taxi_category_btn_save:hover {
+    background: #4338ca;
+}
+
+/* Tag Badges */
+.mptbm_taxi_category_tags_container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.mptbm_taxi_category_badge {
+    background: #eeeffe;
+    color: #4f46e5;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mptbm_taxi_category_remove_tag {
+    cursor: pointer;
+    font-style: normal;
+    font-weight: bold;
+    color: #a5b4fc;
+    transition: color 0.2s;
+}
+
+.mptbm_taxi_category_remove_tag:hover {
+    color: #4338ca;
+}
+
+/* Popup Modal Layout */
+.mptbm_taxi_category_modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.mptbm_taxi_category_modal_content {
+    background: #ffffff;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    animation: mptbm_fadeIn 0.2s ease-out;
+}
+
+.mptbm_taxi_category_modal_header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mptbm_taxi_category_modal_header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #1e293b;
+}
+
+.mptbm_taxi_category_modal_close {
+    font-size: 24px;
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+.mptbm_taxi_category_modal_close:hover {
+    color: #64748b;
+}
+
+.mptbm_taxi_category_modal_body {
+    padding: 20px;
+}
+
+.mptbm_taxi_category_form_group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mptbm_taxi_category_modal_label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
+}
+
+.mptbm_taxi_category_modal_footer {
+    padding: 12px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    text-align: right;
+}
+
+@keyframes mptbm_fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
