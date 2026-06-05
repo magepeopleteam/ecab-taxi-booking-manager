@@ -718,10 +718,11 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
     display: flex;
     align-items: center;
     padding: 15px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cbcdcf;
     border-radius: 10px;
     cursor: pointer;
     transition: 0.3s;
+    background-color: #f1f1f1;
 }
 
 .mptbm_taxi_pricing_tab_item i {
@@ -760,6 +761,12 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 
 .mptbm_taxi_pricing_row_head {
     padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    background: #fff;
+}
+
+.mptbm_taxi_operation_area_title {
     display: flex;
     align-items: center;
     background: #fff;
@@ -1908,9 +1915,16 @@ select.mptbm_taxi_ex_service_select {
 
 .mptbm_operation_area_tab_holder{
     display: flex;
-    gap: 15px;
-    margin: 10px;
+    flex-direction: column;
+    gap: 5px;
+    margin: 10px 0;
 }
+
+.mptbm_operation_area_based_pricing_title {
+    color: #fb7f58;
+    font-weight: 600;
+}
+
 
 /*Custom Message BOx*/
 .mptbm_taxi_toggle_header {

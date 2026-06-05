@@ -348,6 +348,7 @@
                 }
             }
 
+            $("#mptbm_operation_area_settings").fadeIn();
             // 🔥 UPDATE EVERYTHING AFTER CLICK
             updateHiddenInput();
             updateActiveIndicator();
@@ -360,6 +361,12 @@
                 $('.mptbm_taxi_pricing_pill[data-geo-fance="1"]').fadeIn();
             } else {
                 $('.mptbm_taxi_pricing_pill[data-geo-fance="0"]').fadeIn();
+            }
+
+            if (operationType === 'geo-matched-operation-area-type' || operationType === 'geo-fence-operation-area-type' ) {
+                $("#mptbm_single_mul_operation_area").text( 'single allowed' );
+            }else{
+                $("#mptbm_single_mul_operation_area").text( 'multiple allowed' );
             }
         }
         togglePricingAreaButtons();
@@ -497,6 +504,7 @@
             $(this).addClass('active');
             if( clicked_tab_id === 'mptbm_inclusive' ){
                 price_based = 'inclusive';
+                $('input[name="mptbm_price_based"]').val(price_based);
                 $("#mptbm_distance_price").fadeIn();
                 $("#mptbm_price_per_hour").fadeIn();
                 // $("#mptbm_manual_routes").fadeIn();
@@ -517,8 +525,10 @@
                                     </div>
                                 </div>`;
 
-            }else if(clicked_tab_id === 'mptbm_distance' ){
+            }
+            else if(clicked_tab_id === 'mptbm_distance' ){
                 price_based = 'distance';
+                $('input[name="mptbm_price_based"]').val(price_based);
                 $("#mptbm_distance_price").fadeIn();
                 let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
                 $("#mptbm_shortcode_example_code").html(shortcode);
@@ -534,8 +544,10 @@
                                         KM Rate × Distance
                                     </div>
                                 </div>`;
-            }else if(clicked_tab_id === 'mptbm_row_duration' ){
+            }
+            else if(clicked_tab_id === 'mptbm_row_duration' ){
                 price_based = 'duration';
+                $('input[name="mptbm_price_based"]').val(price_based);
                 $("#mptbm_price_per_hour").fadeIn();
                 let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
                 $("#mptbm_shortcode_example_code").html(shortcode);
@@ -552,8 +564,10 @@
                             </div>
                         </div>`;
 
-            }else if(clicked_tab_id === 'mptbm_row_dist_dur' ){
+            }
+            else if(clicked_tab_id === 'mptbm_row_dist_dur' ){
                 price_based = 'distance_duration';
+                $('input[name="mptbm_price_based"]').val(price_based);
                 $("#mptbm_distance_price").fadeIn();
                 $("#mptbm_price_per_hour").fadeIn();
                 let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
@@ -571,7 +585,8 @@
                             </div>
                         </div>`;
 
-            }else if(clicked_tab_id === 'mptbm_row_hourly' ){
+            }
+            else if(clicked_tab_id === 'mptbm_row_hourly' ){
                 price_based = 'fixed_hourly';
                 $("#mptbm_price_per_hour").fadeIn();
                 let shortcode = "<code>[mptbm_booking price_based='fixed_hourly' form='horizontal' progressbar='yes' map='yes']</code>";
@@ -588,10 +603,12 @@
                                 Hour Rate × Fixed Time
                             </div>
                         </div>`;
-
-            }else if(clicked_tab_id === 'mptbm_row_operation_area' ){
+                $('input[name="mptbm_price_based"]').val(price_based);
+            }
+            else if(clicked_tab_id === 'mptbm_row_operation_area' ){
                 price_based = 'fixed_distance';
                 $("#mptbm_operation_area").fadeIn();
+                $("#mptbm_area_based_wrapper").fadeIn();
                 let shortcode = "<code>[mptbm_booking price_based='fixed_map' form='horizontal' progressbar='yes' map='yes']</code>";
                 $("#mptbm_shortcode_example_code").html(shortcode);
 
@@ -667,9 +684,10 @@
                                 </div>
                             </div>`;
 
-                    $('#mptbm_taxi_pricing_fixed_map').addClass('active');
+                    // $('#mptbm_taxi_pricing_fixed_map').addClass('active');
                 }
-            }else if(clicked_tab_id === 'mptbm_row_manual' ){
+            }
+            else if(clicked_tab_id === 'mptbm_row_manual' ){
                 price_based = 'manual';
                 $("#mptbm_manual_routes").fadeIn();
                 let shortcode = "<code>[mptbm_booking price_based='manual' form='horizontal' progressbar='yes' map='yes']</code>";
@@ -686,8 +704,10 @@
                                 Fixed Route Price
                             </div>
                         </div>`;
+                $('input[name="mptbm_price_based"]').val(price_based);
 
-            }else if(clicked_tab_id === 'mptbm_row_zone' ){
+            }
+            else if(clicked_tab_id === 'mptbm_row_zone' ){
                 price_based = 'fixed_zone';
                 $("#mptbm_row_zone").fadeIn();
                 let shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup' form='horizontal' progressbar='yes' map='yes']</code>";
@@ -696,7 +716,9 @@
                 let primary_shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup']</code>";
                 $("#mptbm_shortcode_primary_code").html(primary_shortcode);
                 $("#mptbm_taxi_operation_area_pricing_section").fadeOut();
-            }else{
+                $('input[name="mptbm_price_based"]').val(price_based);
+            }
+            else{
                 price_based = 'inclusive';
                 $("#mptbm_distance_price").fadeIn();
                 $("#mptbm_fixed_pricing").fadeIn();
@@ -713,9 +735,10 @@
                                     (Hourly Rate × Duration) + (KM Rate × Distance)
                                 </div>
                             </div>`;
+                $('input[name="mptbm_price_based"]').val(price_based);
             }
 
-            $('input[name="mptbm_price_based"]').val(price_based);
+
 
             $("#mptbm_pricing_rules_grid").html(rules);
             // alert(clicked_tab_id );
