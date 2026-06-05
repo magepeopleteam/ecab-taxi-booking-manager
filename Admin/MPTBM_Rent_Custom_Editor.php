@@ -754,7 +754,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <div class="mptbm_taxi_feature_row">
                         <div class="mptbm_taxi_feature_icon_box" data-target-popup="#mp_add_icon_popup">
                             <i class="fas fa-car"></i>
-                            <div class="mptbm_taxi_feature_remove_icon"><i class="fas fa-times"></i></div>
+<!--                            <div class="mptbm_taxi_feature_remove_icon"><i class="fas fa-times"></i></div>-->
                         </div>
                         <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_label[]" value="<?php echo esc_attr($label); ?>"/>
                         <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_text[]" value="<?php echo esc_attr($text); ?>"/>

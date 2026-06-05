@@ -265,19 +265,24 @@
     padding: 0;
     display: flex;
     cursor: pointer;
+	background: #f0f0f0;
+	max-width: 800px;
+	margin: 10px auto !important;
+	border-radius: 50px;
+
 }
 
 .mptb-tabs li {
-    background: #f0f0f0;
-    border: 1px solid #ddd;
+    /*background: #f0f0f0;*/
+    /*border: 1px solid #ddd;*/
     width: 100%;
     text-align: center;
-    ;
 }
 
 .mptb-tabs .current {
     background: var(--color_theme);
     color: white;
+	border-radius: 50px;
 }
 
 .mptb-tab-content {

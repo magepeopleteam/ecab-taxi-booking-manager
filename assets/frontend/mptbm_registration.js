@@ -3141,14 +3141,14 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
             $tabs.eq(0).css('border-radius', 'var(--dbrl)');
         } else if (count >= 2) {
             // If three or more, apply left radius to first and right radius to third
-            $tabs.eq(0).css({
+            /*$tabs.eq(0).css({
                 'border-top-left-radius': 'var(--dbrl)',
                 'border-bottom-left-radius': 'var(--dbrl)'
             });
             $tabs.last().css({
                 'border-top-right-radius': 'var(--dbrl)',
                 'border-bottom-right-radius': 'var(--dbrl)'
-            });
+            });*/
         }
         $('.mptb-tabs li').click(function () {
             var tab_id = $(this).attr('mptbm-data-tab');

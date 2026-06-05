@@ -825,9 +825,9 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 }
 .mptbm_taxi_pricing_field1{
     padding: 5px 10px;
-    border: 1px solid #dddddd;
+    /*border: 1px solid #dddddd;*/
     border-radius: 10px;
-    margin: 10px 0;
+    /*margin: 10px 0;*/
 }
 
 .mptbm_taxi_pricing_form_grid {
