@@ -29,7 +29,16 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             });
             add_action('admin_notices', [ $this, 'mptbm_add_custom_editor_button' ] );
 
+            add_action('admin_menu', [ $this, 'hide_all_transport_submenu'], 999);
+
         }
+        function hide_all_transport_submenu() {
+            remove_submenu_page(
+                'edit.php?post_type=mptbm_rent', // Parent menu slug
+                'edit.php?post_type=mptbm_rent'  // All Transport submenu slug
+            );
+        }
+
 
         function mptbm_add_custom_editor_button($post) {
             global $post;
