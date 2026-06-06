@@ -1,76 +1,186 @@
-jQuery(document).ready(function($){
+/* ==========================================================================
+   MPTBM Transportation - list interactions
+   View toggle, live search, custom type dropdown, status tabs, pagination.
+   ========================================================================== */
+(function () {
+	'use strict';
 
-    $('.mptbm_transportation_lists_card').on('mouseenter', function(){
+	document.addEventListener('DOMContentLoaded', function () {
+		var fleet = document.querySelector('.mptbm-fleet');
+		if (!fleet) { return; }
 
-        $(this).addClass('mptbm_transportation_lists_card_active');
+		var grid     = document.getElementById('mptbmGrid');
+		var table    = document.getElementById('mptbmTable');
+		var gridBtn  = document.getElementById('mptbmGridBtn');
+		var listBtn  = document.getElementById('mptbmListBtn');
+		var searchEl = document.getElementById('mptbmSearchInput');
+		var searchBox = searchEl ? searchEl.closest('.mptbm-search-box') : null;
+		var clearBtn = document.getElementById('mptbmSearchClear');
+		var typeEl   = document.getElementById('mptbmTypeFilter');
+		var emptyMsg = document.getElementById('mptbmEmptyMsg');
+		var pageInfo = document.getElementById('mptbmPageInfo');
+		var pageBtns = document.getElementById('mptbmPageBtns');
+		var tabs     = Array.prototype.slice.call(document.querySelectorAll('.mptbm-filter-pill'));
 
-    }).on('mouseleave', function(){
+		if (!grid) { return; }
 
-        $(this).removeClass('mptbm_transportation_lists_card_active');
+		var PER_PAGE = 12;
+		var STORE_KEY = 'mptbmTransportListView';
+		var cards = Array.prototype.slice.call(grid.querySelectorAll('.mptbm-card'));
+		var rows  = table ? Array.prototype.slice.call(table.querySelectorAll('tr.mptbm-row')) : [];
 
-    });
+		var state = { view: 'grid', search: '', type: '', status: '', page: 1 };
 
-    $('.mptbm_transportation_lists_search_box input').on('keyup', function(){
+		function applyView() {
+			var isGrid = state.view === 'grid';
+			grid.style.display = isGrid ? 'grid' : 'none';
+			if (table) { table.style.display = isGrid ? 'none' : 'table'; }
+			gridBtn.classList.toggle('active', isGrid);
+			listBtn.classList.toggle('active', !isGrid);
+		}
+		function setView(view) {
+			state.view = view;
+			try { window.localStorage.setItem(STORE_KEY, view); } catch (e) {}
+			applyView();
+			render();
+		}
+		try {
+			var saved = window.localStorage.getItem(STORE_KEY);
+			if (saved === 'list' || saved === 'grid') { state.view = saved; }
+		} catch (e) {}
+		gridBtn.addEventListener('click', function () { setView('grid'); });
+		listBtn.addEventListener('click', function () { setView('list'); });
 
-        var value = $(this).val().toLowerCase();
+		function matches(el) {
+			var name = (el.getAttribute('data-name') || '');
+			var type = (el.getAttribute('data-type') || '');
+			var status = (el.getAttribute('data-status') || '');
+			if (state.search && name.indexOf(state.search) === -1) { return false; }
+			if (state.type && type !== state.type) { return false; }
+			if (state.status && status !== state.status) { return false; }
+			return true;
+		}
 
-        $('.mptbm_transportation_lists_card').filter(function(){
+		function render() {
+			var items = state.view === 'list' ? rows : cards;
+			var matched = items.filter(matches);
+			var total = matched.length;
+			var pages = Math.max(1, Math.ceil(total / PER_PAGE));
+			if (state.page > pages) { state.page = pages; }
+			var start = (state.page - 1) * PER_PAGE;
+			var end = start + PER_PAGE;
 
-            $(this).toggle(
-                $(this).text().toLowerCase().indexOf(value) > -1
-            );
+			items.forEach(function (el) { el.style.display = 'none'; });
+			matched.forEach(function (el, i) { if (i >= start && i < end) { el.style.display = ''; } });
 
-        });
+			if (emptyMsg) { emptyMsg.style.display = total === 0 ? 'block' : 'none'; }
+			renderPageInfo(total, start, end);
+			renderPageButtons(pages);
+		}
+		function renderPageInfo(total, start, end) {
+			if (!pageInfo) { return; }
+			if (total === 0) { pageInfo.textContent = '0 items'; return; }
+			pageInfo.textContent = 'Showing ' + (start + 1) + '-' + Math.min(end, total) + ' of ' + total + ' items';
+		}
+		function makeBtn(label, page, opts) {
+			opts = opts || {};
+			var btn = document.createElement('button');
+			btn.className = 'mptbm-page-btn' + (opts.active ? ' active' : '');
+			btn.innerHTML = label;
+			if (opts.disabled) { btn.disabled = true; }
+			else {
+				btn.addEventListener('click', function () {
+					state.page = page; render();
+					fleet.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				});
+			}
+			return btn;
+		}
+		function renderPageButtons(pages) {
+			if (!pageBtns) { return; }
+			pageBtns.innerHTML = '';
+			if (pages <= 1) { return; }
+			pageBtns.appendChild(makeBtn('&#8249;', state.page - 1, { disabled: state.page === 1 }));
+			for (var p = 1; p <= pages; p++) {
+				pageBtns.appendChild(makeBtn(String(p), p, { active: p === state.page }));
+			}
+			pageBtns.appendChild(makeBtn('&#8250;', state.page + 1, { disabled: state.page === pages }));
+		}
 
-    });
+		function resetAndRender() { state.page = 1; render(); }
 
+		/* ---- Live search ------------------------------------------------ */
+		if (searchEl) {
+			var onSearch = function () {
+				state.search = searchEl.value.toLowerCase().trim();
+				if (searchBox) { searchBox.classList.toggle('has-value', searchEl.value.length > 0); }
+				resetAndRender();
+			};
+			searchEl.addEventListener('input', onSearch);
+			searchEl.addEventListener('search', onSearch);
+			if (searchBox) {
+				searchEl.addEventListener('focus', function () { searchBox.classList.add('is-focused'); });
+				searchEl.addEventListener('blur', function () { searchBox.classList.remove('is-focused'); });
+			}
+			if (clearBtn) {
+				clearBtn.addEventListener('click', function () { searchEl.value = ''; searchEl.focus(); onSearch(); });
+			}
+		}
 
-    $(document).on('click', '.mptbm-trash-confirm', function (e) {
-        if (!confirm('Move this item to trash?')) {
-            e.preventDefault();
-        }
-    });
+		/* ---- Custom styled dropdown (type filter) ---------------------- */
+		function buildDropdown(select) {
+			var options = Array.prototype.slice.call(select.options);
+			var wrap = document.createElement('div');
+			wrap.className = 'mptbm-dropdown';
+			var toggle = document.createElement('button');
+			toggle.type = 'button';
+			toggle.className = 'mptbm-dropdown-toggle';
+			var label = document.createElement('span');
+			label.textContent = options[select.selectedIndex] ? options[select.selectedIndex].text : '';
+			var caret = document.createElement('span');
+			caret.className = 'mptbm-caret';
+			caret.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>';
+			toggle.appendChild(label);
+			toggle.appendChild(caret);
+			var menu = document.createElement('div');
+			menu.className = 'mptbm-dropdown-menu';
+			menu.setAttribute('role', 'listbox');
+			var check = '<span class="mptbm-check"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>';
+			options.forEach(function (opt) {
+				var item = document.createElement('div');
+				item.className = 'mptbm-dropdown-option' + (opt.value === select.value ? ' selected' : '');
+				item.innerHTML = '<span>' + opt.text + '</span>' + check;
+				item.addEventListener('click', function () {
+					select.value = opt.value;
+					label.textContent = opt.text;
+					menu.querySelectorAll('.mptbm-dropdown-option').forEach(function (o) { o.classList.remove('selected'); });
+					item.classList.add('selected');
+					wrap.classList.remove('open');
+					state.type = opt.value;
+					resetAndRender();
+				});
+				menu.appendChild(item);
+			});
+			toggle.addEventListener('click', function (e) { e.stopPropagation(); wrap.classList.toggle('open'); });
+			document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) { wrap.classList.remove('open'); } });
+			document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { wrap.classList.remove('open'); } });
+			wrap.appendChild(toggle);
+			wrap.appendChild(menu);
+			select.parentNode.insertBefore(wrap, select.nextSibling);
+		}
+		if (typeEl) { buildDropdown(typeEl); }
 
-    $(document).on('click', '.mptbm-delete-confirm', function (e) {
-        e.preventDefault();
+		/* ---- Status tabs ------------------------------------------------ */
+		tabs.forEach(function (tab) {
+			tab.addEventListener('click', function () {
+				tabs.forEach(function (t) { t.classList.remove('active'); });
+				this.classList.add('active');
+				state.status = this.getAttribute('data-status') || '';
+				resetAndRender();
+			});
+		});
 
-        let url = $(this).attr('href');
-
-        if (confirm('Delete this item permanently?')) {
-            window.location.href = url;
-        }
-    });
-
-    /*Search Fields*/
-    function filterCards() {
-
-        let value = $('#mptbm_search_input').val().toLowerCase();
-
-        $('.mptbm_transportation_lists_card').each(function () {
-
-            let title = $(this).data('transport-title').toLowerCase();
-
-            if (title.indexOf(value) > -1) {
-
-                // smooth show
-                $(this).stop(true, true).slideDown(250);
-
-            } else {
-
-                // smooth hide
-                $(this).stop(true, true).slideUp(250);
-            }
-        });
-    }
-
-    // live typing search
-    $(document).on('keyup','#mptbm_search_input', function () {
-        filterCards();
-    });
-
-    // button search
-    $(document).on('click','#mptbm_search_btn', function () {
-        filterCards();
-    });
-
-});
+		applyView();
+		render();
+	});
+})();
