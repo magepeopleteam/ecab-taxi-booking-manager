@@ -14,18 +14,15 @@
 
 
 
-        $('#mptbm_taxi_category_dropdown').on('change', function () {
-
-            let nonce = $('#mptbm_taxi_nonce').val();
-            let post_id = $('#mptbm_taxi_post_id').val();
+        $(document).on('change', '#mptbm_taxi_category_dropdown', function () {
             $.ajax({
                 url: ajaxurl,
                 type: "POST",
                 data: {
                     action: "mptbm_taxi_save_post_category",
-                    post_id: post_id,
-                    nonce: nonce,
-                    category_id: $("#mptbm_taxi_category_dropdown").val()
+                    post_id: $('#mptbm_taxi_post_id').val(),
+                    nonce: $('#mptbm_taxi_nonce').val(),
+                    category_id: $(this).val()
                 },
                 success: function(res) {
                     if(res.success){
@@ -74,59 +71,64 @@
 
         });
 
-        $('#mptbm_taxi_category_tag_input').on('keypress', function (e) {
-            if (e.which === 13) {
-                e.preventDefault();
-                let tagValue = $.trim($(this).val());
-                if (tagValue !== "") {
-                    var tagHTML = `
-                        <span class="mptbm_taxi_category_badge"
-                              data-tag="${tagValue}">
-                            ${tagValue}
-                            <i class="mptbm_taxi_category_remove_tag">&times;</i>
-                        </span>
-                    `;
-                    $('#mptbm_taxi_category_tags_list').append(tagHTML);
-                    $(this).val('');
-                    $.ajax({
-                        url: ajaxurl,
-                        type: "POST",
-                        data: {
-                            action: "mptbm_taxi_add_tag",
-                            nonce: $('#mptbm_taxi_nonce').val(),
-                            post_id: $('#mptbm_taxi_post_id').val(),
-                            tag: tagValue
-                        },
-                        success: function (res) {
-                            if (!res.success) {
-                                alert(res.data.message || "Error saving tag");
-                            }
-                        }
-                    });
-                }
-            }
+        // Re-render the tag badges from the authoritative server list.
+        function mptbm_render_tags(tags) {
+            var $list = $('#mptbm_taxi_category_tags_list');
+            if (!$list.length) { return; }
+            $list.empty();
+            (tags || []).forEach(function (t) {
+                var $badge = $('<span>', { 'class': 'mptbm_taxi_category_badge' }).attr('data-tag', t).text(t);
+                $badge.append($('<i class="mptbm_taxi_category_remove_tag">').html('&times;'));
+                $list.append($badge);
+            });
+        }
 
+        // Delegated + keydown so it fires even when the sidebar is re-rendered and
+        // before any implicit form submit happens on Enter.
+        $(document).on('keydown', '#mptbm_taxi_category_tag_input', function (e) {
+            if (e.key === 'Enter' || e.which === 13 || e.keyCode === 13) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $input = $(this);
+                var tagValue = $.trim($input.val());
+                if (tagValue === '') { return; }
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'mptbm_taxi_add_tag',
+                        nonce: $('#mptbm_taxi_nonce').val(),
+                        post_id: $('#mptbm_taxi_post_id').val(),
+                        tag: tagValue
+                    },
+                    success: function (res) {
+                        if (res && res.success) {
+                            $input.val('');
+                            mptbm_render_tags(res.data.tags);
+                        } else {
+                            alert((res && res.data && res.data.message) || 'Error saving tag');
+                        }
+                    }
+                });
+            }
         });
 
-        $('#mptbm_taxi_category_tags_list').on('click', '.mptbm_taxi_category_remove_tag', function () {
-
-            let tagElement = $(this).closest('.mptbm_taxi_category_badge');
-            let tagValue = tagElement.data('tag');
-            let post_id = $('#mptbm_taxi_post_id').val();
-            let nonce = $('#mptbm_taxi_nonce').val();
-            tagElement.remove();
+        $(document).on('click', '#mptbm_taxi_category_tags_list .mptbm_taxi_category_remove_tag', function () {
+            var tagValue = $(this).closest('.mptbm_taxi_category_badge').attr('data-tag');
             $.ajax({
                 url: ajaxurl,
-                type: "POST",
+                type: 'POST',
                 data: {
-                    action: "mptbm_taxi_remove_tag",
-                    post_id: post_id,
-                    nonce: nonce,
+                    action: 'mptbm_taxi_remove_tag',
+                    post_id: $('#mptbm_taxi_post_id').val(),
+                    nonce: $('#mptbm_taxi_nonce').val(),
                     tag: tagValue
                 },
                 success: function (res) {
-                    if (!res.success) {
-                        alert(res.data.message || "Failed to remove tag");
+                    if (res && res.success) {
+                        mptbm_render_tags(res.data.tags);
+                    } else {
+                        alert((res && res.data && res.data.message) || 'Failed to remove tag');
                     }
                 }
             });

@@ -29,12 +29,13 @@
 		var cards = Array.prototype.slice.call(grid.querySelectorAll('.mptbm-card'));
 		var rows  = table ? Array.prototype.slice.call(table.querySelectorAll('tr.mptbm-row')) : [];
 
-		var state = { view: 'grid', search: '', type: '', status: '', page: 1 };
+		var state = { view: 'list', search: '', type: '', status: '', page: 1 };
 
 		function applyView() {
 			var isGrid = state.view === 'grid';
-			grid.style.display = isGrid ? 'grid' : 'none';
-			if (table) { table.style.display = isGrid ? 'none' : 'table'; }
+			// Class-driven so the responsive stacked table is not overridden by inline display.
+			fleet.classList.toggle('mptbm-view-grid', isGrid);
+			fleet.classList.toggle('mptbm-view-list', !isGrid);
 			gridBtn.classList.toggle('active', isGrid);
 			listBtn.classList.toggle('active', !isGrid);
 		}

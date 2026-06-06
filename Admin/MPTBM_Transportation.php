@@ -105,16 +105,17 @@ class MPTBM_Transportation
         $items = array();
         foreach ($query->posts as $post) {
             $pid   = $post->ID;
-            $model = '';
+            $feature_map = array();
             $features = get_post_meta($pid, 'mptbm_features', true);
             if (!empty($features) && is_array($features)) {
                 foreach ($features as $feature) {
-                    if (isset($feature['label']) && strtolower($feature['label']) === 'model') {
-                        $model = $feature['text'] ?? '';
-                        break;
+                    if (!empty($feature['label']) && isset($feature['text']) && $feature['text'] !== '') {
+                        $feature_map[strtolower(trim($feature['label']))] = $feature['text'];
                     }
                 }
             }
+            $model = $feature_map['model'] ?? '';
+            $tags  = get_post_meta($pid, 'mptbm_taxi_tags', true);
             $items[] = array(
                 'id'          => $pid,
                 'title'       => get_the_title($pid) ?: __('(no title)', 'ecab-taxi-booking-manager'),
@@ -126,6 +127,13 @@ class MPTBM_Transportation
                 'status'      => $post->post_status,
                 'image'       => get_post_meta($pid, 'feature_image', true) ?: get_the_post_thumbnail_url($pid, 'medium_large'),
                 'price_based' => get_post_meta($pid, 'mptbm_price_based', true),
+                'date_type'   => get_post_meta($pid, 'mptbm_date_type', true) ?: 'repeated',
+                'all_time'    => get_post_meta($pid, 'mptbm_available_for_all_time', true) === 'on',
+                'passengers'  => get_post_meta($pid, 'mptbm_maximum_passenger', true),
+                'bags'        => get_post_meta($pid, 'mptbm_maximum_bag', true),
+                'features'    => $feature_map,
+                'tags'        => is_array($tags) ? array_filter($tags) : array(),
+                'modified'    => $post->post_modified,
                 'author'      => get_the_author_meta('display_name', $post->post_author),
                 'edit_link'   => admin_url('admin.php?page=mptbm-rent-edit&post_id=' . $pid),
                 'trash_link'  => wp_nonce_url(admin_url('admin-post.php?action=mptbm_trash_transport&id=' . $pid), 'mptbm_trash_' . $pid),
@@ -204,6 +212,30 @@ class MPTBM_Transportation
         return esc_html($amount);
     }
 
+    /**
+     * Echo compact at-a-glance chips for vehicle specs (from mptbm_features)
+     * and tags. Static SVGs + escaped values.
+     */
+    private function feature_chips($it)
+    {
+        $f = isset($it['features']) && is_array($it['features']) ? $it['features'] : array();
+        $specs = array(
+            'seating capacity' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+            'fuel type'        => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22h12V4a2 2 0 00-2-2H5a2 2 0 00-2 2v18z"/><path d="M15 9h2a2 2 0 012 2v6a2 2 0 11-4 0v-7"/><path d="M5 8h6"/></svg>',
+            'transmission'     => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v10M4.2 4.2l4.3 4.3m7 7l4.3 4.3M1 12h6m6 0h10"/></svg>',
+            'engine'           => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+        );
+        foreach ($specs as $key => $svg) {
+            if (!empty($f[$key])) {
+                echo '<span class="mptbm-chip">' . $svg . ' ' . esc_html($f[$key]) . '</span>';
+            }
+        }
+        $tags = isset($it['tags']) && is_array($it['tags']) ? array_slice($it['tags'], 0, 5) : array();
+        foreach ($tags as $tag) {
+            echo '<span class="mptbm-chip is-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> ' . esc_html($tag) . '</span>';
+        }
+    }
+
     /* ---- Page --------------------------------------------------------- */
     public function mptbm_transportation_lists_page()
     {
@@ -236,7 +268,7 @@ class MPTBM_Transportation
         $add_url   = admin_url('admin.php?page=mptbm-rent-edit');
         ?>
         <div class="wrap mptbm-fleet-wrap">
-            <div class="mptbm-fleet">
+            <div class="mptbm-fleet mptbm-view-list">
 
                 <div class="mptbm-page-header">
                     <div class="mptbm-page-title"><?php esc_html_e('Transportation', 'ecab-taxi-booking-manager'); ?>
@@ -313,10 +345,10 @@ class MPTBM_Transportation
                         </select>
                     <?php endif; ?>
                     <div class="mptbm-view-toggle">
-                        <button class="mptbm-vtog active" id="mptbmGridBtn" title="<?php esc_attr_e('Grid view', 'ecab-taxi-booking-manager'); ?>">
+                        <button class="mptbm-vtog" id="mptbmGridBtn" title="<?php esc_attr_e('Grid view', 'ecab-taxi-booking-manager'); ?>">
                             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                         </button>
-                        <button class="mptbm-vtog" id="mptbmListBtn" title="<?php esc_attr_e('List view', 'ecab-taxi-booking-manager'); ?>">
+                        <button class="mptbm-vtog active" id="mptbmListBtn" title="<?php esc_attr_e('List view', 'ecab-taxi-booking-manager'); ?>">
                             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                         </button>
                     </div>
@@ -336,7 +368,7 @@ class MPTBM_Transportation
 
                 <div class="mptbm-grid" id="mptbmGrid">
                     <?php foreach ($items as $it) : ?>
-                        <div class="mptbm-card" data-name="<?php echo esc_attr(strtolower($it['title'] . ' ' . $it['location'] . ' ' . $it['model'])); ?>" data-type="<?php echo esc_attr($it['type']); ?>" data-status="<?php echo esc_attr($it['status']); ?>">
+                        <div class="mptbm-card" data-name="<?php echo esc_attr(strtolower($it['title'] . ' ' . $it['location'] . ' ' . $it['model'] . ' ' . implode(' ', $it['features']) . ' ' . implode(' ', $it['tags']))); ?>" data-type="<?php echo esc_attr($it['type']); ?>" data-status="<?php echo esc_attr($it['status']); ?>">
                             <div class="mptbm-thumb">
                                 <?php if ($it['image']) : ?>
                                     <img src="<?php echo esc_url($it['image']); ?>" alt="<?php echo esc_attr($it['title']); ?>">
@@ -394,8 +426,7 @@ class MPTBM_Transportation
                 <table class="mptbm-table" id="mptbmTable">
                     <thead>
                         <tr>
-                            <th><?php esc_html_e('Transportation', 'ecab-taxi-booking-manager'); ?></th>
-                            <th><?php esc_html_e('Location', 'ecab-taxi-booking-manager'); ?></th>
+                            <th><?php esc_html_e('Vehicle', 'ecab-taxi-booking-manager'); ?></th>
                             <th><?php esc_html_e('KM Price', 'ecab-taxi-booking-manager'); ?></th>
                             <th><?php esc_html_e('Hourly', 'ecab-taxi-booking-manager'); ?></th>
                             <th><?php esc_html_e('Status', 'ecab-taxi-booking-manager'); ?></th>
@@ -404,12 +435,57 @@ class MPTBM_Transportation
                     </thead>
                     <tbody>
                         <?php foreach ($items as $it) : ?>
-                            <tr class="mptbm-row" data-name="<?php echo esc_attr(strtolower($it['title'] . ' ' . $it['location'] . ' ' . $it['model'])); ?>" data-type="<?php echo esc_attr($it['type']); ?>" data-status="<?php echo esc_attr($it['status']); ?>">
-                                <td data-label="<?php esc_attr_e('Name', 'ecab-taxi-booking-manager'); ?>"><?php if ($is_trash) : ?><?php echo esc_html($it['title']); ?><?php else : ?><a href="<?php echo esc_url($it['edit_link']); ?>"><?php echo esc_html($it['title']); ?></a><?php endif; ?></td>
-                                <td data-label="<?php esc_attr_e('Location', 'ecab-taxi-booking-manager'); ?>"><?php echo esc_html($it['location'] ?: '-'); ?></td>
+                            <tr class="mptbm-row" data-name="<?php echo esc_attr(strtolower($it['title'] . ' ' . $it['location'] . ' ' . $it['model'] . ' ' . implode(' ', $it['features']) . ' ' . implode(' ', $it['tags']))); ?>" data-type="<?php echo esc_attr($it['type']); ?>" data-status="<?php echo esc_attr($it['status']); ?>">
+                                <td data-label="<?php esc_attr_e('Vehicle', 'ecab-taxi-booking-manager'); ?>">
+                                    <div class="mptbm-cell-vehicle">
+                                        <span class="mptbm-cell-thumb">
+                                            <?php if ($it['image']) : ?>
+                                                <img src="<?php echo esc_url($it['image']); ?>" alt="<?php echo esc_attr($it['title']); ?>">
+                                            <?php else : ?>
+                                                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M5 17h14M6 17l1.5-5h9L18 17M7.5 12l1-4h7l1 4"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+                                            <?php endif; ?>
+                                        </span>
+                                        <span class="mptbm-cell-meta">
+                                            <?php if ($is_trash) : ?>
+                                                <span class="mptbm-cell-name"><?php echo esc_html($it['title']); ?></span>
+                                            <?php else : ?>
+                                                <span class="mptbm-cell-name"><a href="<?php echo esc_url($it['edit_link']); ?>"><?php echo esc_html($it['title']); ?></a></span>
+                                            <?php endif; ?>
+                                            <?php
+                                            $sub_parts = array_filter(array($it['model'], $it['type'] ? ucfirst($it['type']) : '', $it['price_based']));
+                                            if (!empty($sub_parts)) : ?>
+                                                <span class="mptbm-cell-sub"><?php echo esc_html(implode(' · ', $sub_parts)); ?></span>
+                                            <?php endif; ?>
+                                            <?php if ($it['location']) : ?>
+                                                <span class="mptbm-cell-loc"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> <?php echo esc_html($it['location']); ?></span>
+                                            <?php endif; ?>
+                                            <span class="mptbm-chips">
+                                                <span class="mptbm-chip <?php echo $it['date_type'] === 'particular' ? 'is-particular' : 'is-repeated'; ?>">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+                                                    <?php echo $it['date_type'] === 'particular' ? esc_html__('Particular', 'ecab-taxi-booking-manager') : esc_html__('Repeated', 'ecab-taxi-booking-manager'); ?>
+                                                </span>
+                                                <?php if ($it['all_time']) : ?>
+                                                    <span class="mptbm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg> <?php esc_html_e('All-time', 'ecab-taxi-booking-manager'); ?></span>
+                                                <?php endif; ?>
+                                                <?php if (is_numeric($it['passengers']) && (int) $it['passengers'] > 0) : ?>
+                                                    <span class="mptbm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <?php echo esc_html((int) $it['passengers']); ?></span>
+                                                <?php endif; ?>
+                                                <?php if (is_numeric($it['bags']) && (int) $it['bags'] > 0) : ?>
+                                                    <span class="mptbm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></svg> <?php echo esc_html((int) $it['bags']); ?></span>
+                                                <?php endif; ?>
+                                                <?php $this->feature_chips($it); ?>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </td>
                                 <td data-label="<?php esc_attr_e('KM Price', 'ecab-taxi-booking-manager'); ?>"><?php echo esc_html($this->money($it['km']) ?: '-'); ?></td>
                                 <td data-label="<?php esc_attr_e('Hourly', 'ecab-taxi-booking-manager'); ?>"><?php echo esc_html($this->money($it['hourly']) ?: '-'); ?></td>
-                                <td data-label="<?php esc_attr_e('Status', 'ecab-taxi-booking-manager'); ?>"><span class="mptbm-status-dot status-<?php echo esc_attr($it['status']); ?>"><?php echo esc_html($this->status_label($it['status'])); ?></span></td>
+                                <td data-label="<?php esc_attr_e('Status', 'ecab-taxi-booking-manager'); ?>">
+                                    <span class="mptbm-status-dot status-<?php echo esc_attr($it['status']); ?>"><?php echo esc_html($this->status_label($it['status'])); ?></span>
+                                    <?php if ($it['modified']) : ?>
+                                        <span class="mptbm-cell-updated"><?php printf(esc_html__('Updated %s', 'ecab-taxi-booking-manager'), esc_html(date_i18n('M j, Y', strtotime($it['modified'])))); ?></span>
+                                    <?php endif; ?>
+                                </td>
                                 <td data-label="<?php esc_attr_e('Actions', 'ecab-taxi-booking-manager'); ?>">
                                     <?php if ($is_trash) : ?>
                                         <a class="mptbm-table-edit" href="<?php echo esc_url($it['restore_link']); ?>"><?php esc_html_e('Restore', 'ecab-taxi-booking-manager'); ?></a>
