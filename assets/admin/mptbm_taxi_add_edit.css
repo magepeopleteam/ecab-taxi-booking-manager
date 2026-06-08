@@ -1432,8 +1432,7 @@ select.mptbm_taxi_ex_service_select {
 
 .mptbm_shortcode_container {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    max-width: 900px;
-    margin: 20px auto;
+    margin: 20px 10px;
     color: var(--mptbm-text-dark);
 }
 
