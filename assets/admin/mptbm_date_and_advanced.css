@@ -61,7 +61,9 @@
 .mptbm_off_days_conainer{
     display: flex;
     gap: 10px;
+    background: #ededed;
     padding: 10px;
+    margin: 10px 0px;
 }
 
 .mptbm_taxi_advanced_title_block h3 {
