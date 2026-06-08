@@ -304,11 +304,11 @@
 
 /* Main Container */
 .mptbm_taxi_container {
-    background: white;
+   /* background: white;
     border-radius: 12px;
     border: 1px solid var(--mptbm-border);
     padding: 30px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02); */
 }
 
 .mptbm_taxi_section {
