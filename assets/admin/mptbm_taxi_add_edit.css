@@ -1241,7 +1241,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
     border: 1px solid #e5e9f0;
 }
 
-.mptbm_rent_editor_wrapper h4.mptbm_taxi_ex_service_main_title{
+.mptbm_rent_editor_wrapper .mptbm_taxi_ex_service_main_title{
     margin: 0 0 4px;
     font-size: 18px;
     font-weight: 700;
