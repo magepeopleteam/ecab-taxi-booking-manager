@@ -1771,8 +1771,9 @@ select.mptbm_taxi_ex_service_select {
 }
 
 .mptbm_feature_image_head{
-    padding:18px;
-    border-bottom:1px solid #eee;
+    background: #e9eff6;
+    padding: 18px 24px;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .mptbm_taxi_operation_area_type_title{
