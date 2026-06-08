@@ -124,7 +124,6 @@
             e.preventDefault();
 
             let formData = $(this).serialize();
-            console.log( formData );
 
             $.ajax({
                 url: ajaxurl,
@@ -507,7 +506,7 @@
                 $('input[name="mptbm_price_based"]').val(price_based);
                 $("#mptbm_distance_price").fadeIn();
                 $("#mptbm_price_per_hour").fadeIn();
-                // $("#mptbm_manual_routes").fadeIn();
+                $(".mptbm_taxi_pricing_field_free").fadeOut();
                /* $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeIn();
                 $('#mptbm_taxi_inclusive_manual_locations').prop('checked', false);*/
 
@@ -544,6 +543,8 @@
                                         KM Rate × Distance
                                     </div>
                                 </div>`;
+
+                $(".mptbm_taxi_pricing_field_free").fadeOut();
             }
             else if(clicked_tab_id === 'mptbm_row_duration' ){
                 price_based = 'duration';
@@ -563,6 +564,8 @@
                                 Hourly Rate × Duration
                             </div>
                         </div>`;
+
+                $(".mptbm_taxi_pricing_field_free").fadeOut();
 
             }
             else if(clicked_tab_id === 'mptbm_row_dist_dur' ){
@@ -585,6 +588,8 @@
                             </div>
                         </div>`;
 
+                $(".mptbm_taxi_pricing_field_free").fadeOut();
+
             }
             else if(clicked_tab_id === 'mptbm_row_hourly' ){
                 price_based = 'fixed_hourly';
@@ -604,9 +609,14 @@
                             </div>
                         </div>`;
                 $('input[name="mptbm_price_based"]').val(price_based);
+
+                $(".mptbm_taxi_pricing_field_free").fadeOut();
             }
             else if(clicked_tab_id === 'mptbm_row_operation_area' ){
                 price_based = 'fixed_distance';
+
+                $(".mptbm_taxi_pricing_field_free").fadeIn();
+
                 $("#mptbm_operation_area").fadeIn();
                 $("#mptbm_area_based_wrapper").fadeIn();
                 let shortcode = "<code>[mptbm_booking price_based='fixed_map' form='horizontal' progressbar='yes' map='yes']</code>";
@@ -706,6 +716,8 @@
                         </div>`;
                 $('input[name="mptbm_price_based"]').val(price_based);
 
+                $(".mptbm_taxi_pricing_field_free").fadeOut();
+
             }
             else if(clicked_tab_id === 'mptbm_row_zone' ){
                 price_based = 'fixed_zone';
@@ -717,6 +729,9 @@
                 $("#mptbm_shortcode_primary_code").html(primary_shortcode);
                 $("#mptbm_taxi_operation_area_pricing_section").fadeOut();
                 $('input[name="mptbm_price_based"]').val(price_based);
+
+                $(".mptbm_taxi_pricing_field_free").fadeOut();
+
             }
             else{
                 price_based = 'inclusive';
@@ -736,6 +751,8 @@
                                 </div>
                             </div>`;
                 $('input[name="mptbm_price_based"]').val(price_based);
+
+                $(".mptbm_taxi_pricing_field_free").fadeOut();
             }
 
 

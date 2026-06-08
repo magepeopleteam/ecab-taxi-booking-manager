@@ -1796,23 +1796,11 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 ),
             );
 
+//            error_log( print_r( [], true ) )
             ?>
-
-            <div class="pro-feature-popup" style="display:none;">
-                <div class="pro-feature-box">
-                    <h2>🚕 PRO FEATURE</h2>
-                    <p>This feature is available in PRO version only.</p>
-
-                    <a href="https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce" target="_blank" class="buy-pro-btn">
-                        Buy PRO Now
-                    </a>
-
-                    <button class="close-pro-popup">Close</button>
-                </div>
-            </div>
             <div class="mptbm_taxi_pricing_field_free pro-locked"
                  id="mptbm_taxi_pricing_field_free"
-                 style="display: block">
+                 style="display: none">
 
                 <div class="mptbm_operation_area_type_holder">
                     <div class="mptbm_taxi_operation_area_title">
