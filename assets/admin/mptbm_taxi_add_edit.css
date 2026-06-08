@@ -1253,6 +1253,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
     color: #6b7280;
     line-height: 1.5;
 }
+div#mptbm_price_per_hour { margin-top: 15px; }
 .manual_routes_and_fixed_fare_toggle_wrapper { display: flex; align-items: center; gap: 10px; }
 .mptbm_taxi_ex_service_toggle_wrapper { display: flex; align-items: center; gap: 10px; }
 .mptbm_taxi_ex_service_switch {
