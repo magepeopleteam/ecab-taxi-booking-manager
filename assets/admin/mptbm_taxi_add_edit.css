@@ -1283,7 +1283,10 @@ input:checked + .mptbm_taxi_ex_service_slider:before { transform: translateX(22p
     font-weight: bold;
 }
 
-.mptbm_taxi_ex_service_table { width: 100%; border-collapse: collapse; }
+.mptbm_taxi_ex_service_table { width: 100%; border-collapse: collapse; 
+         background: #f3f3f3;
+        border: 1px solid #ddd;
+          }
 .mptbm_taxi_ex_service_table th {
     text-align: left; padding: 12px; border-bottom: 2px solid var(--mptbm-bg);
     color: var(--mptbm-text); font-size: 14px;
@@ -2521,4 +2524,8 @@ input.mptbm_taxi_ex_service_input, input.mptbm_taxi_feature_input {
     outline: none;
     transition: all 0.3s ease;
     box-sizing: border-box;
+}
+select#mptbm_extra_services_id {
+    border-radius: 10px;
+    margin-left: 20px;
 }
