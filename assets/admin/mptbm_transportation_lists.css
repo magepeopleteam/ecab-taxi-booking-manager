@@ -128,7 +128,8 @@
 /* VIEW SWITCHING (class-driven; keeps responsive table intact) */
 .mptbm-view-list .mptbm-grid{display:none;}
 .mptbm-view-list .mptbm-table{display:table;}
-
+a.mptbm-table-edit{border: 1px solid green;}
+a.mptbm-table-del { border: 1px solid red; }
 /* COMPACT VEHICLE CELL (image + name + meta) */
 .mptbm-cell-vehicle{display:flex;align-items:center;gap:13px;}
 .mptbm-cell-thumb{width:100px;height:100px;border-radius:11px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#312e81,#4f46e5);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.7);box-shadow:0 2px 8px rgba(79,70,229,.18);}
