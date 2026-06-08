@@ -141,7 +141,7 @@
 .mptbm-cell-loc{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--mp-muted);font-weight:500;}
 .mptbm-cell-loc svg{flex-shrink:0;color:var(--mp-indigo);}
 .mptbm-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
-.mptbm-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--mp-ink2);background:var(--mp-bg);border:1px solid var(--mp-border);border-radius:6px;padding:2px 7px;line-height:1.5;}
+.mptbm-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--mp-ink2);background:var(--mp-bg);border:1px solid var(--mp-border);border-radius:6px;padding:2px 7px;line-height:1.5;}
 .mptbm-chip svg{width:11px;height:11px;color:var(--mp-muted);flex-shrink:0;}
 .mptbm-chip.is-repeated{background:var(--mp-indigo-soft);border-color:#dfe0fb;color:var(--mp-indigo);}
 .mptbm-chip.is-repeated svg{color:var(--mp-indigo);}
