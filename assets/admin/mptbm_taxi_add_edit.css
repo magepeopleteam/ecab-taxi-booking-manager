@@ -1432,7 +1432,7 @@ select.mptbm_taxi_ex_service_select {
 
 .mptbm_shortcode_container {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    margin: 20px 10px;
+    margin: 20px;
     color: var(--mptbm-text-dark);
 }
 
@@ -1443,6 +1443,8 @@ select.mptbm_taxi_ex_service_select {
     align-items: center;
     padding: 10px 10px;
     margin-bottom: 15px;
+    background: #e5e7eb;
+    border-radius:10px;
 }
 
 .mptbm_shortcode_header_left {
