@@ -62,6 +62,7 @@
                     if (res.success) {
                         alert(res.data.message);
                         $('#mptbm_taxi_category_modal').fadeOut();
+                        $('#mptbm_taxi_category_flex_group').html( res.data.category_html_data );
                     } else {
                         alert(res.data.message);
                     }

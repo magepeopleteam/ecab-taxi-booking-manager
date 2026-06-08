@@ -51,7 +51,7 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                         Select vehicle category
                     </span>
 
-                    <div class="mptbm_taxi_category_flex_group">
+                    <div class="mptbm_taxi_category_flex_group" id="mptbm_taxi_category_flex_group">
 
                         <select id="mptbm_taxi_category_dropdown"
                                 class="mptbm_taxi_category_select">
@@ -263,9 +263,24 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                 'desc' => $desc,
             ];
             update_option('mptbm_taxi_categories', $categories);
+
+            ob_start();
+            ?>
+            <select id="mptbm_taxi_category_dropdown" class="mptbm_taxi_category_select">
+                <option value=""><?php esc_attr_e( 'Select Category', 'ecab-taxi-booking-manager' );?></option>
+                <?php foreach ($categories as $category) : ?>
+                    <option value="<?php echo esc_attr($category['id']); ?>">
+                        <?php echo esc_html($category['name']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <?php
+            $html = ob_get_clean();
+
             wp_send_json_success([
                 'message' => 'Category saved successfully',
-                'data'    => $categories
+                'data'    => $categories,
+                'category_html_data'    => $html
             ]);
         }
 
