@@ -2509,7 +2509,7 @@ select.mptbm_taxi_ex_service_select {
     background: #d63638;
     border-color: #d63638;
 }
-input.mptbm_taxi_feature_input {
+input.mptbm_taxi_ex_service_input, input.mptbm_taxi_feature_input {
     height: 48px;
     padding: 0 16px;
     border: 1px solid #dcdcde;
