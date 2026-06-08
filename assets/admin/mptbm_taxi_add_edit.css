@@ -1236,7 +1236,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #f8fafc;
+    background: #e9eff6;
     border: 1px solid #e5e9f0;
 }
 
