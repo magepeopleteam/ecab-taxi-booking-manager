@@ -831,6 +831,12 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
     border-radius: 10px;
     /*margin: 10px 0;*/
 }
+.mptbm_taxi_pricing_field_free{
+    padding: 5px 10px;
+    border: 1px solid #dddddd;
+    border-radius: 10px;
+    /*margin: 10px 0;*/
+}
 
 .mptbm_taxi_pricing_form_grid {
     display: grid;
@@ -2535,4 +2541,71 @@ select#mptbm_extra_services_id {
 .mptbm_rent_editor_wrapper span.desc {
     color: #6b7280;
     font-size: 13px;
+}
+
+
+#mptbm_taxi_pricing_field_free {
+    position: relative;
+}
+
+/* blur + disable interaction */
+#mptbm_taxi_pricing_field_free.pro-locked {
+    pointer-events: none;
+    filter: blur(1px);
+    opacity: 1;
+}
+
+/* overlay */
+#mptbm_taxi_pricing_field_free.pro-locked::after {
+    content: "🔒 PRO FEATURE - CLICK TO UPGRADE";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    z-index: 10;
+    cursor: pointer;
+    pointer-events: auto;
+}
+.pro-feature-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+}
+
+.pro-feature-box {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    width: 320px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.buy-pro-btn {
+    display: inline-block;
+    margin-top: 10px;
+    background: #f59e0b;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.close-pro-popup {
+    margin-top: 10px;
+    padding: 6px 12px;
+    cursor: pointer;
 }

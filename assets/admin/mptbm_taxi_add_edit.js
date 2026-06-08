@@ -1237,4 +1237,33 @@
             .append(btn);
     });
 
+
+
+    $(document).on('click', '#mptbm_taxi_pricing_field_free',function( e ){
+        e.preventDefault();
+        if( $(this).hasClass('pro-locked') ){
+            $('.mptbm_pro_popup').fadeIn();
+        }
+    });
+
+    $(document).on('click', '.pro-feature-popup', function(e){
+        if($(e.target).is('.pro-feature-popup') || $(e.target).is('.close-pro-popup')){
+            $('.pro-feature-popup').fadeOut();
+        }
+    });
+    $(document).on('click','close-pro-popup', function(e){
+        e.preventDefault();
+        if($(e.target).is('.pro-feature-popup') || $(e.target).is('.close-pro-popup')){
+            $('.pro-feature-popup').fadeOut();
+        }
+    });
+
+    function mptbm_disable_pro_feature_in_free(){
+        $('#mptbm_taxi_pricing_field_free')
+            .find('input, textarea, button')
+            .prop('disabled', true);
+    }
+    mptbm_disable_pro_feature_in_free();
+
+
 }(jQuery));
