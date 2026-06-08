@@ -2529,3 +2529,4 @@ select#mptbm_extra_services_id {
     border-radius: 10px;
     margin-left: 20px;
 }
+.mptbm_taxi_advanced_toggle select[name="mptbm_date_type"] {width:250px; }
