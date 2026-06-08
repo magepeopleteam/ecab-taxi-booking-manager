@@ -1243,7 +1243,18 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 
 .mptbm_taxi_ex_service_main_title { margin: 0; font-size: 18px; font-weight: 700; color: #1e293b; }
 .mptbm_taxi_ex_service_subtitle { margin: 4px 0 0; font-size: 13px; color: #6b7280; line-height: 1.5; }
-
+h4.mptbm_taxi_ex_service_main_title{
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+ }
+p.mptbm_rent_editor_subtitle{
+    margin: 0;
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.5;
+}
 .manual_routes_and_fixed_fare_toggle_wrapper { display: flex; align-items: center; gap: 10px; }
 .mptbm_taxi_ex_service_toggle_wrapper { display: flex; align-items: center; gap: 10px; }
 .mptbm_taxi_ex_service_switch {
