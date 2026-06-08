@@ -1424,6 +1424,8 @@ select.mptbm_taxi_ex_service_select {
     background-position: right 10px center;
     background-size: 16px;
     padding-right: 30px;
+    border-radius: 5px;
+    border: 1px solid #d5d5d5;
 }
 
 /* Focus and Hover states remain consistent */
