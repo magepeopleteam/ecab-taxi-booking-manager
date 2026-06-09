@@ -18,6 +18,11 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
             add_action('wp_ajax_mptbm_taxi_remove_tag', [ $this, 'mptbm_taxi_remove_tag' ] );
 
 
+            add_action('wp_ajax_mptbm_add_edit_taxi_category',  [ $this, 'mptbm_add_edit_taxi_category' ] );
+            add_action('wp_ajax_mptbm_get_all_categories',  [ $this, 'mptbm_get_all_categories' ] );
+            add_action('wp_ajax_mptbm_remove_category_from_cat_list',  [ $this, 'mptbm_remove_category_from_cat_list' ] );
+
+
         }
 
 
@@ -46,9 +51,13 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                        value="<?php echo esc_attr($post_id); ?>">
 
                 <div class="mptbm_taxi_category_card">
-                    <label class="mptbm_taxi_category_label">Category</label>
+                    <div class="" style="display: flex; justify-content: space-between">
+                        <label class="mptbm_taxi_category_label"> <?php esc_html_e( 'Categories', 'ecab-taxi-booking-manager' ); ?></label>
+                        <label class="mptbm_taxi_all_category_label"> <?php esc_html_e( 'All Categories', 'ecab-taxi-booking-manager' ); ?></label>
+
+                    </div>
                     <span class="mptbm_taxi_category_subtext">
-                        Select vehicle category
+                         <?php esc_html_e( 'Select vehicle category', 'ecab-taxi-booking-manager' ); ?>
                     </span>
 
                     <div class="mptbm_taxi_category_flex_group" id="mptbm_taxi_category_flex_group">
@@ -56,7 +65,7 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                         <select id="mptbm_taxi_category_dropdown"
                                 class="mptbm_taxi_category_select">
 
-                            <option value="" disabled>Select Category</option>
+                            <option value="" disabled><?php esc_html_e( 'Select Category', 'ecab-taxi-booking-manager' ); ?></option>
 
                             <?php foreach ($categories as $cat) : ?>
 
@@ -79,7 +88,7 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
 
                     </div>
                     <p class="mptbm_taxi_category_helptext">
-                        Choose the category that best fits this transport.
+                        <?php esc_html_e( 'Choose the category that best fits this transport.', 'ecab-taxi-booking-manager' ); ?>
                     </p>
                 </div>
 
@@ -93,15 +102,15 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                 ?>
 
                 <div class="mptbm_taxi_category_card">
-                    <label class="mptbm_taxi_category_label">Tags</label>
+                    <label class="mptbm_taxi_category_label"><?php esc_html_e( 'Tags', 'ecab-taxi-booking-manager' ); ?></label>
                     <span class="mptbm_taxi_category_subtext">
-                        Add keywords for searching
+                        <?php esc_html_e( 'Add keywords for searching', 'ecab-taxi-booking-manager' ); ?>
                     </span>
                     <div class="mptbm_taxi_category_tag_input_wrapper">
                         <input type="text"
                                id="mptbm_taxi_category_tag_input"
                                class="mptbm_taxi_category_input"
-                               placeholder="Add a tag and press Enter">
+                               placeholder="<?php esc_html_e( 'Add a tag and press Enter', 'ecab-taxi-booking-manager' ); ?>">
                     </div>
                     <div id="mptbm_taxi_category_tags_list"
                          class="mptbm_taxi_category_tags_container">
@@ -227,7 +236,7 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
 
             wp_send_json_success(['message' => 'Category saved']);
         }
-        function mptbm_taxi_save_category() {
+        function mptbm_taxi_save_category_old() {
             if (
                 !isset($_POST['nonce']) ||
                 !wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'mptbm_taxi_nonce')
@@ -247,6 +256,8 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
             $type = isset( $_POST['type'] ) ? sanitize_text_field( wp_unslash( $_POST['type'] ) ) : '';
             $desc = isset( $_POST['desc'] ) ? sanitize_textarea_field( wp_unslash( $_POST['desc'] ) ) : '';
 
+            $cat_id = isset( $_POST['cat_id'] ) ? sanitize_textarea_field( wp_unslash( $_POST['cat_id'] ) ) : '';
+
             if (empty($name)) {
                 wp_send_json_error([
                     'message' => 'Category name is required'
@@ -262,18 +273,18 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                 'type' => $type,
                 'desc' => $desc,
             ];
+
+
             update_option('mptbm_taxi_categories', $categories);
 
             ob_start();
             ?>
-            <select id="mptbm_taxi_category_dropdown" class="mptbm_taxi_category_select">
                 <option value=""><?php esc_attr_e( 'Select Category', 'ecab-taxi-booking-manager' );?></option>
                 <?php foreach ($categories as $category) : ?>
                     <option value="<?php echo esc_attr($category['id']); ?>">
                         <?php echo esc_html($category['name']); ?>
                     </option>
                 <?php endforeach; ?>
-            </select>
             <?php
             $html = ob_get_clean();
 
@@ -284,54 +295,323 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
             ]);
         }
 
+        function mptbm_taxi_save_category() {
+
+            if (
+                !isset($_POST['nonce']) ||
+                !wp_verify_nonce(
+                    sanitize_text_field(wp_unslash($_POST['nonce'])),
+                    'mptbm_taxi_nonce'
+                )
+            ) {
+                wp_send_json_error(['message' => 'Security check failed']);
+            }
+
+            if (!current_user_can('manage_options')) {
+                wp_send_json_error(['message' => 'Permission denied']);
+            }
+
+            $name   = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
+            $type   = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
+            $desc   = isset($_POST['desc']) ? sanitize_textarea_field(wp_unslash($_POST['desc'])) : '';
+            $cat_id = isset($_POST['cat_id']) ? sanitize_text_field(wp_unslash($_POST['cat_id'])) : '';
+
+            if (empty($name)) {
+                wp_send_json_error(['message' => 'Category name is required']);
+            }
+
+            $categories = get_option('mptbm_taxi_categories', []);
+
+            if (!is_array($categories)) {
+                $categories = [];
+            }
+            if (!empty($cat_id)) {
+
+                foreach ($categories as &$category) {
+                    if ($category['id'] == $cat_id) {
+                        $category['name'] = $name;
+                        $category['type'] = $type;
+                        $category['desc'] = $desc;
+                        break;
+                    }
+                }
+
+                unset($category);
+            }
+            else {
+
+                $categories[] = [
+                    'id'   => time(),
+                    'name' => $name,
+                    'type' => $type,
+                    'desc' => $desc,
+                ];
+            }
+
+            update_option('mptbm_taxi_categories', $categories);
+
+            ob_start();
+            ?>
+            <option value=""><?php esc_attr_e('Select Category', 'ecab-taxi-booking-manager'); ?></option>
+
+            <?php foreach ($categories as $category) : ?>
+                <option value="<?php echo esc_attr($category['id']); ?>">
+                    <?php echo esc_html($category['name']); ?>
+                </option>
+            <?php endforeach; ?>
+            <?php
+
+            $html = ob_get_clean();
+
+            wp_send_json_success([
+                'message' => !empty($cat_id) ? 'Category updated successfully' : 'Category added successfully',
+                'data'    => $categories,
+                'category_html_data' => $html
+            ]);
+        }
+
+        function mptbm_remove_category_from_cat_list() {
+
+            if (
+                !isset($_POST['nonce']) ||
+                !wp_verify_nonce(
+                    sanitize_text_field(wp_unslash($_POST['nonce'])),
+                    'mptbm_taxi_nonce'
+                )
+            ) {
+                wp_send_json_error(['message' => 'Security check failed']);
+            }
+
+            if (!current_user_can('manage_options')) {
+                wp_send_json_error(['message' => 'Permission denied']);
+            }
+            $cat_id = isset($_POST['category_id']) ? sanitize_text_field(wp_unslash($_POST['category_id'])) : '';
+
+            $categories = get_option('mptbm_taxi_categories', []);
+
+            if (!is_array($categories)) {
+                $categories = [];
+            }
+            if (!empty($cat_id)) {
+
+                foreach ($categories as $key => $category) {
+                    if ($category['id'] == $cat_id) {
+                        unset($categories[$key]);
+                        break;
+                    }
+                }
+                $categories = array_values($categories);
+            }
+            update_option('mptbm_taxi_categories', $categories);
+
+            ob_start();
+            ?>
+            <option value=""><?php esc_attr_e('Select Category', 'ecab-taxi-booking-manager'); ?></option>
+
+            <?php foreach ($categories as $category) : ?>
+                <option value="<?php echo esc_attr($category['id']); ?>">
+                    <?php echo esc_html($category['name']); ?>
+                </option>
+            <?php endforeach; ?>
+            <?php
+
+            $html = ob_get_clean();
+
+            wp_send_json_success([
+                'message' => !empty($cat_id) ? 'Category updated successfully' : 'Category added successfully',
+                'data'    => $categories,
+                'category_html_data' => $html
+            ]);
+        }
+
         public static function category_add_popup(){ ?>
             <div id="mptbm_taxi_category_modal" class="mptbm_taxi_category_modal_overlay">
+                <span>Loading...</span>
+            </div>
+        <?php }
 
-                <div class="mptbm_taxi_category_modal_content">
+        public static function add_edit_category( $category ) {
 
-                    <div class="mptbm_taxi_category_modal_header">
-                        <h3>Create New Category</h3>
-                        <span id="mptbm_taxi_category_close_popup"
-                              class="mptbm_taxi_category_modal_close">&times;</span>
+            $is_edit = ! empty($category);
+
+            $id          = $category['id'] ?? '';
+            $name        = $category['name'] ?? '';
+            $type        = $category['type'] ?? 'standard';
+            $desc        = $category['desc'] ?? '';
+
+            ob_start();
+            ?>
+            <div class="mptbm_taxi_category_modal_content" id="mptbm_taxi_category_modal_content">
+
+                <div class="mptbm_taxi_category_modal_header">
+                    <h3>
+                        <?php echo $is_edit
+                            ? esc_html__( 'Edit Category', 'ecab-taxi-booking-manager' )
+                            : esc_html__( 'Create New Category', 'ecab-taxi-booking-manager' );
+                        ?>
+                    </h3>
+
+                    <span id="mptbm_taxi_category_close_popup"
+                          class="mptbm_taxi_category_modal_close">&times;</span>
+                </div>
+
+                <div class="mptbm_taxi_category_modal_body">
+
+                    <?php if ( $is_edit ) : ?>
+                        <input type="hidden" id="mptbm_taxi_category_id" value="<?php echo esc_attr($id); ?>">
+                    <?php endif; ?>
+
+                    <div class="mptbm_taxi_category_form_group">
+                        <label><?php esc_html_e( 'Category Name', 'ecab-taxi-booking-manager' ); ?></label>
+                        <input type="text"
+                               id="mptbm_taxi_category_new_name"
+                               class="mptbm_taxi_category_input"
+                               value=" <?php echo esc_attr( $name ); ?>"
+                               placeholder="<?php esc_html_e( 'e.g., Electric Van', 'ecab-taxi-booking-manager' ); ?>">
                     </div>
 
-                    <div class="mptbm_taxi_category_modal_body">
-                        <div class="mptbm_taxi_category_form_group">
-                            <label class="mptbm_taxi_category_modal_label">Category Name</label>
-                            <input type="text"
-                                   id="mptbm_taxi_category_new_name"
-                                   class="mptbm_taxi_category_input"
-                                   placeholder="e.g., Electric Van">
-                        </div>
-                        <div class="mptbm_taxi_category_form_group">
-                            <label class="mptbm_taxi_category_modal_label">Category Type</label>
-                            <select id="mptbm_taxi_category_type"
-                                    class="mptbm_taxi_category_input">
-                                <option value="standard">Standard</option>
-                                <option value="premium">Premium</option>
-                                <option value="luxury">Luxury</option>
-                            </select>
-                        </div>
-                        <div class="mptbm_taxi_category_form_group">
-                            <label class="mptbm_taxi_category_modal_label">Description</label>
-                            <textarea id="mptbm_taxi_category_desc"
-                                      class="mptbm_taxi_category_input"
-                                      placeholder="Write description..."></textarea>
-                        </div>
+                    <div class="mptbm_taxi_category_form_group">
+                        <label><?php esc_html_e( 'Category Type', 'ecab-taxi-booking-manager' ); ?></label>
+                        <select id="mptbm_taxi_category_type" class="mptbm_taxi_category_input">
+                            <option value="standard" <?php selected($type, 'standard'); ?>>Standard</option>
+                            <option value="premium" <?php selected($type, 'premium'); ?>>Premium</option>
+                            <option value="luxury" <?php selected($type, 'luxury'); ?>>Luxury</option>
+                        </select>
                     </div>
-                    <div class="mptbm_taxi_category_modal_footer">
-                        <button type="button"
-                                id="mptbm_taxi_category_save_btn"
-                                class="mptbm_taxi_category_btn_save">
-                            Save Category
-                        </button>
+
+                    <div class="mptbm_taxi_category_form_group">
+                        <label><?php esc_html_e( 'Description', 'ecab-taxi-booking-manager' ); ?></label>
+                        <textarea id="mptbm_taxi_category_desc"
+                                  class="mptbm_taxi_category_input"
+                                  placeholder="<?php esc_html_e( 'Write description...', 'ecab-taxi-booking-manager' ); ?>"><?php echo esc_textarea($desc); ?></textarea>
                     </div>
 
                 </div>
 
-            </div>
-        <?php }
+                <div class="mptbm_taxi_category_modal_footer">
+                    <button type="button"
+                            id="mptbm_taxi_category_save_btn"
+                            class="mptbm_taxi_category_btn_save">
 
+                        <?php echo $is_edit
+                            ? esc_html__( 'Update Category', 'ecab-taxi-booking-manager' )
+                            : esc_html__( 'Save Category', 'ecab-taxi-booking-manager' );
+                        ?>
+
+                    </button>
+                </div>
+
+            </div>
+            <?php
+
+            return ob_get_clean();
+        }
+
+        public function mptbm_add_edit_taxi_category(){
+            if (
+                !isset($_POST['nonce']) ||
+                !wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'mptbm_taxi_nonce')
+            ) {
+                wp_send_json_error(['message' => 'Security failed']);
+            }
+
+            $category_id = isset( $_POST['category_id'] ) ? sanitize_text_field( wp_unslash( $_POST['category_id'] ) ) : '';
+
+            $categories = get_option('mptbm_taxi_categories', []);
+            if (!is_array($categories)) {
+                $categories = [];
+            }
+
+            $category = [];
+            if( $category_id && !empty( $categories ) ){
+                $indexed = array_column($categories, null, 'id');
+                $category = $indexed[$category_id] ?? null;
+            }
+
+
+            $html = self::add_edit_category( $category );
+            wp_send_json_success([
+                'message' => 'Add Edit Popup',
+                'add_edit_html'    => $html
+            ]);
+
+        }
+
+        public function mptbm_get_all_categories(){
+            if (
+                !isset($_POST['nonce']) ||
+                !wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'mptbm_taxi_nonce')
+            ) {
+                wp_send_json_error(['message' => 'Security failed']);
+            }
+
+
+            $categories = get_option('mptbm_taxi_categories', []);
+            if (!is_array($categories)) {
+                $categories = [];
+            }
+
+            $html = self::get_all_category( $categories );
+            wp_send_json_success([
+                'message' => 'Add Edit Popup',
+                'all_cat_html'    => $html
+            ]);
+
+        }
+
+        public static function get_all_category( $categories ){
+            ob_start(); ?>
+                <!-- Modal -->
+                <div class="mptbm_all_categories_modal">
+
+                    <div class="mptbm_all_categories_header">
+                        <h3>All Categories</h3>
+                        <span class="mptbm_all_categories_close" id="mptbm_all_categories_close">&times;</span>
+                    </div>
+
+                    <div class="mptbm_all_categories_wrapper">
+
+                        <?php if ( ! empty( $categories ) ) : ?>
+
+                            <?php foreach ( $categories as $cat ) : ?>
+
+                                <div class="mptbm_all_categories_card">
+
+                                    <div class="mptbm_all_categories_title">
+                                        <?php echo esc_html( $cat['name'] ); ?>
+                                    </div>
+
+                                    <div class="mptbm_all_categories_actions">
+                                        <button class="mptbm_all_categories_edit_btn"
+                                                data-id="<?php echo esc_attr( $cat['id'] ); ?>">
+                                            ✏️
+                                        </button>
+
+                                        <button class="mptbm_all_categories_delete_btn"
+                                                data-id="<?php echo esc_attr( $cat['id'] ); ?>">
+                                            🗑
+                                        </button>
+                                    </div>
+
+                                </div>
+
+                            <?php endforeach; ?>
+
+                        <?php else : ?>
+
+                            <div class="mptbm_all_categories_empty">
+                                No categories found
+                            </div>
+
+                        <?php endif; ?>
+
+                    </div>
+
+                </div>
+            <?php
+            return ob_get_clean();
+
+        }
         public function mptbm_taxi_add_tag() {
             if (
                 !isset($_POST['nonce']) ||

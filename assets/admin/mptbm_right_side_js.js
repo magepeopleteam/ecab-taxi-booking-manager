@@ -1,18 +1,34 @@
 (function ($) {
     $(document).ready(function() {
 
-        $('#mptbm_taxi_category_open_popup').on('click', function() {
+        $(document).on('click','#mptbm_taxi_category_open_popup', function() {
             $('#mptbm_taxi_category_modal').css('display', 'flex');
-            $('#mptbm_taxi_category_new_name').val('').focus();
+            $.ajax({
+                url: ajaxurl,
+                type: "POST",
+                data: {
+                    action: "mptbm_add_edit_taxi_category",
+                    nonce: $('#mptbm_taxi_nonce').val(),
+                    category_id: '',
+                },
+                success: function(res) {
+                    if(res.success){
+                        $("#mptbm_taxi_category_modal").html( res.data.add_edit_html );
+
+                        $('#mptbm_taxi_category_new_name').focus();
+                    }
+                }
+            });
+
+
         });
 
-        $('#mptbm_taxi_category_close_popup, #mptbm_taxi_category_modal').on('click', function(e) {
+        $(document).on('click','#mptbm_taxi_category_close_popup, #mptbm_taxi_category_modal', function(e) {
             if (e.target === this) {
                 $('#mptbm_taxi_category_modal').css('display', 'none');
+                $('#mptbm_taxi_category_modal').empty();
             }
         });
-
-
 
         $(document).on('change', '#mptbm_taxi_category_dropdown', function () {
             $.ajax({
@@ -32,11 +48,85 @@
             });
         });
 
-        $('#mptbm_taxi_category_save_btn').on('click', function () {
+
+        $(document).on('click', '.mptbm_taxi_all_category_label', function () {
+            $('#mptbm_taxi_category_modal').css('display', 'flex');
+            $.ajax({
+                url: ajaxurl,
+                type: "POST",
+                data: {
+                    action: "mptbm_get_all_categories",
+                    nonce: $('#mptbm_taxi_nonce').val(),
+                },
+                success: function(res) {
+                    if(res.success){
+                        $("#mptbm_taxi_category_modal").empty();
+                        $("#mptbm_taxi_category_modal").html( res.data.all_cat_html );
+                    }
+                }
+            });
+        });
+
+        function mptbm_remove_category_popup(){
+            $('#mptbm_taxi_category_modal').css('display', 'none');
+            $('#mptbm_taxi_category_modal').empty();
+        }
+
+        $(document).on('click','.mptbm_all_categories_delete_btn', function( e ) {
+            e.preventDefault();
+            let category_id = $(this).attr('data-id');
+
+            let $this = $(this);
+            $.ajax({
+                url: ajaxurl,
+                type: "POST",
+                data: {
+                    action: "mptbm_remove_category_from_cat_list",
+                    nonce: $('#mptbm_taxi_nonce').val(),
+                    category_id: category_id,
+                },
+                success: function(res) {
+                    if(res.success){
+                        $('#mptbm_taxi_category_dropdown').html( res.data.category_html_data );
+                        $this.closest('.mptbm_all_categories_card').fadeOut(300);
+                    }
+                }
+            });
+        });
+
+        $(document).on('click','.mptbm_all_categories_edit_btn', function() {
+            mptbm_remove_category_popup();
+            $('#mptbm_taxi_category_modal').css('display', 'flex');
+            let category_id = $(this).attr('data-id');
+            $.ajax({
+                url: ajaxurl,
+                type: "POST",
+                data: {
+                    action: "mptbm_add_edit_taxi_category",
+                    nonce: $('#mptbm_taxi_nonce').val(),
+                    category_id: category_id,
+                },
+                success: function(res) {
+                    if(res.success){
+                        $("#mptbm_taxi_category_modal").html( res.data.add_edit_html );
+
+                        $('#mptbm_taxi_category_new_name').focus();
+                    }
+                }
+            });
+        });
+
+        $(document).on('click', '#mptbm_all_categories_close',function () {
+            mptbm_remove_category_popup();
+        });
+
+        $(document).on('click', '#mptbm_taxi_category_save_btn',function () {
 
             let name = $('#mptbm_taxi_category_new_name').val();
             let type = $('#mptbm_taxi_category_type').val();
             let desc = $('#mptbm_taxi_category_desc').val();
+
+            let id = $('#mptbm_taxi_category_id').val();
 
             let nonce = $('#mptbm_taxi_nonce').val();
 
@@ -52,7 +142,8 @@
                     name: name,
                     type: type,
                     nonce: nonce,
-                    desc: desc
+                    desc: desc,
+                    cat_id: id,
                 },
                 beforeSend: function () {
                     $('#mptbm_taxi_category_save_btn').text('Saving...');
@@ -61,8 +152,9 @@
                     $('#mptbm_taxi_category_save_btn').text('Save Category');
                     if (res.success) {
                         alert(res.data.message);
+                        $('#mptbm_taxi_category_modal').empty();
                         $('#mptbm_taxi_category_modal').fadeOut();
-                        $('#mptbm_taxi_category_flex_group').html( res.data.category_html_data );
+                        $('#mptbm_taxi_category_dropdown').html( res.data.category_html_data );
                     } else {
                         alert(res.data.message);
                     }
