@@ -2550,8 +2550,9 @@ select#mptbm_extra_services_id {
 /* blur + disable interaction */
 #mptbm_taxi_pricing_field_free.pro-locked {
     pointer-events: none;
-    filter: blur(1px);
+    filter: blur(.8px);
     opacity: 1;
+    margin-top: 10px;
 }
 
 /* overlay */
