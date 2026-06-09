@@ -1,617 +1,517 @@
 <?php
-
+/**
+ * Transportation list - modern responsive card/table design.
+ * Mirrors the bus/rental fleet list design in the plugin's own indigo theme.
+ */
 class MPTBM_Transportation
 {
-    public function __construct(){
-
-        add_action( 'admin_menu', array( $this, 'mptbm_transportation_lists_menu' ) );
-
-        add_action( 'admin_menu', array( $this, 'reorder_mptbm_submenu' ), 999 );
-
-        add_action('admin_post_mptbm_trash_transport',  array( $this, 'mptbm_trash_transport_callback' ) );
+    public function __construct()
+    {
+        add_action('admin_menu', array($this, 'mptbm_transportation_lists_menu'));
+        add_action('admin_menu', array($this, 'reorder_mptbm_submenu'), 999);
+        add_action('admin_post_mptbm_trash_transport', array($this, 'mptbm_trash_transport_callback'));
+        add_action('admin_post_mptbm_restore_transport', array($this, 'mptbm_restore_transport_callback'));
+        add_action('admin_post_mptbm_delete_transport', array($this, 'mptbm_delete_transport_callback'));
     }
 
-    public function reorder_mptbm_submenu() {
-
+    public function reorder_mptbm_submenu()
+    {
         global $submenu;
-
         $parent = 'edit.php?post_type=mptbm_rent';
-
-        if ( isset( $submenu[$parent] ) ) {
+        if (isset($submenu[$parent])) {
             $new_order = array();
-            foreach ( $submenu[$parent] as $item ) {
-
-                if ( isset($item[2]) && $item[2] === 'mptbm_transportation_lists' ) {
-                    array_unshift( $new_order, $item );
+            foreach ($submenu[$parent] as $item) {
+                if (isset($item[2]) && $item[2] === 'mptbm_transportation_lists') {
+                    array_unshift($new_order, $item);
                 } else {
                     $new_order[] = $item;
                 }
             }
-
             $submenu[$parent] = $new_order;
         }
     }
 
-
-//esc_html_e('ON', 'ecab-taxi-booking-manager');
-    public function mptbm_transportation_lists_menu() {
-
+    public function mptbm_transportation_lists_menu()
+    {
         add_submenu_page(
             'edit.php?post_type=mptbm_rent',
             'Transportation Lists',
             'Transportation Lists',
             'manage_options',
             'mptbm_transportation_lists',
-            array( $this, 'mptbm_transportation_lists_page' )
+            array($this, 'mptbm_transportation_lists_page')
         );
-        }
+    }
 
-    function mptbm_trash_transport_callback() {
+    private function base_url()
+    {
+        return admin_url('edit.php?post_type=mptbm_rent&page=mptbm_transportation_lists');
+    }
 
-        if (!isset($_GET['id'])) {
+    /* ---- Action handlers (nonce protected, redirect back to page) ----- */
+    public function mptbm_trash_transport_callback()
+    {
+        $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+        if (!$id || !isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'mptbm_trash_' . $id)) {
             wp_die('Invalid request');
         }
-
-        $id = intval($_GET['id']);
-
-        // Optional: security check (recommended)
         if (!current_user_can('delete_post', $id)) {
             wp_die('You are not allowed to trash this item.');
         }
-
-        // WordPress built-in trash
         wp_trash_post($id);
-
-        wp_redirect(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_transportation_lists'));
+        wp_safe_redirect($this->base_url());
         exit;
     }
 
-    public function mptbm_transportation_lists_page() {
-
-        $page = isset( $_GET['paged'] ) ? absint( $_GET['paged'] ) : 1;
-
-        $lists = $this->mptbm_get_rent_lists( $page, 6 );
-        $transportations = $lists['posts'];
-
-        $total_pages = $lists['pagination']['total_pages'];
-        $current     = $lists['pagination']['current_page'];
-        $total_posts = $lists['pagination']['total_posts'];
-        $per_page    = $lists['pagination']['per_page'];
-
-//        error_log( print_r( [ '$transportations' => $transportations ], true ) );
-
-        ?>
-
-        <div class="wrap mptbm_transportation_lists_wrapper">
-
-            <?php $this->mptbm_transportation_lists_header( $total_posts ); ?>
-
-            <?php $this->mptbm_transportation_lists_stats( $total_posts ); ?>
-
-            <?php $this->mptbm_transportation_lists_filter(); ?>
-
-            <div class="mptbm_transportation_lists_cards_wrapper">
-
-                <?php
-                if ( ! empty( $transportations ) ) {
-
-                    foreach ( $transportations as $transportation ) {
-
-                        $this->mptbm_transportation_lists_single_card( $transportation );
-                    }
-                }
-                ?>
-
-            </div>
-
-            <?php $this->mptbm_transportation_lists_footer( $lists, $total_pages, $current, $total_posts, $per_page ); ?>
-
-        </div>
-
-        <?php
+    public function mptbm_restore_transport_callback()
+    {
+        $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+        if (!$id || !isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'mptbm_restore_' . $id)) {
+            wp_die('Invalid request');
+        }
+        if (!current_user_can('edit_post', $id)) {
+            wp_die('You are not allowed to restore this item.');
+        }
+        wp_untrash_post($id);
+        wp_safe_redirect(add_query_arg('mptbm_status', 'trash', $this->base_url()));
+        exit;
     }
 
+    public function mptbm_delete_transport_callback()
+    {
+        $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+        if (!$id || !isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'mptbm_delete_' . $id)) {
+            wp_die('Invalid request');
+        }
+        if (!current_user_can('delete_post', $id)) {
+            wp_die('You are not allowed to delete this item.');
+        }
+        wp_delete_post($id, true);
+        wp_safe_redirect(add_query_arg('mptbm_status', 'trash', $this->base_url()));
+        exit;
+    }
 
-    /**
-     * Get Transport Rent List With Pagination
-     *
-     * @param int $paged
-     * @param int $per_page
-     *
-     * @return array
-     */
-    public function mptbm_get_rent_lists( $paged = 1, $per_page = 10 ) {
-
-        $args = array(
+    /* ---- Data --------------------------------------------------------- */
+    private function get_items($statuses = array('publish', 'draft', 'pending', 'private'))
+    {
+        $query = new WP_Query(array(
             'post_type'      => 'mptbm_rent',
-            'post_status'    => 'publish',
-            'posts_per_page' => $per_page,
-            'paged'          => $paged,
+            'post_status'    => $statuses,
+            'posts_per_page' => -1,
             'orderby'        => 'ID',
             'order'          => 'DESC',
-        );
-
-        $query = new WP_Query( $args );
-
-        $data = array();
-
-        if ( $query->have_posts() ) {
-
-            while ( $query->have_posts() ) {
-
-                $query->the_post();
-
-                $post_id = get_the_ID();
-
-                $item = get_post_meta( $post_id, 'mptbm_features', true );
-                $model = '';
-                if ( ! empty( $item ) && is_array( $item ) ){
-                    foreach ( $item as $feature ) {
-                        if ( isset( $feature['label'] ) && strtolower( $feature['label'] ) === 'model' ) {
-                            $model = $feature['text'];
-                            break;
-                        }
+            'no_found_rows'  => true,
+        ));
+        $items = array();
+        foreach ($query->posts as $post) {
+            $pid   = $post->ID;
+            $feature_map = array();
+            $features = get_post_meta($pid, 'mptbm_features', true);
+            if (!empty($features) && is_array($features)) {
+                foreach ($features as $feature) {
+                    if (!empty($feature['label']) && isset($feature['text']) && $feature['text'] !== '') {
+                        $feature_map[strtolower(trim($feature['label']))] = $feature['text'];
                     }
                 }
-
-                $data[] = array(
-
-                    'id'       => $post_id,
-
-                    'title'    => get_the_title(),
-
-                    'location' => get_post_meta( $post_id, 'mptbm_location', true ),
-
-                    'type'     => get_post_meta( $post_id, 'mptbm_transport_type', true ),
-
-                    'km'       => get_post_meta( $post_id, 'mptbm_km_price', true ),
-
-                    'hourly'   => get_post_meta( $post_id, 'mptbm_hour_price', true ),
-
-                    'model'    => $model,
-
-                    'status'   => get_post_status( $post_id ),
-
-                    'image'    => get_post_meta( $post_id, 'feature_image', true ),
-
-                    'link_wc_product' => get_post_meta( $post_id, 'link_wc_product', true ),
-
-                    'price_based' => get_post_meta( $post_id, 'mptbm_price_based', true ),
-
-                );
             }
-
-            wp_reset_postdata();
+            $model = $feature_map['model'] ?? '';
+            $tags  = get_post_meta($pid, 'mptbm_taxi_tags', true);
+            $items[] = array(
+                'id'          => $pid,
+                'title'       => get_the_title($pid) ?: __('(no title)', 'ecab-taxi-booking-manager'),
+                'location'    => get_post_meta($pid, 'mptbm_location', true),
+                'type'        => get_post_meta($pid, 'mptbm_transport_type', true),
+                'km'          => get_post_meta($pid, 'mptbm_km_price', true),
+                'hourly'      => get_post_meta($pid, 'mptbm_hour_price', true),
+                'model'       => $model,
+                'status'      => $post->post_status,
+                'image'       => get_post_meta($pid, 'feature_image', true) ?: get_the_post_thumbnail_url($pid, 'medium_large'),
+                'price_based' => get_post_meta($pid, 'mptbm_price_based', true),
+                'date_type'   => get_post_meta($pid, 'mptbm_date_type', true) ?: 'repeated',
+                'all_time'    => get_post_meta($pid, 'mptbm_available_for_all_time', true) === 'on',
+                'passengers'  => get_post_meta($pid, 'mptbm_maximum_passenger', true),
+                'bags'        => get_post_meta($pid, 'mptbm_maximum_bag', true),
+                'features'    => $feature_map,
+                'tags'        => is_array($tags) ? array_filter($tags) : array(),
+                'modified'    => $post->post_modified,
+                'author'      => get_the_author_meta('display_name', $post->post_author),
+                'edit_link'   => admin_url('admin.php?page=mptbm-rent-edit&post_id=' . $pid),
+                'trash_link'  => wp_nonce_url(admin_url('admin-post.php?action=mptbm_trash_transport&id=' . $pid), 'mptbm_trash_' . $pid),
+                'restore_link' => wp_nonce_url(admin_url('admin-post.php?action=mptbm_restore_transport&id=' . $pid), 'mptbm_restore_' . $pid),
+                'delete_link'  => wp_nonce_url(admin_url('admin-post.php?action=mptbm_delete_transport&id=' . $pid), 'mptbm_delete_' . $pid),
+            );
         }
 
-        return array(
-
-            'posts' => $data,
-
-            'pagination' => array(
-
-                'total_posts' => $query->found_posts,
-                'total_pages' => $query->max_num_pages,
-                'current_page' => $paged,
-                'per_page' => $per_page,
-
-            ),
-
-        );
+        return $items;
     }
 
-    /**
-     * Transportation Data
-     */
-
-    /**
-     * Header
-     */
-    private function mptbm_transportation_lists_header( $total_posts ) {
-        ?>
-
-        <div class="mptbm_transportation_lists_topbar">
-
-            <div>
-
-                <h1 class="mptbm_transportation_lists_page_title">
-                    <?php esc_html_e('Transportation', 'ecab-taxi-booking-manager');?>
-                </h1>
-
-                <div class="mptbm_transportation_lists_tabs">
-
-                    <a href="#" class="mptbm_transportation_lists_tab_active">
-                        <?php esc_html_e('All', 'ecab-taxi-booking-manager');?> (<?php echo esc_attr( $total_posts );?>)
-                    </a>
-
-                    <a href="#">
-                        <?php esc_html_e('Published', 'ecab-taxi-booking-manager');?> (<?php echo esc_attr( $total_posts );?>)
-                    </a>
-
-                    <a href="#">
-                        <?php esc_html_e('Trashed', 'ecab-taxi-booking-manager');?> (<?php echo esc_attr( $total_posts );?>)
-                    </a>
-
-                </div>
-
-            </div>
-
-            <a href="<?php echo esc_url( admin_url( 'admin.php?page=mptbm-rent-edit' ) ); ?>"
-               class="mptbm_transportation_lists_add_btn">
-                <span class="dashicons dashicons-plus-alt2"></span>
-                <?php esc_html_e( 'Add New Transportation', 'ecab-taxi-booking-manager' ); ?>
-            </a>
-
-        </div>
-
-        <?php
-    }
-
-    private static function mptbm_get_current_month_sales_total() {
-
-        $start_date = date('Y-m-01 00:00:00');
-        $end_date   = date('Y-m-t 23:59:59');
-
-        $args = array(
+    private static function mptbm_get_current_month_sales_total()
+    {
+        $start_date = gmdate('Y-m-01 00:00:00');
+        $end_date   = gmdate('Y-m-t 23:59:59');
+        $query = new WP_Query(array(
             'post_type'      => 'mptbm_booking',
             'post_status'    => 'publish',
             'posts_per_page' => -1,
+            'fields'         => 'ids',
             'meta_query'     => array(
                 array(
                     'key'     => 'mptbm_date',
                     'value'   => array($start_date, $end_date),
                     'compare' => 'BETWEEN',
-                    'type'    => 'DATETIME'
-                )
-            )
-        );
-
-        $query = new WP_Query($args);
-
+                    'type'    => 'DATETIME',
+                ),
+            ),
+        ));
         $total = 0;
-
-        while ( $query->have_posts() ) {
-            $query->the_post();
-
-            $price = get_post_meta(get_the_ID(), 'mptbm_tp', true);
-            $total += floatval($price);
+        foreach ($query->posts as $bid) {
+            $total += floatval(get_post_meta($bid, 'mptbm_tp', true));
         }
 
-        wp_reset_postdata();
+        return $total;
+    }
 
-        return number_format($total, 2, '.', '');
+    private function initials($name)
+    {
+        $name = trim(wp_strip_all_tags((string) $name));
+        if ($name === '') {
+            return '?';
+        }
+        $parts = preg_split('/\s+/', $name);
+        $first = mb_substr($parts[0], 0, 1);
+        $last  = count($parts) > 1 ? mb_substr(end($parts), 0, 1) : '';
+
+        return mb_strtoupper($first . $last);
+    }
+
+    private function status_label($status)
+    {
+        switch ($status) {
+            case 'publish':
+                return __('Published', 'ecab-taxi-booking-manager');
+            case 'draft':
+                return __('Draft', 'ecab-taxi-booking-manager');
+            case 'pending':
+                return __('Pending', 'ecab-taxi-booking-manager');
+            case 'private':
+                return __('Private', 'ecab-taxi-booking-manager');
+            default:
+                return ucfirst($status);
+        }
+    }
+
+    private function money($amount)
+    {
+        if ($amount === '' || $amount === null) {
+            return '';
+        }
+        if (function_exists('wc_price') && is_numeric($amount)) {
+            return wp_strip_all_tags(wc_price($amount));
+        }
+
+        return esc_html($amount);
     }
 
     /**
-     * Stats
+     * Echo compact at-a-glance chips for vehicle specs (from mptbm_features)
+     * and tags. Static SVGs + escaped values.
      */
-    private function mptbm_transportation_lists_stats( $total_posts ) {
-
-        $total_revenue = self::mptbm_get_current_month_sales_total();
-        ?>
-
-        <div class="mptbm_transportation_lists_stats_wrapper">
-
-            <div class="mptbm_transportation_lists_stats_card">
-
-                <div class="mptbm_transportation_lists_stats_icon">
-                    <span class="dashicons dashicons-car"></span>
-                </div>
-
-                <div>
-                    <div class="mptbm_transportation_lists_stats_label">
-                        <?php esc_html_e('ACTIVE FLEET', 'ecab-taxi-booking-manager');?>
-                    </div>
-
-                    <div class="mptbm_transportation_lists_stats_value">
-                        <?php echo esc_attr( $total_posts );?>  <?php esc_html_e('Vehicles', 'ecab-taxi-booking-manager');?>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="mptbm_transportation_lists_stats_card">
-
-                <div class="mptbm_transportation_lists_stats_icon">
-                    <span class="dashicons dashicons-location"></span>
-                </div>
-
-                <div>
-                    <div class="mptbm_transportation_lists_stats_label">
-                        <?php esc_html_e('TOTAL ROUTES', 'ecab-taxi-booking-manager');?>
-                    </div>
-
-                    <div class="mptbm_transportation_lists_stats_value">
-                        <?php esc_html_e('24 Daily', 'ecab-taxi-booking-manager');?>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="mptbm_transportation_lists_stats_card">
-
-                <div class="mptbm_transportation_lists_stats_icon">
-                    <span class="dashicons dashicons-money-alt"></span>
-                </div>
-
-                <div>
-                    <div class="mptbm_transportation_lists_stats_label">
-                        <?php esc_html_e('AVG. REVENUE', 'ecab-taxi-booking-manager');?>
-                    </div>
-
-                    <div class="mptbm_transportation_lists_stats_value">
-                        <?php echo esc_attr( $total_revenue ); ' '.esc_html_e('/mo', 'ecab-taxi-booking-manager');?>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-        <?php
+    private function feature_chips($it)
+    {
+        $f = isset($it['features']) && is_array($it['features']) ? $it['features'] : array();
+        $specs = array(
+            'seating capacity' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+            'fuel type'        => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22h12V4a2 2 0 00-2-2H5a2 2 0 00-2 2v18z"/><path d="M15 9h2a2 2 0 012 2v6a2 2 0 11-4 0v-7"/><path d="M5 8h6"/></svg>',
+            'transmission'     => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v10M4.2 4.2l4.3 4.3m7 7l4.3 4.3M1 12h6m6 0h10"/></svg>',
+            'engine'           => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+        );
+        foreach ($specs as $key => $svg) {
+            if (!empty($f[$key])) {
+                echo '<span class="mptbm-chip">' . $svg . ' ' . esc_html($f[$key]) . '</span>';
+            }
+        }
+        $tags = isset($it['tags']) && is_array($it['tags']) ? array_slice($it['tags'], 0, 5) : array();
+        foreach ($tags as $tag) {
+            echo '<span class="mptbm-chip is-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> ' . esc_html($tag) . '</span>';
+        }
     }
 
-    /**
-     * Filter Bar
-     */
-    private function mptbm_transportation_lists_filter() {
+    /* ---- Page --------------------------------------------------------- */
+    public function mptbm_transportation_lists_page()
+    {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $is_trash = isset($_GET['mptbm_status']) && sanitize_text_field(wp_unslash($_GET['mptbm_status'])) === 'trash';
+
+        $active    = $this->get_items();
+        $total     = count($active);
+        $published = 0;
+        $draft     = 0;
+        $types     = array();
+        foreach ($active as $it) {
+            if ($it['status'] === 'publish') {
+                $published++;
+            } elseif ($it['status'] === 'draft') {
+                $draft++;
+            }
+            if ($it['type']) {
+                $types[$it['type']] = true;
+            }
+        }
+        $revenue = self::mptbm_get_current_month_sales_total();
+
+        $status_counts = wp_count_posts('mptbm_rent');
+        $trash         = isset($status_counts->trash) ? (int) $status_counts->trash : 0;
+
+        $items     = $is_trash ? $this->get_items(array('trash')) : $active;
+        $base_url  = $this->base_url();
+        $trash_url = add_query_arg('mptbm_status', 'trash', $base_url);
+        $add_url   = admin_url('admin.php?page=mptbm-rent-edit');
         ?>
+        <div class="wrap mptbm-fleet-wrap">
+            <div class="mptbm-fleet mptbm-view-list">
 
-        <div class="mptbm_transportation_lists_filter_bar">
-
-            <div class="mptbm_transportation_lists_filter_left">
-
-                <select class="mptbm_transportation_lists_bulk_select">
-                    <option> <?php esc_html_e('Bulk actions', 'ecab-taxi-booking-manager');?></option>
-                </select>
-
-                <button class="mptbm_transportation_lists_apply_btn">
-                    <?php esc_html_e('Apply', 'ecab-taxi-booking-manager');?>
-                </button>
-
-            </div>
-
-            <div class="mptbm_transportation_lists_search_box">
-
-                <span class="dashicons dashicons-search"></span>
-
-                <input name="mptbm_search_by_title" id="mptbm_search_by_title" type="text" placeholder="Search Transportation...">
-
-                <button><?php esc_html_e('Search', 'ecab-taxi-booking-manager');?></button>
-
-            </div>
-
-        </div>
-
-        <?php
-    }
-
-    /**
-     * Single Card
-     */
-    private function mptbm_transportation_lists_single_card( $item ) {
-
-        ?>
-
-        <div class="mptbm_transportation_lists_card" data-transport-title="<?php echo esc_attr( $item['title'] );?>">
-
-            <div class="mptbm_transportation_lists_image_area">
-
-                <div class="mptbm_transportation_lists_badge">
-                    <span class="dashicons dashicons-category"></span>
-                    <?php echo esc_html( $item['price_based'] ); ?>
-                </div>
-
-                <img src="<?php echo esc_url( $item['image'] ); ?>" alt="">
-
-            </div>
-
-            <div class="mptbm_transportation_lists_content">
-
-                <div class="mptbm_transportation_lists_card_top">
-
-                    <div>
-
-                        <h2 class="mptbm_transportation_lists_vehicle_title">
-                            <span class="dashicons dashicons-car"></span>
-                            <?php echo esc_html( $item['title'] ); ?>
-                        </h2>
-
-                        <div class="mptbm_transportation_lists_location">
-
-                            <span class="dashicons dashicons-location"></span>
-
-                            <?php echo esc_html( $item['location'] ); ?>
-
-                        </div>
-
+                <div class="mptbm-page-header">
+                    <div class="mptbm-page-title"><?php esc_html_e('Transportation', 'ecab-taxi-booking-manager'); ?>
+                        <span><?php echo esc_html(sprintf(_n('%d vehicle', '%d vehicles', $total, 'ecab-taxi-booking-manager'), $total)); ?></span>
                     </div>
-
-                    <div class="mptbm_transportation_lists_action_buttons">
-
-                        <a href="<?php echo esc_url( admin_url('admin.php?page=mptbm-rent-edit&post_id=' . $item['id']) ); ?>"
-                           class="mptbm_transportation_lists_edit_btn">
-                            <span class="dashicons dashicons-edit"></span>
+                    <div class="mptbm-header-actions">
+                        <a class="mptbm-add-btn" href="<?php echo esc_url($add_url); ?>">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <?php esc_html_e('Add New Transportation', 'ecab-taxi-booking-manager'); ?>
                         </a>
-
-                        <a href="<?php echo esc_url( admin_url('admin-post.php?action=mptbm_trash_transport&id=' . $item['id']) ); ?>"
-                           class="mptbm_transportation_lists_delete_btn mptbm-trash-confirm">
-                            <span class="dashicons dashicons-trash"></span>
-                        </a>
-
                     </div>
-
                 </div>
 
-                <div class="mptbm_transportation_lists_meta_box">
-
-                    <div class="mptbm_transportation_lists_meta_item">
-
-                        <div class="mptbm_transportation_lists_meta_label">
-                            <span class="dashicons dashicons-money-alt"></span>
-                            <?php esc_html_e('KM PRICE', 'ecab-taxi-booking-manager');?>
+                <div class="mptbm-stats">
+                    <div class="mptbm-stat-card">
+                        <div class="mptbm-stat-icon indigo">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 17h14M6 17l1.5-5h9L18 17M7.5 12l1-4h7l1 4"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
                         </div>
-
-                        <div class="mptbm_transportation_lists_meta_value">
-                            <?php echo esc_html( $item['km'] ); ?>
-                        </div>
-
+                        <div><div class="mptbm-stat-num"><?php echo esc_html($total); ?></div><div class="mptbm-stat-label"><?php esc_html_e('Active Fleet', 'ecab-taxi-booking-manager'); ?></div></div>
                     </div>
-
-                    <div class="mptbm_transportation_lists_meta_item">
-
-                        <div class="mptbm_transportation_lists_meta_label">
-                            <span class="dashicons dashicons-clock"></span>
-                            <?php esc_html_e('HOURLY PRICE', 'ecab-taxi-booking-manager');?>
+                    <div class="mptbm-stat-card">
+                        <div class="mptbm-stat-icon green">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
                         </div>
-
-                        <div class="mptbm_transportation_lists_meta_value">
-                            <?php echo esc_html( $item['hourly'] ); ?>
-                        </div>
-
+                        <div><div class="mptbm-stat-num"><?php echo esc_html($published); ?></div><div class="mptbm-stat-label"><?php esc_html_e('Published', 'ecab-taxi-booking-manager'); ?></div></div>
                     </div>
-
-                    <div class="mptbm_transportation_lists_meta_item">
-
-                        <div class="mptbm_transportation_lists_meta_label">
-                            <span class="dashicons dashicons-admin-tools"></span>
-                            <?php esc_html_e('MODEL', 'ecab-taxi-booking-manager');?>
+                    <div class="mptbm-stat-card">
+                        <div class="mptbm-stat-icon orange">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                         </div>
-
-                        <div class="mptbm_transportation_lists_meta_value_black">
-                            <?php echo esc_html( $item['model'] ); ?>
-                        </div>
-
+                        <div><div class="mptbm-stat-num"><?php echo esc_html($draft); ?></div><div class="mptbm-stat-label"><?php esc_html_e('Draft', 'ecab-taxi-booking-manager'); ?></div></div>
                     </div>
-
-                    <div class="mptbm_transportation_lists_meta_item">
-
-                        <div class="mptbm_transportation_lists_meta_label">
-                            <span class="dashicons dashicons-yes-alt"></span>
-                            <?php esc_html_e('STATUS', 'ecab-taxi-booking-manager');?>
+                    <div class="mptbm-stat-card">
+                        <div class="mptbm-stat-icon blue">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
                         </div>
-
-                        <div class="mptbm_transportation_lists_meta_status">
-
-                            <span></span>
-
-                            <?php echo esc_html( $item['status'] ); ?>
-
-                        </div>
-
+                        <div><div class="mptbm-stat-num"><?php echo esc_html($this->money($revenue) ?: '0'); ?></div><div class="mptbm-stat-label"><?php esc_html_e('Revenue / mo', 'ecab-taxi-booking-manager'); ?></div></div>
                     </div>
-
                 </div>
 
-            </div>
-
-        </div>
-
-        <?php
-    }
-
-    /**
-     * Footer
-     */
-    private function mptbm_transportation_lists_footer( $lists, $total_pages, $current, $total_posts, $per_page ) {
-
-        // Current showing items
-        $start_item = ( ( $current - 1 ) * $per_page ) + 1;
-        $end_item   = min( $current * $per_page, $total_posts );
-
-        ?>
-
-        <div class="mptbm_transportation_lists_footer">
-
-            <div class="mptbm_transportation_lists_footer_text">
-
-                <?php esc_html_e('Showing', 'ecab-taxi-booking-manager');?>
-                <?php echo esc_html( $start_item ); ?>
-                -
-                <?php echo esc_html( $end_item ); ?>
-
-                <?php esc_html_e('of', 'ecab-taxi-booking-manager');?>
-
-                <?php echo esc_html( $total_posts ); ?>
-
-                <?php esc_html_e('Transportation Items', 'ecab-taxi-booking-manager');?>
-
-            </div>
-
-            <?php if ( $total_pages > 1 ) : ?>
-
-                <div class="mptbm_transportation_lists_pagination">
-
-                    <!-- Previous Button -->
-                    <?php if ( $current > 1 ) : ?>
-
-                        <?php
-                        $prev_url = admin_url(
-                            'edit.php?post_type=mptbm_rent&page=mptbm_transportation_lists&paged=' . ( $current - 1 )
-                        );
-                        ?>
-
-                        <a href="<?php echo esc_url( $prev_url ); ?>" class="mptbm_pagination_btn">
-
-                            <span class="dashicons dashicons-arrow-left-alt2"></span>
-
-                        </a>
-
-                    <?php endif; ?>
-
-
-
-                    <div class="mptbm_transportation_lists_pagination_text">
-
-                        <?php
-
-                        for ( $i = 1; $i <= $total_pages; $i++ ) {
-
-                            $active = ( $current == $i ) ? 'active' : '';
-
-                            $url = admin_url(
-                                'edit.php?post_type=mptbm_rent&page=mptbm_transportation_lists&paged=' . $i
-                            );
-
-                            ?>
-
-                            <a
-                                class="mptbm_pagination_number <?php echo esc_attr( $active ); ?>"
-                                href="<?php echo esc_url( $url ); ?>"
-                            >
-                                <?php echo esc_html( $i ); ?>
+                <div class="mptbm-filters">
+                    <div class="mptbm-tab-pills">
+                        <?php if ($is_trash) : ?>
+                            <a class="mptbm-tab-pill" href="<?php echo esc_url($base_url); ?>"><?php printf(esc_html__('All (%d)', 'ecab-taxi-booking-manager'), $total); ?></a>
+                            <a class="mptbm-tab-pill" href="<?php echo esc_url($base_url); ?>"><?php printf(esc_html__('Published (%d)', 'ecab-taxi-booking-manager'), $published); ?></a>
+                            <a class="mptbm-tab-pill" href="<?php echo esc_url($base_url); ?>"><?php printf(esc_html__('Draft (%d)', 'ecab-taxi-booking-manager'), $draft); ?></a>
+                            <span class="mptbm-tab-pill mptbm-tab-trash active">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                <?php printf(esc_html__('Trash (%d)', 'ecab-taxi-booking-manager'), $trash); ?>
+                            </span>
+                        <?php else : ?>
+                            <button class="mptbm-tab-pill mptbm-filter-pill active" data-status=""><?php printf(esc_html__('All (%d)', 'ecab-taxi-booking-manager'), $total); ?></button>
+                            <button class="mptbm-tab-pill mptbm-filter-pill" data-status="publish"><?php printf(esc_html__('Published (%d)', 'ecab-taxi-booking-manager'), $published); ?></button>
+                            <button class="mptbm-tab-pill mptbm-filter-pill" data-status="draft"><?php printf(esc_html__('Draft (%d)', 'ecab-taxi-booking-manager'), $draft); ?></button>
+                            <a class="mptbm-tab-pill mptbm-tab-trash" href="<?php echo esc_url($trash_url); ?>" title="<?php esc_attr_e('View trashed items', 'ecab-taxi-booking-manager'); ?>">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                <?php printf(esc_html__('Trash (%d)', 'ecab-taxi-booking-manager'), $trash); ?>
                             </a>
-
-                            <?php
-                        }
-                        ?>
-
+                        <?php endif; ?>
                     </div>
-
-                    <!-- Next Button -->
-                    <?php if ( $current < $total_pages ) : ?>
-
-                        <?php
-                        $next_url = admin_url(
-                            'edit.php?post_type=mptbm_rent&page=mptbm_transportation_lists&paged=' . ( $current + 1 )
-                        );
-                        ?>
-
-                        <a href="<?php echo esc_url( $next_url ); ?>" class="mptbm_pagination_btn">
-                            <span class="dashicons dashicons-arrow-right-alt2"></span>
-                        </a>
-
+                    <div class="mptbm-search-box">
+                        <svg class="mptbm-search-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" placeholder="<?php esc_attr_e('Search transportation...', 'ecab-taxi-booking-manager'); ?>" id="mptbmSearchInput" autocomplete="off">
+                        <button type="button" class="mptbm-search-clear" id="mptbmSearchClear" aria-label="<?php esc_attr_e('Clear search', 'ecab-taxi-booking-manager'); ?>">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    <?php if (!empty($types)) : ?>
+                        <select class="mptbm-filter-select" id="mptbmTypeFilter">
+                            <option value=""><?php esc_html_e('All Types', 'ecab-taxi-booking-manager'); ?></option>
+                            <?php foreach (array_keys($types) as $t) : ?>
+                                <option value="<?php echo esc_attr($t); ?>"><?php echo esc_html(ucfirst($t)); ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     <?php endif; ?>
-
+                    <div class="mptbm-view-toggle">
+                        <button class="mptbm-vtog" id="mptbmGridBtn" title="<?php esc_attr_e('Grid view', 'ecab-taxi-booking-manager'); ?>">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                        </button>
+                        <button class="mptbm-vtog active" id="mptbmListBtn" title="<?php esc_attr_e('List view', 'ecab-taxi-booking-manager'); ?>">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                        </button>
+                    </div>
                 </div>
 
-            <?php endif; ?>
+                <?php if (empty($items)) : ?>
+                    <div class="mptbm-no-data">
+                        <?php if ($is_trash) : ?>
+                            <p><?php esc_html_e('Trash is empty.', 'ecab-taxi-booking-manager'); ?></p>
+                            <a class="mptbm-classic-link" href="<?php echo esc_url($base_url); ?>"><?php esc_html_e('Back to list', 'ecab-taxi-booking-manager'); ?></a>
+                        <?php else : ?>
+                            <p><?php esc_html_e('No transportation found yet.', 'ecab-taxi-booking-manager'); ?></p>
+                            <a class="mptbm-add-btn" href="<?php echo esc_url($add_url); ?>"><?php esc_html_e('Add your first transportation', 'ecab-taxi-booking-manager'); ?></a>
+                        <?php endif; ?>
+                    </div>
+                <?php else : ?>
 
+                <div class="mptbm-grid" id="mptbmGrid">
+                    <?php foreach ($items as $it) : ?>
+                        <div class="mptbm-card" data-name="<?php echo esc_attr(strtolower($it['title'] . ' ' . $it['location'] . ' ' . $it['model'] . ' ' . implode(' ', $it['features']) . ' ' . implode(' ', $it['tags']))); ?>" data-type="<?php echo esc_attr($it['type']); ?>" data-status="<?php echo esc_attr($it['status']); ?>">
+                            <div class="mptbm-thumb">
+                                <?php if ($it['image']) : ?>
+                                    <img src="<?php echo esc_url($it['image']); ?>" alt="<?php echo esc_attr($it['title']); ?>">
+                                <?php else : ?>
+                                    <div class="mptbm-thumb-placeholder">
+                                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M5 17h14M6 17l1.5-5h9L18 17M7.5 12l1-4h7l1 4"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+                                    </div>
+                                <?php endif; ?>
+                                <div class="mptbm-thumb-overlay"></div>
+                                <div class="mptbm-thumb-badges">
+                                    <?php if ($it['price_based']) : ?><span class="mptbm-thumb-badge type"><?php echo esc_html($it['price_based']); ?></span><?php endif; ?>
+                                    <?php if ($it['type']) : ?><span class="mptbm-thumb-badge alt"><?php echo esc_html(ucfirst($it['type'])); ?></span><?php endif; ?>
+                                </div>
+                                <div class="mptbm-actions-top">
+                                    <?php if ($is_trash) : ?>
+                                        <a class="mptbm-act-btn restore" href="<?php echo esc_url($it['restore_link']); ?>" title="<?php esc_attr_e('Restore', 'ecab-taxi-booking-manager'); ?>">
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.3"/><polyline points="3 4 3 8 7 8"/></svg>
+                                        </a>
+                                        <a class="mptbm-act-btn del" href="<?php echo esc_url($it['delete_link']); ?>" title="<?php esc_attr_e('Delete Permanently', 'ecab-taxi-booking-manager'); ?>" onclick="return confirm('<?php echo esc_js(__('Permanently delete this item? This cannot be undone.', 'ecab-taxi-booking-manager')); ?>');">
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                        </a>
+                                    <?php else : ?>
+                                        <a class="mptbm-act-btn edit" href="<?php echo esc_url($it['edit_link']); ?>" title="<?php esc_attr_e('Edit', 'ecab-taxi-booking-manager'); ?>">
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </a>
+                                        <a class="mptbm-act-btn del" href="<?php echo esc_url($it['trash_link']); ?>" title="<?php esc_attr_e('Move to Trash', 'ecab-taxi-booking-manager'); ?>" onclick="return confirm('<?php echo esc_js(__('Move this item to Trash?', 'ecab-taxi-booking-manager')); ?>');">
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="mptbm-body">
+                                <?php if ($is_trash) : ?>
+                                    <span class="mptbm-name"><?php echo esc_html($it['title']); ?></span>
+                                <?php else : ?>
+                                    <a class="mptbm-name" href="<?php echo esc_url($it['edit_link']); ?>"><?php echo esc_html($it['title']); ?></a>
+                                <?php endif; ?>
+                                <?php if ($it['location']) : ?>
+                                    <div class="mptbm-location"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> <?php echo esc_html($it['location']); ?></div>
+                                <?php endif; ?>
+                                <div class="mptbm-meta-grid">
+                                    <div class="mptbm-meta-cell"><span class="mptbm-meta-k"><?php esc_html_e('KM Price', 'ecab-taxi-booking-manager'); ?></span><span class="mptbm-meta-v"><?php echo esc_html($this->money($it['km']) ?: '-'); ?></span></div>
+                                    <div class="mptbm-meta-cell"><span class="mptbm-meta-k"><?php esc_html_e('Hourly', 'ecab-taxi-booking-manager'); ?></span><span class="mptbm-meta-v"><?php echo esc_html($this->money($it['hourly']) ?: '-'); ?></span></div>
+                                    <div class="mptbm-meta-cell"><span class="mptbm-meta-k"><?php esc_html_e('Model', 'ecab-taxi-booking-manager'); ?></span><span class="mptbm-meta-v"><?php echo esc_html($it['model'] ?: '-'); ?></span></div>
+                                </div>
+                                <div class="mptbm-footer">
+                                    <div class="mptbm-author"><span class="mptbm-author-avatar"><?php echo esc_html($this->initials($it['author'])); ?></span> <?php echo esc_html($it['author']); ?></div>
+                                    <span class="mptbm-status-dot status-<?php echo esc_attr($it['status']); ?>"><?php echo esc_html($this->status_label($it['status'])); ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <table class="mptbm-table" id="mptbmTable">
+                    <thead>
+                        <tr>
+                            <th><?php esc_html_e('Vehicle', 'ecab-taxi-booking-manager'); ?></th>
+                            <th><?php esc_html_e('KM Price', 'ecab-taxi-booking-manager'); ?></th>
+                            <th><?php esc_html_e('Hourly', 'ecab-taxi-booking-manager'); ?></th>
+                            <th><?php esc_html_e('Status', 'ecab-taxi-booking-manager'); ?></th>
+                            <th><?php esc_html_e('Actions', 'ecab-taxi-booking-manager'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($items as $it) : ?>
+                            <tr class="mptbm-row" data-name="<?php echo esc_attr(strtolower($it['title'] . ' ' . $it['location'] . ' ' . $it['model'] . ' ' . implode(' ', $it['features']) . ' ' . implode(' ', $it['tags']))); ?>" data-type="<?php echo esc_attr($it['type']); ?>" data-status="<?php echo esc_attr($it['status']); ?>">
+                                <td data-label="<?php esc_attr_e('Vehicle', 'ecab-taxi-booking-manager'); ?>">
+                                    <div class="mptbm-cell-vehicle">
+                                        <span class="mptbm-cell-thumb">
+                                            <?php if ($it['image']) : ?>
+                                                <img src="<?php echo esc_url($it['image']); ?>" alt="<?php echo esc_attr($it['title']); ?>">
+                                            <?php else : ?>
+                                                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M5 17h14M6 17l1.5-5h9L18 17M7.5 12l1-4h7l1 4"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+                                            <?php endif; ?>
+                                        </span>
+                                        <span class="mptbm-cell-meta">
+                                            <?php if ($is_trash) : ?>
+                                                <span class="mptbm-cell-name"><?php echo esc_html($it['title']); ?></span>
+                                            <?php else : ?>
+                                                <span class="mptbm-cell-name"><a href="<?php echo esc_url($it['edit_link']); ?>"><?php echo esc_html($it['title']); ?></a></span>
+                                            <?php endif; ?>
+                                            <?php
+                                            $sub_parts = array_filter(array($it['model'], $it['type'] ? ucfirst($it['type']) : '', $it['price_based']));
+                                            if (!empty($sub_parts)) : ?>
+                                                <span class="mptbm-cell-sub"><?php echo esc_html(implode(' · ', $sub_parts)); ?></span>
+                                            <?php endif; ?>
+                                            <?php if ($it['location']) : ?>
+                                                <span class="mptbm-cell-loc"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> <?php echo esc_html($it['location']); ?></span>
+                                            <?php endif; ?>
+                                            <span class="mptbm-chips">
+                                                <span class="mptbm-chip <?php echo $it['date_type'] === 'particular' ? 'is-particular' : 'is-repeated'; ?>">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+                                                    <?php echo $it['date_type'] === 'particular' ? esc_html__('Particular', 'ecab-taxi-booking-manager') : esc_html__('Repeated', 'ecab-taxi-booking-manager'); ?>
+                                                </span>
+                                                <?php if ($it['all_time']) : ?>
+                                                    <span class="mptbm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg> <?php esc_html_e('All-time', 'ecab-taxi-booking-manager'); ?></span>
+                                                <?php endif; ?>
+                                                <?php if (is_numeric($it['passengers']) && (int) $it['passengers'] > 0) : ?>
+                                                    <span class="mptbm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <?php echo esc_html((int) $it['passengers']); ?></span>
+                                                <?php endif; ?>
+                                                <?php if (is_numeric($it['bags']) && (int) $it['bags'] > 0) : ?>
+                                                    <span class="mptbm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></svg> <?php echo esc_html((int) $it['bags']); ?></span>
+                                                <?php endif; ?>
+                                                <?php $this->feature_chips($it); ?>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td data-label="<?php esc_attr_e('KM Price', 'ecab-taxi-booking-manager'); ?>"><?php echo esc_html($this->money($it['km']) ?: '-'); ?></td>
+                                <td data-label="<?php esc_attr_e('Hourly', 'ecab-taxi-booking-manager'); ?>"><?php echo esc_html($this->money($it['hourly']) ?: '-'); ?></td>
+                                <td data-label="<?php esc_attr_e('Status', 'ecab-taxi-booking-manager'); ?>">
+                                    <span class="mptbm-status-dot status-<?php echo esc_attr($it['status']); ?>"><?php echo esc_html($this->status_label($it['status'])); ?></span>
+                                    <?php if ($it['modified']) : ?>
+                                        <span class="mptbm-cell-updated"><?php printf(esc_html__('Updated %s', 'ecab-taxi-booking-manager'), esc_html(date_i18n('M j, Y', strtotime($it['modified'])))); ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td data-label="<?php esc_attr_e('Actions', 'ecab-taxi-booking-manager'); ?>">
+                                    <?php if ($is_trash) : ?>
+                                        <a class="mptbm-table-edit" href="<?php echo esc_url($it['restore_link']); ?>"><?php esc_html_e('Restore', 'ecab-taxi-booking-manager'); ?></a>
+                                        <a class="mptbm-table-del" href="<?php echo esc_url($it['delete_link']); ?>" onclick="return confirm('<?php echo esc_js(__('Permanently delete this item? This cannot be undone.', 'ecab-taxi-booking-manager')); ?>');"><?php esc_html_e('Delete', 'ecab-taxi-booking-manager'); ?></a>
+                                    <?php else : ?>
+                                        <a class="mptbm-table-edit" href="<?php echo esc_url($it['edit_link']); ?>"><?php esc_html_e('Edit', 'ecab-taxi-booking-manager'); ?></a>
+                                        <a class="mptbm-table-del" href="<?php echo esc_url($it['trash_link']); ?>" onclick="return confirm('<?php echo esc_js(__('Move this item to Trash?', 'ecab-taxi-booking-manager')); ?>');"><?php esc_html_e('Trash', 'ecab-taxi-booking-manager'); ?></a>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+
+                <div class="mptbm-empty" id="mptbmEmptyMsg"><?php esc_html_e('No transportation found matching your search.', 'ecab-taxi-booking-manager'); ?></div>
+
+                <div class="mptbm-pagination" id="mptbmPagination">
+                    <div class="mptbm-page-info" id="mptbmPageInfo"></div>
+                    <div class="mptbm-page-btns" id="mptbmPageBtns"></div>
+                </div>
+
+                <?php endif; ?>
+            </div>
         </div>
-
         <?php
     }
-
-
 }
+
 new MPTBM_Transportation();

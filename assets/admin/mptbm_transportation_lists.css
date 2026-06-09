@@ -1,557 +1,198 @@
-/* ===================================================
-   MPTBM TRANSPORTATION LISTS
-=================================================== */
+/* ==========================================================================
+   MPTBM Transportation - modern responsive list design (indigo theme)
+   Scoped under .mptbm-fleet so it never leaks into the rest of wp-admin.
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-.mptbm_transportation_lists_wrapper{
-    max-width:1200px;
-    margin:0 auto;
-    padding:18px 20px 30px 18px;
-    background:#f6f8fc;
-    font-family:Inter,sans-serif;
+.mptbm-fleet-wrap{margin:0;}
+.mptbm-fleet *,.mptbm-fleet *::before,.mptbm-fleet *::after{box-sizing:border-box;}
+.mptbm-fleet{
+  --mp-bg:#f1f5f9;--mp-white:#fff;--mp-ink:#1e293b;--mp-ink2:#334155;
+  --mp-muted:#64748b;--mp-border:#e2e8f0;--mp-indigo:#4f46e5;--mp-indigo-dark:#2f1fd1;
+  --mp-indigo-soft:#eef2ff;--mp-green:#16a34a;--mp-green-soft:#dcfce7;
+  --mp-blue:#2563eb;--mp-blue-soft:#dbeafe;--mp-orange:#ea580c;--mp-orange-soft:#ffedd5;
+  --mp-shadow:0 2px 16px rgba(30,41,59,.08);--mp-shadow-hover:0 8px 32px rgba(30,41,59,.14);
+  font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--mp-bg);color:var(--mp-ink);
+  margin:10px 20px 40px 0;padding:28px;border-radius:18px;
 }
+.mptbm-fleet a{box-shadow:none;}
+.mptbm-fleet a:focus{box-shadow:none;outline:none;}
 
-/* ===================================================
-   TOPBAR
-=================================================== */
+/* HEADER */
+.mptbm-page-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap;}
+.mptbm-page-title{font-size:25px;font-weight:800;color:var(--mp-ink);letter-spacing:-.02em;}
+.mptbm-page-title span{color:var(--mp-muted);font-weight:400;font-size:15px;margin-left:8px;}
+.mptbm-header-actions{display:flex;align-items:center;gap:10px;}
+.mptbm-classic-link{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--mp-ink2) !important;text-decoration:none;background:var(--mp-white);border:1px solid var(--mp-border);padding:9px 16px;border-radius:10px;transition:all .2s;}
+.mptbm-classic-link:hover{color:var(--mp-indigo) !important;border-color:var(--mp-indigo);box-shadow:var(--mp-shadow);transform:translateY(-1px);}
+.mptbm-add-btn{display:inline-flex;align-items:center;gap:8px;background:var(--mp-indigo);color:#fff !important;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;border:none;cursor:pointer;text-decoration:none;transition:background .2s,transform .15s;}
+.mptbm-add-btn:hover{background:var(--mp-indigo-dark);color:#fff !important;transform:translateY(-1px);}
 
-.mptbm_transportation_lists_topbar{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    margin-bottom:18px;
+/* STATS */
+.mptbm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.mptbm-stat-card{background:var(--mp-white);border-radius:14px;padding:18px 20px;border:1px solid var(--mp-border);display:flex;align-items:center;gap:14px;transition:box-shadow .2s;}
+.mptbm-stat-card:hover{box-shadow:var(--mp-shadow);}
+.mptbm-stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mptbm-stat-icon.indigo{background:var(--mp-indigo-soft);color:var(--mp-indigo);}
+.mptbm-stat-icon.green{background:var(--mp-green-soft);color:var(--mp-green);}
+.mptbm-stat-icon.blue{background:var(--mp-blue-soft);color:var(--mp-blue);}
+.mptbm-stat-icon.orange{background:var(--mp-orange-soft);color:var(--mp-orange);}
+.mptbm-stat-num{font-size:22px;font-weight:800;color:var(--mp-ink);line-height:1;}
+.mptbm-stat-label{font-size:11px;color:var(--mp-muted);margin-top:3px;font-weight:500;}
+
+/* FILTERS */
+.mptbm-filters{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.mptbm-tab-pills{display:flex;gap:6px;background:var(--mp-white);padding:5px;border-radius:10px;border:1px solid var(--mp-border);}
+.mptbm-tab-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;color:var(--mp-muted);transition:all .2s;border:none;background:none;font-family:inherit;text-decoration:none;line-height:1.5;}
+.mptbm-tab-pill.active{background:var(--mp-indigo);color:#fff;}
+.mptbm-tab-trash{color:var(--mp-muted) !important;}
+.mptbm-tab-trash svg{opacity:.8;}
+.mptbm-tab-trash:not(.active):hover{background:var(--mp-indigo-soft);color:var(--mp-indigo) !important;}
+.mptbm-tab-trash.active{background:var(--mp-indigo);color:#fff !important;}
+.mptbm-tab-trash.active svg{opacity:1;}
+.mptbm-search-box{display:flex;align-items:center;gap:8px;background:var(--mp-white);border:1px solid var(--mp-border);border-radius:10px;padding:6px 14px;flex:1;max-width:300px;min-width:180px;color:var(--mp-muted);transition:border-color .2s,box-shadow .2s;}
+.mptbm-search-box.is-focused{border-color:var(--mp-indigo);box-shadow:0 0 0 3px var(--mp-indigo-soft);}
+.mptbm-search-box .mptbm-search-icon{flex-shrink:0;transition:color .2s;}
+.mptbm-search-box.is-focused .mptbm-search-icon{color:var(--mp-indigo);}
+.mptbm-search-box input{border:none;outline:none;box-shadow:none;font-size:13px;font-family:inherit;color:var(--mp-ink);width:100%;background:transparent;margin:0;min-height:auto;padding:0;}
+.mptbm-search-box input:focus{outline:none;box-shadow:none;border:none;}
+.mptbm-search-clear{display:none;align-items:center;justify-content:center;flex-shrink:0;width:20px;height:20px;border:none;border-radius:50%;background:var(--mp-bg);color:var(--mp-muted);cursor:pointer;padding:0;transition:background .15s,color .15s;}
+.mptbm-search-clear:hover{background:var(--mp-indigo-soft);color:var(--mp-indigo);}
+.mptbm-search-box.has-value .mptbm-search-clear{display:inline-flex;}
+
+/* CUSTOM DROPDOWN */
+.mptbm-filter-select{display:none;}
+.mptbm-dropdown{position:relative;font-family:inherit;}
+.mptbm-dropdown-toggle{display:inline-flex;align-items:center;gap:10px;min-width:160px;justify-content:space-between;background:var(--mp-white);border:1px solid var(--mp-border);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;font-family:inherit;color:var(--mp-ink2);cursor:pointer;transition:border-color .2s,box-shadow .2s;}
+.mptbm-dropdown-toggle:hover{border-color:#cbd5e1;}
+.mptbm-dropdown.open .mptbm-dropdown-toggle{border-color:var(--mp-indigo);box-shadow:0 0 0 3px var(--mp-indigo-soft);}
+.mptbm-dropdown-toggle .mptbm-caret{transition:transform .2s;color:var(--mp-muted);flex-shrink:0;}
+.mptbm-dropdown.open .mptbm-dropdown-toggle .mptbm-caret{transform:rotate(180deg);}
+.mptbm-dropdown-menu{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:20;background:var(--mp-white);border:1px solid var(--mp-border);border-radius:12px;box-shadow:var(--mp-shadow-hover);padding:6px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .18s,transform .18s,visibility .18s;max-height:280px;overflow-y:auto;}
+.mptbm-dropdown.open .mptbm-dropdown-menu{opacity:1;visibility:visible;transform:translateY(0);}
+.mptbm-dropdown-option{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;color:var(--mp-ink2);cursor:pointer;transition:background .15s,color .15s;}
+.mptbm-dropdown-option:hover{background:var(--mp-bg);}
+.mptbm-dropdown-option.selected{background:var(--mp-indigo-soft);color:var(--mp-indigo);}
+.mptbm-dropdown-option .mptbm-check{opacity:0;transition:opacity .15s;}
+.mptbm-dropdown-option.selected .mptbm-check{opacity:1;}
+.mptbm-view-toggle{display:flex;gap:4px;background:var(--mp-white);padding:4px;border-radius:8px;border:1px solid var(--mp-border);margin-left:auto;}
+.mptbm-vtog{width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;display:flex;align-items:center;justify-content:center;color:var(--mp-muted);transition:all .15s;}
+.mptbm-vtog.active{background:var(--mp-indigo);color:#fff;}
+
+/* GRID */
+.mptbm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;}
+.mptbm-card{background:var(--mp-white);border-radius:16px;border:1px solid var(--mp-border);overflow:hidden;transition:box-shadow .25s,transform .2s;animation:mptbmFadeUp .4s ease both;}
+.mptbm-card:hover{box-shadow:var(--mp-shadow-hover);transform:translateY(-3px);}
+@keyframes mptbmFadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.mptbm-thumb{height:160px;position:relative;overflow:hidden;background:linear-gradient(135deg,#312e81,#4f46e5);}
+.mptbm-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.mptbm-card:hover .mptbm-thumb img{transform:scale(1.06);}
+.mptbm-thumb-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);}
+.mptbm-thumb-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(15,23,42,.7) 0%,transparent 55%);}
+.mptbm-thumb-badges{position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;max-width:85%;}
+.mptbm-thumb-badge{font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:6px;backdrop-filter:blur(6px);text-transform:uppercase;}
+.mptbm-thumb-badge.type{background:rgba(79,70,229,.9);color:#fff;}
+.mptbm-thumb-badge.alt{background:rgba(255,255,255,.9);color:var(--mp-ink);}
+.mptbm-actions-top{position:absolute;top:10px;right:10px;display:flex;gap:6px;opacity:0;transition:opacity .2s;z-index:3;}
+.mptbm-card:hover .mptbm-actions-top,.mptbm-card:focus-within .mptbm-actions-top{opacity:1;}
+.mptbm-act-btn{width:32px;height:32px;border-radius:9px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);transition:background .15s,transform .15s;text-decoration:none;box-shadow:0 2px 6px rgba(15,23,42,.25);}
+.mptbm-act-btn:hover{transform:translateY(-1px);}
+.mptbm-act-btn.edit{background:rgba(255,255,255,.92);color:var(--mp-ink);}
+.mptbm-act-btn.edit:hover{background:#fff;}
+.mptbm-act-btn.del{background:rgba(239,68,68,.95);color:#fff;}
+.mptbm-act-btn.del:hover{background:#ef4444;}
+.mptbm-act-btn.restore{background:rgba(22,163,74,.95);color:#fff;}
+.mptbm-act-btn.restore:hover{background:var(--mp-green);}
+.mptbm-body{padding:16px;}
+.mptbm-name{display:block;font-size:16px;font-weight:700;color:var(--mp-ink) !important;margin-bottom:6px;line-height:1.3;text-decoration:none;}
+.mptbm-name:hover{color:var(--mp-indigo) !important;}
+.mptbm-location{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--mp-muted);margin-bottom:12px;}
+.mptbm-location svg{flex-shrink:0;color:var(--mp-indigo);}
+.mptbm-meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.mptbm-meta-cell{background:var(--mp-bg);border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;}
+.mptbm-meta-k{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mp-muted);}
+.mptbm-meta-v{font-size:12px;font-weight:700;color:var(--mp-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mptbm-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:12px;border-top:1px solid var(--mp-border);}
+.mptbm-author{font-size:11px;color:var(--mp-muted);display:flex;align-items:center;gap:5px;overflow:hidden;}
+.mptbm-author-avatar{width:22px;height:22px;border-radius:50%;background:var(--mp-indigo);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;}
+.mptbm-status-dot{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;white-space:nowrap;}
+.mptbm-status-dot::before{content:'';width:6px;height:6px;border-radius:50%;display:block;background:var(--mp-muted);}
+.mptbm-status-dot.status-publish{color:var(--mp-green);}
+.mptbm-status-dot.status-publish::before{background:var(--mp-green);}
+.mptbm-status-dot.status-draft{color:var(--mp-orange);}
+.mptbm-status-dot.status-draft::before{background:var(--mp-orange);}
+.mptbm-status-dot.status-pending{color:var(--mp-blue);}
+.mptbm-status-dot.status-pending::before{background:var(--mp-blue);}
+
+/* VIEW SWITCHING (class-driven; keeps responsive table intact) */
+.mptbm-view-list .mptbm-grid{display:none;}
+.mptbm-view-list .mptbm-table{display:table;}
+a.mptbm-table-edit{border: 1px solid green;}
+a.mptbm-table-del { border: 1px solid red; }
+/* COMPACT VEHICLE CELL (image + name + meta) */
+.mptbm-cell-vehicle{display:flex;align-items:center;gap:13px;}
+.mptbm-cell-thumb{width:100px;height:100px;border-radius:11px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#312e81,#4f46e5);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.7);box-shadow:0 2px 8px rgba(79,70,229,.18);}
+.mptbm-cell-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.mptbm-cell-meta{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.mptbm-cell-name{font-weight:700;font-size:13.5px;color:var(--mp-ink);line-height:1.25;}
+.mptbm-cell-name a{color:var(--mp-ink) !important;text-decoration:none;}
+.mptbm-cell-name a:hover{color:var(--mp-indigo) !important;}
+.mptbm-cell-sub{font-size:11px;color:var(--mp-muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mptbm-cell-loc{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--mp-muted);font-weight:500;}
+.mptbm-cell-loc svg{flex-shrink:0;color:var(--mp-indigo);}
+.mptbm-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.mptbm-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--mp-ink2);background:var(--mp-bg);border:1px solid var(--mp-border);border-radius:6px;padding:2px 7px;line-height:1.5;}
+.mptbm-chip svg{width:11px;height:11px;color:var(--mp-muted);flex-shrink:0;}
+.mptbm-chip.is-repeated{background:var(--mp-indigo-soft);border-color:#dfe0fb;color:var(--mp-indigo);}
+.mptbm-chip.is-repeated svg{color:var(--mp-indigo);}
+.mptbm-chip.is-particular{background:var(--mp-orange-soft);border-color:#fed7aa;color:var(--mp-orange);}
+.mptbm-chip.is-particular svg{color:var(--mp-orange);}
+.mptbm-chip.is-tag{background:#f8fafc;border-style:dashed;color:var(--mp-muted);}
+.mptbm-cell-updated{display:block;font-size:10px;color:var(--mp-muted);margin-top:5px;font-weight:500;}
+
+/* TABLE */
+.mptbm-table{width:100%;border-collapse:separate;border-spacing:0 10px;display:none;}
+.mptbm-table th{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mp-muted);padding:0 16px 4px;text-align:left;}
+.mptbm-table tr.mptbm-row{background:var(--mp-white);transition:box-shadow .2s,transform .15s;animation:mptbmFadeUp .35s ease both;}
+.mptbm-table tr.mptbm-row:hover{box-shadow:var(--mp-shadow-hover);transform:translateY(-2px);}
+.mptbm-table td{padding:14px 16px;font-size:13px;color:var(--mp-ink2);border-top:1px solid var(--mp-border);border-bottom:1px solid var(--mp-border);vertical-align:middle;}
+.mptbm-table td:first-child{border-left:1px solid var(--mp-border);border-radius:12px 0 0 12px;font-weight:700;}
+.mptbm-table td:first-child a{color:var(--mp-ink) !important;text-decoration:none;}
+.mptbm-table td:first-child a:hover{color:var(--mp-indigo) !important;}
+.mptbm-table td:last-child{border-right:1px solid var(--mp-border);border-radius:0 12px 12px 0;}
+.mptbm-table-edit,.mptbm-table-del{padding:4px 12px;border-radius:6px;border:1px solid var(--mp-border);background:var(--mp-white);font-size:11px;font-weight:600;cursor:pointer;text-decoration:none;color:var(--mp-ink2) !important;display:inline-block;}
+.mptbm-table-edit:hover{border-color:var(--mp-indigo);color:var(--mp-indigo) !important;}
+.mptbm-table-del{margin-left:4px;}
+.mptbm-table-del:hover{border-color:#ef4444;color:#ef4444 !important;}
+
+/* PAGINATION */
+.mptbm-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap;}
+.mptbm-page-info{font-size:13px;color:var(--mp-muted);}
+.mptbm-page-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.mptbm-page-btn{min-width:34px;height:34px;padding:0 8px;border-radius:8px;border:1px solid var(--mp-border);background:var(--mp-white);font-size:13px;font-weight:600;color:var(--mp-ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:inherit;}
+.mptbm-page-btn:hover:not(:disabled),.mptbm-page-btn.active{background:var(--mp-indigo);color:#fff;border-color:var(--mp-indigo);}
+.mptbm-page-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.mptbm-empty{display:none;text-align:center;padding:60px 20px;color:var(--mp-muted);font-size:14px;font-weight:500;}
+.mptbm-no-data{text-align:center;padding:60px 20px;color:var(--mp-muted);}
+.mptbm-no-data p{font-size:15px;margin-bottom:18px;}
+
+/* RESPONSIVE */
+@media (max-width:1200px){.mptbm-stats{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:782px){
+  .mptbm-fleet{margin:10px 0 30px 0;padding:18px;border-radius:14px;}
+  .mptbm-view-toggle{margin-left:0;}
+  .mptbm-search-box{max-width:none;flex:1 1 100%;order:5;}
+  .mptbm-grid{grid-template-columns:1fr;}
+  .mptbm-table thead{display:none;}
+  .mptbm-view-list .mptbm-table,.mptbm-table tbody,.mptbm-table tr.mptbm-row,.mptbm-table td{display:block;width:100%;}
+  .mptbm-table td[data-label="Vehicle"]{justify-content:flex-start;}
+  .mptbm-table tr.mptbm-row{background:var(--mp-white);border:1px solid var(--mp-border);border-radius:12px;margin-bottom:12px;padding:6px 0;}
+  .mptbm-table td{border:none !important;border-radius:0 !important;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:right;}
+  .mptbm-table td::before{content:attr(data-label);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mp-muted);text-align:left;}
 }
-
-.mptbm_transportation_lists_page_title{
-    font-size:30px !important;
-    line-height:1.2;
-    font-weight:700 !important;
-    margin:0 0 6px !important;
-    color:#101828;
-    letter-spacing:-0.5px;
-}
-
-.mptbm_transportation_lists_tabs{
-    display:flex;
-    align-items:center;
-    gap:16px;
-}
-
-.mptbm_transportation_lists_tabs a{
-    font-size:13px;
-    color:#667085;
-    text-decoration:none;
-    padding-bottom:5px;
-    transition:.2s;
-}
-
-.mptbm_transportation_lists_tabs a:hover{
-    color:#2f1fd1;
-}
-
-.mptbm_transportation_lists_tab_active{
-    color:#2f1fd1 !important;
-    border-bottom:2px solid #2f1fd1;
-    font-weight:600;
-}
-
-/* ===================================================
-   ADD BUTTON
-=================================================== */
-
-.mptbm_transportation_lists_add_btn{
-    height:42px;
-    padding:0 22px;
-    border-radius:8px;
-    background:linear-gradient(135deg,#2f1fd1,#4f46e5);
-    color:#fff !important;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    text-decoration:none;
-    font-size:13px;
-    font-weight:600;
-    box-shadow:0 10px 20px rgba(47,31,209,.18);
-    transition:.25s ease;
-}
-
-.mptbm_transportation_lists_add_btn:hover{
-    transform:translateY(-2px);
-    box-shadow:0 14px 28px rgba(47,31,209,.22);
-}
-
-.mptbm_transportation_lists_add_btn .dashicons{
-    font-size:15px;
-}
-
-/* ===================================================
-   STATS
-=================================================== */
-
-.mptbm_transportation_lists_stats_wrapper{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:14px;
-    margin-bottom:16px;
-}
-
-.mptbm_transportation_lists_stats_card{
-    background:#fff;
-    border:1px solid #e7eaf3;
-    border-radius:14px;
-    padding:16px 18px;
-    display:flex;
-    align-items:center;
-    gap:14px;
-    transition:.25s ease;
-}
-
-.mptbm_transportation_lists_stats_card:hover{
-    transform:translateY(-2px);
-    box-shadow:0 10px 24px rgba(15,23,42,.05);
-}
-
-.mptbm_transportation_lists_stats_icon{
-    width:44px;
-    height:44px;
-    border-radius:12px;
-    background:#ede9fe;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.mptbm_transportation_lists_stats_icon .dashicons{
-    color:#2f1fd1;
-    font-size:20px;
-}
-
-.mptbm_transportation_lists_stats_label{
-    font-size:10px;
-    color:#98a2b3;
-    font-weight:700;
-    letter-spacing:1px;
-    margin-bottom:3px;
-}
-
-.mptbm_transportation_lists_stats_value{
-    font-size:18px;
-    font-weight:700;
-    color:#111827;
-}
-
-/* ===================================================
-   FILTER BAR
-=================================================== */
-
-.mptbm_transportation_lists_filter_bar{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:12px;
-    border-radius:12px;
-    background:#eef2ff;
-    margin-bottom:14px;
-}
-
-.mptbm_transportation_lists_filter_left{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-
-.mptbm_transportation_lists_bulk_select{
-    width:120px;
-    height:36px;
-    border:1px solid #d0d5dd;
-    border-radius:8px;
-    background:#fff;
-    padding:0 12px;
-    font-size:12px;
-    color:#344054;
-}
-
-.mptbm_transportation_lists_apply_btn{
-    height:36px;
-    border:none;
-    border-radius:8px;
-    background:#fff;
-    padding:0 20px;
-    color:#2f1fd1;
-    font-size:12px;
-    font-weight:600;
-    cursor:pointer;
-    transition:.2s;
-}
-
-.mptbm_transportation_lists_apply_btn:hover{
-    background:#f8f9fc;
-}
-
-.mptbm_transportation_lists_search_box{
-    width:320px;
-    height:38px;
-    border:1px solid #d0d5dd;
-    border-radius:8px;
-    background:#fff;
-    display:flex;
-    align-items:center;
-    overflow:hidden;
-}
-
-.mptbm_transportation_lists_search_box .dashicons{
-    margin-left:10px;
-    color:#667085;
-    font-size:16px;
-}
-
-.mptbm_transportation_lists_search_box input{
-    flex:1;
-    border:none !important;
-    outline:none !important;
-    box-shadow:none !important;
-    background:transparent;
-    height:100%;
-    padding:0 10px;
-    font-size:13px;
-}
-
-.mptbm_transportation_lists_search_box button{
-    width:92px;
-    height:100%;
-    border:none;
-    background:#4338ca;
-    color:#fff;
-    font-size:12px;
-    font-weight:600;
-    cursor:pointer;
-    transition:.2s;
-}
-
-.mptbm_transportation_lists_search_box button:hover{
-    background:#3120cf;
-}
-
-/* ===================================================
-   CARD WRAPPER
-=================================================== */
-
-.mptbm_transportation_lists_cards_wrapper{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-}
-
-/* ===================================================
-   SINGLE CARD
-=================================================== */
-
-.mptbm_transportation_lists_card{
-    display:flex;
-    overflow:hidden;
-    /*min-height:180px;*/
-    border-radius:14px;
-    background:#fff;
-    border:1px solid #e4e7ec;
-    transition:.25s ease;
-}
-
-.mptbm_transportation_lists_card:hover{
-    transform:translateY(-2px);
-    box-shadow:0 16px 30px rgba(15,23,42,.06);
-}
-
-/* ===================================================
-   IMAGE
-=================================================== */
-
-.mptbm_transportation_lists_image_area{
-    width:190px;
-    position:relative;
-    flex-shrink:0;
-}
-
-.mptbm_transportation_lists_image_area img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
-}
-
-.mptbm_transportation_lists_badge{
-    position:absolute;
-    top:12px;
-    left:12px;
-    z-index:5;
-    padding:5px 10px;
-    border-radius:20px;
-    background:linear-gradient(135deg,#2f1fd1,#4f46e5);
-    color:#fff;
-    font-size:9px;
-    font-weight:700;
-    letter-spacing:.7px;
-}
-
-/* ===================================================
-   CONTENT
-=================================================== */
-
-.mptbm_transportation_lists_content{
-    flex:1;
-    padding:18px;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-}
-
-.mptbm_transportation_lists_card_top{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:20px;
-}
-
-.mptbm_transportation_lists_vehicle_title{
-    font-size:17px;
-    line-height:1.3;
-    margin:0 0 6px;
-    color:#111827;
-    font-weight:700;
-    letter-spacing:-.3px;
-}
-
-.mptbm_transportation_lists_location{
-    display:flex;
-    align-items:center;
-    gap:4px;
-    color:#667085;
-    font-size:12px;
-}
-
-.mptbm_transportation_lists_location .dashicons{
-    color:#2f1fd1;
-    font-size:14px;
-}
-
-/* ===================================================
-   ACTION BUTTON
-=================================================== */
-
-.mptbm_transportation_lists_action_buttons{
-    display:flex;
-    align-items:center;
-    gap:8px;
-}
-
-.mptbm_transportation_lists_edit_btn,
-.mptbm_transportation_lists_delete_btn{
-    width:38px;
-    height:38px;
-    border-radius:8px;
-    background:#fff;
-    border:1px solid #e4e7ec;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-decoration:none;
-    transition:.2s ease;
-}
-
-.mptbm_transportation_lists_edit_btn:hover,
-.mptbm_transportation_lists_delete_btn:hover{
-    transform:translateY(-1px);
-    box-shadow:0 8px 18px rgba(15,23,42,.08);
-}
-
-.mptbm_transportation_lists_edit_btn .dashicons{
-    color:#2f1fd1;
-}
-
-.mptbm_transportation_lists_delete_btn .dashicons{
-    color:#b42318;
-}
-
-/* ===================================================
-   META BOX
-=================================================== */
-
-.mptbm_transportation_lists_meta_box{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:10px;
-    padding:8px 10px;
-    border-radius:10px;
-    background:#f1f4fd;
-    margin-top:5px;
-}
-
-.mptbm_transportation_lists_meta_item{
-    padding:0 8px;
-}
-
-.mptbm_transportation_lists_meta_label{
-    font-size:9px;
-    color:#98a2b3;
-    font-weight:700;
-    letter-spacing:1px;
-    margin-bottom:7px;
-}
-
-.mptbm_transportation_lists_meta_value{
-    color:#2f1fd1;
-    font-size:13px;
-    font-weight:700;
-}
-
-.mptbm_transportation_lists_meta_value_black{
-    color:#111827;
-    font-size:13px;
-    font-weight:700;
-}
-
-.mptbm_transportation_lists_meta_status{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    color:#12b76a;
-    font-size:13px;
-    font-weight:700;
-}
-
-.mptbm_transportation_lists_meta_status span{
-    width:8px;
-    height:8px;
-    border-radius:50%;
-    background:#12b76a;
-}
-
-/* ===================================================
-   FOOTER
-=================================================== */
-
-.mptbm_transportation_lists_footer{
-    margin-top:14px;
-    padding:12px 14px;
-    border-radius:12px;
-    background:#eef2ff;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-}
-
-.mptbm_transportation_lists_footer_text{
-    font-size:12px;
-    color:#667085;
-}
-
-.mptbm_transportation_lists_pagination{
-    display:flex;
-    align-items:center;
-    gap:8px;
-}
-
-.mptbm_transportation_lists_pagination button{
-    width:30px;
-    height:30px;
-    border:none;
-    border-radius:6px;
-    background:#fff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-}
-
-.mptbm_transportation_lists_pagination_text{
-    height:30px;
-    padding:0 16px;
-    border-radius:6px;
-    background:#fff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:12px;
-    font-weight:600;
-    color:#344054;
-}
-
-/* ===================================================
-   RESPONSIVE
-=================================================== */
-
-@media(max-width:1200px){
-
-    .mptbm_transportation_lists_stats_wrapper{
-        grid-template-columns:1fr;
-    }
-
-    .mptbm_transportation_lists_meta_box{
-        grid-template-columns:repeat(4,1fr);
-    }
-}
-
-.mptbm_transportation_lists_meta_label .dashicons,
-.mptbm_transportation_lists_vehicle_title .dashicons,
-.mptbm_transportation_lists_badge .dashicons,
-.mptbm_transportation_lists_location .dashicons {
-    margin-right: 5px;
-    vertical-align: middle;
-}
-
-.mptbm_transportation_lists_pagination{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-
-.mptbm_transportation_lists_pagination_text{
-    display:flex;
-    gap:8px;
-}
-
-.mptbm_pagination_number,
-.mptbm_pagination_btn{
-    width:36px;
-    height:36px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-decoration:none;
-    border-radius:6px;
-    background:#f1f1f1;
-    color:#222;
-}
-
-.mptbm_pagination_number.active{
-    background:#2271b1;
-    color:#fff;
-}
-
-@media(max-width:768px){
-
-    .mptbm_transportation_lists_topbar,
-    .mptbm_transportation_lists_filter_bar,
-    .mptbm_transportation_lists_footer,
-    .mptbm_transportation_lists_card_top{
-        flex-direction:column;
-        align-items:flex-start;
-        gap:14px;
-    }
-
-    .mptbm_transportation_lists_card{
-        flex-direction:column;
-    }
-
-    .mptbm_transportation_lists_image_area{
-        width:100%;
-        height:220px;
-    }
-
-    .mptbm_transportation_lists_search_box{
-        width:100%;
-    }
-
-    .mptbm_transportation_lists_meta_box{
-        grid-template-columns:1fr;
-    }
+@media (max-width:480px){
+  .mptbm-stats{grid-template-columns:1fr;}
+  .mptbm-tab-pills{width:100%;justify-content:space-between;}
 }
