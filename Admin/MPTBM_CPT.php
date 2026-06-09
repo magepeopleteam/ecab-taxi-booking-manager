@@ -298,7 +298,7 @@ if (!class_exists('MPTBM_CPT')) {
 				'meta_box_cb' => false,
 			);
 
-			register_taxonomy('mptbm_service_status', $cpt, $service_status_args);
+//			register_taxonomy('mptbm_service_status', $cpt, $service_status_args);
 			register_taxonomy('locations', $cpt, $taxonomy_args);
 			register_post_type('mptbm_extra_services', $ex_args);
 			if (class_exists('MPTBM_Plugin_Pro')) {
