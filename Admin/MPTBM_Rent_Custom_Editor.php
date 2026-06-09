@@ -1947,7 +1947,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <div class="mptbm_operation_area_fixed_map_type_contents">
                                         <div class="mptbm_operation_area_fixed_map_type_content"
                                              id="mptbm_operation_area_fixed_map_zone_to_location"
-                                             style="<?php echo ( $operation_area_fixed_map_type === 'zone_to_location' || empty( $operation_area_fixed_map_type ) ) ? 'display:block;' : 'display:none;'; ?>"
+                                             style="'display:block"
                                         >
                                             <?php
                                             self::render_fixed_with_map_price_rows_free( $fixed_map_route_prices, $operation_zones, 'mptbm_taxi_pricing_route_list', $location_zones );
@@ -1957,10 +1957,10 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                         </div>
                                         <div class=" mptbm_operation_area_fixed_map_type_content"
                                              id="mptbm_operation_area_fixed_map_zone_to_zone"
-                                             style="<?php echo ( $operation_area_fixed_map_type === 'zone_to_zone' || empty( $operation_area_fixed_map_type ) ) ? 'display:block;' : 'display:none;'; ?>"
+                                             style="display:none"
                                         >
                                             <?php
-                                            self::render_fixed_with_map_zone_zone_price_free( $area_route_prices, $merged_location_area, 'mptbm_taxi_pricing_zone_to_zone_route_list', $operation_zones );
+//                                            self::render_fixed_with_map_zone_zone_price_free( $area_route_prices, $merged_location_area, 'mptbm_taxi_pricing_zone_to_zone_route_list', $operation_zones );
                                             ?>
                                             <button type="button"
                                                     class="mptbm_taxi_pricing_pink_btn mptbm_taxi_pricing_add_zone_to_zone_route_btn">
