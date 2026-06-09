@@ -51,7 +51,7 @@
 .mptbm-tab-trash:not(.active):hover{background:var(--mp-indigo-soft);color:var(--mp-indigo) !important;}
 .mptbm-tab-trash.active{background:var(--mp-indigo);color:#fff !important;}
 .mptbm-tab-trash.active svg{opacity:1;}
-.mptbm-search-box{display:flex;align-items:center;gap:8px;background:var(--mp-white);border:1px solid var(--mp-border);border-radius:10px;padding:6px 14px;flex:1;max-width:300px;min-width:180px;color:var(--mp-muted);transition:border-color .2s,box-shadow .2s;}
+.mptbm-search-box{display:flex;align-items:center;gap:8px;background:var(--mp-white);border:1px solid var(--mp-border);border-radius:10px;padding:10px 14px;flex:1;max-width:300px;min-width:180px;min-height:42px;color:var(--mp-muted);transition:border-color .2s,box-shadow .2s;}
 .mptbm-search-box.is-focused{border-color:var(--mp-indigo);box-shadow:0 0 0 3px var(--mp-indigo-soft);}
 .mptbm-search-box .mptbm-search-icon{flex-shrink:0;transition:color .2s;}
 .mptbm-search-box.is-focused .mptbm-search-icon{color:var(--mp-indigo);}
