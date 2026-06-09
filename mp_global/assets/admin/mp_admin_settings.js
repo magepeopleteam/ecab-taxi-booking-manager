@@ -158,7 +158,6 @@ function load_sortable_datepicker(parent, item) {
     "use strict";
     //=================select icon=========================//
     $(document).on("click", ".mp_add_icon_image_area button.mp_icon_add", function () {
-        alert('ok');
             let target_popup = $(".mp_add_icon_popup");
             target_popup.find(".iconItem").click(function () {
                 let parent = $("[data-active-popup]").closest(".mp_add_icon_image_area");

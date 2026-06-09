@@ -146,9 +146,8 @@
 								<table>
 									<thead>
 									<tr class="bg-dark">
-										<th class="_w_150"><?php esc_html_e('Icon/Image', 'ecab-taxi-booking-manager'); ?></th>
-										<th><?php esc_html_e('Label', 'ecab-taxi-booking-manager'); ?></th>
-										<th><?php esc_html_e('Text', 'ecab-taxi-booking-manager'); ?></th>
+                                    <th class="_w_150"><?php esc_html_e('Icon/Image', 'ecab-taxi-booking-manager'); ?></th>
+                                    <th><?php esc_html_e('Description', 'ecab-taxi-booking-manager'); ?></th>
 										<th class="_w_125"><?php esc_html_e('Action', 'ecab-taxi-booking-manager'); ?></th>
 									</tr>
 									</thead>

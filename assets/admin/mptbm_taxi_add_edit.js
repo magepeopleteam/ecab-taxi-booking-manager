@@ -198,9 +198,26 @@
             e.preventDefault();
             const newRow = `
                 <div class="mptbm_taxi_feature_row" style="display:none;">
-                    <div class="mptbm_taxi_feature_icon_box">
-                        <i class="fas fa-gear"></i>
-                        <div class="mptbm_taxi_feature_remove_icon"><i class="fas fa-times"></i></div>
+                    <div class="mp_add_icon_image_area fdColumn">
+                        <input type="hidden" name="mptbm_features_icon_image[]" value="">
+                        <div class="mp_icon_item dNone">
+                            <div class="allCenter">
+                                <span class="" data-add-icon></span>
+                            </div>
+                            <span class="fas fa-times mp_remove_icon mp_icon_remove" title="Remove Icon"></span>
+                        </div>
+                        <div class="mp_image_item dNone">
+                            <img class="" src="" alt="">
+                            <span class="fas fa-times mp_remove_icon mp_image_remove" title="Remove Image"></span>
+                        </div>
+                        <div class="mp_add_icon_image_button_area">
+                            <div class="flexEqual">
+                                <button class="_mpBtn_xs mp_image_add" type="button">
+                                    <span class="fas fa-images"></span>Image</button>
+                                <button class="_mpBtn_xs mp_icon_add" type="button" data-target-popup="#mp_add_icon_popup">
+                                    <span class="fas fa-plus"></span>Icon</button>
+                            </div>
+                        </div>
                     </div>
                     <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_text[]" placeholder="Value">
                     <div class="mptbm_taxi_feature_actions">
