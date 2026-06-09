@@ -84,7 +84,12 @@
     font-weight: 700;
     color: #1e293b;
 }
-
+.mptbm_taxi_feature_header .mptbm_taxi_feature_title_area h2{
+    font-size: 18px;
+}
+.mpStyle .mptbm_taxi_feature_header .mptbm_taxi_feature_title_area p{
+    font-size: 13px;
+}
 .mptbm_rent_editor_title{
     margin: 0 0 4px;
     font-size: 18px;
