@@ -595,12 +595,16 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 
 .mptbm_taxi_feature_row {
     display: grid;
-    grid-template-columns: 80px 1fr 100px;
+    grid-template-columns: 130px 1fr 100px;
     gap: 20px;
     align-items: center;
     margin-bottom: 15px;
     padding: 5px;
     transition: opacity 0.3s;
+}
+.mptbm_taxi_feature_row .mp_add_icon_image_area {
+    border-color: var(--mptbm-border);
+    max-width: 100%;
 }
 
 .mptbm_taxi_feature_container.disabled .mptbm_taxi_feature_body {

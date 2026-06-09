@@ -757,17 +757,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 $image = array_key_exists('image', $features) ? $features['image'] : '';
                 ?>
 
-                <div id="mptbm_taxi_feature_list">
-                    <div class="mptbm_taxi_feature_row">
-                        <div class="mptbm_taxi_feature_icon_box" data-target-popup="#mp_add_icon_popup">
-                            <i class="fas fa-car"></i>
-<!--                            <div class="mptbm_taxi_feature_remove_icon"><i class="fas fa-times"></i></div>-->
-                        </div>
-                        <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_text[]" value="<?php echo esc_attr($text); ?>"/>
-                        <div class="mptbm_taxi_feature_actions">
-                            <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_del">🗑️</button>
-                            <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_move">✥</button>
-                        </div>
+                <div class="mptbm_taxi_feature_row">
+                    <?php do_action('mp_add_icon_image', 'mptbm_features_icon_image[]', $icon, $image); ?>
+                    <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_text[]" value="<?php echo esc_attr($text); ?>"/>
+                    <div class="mptbm_taxi_feature_actions">
+                        <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_del">🗑️</button>
+                        <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_move">✥</button>
                     </div>
                 </div>
                 <?php
@@ -778,7 +773,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             $display = $display_features == 'off' ? 'none' : 'block';
             $features_checked = $display_features == 'off' ? '' : 'checked';
             ?>
-            <div class="mptbm_taxi_feature_container">
+            <div class="mptbm_taxi_feature_container mpStyle">
                 <div class="mptbm_taxi_feature_header">
                     <div class="mptbm_taxi_feature_title_area">
                         <h2><?php esc_html_e( 'Vehicle Features', 'ecab-taxi-booking-manager' ); ?></h2>
