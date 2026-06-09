@@ -173,18 +173,12 @@
 				<?php
 			}
 			public function features_item($features = array()) {
-				$label = array_key_exists('label', $features) ? $features['label'] : '';
 				$text = array_key_exists('text', $features) ? $features['text'] : '';
 				$icon = array_key_exists('icon', $features) ? $features['icon'] : '';
 				$image = array_key_exists('image', $features) ? $features['image'] : '';
 				?>
                 <tr class="mp_remove_area">
                     <td valign="middle"><?php do_action('mp_add_icon_image', 'mptbm_features_icon_image[]', $icon, $image); ?></td>
-                    <td valign="middle">
-                        <label>
-                            <input class="formControl mp_name_validation" name="mptbm_features_label[]" value="<?php echo esc_attr($label); ?>"/>
-                        </label>
-                    </td>
                     <td valign="middle">
                         <label>
                             <input class="formControl mp_name_validation" name="mptbm_features_text[]" value="<?php echo esc_attr($text); ?>"/>
@@ -229,15 +223,14 @@
 					
 					$display_features = isset($_POST['display_mptbm_features']) && sanitize_text_field($_POST['display_mptbm_features'])? 'on' : 'off';
 					update_post_meta($post_id, 'display_mptbm_features', $display_features);
-					$features_label = isset($_POST['mptbm_features_label']) ? array_map('sanitize_text_field',$_POST['mptbm_features_label']) : [];
-					if (sizeof($features_label) > 0) {
-						$features_text = isset($_POST['mptbm_features_text']) ? array_map('sanitize_text_field',$_POST['mptbm_features_text']) : [];
+					$features_text = isset($_POST['mptbm_features_text']) ? array_map('sanitize_text_field',$_POST['mptbm_features_text']) : [];
+					if (sizeof($features_text) > 0) {
 						$features_icon = isset($_POST['mptbm_features_icon_image']) ? array_map('sanitize_text_field',$_POST['mptbm_features_icon_image']) : [];
 						$count = 0;
-						foreach ($features_label as $label) {
-							if ($label) {
-								$all_features[$count]['label'] = $label;
-								$all_features[$count]['text'] = $features_text[$count];
+						foreach ($features_text as $text) {
+							if ($text) {
+								$all_features[$count]['label'] = $text;
+								$all_features[$count]['text'] = $text;
 								$all_features[$count]['icon'] = '';
 								$all_features[$count]['image'] = '';
 								$current_image_icon = array_key_exists($count, $features_icon) ? $features_icon[$count] : '';

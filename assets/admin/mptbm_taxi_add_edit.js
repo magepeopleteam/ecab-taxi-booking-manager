@@ -202,7 +202,6 @@
                         <i class="fas fa-gear"></i>
                         <div class="mptbm_taxi_feature_remove_icon"><i class="fas fa-times"></i></div>
                     </div>
-                    <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_label[]" placeholder="Label">
                     <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_text[]" placeholder="Value">
                     <div class="mptbm_taxi_feature_actions">
                         <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_del">🗑️</button>

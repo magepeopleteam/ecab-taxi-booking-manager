@@ -752,7 +752,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             </div>
         <?php }
         public static function features_item($features = array()) {
-                $label = array_key_exists('label', $features) ? $features['label'] : '';
                 $text = array_key_exists('text', $features) ? $features['text'] : '';
                 $icon = array_key_exists('icon', $features) ? $features['icon'] : '';
                 $image = array_key_exists('image', $features) ? $features['image'] : '';
@@ -764,7 +763,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             <i class="fas fa-car"></i>
 <!--                            <div class="mptbm_taxi_feature_remove_icon"><i class="fas fa-times"></i></div>-->
                         </div>
-                        <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_label[]" value="<?php echo esc_attr($label); ?>"/>
                         <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_text[]" value="<?php echo esc_attr($text); ?>"/>
                         <div class="mptbm_taxi_feature_actions">
                             <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_del">🗑️</button>
@@ -799,8 +797,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 <div class="mptbm_taxi_feature_body" style="display: <?php echo esc_attr( $display );?>">
                     <div class="mptbm_taxi_feature_labels">
                         <div><?php esc_html_e( 'Icon/Image', 'ecab-taxi-booking-manager' ); ?></div>
-                        <div><?php esc_html_e( 'Label', 'ecab-taxi-booking-manager' ); ?></div>
-                        <div><?php esc_html_e( 'Text', 'ecab-taxi-booking-manager' ); ?></div>
+                        <div><?php esc_html_e( 'Description', 'ecab-taxi-booking-manager' ); ?></div>
                         <div><?php esc_html_e( 'Action', 'ecab-taxi-booking-manager' ); ?></div>
                     </div>
 
