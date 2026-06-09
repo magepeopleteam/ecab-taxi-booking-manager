@@ -560,26 +560,32 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 ?>
 
                 <div class="mptbm_rent_editor_wrapper">
-                    <div class="mptbm_rent_editor_header" style="display: flex; justify-content: space-between">
-                        <div class="mptbm_taxi_toggle_info">
-                            <div class="mptbm_taxi_toggle_text">
-                                <strong><?php esc_html_e( 'Price Display Settings', 'ecab-taxi-booking-manager' ); ?></strong>
-                                <p><?php esc_html_e( 'Configure how fares are shown to customers', 'ecab-taxi-booking-manager' ); ?></p>
+                    <div class="mptbm_rent_editor_header">
+                        <h2 class="mptbm_rent_editor_title"><?php esc_html_e( 'Price Display Settings', 'ecab-taxi-booking-manager' ); ?></h2>
+                        <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Configure how fares are shown to customers', 'ecab-taxi-booking-manager' ); ?></p>
+                    </div>
+                    <div class="mptbm_rent_editor_body">
+                        <div class="mptbm_taxi_advanced_card" style="margin-bottom: 0;">
+                            <div class="mptbm_taxi_advanced_card_header">
+                                <div class="mptbm_taxi_advanced_title_block">
+                                    <label class="mptbm_rent_label"><?php esc_html_e('Price Display Type', 'ecab-taxi-booking-manager'); ?></label>
+                                    <span class="desc"><?php esc_html_e('Choose how the price is displayed to customers', 'ecab-taxi-booking-manager'); ?></span>
+                                </div>
+                                <select class="formControl" name="mptbm_price_display_type" id="mptbm_price_display_type" data-collapse-target="">
+                                    <option value="normal" <?php selected($price_display_type, 'normal'); ?>><?php esc_html_e('Normal Price', 'ecab-taxi-booking-manager'); ?></option>
+                                    <option value="zero" <?php selected($price_display_type, 'zero'); ?>><?php esc_html_e('Show as Zero (0.00)', 'ecab-taxi-booking-manager'); ?></option>
+                                    <option value="custom_message" <?php selected($price_display_type, 'custom_message'); ?>><?php esc_html_e('Show Custom Message', 'ecab-taxi-booking-manager'); ?></option>
+                                </select>
                             </div>
                         </div>
-                        <select class="formControl" name="mptbm_price_display_type" id="mptbm_price_display_type" data-collapse-target="">
-                            <option value="normal" <?php selected($price_display_type, 'normal'); ?>><?php esc_html_e('Normal Price', 'ecab-taxi-booking-manager'); ?></option>
-                            <option value="zero" <?php selected($price_display_type, 'zero'); ?>><?php esc_html_e('Show as Zero (0.00)', 'ecab-taxi-booking-manager'); ?></option>
-                            <option value="custom_message" <?php selected($price_display_type, 'custom_message'); ?>><?php esc_html_e('Show Custom Message', 'ecab-taxi-booking-manager'); ?></option>
-                        </select>
-                    </div>
-                    <div class="mptbm_taxi_toggle_header" id="mptbm_custom_message_show" style="display: <?php echo esc_attr($price_display_type == 'custom_message' ? 'block' : 'none'); ?>; border: unset" >
-                        <div class="mptbm_custom_message_label">
-                            <div class="mptbm_custom_message_title_holder">
-                                <h6><?php esc_html_e('Custom Price Message', 'ecab-taxi-booking-manager'); ?></h6>
-                                <span class="desc"><?php esc_html_e('Message to display instead of price (e.g. "Price pending confirmation")', 'ecab-taxi-booking-manager'); ?></span>
+                        <div class="mptbm_taxi_advanced_card" id="mptbm_custom_message_show" style="display: <?php echo esc_attr($price_display_type == 'custom_message' ? 'block' : 'none'); ?>; margin-top: 0; border-top: none;">
+                            <div class="mptbm_custom_message_label">
+                                <div class="mptbm_custom_message_title_holder">
+                                    <h6><?php esc_html_e('Custom Price Message', 'ecab-taxi-booking-manager'); ?></h6>
+                                    <span class="desc"><?php esc_html_e('Message to display instead of price (e.g. "Price pending confirmation")', 'ecab-taxi-booking-manager'); ?></span>
+                                </div>
+                                <textarea class="mptbm_custom_message_input" name="mptbm_custom_price_message" rows="3"><?php echo esc_textarea($custom_price_message); ?></textarea>
                             </div>
-                            <textarea class="mptbm_custom_message_input" name="mptbm_custom_price_message" rows="3"><?php echo esc_textarea($custom_price_message); ?></textarea>
                         </div>
                     </div>
                 </div>

@@ -589,7 +589,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 
 .mptbm_taxi_feature_labels {
     display: grid;
-    grid-template-columns: 80px 1fr 100px;
+    grid-template-columns: 130px 1fr 100px;
     gap: 20px;
     margin-bottom: 15px;
     font-size: 12px;
