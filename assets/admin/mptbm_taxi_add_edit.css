@@ -23,7 +23,7 @@
 
 /* SCROLL CONTENT */
 .mptbm_scroll_content {
-    margin-top: 80px;
+    margin-top: 60px;
     margin-bottom: 80px;
     padding: 20px;
 }
@@ -64,15 +64,15 @@
     border: 1px solid #e2e8f0;
     border-radius: 14px;
     overflow: hidden;
-    margin-top: 20px;
+    margin-top: 15px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 /* Header */
 .mptbm_rent_editor_header{
     background: #e9eff6;
-    padding: 18px 24px;
+    padding:10px 15px;
     border-bottom: 1px solid #e2e8f0;
 }
 
@@ -80,16 +80,11 @@
 .mptbm_rent_editor_header h3,
 .mptbm_rent_editor_header h4 {
     margin: 0 0 4px;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: #1e293b;
 }
-.mptbm_taxi_feature_header .mptbm_taxi_feature_title_area h2{
-    font-size: 18px;
-}
-.mpStyle .mptbm_taxi_feature_header .mptbm_taxi_feature_title_area p{
-    font-size: 13px;
-}
+
 .mptbm_rent_editor_title{
     margin: 0 0 4px;
     font-size: 18px;
@@ -100,7 +95,7 @@
 .mptbm_rent_editor_subtitle{
     margin: 0;
     font-size: 13px;
-    color: #6b7280;
+    color: #506b90;
     line-height: 1.5;
 }
 
@@ -531,18 +526,8 @@ input:checked + .mptbm_taxi_slider:before { transform: translateX(22px); }
     border-bottom: 1px solid #e2e8f0;
 }
 
-.mptbm_taxi_feature_title_area h2 {
-    margin: 0 0 4px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #1e293b;
-}
 
-.mptbm_taxi_feature_title_area p {
-    margin: 5px 0 0;
-    font-size: 13px;
-    color: var(--mptbm-text-light);
-}
+
 
 .mptbm_taxi_feature_switch {
     display: flex;
@@ -1253,7 +1238,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
     justify-content: space-between;
     align-items: center;
     background: #e9eff6;
-    border: 1px solid #e5e9f0;
+    border-bottom: 1px solid #e2e8f0;
 }
 .mptbm_taxi_ex_service_header .mptbm_taxi_ex_service_main_title,
 .mptbm_rent_editor_wrapper .mptbm_taxi_ex_service_main_title{
@@ -1265,7 +1250,7 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 .mptbm_rent_editor_wrapper p.mptbm_rent_editor_subtitle{
     margin: 0;
     font-size: 13px;
-    color: #6b7280;
+    color: #506b90;
     line-height: 1.5;
 }
 div#mptbm_price_per_hour { margin-top: 15px; }

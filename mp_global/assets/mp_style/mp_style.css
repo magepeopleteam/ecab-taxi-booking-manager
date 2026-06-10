@@ -30,14 +30,7 @@
 	.mpStyle table td[data-collapse].mActive {
 		display:block;
 	}
-	.mpStyle p:not(.mp_wp_editor p) {
-		color: var(--mpl-secondary);
-		margin: 0;
-		margin-bottom: 0px;
-		font-size: 16px;
-		font-weight: 300;
-		line-height: 24px;
-	}
+
 	.mpStyle a:not(.mp_wp_editor a) {
 		color: var(--color_theme);
 		text-decoration: none;
@@ -192,11 +185,7 @@
 		font-size: var(--fs_h1);
 		font-weight: var(--fw-bold);
 	}
-	div.mpStyle h2,
-	div.mpStyle [class*="_fs_h2"] {
-		font-size: var(--fs_h2);
-		font-weight: var(--fw-bold);
-	}
+
 	div.mpStyle h3,
 	div.mpStyle [class*="_fs_h3"] {
 		padding: 0;
