@@ -2154,19 +2154,15 @@ select.mptbm_taxi_ex_service_select {
     transition: transform 0.3s ease;
 }
 
-.mptbm_taxi_step:hover {
-    transform: translateY(-2px);
-}
-
 .mptbm_taxi_step:hover .mptbm_taxi_icon {
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
 }
 
 /* -- Numbered Circle Indicator -- */
 .mptbm_taxi_icon {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
+    width:36px;
+    height: 36px;
+    min-width: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -2188,7 +2184,6 @@ select.mptbm_taxi_ex_service_select {
     background: var(--mptbm-primary);
     color: #ffffff;
     border-color: var(--mptbm-primary);
-    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.12);
     transform: scale(1.04);
 }
 
@@ -2197,7 +2192,6 @@ select.mptbm_taxi_ex_service_select {
     background: var(--mptbm-primary);
     color: #ffffff;
     border-color: var(--mptbm-primary);
-    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06), 0 4px 14px rgba(0, 0, 0, 0.10);
 }
 
 /* -- Step Label -- */
@@ -2205,17 +2199,14 @@ select.mptbm_taxi_ex_service_select {
     font-size: 13px;
     font-weight: 500;
     line-height: 1.35;
-    color: #6b7280;
+    color: #334155;
     text-align: center;
     white-space: nowrap;
     letter-spacing: 0.01em;
     transition: color 0.3s ease;
 }
 
-.mptbm_taxi_step.mptbm_taxi_active .mptbm_taxi_label {
-    color: #1e293b;
-    font-weight: 600;
-}
+
 
 .mptbm_taxi_step.completed .mptbm_taxi_label {
     color: #374151;
@@ -2231,7 +2222,7 @@ select.mptbm_taxi_ex_service_select {
     flex: 1 1 auto;
     min-width: 20px;
     max-width: 140px;
-    height: 3px;
+    height: 2px;
     background: #e5e9f0;
     border-radius: 30px;
     position: relative;
