@@ -325,7 +325,7 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                    <div class="mptbm_rent_editor_header" style="display: flex; justify-content: space-between;">
                         <div class="mptbm_taxi_advanced_title_block">
                             <h4 class="mptbm_taxi_ex_service_main_title"><?php esc_html_e( 'Tax Settings Information', 'ecab-taxi-booking-manager' ); ?></h4>
-                            <p><?php esc_html_e( 'Configure and manage tax settings', 'ecab-taxi-booking-manager' ); ?></p>
+                            <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Configure and manage tax settings', 'ecab-taxi-booking-manager' ); ?></p>
                         </div>
                         <label class="mptbm_taxi_advanced_toggle">
                             <label class="roundSwitchLabel">
