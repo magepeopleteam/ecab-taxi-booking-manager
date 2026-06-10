@@ -1,5 +1,19 @@
 /* Main Wrapper */
 /* FULL PAGE LAYOUT */
+:root {
+    --mp-indigo: #6366f1;
+    --mp-indigo-dark: #4f46e5;
+}
+.wrap a.mptbm-add-btn {
+  margin-left: 6px;
+  padding: 3px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 2.15384615;
+  vertical-align: top;
+  display: inline-block;
+  margin-top: 7px;
+}
 .mp_settings_area {
     margin: 0;
     background: #f8fafc;
@@ -1448,11 +1462,12 @@ input:checked + .mptbm_taxi_ex_service_slider:before { transform: translateX(22p
 /* Footer & Buttons */
 .mptbm_taxi_ex_service_footer { display: flex; justify-content: flex-end; margin-top: 20px; }
 .mptbm_taxi_ex_service_add_btn {
-    padding: 10px 20px; border: 1px solid var(--mptbm-primary);
-    background: transparent; color: var(--mptbm-primary); border-radius: 4px;
-    cursor: pointer; font-weight: 600; transition: 0.3s;
+    background: var(--mptbm-primary); color: white; border: none;
+    padding: 10px 20px; border-radius: 6px; font-weight: 500;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    font-size: 14px; transition: 0.3s;
 }
-.mptbm_taxi_ex_service_add_btn:hover { background: var(--mptbm-primary); color: white; }
+.mptbm_taxi_ex_service_add_btn:hover { background: #333596; color: white; }
 
 .mptbm_taxi_ex_service_actions {
     display: flex;
@@ -2199,10 +2214,6 @@ select.mptbm_taxi_ex_service_select {
     color: #111827;
 }
 
-
-/* ================================================================
-   MODERN MULTI-STEP PROGRESS WIZARD
-   ================================================================ */
 
 /* -- Header Container -- */
 .mptbm_taxi_header_holder {
