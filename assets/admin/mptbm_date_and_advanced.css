@@ -211,15 +211,16 @@ input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px)
 /* Driver Info Box */
 .mptbm_taxi_advanced_driver_info_box {
     display: flex;
-    background: #eff6ff;
-    border: 1px solid #dbeafe;
-    border-radius: 4px;
-    margin-top: 20px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin: 16px 0 0;
+    padding: 4px;
 }
 
 .mptbm_taxi_advanced_info_col {
     flex: 1;
-    padding: 15px;
+    padding: 12px 16px;
 }
 
 .mptbm_taxi_advanced_info_col label {

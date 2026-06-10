@@ -836,15 +836,15 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             $display = $display_features == 'no' ? 'none' : 'block';
             $features_checked = $display_features == 'no' ? '' : 'checked';
             ?>
-            <div class="mptbm_taxi_feature_container">
-                <div class="mptbm_taxi_feature_header">
+            <div class="mptbm_rent_editor_wrapper">
+                <div class="mptbm_taxi_feature_header mptbm_rent_editor_header">
                     <div class="mptbm_taxi_feature_title_area">
-                        <h2><?php esc_html_e( 'Enable Inventory', 'ecab-taxi-booking-manager' ); ?></h2>
-                        <p><?php esc_html_e( 'Enable or disable inventory management for this vehicle', 'ecab-taxi-booking-manager' ); ?></p>
+                        <h2 class="mptbm_rent_editor_title"><?php esc_html_e( 'Enable Inventory', 'ecab-taxi-booking-manager' ); ?></h2>
+                        <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Enable or disable inventory management for this vehicle', 'ecab-taxi-booking-manager' ); ?></p>
                     </div>
                     <div class="mptbm_taxi_feature_switch">
 
-                        <span class="mptbm_taxi_inventory_switch_text"><?php echo esc_attr( $features_active );?></span>
+                        <span class="mptbm_taxi_feature_switch_text"><?php echo esc_attr( $features_active );?></span>
                         <label class="mptbm_taxi_feature_toggle">
                             <input type="checkbox" id="mptbm_enable_inventory" name="mptbm_enable_inventory" <?php echo esc_attr( $features_checked );?>>
                             <span class="mptbm_taxi_feature_slider"></span>
@@ -854,39 +854,39 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                 <div class="mptbm_taxi_inventory_manage_body" style="display: <?php echo esc_attr( $display );?>">
                     <div class="mptbm_taxi_inventory_settings_card">
-                            <div class="mptbm_taxi_inventory_form_row">
-                                <div class="mptbm_taxi_inventory_field_info">
-                                    <label for="vehicle-quantity" class="mptbm_taxi_inventory_field_title"><?php esc_html_e( 'Quantity', 'ecab-taxi-booking-manager' ); ?></label>
-                                    <p class="mptbm_taxi_inventory_field_description"><?php esc_html_e( 'Enter the quantity of vehicles available', 'ecab-taxi-booking-manager' ); ?></p>
+                        <div class="mptbm_taxi_advanced_card" style="margin-bottom: 0;">
+                            <div class="mptbm_taxi_advanced_card_header">
+                                <div class="mptbm_taxi_advanced_title_block">
+                                    <label class="mptbm_rent_label"><?php esc_html_e( 'Quantity', 'ecab-taxi-booking-manager' ); ?></label>
+                                    <span class="desc"><?php esc_html_e( 'Enter the quantity of vehicles available', 'ecab-taxi-booking-manager' ); ?></span>
                                 </div>
-                                <div class="mptbm_taxi_inventory_field_input_wrapper">
-                                    <input
-                                            type="number"
-                                            id="vehicle-quantity"
-                                            name="mptbm_quantity"
-                                            min="1"
-                                            value="<?php echo esc_attr(MP_Global_Function::get_post_info($post_id, 'mptbm_quantity', 1)); ?>"
-                                            class="mptbm_taxi_inventory_styled_input"
-                                            placeholder="<?php esc_html_e('EX:5', 'ecab-taxi-booking-manager'); ?>">
-                                </div>
+                                <input
+                                        type="number"
+                                        id="vehicle-quantity"
+                                        name="mptbm_quantity"
+                                        min="1"
+                                        value="<?php echo esc_attr(MP_Global_Function::get_post_info($post_id, 'mptbm_quantity', 1)); ?>"
+                                        class="mptbm_taxi_inventory_styled_input"
+                                        placeholder="<?php esc_html_e('EX:5', 'ecab-taxi-booking-manager'); ?>">
                             </div>
+                        </div>
 
-                            <div class="mptbm_taxi_inventory_form_row">
-                                <div class="mptbm_taxi_inventory_field_info">
-                                    <label for="interval-time" class="mptbm_taxi_inventory_field_title"><?php esc_html_e( 'Transport Booking Interval Time (minutes)', 'ecab-taxi-booking-manager' ); ?></label>
-                                    <p class="mptbm_taxi_inventory_field_description"><?php esc_html_e( 'Set the interval time between bookings in minutes', 'ecab-taxi-booking-manager' ); ?></p>
+                        <div class="mptbm_taxi_advanced_card" style="margin-bottom: 0;">
+                            <div class="mptbm_taxi_advanced_card_header">
+                                <div class="mptbm_taxi_advanced_title_block">
+                                    <label class="mptbm_rent_label"><?php esc_html_e( 'Transport Booking Interval Time (minutes)', 'ecab-taxi-booking-manager' ); ?></label>
+                                    <span class="desc"><?php esc_html_e( 'Set the interval time between bookings in minutes', 'ecab-taxi-booking-manager' ); ?></span>
                                 </div>
-                                <div class="mptbm_taxi_inventory_field_input_wrapper">
-                                    <input type="number"
-                                           id="interval-time"
-                                           name="mptbm_booking_interval_time"
-                                           min="0"
-                                           value="<?php echo esc_attr(MP_Global_Function::get_post_info($post_id, 'mptbm_booking_interval_time', 0)); ?>"
-                                           class="mptbm_taxi_inventory_styled_input"
-                                           placeholder="<?php esc_html_e('EX:30', 'ecab-taxi-booking-manager'); ?>"
-                                    >
-                                </div>
+                                <input type="number"
+                                       id="interval-time"
+                                       name="mptbm_booking_interval_time"
+                                       min="0"
+                                       value="<?php echo esc_attr(MP_Global_Function::get_post_info($post_id, 'mptbm_booking_interval_time', 0)); ?>"
+                                       class="mptbm_taxi_inventory_styled_input"
+                                       placeholder="<?php esc_html_e('EX:30', 'ecab-taxi-booking-manager'); ?>"
+                                >
                             </div>
+                        </div>
                     </div>
                 </div>
 

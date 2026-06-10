@@ -667,8 +667,8 @@ input:checked + .mptbm_taxi_feature_slider { background-color: var(--mptbm-prima
 input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px); }
 
 /* Table/Row Styles */
-.mptbm_taxi_feature_body { padding: 20px 30px; }
-.mptbm_taxi_inventory_manage_body { padding: 20px 30px; }
+.mptbm_taxi_feature_body { padding: 20px; }
+.mptbm_taxi_inventory_manage_body { padding: 20px; }
 
 .mptbm_taxi_feature_labels {
     display: grid;
@@ -698,11 +698,6 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 .mptbm_taxi_feature_container.disabled .mptbm_taxi_feature_body {
     opacity: 0.5;
     pointer-events: none;
-}
-
-.mptbm_taxi_inventory_manage_body {
-    /*opacity: 0.5;*/
-    /*pointer-events: none;*/
 }
 
 .mptbm_taxi_feature_icon_box {
@@ -1707,6 +1702,30 @@ select.mptbm_taxi_ex_service_select {
     box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
+.mptbm_pro_badge_wrapper {
+    position: relative;
+}
+
+.mptbm_pro_badge_wrapper .mptbm_rent_editor_header {
+    position: relative;
+}
+
+.mptbm_pro_badge_wrapper .mptbm_rent_editor_header::after {
+    content: "PRO";
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: #ff3b30;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    line-height: 1;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
 
 /*Pro feature*/
 .mptbm_pro_taxi_pricing_tab_item {
@@ -1776,47 +1795,9 @@ select.mptbm_taxi_ex_service_select {
 
 .mptbm_taxi_inventory_settings_card {
     background-color: #ffffff;
-    border: 1px solid #e2e8f0;
     border-radius: 12px;
     width: 100%;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
     overflow: hidden;
-}
-
-.mptbm_taxi_inventory_form_row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    transition: background-color 0.2s ease;
-}
-
-/* Adds a divider line between rows except the last one */
-.mptbm_taxi_inventory_form_row:not(:last-child) {
-    border-bottom: 1px solid var(--mptbm-border-color);
-}
-
-.mptbm_taxi_inventory_field_info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding-right: 16px;
-}
-
-.mptbm_taxi_inventory_field_title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--mptbm-text-primary);
-}
-
-.mptbm_taxi_inventory_field_description {
-    font-size: 13px;
-    color: var(--mptbm-text-secondary);
-    line-height: 1.4;
-}
-
-.mptbm_taxi_inventory_field_input_wrapper {
-    flex-shrink: 0;
 }
 
 .mptbm_taxi_inventory_styled_input {
@@ -1849,14 +1830,13 @@ select.mptbm_taxi_ex_service_select {
 
 /* Responsive adjustments for smaller screens */
 @media (max-width: 640px) {
-    .mptbm_taxi_inventory_form_row {
+    .mptbm_taxi_inventory_settings_card .mptbm_taxi_advanced_card_header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 16px;
-        padding: 20px;
+        gap: 12px;
+        padding: 16px;
     }
 
-    .mptbm_taxi_inventory_field_input_wrapper,
     .mptbm_taxi_inventory_styled_input {
         width: 100%;
     }
@@ -2181,6 +2161,25 @@ select.mptbm_taxi_ex_service_select {
     font-size: 16px;
     font-weight: 700;
     color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mptbm_pricing_rules_card h4::before {
+    content: "✓";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #10b981;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    flex-shrink: 0;
 }
 .mptbm_pricing_rules_card p {
     margin: 0 0 12px;
@@ -2203,18 +2202,6 @@ select.mptbm_taxi_ex_service_select {
 .mptbm_pricing_rules_card .mptbm_pricing_rules_formula {
     background: #e5e7eb;
     color: #111827;
-}
-.mptbm_pricing_rules_card::before {
-    content: "ACTIVE";
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: #f97316;
-    color: #fff;
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 20px;
-    font-weight: 700;
 }
 
 
@@ -2550,15 +2537,80 @@ select.mptbm_taxi_ex_service_select {
     margin: 10px 0;
 }
 
+.mptbm_pro_locked_box {
+    text-align: center;
+    padding: 32px 20px;
+}
+
+.mptbm_pro_locked_icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #fef2f2;
+    color: #dc2626;
+    margin-bottom: 16px;
+}
+
+.mptbm_pro_locked_box label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: #374151;
+}
+
 .mptbm_pro_locked_box select {
     background: #f5f5f5;
     cursor: not-allowed;
     opacity: 0.7;
+    max-width: 280px;
+    width: 100%;
+}
+
+.mptbm_no_driver_box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mptbm_no_driver_box p {
+    margin: 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.mptbm_no_driver_box .button-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--mptbm-primary);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .2s, transform .15s;
+    min-height: 32px;
+    line-height: 1;
+}
+
+.mptbm_no_driver_box .button-primary:hover {
+    background: #5228cc;
+    color: #fff;
+    transform: translateY(-1px);
 }
 
 .mptbm_pro_notice {
-    color: #d63638;
+    color: #dc2626;
     font-weight: 500;
+    font-size: 13px;
+    margin-top: 12px;
 }
 
 .mptbm_locked_switch {

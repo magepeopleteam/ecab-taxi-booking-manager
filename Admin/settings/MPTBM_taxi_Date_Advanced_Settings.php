@@ -234,7 +234,7 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
 
                 wp_nonce_field( 'mptbm_transportation_type_nonce', 'mptbm_transportation_type_nonce' );
                 ?>
-                <div class="mptbm_rent_editor_wrapper" >
+                <div class="mptbm_rent_editor_wrapper<?php echo !$pro_active ? ' mptbm_pro_badge_wrapper' : ''; ?>">
                     <div class="mptbm_rent_editor_header">
                         <h4 class="mptbm_rent_editor_title"><?php esc_html_e('Driver Settings', 'ecab-taxi-booking-manager'); ?></h4>
                         <p class="mptbm_rent_editor_subtitle"><?php esc_html_e("Here you can set a driver who's role is driver in registration.", 'ecab-taxi-booking-manager'); ?></p>
@@ -244,13 +244,14 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
 
                         <?php if ( $pro_active ): ?>
 
-                            <!-- ✅ PRO VERSION FULL FEATURE -->
-                            <div class="mptbm_taxi_advanced_driver_select_row">
+                            <div class="mptbm_taxi_advanced_card_header">
+                                <div class="mptbm_taxi_advanced_title_block">
+                                    <h6><?php esc_html_e('Select Driver', 'mptbm_plugin_pro'); ?></h6>
+                                    <span class="desc"><?php esc_html_e('Select a driver from this list.', 'mptbm_plugin_pro'); ?></span>
+                                </div>
                                 <?php if (!empty($drivers)) : ?>
-                                    <label><?php esc_html_e('Select Driver', 'mptbm_plugin_pro'); ?> <br><small>Select a driver from this list.</small></label>
-                                    <select name="mptbm_selected_driver" id="mptbm_selected_driver">
+                                    <select class="formControl max_300" name="mptbm_selected_driver" id="mptbm_selected_driver">
                                         <option value=""><?php esc_html_e('Select driver', 'mptbm_plugin_pro'); ?></option>
-
                                         <?php foreach ($drivers as $driver): ?>
                                             <option value="<?php echo esc_attr($driver->ID); ?>"
                                                 <?php selected($selected_driver, $driver->ID); ?>>
@@ -269,46 +270,41 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                                 <?php endif; ?>
                             </div>
 
-                            <div class="mptbm_taxi_advanced_driver_info_box">
-                                <?php if (!empty($selected_driver)): ?>
-                                    <?php
-                                    $user = get_user_by('ID', $selected_driver);
-                                    ?>
-                                    <?php if ($user): ?>
-                                        <div class="mptbm_taxi_advanced_info_col">
-                                            <label><?php esc_html_e("DRIVER'S NAME", 'mptbm_plugin_pro'); ?></label>
-                                            <p><?php echo esc_html($user->display_name); ?></p>
-                                        </div>
-
-                                        <div class="mptbm_taxi_advanced_info_col">
-                                            <label><?php esc_html_e('USERNAME', 'mptbm_plugin_pro'); ?></label>
-                                            <p><?php echo esc_html($user->user_login); ?></p>
-                                        </div>
-
-                                        <div class="mptbm_taxi_advanced_info_col">
-                                            <label><?php esc_html_e('EMAIL', 'mptbm_plugin_pro'); ?></label>
-                                            <p><?php echo esc_html($user->user_email); ?></p>
-                                        </div>
-                                    <?php endif; ?>
+                            <?php if (!empty($selected_driver)): ?>
+                                <?php $user = get_user_by('ID', $selected_driver); ?>
+                                <?php if ($user): ?>
+                                <div class="mptbm_taxi_advanced_driver_info_box">
+                                    <div class="mptbm_taxi_advanced_info_col">
+                                        <label><?php esc_html_e("DRIVER'S NAME", 'mptbm_plugin_pro'); ?></label>
+                                        <p><?php echo esc_html($user->display_name); ?></p>
+                                    </div>
+                                    <div class="mptbm_taxi_advanced_info_col">
+                                        <label><?php esc_html_e('USERNAME', 'mptbm_plugin_pro'); ?></label>
+                                        <p><?php echo esc_html($user->user_login); ?></p>
+                                    </div>
+                                    <div class="mptbm_taxi_advanced_info_col">
+                                        <label><?php esc_html_e('EMAIL', 'mptbm_plugin_pro'); ?></label>
+                                        <p><?php echo esc_html($user->user_email); ?></p>
+                                    </div>
+                                </div>
                                 <?php endif; ?>
-                            </div>
+                            <?php endif; ?>
 
                         <?php else: ?>
 
-                            <!-- 🔒 FREE VERSION LOCKED UI -->
                             <div class="mptbm_pro_locked_box">
-
+                                <div class="mptbm_pro_locked_icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                                </div>
                                 <label><?php esc_html_e('Select Driver', 'mptbm_plugin_pro'); ?></label>
-
                                 <select id="mptbm_pro_locked_select">
                                     <option>🔒 <?php esc_html_e('Pro Feature Only', 'mptbm_plugin_pro'); ?></option>
                                 </select>
-
                                 <p class="mptbm_pro_notice">
                                     <?php esc_html_e('This feature is available in Pro version only.', 'mptbm_plugin_pro'); ?>
                                 </p>
-
                             </div>
+
                         <?php endif; ?>
                     </div>
                 </div>

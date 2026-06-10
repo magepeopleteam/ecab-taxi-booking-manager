@@ -31,10 +31,6 @@
 		display:block;
 	}
 
-	.mpStyle a:not(.mp_wp_editor a) {
-		color: var(--color_theme);
-		text-decoration: none;
-	}
 	.mpStyle a:hover {
 		opacity: 0.5;
 	}
