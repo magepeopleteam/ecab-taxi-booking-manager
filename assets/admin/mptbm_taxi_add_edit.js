@@ -188,10 +188,10 @@
             const isChecked = $(this).is(':checked');
             if( isChecked ){
                 $('.mptbm_taxi_inventory_manage_body').fadeIn();
-                $('.mptbm_taxi_inventory_switch_text').text('On');
+                $('.mptbm_taxi_feature_switch_text').text('On');
             }else{
                 $('.mptbm_taxi_inventory_manage_body').fadeOut();
-                $('.mptbm_taxi_inventory_switch_text').text('Off');
+                $('.mptbm_taxi_feature_switch_text').text('Off');
             }
 
             // $(this).closest('.mptbm_taxi_feature_switch').find('span').text(isChecked ? 'ON' : 'OFF');

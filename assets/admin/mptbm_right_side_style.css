@@ -118,13 +118,13 @@
 /*Category*/
 /* Container & General Layout */
 .mptbm_taxi_category_container {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    max-width: 360px;
     width: 100%;
     background: transparent;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 .mptbm_taxi_category_card {
