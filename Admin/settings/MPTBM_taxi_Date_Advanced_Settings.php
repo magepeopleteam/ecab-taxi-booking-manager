@@ -36,7 +36,7 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
 
                 <div class="mptbm_rent_editor_wrapper" >
                     <div class="mptbm_rent_editor_header">
-                        <h4 class="mptbm_taxi_ex_service_main_title"><?php esc_html_e('General Date Configuration', 'ecab-taxi-booking-manager'); ?></h4>
+                        <h4 class="mptbm_rent_editor_title"><?php esc_html_e('General Date Configuration', 'ecab-taxi-booking-manager'); ?></h4>
                         <p class="mptbm_rent_editor_subtitle"><?php esc_html_e('Here you can configure advanced abd general date', 'ecab-taxi-booking-manager'); ?></p>
                     </div>
                     <div class="mptbm_general_date_config" style="padding: 10px">
@@ -135,7 +135,7 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
 
                 <div class="mptbm_rent_editor_wrapper" >
                     <div class="mptbm_rent_editor_header">
-                        <h4 class="mptbm_taxi_ex_service_main_title"><?php esc_html_e('Schedule Date Configuration', 'ecab-taxi-booking-manager'); ?></h4>
+                        <h4 class="mptbm_rent_editor_title"><?php esc_html_e('Schedule Date Configuration', 'ecab-taxi-booking-manager'); ?></h4>
                         <p class="mptbm_rent_editor_subtitle"><?php esc_html_e('Here you can configure Schedule date.', 'ecab-taxi-booking-manager'); ?></p>
                     </div>
                     <div class="mptbm_taxi_advanced_card">
@@ -166,7 +166,7 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
 
                 <div class="mptbm_rent_editor_wrapper" >
                     <div class="mptbm_rent_editor_header">
-                        <h4 class="mptbm_taxi_ex_service_main_title"><?php esc_html_e('Off Days & Dates Configuration', 'ecab-taxi-booking-manager'); ?></h4>
+                        <h4 class="mptbm_rent_editor_title"><?php esc_html_e('Off Days & Dates Configuration', 'ecab-taxi-booking-manager'); ?></h4>
                         <p class="mptbm_rent_editor_subtitle"><?php esc_html_e('Here you can configure Off Days & Dates.', 'ecab-taxi-booking-manager'); ?></p>
                     </div>
                     <div data-collapse="#mp_repeated" class="mptbm_taxi_advanced_card <?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
@@ -236,7 +236,7 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                 ?>
                 <div class="mptbm_rent_editor_wrapper" >
                     <div class="mptbm_rent_editor_header">
-                        <h4 class="mptbm_taxi_ex_service_main_title"><?php esc_html_e('Driver Settings', 'ecab-taxi-booking-manager'); ?></h4>
+                        <h4 class="mptbm_rent_editor_title"><?php esc_html_e('Driver Settings', 'ecab-taxi-booking-manager'); ?></h4>
                         <p class="mptbm_rent_editor_subtitle"><?php esc_html_e("Here you can set a driver who's role is driver in registration.", 'ecab-taxi-booking-manager'); ?></p>
                     </div>
 
@@ -324,7 +324,7 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                     ?>
                    <div class="mptbm_rent_editor_header" style="display: flex; justify-content: space-between;">
                         <div class="mptbm_taxi_advanced_title_block">
-                            <h4 class="mptbm_taxi_ex_service_main_title"><?php esc_html_e( 'Tax Settings Information', 'ecab-taxi-booking-manager' ); ?></h4>
+                            <h4 class="mptbm_rent_editor_title"><?php esc_html_e( 'Tax Settings Information', 'ecab-taxi-booking-manager' ); ?></h4>
                             <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Configure and manage tax settings', 'ecab-taxi-booking-manager' ); ?></p>
                         </div>
                         <label class="mptbm_taxi_advanced_toggle">

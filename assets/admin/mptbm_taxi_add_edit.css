@@ -24,8 +24,7 @@
 /* SCROLL CONTENT */
 .mptbm_scroll_content {
     margin-top: 60px;
-    margin-bottom: 80px;
-    padding: 20px;
+    padding-bottom: 140px;
 }
 
 /* FIXED FOOTER */
@@ -62,7 +61,7 @@
 .mptbm_rent_editor_wrapper{
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 14px;
+    border-radius: 12px;
     overflow: hidden;
     margin-top: 15px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -518,12 +517,9 @@ input:checked + .mptbm_taxi_slider:before { transform: translateX(22px); }
 
 /* Header Styles */
 .mptbm_taxi_feature_header {
-    padding: 18px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #e9eff6;
-    border-bottom: 1px solid #e2e8f0;
 }
 
 
@@ -1233,15 +1229,14 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 
 
 .mptbm_taxi_ex_service_header {
-    padding: 18px 24px;
+
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #e9eff6;
-    border-bottom: 1px solid #e2e8f0;
+
 }
-.mptbm_taxi_ex_service_header .mptbm_taxi_ex_service_main_title,
-.mptbm_rent_editor_wrapper .mptbm_taxi_ex_service_main_title{
+.mptbm_taxi_ex_service_header .mptbm_rent_editor_title,
+.mptbm_rent_editor_wrapper .mptbm_rent_editor_title{
     margin: 0 0 4px;
     font-size: 18px;
     font-weight: 700;
