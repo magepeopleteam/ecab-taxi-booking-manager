@@ -53,17 +53,25 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             );
 
             ?>
-            <div class="mptbm-editor-btn-wrap">
-                <a href="<?php echo esc_url($url); ?>" class="page-title-action">
+            <div id="mptbm-custom-editor-btn" style="display:none;">
+                <a href="<?php echo esc_url($url); ?>" class="mptbm-add-btn">
                     Open Custom Editor
                 </a>
             </div>
-
-            <style>
-                .mptbm-editor-btn-wrap{
-                    margin:0 0 10px 0;
+            <script>
+            jQuery(function($) {
+                var $btn = $('#mptbm-custom-editor-btn');
+                if ($btn.length) {
+                    var $titleActions = $('.wrap > .page-title-action');
+                    if ($titleActions.length) {
+                        $titleActions.last().after($btn.children());
+                    } else {
+                        $('.wrap > h1.wp-heading-inline').after($btn.children());
+                    }
+                    $btn.remove();
                 }
-            </style>
+            });
+            </script>
             <?php
         }
 
