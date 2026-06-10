@@ -257,6 +257,10 @@ input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px)
 }
 
 .mptbm_taxi_advanced_tax_alert p { margin: 0; font-size: 13px; }
+
+.mptbm_taxi_advanced_tax_body {
+    padding: 0 20px 20px;
+}
 .mptbm_off_days_conainer span.customCheckbox.me-1 {
     margin-right: 40px;
 }

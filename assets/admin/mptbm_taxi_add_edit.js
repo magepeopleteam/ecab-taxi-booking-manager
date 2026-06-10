@@ -1,6 +1,18 @@
 (function ($) {
     $(document).ready(function() {
 
+        function adjustScrollMargin() {
+            var $header = $('.mptbm_fixed_header');
+            var $content = $('.mptbm_scroll_content');
+            if ($header.length && $content.length) {
+                var headerHeight = $header.outerHeight();
+                $content.css('margin-top', headerHeight + 'px');
+            }
+        }
+
+        adjustScrollMargin();
+        $(window).on('resize', adjustScrollMargin);
+
         let currentStep = 1;
         let totalSteps = $('.mptbm_taxi_step').length;
         function updateStep(step) {
@@ -95,6 +107,11 @@
                 $(target).slideUp(300);
                 $badge.text('OFF').addClass('mptbm_taxi_off');
             }
+        });
+
+        $(document).on('change', '.mptbm_taxi_ex_service_toggle_wrapper input[type="checkbox"]', function() {
+            const label = $(this).closest('.mptbm_taxi_ex_service_toggle_wrapper').find('.mptbm_taxi_ex_service_toggle_label');
+            label.text($(this).is(':checked') ? 'ON' : 'OFF');
         });
 
         $('.mptbm_taxi_btn_prev').on('click', function() {

@@ -327,57 +327,53 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                             <h4 class="mptbm_rent_editor_title"><?php esc_html_e( 'Tax Settings Information', 'ecab-taxi-booking-manager' ); ?></h4>
                             <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Configure and manage tax settings', 'ecab-taxi-booking-manager' ); ?></p>
                         </div>
-                        <label class="mptbm_taxi_advanced_toggle">
-                            <label class="roundSwitchLabel">
-                                <input type="checkbox" name="mptbm_taxi_enable_tax" <?php echo esc_attr($checked); ?>>
-                                <span class="roundSwitch" data-collapse-target="#<?php echo esc_attr($name); ?>"></span>
+                        <div class="mptbm_taxi_ex_service_toggle_wrapper">
+                            <label class="mptbm_taxi_ex_service_switch">
+                                <input type="checkbox" name="mptbm_taxi_enable_tax" class="mptbm_taxi_toggle_trigger" <?php echo esc_attr($checked); ?>>
+                                <span class="mptbm_taxi_slider" data-collapse-target="#<?php echo esc_attr($name); ?>"></span>
                             </label>
-                        </label>
+                            <span class="mptbm_taxi_ex_service_toggle_label"><?php echo $checked ? 'ON' : 'OFF'; ?></span>
+                        </div>
                     </div>
+                    <div class="mptbm_taxi_advanced_tax_body <?php echo $checked ? 'mActive' : ''; ?>" data-collapse="mptbm_taxi_enable_tax" style="<?php echo $checked ? '' : 'display: none;'; ?>">
                     <?php if (get_option('woocommerce_calc_taxes') == 'yes') { ?>
-                        <div class="">
-                            <div>
-                                <div class="label">
-                                    <div>
-                                        <h6><?php esc_html_e('Tax status', 'ecab-taxi-booking-manager'); ?></h6>
-                                        <span class="desc"><?php esc_html_e('Select tax status type.', 'ecab-taxi-booking-manager'); ?></span>
-                                    </div>
-                                    <select class="formControl max_300" name="_tax_status">
-                                        <option disabled <?php echo esc_attr(!$tax_status ? 'selected' : ''); ?>><?php esc_html_e('Please Select', 'ecab-taxi-booking-manager');  ?></option>
-                                        <option value="taxable" <?php echo esc_attr($tax_status == 'taxable' ? 'selected' : ''); ?>>
-                                            <?php esc_html_e('Taxable', 'ecab-taxi-booking-manager'); ?>
-                                        </option>
-                                        <option value="shipping" <?php echo esc_attr($tax_status == 'shipping' ? 'selected' : ''); ?>>
-                                            <?php esc_html_e('Shipping only', 'ecab-taxi-booking-manager'); ?>
-                                        </option>
-                                        <option value="none" <?php echo esc_attr($tax_status == 'none' ? 'selected' : ''); ?>>
-                                            <?php esc_html_e('None', 'ecab-taxi-booking-manager'); ?>
-                                        </option>
-                                    </select>
-                                </div>
+                        <div class="mptbm_taxi_advanced_card_header">
+                            <div class="mptbm_taxi_advanced_title_block">
+                                <h6><?php esc_html_e('Tax status', 'ecab-taxi-booking-manager'); ?></h6>
+                                <span class="desc"><?php esc_html_e('Select tax status type.', 'ecab-taxi-booking-manager'); ?></span>
                             </div>
+                            <select class="formControl max_300" name="_tax_status">
+                                <option disabled <?php echo esc_attr(!$tax_status ? 'selected' : ''); ?>><?php esc_html_e('Please Select', 'ecab-taxi-booking-manager');  ?></option>
+                                <option value="taxable" <?php echo esc_attr($tax_status == 'taxable' ? 'selected' : ''); ?>>
+                                    <?php esc_html_e('Taxable', 'ecab-taxi-booking-manager'); ?>
+                                </option>
+                                <option value="shipping" <?php echo esc_attr($tax_status == 'shipping' ? 'selected' : ''); ?>>
+                                    <?php esc_html_e('Shipping only', 'ecab-taxi-booking-manager'); ?>
+                                </option>
+                                <option value="none" <?php echo esc_attr($tax_status == 'none' ? 'selected' : ''); ?>>
+                                    <?php esc_html_e('None', 'ecab-taxi-booking-manager'); ?>
+                                </option>
+                            </select>
+                        </div>
 
-                            <div>
-                                <div class="label">
-                                    <div>
-                                        <h6><?php esc_html_e('Tax class', 'ecab-taxi-booking-manager'); ?></h6>
-                                        <span class="desc"><?php esc_html_e('Select tax class.', 'ecab-taxi-booking-manager'); ?></span>
-                                    </div>
-                                    <select class="formControl max_300" name="_tax_class">
-                                        <option disabled <?php echo esc_attr(!$tax_class ? 'selected' : ''); ?>><?php esc_html_e('Please Select', 'ecab-taxi-booking-manager');  ?></option>
-                                        <option value="standard" <?php echo esc_attr($tax_class == 'standard' ? 'selected' : ''); ?>>
-                                            <?php esc_html_e('Standard', 'ecab-taxi-booking-manager'); ?>
-                                        </option>
-                                        <?php if (sizeof($all_tax_class) > 0) { ?>
-                                            <?php foreach ($all_tax_class as $key => $class) { ?>
-                                                <option value="<?php echo esc_attr($key); ?>" <?php echo esc_attr($tax_class == $key ? 'selected' : ''); ?>>
-                                                    <?php echo esc_html($class); ?>
-                                                </option>
-                                            <?php } ?>
-                                        <?php } ?>
-                                    </select>
-                                </div>
+                        <div class="mptbm_taxi_advanced_card_header">
+                            <div class="mptbm_taxi_advanced_title_block">
+                                <h6><?php esc_html_e('Tax class', 'ecab-taxi-booking-manager'); ?></h6>
+                                <span class="desc"><?php esc_html_e('Select tax class.', 'ecab-taxi-booking-manager'); ?></span>
                             </div>
+                            <select class="formControl max_300" name="_tax_class">
+                                <option disabled <?php echo esc_attr(!$tax_class ? 'selected' : ''); ?>><?php esc_html_e('Please Select', 'ecab-taxi-booking-manager');  ?></option>
+                                <option value="standard" <?php echo esc_attr($tax_class == 'standard' ? 'selected' : ''); ?>>
+                                    <?php esc_html_e('Standard', 'ecab-taxi-booking-manager'); ?>
+                                </option>
+                                <?php if (sizeof($all_tax_class) > 0) { ?>
+                                    <?php foreach ($all_tax_class as $key => $class) { ?>
+                                        <option value="<?php echo esc_attr($key); ?>" <?php echo esc_attr($tax_class == $key ? 'selected' : ''); ?>>
+                                            <?php echo esc_html($class); ?>
+                                        </option>
+                                    <?php } ?>
+                                <?php } ?>
+                            </select>
                         </div>
                     <?php }else{ ?>
                         <div class="mptbm_taxi_advanced_tax_alert">
@@ -385,6 +381,7 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                             <p><?php MPTBM_Layout::msg(esc_html__('Tax not active. Please add Tax settings from woocommerce.', 'ecab-taxi-booking-manager')); ?></p>
                         </div>
                     <?php } ?>
+                    </div>
 
                 </div>
 
