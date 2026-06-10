@@ -1391,17 +1391,7 @@ input:checked + .mptbm_taxi_ex_service_slider:before { transform: translateX(22p
 }
 
 /* Icon Design */
-.mptbm_taxi_ex_service_icon_box {
-    width: 45px; height: 45px; border: 1px solid var(--mptbm-border);
-    border-radius: 6px; display: flex; align-items: center;
-    justify-content: center; position: relative; font-size: 20px;
-}
-.mptbm_taxi_ex_service_remove_icon {
-    position: absolute; top: -5px; right: -5px; background: #d9534f;
-    color: white; border-radius: 50%; width: 16px; height: 16px;
-    font-size: 12px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-}
+/* handled by mp_add_icon_image_area from mp_admin_settings.css */
 
 .mptbm_taxi_field textarea{
     width: 100%;
