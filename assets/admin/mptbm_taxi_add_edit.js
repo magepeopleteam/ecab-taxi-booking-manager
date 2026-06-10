@@ -964,9 +964,28 @@
             const newRow = `
                 <tr class="mptbm_taxi_ex_service_row">
                     <td>
-                        <div class="mptbm_taxi_ex_service_icon_box">
-                            <span class="mptbm_taxi_ex_service_icon_placeholder">😊</span>
-                            <span class="mptbm_taxi_ex_service_remove_icon">×</span>
+                        <div class="mp_add_icon_image_area fdColumn">
+                            <input type="hidden" name="mptbm_extra_service_icon[]" value=""/>
+                            <div class="mp_icon_item dNone">
+                                <div class="allCenter">
+                                    <span class="" data-add-icon></span>
+                                </div>
+                                <span class="fas fa-times mp_remove_icon mp_icon_remove" title="Remove Icon"></span>
+                            </div>
+                            <div class="mp_image_item dNone">
+                                <img class="" src="" alt="">
+                                <span class="fas fa-times mp_remove_icon mp_image_remove" title="Remove Image"></span>
+                            </div>
+                            <div class="mp_add_icon_image_button_area">
+                                <div class="flexEqual">
+                                    <button class="_mpBtn_xs mp_image_add" type="button">
+                                        <span class="fas fa-images"></span>Image
+                                    </button>
+                                    <button class="_mpBtn_xs mp_icon_add" type="button" data-target-popup="#mp_add_icon_popup">
+                                        <span class="fas fa-plus"></span>Icon
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </td>
                     <td><input type="text" name="service_name[]" placeholder="Service Name" class="mptbm_taxi_ex_service_input" value=""></td>

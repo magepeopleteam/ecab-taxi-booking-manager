@@ -937,6 +937,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </select>
                     </div>
 
+                    <div class="mpStyle">
                     <table class="mptbm_taxi_ex_service_table">
                         <thead>
                         <tr>
@@ -957,6 +958,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                     <div class="mptbm_taxi_ex_service_footer">
                         <button id="mptbm_taxi_ex_service_add_btn" class="mptbm_taxi_ex_service_add_btn">+ <?php esc_html_e( 'Add New Service', 'ecab-taxi-booking-manager' ); ?></button>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -999,10 +1001,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             ?>
             <tr class="mptbm_taxi_ex_service_row">
                 <td>
-                    <div class="mptbm_taxi_ex_service_icon_box">
-                        <span class="mptbm_taxi_ex_service_icon_placeholder">😊</span>
-                        <span class="mptbm_taxi_ex_service_remove_icon">×</span>
-                    </div>
+                    <?php do_action('mp_add_icon_image', 'mptbm_extra_service_icon[]', $icon, $image); ?>
                 </td>
                 <td>
                     <input type="text" name="service_name[]" class="mptbm_taxi_ex_service_input" value="<?php echo esc_attr( $service_name ); ?>">
