@@ -258,36 +258,41 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <!-- FIXED HEADER -->
                     <div class="mptbm_fixed_header">
 
-                        <div class="">
-                            <a class="mptbm-link" href="<?php echo admin_url('admin.php?page=mptbm_transportation_lists'); ?>">
-                                <span class="dashicons dashicons-arrow-left-alt"></span>
-                                <?php esc_html_e( 'Back to Transports', 'ecab-taxi-booking-manager' ); ?>
-                            </a>
+                        <div class="mptbm_fixed_header_top">
+
+                            <div class="">
+                                <a class="mptbm-link" href="<?php echo admin_url('admin.php?page=mptbm_transportation_lists'); ?>">
+                                    <span class="dashicons dashicons-arrow-left-alt"></span>
+                                    <?php esc_html_e( 'Back to Transports', 'ecab-taxi-booking-manager' ); ?>
+                                </a>
+                            </div>
+
+                            <div class="mptbm_header_left">
+                                <h1 class="mptbm_page_title">
+                                    <?php echo esc_html($title); ?>
+                                </h1>
+                            </div>
+
+                            <div class="mptbm_header_right">
+
+                                <?php submit_button($post_id ? 'Update' : 'Publish', 'primary', '', false); ?>
+                                <a href="<?php echo esc_url($old_editor_url); ?>" class="button">
+                                    <?php esc_html_e( 'Open classic Editor', 'ecab-taxi-booking-manager' ); ?>
+                                </a>
+
+                            </div>
+
                         </div>
 
-                        <div class="mptbm_header_left">
-                            <h1 class="mptbm_page_title">
-                                <?php echo esc_html($title); ?>
-                            </h1>
-                        </div>
-
-                        <div class="mptbm_header_right">
-
-                            <?php submit_button($post_id ? 'Update' : 'Publish', 'primary', '', false); ?>
-                            <a href="<?php echo esc_url($old_editor_url); ?>" class="button">
-                                <?php esc_html_e( 'Open classic Editor', 'ecab-taxi-booking-manager' ); ?>
-                            </a>
-
+                        <div class="mptbm_taxi_header_holder">
+                            <?php self::taxi_content_tabs_set($post_id); ?>
                         </div>
 
                     </div>
                     <!-- SCROLLABLE CONTENT -->
-                    <div class="mptbm_scroll_content" style="display: flex; flex-direction: row">
+                    <div class="mptbm_scroll_content">
                         <div class="mptbm_taxi_wrapper">
 
-                            <div class="mptbm_taxi_header_holder">
-                                <?php self::taxi_content_tabs_set($post_id); ?>
-                            </div>
                             <div class="mptbm_taxi_container_holder">
                                 <div class="mptbm_taxi_content_container">
                                     <?php

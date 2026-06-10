@@ -8,23 +8,125 @@
 /* FIXED HEADER */
 .mptbm_fixed_header {
     position: fixed;
-    top: 32px; /* WordPress admin bar */
-    left: 160px; /* admin menu width */
+    top: 32px;
+    left: 160px;
     right: 0;
-    height: 60px;
     background: #fff;
     border-bottom: 1px solid #ddd;
     display: flex;
+    flex-direction: column;
+    z-index: 999;
+}
+
+.mptbm_fixed_header_top {
+    display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
-    z-index: 999;
+    height: 44px;
+    padding: 0 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.mptbm_fixed_header_top .mptbm_page_title {
+    font-size: 15px;
+    margin: 0;
+}
+
+.mptbm_fixed_header_top .mptbm_header_right .button,
+.mptbm_fixed_header_top .mptbm_header_right .button-primary {
+    min-height: 30px;
+    line-height: 28px;
+    padding: 0 10px;
+    font-size: 12px;
 }
 
 /* SCROLL CONTENT */
 .mptbm_scroll_content {
-    margin-top: 60px;
+    margin-top: 120px;
     padding-bottom: 140px;
+    padding-top: 20px;
+}
+
+.mptbm_fixed_header .mptbm_taxi_header_holder {
+    background: none;
+    padding: 4px 16px;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+}
+
+@media (max-width: 1024px) {
+    .mptbm_fixed_header {
+        left: 36px;
+    }
+}
+
+@media (max-width: 782px) {
+    .mptbm_fixed_header {
+        top: 46px;
+        left: 0;
+    }
+
+    .mptbm_fixed_header_top {
+        flex-wrap: wrap;
+        height: auto;
+        min-height: 40px;
+        gap: 4px;
+        padding: 6px 12px;
+    }
+
+    .mptbm_fixed_header_top .mptbm_header_left .mptbm_page_title {
+        font-size: 14px;
+    }
+
+    .mptbm_fixed_header_top .mptbm_header_right {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .mptbm_fixed_header_top .mptbm_header_right .button,
+    .mptbm_fixed_header_top .mptbm_header_right .button-primary {
+        font-size: 11px;
+        min-height: 26px;
+        line-height: 24px;
+        padding: 0 8px;
+    }
+
+    .mptbm_scroll_content {
+        margin-top: 130px;
+    }
+}
+
+@media (max-width: 600px) {
+    .mptbm_fixed_header {
+        left: 0;
+    }
+
+    .mptbm_fixed_header_top {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        min-height: auto;
+    }
+
+    .mptbm_fixed_header_top .mptbm_header_left {
+        text-align: center;
+    }
+
+    .mptbm_fixed_header_top .mptbm_header_right {
+        justify-content: center;
+    }
+
+    .mptbm_fixed_header .mptbm_taxi_header_holder {
+        overflow-x: auto;
+        padding: 4px 12px;
+    }
+
+    .mptbm_scroll_content {
+        margin-top: 160px;
+    }
 }
 
 /* FIXED FOOTER */
@@ -2237,72 +2339,52 @@ select.mptbm_taxi_ex_service_select {
 }
 
 /* ================================================================
-   RESPONSIVE : Stack vertically on narrow screens
+   RESPONSIVE
    ================================================================ */
 @media (max-width: 768px) {
     .mptbm_taxi_header_holder {
         padding: 16px 12px;
     }
 
-    .mptbm_taxi_stepper {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-        max-width: 100%;
+    .mptbm_fixed_header .mptbm_taxi_header_holder {
+        padding: 4px 12px;
+    }
+
+    .mptbm_fixed_header .mptbm_taxi_stepper {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 4px 0;
     }
 
     .mptbm_taxi_step {
-        flex-direction: row;
-        gap: 14px;
-        padding: 8px 12px;
-        border-radius: 10px;
-        background: #f9fafb;
-        transition: background 0.25s ease;
-    }
-
-    .mptbm_taxi_step:hover {
-        background: #f1f5f9;
-    }
-
-    .mptbm_taxi_step.mptbm_taxi_active {
-        background: color-mix(in srgb, var(--mptbm-primary) 8%, #ffffff);
-    }
-
-    .mptbm_taxi_step.completed {
-        background: color-mix(in srgb, var(--mptbm-primary) 8%, #ffffff);
-    }
-
-    .mptbm_taxi_icon {
-        width: 38px;
-        height: 38px;
-        min-width: 38px;
-        font-size: 14px;
+        flex-shrink: 0;
     }
 
     .mptbm_taxi_label {
         white-space: normal;
-        text-align: left;
-        font-size: 13px;
+        font-size: 11px;
+        line-height: 1.2;
+    }
+
+    .mptbm_taxi_icon {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        font-size: 12px;
     }
 
     .mptbm_taxi_line {
-        min-width: 3px;
-        max-width: 3px;
-        height: 24px;
-        margin: 0 auto;
-        margin-left: 18px;
-        flex: none;
-        align-self: flex-start;
-    }
-
-    .mptbm_taxi_step.completed + .mptbm_taxi_line {
-        background: var(--mptbm-primary);
+        min-width: 16px;
+        max-width: 40px;
+        margin-bottom: 20px;
+        margin-left: 4px;
+        margin-right: 4px;
     }
 
     .mptbm_scroll_content {
-        margin-top: 60px;
+        margin-top: 140px;
         margin-bottom: 60px;
-        padding: 12px;
+        padding: 20px 12px;
     }
 
     .mptbm_taxi_container_holder {
@@ -2531,11 +2613,22 @@ select#mptbm_extra_services_id {
 /* blur + disable interaction */
 #mptbm_taxi_pricing_field_free.pro-locked {
     pointer-events: none;
-    filter: blur(.8px);
-    opacity: 1;
+    /* filter: blur(.8px);
+    opacity: 1; */
     margin-top: 10px;
 }
-
+#mptbm_taxi_pricing_field_free.pro-locked::before {
+    background-color: #333;
+    content: '';
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    border-radius: 10px;
+    top: 0;
+    left: 0;
+    opacity: 0.5;
+    z-index: 5;
+}
 /* overlay */
 #mptbm_taxi_pricing_field_free.pro-locked::after {
     content: "🔒 PRO FEATURE - CLICK TO UPGRADE";
