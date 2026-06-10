@@ -1392,6 +1392,12 @@ input:checked + .mptbm_taxi_ex_service_slider:before { transform: translateX(22p
 
 /* Icon Design */
 /* handled by mp_add_icon_image_area from mp_admin_settings.css */
+.mptbm_taxi_ex_service_table .mp_remove_icon,
+.mptbm_taxi_feature_row .mp_remove_icon {
+    width: 14px; height: 14px; font-size: 10px; line-height: 14px;
+    top: -6px; right: -6px; display: flex; align-items: center;
+    justify-content: center; border-radius: 50%;
+}
 
 .mptbm_taxi_field textarea{
     width: 100%;
