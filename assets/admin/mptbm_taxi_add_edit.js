@@ -358,8 +358,12 @@
             $('.mptbm_taxi_pricing_pill').fadeOut();
             if (operationType === 'geo-fence-operation-area-type') {
                 $('.mptbm_taxi_pricing_pill[data-geo-fance="1"]').fadeIn();
+
+                $("#mptbm_operation_area_based").fadeOut();
             } else {
                 $('.mptbm_taxi_pricing_pill[data-geo-fance="0"]').fadeIn();
+
+                $("#mptbm_operation_area_based").fadeIn();
             }
 
             if (operationType === 'geo-matched-operation-area-type' || operationType === 'geo-fence-operation-area-type' ) {
@@ -463,10 +467,10 @@
                 if( is_operation_selected == 1 ) {
                     $("#mptbm_fixed_zone_area_pricing").fadeIn();
                     $("#mptbm_fixed_map_area_pricing").fadeOut();
-                    $("#mptbm_operation_area_settings").fadeOut();
+                    // $("#mptbm_operation_area_settings").fadeOut();
                 }
-                $("#mptbm_operation_area_settings").fadeOut();
-                $("#mptbm_area_based_wrapper").fadeOut();
+                // $("#mptbm_operation_area_settings").fadeOut();
+                // $("#mptbm_area_based_wrapper").fadeOut();
 
                 $("#mptbm_distance_price").fadeOut();
                 $("#mptbm_fixed_pricing").fadeOut();
@@ -507,8 +511,8 @@
                 $("#mptbm_distance_price").fadeIn();
                 $("#mptbm_price_per_hour").fadeIn();
                 $(".mptbm_taxi_pricing_field_free").fadeOut();
-               /* $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeIn();
-                $('#mptbm_taxi_inclusive_manual_locations').prop('checked', false);*/
+                $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeIn();
+                $('#mptbm_taxi_inclusive_manual_locations').prop('checked', false);
 
                 let shortcode = "<code>[mptbm_booking price_based='dynamic' form='horizontal' progressbar='yes' map='yes']</code>";
                 $("#mptbm_shortcode_example_code").html(shortcode);
