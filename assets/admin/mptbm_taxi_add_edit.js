@@ -341,8 +341,23 @@
 
             if (values.length > 0) {
                $("#mptbm_taxi_operation_area_pricing_section").fadeIn();
+                $("#mptbm_is_selected_operation_area").val(1);
+
+                $(".mptbm_empty_selected_area").fadeOut();
+
+                let operationType = $('#mptbm_operation_area_type').val();
+                if (operationType !== 'geo-fence-operation-area-type') {
+                    $("#mptbm_operation_area_based").fadeIn();
+                }
+
             } else {
                 $("#mptbm_taxi_operation_area_pricing_section").fadeOut();
+                $("#mptbm_is_selected_operation_area").val(0);
+                $('.mptbm_taxi_pricing_tab_item_area').removeClass('active');
+
+                $(".mptbm_empty_selected_area").fadeIn();
+
+                $("#mptbm_operation_area_based").fadeOut();
             }
 
             $('#mptbm_selected_operation_areas').val(values.join(','));
@@ -388,6 +403,7 @@
 
         function togglePricingAreaButtons() {
             let operationType = $('#mptbm_operation_area_type').val();
+
             $('.mptbm_taxi_pricing_pill').fadeOut();
             if (operationType === 'geo-fence-operation-area-type') {
                 $('.mptbm_taxi_pricing_pill[data-geo-fance="1"]').fadeIn();
@@ -396,13 +412,21 @@
             } else {
                 $('.mptbm_taxi_pricing_pill[data-geo-fance="0"]').fadeIn();
 
-                $("#mptbm_operation_area_based").fadeIn();
+                // $("#mptbm_operation_area_based").fadeIn();
             }
 
             if (operationType === 'geo-matched-operation-area-type' || operationType === 'geo-fence-operation-area-type' ) {
                 $("#mptbm_single_mul_operation_area").text( 'single allowed' );
             }else{
                 $("#mptbm_single_mul_operation_area").text( 'multiple allowed' );
+            }
+
+            if( operationType ){
+                $('.mptbm_taxi_pricing_area_pills').fadeIn();
+            }else{
+                $('.mptbm_taxi_pricing_area_pills').fadeOut();
+
+                $("#mptbm_operation_area_based").fadeOut();
             }
         }
         togglePricingAreaButtons();
@@ -447,7 +471,7 @@
             $("#mptbm_fixed_pricing").fadeOut();
             $("#mptbm_price_per_hour").fadeOut();
             $("#mptbm_manual_routes").fadeOut();
-            $("#mptbm_operation_area").fadeOut();
+            // $("#mptbm_operation_area").fadeOut();
             $("#mptbm_row_zone").fadeOut();
         }
 
@@ -456,12 +480,14 @@
             let price_based = '';
             let rules = '';
             let is_operation_selected = $("#mptbm_is_selected_operation_area").val();
-            // mptbm_hide_all_pricing_content();
-            $('.mptbm_taxi_pricing_tab_item_area').removeClass('active');
-            $(this).addClass('active');
+
             if(clicked_tab_id === 'mptbm_row_operation_area' ){
                 price_based = 'fixed_distance';
                 if( is_operation_selected == 1 ){
+
+                    $('.mptbm_taxi_pricing_tab_item_area').removeClass('active');
+                    $(this).addClass('active');
+
                     $("#mptbm_fixed_map_area_pricing").fadeIn();
                     $("#mptbm_operation_area_settings").fadeIn();
                     $("#mptbm_fixed_zone_area_pricing").fadeOut();
@@ -469,6 +495,9 @@
                     $("#mptbm_distance_price").fadeIn();
                     $("#mptbm_fixed_pricing").fadeIn();
                     $("#mptbm_price_per_hour").fadeIn();
+                    $(".mptbm_operation_area_fixed_map_type_container").fadeIn();
+
+                    $('input[name="mptbm_price_based"]').val(price_based);
                 }
                 $("#mptbm_operation_area_settings").fadeIn();
                 $("#mptbm_area_based_wrapper").fadeIn();
@@ -498,10 +527,17 @@
             }else if(clicked_tab_id === 'mptbm_row_zone' ){
                 price_based = 'fixed_zone';
                 if( is_operation_selected == 1 ) {
+
+                    $('.mptbm_taxi_pricing_tab_item_area').removeClass('active');
+                    $(this).addClass('active');
+
                     $("#mptbm_fixed_zone_area_pricing").fadeIn();
                     $("#mptbm_fixed_map_area_pricing").fadeOut();
+
+                    $('input[name="mptbm_price_based"]').val(price_based);
                     // $("#mptbm_operation_area_settings").fadeOut();
                 }
+
                 // $("#mptbm_operation_area_settings").fadeOut();
                 // $("#mptbm_area_based_wrapper").fadeOut();
 
@@ -526,7 +562,7 @@
                                 </div>
                             </div>`;
             }
-            $('input[name="mptbm_price_based"]').val(price_based);
+
 
             $("#mptbm_pricing_rules_grid").html(rules);
         });
