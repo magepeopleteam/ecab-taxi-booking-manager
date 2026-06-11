@@ -1971,7 +1971,7 @@ select.mptbm_taxi_ex_service_select {
     height:40px !important;
     border-radius:10px !important;
 }
-
+/*
 .mptbm_taxi_pricing_tab_item_area {
     display: flex;
     align-items: center;
@@ -2015,7 +2015,7 @@ select.mptbm_taxi_ex_service_select {
 .mptbm_taxi_pricing_tab_item_area.active .tab-title,
 .mptbm_taxi_pricing_tab_item_area.active .tab-icon {
     color: #ffffff;
-}
+}*/
 
 .mptbm_operation_area_tab_holder{
     display: flex;
