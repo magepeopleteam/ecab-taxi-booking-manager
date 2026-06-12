@@ -1885,6 +1885,128 @@ select.mptbm_taxi_ex_service_select {
     font-size: 14px;
 }
 
+/* ── Section ── */
+.mptbm-oa-section {
+    margin: 0 0 1.5rem;
+}
+.mptbm-oa-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: #888;
+    margin: 0 0 4px;
+}
+.mptbm-oa-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e1e1e;
+    margin: 0 0 14px;
+}
+
+/* ── Grid ── */
+.mptbm-oa-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+/* ── Card ── */
+.mptbm-oa-card {
+    position: relative;
+    cursor: pointer;
+    display: block;
+}
+.mptbm-oa-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+.mptbm-oa-card-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 14px 14px 12px;
+    border-radius: 10px;
+    border: 1px solid #e2e2e2;
+    background: #fff;
+    transition: border-color .15s, background .15s;
+}
+.mptbm-oa-card:hover .mptbm-oa-card-inner {
+    border-color: #b0b0b0;
+    background: #f9f9f9;
+}
+
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner {
+    border: 2px solid #2271b1;
+    background: #f0f6fc;
+}
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-icon {
+    color: #2271b1;
+}
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-name {
+    color: #135e96;
+}
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-desc {
+    color: #2271b1;
+}
+.mptbm-oa-card input[type="radio"]:focus-visible ~ .mptbm-oa-card-inner {
+    outline: 3px solid #72aee6;
+    outline-offset: 1px;
+}
+
+.mptbm-oa-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    color: #888;
+}
+
+.mptbm-oa-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e1e1e;
+    line-height: 1.3;
+}
+.mptbm-oa-desc {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.45;
+}
+
+.mptbm-oa-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 6px;
+    transition: border-color .15s, background .15s;
+}
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-dot {
+    border-color: #2271b1;
+    background: #2271b1;
+}
+.mptbm-oa-dot-inner {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    display: none;
+}
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-dot-inner {
+    display: block;
+}
+.mptbm-oa-panel {
+    display: none;
+    margin-top: 1rem;
+}
+
+
 .mptbm_feature_image_head h2{
     margin:0 0 5px;
     font-size:18px;
@@ -1971,51 +2093,7 @@ select.mptbm_taxi_ex_service_select {
     height:40px !important;
     border-radius:10px !important;
 }
-/*
-.mptbm_taxi_pricing_tab_item_area {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 18px;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-bottom: 10px;
-}
 
-.mptbm_taxi_pricing_tab_item_area:hover {
-    background: #f9fafb;
-    border-color: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.mptbm_taxi_pricing_tab_item_area.active {
-    background: #2563eb;
-    border-color: #2563eb;
-    color: #ffffff;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
-}
-
-.mptbm_taxi_pricing_tab_item_area .tab-title {
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 1.4;
-}
-
-.mptbm_taxi_pricing_tab_item_area .tab-icon {
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.mptbm_taxi_pricing_tab_item_area.active .tab-title,
-.mptbm_taxi_pricing_tab_item_area.active .tab-icon {
-    color: #ffffff;
-}*/
 
 .mptbm_operation_area_tab_holder{
     display: flex;

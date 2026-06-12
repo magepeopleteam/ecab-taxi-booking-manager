@@ -330,7 +330,8 @@
 
 
         function getOperationType() {
-            return $('#mptbm_operation_area_type').val();
+            // return $('#mptbm_operation_area_type').val();
+            return $('input[name="mptbm_operation_area_type"]:checked').val();
         }
         function updateHiddenInput() {
             let values = [];
@@ -345,7 +346,8 @@
 
                 $(".mptbm_empty_selected_area").fadeOut();
 
-                let operationType = $('#mptbm_operation_area_type').val();
+                // let operationType = $('#mptbm_operation_area_type').val();
+                let operationType = $('input[name="mptbm_operation_area_type"]:checked').val();
                 if (operationType !== 'geo-fence-operation-area-type') {
                     $("#mptbm_operation_area_based").fadeIn();
                 }
@@ -402,7 +404,8 @@
         });
 
         function togglePricingAreaButtons() {
-            let operationType = $('#mptbm_operation_area_type').val();
+            // let operationType = $('#mptbm_operation_area_type').val();
+            let operationType = $('input[name="mptbm_operation_area_type"]:checked').val();
 
             $('.mptbm_taxi_pricing_pill').fadeOut();
             if (operationType === 'geo-fence-operation-area-type') {
@@ -876,7 +879,8 @@
             updateSelections();
         });
         // on change
-        $(document).on('change', '.mptbm_operation_area_type', function () {
+        $(document).on('change', 'input[name="mptbm_operation_area_type"]', function () {
+        // $(document).on('change', '.mptbm_operation_area_type', function () {
 
             $('#mptbm_selected_operation_areas').val('');
             $('.mptbm_taxi_pricing_pill')
@@ -945,6 +949,23 @@
                 label.text('OFF');
                 $('.mptbm_taxi_base_price_body').addClass('mptbm_disabled');
                 $('#mptbm_taxi_base_price_body').fadeOut();
+            }
+        });
+
+    /*Base Fare Settings*/
+        $(document).on('change','#mptbm_display_operation_area_pricing', function(e) {
+            e.preventDefault();
+            const isChecked = $(this).is(':checked');
+            const label = $(this).closest('#mptbm_taxi_base_fare_toggle_container').find('#mptbm_display_operation_area_pricing_on_text');
+
+            if(isChecked) {
+                label.text('ON');
+                $('.mptbm_taxi_base_price_body').removeClass('mptbm_disabled');
+                $('#mptbm_taxi_operation_araea_pricing_group').fadeIn();
+            } else {
+                label.text('OFF');
+                $('.mptbm_taxi_base_price_body').addClass('mptbm_disabled');
+                $('#mptbm_taxi_operation_araea_pricing_group').fadeOut();
             }
         });
 
@@ -1374,5 +1395,82 @@
     }
     mptbm_disable_pro_feature_in_free();
 
+
+
+    'use strict';
+
+    /* ── Helper: classify an option value ── */
+    function getType(val) {
+        if (!val) return 'empty';
+        if (val.startsWith('post_')) return 'post';
+        if (val.startsWith('term_')) return 'term';
+        return 'unknown';
+    }
+
+    /* ── Filter end-select based on start-select value ── */
+    function filterEndSelect($startSelect) {
+
+        var $row       = $startSelect.closest('tr');
+        var $endSelect = $row.find('.mptbm_fixed_map_route_end_location');
+        var startType  = getType($startSelect.val());
+
+        /* Restore all options first */
+        $endSelect.find('option').each(function () {
+            var $opt     = $(this);
+            var optType  = getType($opt.val());
+
+            if (optType === 'empty') {
+                $opt.prop('disabled', false).show();
+                return;
+            }
+
+            var shouldHide = false;
+
+            if (startType === 'post') {
+                /* Start is a post → end must be a term; hide posts */
+                shouldHide = (optType === 'post');
+            } else if (startType === 'term') {
+                /* Start is a term → end must be a post; hide terms */
+                shouldHide = (optType === 'term');
+            }
+
+            $opt.prop('disabled', shouldHide).toggle(!shouldHide);
+        });
+
+        /* If the currently selected end value is now hidden, reset it */
+        var $selectedEnd = $endSelect.find('option:selected');
+        if ($selectedEnd.prop('disabled') || !$selectedEnd.is(':visible')) {
+            $endSelect.val('');
+        }
+    }
+
+    /* ── Reset end-select to show all options ── */
+    function resetEndSelect($startSelect) {
+        var $row       = $startSelect.closest('tr');
+        var $endSelect = $row.find('.mptbm_fixed_map_route_end_location');
+
+        $endSelect.find('option').prop('disabled', false).show();
+    }
+
+    $(document).on( 'change', '.mptbm_fixed_map_route_start_location',
+        function () {
+            var $startSelect = $(this);
+            var val= $startSelect.val();
+
+            if (!val) {
+                resetEndSelect($startSelect);
+            } else {
+                filterEndSelect($startSelect);
+            }
+        }
+    );
+
+    $(function () {
+        $('.mptbm_fixed_map_route_start_location').each(function () {
+            if ($(this).val()) {
+                filterEndSelect($(this));
+            }
+        });
+    });
 
 }(jQuery));

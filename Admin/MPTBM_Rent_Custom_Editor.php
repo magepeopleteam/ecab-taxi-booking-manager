@@ -112,6 +112,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 $base_fare_pricing_display = isset($_POST['mptbm_display_taxi_base_fare_pricing']) ? sanitize_text_field( wp_unslash( $_POST['mptbm_display_taxi_base_fare_pricing'] ) ) : 'off';
                 update_post_meta( $post_id, 'mptbm_display_taxi_base_fare_pricing', $base_fare_pricing_display );
 
+                $operation_area_pricing_display = isset($_POST['mptbm_display_operation_area_pricing']) ? sanitize_text_field( wp_unslash( $_POST['mptbm_display_operation_area_pricing'] ) ) : 'off';
+                update_post_meta( $post_id, 'mptbm_display_operation_area_pricing', $operation_area_pricing_display );
+
                 $base_location_pricing_display = isset($_POST['mptbm_display_taxi_base_location_pricing']) ? sanitize_text_field( wp_unslash( $_POST['mptbm_display_taxi_base_location_pricing'] ) ) : 'off';
                 update_post_meta( $post_id, 'mptbm_display_taxi_base_location_pricing', $base_location_pricing_display );
             }
@@ -231,6 +234,20 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
         public function render_page() {
 
             $post_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
+            if (!$post_id) {
+                $post_id = wp_insert_post([
+                    'post_type'   => 'mptbm_rent',
+                    'post_status' => 'auto-draft',
+                    'post_title'  => '',
+                ]);
+
+                // redirect to same page with post_id
+                wp_redirect(
+                    admin_url('admin.php?page=mptbm-rent-edit&post_id=' . $post_id)
+                );
+                exit;
+            }
+
             $title   = $post_id ? get_the_title($post_id) : 'New Rent';
             $pro_active = class_exists('MPTBM_Dependencies_Pro');
             $old_editor_url = admin_url(
@@ -1054,6 +1071,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             $display            = MP_Global_Function::get_post_info( $post_id, 'mptbm_display_taxi_base_fare_pricing', 'off' );
             $active             = $display == 'off' ? 'none' : 'block';
             $checked            = $display == 'off' ? '' : 'checked';
+
             ?>
 
 
@@ -1352,11 +1370,26 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
 
                 <div class="mptbm_rent_editor_wrapper">
-                    <div class="mptbm_rent_editor_header">
-                        <h3 class="mptbm_rent_editor_title"><?php esc_html_e( 'Operation Area', 'ecab-taxi-booking-manager' ); ?></h3>
-                        <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Select operation area pricing rule for this taxi model.', 'ecab-taxi-booking-manager' ); ?></p>
+                    <?php
+                    $operation_area_pricing_display            = MP_Global_Function::get_post_info( $post_id, 'mptbm_display_operation_area_pricing', 'off' );
+                    $operation_area_pricing_active             = $operation_area_pricing_display == 'off' ? 'none' : 'block';
+                    $operation_area_pricing_checked            = $operation_area_pricing_display == 'off' ? '' : 'checked';
+                    ?>
+                    <div class="mptbm_taxi_ex_service_header mptbm_rent_editor_header">
+                        <div class="mptbm_taxi_ex_service_title_group">
+                            <h3 class="mptbm_rent_editor_title"><?php esc_html_e( 'Operation Area', 'ecab-taxi-booking-manager' ); ?></h3>
+                            <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Select operation area pricing rule for this taxi model.', 'ecab-taxi-booking-manager' ); ?></p>
+                        </div>
+                        <div class="mptbm_taxi_ex_service_toggle_wrapper">
+                            <label class="mptbm_taxi_ex_service_switch">
+                                <input type="checkbox" id="mptbm_display_operation_area_pricing" name="mptbm_display_operation_area_pricing"  class="mptbm_taxi_toggle_trigger" <?php echo esc_attr( $operation_area_pricing_checked );?>>
+                                <span class="mptbm_taxi_slider"></span>
+                            </label>
+                            <span class="mptbm_taxi_ex_service_toggle_label mptbm_display_taxi_base_fare_pricing_level" id="mptbm_display_operation_area_pricing_on_text"><?php esc_html_e( 'ON', 'ecab-taxi-booking-manager' ); ?></span>
+                        </div>
                     </div>
-                    <div class="mptbm_taxi_pricing_group" >
+
+                    <div class="mptbm_taxi_pricing_group" id="mptbm_taxi_operation_araea_pricing_group" style="display: <?php echo esc_attr( $operation_area_pricing_active );?>" >
                         <div class="mptbm_taxi_pricing_row_content">
                             <?php
                             if( $pro_active ){
@@ -1533,39 +1566,77 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
             >
 
-
                 <input type="hidden" id="mptbm_is_selected_operation_area" name="mptbm_is_selected_operation_area" value="<?php echo esc_attr( $is_operation_areas );?>">
-
                 <div class="mptbm_operation_area_type_holder">
-                    <!--<div class="mptbm_taxi_operation_area_title">
-                        <h3 class="mptbm_taxi_pricing_label"><i class="fas fa-pencil-alt"></i> <?php /*esc_html_e('Operation Area', 'ecab-taxi-booking-manager'); */?></h3>
-                    </div>-->
                     <div class="mp_settings_area " id="mptbm_operation_area_settings" >
-                        <section>
-                            <label class="label">
-                                <div>
-                                    <div class="mptbm_taxi_operation_area_type_title"><?php esc_html_e('Choose the type of operation area', 'ecab-taxi-booking-manager'); ?></div>
-                                </div>
-                                <select class="formControl mptbm_operation_area_type" name="mptbm_operation_area_type" id="mptbm_operation_area_type" data-collapse-target>
-                                    <option value=""><?php esc_html_e('Select Operation Type', 'ecab-taxi-booking-manager'); ?></option>
-                                    <option value="fixed-operation-area-type" <?php selected($selected_operation_type, 'fixed-operation-area-type'); ?>><?php esc_html_e('Fixed Operation Area (Both In)', 'ecab-taxi-booking-manager'); ?></option>
-                                    <option value="fixed-map-operation-area-type" <?php selected($selected_operation_type, 'fixed-map-operation-area-type'); ?>><?php esc_html_e('Fixed Map Operation Area (Pickup In)', 'ecab-taxi-booking-manager'); ?></option>
-                                    <option value="geo-fence-operation-area-type" <?php selected($selected_operation_type, 'geo-fence-operation-area-type'); ?>><?php esc_html_e('Geo Fence Operation Area', 'ecab-taxi-booking-manager'); ?></option>
-                                    <option value="geo-matched-operation-area-type" <?php selected($selected_operation_type, 'geo-matched-operation-area-type'); ?>><?php esc_html_e('Geo-Matched Operation Area', 'ecab-taxi-booking-manager'); ?></option>
-                                </select>
-                            </label>
+
+                        <section class="mptbm-oa-section">
+
+                            <p class="mptbm-oa-label"><?php esc_html_e('Configuration', 'ecab-taxi-booking-manager'); ?></p>
+                            <p class="mptbm-oa-title"><?php esc_html_e('Choose the type of operation area', 'ecab-taxi-booking-manager'); ?></p>
+
+                            <div class="mptbm-oa-grid">
+
+                                <label class="mptbm-oa-card">
+                                    <input type="radio" name="mptbm_operation_area_type" value="fixed-operation-area-type"
+                                        <?php checked( $selected_operation_type, 'fixed-operation-area-type' ); ?>>
+                                    <div class="mptbm-oa-card-inner">
+                                        <span class="dashicons dashicons-location mptbm-oa-icon"></span>
+                                        <div class="mptbm-oa-name"><?php esc_html_e('Fixed operation area (Both In)', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-desc"><?php esc_html_e('Both pickup and dropoff must be inside the zone.', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-dot"><div class="mptbm-oa-dot-inner"></div></div>
+                                    </div>
+                                </label>
+
+                                <label class="mptbm-oa-card">
+                                    <input type="radio" name="mptbm_operation_area_type" value="fixed-map-operation-area-type"
+                                        <?php checked( $selected_operation_type, 'fixed-map-operation-area-type' ); ?>>
+                                    <div class="mptbm-oa-card-inner">
+                                        <span class="dashicons dashicons-marker mptbm-oa-icon"></span>
+                                        <div class="mptbm-oa-name"><?php esc_html_e('Fixed Map Operation Area (Pickup In)', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-desc"><?php esc_html_e('Only the pickup point must be inside the zone.', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-dot"><div class="mptbm-oa-dot-inner"></div></div>
+                                    </div>
+                                </label>
+
+                                <label class="mptbm-oa-card">
+                                    <input type="radio" name="mptbm_operation_area_type" value="geo-fence-operation-area-type"
+                                        <?php checked( $selected_operation_type, 'geo-fence-operation-area-type' ); ?>>
+                                    <div class="mptbm-oa-card-inner">
+                                        <span class="dashicons dashicons-admin-site-alt3 mptbm-oa-icon"></span>
+                                        <div class="mptbm-oa-name"><?php esc_html_e('Geo fence area', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-desc"><?php esc_html_e('Draw a custom boundary to define your service region.', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-dot"><div class="mptbm-oa-dot-inner"></div></div>
+                                    </div>
+                                </label>
+
+                                <label class="mptbm-oa-card">
+                                    <input type="radio" name="mptbm_operation_area_type" value="geo-matched-operation-area-type"
+                                        <?php checked( $selected_operation_type, 'geo-matched-operation-area-type' ); ?>>
+                                    <div class="mptbm-oa-card-inner">
+                                        <span class="dashicons dashicons-networking mptbm-oa-icon"></span>
+                                        <div class="mptbm-oa-name"><?php esc_html_e('Geo-matched area', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-desc"><?php esc_html_e('Match service by overlapping geographic regions.', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-dot"><div class="mptbm-oa-dot-inner"></div></div>
+                                    </div>
+                                </label>
+
+                            </div>
+
                         </section>
+
                     </div>
                     <div class="mptbm_taxi_pricing_selection_group">
                         <?php
                         $show_area = '';
                         $show_area_create = 'none';
+
                         if( empty( $selected_operation_type ) ){
                             $show_area = 'none';
-                        }else{
-                            if( empty( $all_operation_area_infos ) ){
-                                $show_area_create = '';
-                            }
+                        }
+
+                        if( empty( $all_operation_area_infos ) ){
+                            $show_area_create = '';
                         }
 
                         ?>
@@ -1613,7 +1684,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     you need to select at least one operation area and save settings first.', 'ecab-taxi-booking-manager' ); ?>
                                 </span>
                             </div>
-                        <?php }?>
+                        <?php }
+
+                        ?>
 
                         <div class="mptbm_operation_area_create_link" style="display: <?php echo esc_attr( $show_area_create );?>">
                             <a href="<?php echo admin_url('edit.php?post_type=mptbm_operate_areas'); ?>" class="mptbm_create_area_btn">
@@ -1870,7 +1943,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 ),
             );
 
-//            error_log( print_r( [], true ) )
             ?>
             <div class="mptbm_taxi_pricing_field_free pro-locked"
                  id="mptbm_taxi_pricing_field_free"
@@ -1881,19 +1953,59 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <h3 class="mptbm_taxi_pricing_label"><i class="fas fa-pencil-alt"></i> <?php esc_html_e('Operation Area', 'ecab-taxi-booking-manager'); ?></h3>
                     </div>
                     <div class="mp_settings_area " id="mptbm_operation_area_settings" >
-                        <section>
-                            <label class="label">
-                                <div>
-                                    <div class="mptbm_taxi_operation_area_type_title"><?php esc_html_e('Choose the type of operation area', 'ecab-taxi-booking-manager'); ?></div>
-                                </div>
-                                <select class="formControl mptbm_operation_area_type"  id="mptbm_operation_area_type_free" data-collapse-target>
-                                    <option value=""><?php esc_html_e('Select Operation Type', 'ecab-taxi-booking-manager'); ?></option>
-                                    <option value="fixed-operation-area-type" <?php selected($selected_operation_type, 'fixed-operation-area-type'); ?>><?php esc_html_e('Fixed Operation Area (Both In)', 'ecab-taxi-booking-manager'); ?></option>
-                                    <option value="fixed-map-operation-area-type" <?php selected($selected_operation_type, 'fixed-map-operation-area-type'); ?>><?php esc_html_e('Fixed Map Operation Area (Pickup In)', 'ecab-taxi-booking-manager'); ?></option>
-                                    <option value="geo-fence-operation-area-type" <?php selected($selected_operation_type, 'geo-fence-operation-area-type'); ?>><?php esc_html_e('Geo Fence Operation Area', 'ecab-taxi-booking-manager'); ?></option>
-                                    <option value="geo-matched-operation-area-type" <?php selected($selected_operation_type, 'geo-matched-operation-area-type'); ?>><?php esc_html_e('Geo-Matched Operation Area', 'ecab-taxi-booking-manager'); ?></option>
-                                </select>
-                            </label>
+                        <section class="mptbm-oa-section">
+
+                            <p class="mptbm-oa-label"><?php esc_html_e('Configuration', 'ecab-taxi-booking-manager'); ?></p>
+                            <p class="mptbm-oa-title"><?php esc_html_e('Choose the type of operation area', 'ecab-taxi-booking-manager'); ?></p>
+
+                            <div class="mptbm-oa-grid">
+
+                                <label class="mptbm-oa-card">
+                                    <input type="radio" name="mptbm_operation_area_type" value="fixed-operation-area-type"
+                                        <?php checked( $selected_operation_type, 'fixed-operation-area-type' ); ?>>
+                                    <div class="mptbm-oa-card-inner">
+                                        <span class="dashicons dashicons-location mptbm-oa-icon"></span>
+                                        <div class="mptbm-oa-name"><?php esc_html_e('Fixed operation area (Both In)', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-desc"><?php esc_html_e('Both pickup and dropoff must be inside the zone.', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-dot"><div class="mptbm-oa-dot-inner"></div></div>
+                                    </div>
+                                </label>
+
+                                <label class="mptbm-oa-card">
+                                    <input type="radio" name="mptbm_operation_area_type" value="fixed-map-operation-area-type"
+                                        <?php checked( $selected_operation_type, 'fixed-map-operation-area-type' ); ?>>
+                                    <div class="mptbm-oa-card-inner">
+                                        <span class="dashicons dashicons-marker mptbm-oa-icon"></span>
+                                        <div class="mptbm-oa-name"><?php esc_html_e('Fixed Map Operation Area (Pickup In)', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-desc"><?php esc_html_e('Only the pickup point must be inside the zone.', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-dot"><div class="mptbm-oa-dot-inner"></div></div>
+                                    </div>
+                                </label>
+
+                                <label class="mptbm-oa-card">
+                                    <input type="radio" name="mptbm_operation_area_type" value="geo-fence-operation-area-type"
+                                        <?php checked( $selected_operation_type, 'geo-fence-operation-area-type' ); ?>>
+                                    <div class="mptbm-oa-card-inner">
+                                        <span class="dashicons dashicons-admin-site-alt3 mptbm-oa-icon"></span>
+                                        <div class="mptbm-oa-name"><?php esc_html_e('Geo fence area', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-desc"><?php esc_html_e('Draw a custom boundary to define your service region.', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-dot"><div class="mptbm-oa-dot-inner"></div></div>
+                                    </div>
+                                </label>
+
+                                <label class="mptbm-oa-card">
+                                    <input type="radio" name="mptbm_operation_area_type" value="geo-matched-operation-area-type"
+                                        <?php checked( $selected_operation_type, 'geo-matched-operation-area-type' ); ?>>
+                                    <div class="mptbm-oa-card-inner">
+                                        <span class="dashicons dashicons-networking mptbm-oa-icon"></span>
+                                        <div class="mptbm-oa-name"><?php esc_html_e('Geo-matched area', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-desc"><?php esc_html_e('Match service by overlapping geographic regions.', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-dot"><div class="mptbm-oa-dot-inner"></div></div>
+                                    </div>
+                                </label>
+
+                            </div>
+
                         </section>
                     </div>
                     <div class="mptbm_taxi_pricing_selection_group">
@@ -2345,6 +2457,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <tr>
                         <td>
                             <select name="mptbm_fixed_map_route_start_location[]" class="mptbm_fixed_map_route_start_location">
+                                <option value="">Select Start Zone</option>
                                 <?php foreach ($merged_location_area as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                         <?php selected($route['start_location'], $key); ?>>
@@ -2355,7 +2468,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </td>
                         <td>
                             <select name="mptbm_fixed_map_route_end_location[]" class="mptbm_fixed_map_route_end_location">
-                                <?php foreach ($location_zones as $key => $label): ?>
+                                <option value="">Select End Zone</option>
+                                <?php foreach ($merged_location_area as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                         <?php selected($route['end_location'], $key); ?>>
                                         <?php echo $label; ?>
@@ -2388,6 +2502,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <tr>
                         <td>
                             <select name="mptbm_fixed_map_route_start_location[]" class="mptbm_fixed_map_route_start_location">
+                                <option value="">Select Start Zone</option>
                                 <?php foreach ($merged_location_area as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                         >
@@ -2398,7 +2513,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </td>
                         <td>
                             <select name="mptbm_fixed_map_route_end_location[]" class="mptbm_fixed_map_route_end_location">
-                                <?php foreach ($location_zones as $key => $label): ?>
+                                <option value="">Select End Zone</option>
+                                <?php foreach ($merged_location_area as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                        >
                                         <?php echo $label; ?>
@@ -2513,7 +2629,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     ?>
                     <tr>
                         <td>
-                            <select name="mptbm_fixed_map_route_zone_to_zone_start_location[]" class="mptbm_fixed_map_route_start_location">
+                            <select name="mptbm_fixed_map_route_zone_to_zone_start_location[]" class="mptbm_fixed_map_route_start_location_zone_to_zone">
+                                <option value="">Select Start Zone</option>
                                 <?php foreach ($operation_zones as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                         <?php selected($route['start_location'], $key); ?>>
@@ -2523,7 +2640,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             </select>
                         </td>
                         <td>
-                            <select name="mptbm_fixed_map_route_zone_to_zone_end_location[]" class="mptbm_fixed_map_route_end_location">
+                            <select name="mptbm_fixed_map_route_zone_to_zone_end_location[]" class="mptbm_fixed_map_route_end_location_zone_to_zone">
+                                <option value="">Select End Zone</option>
                                 <?php foreach ($operation_zones as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                         <?php selected($route['end_location'], $key); ?>>
@@ -2556,7 +2674,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 ?>
                     <tr>
                         <td>
-                            <select name="mptbm_fixed_map_route_zone_to_zone_start_location[]" class="mptbm_fixed_map_route_start_location">
+                            <select name="mptbm_fixed_map_route_zone_to_zone_start_location[]" class="mptbm_fixed_map_route_start_location_zone_to_zone">
+                                <option value="">Select Start Zone</option>
                                 <?php foreach ($operation_zones as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                         >
@@ -2566,7 +2685,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             </select>
                         </td>
                         <td>
-                            <select name="mptbm_fixed_map_route_zone_to_zone_end_location[]" class="mptbm_fixed_map_route_end_location">
+                            <select name="mptbm_fixed_map_route_zone_to_zone_end_location[]" class="mptbm_fixed_map_route_end_location_zone_to_zone">
+                                <option value="">Select Start Zone</option>
                                 <?php foreach ($operation_zones as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                        >
@@ -2600,69 +2720,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             <?php
         }
 
-        public static function render_fixed_with_map_zone_zone_price_free( $fixed_map_route_prices, $merged_location_area, $append_body, $operation_zones ) {
-
-            ?>
-            <table class="mptbm_taxi_pricing_table">
-                <thead>
-                <tr>
-                    <th><?php esc_html_e( 'Start Zone *', 'ecab-taxi-booking-manager' ); ?></th>
-                    <th><?php esc_html_e( 'End Zone *', 'ecab-taxi-booking-manager' ); ?></th>
-                    <th><?php esc_html_e( 'Price *', 'ecab-taxi-booking-manager' ); ?></th>
-                    <th><?php esc_html_e( 'Action', 'ecab-taxi-booking-manager' ); ?></th>
-                </tr>
-                </thead>
-                <tbody class="<?php echo esc_html( $append_body );?>">
-                <?php
-                if( !empty( $fixed_map_route_prices ) ){
-                    foreach ($fixed_map_route_prices as $route):
-                    ?>
-                    <tr>
-                        <td>
-                            <select class="mptbm_fixed_map_route_start_location">
-                                <?php foreach ($operation_zones as $key => $label): ?>
-                                    <option value="<?php echo $key; ?>"
-                                        <?php selected($route['start_location'], $key); ?>>
-                                        <?php echo $label; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </td>
-                        <td>
-                            <select class="mptbm_fixed_map_route_end_location">
-                                <?php foreach ($operation_zones as $key => $label): ?>
-                                    <option value="<?php echo $key; ?>"
-                                        <?php selected($route['end_location'], $key); ?>>
-                                        <?php echo $label; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </td>
-                        <td>
-                            <input
-                                    type="text"
-                                    value="<?php echo esc_attr($route['price']); ?>"
-                                    placeholder="EX: 10"
-                            >
-                        </td>
-                        <td>
-                            <div class="mptbm_taxi_pricing_table_actions">
-                                <button class="mptbm_taxi_pricing_del_icon">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                <button class="mptbm_taxi_pricing_expand_icon">
-                                    <i class="fas fa-expand-arrows-alt"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endforeach;
-                }?>
-                </tbody>
-            </table>
-            <?php
-        }
-
         public static function render_fixed_zone_price_rows( $fixed_map_route_prices, $merged_location_area, $append_body, $location_zones ) {
 
             ?>
@@ -2683,6 +2740,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <tr>
                         <td>
                             <select name="mptbm_zone_to_zone_route_start_location[]" class="mptbm_fixed_map_route_start_location">
+                                <option value="">Select Start Zone</option>
                                 <?php foreach ( $merged_location_area as $key => $label ): ?>
                                     <option value="<?php echo $key; ?>"
                                         <?php selected($route['start_location'], $key); ?>>
@@ -2693,6 +2751,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </td>
                         <td>
                             <select name="mptbm_zone_to_zone_route_end_location[]" class="mptbm_fixed_map_route_end_location">
+                                <option value="">Select End Zone</option>
                                 <?php foreach ( $merged_location_area as $key => $label ): ?>
                                     <option value="<?php echo $key; ?>"
                                         <?php selected($route['end_location'], $key); ?>>
@@ -2726,6 +2785,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <tr>
                         <td>
                             <select name="mptbm_zone_to_zone_route_start_location[]" class="mptbm_fixed_map_route_start_location">
+                                <option value="">Select Start Zone</option>
                                 <?php foreach ($merged_location_area as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                         >
@@ -2736,6 +2796,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </td>
                         <td>
                             <select name="mptbm_zone_to_zone_route_end_location[]" class="mptbm_fixed_map_route_end_location">
+                                <option value="">Select End Zone</option>
                                 <?php foreach ($merged_location_area as $key => $label): ?>
                                     <option value="<?php echo $key; ?>"
                                        >
@@ -2924,5 +2985,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
         }
 
     }
+
     new MPTBM_Rent_Custom_Editor();
 }
