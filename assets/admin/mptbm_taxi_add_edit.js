@@ -600,6 +600,9 @@
                                     </div>
                                 </div>`;
 
+                // $('#mptbm_taxi_operation_araea_pricing_group').fadeIn();
+                mptbm_make_check_uncheck_operation_area(1);
+
             }
             else if(clicked_tab_id === 'mptbm_distance' ){
                 price_based = 'distance';
@@ -621,8 +624,12 @@
                                 </div>`;
 
                 $(".mptbm_taxi_pricing_field_free").fadeOut();
+                // $('#mptbm_taxi_operation_araea_pricing_group').fadeOut();
+                mptbm_make_check_uncheck_operation_area(0);
             }
             else if(clicked_tab_id === 'mptbm_row_duration' ){
+                // $('#mptbm_taxi_operation_araea_pricing_group').fadeOut();
+                mptbm_make_check_uncheck_operation_area(0);
                 price_based = 'duration';
                 $('input[name="mptbm_price_based"]').val(price_based);
                 $("#mptbm_price_per_hour").fadeIn();
@@ -645,6 +652,8 @@
 
             }
             else if(clicked_tab_id === 'mptbm_row_dist_dur' ){
+                // $('#mptbm_taxi_operation_araea_pricing_group').fadeOut();
+                mptbm_make_check_uncheck_operation_area(0);
                 price_based = 'distance_duration';
                 $('input[name="mptbm_price_based"]').val(price_based);
                 $("#mptbm_distance_price").fadeIn();
@@ -668,6 +677,8 @@
 
             }
             else if(clicked_tab_id === 'mptbm_row_hourly' ){
+                // $('#mptbm_taxi_operation_araea_pricing_group').fadeOut();
+                mptbm_make_check_uncheck_operation_area(0);
                 price_based = 'fixed_hourly';
                 $("#mptbm_price_per_hour").fadeIn();
                 let shortcode = "<code>[mptbm_booking price_based='fixed_hourly' form='horizontal' progressbar='yes' map='yes']</code>";
@@ -689,6 +700,8 @@
                 $(".mptbm_taxi_pricing_field_free").fadeOut();
             }
             else if(clicked_tab_id === 'mptbm_row_operation_area' ){
+                // $('#mptbm_taxi_operation_araea_pricing_group').fadeIn();
+                mptbm_make_check_uncheck_operation_area(1);
                 price_based = 'fixed_distance';
 
                 $(".mptbm_taxi_pricing_field_free").fadeIn();
@@ -729,6 +742,8 @@
                                 </div>
                             </div>`;
                 }else if( activeDataId === 'mptbm_row_zone' ){
+                    // $('#mptbm_taxi_operation_araea_pricing_group').fadeIn();
+                    mptbm_make_check_uncheck_operation_area(1);
                     $("#mptbm_distance_price").fadeOut();
                     $("#mptbm_fixed_pricing").fadeOut();
                     $("#mptbm_price_per_hour").fadeOut();
@@ -774,6 +789,8 @@
                 }
             }
             else if(clicked_tab_id === 'mptbm_row_manual' ){
+                // $('#mptbm_taxi_operation_araea_pricing_group').fadeOut();
+                mptbm_make_check_uncheck_operation_area(0);
                 price_based = 'manual';
                 $("#mptbm_manual_routes").fadeIn();
                 let shortcode = "<code>[mptbm_booking price_based='manual' form='horizontal' progressbar='yes' map='yes']</code>";
@@ -794,8 +811,10 @@
 
                 $(".mptbm_taxi_pricing_field_free").fadeOut();
 
-            }
-            else if(clicked_tab_id === 'mptbm_row_zone' ){
+            } else if(clicked_tab_id === 'mptbm_row_zone' ){
+                // $('#mptbm_taxi_operation_araea_pricing_group').fadeIn();
+                mptbm_make_check_uncheck_operation_area(1);
+
                 price_based = 'fixed_zone';
                 $("#mptbm_row_zone").fadeIn();
                 let shortcode = "<code>[mptbm_booking price_based='fixed_zone_pickup' form='horizontal' progressbar='yes' map='yes']</code>";
@@ -808,8 +827,9 @@
 
                 $(".mptbm_taxi_pricing_field_free").fadeOut();
 
-            }
-            else{
+            } else{
+                // $('#mptbm_taxi_operation_araea_pricing_group').fadeIn();
+                mptbm_make_check_uncheck_operation_area(1);
                 price_based = 'inclusive';
                 $("#mptbm_distance_price").fadeIn();
                 $("#mptbm_fixed_pricing").fadeIn();
@@ -836,6 +856,24 @@
             $("#mptbm_pricing_rules_grid").html(rules);
             // alert(clicked_tab_id );
         });
+
+        function mptbm_make_check_uncheck_operation_area( is_check ){
+
+            if( is_check ){
+                $('input[name="mptbm_display_operation_area_pricing"]')
+                    .prop('checked', true)
+                    .trigger('change');
+
+                $('#mptbm_taxi_operation_araea_pricing_group').fadeIn();
+            }else{
+                $('input[name="mptbm_display_operation_area_pricing"]')
+                    .prop('checked', false)
+                    .trigger('change');
+
+                $('#mptbm_taxi_operation_araea_pricing_group').fadeOut();
+            }
+
+        }
 
         // updatePricingContainer();
 
