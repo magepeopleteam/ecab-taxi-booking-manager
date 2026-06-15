@@ -85,24 +85,21 @@ if (!class_exists('MPTBM_Plugin')) {
                 // Always load the checkout fields helper on frontend
                 require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Wc_Checkout_Fields_Helper.php';
             } else {
-                require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Quick_Setup.php';
-                add_action('activated_plugin', array($this, 'activation_redirect_setup'), 90, 1);
+                // WooCommerce missing: the memory-safe chunked installer popup
+                // (auto-shown on the dashboard / plugins / our screens) handles
+                // installing & activating WooCommerce. No Quick Setup wizard needed.
+                if (is_admin()) {
+                    require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Woo_Installer.php';
+                }
             }
         }
 
         public function activation_redirect($plugin)
         {
-            $mptbm_quick_setup_done = get_option('mptbm_quick_setup_done');
-            if ($plugin == plugin_basename(__FILE__) && $mptbm_quick_setup_done != 'yes') {
-                exit(wp_redirect(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_quick_setup')));
-            }
-        }
-
-        public function activation_redirect_setup($plugin)
-        {
-            $mptbm_quick_setup_done = get_option('mptbm_quick_setup_done');
-            if ($plugin == plugin_basename(__FILE__) && $mptbm_quick_setup_done != 'yes') {
-                exit(wp_redirect(admin_url('admin.php?post_type=mptbm_rent&page=mptbm_quick_setup')));
+            // On activation (with WooCommerce active) land on the transportation
+            // list, where the demo-import popup is offered. Skip on bulk activations.
+            if ($plugin == plugin_basename(__FILE__) && ! isset($_GET['activate-multi'])) {
+                exit(wp_redirect(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_transportation_lists')));
             }
         }
 
