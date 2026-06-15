@@ -12,14 +12,185 @@ if (!class_exists('MPTBM_Dummy_Import')) {
 	{
 		public function __construct()
 		{
-			add_action('admin_init', array($this, 'dummy_import'), 99);
+			add_action('admin_enqueue_scripts', array($this, 'enqueue_assets'));
+			add_action('admin_footer', array($this, 'render_popup'));
+			add_action('wp_ajax_mptbm_import_dummy_data', array($this, 'ajax_import_dummy_data'));
+			add_action('wp_ajax_mptbm_dismiss_dummy_import', array($this, 'ajax_dismiss_dummy_import'));
 		}
-		public function dummy_import()
+
+		/**
+		 * Demo import is offered only when the plugin is active, there are no
+		 * transports yet, and we have not already imported.
+		 */
+		public function is_eligible(): bool
+		{
+			if (get_option('mptbm_dummy_already_inserted', 'no') === 'yes') {
+				return false;
+			}
+			$plugin_active = MP_Global_Function::check_plugin('ecab-taxi-booking-manager', 'MPTBM_Plugin.php');
+			if ($plugin_active != 1) {
+				return false;
+			}
+			return (int) wp_count_posts('mptbm_rent')->publish === 0;
+		}
+
+		/** Limit the popup to our own admin screens + dashboard. */
+		private function is_relevant_screen(): bool
+		{
+			$screen = get_current_screen();
+			if (!$screen) {
+				return false;
+			}
+			return (
+				strpos($screen->id, 'mptbm') !== false
+				|| $screen->post_type === 'mptbm_rent'
+				|| $screen->id === 'dashboard'
+			);
+		}
+
+		/** Whether the popup should pop open by itself (vs. wait for a manual trigger). */
+		private function should_auto_show_popup(): bool
+		{
+			if (!$this->is_eligible()) {
+				return false;
+			}
+			return get_option('mptbm_dummy_import_dismissed') !== 'yes';
+		}
+
+		public function enqueue_assets(): void
+		{
+			if (!$this->is_eligible() || !$this->is_relevant_screen()) {
+				return;
+			}
+			$css_path = MPTBM_PLUGIN_DIR . '/assets/admin/mptbm_installer.css';
+			$js_path  = MPTBM_PLUGIN_DIR . '/assets/admin/mptbm_demo_import.js';
+
+			wp_enqueue_style(
+				'mptbm-installer',
+				MPTBM_PLUGIN_URL . '/assets/admin/mptbm_installer.css',
+				array(),
+				file_exists($css_path) ? filemtime($css_path) : MPTBM_PLUGIN_VERSION
+			);
+
+			// Enqueued (not inline) with a jquery dependency so WP guarantees
+			// jQuery is ready before this runs. filemtime() versioning so edits
+			// are never served stale from the browser cache.
+			wp_enqueue_script(
+				'mptbm-demo-import',
+				MPTBM_PLUGIN_URL . '/assets/admin/mptbm_demo_import.js',
+				array('jquery'),
+				file_exists($js_path) ? filemtime($js_path) : MPTBM_PLUGIN_VERSION,
+				true
+			);
+			wp_localize_script('mptbm-demo-import', 'mptbm_demo_import', array(
+				'ajax_url'      => admin_url('admin-ajax.php'),
+				'import_nonce'  => wp_create_nonce('mptbm_import_dummy'),
+				'dismiss_nonce' => wp_create_nonce('mptbm_dismiss_dummy'),
+				'i18n'          => array(
+					'importing'     => __('Importing demo data. This may take a moment...', 'ecab-taxi-booking-manager'),
+					'success'       => __('Demo data imported! Reloading...', 'ecab-taxi-booking-manager'),
+					'success_title' => __('All set!', 'ecab-taxi-booking-manager'),
+					'error'         => __('Import failed. Please try again.', 'ecab-taxi-booking-manager'),
+				),
+			));
+		}
+
+		public function render_popup(): void
+		{
+			if (!$this->is_eligible() || !$this->is_relevant_screen()) {
+				return;
+			}
+			$display_style = $this->should_auto_show_popup() ? '' : 'display:none;';
+			?>
+			<div id="mptbm-demo-overlay" class="mptbm-inst-overlay" style="<?php echo esc_attr($display_style); ?>">
+				<div class="mptbm-inst-popup">
+					<div class="mptbm-inst-header">
+						<div class="mptbm-inst-header-icon">
+							<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<path d="M3 13l2-5h11l2 5M5 13h14v5H5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								<circle cx="8" cy="18" r="1.6" stroke="currentColor" stroke-width="2"/>
+								<circle cx="16" cy="18" r="1.6" stroke="currentColor" stroke-width="2"/>
+							</svg>
+						</div>
+						<span class="mptbm-inst-header-text"><?php esc_html_e('Taxi Booking Manager', 'ecab-taxi-booking-manager'); ?></span>
+					</div>
+
+					<div class="mptbm-inst-icon-wrapper">
+						<div class="mptbm-inst-icon">
+							<svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+								<path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+							</svg>
+						</div>
+					</div>
+
+					<div class="mptbm-inst-content">
+						<h2 class="mptbm-inst-title"><?php esc_html_e('Import Demo Data?', 'ecab-taxi-booking-manager'); ?></h2>
+						<p class="mptbm-inst-desc">
+							<?php esc_html_e('Want to see how Taxi Booking Manager works? We can import sample transports, locations, and settings so you can explore a fully configured setup right away.', 'ecab-taxi-booking-manager'); ?>
+						</p>
+					</div>
+
+					<div id="mptbm-demo-progress" class="mptbm-inst-progress" style="display:none;">
+						<div class="mptbm-inst-progress-bar">
+							<div id="mptbm-demo-progress-fill" class="mptbm-inst-progress-fill"></div>
+						</div>
+						<p id="mptbm-demo-status-text" class="mptbm-inst-status-text"></p>
+					</div>
+
+					<div class="mptbm-inst-actions">
+						<button type="button" id="mptbm-demo-import-btn" class="mptbm-inst-btn mptbm-inst-btn-primary">
+							<span class="mptbm-inst-btn-icon">
+								<svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+									<path d="M10 3v10m0 0l-4-4m4 4l4-4M3 17h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							</span>
+							<span class="mptbm-inst-btn-text"><?php esc_html_e('Yes, Import Demo Data', 'ecab-taxi-booking-manager'); ?></span>
+						</button>
+						<button type="button" id="mptbm-demo-dismiss-btn" class="mptbm-inst-btn mptbm-inst-btn-secondary">
+							<?php esc_html_e('No, Start Fresh', 'ecab-taxi-booking-manager'); ?>
+						</button>
+					</div>
+				</div>
+			</div>
+			<?php
+		}
+
+		public function ajax_import_dummy_data(): void
+		{
+			check_ajax_referer('mptbm_import_dummy', 'nonce');
+			if (!current_user_can('manage_options')) {
+				wp_send_json_error(array('message' => __('Permission denied.', 'ecab-taxi-booking-manager')));
+			}
+			if (function_exists('wp_raise_memory_limit')) {
+				wp_raise_memory_limit('admin');
+			}
+			if (function_exists('set_time_limit')) {
+				@set_time_limit(300);
+			}
+			$this->dummy_import();
+			wp_send_json_success();
+		}
+
+		public function ajax_dismiss_dummy_import(): void
+		{
+			check_ajax_referer('mptbm_dismiss_dummy', 'nonce');
+			if (!current_user_can('manage_options')) {
+				wp_send_json_error(array('message' => __('Permission denied.', 'ecab-taxi-booking-manager')));
+			}
+			update_option('mptbm_dummy_import_dismissed', 'yes');
+			wp_send_json_success();
+		}
+
+		public function dummy_import(): void
 		{
 			$dummy_post_inserted = get_option('mptbm_dummy_already_inserted', 'no');
 			$count_existing_event = wp_count_posts('mptbm_rent')->publish;
 			$plugin_active = MP_Global_Function::check_plugin('ecab-taxi-booking-manager', 'MPTBM_Plugin.php');
 			if ($count_existing_event == 0 && $plugin_active == 1 && $dummy_post_inserted != 'yes') {
+				// media_sideload_image() and friends are not loaded during AJAX.
+				require_once ABSPATH . 'wp-admin/includes/media.php';
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+				require_once ABSPATH . 'wp-admin/includes/image.php';
 				$dummy_post_data = $this->dummy_post_data();
 				$this->add_post($dummy_post_data);
 				$this->location_taxonomy();

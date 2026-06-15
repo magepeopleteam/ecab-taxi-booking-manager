@@ -69,7 +69,18 @@
 
 
 //NEW Feature
-	const mptbm_areas = JSON.parse($("#mptbm_operation_zones").val());
+	// The #mptbm_operation_zones field only exists on some screens; guard the
+	// parse so pages without it (e.g. the transportation list) don't throw
+	// "undefined is not valid JSON" and abort the rest of this script.
+	const mptbm_zones_raw = $("#mptbm_operation_zones").val();
+	let mptbm_areas = {};
+	if (mptbm_zones_raw) {
+		try {
+			mptbm_areas = JSON.parse(mptbm_zones_raw);
+		} catch (e) {
+			mptbm_areas = {};
+		}
+	}
 	let selectedAreas = [];
 	// Add Row
 	$(document).on("click",".mptbm_addAreaPrice", function (e) {
