@@ -1328,7 +1328,8 @@ input:checked + .mptbm_taxi_feature_slider:before { transform: translateX(22px);
 }
 
 .mptbm_manual_routes_and_fixed_fare_overrides {
-    padding: 20px;
+    padding: 10px;
+    margin: 10px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -2220,9 +2221,16 @@ select.mptbm_taxi_ex_service_select {
 
 /*Display Pricing Rules*/
 .mptbm_pricing_rules_wrapper {
-    /*background: #f9fafb;*/
-    padding: 10px;
-    border-radius: 16px;
+    margin-top: 15px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+    margin-bottom: 20px;
+    background: rgb(255, 255, 255);
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(226, 232, 240);
+    border-image: initial;
+    border-radius: 12px;
+    overflow: hidden;
 }
 .mptbm_pricing_rules_grid {
     display: grid;

@@ -340,6 +340,8 @@
                 values.push($(this).data('id'));
             });
 
+            // console.log( values );
+
             if (values.length > 0) {
                $("#mptbm_taxi_operation_area_pricing_section").fadeIn();
                 $("#mptbm_is_selected_operation_area").val(1);
