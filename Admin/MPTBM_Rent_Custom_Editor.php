@@ -1602,6 +1602,17 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             <div class="mptbm-oa-grid">
 
                                 <label class="mptbm-oa-card">
+                                    <input type="radio" name="mptbm_operation_area_type" value=""
+                                        <?php checked( $selected_operation_type, '' ); ?>>
+                                    <div class="mptbm-oa-card-inner">
+                                        <span class="dashicons dashicons-location mptbm-oa-icon"></span>
+                                        <div class="mptbm-oa-name"><?php esc_html_e('Unselect Operation Area Type', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-desc"><?php esc_html_e('Empty operation area', 'ecab-taxi-booking-manager'); ?></div>
+                                        <div class="mptbm-oa-dot"><div class="mptbm-oa-dot-inner"></div></div>
+                                    </div>
+                                </label>
+
+                                <label class="mptbm-oa-card">
                                     <input type="radio" name="mptbm_operation_area_type" value="fixed-operation-area-type"
                                         <?php checked( $selected_operation_type, 'fixed-operation-area-type' ); ?>>
                                     <div class="mptbm-oa-card-inner">
