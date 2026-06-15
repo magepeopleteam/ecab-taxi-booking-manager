@@ -2507,6 +2507,8 @@ select.mptbm_taxi_ex_service_select {
 .mptbm_operation_area_fixed_map_type_tab.active {
     border-color: #222;
     color: #222;
+    border: 2px solid #44a5f2;
+    background: #e9eced;
 }
 
 .mptbm_operation_area_fixed_map_type_tab .dashicons {
