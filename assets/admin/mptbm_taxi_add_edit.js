@@ -405,36 +405,7 @@
             updateActiveIndicator();
         });
 
-        function togglePricingAreaButtons() {
-            // let operationType = $('#mptbm_operation_area_type').val();
-            let operationType = $('input[name="mptbm_operation_area_type"]:checked').val();
 
-            $('.mptbm_taxi_pricing_pill').fadeOut();
-            if (operationType === 'geo-fence-operation-area-type') {
-                $('.mptbm_taxi_pricing_pill[data-geo-fance="1"]').fadeIn();
-
-                $("#mptbm_operation_area_based").fadeOut();
-            } else {
-                $('.mptbm_taxi_pricing_pill[data-geo-fance="0"]').fadeIn();
-
-                // $("#mptbm_operation_area_based").fadeIn();
-            }
-
-            if (operationType === 'geo-matched-operation-area-type' || operationType === 'geo-fence-operation-area-type' ) {
-                $("#mptbm_single_mul_operation_area").text( 'single allowed' );
-            }else{
-                $("#mptbm_single_mul_operation_area").text( 'multiple allowed' );
-            }
-
-            if( operationType ){
-                $('.mptbm_taxi_pricing_area_pills').fadeIn();
-            }else{
-                $('.mptbm_taxi_pricing_area_pills').fadeOut();
-
-                $("#mptbm_operation_area_based").fadeOut();
-            }
-        }
-        togglePricingAreaButtons();
 
         function updateActiveIndicator() {
             var activeAreas = [];
@@ -918,7 +889,35 @@
         $(document).on('change', '.mptbm_fixed_map_route_end_location', function () {
             updateSelections();
         });
-        // on change
+
+
+        function togglePricingAreaButtons() {
+            let operationType = $('input[name="mptbm_operation_area_type"]:checked').val();
+
+            $('.mptbm_taxi_pricing_pill').fadeOut();
+            if (operationType === 'geo-fence-operation-area-type') {
+                $('.mptbm_taxi_pricing_pill[data-geo-fance="1"]').fadeIn();
+
+                $("#mptbm_operation_area_based").fadeOut();
+            } else {
+                $('.mptbm_taxi_pricing_pill[data-geo-fance="0"]').fadeIn();
+            }
+
+            if (operationType === 'geo-matched-operation-area-type' || operationType === 'geo-fence-operation-area-type' ) {
+                $("#mptbm_single_mul_operation_area").text( 'single allowed' );
+            }else{
+                $("#mptbm_single_mul_operation_area").text( 'multiple allowed' );
+            }
+
+            if( operationType ){
+                $('.mptbm_taxi_pricing_area_pills').fadeIn();
+            }else{
+                $('.mptbm_taxi_pricing_area_pills').fadeOut();
+
+                $("#mptbm_operation_area_based").fadeOut();
+            }
+        }
+        togglePricingAreaButtons();
         $(document).on('change', 'input[name="mptbm_operation_area_type"]', function () {
         // $(document).on('change', '.mptbm_operation_area_type', function () {
 
@@ -1447,7 +1446,6 @@
         return 'unknown';
     }
 
-    /* ── Filter end-select based on start-select value ── */
     function filterEndSelect($startSelect) {
 
         var $row       = $startSelect.closest('tr');
@@ -1477,14 +1475,12 @@
             $opt.prop('disabled', shouldHide).toggle(!shouldHide);
         });
 
-        /* If the currently selected end value is now hidden, reset it */
         var $selectedEnd = $endSelect.find('option:selected');
         if ($selectedEnd.prop('disabled') || !$selectedEnd.is(':visible')) {
             $endSelect.val('');
         }
     }
 
-    /* ── Reset end-select to show all options ── */
     function resetEndSelect($startSelect) {
         var $row       = $startSelect.closest('tr');
         var $endSelect = $row.find('.mptbm_fixed_map_route_end_location');
