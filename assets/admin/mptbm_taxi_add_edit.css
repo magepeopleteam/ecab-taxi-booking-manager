@@ -2635,6 +2635,12 @@ select.mptbm_taxi_ex_service_select {
     margin-bottom: 16px;
 }
 
+.mptbm_pro_feature_notice{
+    color: #d63638;
+    font-size: 13px;
+    font-weight: 600;
+}
+
 .mptbm_pro_locked_box label {
     display: block;
     font-weight: 600;
