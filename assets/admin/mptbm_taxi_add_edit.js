@@ -916,6 +916,23 @@
 
                 $("#mptbm_operation_area_based").fadeOut();
             }
+
+            // Show Zone To Zone tab and container only for fixed-map or geo-matched types
+            let $zoneToZoneTab = $('.mptbm_operation_area_fixed_map_type_tab[data-operation-area-type="zone_to_zone"]');
+            let $zoneToZoneContainer = $('#mptbm_operation_area_fixed_map_zone_to_zone');
+            if ( operationType === 'fixed-map-operation-area-type' || operationType === 'geo-matched-operation-area-type' ) {
+                $zoneToZoneTab.fadeIn();
+            } else {
+                $zoneToZoneTab.fadeOut();
+                // If the zone_to_zone tab was active, switch back to zone_to_location
+                if ( $zoneToZoneTab.hasClass('active') ) {
+                    $zoneToZoneTab.removeClass('active');
+                    $('.mptbm_operation_area_fixed_map_type_tab[data-operation-area-type="zone_to_location"]').addClass('active');
+                    $zoneToZoneContainer.hide();
+                    $('#mptbm_operation_area_fixed_map_zone_to_location').show();
+                    $('input[name="mptbm_operation_area_fixed_map_type"]').val('zone_to_location');
+                }
+            }
         }
         togglePricingAreaButtons();
         $(document).on('change', 'input[name="mptbm_operation_area_type"]', function () {
