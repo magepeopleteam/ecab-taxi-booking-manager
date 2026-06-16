@@ -303,6 +303,10 @@
     color: #1e293b;
 }
 
+.mptbm_shortcode_container{
+    margin: 16px;
+}
+
 .mptbm_taxi_category_modal_close {
     font-size: 24px;
     color: #94a3b8;
