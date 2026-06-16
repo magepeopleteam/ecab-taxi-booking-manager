@@ -315,7 +315,8 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                     $tax_status = MP_Global_Function::get_post_info($post_id, '_tax_status');
                     $tax_class = MP_Global_Function::get_post_info($post_id, '_tax_class');
                     $all_tax_class = MP_Global_Function::all_tax_list();
-                    $checked  = 'checked';
+                    $enable_tax = MP_Global_Function::get_post_info($post_id, 'mptbm_taxi_enable_tax', 'on');
+                    $checked  = ($enable_tax !== 'off') ? 'checked' : '';
                     $name  = 'mptbm_taxi_enable_tax';
                     ?>
                    <div class="mptbm_rent_editor_header" style="display: flex; justify-content: space-between;">
