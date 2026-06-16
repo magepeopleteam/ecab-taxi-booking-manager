@@ -1469,7 +1469,7 @@
         return 'unknown';
     }
 
-    function filterEndSelect($startSelect) {
+    function filterEndSelect_old($startSelect) {
 
         var $row       = $startSelect.closest('tr');
         var $endSelect = $row.find('.mptbm_fixed_map_route_end_location');
@@ -1503,6 +1503,40 @@
             $endSelect.val('');
         }
     }
+    function filterEndSelect($startSelect, isInit = false) {
+
+        var $row       = $startSelect.closest('tr');
+        var $endSelect = $row.find('.mptbm_fixed_map_route_end_location');
+        var startType  = getType($startSelect.val());
+
+        $endSelect.find('option').each(function () {
+            var $opt    = $(this);
+            var optType = getType($opt.val());
+
+            if (optType === 'empty') {
+                $opt.prop('disabled', false).show();
+                return;
+            }
+
+            var shouldHide = false;
+
+            if (startType === 'post') {
+                shouldHide = (optType === 'post');
+            } else if (startType === 'term') {
+                shouldHide = (optType === 'term');
+            }
+
+            $opt.prop('disabled', shouldHide).toggle(!shouldHide);
+        });
+
+        // ❗ ONLY clear on user action, not on page load
+        if (!isInit) {
+            var $selectedEnd = $endSelect.find('option:selected');
+            if ($selectedEnd.prop('disabled') || !$selectedEnd.is(':visible')) {
+                $endSelect.val('');
+            }
+        }
+    }
 
     function resetEndSelect($startSelect) {
         var $row       = $startSelect.closest('tr');
@@ -1527,7 +1561,7 @@
     $(function () {
         $('.mptbm_fixed_map_route_start_location').each(function () {
             if ($(this).val()) {
-                filterEndSelect($(this));
+                filterEndSelect($(this), true); // init mode
             }
         });
     });
