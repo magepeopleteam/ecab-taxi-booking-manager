@@ -543,6 +543,12 @@
             $("#mptbm_pricing_rules_grid").html(rules);
         });
 
+         $('.mptbm_taxi_ex_service_toggle_wrapper').on('click', '.mptbm_pro_feature_notice', function () {
+
+            $("#mptbm_taxi_operation_araea_pricing_group").fadeIn();
+            $("#mptbm_taxi_pricing_field_free").fadeIn();
+        });
+
         $(document).on('click', '.mptbm_taxi_pricing_tab_item', function () {
             let clicked_tab_id = $(this).data('id');
             let price_based = '';

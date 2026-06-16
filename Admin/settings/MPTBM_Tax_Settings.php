@@ -86,8 +86,10 @@
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 					$tax_status = MP_Global_Function::get_submit_info('_tax_status','none');
 					$tax_class = MP_Global_Function::get_submit_info('_tax_class');
+					$enable_tax = isset($_POST['mptbm_taxi_enable_tax']) ? 'on' : 'off';
 					update_post_meta($post_id, '_tax_status', $tax_status);
 					update_post_meta($post_id, '_tax_class', $tax_class);
+					update_post_meta($post_id, 'mptbm_taxi_enable_tax', $enable_tax);
 				}
 			}
 		}
