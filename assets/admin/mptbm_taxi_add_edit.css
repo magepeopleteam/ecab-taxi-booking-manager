@@ -80,11 +80,12 @@
 /* ================================================================
    SECTION 2: BASE & GLOBAL RESET
    ================================================================ */
-.mp_settings_area {
+.mptbm_settings_area {
     font-family: var(--mp-font);
     margin: 0;
     background: var(--mp-bg);
     color: var(--mp-text-800);
+    padding: 10px;
 }
 
 .wrap a.mptbm-add-btn {
@@ -1039,7 +1040,7 @@ input:checked + .mptbm_taxi_slider::before { transform: translateX(20px); }
 .mptbm_taxi_pricing_group { padding: 0 2px; }
 
 .mptbm_taxi_pricing_row_content {
-    padding: 16px 20px;
+    padding: 10px 10px;
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -1875,7 +1876,7 @@ input.mptbm_taxi_feature_input:focus {
 .mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-dot-inner { display: block; }
 
 /* Operation Area Selection Groups */
-.mptbm_operation_area_type_holder { padding: 16px 20px; }
+/*.mptbm_operation_area_type_holder { padding: 16px 20px; }*/
 .mptbm_taxi_pricing_selection_group { margin: 16px 0; padding: 0 2px; }
 .mptbm_taxi_pricing_selection_group label {
     display: block;
@@ -2125,12 +2126,12 @@ input.mptbm_taxi_feature_input:focus {
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
-    margin-bottom: 12px;
     background: var(--mp-bg-muted);
     border: 1px solid var(--mp-border);
     border-radius: var(--mp-r-md);
     cursor: pointer;
     transition: var(--mp-transition);
+    margin: 16px;
 }
 .mptbm_shortcode_header:hover {
     background: var(--mp-primary-light);
@@ -2693,4 +2694,224 @@ input.mptbm_taxi_feature_input:focus {
     letter-spacing: 0.05em;
     color: var(--mp-text-500);
     border-bottom: 2px solid var(--mp-border);
+}
+
+/* ================================================================
+   SECTION 29: v2.1 VISUAL HIERARCHY & POLISH
+   ================================================================ */
+
+/* ── Left accent strip on all main card wrappers ─────────────────
+   A 3-px primary-colour rail helps the eye scan sections fast.
+   The outer wrapper already has border: 1px solid; we simply
+   widen the left side and re-colour it.
+   ---------------------------------------------------------------- */
+.mptbm_rent_editor_wrapper {
+    /*border-left-width: 3px;*/
+    /*border-left-color: var(--mp-primary);*/
+}
+.mptbm_taxi_toggle_container {
+    border-left: 3px solid var(--mp-primary);
+}
+/* Base-fare / base-location toggles get a warning accent instead */
+.mptbm_rent_editor_wrapper[id="mptbm_taxi_base_fare_toggle_container"],
+.mptbm_taxi_toggle_container[id="mptbm_taxi_base_location_toggle_container"] {
+    border-left-color: var(--mp-warning);
+}
+/* Extra services container uses the success colour */
+.mptbm_taxi_ex_service_container {
+    border-left: 3px solid var(--mp-success);
+    overflow: hidden;
+}
+
+/* ── Card header: subtle hover shift ────────────────────────────
+   Signals the section is a distinct block without being noisy.
+   ---------------------------------------------------------------- */
+.mptbm_rent_editor_header {
+    transition: background 0.18s ease;
+}
+.mptbm_rent_editor_wrapper:hover > .mptbm_rent_editor_header,
+.mptbm_taxi_toggle_container:hover > .mptbm_taxi_ex_service_header {
+    background: linear-gradient(135deg, #f4f7ff 0%, #eaf0ff 100%);
+}
+
+/* ── Section icon inside heading tags ────────────────────────────
+   Class added to dashicon <span> placed directly in h2/h3 text.
+   PHP: <span class="dashicons dashicons-car mptbm_section_icon">
+   ---------------------------------------------------------------- */
+.mptbm_section_icon.dashicons {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    vertical-align: middle;
+    margin-right: 7px;
+    color: var(--mp-primary);
+    opacity: 0.78;
+    flex-shrink: 0;
+    position: relative;
+    top: -1px;
+}
+
+/* ── 2-column field grid (replaces inline style) ─────────────────
+   Used in general_data_configuration(); responsive.
+   ---------------------------------------------------------------- */
+.mptbm_field_grid_2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 24px;
+}
+@media (max-width: 900px) {
+    .mptbm_field_grid_2col { grid-template-columns: 1fr; }
+}
+
+/* ── Dashicons in action buttons ─────────────────────────────────
+   Feature-row and extra-service-row delete / drag buttons.
+   ---------------------------------------------------------------- */
+.mptbm_taxi_feature_btn_icon .dashicons,
+.mptbm_taxi_ex_service_btn_del .dashicons,
+.mptbm_taxi_ex_service_btn_drag .dashicons {
+    font-size: 15px !important;
+    width: 15px !important;
+    height: 15px !important;
+    line-height: 1 !important;
+}
+.mptbm_taxi_feature_btn_del .dashicons,
+.mptbm_taxi_ex_service_btn_del .dashicons  { color: var(--mp-danger); }
+.mptbm_taxi_feature_btn_move .dashicons,
+.mptbm_taxi_ex_service_btn_drag .dashicons { color: var(--mp-text-400); }
+
+/* Dashicons in "add" buttons */
+.mptbm_taxi_ex_service_add_btn .dashicons,
+.mptbm_taxi_feature_add_btn .dashicons {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    line-height: 1 !important;
+}
+
+/* ── Active pricing tab: "Selected" indicator ────────────────────
+   Tiny chip in the bottom-right of the active card.
+   ---------------------------------------------------------------- */
+.mptbm_taxi_pricing_tab_item {
+    position: relative;
+}
+.mptbm_taxi_pricing_tab_item.active::before {
+    content: "✓";
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--mp-primary);
+    opacity: 0.65;
+}
+
+/* ── Active stepper icon: gentle pulse ───────────────────────────
+   Draws attention to the current step without being distracting.
+   ---------------------------------------------------------------- */
+@keyframes mptbm_step_pulse {
+    0%   { box-shadow: 0 4px 12px rgba(var(--mp-primary-rgb),.30); }
+    50%  { box-shadow: 0 4px 20px rgba(var(--mp-primary-rgb),.55); }
+    100% { box-shadow: 0 4px 12px rgba(var(--mp-primary-rgb),.30); }
+}
+.mptbm_taxi_step.mptbm_taxi_active .mptbm_taxi_icon {
+    animation: mptbm_step_pulse 2.4s ease-in-out infinite;
+}
+
+/* ── Step counter: higher contrast ───────────────────────────────
+   The pill was too faint; users should see their position.
+   ---------------------------------------------------------------- */
+.mptbm_taxi_step_counter {
+    font-weight: 700;
+    color: var(--mp-text-700);
+    background: var(--mp-border-light);
+    border: 1px solid var(--mp-border);
+}
+
+/* ── Fixed header: slightly stronger bottom border ───────────────
+   Improves visual separation between header and scrolling content.
+   ---------------------------------------------------------------- */
+.mptbm_fixed_header {
+    border-bottom-width: 2px;
+}
+
+/* ── Back link: more readable ────────────────────────────────────
+   Was too faint compared to surrounding admin UI.
+   ---------------------------------------------------------------- */
+.mptbm_fixed_header_top a.mptbm-link {
+    font-weight: 600;
+    color: var(--mp-text-600);
+}
+.mptbm_fixed_header_top a.mptbm-link:hover {
+    color: var(--mp-primary-dark);
+}
+
+/* ── Operation area card: "Selected" micro-label ─────────────────
+   Appears below the radio indicator dot when checked.
+   ---------------------------------------------------------------- */
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner::after {
+    content: "✓ Selected";
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--mp-primary);
+    letter-spacing: 0.04em;
+    margin-top: 5px;
+}
+
+/* ── Extra services table: empty-state message ───────────────────
+   Pseudo-element shows hint text when tbody has no rows.
+   Only works because the tbody is a direct child container.
+   ---------------------------------------------------------------- */
+#mptbm_taxi_ex_service_tbody:empty::after {
+    content: "No services added yet — click \"+ Add New Service\" below.";
+    display: block;
+    padding: 22px 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--mp-text-400);
+    font-style: italic;
+}
+
+/* ── PRO popup: dashicon alignment ──────────────────────────────
+   Normalize dashicon inside the modal heading.
+   ---------------------------------------------------------------- */
+.mptbm_pro_popup_content h2 .dashicons {
+    font-size: 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+    vertical-align: middle;
+    margin-right: 6px;
+    color: #f59e0b;
+}
+
+/* ── Pricing rules formula: monospace + pre-wrap ─────────────────
+   Code-like blocks should use a mono font.
+   ---------------------------------------------------------------- */
+.mptbm_pricing_rules_formula {
+    font-family: var(--mp-mono);
+    font-size: 12px;
+    white-space: pre-line;
+}
+
+/* ── Section spacing: between sibling wrappers inside a step ──────
+   Give each card a slightly more generous gap than default.
+   ---------------------------------------------------------------- */
+.mptbm_taxi_container > .mptbm_rent_editor_wrapper + .mptbm_rent_editor_wrapper {
+    margin-top: 20px;
+}
+
+/* ── Firefox: normalise select appearance ────────────────────────
+   Prevents double-arrow on Firefox when appearance:none is used.
+   ---------------------------------------------------------------- */
+select.formControl,
+.mptbm_taxi_field select,
+.mptbm_rent_editor_wrapper select {
+    -moz-appearance: none;
+}
+
+/* ── Responsive: hide "✓ Selected" chip on narrow viewports ──────
+   Too cramped on phones.
+   ---------------------------------------------------------------- */
+@media (max-width: 600px) {
+    .mptbm_taxi_pricing_tab_item.active::before { display: none; }
 }
