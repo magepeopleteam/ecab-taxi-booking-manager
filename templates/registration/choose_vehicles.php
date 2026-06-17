@@ -122,34 +122,59 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
 
         $operation_area_coordinates_one = [];
         $operation_area_coordinates_two = [];
+        $geo_area_one = []; // JS geolib fallback
+        $geo_area_two = []; // JS geolib fallback
 
         for ($i = 0; $i < count($flat_operation_area_coordinates_one); $i += 2) {
-            $latitude = $flat_operation_area_coordinates_one[$i];
+            $latitude  = $flat_operation_area_coordinates_one[$i];
             $longitude = $flat_operation_area_coordinates_one[$i + 1];
             $operation_area_coordinates_one[] = $latitude . " " . $longitude;
+            $geo_area_one[] = ["latitude" => floatval($latitude), "longitude" => floatval($longitude)];
         }
 
         for ($i = 0; $i < count($flat_operation_area_coordinates_two); $i += 2) {
-            $latitude = $flat_operation_area_coordinates_two[$i];
+            $latitude  = $flat_operation_area_coordinates_two[$i];
             $longitude = $flat_operation_area_coordinates_two[$i + 1];
             $operation_area_coordinates_two[] = $latitude . " " . $longitude;
+            $geo_area_two[] = ["latitude" => floatval($latitude), "longitude" => floatval($longitude)];
         }
 
-        $new_start_place_coordinates = [];
-        $new_end_place_coordinates = [];
-        $new_start_place_coordinates[] = $start_place_coordinates["latitude"] . " " . $start_place_coordinates["longitude"];
-        $new_end_place_coordinates[] = $end_place_coordinates["latitude"] . " " . $end_place_coordinates["longitude"];
+        // FIX 1: Parse coordinates — handle both array and JSON-string inputs, and both key variants
+        $start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : json_decode(stripslashes($start_place_coordinates), true);
+        $end_coords   = is_array($end_place_coordinates)   ? $end_place_coordinates   : json_decode(stripslashes($end_place_coordinates), true);
 
-        $pointLocation = new pointLocation();
-        $startInAreaOne = $pointLocation->pointInPolygon($new_start_place_coordinates[0], $operation_area_coordinates_one) !== "outside";
-        $endInAreaOne = $pointLocation->pointInPolygon($new_end_place_coordinates[0], $operation_area_coordinates_one) !== "outside";
-        $startInAreaTwo = $pointLocation->pointInPolygon($new_start_place_coordinates[0], $operation_area_coordinates_two) !== "outside";
-        $endInAreaTwo = $pointLocation->pointInPolygon($new_end_place_coordinates[0], $operation_area_coordinates_two) !== "outside";
+        $start_lat = is_array($start_coords) ? ($start_coords['latitude'] ?? $start_coords['lat'] ?? null) : null;
+        $start_lng = is_array($start_coords) ? ($start_coords['longitude'] ?? $start_coords['lng'] ?? null) : null;
+        $end_lat   = is_array($end_coords)   ? ($end_coords['latitude']   ?? $end_coords['lat']   ?? null) : null;
+        $end_lng   = is_array($end_coords)   ? ($end_coords['longitude']  ?? $end_coords['lng']   ?? null) : null;
+
+        // FIX 2: Close polygons so the ray-cast checks every edge including last→first
+        $closed_one = $operation_area_coordinates_one;
+        if (!empty($closed_one) && $closed_one[0] !== $closed_one[count($closed_one) - 1]) {
+            $closed_one[] = $closed_one[0];
+        }
+        $closed_two = $operation_area_coordinates_two;
+        if (!empty($closed_two) && $closed_two[0] !== $closed_two[count($closed_two) - 1]) {
+            $closed_two[] = $closed_two[0];
+        }
+
+        $new_start = ($start_lat !== null && $start_lng !== null) ? ($start_lat . " " . $start_lng) : "0 0";
+        $new_end   = ($end_lat   !== null && $end_lng   !== null) ? ($end_lat   . " " . $end_lng)   : "0 0";
+
+        $pointLocation  = new pointLocation();
+        $startInAreaOne = $pointLocation->pointInPolygon($new_start, $closed_one) !== "outside";
+        $endInAreaOne   = $pointLocation->pointInPolygon($new_end,   $closed_one) !== "outside";
+        $startInAreaTwo = $pointLocation->pointInPolygon($new_start, $closed_two) !== "outside";
+        $endInAreaTwo   = $pointLocation->pointInPolygon($new_end,   $closed_two) !== "outside";
 
         $startInAreaOne = $startInAreaOne ? "true" : "false";
-        $endInAreaOne = $endInAreaOne ? "true" : "false";
+        $endInAreaOne   = $endInAreaOne   ? "true" : "false";
         $startInAreaTwo = $startInAreaTwo ? "true" : "false";
-        $endInAreaTwo = $endInAreaTwo ? "true" : "false";
+        $endInAreaTwo   = $endInAreaTwo   ? "true" : "false";
+
+        // JS coordinates for geolib fallback (FIX 3)
+        $start_for_js = ($start_lat !== null && $start_lng !== null) ? ["latitude" => floatval($start_lat), "longitude" => floatval($start_lng)] : null;
+        $end_for_js   = ($end_lat   !== null && $end_lng   !== null) ? ["latitude" => floatval($end_lat),   "longitude" => floatval($end_lng)]   : null;
 
         if ($operation_area_geo_direction == "geo-fence-one-direction") {
             if ($startInAreaOne == "true" && $endInAreaTwo == "true") {
@@ -176,6 +201,25 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                     var selectorClass = `.mptbm_booking_item_${post_id}`;
                     jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                </script>
+            <?php } else { ?>
+                <script>
+                (function() {
+                    var geoAreaOne  = <?php echo wp_json_encode($geo_area_one); ?>;
+                    var geoAreaTwo  = <?php echo wp_json_encode($geo_area_two); ?>;
+                    var startCoords = <?php echo wp_json_encode($start_for_js); ?>;
+                    var endCoords   = <?php echo wp_json_encode($end_for_js); ?>;
+                    if (startCoords && endCoords && typeof geolib !== 'undefined') {
+                        var sInOne = geolib.isPointInPolygon(startCoords, geoAreaOne);
+                        var eInTwo = geolib.isPointInPolygon(endCoords,   geoAreaTwo);
+                        var eInOne = geolib.isPointInPolygon(endCoords,   geoAreaOne);
+                        if ((sInOne && eInTwo) || (sInOne && eInOne)) {
+                            var selectorClass = '.mptbm_booking_item_<?php echo intval($post_id); ?>';
+                            jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
+                            document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                        }
+                    }
+                })();
                 </script>
             <?php }
         } else {
@@ -235,7 +279,27 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
                 </script>
                 <?php
-            }
+            } else { ?>
+                <script>
+                (function() {
+                    var geoAreaOne  = <?php echo wp_json_encode($geo_area_one); ?>;
+                    var geoAreaTwo  = <?php echo wp_json_encode($geo_area_two); ?>;
+                    var startCoords = <?php echo wp_json_encode($start_for_js); ?>;
+                    var endCoords   = <?php echo wp_json_encode($end_for_js); ?>;
+                    if (startCoords && endCoords && typeof geolib !== 'undefined') {
+                        var sInOne = geolib.isPointInPolygon(startCoords, geoAreaOne);
+                        var eInTwo = geolib.isPointInPolygon(endCoords,   geoAreaTwo);
+                        var sInTwo = geolib.isPointInPolygon(startCoords, geoAreaTwo);
+                        var eInOne = geolib.isPointInPolygon(endCoords,   geoAreaOne);
+                        if ((sInOne && eInTwo) || (sInTwo && eInOne) || (sInOne && eInOne) || (sInTwo && eInTwo)) {
+                            var selectorClass = '.mptbm_booking_item_<?php echo intval($post_id); ?>';
+                            jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
+                            document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                        }
+                    }
+                })();
+                </script>
+            <?php }
         }
     }
 }
