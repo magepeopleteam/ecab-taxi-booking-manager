@@ -271,7 +271,6 @@
 					}
 				}
 
-                error_log( print_r( [ '$new_extra_service' => $new_extra_service ], true ) );
 				return apply_filters( 'filter_mptbm_extra_service_data', $new_extra_service, $post_id );
 			}
 			/**
