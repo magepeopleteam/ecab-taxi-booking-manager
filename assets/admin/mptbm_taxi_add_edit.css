@@ -2987,7 +2987,7 @@ select.formControl,
     gap: 0;
     overflow: hidden;
 }
-.mptbm-oa-info:hover .mptbm-oa-tooltip {
+.mptbm-oa-info:hover ~ .mptbm-oa-tooltip {
     opacity: 1;
     visibility: visible;
 }

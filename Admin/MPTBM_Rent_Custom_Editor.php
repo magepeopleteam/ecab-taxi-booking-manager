@@ -1612,12 +1612,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-info">
                                             <span class="dashicons dashicons-info"></span>
-                                            <div class="mptbm-oa-tooltip">
-                                                <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Removes any zone restriction — this taxi accepts bookings from any location without geographic limits.', 'ecab-taxi-booking-manager' ); ?></p>
-                                                <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Use when no geographic restrictions are needed and all pickups and dropoffs are allowed.', 'ecab-taxi-booking-manager' ); ?></p>
-                                            </div>
+                                        </div>
+                                        <div class="mptbm-oa-tooltip">
+                                            <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Removes any zone restriction — this taxi accepts bookings from any location without geographic limits.', 'ecab-taxi-booking-manager' ); ?></p>
+                                            <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Use when no geographic restrictions are needed and all pickups and dropoffs are allowed.', 'ecab-taxi-booking-manager' ); ?></p>
                                         </div>
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-location mptbm-oa-icon"></span>
@@ -1638,12 +1638,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-info">
                                             <span class="dashicons dashicons-info"></span>
-                                            <div class="mptbm-oa-tooltip">
-                                                <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Both the pickup AND dropoff locations must fall within the defined operation zone.', 'ecab-taxi-booking-manager' ); ?></p>
-                                                <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Best for services operating entirely within a city or district, e.g. rides within a city centre.', 'ecab-taxi-booking-manager' ); ?></p>
-                                            </div>
+                                        </div>
+                                        <div class="mptbm-oa-tooltip">
+                                            <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Both the pickup AND dropoff locations must fall within the defined operation zone.', 'ecab-taxi-booking-manager' ); ?></p>
+                                            <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Best for services operating entirely within a city or district, e.g. rides within a city centre.', 'ecab-taxi-booking-manager' ); ?></p>
                                         </div>
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-location mptbm-oa-icon"></span>
@@ -1664,12 +1664,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-info">
                                             <span class="dashicons dashicons-info"></span>
-                                            <div class="mptbm-oa-tooltip">
-                                                <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Only the pickup location needs to be inside the zone — the dropoff can be anywhere.', 'ecab-taxi-booking-manager' ); ?></p>
-                                                <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Ideal for airport transfers or city-centre pickups with open destinations.', 'ecab-taxi-booking-manager' ); ?></p>
-                                            </div>
+                                        </div>
+                                        <div class="mptbm-oa-tooltip">
+                                            <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Only the pickup location needs to be inside the zone — the dropoff can be anywhere.', 'ecab-taxi-booking-manager' ); ?></p>
+                                            <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Ideal for airport transfers or city-centre pickups with open destinations.', 'ecab-taxi-booking-manager' ); ?></p>
                                         </div>
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-marker mptbm-oa-icon"></span>
@@ -1690,12 +1690,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-info">
                                             <span class="dashicons dashicons-info"></span>
-                                            <div class="mptbm-oa-tooltip">
-                                                <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Draw a custom polygon boundary on the map. Bookings are restricted to that drawn area.', 'ecab-taxi-booking-manager' ); ?></p>
-                                                <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Use when your service zone has an irregular shape that circles or rectangles cannot cover.', 'ecab-taxi-booking-manager' ); ?></p>
-                                            </div>
+                                        </div>
+                                        <div class="mptbm-oa-tooltip">
+                                            <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Draw a custom polygon boundary on the map. Bookings are restricted to that drawn area.', 'ecab-taxi-booking-manager' ); ?></p>
+                                            <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Use when your service zone has an irregular shape that circles or rectangles cannot cover.', 'ecab-taxi-booking-manager' ); ?></p>
                                         </div>
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-admin-site-alt3 mptbm-oa-icon"></span>
@@ -1716,12 +1716,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-info">
                                             <span class="dashicons dashicons-info"></span>
-                                            <div class="mptbm-oa-tooltip">
-                                                <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Matches bookings using overlapping geographic zones for flexible multi-zone routing.', 'ecab-taxi-booking-manager' ); ?></p>
-                                                <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Ideal for multi-zone services where coverage areas may overlap or share boundaries.', 'ecab-taxi-booking-manager' ); ?></p>
-                                            </div>
+                                        </div>
+                                        <div class="mptbm-oa-tooltip">
+                                            <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Matches bookings using overlapping geographic zones for flexible multi-zone routing.', 'ecab-taxi-booking-manager' ); ?></p>
+                                            <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Ideal for multi-zone services where coverage areas may overlap or share boundaries.', 'ecab-taxi-booking-manager' ); ?></p>
                                         </div>
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-networking mptbm-oa-icon"></span>
@@ -2080,12 +2080,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-info">
                                             <span class="dashicons dashicons-info"></span>
-                                            <div class="mptbm-oa-tooltip">
-                                                <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Both the pickup AND dropoff locations must fall within the defined operation zone.', 'ecab-taxi-booking-manager' ); ?></p>
-                                                <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Best for services operating entirely within a city or district, e.g. rides within a city centre.', 'ecab-taxi-booking-manager' ); ?></p>
-                                            </div>
+                                        </div>
+                                        <div class="mptbm-oa-tooltip">
+                                            <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Both the pickup AND dropoff locations must fall within the defined operation zone.', 'ecab-taxi-booking-manager' ); ?></p>
+                                            <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Best for services operating entirely within a city or district, e.g. rides within a city centre.', 'ecab-taxi-booking-manager' ); ?></p>
                                         </div>
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-location mptbm-oa-icon"></span>
@@ -2106,12 +2106,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-info">
                                             <span class="dashicons dashicons-info"></span>
-                                            <div class="mptbm-oa-tooltip">
-                                                <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Only the pickup location needs to be inside the zone — the dropoff can be anywhere.', 'ecab-taxi-booking-manager' ); ?></p>
-                                                <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Ideal for airport transfers or city-centre pickups with open destinations.', 'ecab-taxi-booking-manager' ); ?></p>
-                                            </div>
+                                        </div>
+                                        <div class="mptbm-oa-tooltip">
+                                            <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Only the pickup location needs to be inside the zone — the dropoff can be anywhere.', 'ecab-taxi-booking-manager' ); ?></p>
+                                            <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Ideal for airport transfers or city-centre pickups with open destinations.', 'ecab-taxi-booking-manager' ); ?></p>
                                         </div>
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-marker mptbm-oa-icon"></span>
@@ -2132,12 +2132,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-info">
                                             <span class="dashicons dashicons-info"></span>
-                                            <div class="mptbm-oa-tooltip">
-                                                <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Draw a custom polygon boundary on the map. Bookings are restricted to that drawn area.', 'ecab-taxi-booking-manager' ); ?></p>
-                                                <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Use when your service zone has an irregular shape that circles or rectangles cannot cover.', 'ecab-taxi-booking-manager' ); ?></p>
-                                            </div>
+                                        </div>
+                                        <div class="mptbm-oa-tooltip">
+                                            <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Draw a custom polygon boundary on the map. Bookings are restricted to that drawn area.', 'ecab-taxi-booking-manager' ); ?></p>
+                                            <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Use when your service zone has an irregular shape that circles or rectangles cannot cover.', 'ecab-taxi-booking-manager' ); ?></p>
                                         </div>
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-admin-site-alt3 mptbm-oa-icon"></span>
@@ -2158,12 +2158,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-info">
                                             <span class="dashicons dashicons-info"></span>
-                                            <div class="mptbm-oa-tooltip">
-                                                <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Matches bookings using overlapping geographic zones for flexible multi-zone routing.', 'ecab-taxi-booking-manager' ); ?></p>
-                                                <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
-                                                <p><?php esc_html_e( 'Ideal for multi-zone services where coverage areas may overlap or share boundaries.', 'ecab-taxi-booking-manager' ); ?></p>
-                                            </div>
+                                        </div>
+                                        <div class="mptbm-oa-tooltip">
+                                            <div class="mptbm-oa-tt-head"><?php esc_html_e( 'How it works', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Matches bookings using overlapping geographic zones for flexible multi-zone routing.', 'ecab-taxi-booking-manager' ); ?></p>
+                                            <div class="mptbm-oa-tt-section"><?php esc_html_e( 'When to use', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <p><?php esc_html_e( 'Ideal for multi-zone services where coverage areas may overlap or share boundaries.', 'ecab-taxi-booking-manager' ); ?></p>
                                         </div>
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-networking mptbm-oa-icon"></span>
