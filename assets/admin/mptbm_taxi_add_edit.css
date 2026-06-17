@@ -2915,3 +2915,176 @@ select.formControl,
 @media (max-width: 600px) {
     .mptbm_taxi_pricing_tab_item.active::before { display: none; }
 }
+
+/* ================================================================
+   SECTION 30: OPERATION AREA CARDS v2
+   — equal height · icon+name inline · dot+label row · info tooltip
+   ================================================================ */
+
+/* Equal-height grid cells */
+.mptbm-oa-grid {
+    align-items: stretch;
+}
+.mptbm-oa-card {
+    display: flex;
+    height: 100%;
+}
+
+/* Full-height flex column; padding-top reserves space for info icon */
+.mptbm-oa-card-inner {
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    padding: 14px;
+    padding-top: 36px;
+}
+
+/* ── Info icon — top-right corner ────────────────────────────────
+   Hover reveals a dark overlay with extended description.
+   pointer-events on tooltip stays none so label click still works.
+   ---------------------------------------------------------------- */
+.mptbm-oa-info {
+    position: absolute;
+    top: 8px;
+    right: 9px;
+    z-index: 5;
+    line-height: 1;
+}
+.mptbm-oa-info > .dashicons {
+    font-size: 15px !important;
+    width: 15px !important;
+    height: 15px !important;
+    color: var(--mp-text-300);
+    cursor: help;
+    display: block;
+    transition: color 0.2s ease, transform 0.15s ease;
+}
+.mptbm-oa-info:hover > .dashicons {
+    color: var(--mp-primary);
+    transform: scale(1.15);
+}
+
+/* Tooltip overlay — fills the card, stays within overflow:hidden ancestors */
+.mptbm-oa-tooltip {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(15, 23, 42, 0.96);
+    border-radius: calc(var(--mp-r-md) - 1px);
+    padding: 12px 14px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.22s ease, visibility 0.22s;
+    pointer-events: none;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+}
+.mptbm-oa-info:hover .mptbm-oa-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+.mptbm-oa-tt-head {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 5px;
+}
+.mptbm-oa-tt-section {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #475569;
+    margin: 9px 0 3px;
+}
+.mptbm-oa-tooltip p {
+    margin: 0;
+    font-size: 11px;
+    color: #94a3b8;
+    line-height: 1.55;
+}
+
+/* ── Icon + name on the same horizontal line ─────────────────────
+   ---------------------------------------------------------------- */
+.mptbm-oa-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.mptbm-oa-header .mptbm-oa-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.mptbm-oa-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--mp-text-800);
+    line-height: 1.35;
+    flex: 1;
+}
+
+/* Description fills remaining height so all cards stretch equally */
+.mptbm-oa-desc {
+    font-size: 11.5px;
+    color: var(--mp-text-500);
+    line-height: 1.5;
+    flex: 1;
+    margin: 0 0 10px;
+}
+
+/* ── Radio dot + label on the same line ──────────────────────────
+   Two label spans; CSS shows/hides based on :checked state.
+   ---------------------------------------------------------------- */
+.mptbm-oa-select-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding-top: 9px;
+    border-top: 1px solid var(--mp-border-light);
+    margin-top: auto;
+}
+.mptbm-oa-select-row .mptbm-oa-dot {
+    margin-top: 0;
+    flex-shrink: 0;
+}
+.mptbm-oa-dot-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--mp-text-400);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.mptbm-oa-lbl-on {
+    display: none;
+    color: var(--mp-primary);
+    font-weight: 700;
+}
+.mptbm-oa-lbl-on::before { content: '✓ '; }
+
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-lbl-off { display: none; }
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-lbl-on  { display: inline; }
+
+/* Cancel the old ::after "✓ Selected" — superseded by .mptbm-oa-lbl-on */
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner::after {
+    content: none;
+}
+
+/* Responsive: 2-col on small viewports */
+@media (max-width: 600px) {
+    .mptbm-oa-grid { grid-template-columns: 1fr 1fr; }
+    .mptbm-oa-card-inner { padding-top: 34px; }
+}
