@@ -741,6 +741,8 @@ if (!class_exists('MPTBM_Function')) {
 			$price = 0;
 			delete_transient('mptbm_fixed_route_found_' . $post_id);
 
+            $operation_area_type = MP_Global_Function::get_post_info($post_id, 'mptbm_operation_area_type', '' );
+
 			// Force fresh pricing calculations to prevent caching issues on repeated searches
 			$is_transport_result_page = false;
 			$is_ajax_search = false;
@@ -1183,16 +1185,19 @@ if (!class_exists('MPTBM_Function')) {
 				// Weather and Traffic pricing is now handled by the filter below to avoid double application
 			}
 
-			if (isset($_SESSION['geo_fence_post_' . $post_id])) {
-				$session_data = $_SESSION['geo_fence_post_' . $post_id];
-				if (isset($session_data[0])) {
-					if (isset($session_data[1]) && $session_data[1] == 'geo-fence-fixed-price') {
-						$price += (float) $session_data[0];
-					} else {
-						$price += ((float) $session_data[0] / 100) * $price;
-					}
-				}
-			}
+            if( !empty( $operation_area_type ) && $operation_area_type === 'geo-fence-operation-area-type' ){
+                if (isset($_SESSION['geo_fence_post_' . $post_id])) {
+                    $session_data = $_SESSION['geo_fence_post_' . $post_id];
+                    if (isset($session_data[0])) {
+                        if (isset($session_data[1]) && $session_data[1] == 'geo-fence-fixed-price') {
+                            $price += (float) $session_data[0];
+                        } else {
+                            $price += ((float) $session_data[0] / 100) * $price;
+                        }
+                    }
+                }
+            }
+
 
 			session_write_close();
 
