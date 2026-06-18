@@ -73,21 +73,10 @@
                 e.preventDefault();
                 updateStep(currentStep + 1);
             } else {
-                // last step → submit form
-                // $('form').submit();
-                let formData = $(this).serialize();
-
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data:  $('.mptbm_rent_form').serialize(),
-                    success: function (response) {
-                        // console.log('Success:', response);
-                    },
-                    error: function (err) {
-                        console.log('Error:', err);
-                    }
-                });
+                // last step → submit form natively to admin-post.php
+                // prevent default native submit once and trigger programmatically to avoid double-submit
+                e.preventDefault();
+                $('.mptbm_rent_form').submit();
             }
         });
 
@@ -203,10 +192,17 @@
 
         $(document).on('click', '.mptbm_taxi_feature_btn_del', function(e) {
             e.preventDefault();
+            console.log('mptbm: feature delete clicked', this);
             if(confirm('Are you sure you want to remove this feature?')) {
-                $(this).closest('.mptbm_taxi_feature_row').fadeOut(300, function() {
-                    $(this).remove();
-                });
+                var $row = $(this).closest('.mptbm_taxi_feature_row');
+                try {
+                    $row.find('input, select, textarea').prop('disabled', true);
+                    // hide the row to avoid triggering plugin teardown
+                    $row.css('display', 'none').attr('data-mptbm-deleted', '1').addClass('mptbm-row-deleted');
+                } catch (err) {
+                    console.error('mptbm: error hiding feature row', err);
+                    try { if ($row && $row.length) { $row.css('display', 'none').attr('data-mptbm-deleted', '1'); } } catch (e) { /* ignore */ }
+                }
             }
         });
 
@@ -279,18 +275,37 @@
         });
 
 
-        $('.mptbm_taxi_pricing_add_route_full_btn').on('click', function() {
+        $(document).on('click', '.mptbm_taxi_pricing_add_route_full_btn', function() {
             var rowHtml = $('.mptbm_taxi_pricing_route_row:first').clone();
             rowHtml.find('input').val('');
+            rowHtml.find('select').prop('selectedIndex', 0);
+            // ensure cloned inputs are enabled
+            rowHtml.find('input, select, textarea').prop('disabled', false);
             $('.mptbm_taxi_pricing_manual_list').append(rowHtml);
         });
 
         // Delete Row
-        $(document).on('click', '.mptbm_taxi_pricing_delete_btn', function() {
-            if($('.mptbm_taxi_pricing_route_row').length > 1) {
-                $(this).closest('.mptbm_taxi_pricing_route_row').fadeOut(300, function() {
-                    $(this).remove();
-                });
+        // Disable inputs immediately so deleted rows are not serialized if the form
+        // is submitted quickly after clicking delete. Then remove immediately.
+        $(document).on('click', '.mptbm_taxi_pricing_delete_btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('mptbm: pricing delete clicked', this);
+            var $row = $(this).closest('.mptbm_taxi_pricing_route_row');
+            if ($row.siblings('.mptbm_taxi_pricing_route_row').length > 0 || $('.mptbm_taxi_pricing_route_row').length > 1) {
+                try {
+                    // disable form controls so they won't be included in form submission
+                    $row.find('input, select, textarea').prop('disabled', true);
+                    // remove attributes that tooltip libraries may reference
+                    $row.find('[title],[aria-describedby],[data-original-title],[data-bs-original-title]').each(function () {
+                        try { $(this).removeAttr('title aria-describedby data-original-title data-bs-original-title'); } catch (e) {}
+                    });
+                    // hide row to avoid plugin teardown side-effects
+                    $row.css('display', 'none').attr('data-mptbm-deleted', '1');
+                } catch (err) {
+                    console.error('mptbm: error hiding pricing row', err);
+                    try { if ($row && $row.length) { $row.css('display', 'none').attr('data-mptbm-deleted', '1'); } } catch (e) { /* ignore */ }
+                }
             }
         });
 
@@ -298,6 +313,8 @@
         $(document).on('click', '.mptbm_taxi_pricing_clone_btn', function() {
             var $row = $(this).closest('.mptbm_taxi_pricing_route_row');
             var $clone = $row.clone();
+            // ensure cloned inputs are enabled
+            $clone.find('input, select, textarea').prop('disabled', false);
             $row.after($clone.hide().fadeIn(300));
         });
 
@@ -305,6 +322,7 @@
         $('.mptbm_taxi_pricing_add_area_btn').on('click', function() {
             var row = $('.mptbm_taxi_pricing_area_row:first').clone();
             row.find('input').val('');
+            row.find('input, select, textarea').prop('disabled', false);
             $('.mptbm_taxi_pricing_area_list').append(row);
         });
 
@@ -317,18 +335,21 @@
         $(document).on('click','.mptbm_taxi_pricing_add_route_btn', function() {
             var tr = $('.mptbm_taxi_pricing_route_list tr:first').clone();
             tr.find('input').val('');
+            tr.find('input, select, textarea').prop('disabled', false);
             $('.mptbm_taxi_pricing_route_list').append(tr);
         });
 
         $(document).on('click','.mptbm_taxi_pricing_add_zone_to_zone_route_btn', function() {
             var tr = $('.mptbm_taxi_pricing_zone_to_zone_route_list tr:first').clone();
             tr.find('input').val('');
+            tr.find('input, select, textarea').prop('disabled', false);
             $('.mptbm_taxi_pricing_zone_to_zone_route_list').append(tr);
         });
 
         $(document).on('click', '.mptbm_taxi_pricing_add_zone_btn', function() {
             var tr = $('.mptbm_taxi_pricing_fixed_zone_route_list tr:first').clone();
             tr.find('input').val('');
+            tr.find('input, select, textarea').prop('disabled', false);
             $('.mptbm_taxi_pricing_fixed_zone_route_list').append(tr);
         });
 
@@ -1179,8 +1200,17 @@
         // 2. Delete Row Functionality
         $(document).on('click', '.mptbm_taxi_ex_service_btn_del', function(e) {
             e.preventDefault();
+            console.log('mptbm: ex-service delete clicked', this);
             if(confirm('Are you sure you want to remove this service?')) {
-                $(this).closest('tr').fadeOut(300, function() { $(this).remove(); });
+                var $row = $(this).closest('tr');
+                try {
+                    $row.find('input, select, textarea').prop('disabled', true);
+                    // hide the row to avoid triggering plugin teardown
+                    $row.css('display', 'none').attr('data-mptbm-deleted', '1').addClass('mptbm-row-deleted');
+                } catch (err) {
+                    console.error('mptbm: error hiding ex-service row', err);
+                    try { if ($row && $row.length) { $row.css('display', 'none').attr('data-mptbm-deleted', '1'); } } catch (e) { /* ignore */ }
+                }
             }
         });
 
