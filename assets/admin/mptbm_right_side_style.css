@@ -4,11 +4,12 @@
 
 .mptbm_quick_tips_card{
     position: relative;
-    background: linear-gradient(135deg,#ffffff,#f8fbff);
-    border: 1px solid #e6edf5;
+    background: var(--mp-white);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-r-lg);
     padding: 24px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+    box-shadow: var(--mp-shadow-sm);
     transition: all .35s ease;
 }
 
@@ -127,10 +128,11 @@
 }
 
 .mptbm_taxi_category_card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    /*border-radius: 8px;*/
+    background: var(--mp-white);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-r-lg);
     padding: 20px;
+    box-shadow: var(--mp-shadow-sm);
     box-sizing: border-box;
 }
 
@@ -388,9 +390,10 @@
     justify-content:space-between;
     align-items:center;
     padding:12px;
-    border:1px solid #e5e5e5;
-    border-radius:8px;
-    background:#fafafa;
+    border:1px solid var(--mp-border);
+    border-radius: var(--mp-r-md);
+    background: var(--mp-bg-muted);
+    box-shadow: var(--mp-shadow-xs);
 }
 
 .mptbm_all_categories_title{

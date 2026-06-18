@@ -238,8 +238,8 @@
                     </div>
                     <input type="text" class="mptbm_taxi_feature_input" name="mptbm_features_text[]" placeholder="Value">
                     <div class="mptbm_taxi_feature_actions">
-                        <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_del">🗑️</button>
-                            <button class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_move">✥</button>
+                        <button type="button" class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_del" title="Remove"><span class="dashicons dashicons-trash"></span></button>
+                        <button type="button" class="mptbm_taxi_feature_btn_icon mptbm_taxi_feature_btn_move" title="Drag to reorder"><span class="dashicons dashicons-move"></span></button>
                     </div>
                 </div>`;
 

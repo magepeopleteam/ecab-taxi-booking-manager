@@ -271,12 +271,15 @@
 
 /* Header stepper holder */
 .mptbm_fixed_header .mptbm_taxi_header_holder {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 6px 20px;
     border: none;
     border-radius: 0;
-    box-shadow: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     margin-bottom: 0;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* ================================================================
@@ -471,11 +474,6 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--mp-text-500);
-    min-width: 80px;
-    text-align: center;
-    background: var(--mp-bg-muted);
-    padding: 6px 14px;
-    border-radius: var(--mp-r-full);
 }
 
 /* ================================================================
@@ -798,21 +796,22 @@ input:checked + .mptbm_taxi_feature_slider::before {
     cursor: pointer;
     top: 0; left: 0; right: 0; bottom: 0;
     background: var(--mp-border-dark);
-    transition: .3s;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: var(--mp-r-full);
+    border: 2px solid transparent;
 }
 .mptbm_taxi_slider::before {
     position: absolute;
     content: "";
     height: 16px; width: 16px;
-    left: 3px; bottom: 3px;
+    left: 2px; bottom: 2px;
     background: var(--mp-white);
-    transition: .3s;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 50%;
     box-shadow: var(--mp-shadow-xs);
 }
-input:checked + .mptbm_taxi_slider { background: var(--mp-primary); }
-input:checked + .mptbm_taxi_slider::before { transform: translateX(20px); }
+input:checked + .mptbm_taxi_slider { background: var(--mp-primary); border-color: transparent; }
+input:checked + .mptbm_taxi_slider::before { transform: translateX(22px); }
 
 /* Toggle Container (base fare / base location sections) */
 .mptbm_taxi_toggle_container {
@@ -1620,7 +1619,7 @@ select.mptbm_taxi_ex_service_select.mideum { max-width: 160px; }
 
 .mptbm_taxi_feature_labels {
     display: grid;
-    grid-template-columns: 130px 1fr 100px;
+    grid-template-columns: 80px 1fr 100px;
     gap: 16px;
     margin-bottom: 10px;
     font-size: 11px;
@@ -1629,11 +1628,12 @@ select.mptbm_taxi_ex_service_select.mideum { max-width: 160px; }
     text-transform: uppercase;
     letter-spacing: 0.06em;
     padding: 0 6px;
+    text-align: left;
 }
 
 .mptbm_taxi_feature_row {
     display: grid;
-    grid-template-columns: 130px 1fr 100px;
+    grid-template-columns: 80px 1fr 100px;
     gap: 16px;
     align-items: center;
     margin-bottom: 10px;
@@ -1648,7 +1648,9 @@ select.mptbm_taxi_ex_service_select.mideum { max-width: 160px; }
     background: var(--mp-white);
     box-shadow: var(--mp-shadow-xs);
 }
-.mptbm_taxi_feature_row .mp_add_icon_image_area { border-color: var(--mp-border); max-width: 100%; }
+.mptbm_taxi_feature_row .mp_add_icon_image_area { border-color: var(--mp-border); max-width: 80px; }
+.mptbm_taxi_feature_row .mp_image_item,
+.mptbm_taxi_feature_row .mp_image_add { display: none !important; }
 
 input.mptbm_taxi_feature_input {
     width: 100%;
@@ -2690,7 +2692,7 @@ input.mptbm_taxi_feature_input:focus {
     padding: 10px 14px;
     font-size: 12px;
     font-weight: 700;
-    text-transform: uppercase;
+    text-transform: normal;
     letter-spacing: 0.05em;
     color: var(--mp-text-500);
     border-bottom: 2px solid var(--mp-border);
@@ -2712,10 +2714,10 @@ input.mptbm_taxi_feature_input:focus {
 .mptbm_taxi_toggle_container {
     border-left: 3px solid var(--mp-primary);
 }
-/* Base-fare / base-location toggles get a warning accent instead */
+/* Base-fare / base-location toggles */
 .mptbm_rent_editor_wrapper[id="mptbm_taxi_base_fare_toggle_container"],
 .mptbm_taxi_toggle_container[id="mptbm_taxi_base_location_toggle_container"] {
-    border-left-color: var(--mp-warning);
+    border-left: none;
 }
 /* Extra services container uses the success colour */
 .mptbm_taxi_ex_service_container {
@@ -2823,8 +2825,6 @@ input.mptbm_taxi_feature_input:focus {
 .mptbm_taxi_step_counter {
     font-weight: 700;
     color: var(--mp-text-700);
-    background: var(--mp-border-light);
-    border: 1px solid var(--mp-border);
 }
 
 /* ── Fixed header: slightly stronger bottom border ───────────────
