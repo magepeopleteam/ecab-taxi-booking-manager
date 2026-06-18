@@ -902,45 +902,79 @@
 
 
         function togglePricingAreaButtons() {
-            let operationType = $('input[name="mptbm_operation_area_type"]:checked').val();
+            let $checkedRadio = $('input[name="mptbm_operation_area_type"]:checked');
+            let operationType = $checkedRadio.val();       // '' for empty-value radio, undefined if none checked
+            let isAnyChecked  = $checkedRadio.length > 0; // true even when value is ''
 
+            // Pills: swap geo-fence vs standard set
             $('.mptbm_taxi_pricing_pill').fadeOut();
             if (operationType === 'geo-fence-operation-area-type') {
                 $('.mptbm_taxi_pricing_pill[data-geo-fance="1"]').fadeIn();
-
                 $("#mptbm_operation_area_based").fadeOut();
             } else {
                 $('.mptbm_taxi_pricing_pill[data-geo-fance="0"]').fadeIn();
             }
 
-            if (operationType === 'geo-matched-operation-area-type' || operationType === 'geo-fence-operation-area-type' ) {
-                $("#mptbm_single_mul_operation_area").text( 'single allowed' );
-            }else{
-                $("#mptbm_single_mul_operation_area").text( 'multiple allowed' );
+            // Single / multiple label
+            if (operationType === 'geo-matched-operation-area-type' || operationType === 'geo-fence-operation-area-type') {
+                $("#mptbm_single_mul_operation_area").text('single allowed');
+            } else {
+                $("#mptbm_single_mul_operation_area").text('multiple allowed');
             }
 
-            if( operationType ){
+            // Pills area: show whenever any radio is checked (including the empty-value "Unselect" radio)
+            if (isAnyChecked) {
                 $('.mptbm_taxi_pricing_area_pills').fadeIn();
-            }else{
+            } else {
+                // Nothing checked at all → collapse everything
                 $('.mptbm_taxi_pricing_area_pills').fadeOut();
-
                 $("#mptbm_operation_area_based").fadeOut();
             }
 
-            // Show Zone To Zone tab and container only for fixed-map or geo-matched types
+            // Zone-to-zone sub-tab: only available for fixed-map and geo-matched
             let $zoneToZoneTab = $('.mptbm_operation_area_fixed_map_type_tab[data-operation-area-type="zone_to_zone"]');
             let $zoneToZoneContainer = $('#mptbm_operation_area_fixed_map_zone_to_zone');
-            if ( operationType === 'fixed-map-operation-area-type' || operationType === 'geo-matched-operation-area-type' ) {
+            if (operationType === 'fixed-map-operation-area-type' || operationType === 'geo-matched-operation-area-type') {
                 $zoneToZoneTab.fadeIn();
             } else {
                 $zoneToZoneTab.fadeOut();
-                // If the zone_to_zone tab was active, switch back to zone_to_location
-                if ( $zoneToZoneTab.hasClass('active') ) {
+                if ($zoneToZoneTab.hasClass('active')) {
                     $zoneToZoneTab.removeClass('active');
                     $('.mptbm_operation_area_fixed_map_type_tab[data-operation-area-type="zone_to_location"]').addClass('active');
                     $zoneToZoneContainer.hide();
                     $('#mptbm_operation_area_fixed_map_zone_to_location').show();
                     $('input[name="mptbm_operation_area_fixed_map_type"]').val('zone_to_location');
+                }
+            }
+
+            // Pricing model tabs: Fixed Zone vs Fixed With Map
+            let $fixedWithMapTab = $('#mptbm_taxi_pricing_fixed_map');
+            let $fixedZoneTab    = $('#mptbm_taxi_pricing_fixed_zone');
+
+            if (!operationType) {
+                // Empty-value radio (or nothing checked): show Fixed Zone, hide Fixed With Map
+                $fixedWithMapTab.hide();
+                $fixedZoneTab.show();
+                if ($fixedWithMapTab.hasClass('active')) {
+                    $fixedWithMapTab.removeClass('active');
+                    $fixedZoneTab.trigger('click');
+                }
+            } else if (operationType === 'geo-fence-operation-area-type') {
+                // Geo-fence has no map/zone pricing model — hide both
+                $fixedWithMapTab.hide();
+                $fixedZoneTab.hide();
+            } else {
+                // Any real value: show Fixed With Map, hide Fixed Zone
+                $fixedZoneTab.hide();
+                $fixedWithMapTab.show();
+                if ($fixedZoneTab.hasClass('active')) {
+                    $fixedZoneTab.removeClass('active');
+                    $fixedWithMapTab.trigger('click');
+                }
+                // geo-matched + zone_to_zone: zone-to-zone has its own pricing table,
+                // so Fixed With Map tab is also hidden in that combination
+                if (operationType === 'geo-matched-operation-area-type' && $zoneToZoneTab.hasClass('active')) {
+                    $fixedWithMapTab.hide();
                 }
             }
         }
@@ -1400,6 +1434,17 @@
         $('.mptbm_operation_area_fixed_map_type_content').hide();
 
         $('#mptbm_operation_area_fixed_map_' + type).fadeIn(200);
+
+        // For geo-matched: zone_to_zone has its own pricing table so hide Fixed With Map;
+        // switching back to zone_to_location restores it.
+        let currentOpType = $('input[name="mptbm_operation_area_type"]:checked').val();
+        if (currentOpType === 'geo-matched-operation-area-type') {
+            if (type === 'zone_to_zone') {
+                $('#mptbm_taxi_pricing_fixed_map').hide();
+            } else {
+                $('#mptbm_taxi_pricing_fixed_map').show();
+            }
+        }
     });
     let activeType = $('.mptbm_operation_area_fixed_map_type_tab.active')
         .data('operation-area-type');
