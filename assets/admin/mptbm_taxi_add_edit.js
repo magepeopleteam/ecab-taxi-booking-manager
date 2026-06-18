@@ -955,9 +955,20 @@
                 // Empty-value radio (or nothing checked): show Fixed Zone, hide Fixed With Map
                 $fixedWithMapTab.hide();
                 $fixedZoneTab.show();
+
                 if ($fixedWithMapTab.hasClass('active')) {
+                    // Fixed With Map was active → hand off to Fixed Zone
                     $fixedWithMapTab.removeClass('active');
                     $fixedZoneTab.trigger('click');
+                } else if ($fixedZoneTab.hasClass('active')) {
+                    // Fixed Zone is already active from saved PHP state.
+                    // PHP hides #mptbm_operation_area_based when operation type is empty,
+                    // so we must show the container and its content explicitly here.
+                    $("#mptbm_operation_area_based").show();
+                    if (parseInt($("#mptbm_is_selected_operation_area").val(), 10) === 1) {
+                        $("#mptbm_fixed_zone_area_pricing").show();
+                        $("#mptbm_fixed_map_area_pricing").hide();
+                    }
                 }
             } else if (operationType === 'geo-fence-operation-area-type') {
                 // Geo-fence has no map/zone pricing model — hide both
