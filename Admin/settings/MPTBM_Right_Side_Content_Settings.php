@@ -30,6 +30,8 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
 
             self::mptbm_right_feature_image( $post_id );
 
+            self::mptbm_right_pro_features_card();
+
             self::mptbm_right_quick_tipcs( $post_id );
 
             self::category_tag_add( $post_id );
@@ -125,6 +127,48 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                 </div>
 
                 <?php self::category_add_popup();?>
+            </div>
+        <?php }
+
+        public static function mptbm_right_pro_features_card() {
+            if ( class_exists( 'MPTBM_Dependencies_Pro' ) ) {
+                return;
+            }
+            ?>
+            <div class="mptbm_pro_card_wrapper">
+
+                <div class="mptbm_pro_card_header">
+                    <span class="mptbm_pro_card_badge">
+                        &#9733; <?php esc_html_e( 'Pro', 'ecab-taxi-booking-manager' ); ?>
+                    </span>
+                    <span class="mptbm_pro_card_status_inactive">
+                        <?php esc_html_e( 'Not Active', 'ecab-taxi-booking-manager' ); ?>
+                    </span>
+                </div>
+
+                <div class="mptbm_pro_card_title">
+                    <?php esc_html_e( 'Pro Features', 'ecab-taxi-booking-manager' ); ?>
+                </div>
+
+                <div class="mptbm_pro_card_desc">
+                    <?php esc_html_e( 'Unlock powerful tools to supercharge your taxi booking system. Upgrade to Pro and get access to:', 'ecab-taxi-booking-manager' ); ?>
+                </div>
+
+                <ul class="mptbm_pro_card_list">
+                    <li><?php esc_html_e( 'Provide Intercity Ride Services Like Uber By Selecting Pickup And Destination Locations On The Map', 'ecab-taxi-booking-manager' ); ?></li>
+                    <li><?php esc_html_e( 'Set Up Smart Service Zones With Advanced Geofencing Technology', 'ecab-taxi-booking-manager' ); ?></li>
+                    <li><?php esc_html_e( 'Manage Order Lists and Order Details Efficiently', 'ecab-taxi-booking-manager' ); ?></li>
+                    <li><?php esc_html_e( 'Add a dedicated driver management panel', 'ecab-taxi-booking-manager' ); ?></li>
+                    <li><?php esc_html_e( 'Distance-based Tier Pricing ( Addon )', 'ecab-taxi-booking-manager' ); ?></li>
+                    <li><?php esc_html_e( 'Peak Hour Pricing Rules ( Addon )', 'ecab-taxi-booking-manager' ); ?></li>
+                    <li><?php esc_html_e( 'Custom Checkout Fields', 'ecab-taxi-booking-manager' ); ?></li>
+                    <li><?php esc_html_e( 'Priority Email And PDF Support', 'ecab-taxi-booking-manager' ); ?></li>
+                </ul>
+
+                <a href="https://mage-people.com/" class="mptbm_pro_card_btn" target="_blank" rel="noopener noreferrer">
+                    <?php esc_html_e( 'Upgrade to Pro', 'ecab-taxi-booking-manager' ); ?>
+                </a>
+
             </div>
         <?php }
 
