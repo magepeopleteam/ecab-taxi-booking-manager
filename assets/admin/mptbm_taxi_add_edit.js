@@ -15,6 +15,10 @@
 
         let currentStep = 1;
         let totalSteps = $('.mptbm_taxi_step').length;
+
+        // Persists selected pill IDs per area type so switching back restores them
+        let selectionCache = {};
+        let currentAreaType = $('input[name="mptbm_operation_area_type"]:checked').val() || '';
         function updateStep(step) {
 
             if (step < 1 || step > totalSteps) return;
@@ -942,8 +946,19 @@
         }
         togglePricingAreaButtons();
         $(document).on('change', 'input[name="mptbm_operation_area_type"]', function () {
-        // $(document).on('change', '.mptbm_operation_area_type', function () {
 
+            // Snapshot full state for the type being left
+            let savedPills = [];
+            $('.mptbm_taxi_pricing_pill.selected').each(function () {
+                savedPills.push($(this).data('id'));
+            });
+            selectionCache[currentAreaType] = {
+                pills:        savedPills,
+                pricingTabId: $('.mptbm_taxi_pricing_tab_item_area.active').data('id') || '',
+                fixedMapType: $('.mptbm_operation_area_fixed_map_type_tab.active').data('operation-area-type') || ''
+            };
+
+            // Clear the UI
             $('#mptbm_selected_operation_areas').val('');
             $('.mptbm_taxi_pricing_pill')
                 .removeClass('selected')
@@ -951,6 +966,53 @@
             $('.mptbm_taxi_pricing_active_indicator').html('Active: ');
 
             togglePricingAreaButtons();
+
+            // Track the newly selected type
+            currentAreaType = $('input[name="mptbm_operation_area_type"]:checked').val() || '';
+
+            let cached = selectionCache[currentAreaType] || {};
+            let cachedPills = cached.pills || [];
+            let isGeoFenceType = currentAreaType === 'geo-fence-operation-area-type';
+            let isSingle = (
+                currentAreaType === 'geo-matched-operation-area-type' ||
+                isGeoFenceType
+            );
+
+            // 1. Restore pills.
+            //    Use data-geo-fance to validate each pill against the new type instead of
+            //    :visible — fadeOut/fadeIn are async so :visible is unreliable right here.
+            $.each(cachedPills, function (index, id) {
+                if (isSingle && index > 0) return false;
+                let $pill = $('.mptbm_taxi_pricing_pill[data-id="' + id + '"]');
+                if (!$pill.length) return;
+                let pillIsGeoFence = parseInt($pill.data('geo-fance'), 10) === 1;
+                if (pillIsGeoFence !== isGeoFenceType) return; // pill belongs to a different type
+                $pill.addClass('selected');
+                if ($pill.find('i').length === 0) {
+                    $pill.prepend('<i class="fas fa-check"></i> ');
+                }
+            });
+
+            updateHiddenInput();
+            updateActiveIndicator();
+
+            // 2. Restore the Operation Area Based Pricing Model tab.
+            //    Geo-fence does not use these tabs — skip entirely.
+            if (cached.pricingTabId && !isGeoFenceType) {
+                let $pricingTab = $('.mptbm_taxi_pricing_tab_item_area[data-id="' + cached.pricingTabId + '"]');
+                if ($pricingTab.length) {
+                    $pricingTab.trigger('click');
+                }
+            }
+
+            // 3. Restore the fixed-map sub-type tab (zone_to_location / zone_to_zone).
+            //    Also irrelevant for geo-fence, and zone_to_zone may be hidden for some types.
+            if (cached.fixedMapType && !isGeoFenceType) {
+                let $fixedTab = $('.mptbm_operation_area_fixed_map_type_tab[data-operation-area-type="' + cached.fixedMapType + '"]');
+                if ($fixedTab.length) {
+                    $fixedTab.trigger('click');
+                }
+            }
         });
 
         // on load
