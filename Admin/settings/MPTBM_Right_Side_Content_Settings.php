@@ -210,7 +210,6 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
             <div class="mptbm_feature_image_card">
                 <div class="mptbm_rent_editor_header ">
                     <h2 class="mptbm_rent_editor_title"><?php esc_html_e( 'Featured Image', 'ecab-taxi-booking-manager' ); ?></h2>
-                    <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Main event thumbnail', 'ecab-taxi-booking-manager' ); ?></p>
                 </div>
                 <div class="mptbm_feature_image_body">
                     <input
