@@ -934,7 +934,7 @@
             // Zone-to-zone sub-tab: only available for fixed-map and geo-matched
             let $zoneToZoneTab = $('.mptbm_operation_area_fixed_map_type_tab[data-operation-area-type="zone_to_zone"]');
             let $zoneToZoneContainer = $('#mptbm_operation_area_fixed_map_zone_to_zone');
-            if (operationType === 'fixed-map-operation-area-type' || operationType === 'geo-matched-operation-area-type') {
+            if (operationType === 'fixed-map-operation-area-type' ) {
                 $zoneToZoneTab.fadeIn();
             } else {
                 $zoneToZoneTab.fadeOut();
