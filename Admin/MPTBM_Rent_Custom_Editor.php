@@ -278,7 +278,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <input type="hidden" name="action" value="save_mptbm_rent">
                     <input type="hidden" name="post_id" value="<?php echo esc_attr($post_id); ?>">
 
-                    <?php wp_nonce_field('save_mptbm_rent_nonce'); ?>
+                    <?php wp_nonce_field('save_mptbm_rent_nonce');
+                    $add_url   = admin_url('admin.php?page=mptbm-rent-edit');
+                    ?>
 
                     <!-- FIXED HEADER -->
                     <div class="mptbm_fixed_header">
@@ -308,7 +310,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             <div class="mptbm_header_right">
 
                                 <?php
-                                $add_url   = admin_url('admin.php?page=mptbm-rent-edit');
                                 submit_button($post_id ? 'Update' : 'Publish', 'primary', '', false); ?>
                                 
                                 <a href="<?php echo esc_url($old_editor_url); ?>" class="button">

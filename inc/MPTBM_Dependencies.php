@@ -102,7 +102,6 @@ if (!class_exists('MPTBM_Dependencies')) {
                 }
 
                 if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) {
-                    error_log( print_r( [ 'here' => 'ok'], true ) );
                     wp_enqueue_style('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css', array(), time());
                     wp_enqueue_script('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js', array('jquery'), time(), true);
                 }
