@@ -28,7 +28,11 @@
     gap: 10px;
 }
 
-#mptbm_conditional_logic{
+#mptbm_conditional_logic,
+#mptbm_distance_tier_enabled,
+#mptbm_peak_hour_enabled,
+#mptbm_distance_tier_pricing_mode
+{
     width: 350px;
 }
 
