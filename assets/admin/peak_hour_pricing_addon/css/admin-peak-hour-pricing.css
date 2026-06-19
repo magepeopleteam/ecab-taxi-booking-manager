@@ -50,7 +50,7 @@
     min-width: 1200px; /* force horizontal scroll on smaller containers */
     border-collapse: collapse;
     margin-bottom: 20px;
-    table-layout: fixed;
+    /*table-layout: fixed;*/
     display: inline-table; /* allow scroll container to size independently */
 }
 
