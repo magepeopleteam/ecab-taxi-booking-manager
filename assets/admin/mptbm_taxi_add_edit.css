@@ -1195,6 +1195,15 @@ input:checked + .mptbm_taxi_slider::before { transform: translateX(22px); }
 .mptbm_taxi_pricing_delete_btn { background: var(--mp-danger-light); color: var(--mp-danger); border-color: var(--mp-danger-border); }
 .mptbm_taxi_pricing_delete_btn:hover { background: #fee2e2; }
 
+/* visual placeholder while sorting manual pricing rows */
+.mptbm_taxi_pricing_sortable_placeholder {
+    background: linear-gradient(90deg, rgba(37,99,235,0.03), rgba(37,99,235,0.02));
+    border: 1.5px dashed var(--mp-border);
+    height: 44px; /* default, will be adjusted on drag */
+    margin: 4px 0;
+    border-radius: var(--mp-r-md);
+}
+
 /* Add route buttons */
 .mptbm_taxi_pricing_add_action {
     display: flex;
