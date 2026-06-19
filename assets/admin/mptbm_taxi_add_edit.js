@@ -282,11 +282,21 @@
             // ensure cloned inputs are enabled
             rowHtml.find('input, select, textarea').prop('disabled', false);
             $('.mptbm_taxi_pricing_manual_list').append(rowHtml);
+
+            // If sortable has been initialised, refresh so the new row is included
+            try {
+                if ($.fn.sortable) {
+                    $('.mptbm_taxi_pricing_manual_list').sortable('refresh');
+                }
+            } catch (e) {
+                // ignore
+            }
         });
 
         // Delete Row
         // Disable inputs immediately so deleted rows are not serialized if the form
-        // is submitted quickly after clicking delete. Then remove immediately.
+        // is submitted quickly after clicking delete. Then hide the row.
+        // After hiding, refresh the Sortable instance so it updates its internal item list.
         $(document).on('click', '.mptbm_taxi_pricing_delete_btn', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -306,17 +316,65 @@
                     console.error('mptbm: error hiding pricing row', err);
                     try { if ($row && $row.length) { $row.css('display', 'none').attr('data-mptbm-deleted', '1'); } } catch (e) { /* ignore */ }
                 }
+
+                // Ensure sortable updates its cached item list
+                try {
+                    if ($.fn.sortable) {
+                        $('.mptbm_taxi_pricing_manual_list').sortable('refresh');
+                    }
+                } catch (e) {
+                    /* ignore */
+                }
             }
         });
 
         // Clone Row
+        // After cloning we refresh the Sortable instance so the new row is recognised.
         $(document).on('click', '.mptbm_taxi_pricing_clone_btn', function() {
             var $row = $(this).closest('.mptbm_taxi_pricing_route_row');
             var $clone = $row.clone();
             // ensure cloned inputs are enabled
             $clone.find('input, select, textarea').prop('disabled', false);
-            $row.after($clone.hide().fadeIn(300));
+            // insert and show clone, then refresh sortable in the fadeIn callback
+            $row.after($clone.hide().fadeIn(300, function() {
+                try {
+                    if ($.fn.sortable) {
+                        $('.mptbm_taxi_pricing_manual_list').sortable('refresh');
+                    }
+                } catch (e) { /* ignore */ }
+            }));
         });
+
+        // Enable drag / reorder for manual pricing rows
+        if ($.fn.sortable) {
+            // jQuery UI Sortable defaults include `button` in the `cancel` selector which prevents
+            // starting a sort from a <button>. We remove `button` from cancel so our drag-button
+            // handles (which are buttons) can start the sort. Inputs/selects/etc are still cancelled.
+            console.debug('mptbm: jQuery UI Sortable available — initializing manual pricing sortable');
+            $('.mptbm_taxi_pricing_manual_list').sortable({
+                handle: '.mptbm_taxi_pricing_drag_btn',
+                items: '.mptbm_taxi_pricing_route_row',
+                axis: 'y',
+                placeholder: 'mptbm_taxi_pricing_sortable_placeholder',
+                forcePlaceholderSize: true,
+                tolerance: 'pointer',
+                // allow buttons to act as handles (remove `button` from cancelled selectors)
+                cancel: 'input,textarea,select,option,[contenteditable]',
+                start: function (event, ui) {
+                    // ensure placeholder height matches dragged item
+                    try { ui.placeholder.height(ui.item.outerHeight()); } catch (e) {}
+                    ui.item.css('transition', 'none');
+                    console.debug('mptbm: sort start');
+                },
+                stop: function (event, ui) {
+                    // clean up
+                    ui.item.css('transition', '');
+                    console.debug('mptbm: sort stop');
+                }
+            }).disableSelection();
+        } else {
+            console.debug('mptbm: jQuery UI Sortable not present');
+        }
 
 
         $('.mptbm_taxi_pricing_add_area_btn').on('click', function() {
