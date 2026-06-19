@@ -293,7 +293,14 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <span class="dashicons dashicons-arrow-left-alt"></span>
                                     <?php esc_html_e( 'Back to Transports', 'ecab-taxi-booking-manager' ); ?>
                                 </a>
+
+                                <a class="mptbm-add-btn" href="<?php echo esc_url($add_url); ?>">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    <?php esc_html_e('Add New Transportation', 'ecab-taxi-booking-manager'); ?>
+                                </a>
                             </div>
+
+
 
                             <div class="mptbm_header_left">
                                 <h1 class="mptbm_page_title">
@@ -303,7 +310,10 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                             <div class="mptbm_header_right">
 
-                                <?php submit_button($post_id ? 'Update' : 'Publish', 'primary', '', false); ?>
+                                <?php
+                                $add_url   = admin_url('admin.php?page=mptbm-rent-edit');
+                                submit_button($post_id ? 'Update' : 'Publish', 'primary', '', false); ?>
+                                
                                 <a href="<?php echo esc_url($old_editor_url); ?>" class="button">
                                     <?php esc_html_e( 'Open classic Editor', 'ecab-taxi-booking-manager' ); ?>
                                 </a>
