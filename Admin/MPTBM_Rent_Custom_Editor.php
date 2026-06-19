@@ -326,7 +326,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                     </div>
                     <!-- SCROLLABLE CONTENT -->
-                    <div class="mptbm_scroll_content">
+                    <div class="mptbm_scroll_content ">
                         <div class="mptbm_taxi_wrapper">
 
                             <div class="mptbm_taxi_container_holder">
@@ -1460,14 +1460,14 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 </div>
 
             <?php  if ( class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) {?>
-                <div class="mptbm_distance_tier_pricing_settings_holder">
+                <div class="mptbm_distance_tier_pricing_settings_holder mpStyle">
                     <?php do_action('add_mptbm_settings_tab_content_tier', $post_id); ?>
                 </div>
             <?php }
             ?>
 
             <?php if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) { ?>
-                <div class="mptbm_taxi_peak_hour_pricing_addon">
+                <div class="mptbm_taxi_peak_hour_pricing_addon mpStyle">
                     <?php do_action('add_mptbm_settings_pick_hour_content', $post_id); ?>
                 </div>
             <?php }?>

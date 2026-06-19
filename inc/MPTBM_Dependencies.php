@@ -95,10 +95,7 @@ if (!class_exists('MPTBM_Dependencies')) {
             if ( $editor_type !== 'old') {
                 if ( class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) {
                     wp_enqueue_style('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css', array(), time());
-                    wp_enqueue_style('distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/css/distance-tier-pricing.css', array(), time());
-
                     wp_enqueue_script('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js', array('jquery'), time(), true);
-                    wp_enqueue_script('distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/js/distance-tier-pricing.js', array('jquery'), time(), true);
                 }
 
                 if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) {
