@@ -17,10 +17,19 @@
     flex-direction: column;
     gap: 18px;
 }
+.mptbm_pricing_priority_title_holder{
+    display: flex;
+    gap: 18px;
+    justify-content: space-between;
+}
 .mptbm_peak_hour_lebel_title{
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+#mptbm_conditional_logic{
+    width: 350px;
 }
 
 .mptbm_peak_hour_pricing_settings .bg-light {
@@ -59,6 +68,11 @@
     padding: 10px;
     border: 1px solid #ddd;
     text-align: left;
+}
+
+#pricing_priority_select{
+    height: 45px;
+    width: 350px;
 }
 
 /* Time-slots layout inside a rule */
