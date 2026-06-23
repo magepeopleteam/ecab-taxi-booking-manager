@@ -61,7 +61,8 @@ if (!class_exists('MPTBM_Dependencies')) {
                 wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('jquery'), time(), true);
             } elseif ($map_type === 'enable' && $api_key) {
                 // Google Maps is selected and API key exists
-                wp_enqueue_script('mptbm_map_api', 'https://maps.googleapis.com/maps/api/js?libraries=places,drawing&language=en&v=weekly&key=' . $api_key, array(), null, true);
+//                wp_enqueue_script('mptbm_map_api', 'https://maps.googleapis.com/maps/api/js?libraries=places,drawing&language=en&v=weekly&key=' . $api_key, array(), null, true);
+                wp_enqueue_script('mptbm_map_api', 'https://maps.googleapis.com/maps/api/js?libraries=places,drawing,geometry&language=en&v=3.64&key=' . $api_key, array(), null, true);
                 wp_enqueue_script('mptbm_geoLib', MPTBM_PLUGIN_URL . '/assets/admin/geolib.js', array(), null, true);
                 wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('mptbm_map_api'), time(), true);
             } elseif ($map_type === 'enable' && !$api_key) {
