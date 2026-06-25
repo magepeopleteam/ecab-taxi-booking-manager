@@ -65,32 +65,33 @@ if (!class_exists('MPTBM_Plugin')) {
             }
 
             require_once MPTBM_PLUGIN_DIR . '/mp_global/MP_Global_File_Load.php';
+
+            // WooCommerce is now OPTIONAL. The core plugin (CPT, settings, booking
+            // search & pricing) always loads. WooCommerce-specific integration is
+            // gated by MP_Global_Function::check_woocommerce() here and inside the
+            // Admin/Frontend/Dependencies loaders, so the plugin runs standalone too.
+            add_action('activated_plugin', array($this, 'activation_redirect'), 90, 1);
+            self::on_activation_page_create();
+            require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Dependencies.php';
+            require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Geo_Lib.php';
+
+            // Load Block Editor Integration (does not require WooCommerce)
+            if (function_exists('register_block_type')) {
+                require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Block.php';
+                add_action('enqueue_block_editor_assets', array($this, 'enqueue_block_editor_assets'));
+            }
+
+            // Load Elementor Integration (does not require WooCommerce)
+            add_action('elementor/widgets/register', array($this, 'register_elementor_widget'));
+            add_action('elementor/elements/categories_registered', array($this, 'add_elementor_widget_category'));
+
             if (MP_Global_Function::check_woocommerce() == 1) {
-                add_action('activated_plugin', array($this, 'activation_redirect'), 90, 1);
-                self::on_activation_page_create();
-                require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Dependencies.php';
-                require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Geo_Lib.php';
-				
-
-                // Load Block Editor Integration
-                if (function_exists('register_block_type')) {
-                    require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Block.php';
-                    add_action('enqueue_block_editor_assets', array($this, 'enqueue_block_editor_assets'));
-                }
-
-                // Load Elementor Integration
-                add_action('elementor/widgets/register', array($this, 'register_elementor_widget'));
-                add_action('elementor/elements/categories_registered', array($this, 'add_elementor_widget_category'));
-
-                // Always load the checkout fields helper on frontend
+                // WooCommerce active: load the WC checkout-fields helper on frontend.
                 require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Wc_Checkout_Fields_Helper.php';
-            } else {
-                // WooCommerce missing: the memory-safe chunked installer popup
-                // (auto-shown on the dashboard / plugins / our screens) handles
-                // installing & activating WooCommerce. No Quick Setup wizard needed.
-                if (is_admin()) {
-                    require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Woo_Installer.php';
-                }
+            } elseif (is_admin()) {
+                // WooCommerce missing: still offer the (optional, non-blocking) installer
+                // popup so admins can add WooCommerce if they want the WC checkout flow.
+                require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Woo_Installer.php';
             }
         }
 

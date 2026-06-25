@@ -236,7 +236,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                                             ?>
                                             <div class="mptbm-tier-pricing-savings-ticket">
                                                 <span class="mptbm-tier-pricing-savings-ticket-amount">
-                                                    <?php echo wp_kses_post(wc_price($savings)); ?>
+                                                    <?php echo wp_kses_post(MP_Global_Function::format_price($savings)); ?>
                                                 </span>
                                                 <span class="mptbm-tier-pricing-savings-ticket-label">
                                                     Save

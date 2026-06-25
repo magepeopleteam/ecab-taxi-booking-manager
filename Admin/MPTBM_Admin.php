@@ -51,12 +51,20 @@
                 require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_taxi_Date_Advanced_Settings.php';
                 require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_AJax_Handler.php';
                 require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Right_Side_Content_Settings.php';
+				//****************Payment settings (WooCommerce / Custom Payment)********** */
+				// Self-instantiating; methods guard WooCommerce availability internally so
+				// the Payments tab renders in both WC and standalone (no-WC) modes.
+				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_WC_Payment_Manager.php';
+				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Payment_Settings.php';
 				//****************Woocommerce Checkout*********************** */
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Billing.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Fields.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Order.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Settings.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Shipping.php';
+				// WooCommerce checkout integration only loads when WooCommerce is active.
+				if (MP_Global_Function::check_woocommerce() == 1) {
+					require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Billing.php';
+					require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Fields.php';
+					require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Order.php';
+					require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Settings.php';
+					require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Wc_Checkout_Shipping.php';
+				}
 
 			}
 		public function init_api_documentation() {

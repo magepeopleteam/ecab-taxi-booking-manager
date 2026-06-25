@@ -56,7 +56,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
             wp_localize_script('mptbm-analytics', 'mptbm_analytics', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('mptbm_analytics_nonce'),
-                'currency_symbol' => get_woocommerce_currency_symbol(),
+                'currency_symbol' => function_exists('get_woocommerce_currency_symbol') ? get_woocommerce_currency_symbol() : '',
                 'labels' => array(
                     'bookings' => esc_html__('Bookings', 'ecab-taxi-booking-manager'),
                     'revenue' => esc_html__('Revenue', 'ecab-taxi-booking-manager'),
@@ -405,7 +405,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
                         'customer' => $booking->customer_name,
                         'route' => isset($route) ? $route : '-',
                         'date' => $booking_date_formatted,
-                        'amount' => wc_price($booking->price),
+                        'amount' => MP_Global_Function::format_price($booking->price),
                         'status' => $booking->order_status,
                         'view_url' => admin_url('post.php?post=' . $booking->order_id . '&action=edit')
                     );

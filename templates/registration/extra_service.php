@@ -46,7 +46,7 @@
 										<span class="<?php echo esc_attr($service_icon); ?>"></span>
 									<?php } ?>
 									<?php echo esc_html($service_name); ?>
-									<sub class="textTheme"> &nbsp;&nbsp;<?php echo wp_kses_post(wc_price($service_price)); ?></sub>
+									<sub class="textTheme"> &nbsp;&nbsp;<?php echo wp_kses_post(MP_Global_Function::format_price($service_price)); ?></sub>
 								</h4>
 								<div class="_equalChild">
 									<div class="_mR_xs">
