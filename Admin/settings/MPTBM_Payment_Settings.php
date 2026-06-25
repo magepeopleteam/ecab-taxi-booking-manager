@@ -90,7 +90,7 @@
 						'desc'    => __( 'If enabled, the WooCommerce cart/checkout flow is used for bookings.', 'ecab-taxi-booking-manager' ),
 						'type'    => 'checkbox',
 						'default' => 'on',
-						'class'   => 'woocommerce-field woocommerce-main-toggle',
+						'class'   => 'woocommerce-field woocommerce-main-toggle mptbm-check-row',
 					),
 					array(
 						'name'     => 'mptbm_wc_payment_gateways_manager',
@@ -116,7 +116,7 @@
 						'desc'    => __( 'Require login to complete a booking.', 'ecab-taxi-booking-manager' ),
 						'type'    => 'checkbox',
 						'default' => '',
-						'class'   => 'woocommerce-field wc-additional-field',
+						'class'   => 'woocommerce-field wc-additional-field mptbm-check-row',
 					),
 					array(
 						'name'    => 'mptbm_wc_show_billing_info',
@@ -124,7 +124,7 @@
 						'desc'    => __( 'Show billing info on the WooCommerce checkout page.', 'ecab-taxi-booking-manager' ),
 						'type'    => 'checkbox',
 						'default' => '',
-						'class'   => 'woocommerce-field wc-additional-field',
+						'class'   => 'woocommerce-field wc-additional-field mptbm-check-row',
 					),
 					array(
 						'name'    => 'mptbm_wc_confirm_status',
@@ -656,8 +656,18 @@
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody{display:block;width:100%;margin-top:0;}
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr{display:block;width:100%;}
 				/* Inset the row content so labels/inputs aren't flush against the edge. */
-				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr > th{display:block;width:100%;padding:16px 22px 4px;font-size:13px;font-weight:600;color:#1d2327;}
-				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr > td{display:block;width:100%;padding:0 22px 16px !important;}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr > th{display:block;width:100%;padding:16px 24px 4px;font-size:13px;font-weight:600;color:#1d2327;}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr > td{display:block;width:100%;padding:0 24px 16px !important;}
+				/* Muted, spaced description text under labels. */
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] .info_text{display:block;margin-top:5px;font-size:12px;font-weight:400;color:#6b7280;line-height:1.55;}
+				/* Checkbox rows already show their description beside the control, so hide
+				   the duplicated label description for them and space the control. */
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] tr.mptbm-check-row .info_text{display:none;}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] tr.mptbm-check-row td .checkbox{margin-right:8px;}
+				/* Enable WooCommerce Payment: contained card matching the panels below. */
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.woocommerce-main-toggle{background:#fff;border:1px solid #e7e8ec;border-radius:12px;margin:2px 0 18px;box-shadow:0 1px 2px rgba(16,24,40,0.04);}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.woocommerce-main-toggle > th{padding:16px 24px 4px !important;font-size:14px;}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.woocommerce-main-toggle > td{padding:0 24px 16px !important;}
 				/* Additional Settings accordion fields: standard ecab two-column row
 				   (label + description on the left, control on the right), grouped into a
 				   single bordered panel so the content reads as the accordion's body.
