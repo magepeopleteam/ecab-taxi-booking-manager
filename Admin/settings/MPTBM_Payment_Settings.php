@@ -108,7 +108,7 @@
 							'cart'     => __( 'Cart', 'ecab-taxi-booking-manager' ),
 							'checkout' => __( 'Checkout', 'ecab-taxi-booking-manager' ),
 						),
-						'class'   => 'woocommerce-field wc-additional-field',
+						'class'   => 'woocommerce-field wc-additional-field wc-additional-first',
 					),
 					array(
 						'name'    => 'mptbm_wc_require_login',
@@ -138,7 +138,7 @@
 							'on-hold'    => __( 'On hold', 'ecab-taxi-booking-manager' ),
 							'completed'  => __( 'Completed', 'ecab-taxi-booking-manager' ),
 						),
-						'class'   => 'woocommerce-field wc-additional-field',
+						'class'   => 'woocommerce-field wc-additional-field wc-additional-last',
 					),
 					array(
 						'name'     => 'mptbm_payment_gateways_ui',
@@ -658,6 +658,21 @@
 				/* Inset the row content so labels/inputs aren't flush against the edge. */
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr > th{display:block;width:100%;padding:16px 22px 4px;font-size:13px;font-weight:600;color:#1d2327;}
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr > td{display:block;width:100%;padding:0 22px 16px !important;}
+				/* Additional Settings accordion fields: standard ecab two-column row
+				   (label + description on the left, control on the right), grouped into a
+				   single bordered panel so the content reads as the accordion's body.
+				   NOTE: no !important on display so the accordion's jQuery show/hide
+				   (inline display:none) can still collapse these rows. */
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-additional-field{
+					display:flex;align-items:flex-start;gap:0;width:100%;box-sizing:border-box;
+					background:#fff;border-left:1px solid #e7e8ec;border-right:1px solid #e7e8ec;border-bottom:1px solid #eef0f3;
+				}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-additional-field > th{flex:0 0 240px;width:240px !important;max-width:240px;padding:18px 24px !important;background:transparent;}
+				/* Give the value/input column its own left padding so the control is spaced
+				   away from the label column instead of sitting at the edge. */
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-additional-field > td{flex:1 1 auto;width:auto !important;padding:18px 24px 18px 28px !important;background:transparent;}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-additional-first{border-top:1px solid #e7e8ec;border-radius:12px 12px 0 0;margin-top:6px;}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-additional-last{border-bottom:1px solid #e7e8ec;border-radius:0 0 12px 12px;}
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table .formControl{max-width:480px;}
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] .submit{margin-top:8px;padding-top:18px;border-top:1px solid #e7e8ec;}
 				/* Sub-tab bar */
