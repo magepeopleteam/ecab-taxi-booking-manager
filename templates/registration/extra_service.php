@@ -9,6 +9,12 @@
 	$post_id = absint($_POST['post_id']);
 	if ($post_id && $post_id > 0) {
 		$link_wc_product = MP_Global_Function::get_post_info($post_id, 'link_wc_product');
+		// Standalone mode (WooCommerce inactive): the "Book Now" button must target the
+		// transportation post directly, not a (possibly stale) mirror WC product id. The
+		// Pro custom booking flow (MPTBM_Native_Checkout) handles this link_id.
+		if (class_exists('MPTBM_Function') && !MPTBM_Function::is_wc_active()) {
+			$link_wc_product = $post_id;
+		}
 		$display_extra_services = MP_Global_Function::get_post_info($post_id, 'display_mptbm_extra_services', 'on');
 		$service_id = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_services_id', $post_id);
 		$extra_services = MP_Global_Function::get_post_info($service_id, 'mptbm_extra_service_infos', []);
@@ -74,6 +80,11 @@
 			</div>
 		<?php } ?>
 		<div class="divider"></div>
+		<?php
+			// Pro custom booking flow injects customer + payment-method fields here when
+			// WooCommerce is inactive. No-op otherwise (hook has no callbacks).
+			do_action('mptbm_custom_checkout_form', $post_id);
+		?>
 		<div class="justifyBetween">
 			<div></div>
 			<button class="_themeButton_min_200 mptbm_book_now" style="display:none;" type="button" data-wc_link_id="<?php echo esc_attr($link_wc_product); ?>">

@@ -645,7 +645,7 @@
 				:root{--mptbm-pay-accent:#F12971;}
 				/* Payments panel: consistent outer spacing + a comfortable content width
 				   so cards and fields don't stretch edge-to-edge on wide screens. */
-				div.tabsItem[data-tabs="#mptbm_payment_settings"]{padding:18px 22px 26px;}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"]{padding:20px 24px 28px;}
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] form{max-width:100%;width:100%;}
 				/* Make the MAIN settings table a full-width stacked layout (label above
 				   field) so every WooCommerce / Custom Payment row uses the entire panel
@@ -681,10 +681,10 @@
 				/* Give the value/input column its own left padding so the control is spaced
 				   away from the label column instead of sitting at the edge. */
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-additional-field > td{flex:1 1 auto;width:auto !important;padding:18px 24px 18px 28px !important;background:transparent;}
-				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-additional-first{border-top:1px solid #e7e8ec;border-radius:12px 12px 0 0;margin-top:6px;}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-additional-first{border-top:1px solid #e7e8ec;border-radius:12px 12px 0 0;margin-top:8px;}
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-additional-last{border-bottom:1px solid #e7e8ec;border-radius:0 0 12px 12px;}
-				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table .formControl{max-width:480px;}
-				div.tabsItem[data-tabs="#mptbm_payment_settings"] .submit{margin-top:8px;padding-top:18px;border-top:1px solid #e7e8ec;}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table .formControl{max-width:340px;}
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] .submit{margin:20px 0 0;padding-top:20px;border-top:1px solid #e7e8ec;}
 				/* Sub-tab bar */
 				.payment-sub-tabs-wrapper{margin:0 0 24px;background:#fff;padding:6px;border-radius:12px;border:1px solid #e7e8ec;box-shadow:0 1px 2px rgba(16,24,40,0.04);display:inline-block;}
 				.payment-sub-tabs.nav-tab-wrapper{border-bottom:none !important;padding:0 !important;margin:0 !important;display:flex;gap:6px;}
@@ -722,7 +722,7 @@
 				.mptbm-gw-pro-badge{background:linear-gradient(135deg,#f6d365 0%,#fda085 100%);color:#fff;padding:5px 12px;border-radius:20px;font-weight:bold;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;box-shadow:0 2px 6px rgba(253,160,133,0.4);}
 
 				/* Booking confirmation page */
-				.mptbm-conf-page{margin-top:22px;padding:22px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;background:#fafafb;border:1px solid #ececf0;border-radius:14px;}
+				.mptbm-conf-page{margin-top:10px;padding:22px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;background:#fafafb;border:1px solid #ececf0;border-radius:14px;}
 				.mptbm-conf-page-label{flex:1 1 260px;}
 				.mptbm-conf-page-label label{display:block;font-weight:700;font-size:14px;color:#1d2327;margin:0 0 4px;}
 				.mptbm-conf-page-label span{display:block;font-size:12px;color:#6b7280;line-height:1.6;}
@@ -731,7 +731,7 @@
 
 				/* WooCommerce sub-tab accordions */
 				tr.mptbm-acc-header > td.mptbm-acc-header-cell{padding:0 !important;}
-				tr.mptbm-acc-header .mptbm-acc-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;user-select:none;background:#fff;border:1px solid #e7e8ec;border-radius:10px;padding:13px 16px;margin:14px 0 4px;transition:background 0.2s ease,border-color 0.2s ease,box-shadow 0.2s ease;}
+				tr.mptbm-acc-header .mptbm-acc-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;user-select:none;background:#fff;border:1px solid #e7e8ec;border-radius:10px;padding:14px 22px;margin:16px 0 0;transition:background 0.2s ease,border-color 0.2s ease,box-shadow 0.2s ease;}
 				tr.mptbm-acc-header .mptbm-acc-bar:hover{border-color:#d4b3c3;box-shadow:0 2px 8px rgba(16,24,40,0.06);}
 				tr.mptbm-acc-header.open .mptbm-acc-bar{background:#fdf2f7;border-color:var(--mptbm-pay-accent);}
 				tr.mptbm-acc-header .mptbm-acc-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#1d2327;margin:0;}
@@ -740,7 +740,10 @@
 				tr.mptbm-acc-header.open .mptbm-acc-arrow{transform:rotate(180deg);color:var(--mptbm-pay-accent);}
 				/* The accordion header already shows the title; hide the manager's own duplicate heading but keep its bar (it holds the "Open in WooCommerce" link). */
 				tr.wc-payment-methods-field .mptbm-wc-pm-heading{display:none;}
-				tr.wc-payment-methods-field .mptbm-wc-payment-manager{margin-top:4px;padding:6px 2px;}
+				/* Align the WooCommerce payment-methods manager with its accordion bar
+				   (drop the inherited horizontal cell padding so the cards line up). */
+				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-payment-methods-field > td{padding:0 0 8px !important;}
+				tr.wc-payment-methods-field .mptbm-wc-payment-manager{margin-top:8px;padding:0;}
 				/* WooCommerce enable toggle row + additional fields: lighter rows */
 				tr.woocommerce-field td, tr.no-woocommerce-field td{vertical-align:middle;}
 				</style>

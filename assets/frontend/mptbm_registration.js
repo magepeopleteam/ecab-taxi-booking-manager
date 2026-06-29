@@ -3081,7 +3081,13 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
                     start_place_coordinates: start_place_coordinates ? JSON.stringify(start_place_coordinates) : '',
                     end_place_coordinates: end_place_coordinates ? JSON.stringify(end_place_coordinates) : '',
-                    mptbm_threshold_base_price: mptbm_threshold_base_price
+                    mptbm_threshold_base_price: mptbm_threshold_base_price,
+                    // Standalone (no-WooCommerce) Pro custom booking flow fields. Ignored
+                    // by the WooCommerce add-to-cart handler when WooCommerce is active.
+                    mptbm_payment_method: parent.find('[name="mptbm_payment_method"]:checked').val() || '',
+                    mptbm_billing_name: parent.find('[name="mptbm_billing_name"]').val() || '',
+                    mptbm_billing_email: parent.find('[name="mptbm_billing_email"]').val() || '',
+                    mptbm_billing_phone: parent.find('[name="mptbm_billing_phone"]').val() || ''
                 },
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));
