@@ -85,12 +85,21 @@
 			// WooCommerce is inactive. No-op otherwise (hook has no callbacks).
 			do_action('mptbm_custom_checkout_form', $post_id);
 		?>
+		<?php $booking_available = class_exists('MPTBM_Function') && MPTBM_Function::is_booking_available(); ?>
 		<div class="justifyBetween">
-			<div></div>
-			<button class="_themeButton_min_200 mptbm_book_now" style="display:none;" type="button" data-wc_link_id="<?php echo esc_attr($link_wc_product); ?>">
-				<span class="fas fa-cart-plus _mR_xs"></span>
-				<?php esc_html_e('Book Now', 'ecab-taxi-booking-manager'); ?>
-			</button>
+			<?php if ($booking_available) { ?>
+				<div></div>
+				<button class="_themeButton_min_200 mptbm_book_now" style="display:none;" type="button" data-wc_link_id="<?php echo esc_attr($link_wc_product); ?>">
+					<span class="fas fa-cart-plus _mR_xs"></span>
+					<?php esc_html_e('Book Now', 'ecab-taxi-booking-manager'); ?>
+				</button>
+			<?php } else { ?>
+				<p class="mptbm_booking_unavailable_msg" style="margin:0;color:#b32d2e;font-size:13px;max-width:65%;"><?php esc_html_e('Booking currently not possible. Please contact us directly to complete your booking.', 'ecab-taxi-booking-manager'); ?></p>
+				<button class="_themeButton_min_200 mptbm_book_now" type="button" disabled title="<?php esc_attr_e('Booking is currently not possible. Please contact us directly.', 'ecab-taxi-booking-manager'); ?>" style="opacity:.55;cursor:not-allowed;">
+					<span class="fas fa-cart-plus _mR_xs"></span>
+					<?php esc_html_e('Book Now', 'ecab-taxi-booking-manager'); ?>
+				</button>
+			<?php } ?>
 		</div>
 		<?php
 	}

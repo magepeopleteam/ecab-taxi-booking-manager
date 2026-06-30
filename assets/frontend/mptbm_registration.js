@@ -2983,6 +2983,12 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
     });
     //===========================//
     $(document).on("click", ".mptbm_book_now[type='button']", function () {
+        if ($(this).is(':disabled')) {
+            // Booking is unavailable (no WooCommerce and no Pro plugin active);
+            // the disabled state can still be reached via the auto-click that
+            // fires when a vehicle has no extra services, so bail out here too.
+            return;
+        }
         let parent = $(this).closest('.mptbm_transport_search_area');
         let target_checkout = parent.find('.mptbm_checkout_area');
         let start_place = parent.find('[name="mptbm_start_place"]').val();

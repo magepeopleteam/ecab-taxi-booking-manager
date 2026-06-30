@@ -150,6 +150,17 @@ if (!class_exists('MPTBM_Function')) {
 		{
 			return MP_Global_Function::check_woocommerce() === 1;
 		}
+		/**
+		 * Whether a booking can actually be completed end-to-end.
+		 * Free plugin needs WooCommerce for cart/checkout; without it, only the
+		 * Pro plugin's custom (standalone) checkout can complete a booking. If
+		 * neither is available there is no way to take payment, so booking must
+		 * be blocked rather than left to fail silently at the final step.
+		 */
+		public static function is_booking_available(): bool
+		{
+			return self::is_wc_active() || class_exists('MPTBM_Plugin_Pro');
+		}
 		public static function get_name()
 		{
 			return self::get_general_settings('label', esc_html__('Transportation', 'ecab-taxi-booking-manager'));
