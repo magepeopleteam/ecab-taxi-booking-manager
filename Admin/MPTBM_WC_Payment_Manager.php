@@ -138,6 +138,26 @@
 				return isset( $gateways[ $gateway_id ] ) ? $gateways[ $gateway_id ] : null;
 			}
 
+			/**
+			 * How many registered WooCommerce gateways are currently enabled.
+			 * Used by MPTBM_Payment_Status_Checker to decide whether WooCommerce
+			 * contributes any usable payment method.
+			 */
+			public function count_enabled_gateways() {
+				if ( ! class_exists( 'WooCommerce' ) || ! function_exists( 'WC' ) ) {
+					return 0;
+				}
+
+				$count = 0;
+				foreach ( $this->get_all_gateways() as $gateway ) {
+					if ( 'yes' === $gateway->enabled ) {
+						$count++;
+					}
+				}
+
+				return $count;
+			}
+
 			private function verify_request() {
 				check_ajax_referer( 'mptbm_wc_payment_manager', 'nonce' );
 				if ( ! current_user_can( 'manage_woocommerce' ) ) {
