@@ -207,7 +207,12 @@
 					// Save inventory settings
 					$enable_inventory = isset($_POST['mptbm_enable_inventory']) && sanitize_text_field($_POST['mptbm_enable_inventory']) ? 'yes' : 'no';
 					update_post_meta($post_id, 'mptbm_enable_inventory', $enable_inventory);
-					
+
+					// Availability Check Mode: 'manual' uses the Vehicle Availability toggle,
+					// 'automatic' uses the Booking Interval Time below instead - only one applies at a time.
+					$availability_check_mode = isset($_POST['mptbm_availability_check_mode']) && sanitize_text_field($_POST['mptbm_availability_check_mode']) === 'automatic' ? 'automatic' : 'manual';
+					update_post_meta($post_id, 'mptbm_availability_check_mode', $availability_check_mode);
+
 					// Only save quantity and interval time if inventory is enabled
 					if ($enable_inventory == 'yes') {
 						$quantity = isset($_POST['mptbm_quantity']) ? absint($_POST['mptbm_quantity']) : 1;

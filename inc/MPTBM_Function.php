@@ -239,6 +239,58 @@ if (!class_exists('MPTBM_Function')) {
 			}
 			return apply_filters('mptbm_get_date', $all_dates, $post_id);
 		}
+
+		// Remaining inventory quantity for a vehicle at a given date/time, based on
+		// the "Booking Interval Time (minutes)" setting and overlapping bookings.
+		// Used by the "automatic" Availability Check Mode to decide search-result inclusion.
+		public static function get_available_quantity($post_id, $start_date, $start_time_formatted)
+		{
+			$total_quantity = (int) MP_Global_Function::get_post_info($post_id, 'mptbm_quantity', 1);
+			$available_quantity = $total_quantity;
+
+			if (!$start_date || $start_time_formatted === '' || $start_time_formatted === null) {
+				return $available_quantity;
+			}
+
+			$start_datetime = strtotime($start_date . ' ' . $start_time_formatted);
+			if (!$start_datetime) {
+				return $available_quantity;
+			}
+
+			$booking_interval_time = (int) MP_Global_Function::get_post_info($post_id, 'mptbm_booking_interval_time', 0);
+			$interval_before = $start_datetime - ($booking_interval_time * 60);
+			$interval_after = $start_datetime + ($booking_interval_time * 60);
+
+			$query = new WP_Query([
+				'post_type' => 'mptbm_booking',
+				'posts_per_page' => -1,
+				'meta_query' => [
+					[
+						'key' => 'mptbm_id',
+						'value' => $post_id,
+						'compare' => '='
+					]
+				]
+			]);
+
+			if ($query->have_posts()) {
+				while ($query->have_posts()) {
+					$query->the_post();
+					$booking_datetime = get_post_meta(get_the_ID(), 'mptbm_date', true);
+					$booking_transport_quantity = (int) get_post_meta(get_the_ID(), 'mptbm_transport_quantity', true);
+					$booking_transport_quantity = $booking_transport_quantity ?: 1;
+					$booking_timestamp = strtotime($booking_datetime);
+
+					if ($booking_timestamp >= $interval_before && $booking_timestamp <= $interval_after) {
+						$available_quantity -= $booking_transport_quantity;
+					}
+				}
+			}
+			wp_reset_postdata();
+
+			return $available_quantity;
+		}
+
 		public static function get_all_dates($price_based = 'dynamic', $expire = false)
 		{
 			$all_posts = MPTBM_Query::query_transport_list($price_based);

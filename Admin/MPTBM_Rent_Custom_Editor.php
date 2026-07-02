@@ -638,8 +638,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                 <?php
 
-                self::taxi_availability_status( $post_id );
-
                 if (class_exists('MPTBM_Plugin_Pro')) {
                     self::taxi_inventory_manages($post_id, $all_features);
                 }
@@ -879,12 +877,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             $status_text = $is_unavailable ? esc_html__('Unavailable', 'ecab-taxi-booking-manager') : esc_html__('Available', 'ecab-taxi-booking-manager');
             $checked = $is_unavailable ? 'checked' : '';
             ?>
-            <div class="mptbm_rent_editor_wrapper">
+            <div class="mptbm_rent_editor_wrapper" id="mptbm_vehicle_availability_section">
                 <input type="hidden" name="mptbm_availability_status_field_present" value="1">
                 <div class="mptbm_taxi_feature_header mptbm_rent_editor_header">
                     <div class="mptbm_taxi_feature_title_area">
                         <h2 class="mptbm_rent_editor_title"><?php esc_html_e( 'Vehicle Availability', 'ecab-taxi-booking-manager' ); ?></h2>
-                        <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Manually mark this vehicle unavailable (e.g. it\'s out on a long trip). While unavailable it will not appear in search results at all, until you switch it back.', 'ecab-taxi-booking-manager' ); ?></p>
+                        <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Manually mark this vehicle unavailable (e.g. it\'s out on a long trip). While unavailable it will not appear in search results at all, until you switch it back. Only used while Inventory Management\'s Availability Check Mode is set to Manual.', 'ecab-taxi-booking-manager' ); ?></p>
                     </div>
                     <div class="mptbm_taxi_feature_switch">
                         <span class="mptbm_taxi_feature_switch_text mptbm_availability_status_text" data-available-text="<?php esc_attr_e('Available', 'ecab-taxi-booking-manager'); ?>" data-unavailable-text="<?php esc_attr_e('Unavailable', 'ecab-taxi-booking-manager'); ?>"><?php echo esc_html( $status_text ); ?></span>
@@ -895,6 +893,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     </div>
                 </div>
             </div>
+            <style>
+                .mptbm_taxi_feature_disabled {
+                    opacity: 0.5;
+                    pointer-events: none;
+                }
+            </style>
             <script>
             jQuery(function($) {
                 $('#mptbm_availability_status').on('change', function() {
@@ -909,6 +913,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             $features_active = $display_features == 'no' ? 'Off' : 'On';
             $display = $display_features == 'no' ? 'none' : 'block';
             $features_checked = $display_features == 'no' ? '' : 'checked';
+            $availability_check_mode = MP_Global_Function::get_post_info($post_id, 'mptbm_availability_check_mode', 'automatic');
             ?>
             <div class="mptbm_rent_editor_wrapper">
                 <div class="mptbm_taxi_feature_header mptbm_rent_editor_header">
@@ -931,6 +936,19 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <div class="mptbm_taxi_advanced_card" style="margin-bottom: 0;">
                             <div class="mptbm_taxi_advanced_card_header">
                                 <div class="mptbm_taxi_advanced_title_block">
+                                    <label class="mptbm_rent_label"><?php esc_html_e( 'Availability Check Mode', 'ecab-taxi-booking-manager' ); ?></label>
+                                    <span class="desc"><?php esc_html_e( 'Quantity/interval availability below always applies to search results. Manual also adds the Vehicle Availability toggle below on top of that. Automatic ignores the toggle and relies on quantity/interval only.', 'ecab-taxi-booking-manager' ); ?></span>
+                                </div>
+                                <select id="mptbm_availability_check_mode" name="mptbm_availability_check_mode" class="formControl mptbm_taxi_inventory_styled_input">
+                                    <option value="automatic" <?php selected( $availability_check_mode, 'automatic' ); ?>><?php esc_html_e( 'Automatic (booking interval)', 'ecab-taxi-booking-manager' ); ?></option>
+                                    <option value="manual" <?php selected( $availability_check_mode, 'manual' ); ?>><?php esc_html_e( 'Manual', 'ecab-taxi-booking-manager' ); ?></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mptbm_taxi_advanced_card" id="mptbm_vehicle_quantity_card" style="margin-bottom: 0;">
+                            <div class="mptbm_taxi_advanced_card_header">
+                                <div class="mptbm_taxi_advanced_title_block">
                                     <label class="mptbm_rent_label"><?php esc_html_e( 'Vehicle Quantity', 'ecab-taxi-booking-manager' ); ?></label>
                                     <span class="desc"><?php esc_html_e( 'Total number of this vehicle type available for simultaneous bookings.', 'ecab-taxi-booking-manager' ); ?></span>
                                 </div>
@@ -945,7 +963,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             </div>
                         </div>
 
-                        <div class="mptbm_taxi_advanced_card" style="margin-bottom: 0;">
+                        <div class="mptbm_taxi_advanced_card" id="mptbm_booking_interval_card" style="margin-bottom: 0;">
                             <div class="mptbm_taxi_advanced_card_header">
                                 <div class="mptbm_taxi_advanced_title_block">
                                     <label class="mptbm_rent_label"><?php esc_html_e( 'Booking Interval Time (minutes)', 'ecab-taxi-booking-manager' ); ?></label>
@@ -961,11 +979,24 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                 >
                             </div>
                         </div>
+
+                        <?php self::taxi_availability_status( $post_id ); ?>
                     </div>
                 </div>
 
 
             </div>
+            <script>
+            jQuery(function($) {
+                function mptbmToggleAvailabilityCheckMode() {
+                    var isManual = $('#mptbm_availability_check_mode').val() === 'manual';
+                    $('#mptbm_vehicle_availability_section').toggleClass('mptbm_taxi_feature_disabled', !isManual);
+                    $('#mptbm_booking_interval_card').toggleClass('mptbm_taxi_feature_disabled', isManual);
+                }
+                $(document).on('change', '#mptbm_availability_check_mode', mptbmToggleAvailabilityCheckMode);
+                mptbmToggleAvailabilityCheckMode();
+            });
+            </script>
         <?php }
         public static function date_configuration_set( $post_id ){ ?>
             <div class="mptbm_taxi_container " data-step="3" style="display: none">

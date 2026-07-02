@@ -1033,9 +1033,18 @@ if ($all_posts->found_posts > 0) {
     foreach ($posts as $post) {
         $post_id = $post->ID;
 
-        // Admin can manually mark a vehicle unavailable (e.g. it's out on a long trip);
-        // while set, it's excluded from search results entirely.
-        if (get_post_meta($post_id, 'mptbm_availability_status', true) === 'unavailable') {
+        // Quantity/interval availability (Inventory Management > Booking Interval Time) always
+        // applies to search results when inventory is enabled, regardless of the check mode.
+        $mptbm_enable_inventory_check = get_post_meta($post_id, 'mptbm_enable_inventory', true);
+        if ($mptbm_enable_inventory_check === 'yes' && MPTBM_Function::get_available_quantity($post_id, $start_date, $start_time_formatted) <= 0) {
+            continue;
+        }
+
+        // Availability Check Mode: in Manual mode, the Vehicle Availability toggle is an
+        // additional gate on top of the quantity check above. In Automatic mode, the toggle
+        // is ignored entirely and only the quantity/interval check above applies.
+        $availability_check_mode = get_post_meta($post_id, 'mptbm_availability_check_mode', true) ?: 'automatic';
+        if ($availability_check_mode === 'manual' && get_post_meta($post_id, 'mptbm_availability_status', true) === 'unavailable') {
             continue;
         }
 
