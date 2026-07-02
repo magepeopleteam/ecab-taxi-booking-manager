@@ -102,8 +102,6 @@ $progressbar_class = ($progressbar == 'yes' && $tab == 'no') ? '' : 'dNone';
 					<div class="mptb-tab-container">
 					<ul class="mptb-tabs">
 						<?php
-                        error_log( print_r( [ '$available_tabs'  =>$available_tabs ], true ) );
-
                         foreach ($available_tabs as $key => $tab_name) {
 							$tab_form_style = ($tab_name === 'flat-rate') ? 'inline' : $original_form_style;
 						?>

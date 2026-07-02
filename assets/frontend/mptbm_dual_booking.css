@@ -1,0 +1,23 @@
+.mptbm_dual_booking_wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    max-width: 1200px;
+    width: 100%;
+}
+
+.mptbm_dual_booking_form {
+    width: 100%;
+}
+
+.mptbm_dual_booking_label {
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: block;
+}
+
+@media only screen and (max-width: 768px) {
+    .mptbm_dual_booking_wrap {
+        gap: 15px;
+    }
+}
