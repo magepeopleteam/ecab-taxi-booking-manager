@@ -1248,7 +1248,32 @@ if (!class_exists('MPTBM_Woocommerce')) {
 		/****************************/
 		public function mptbm_add_to_cart()
 			{
-				
+				// When both WooCommerce Payment and a custom payment method are
+				// enabled at the same time, WooCommerce always takes priority so
+				// the booking has one deterministic path instead of two handlers
+				// racing (which previously left the "Book Now" button stuck).
+				$use_wc_payment = MPTBM_Function::is_wc_active()
+					&& MP_Global_Function::get_settings('mptbm_payment_settings', 'mptbm_enable_wc_payment', 'on') !== 'off';
+
+				if (!$use_wc_payment) {
+					// WooCommerce payment is unavailable/disabled: hand off to any
+					// registered custom payment flow (e.g. the Pro plugin). If
+					// nothing handles it, return a visible error instead of an
+					// empty response so the frontend doesn't hang on a spinner.
+					$response = apply_filters('mptbm_custom_payment_add_to_cart', '', $_POST);
+					if ($response === '') {
+						ob_start();
+						?>
+						<div class="dLayout mptbm-cart-error">
+							<p class="mptbm-error-message"><?php esc_html_e('No payment method is currently available. Please contact the site admin.', 'ecab-taxi-booking-manager'); ?></p>
+						</div>
+						<?php
+						$response = ob_get_clean();
+					}
+					echo $response;
+					die();
+				}
+
 				$quantity = isset($_POST['transport_quantity']) ? sanitize_text_field($_POST['transport_quantity']) : 1;
 				$link_id = absint($_POST['link_id']);
 				$product_id = apply_filters('woocommerce_add_to_cart_product_id', $link_id);
@@ -1270,6 +1295,12 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						</div>
 			<?php
 					}
+				} else {
+					?>
+					<div class="dLayout mptbm-cart-error">
+						<p class="mptbm-error-message"><?php esc_html_e('Unable to add this booking to the cart. Please try again.', 'ecab-taxi-booking-manager'); ?></p>
+					</div>
+					<?php
 				}
 				echo ob_get_clean();
 				die();

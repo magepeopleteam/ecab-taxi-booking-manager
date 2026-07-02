@@ -3126,11 +3126,19 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                                 target_checkout[0].style.display = '';
                             }
                         });
-                    } else {
+                    } else if (data && /^https?:\/\//i.test(data.trim())) {
                         window.location.href = data;
+                    } else {
+                        // Empty/invalid response (e.g. both WooCommerce and a
+                        // custom payment method were enabled and the request
+                        // fell through without a usable result) - clear the
+                        // loader instead of leaving the button stuck.
+                        dLoaderRemove(parent.find('.tabsContentNext'));
+                        console.log('mptbm_add_to_cart: unexpected response', data);
                     }
                 },
                 error: function (response) {
+                    dLoaderRemove(parent.find('.tabsContentNext'));
                     console.log(response);
                 }
             });
