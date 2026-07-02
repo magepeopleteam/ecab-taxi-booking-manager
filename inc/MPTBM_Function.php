@@ -240,6 +240,33 @@ if (!class_exists('MPTBM_Function')) {
 			return apply_filters('mptbm_get_date', $all_dates, $post_id);
 		}
 
+		// Labels for the "Reason" dropdown on the manual Vehicle Availability toggle.
+		// Shared by the admin editor, the admin vehicle list column, and the front-end search result.
+		public static function get_availability_reason_labels()
+		{
+			return [
+				'maintenance'        => esc_html__('Maintenance', 'ecab-taxi-booking-manager'),
+				'booked'             => esc_html__('Booked (external)', 'ecab-taxi-booking-manager'),
+				'accident'           => esc_html__('Accident', 'ecab-taxi-booking-manager'),
+				'repair'             => esc_html__('Repair', 'ecab-taxi-booking-manager'),
+				'cleaning'           => esc_html__('Cleaning', 'ecab-taxi-booking-manager'),
+				'driver_unavailable' => esc_html__('Driver Unavailable', 'ecab-taxi-booking-manager'),
+				'other'              => esc_html__('Other', 'ecab-taxi-booking-manager'),
+			];
+		}
+
+		// Human-readable reason a vehicle was manually marked unavailable (custom note for "Other").
+		public static function get_availability_reason_text($post_id)
+		{
+			$reason = get_post_meta($post_id, 'mptbm_availability_reason', true);
+			$note = get_post_meta($post_id, 'mptbm_availability_reason_note', true);
+			if ($reason === 'other' && $note) {
+				return $note;
+			}
+			$labels = self::get_availability_reason_labels();
+			return isset($labels[$reason]) ? $labels[$reason] : esc_html__('Unavailable', 'ecab-taxi-booking-manager');
+		}
+
 		// Remaining inventory quantity for a vehicle at a given date/time, based on
 		// the "Booking Interval Time (minutes)" setting and overlapping bookings.
 		// Used by the "automatic" Availability Check Mode to decide search-result inclusion.

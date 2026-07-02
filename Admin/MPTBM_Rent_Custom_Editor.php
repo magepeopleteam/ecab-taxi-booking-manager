@@ -886,15 +886,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             $checked = $is_unavailable ? 'checked' : '';
             $reason = MP_Global_Function::get_post_info($post_id, 'mptbm_availability_reason', 'maintenance');
             $reason_note = MP_Global_Function::get_post_info($post_id, 'mptbm_availability_reason_note', '');
-            $reasons = [
-                'maintenance' => esc_html__('Maintenance', 'ecab-taxi-booking-manager'),
-                'booked'      => esc_html__('Booked (external)', 'ecab-taxi-booking-manager'),
-                'accident'    => esc_html__('Accident', 'ecab-taxi-booking-manager'),
-                'repair'      => esc_html__('Repair', 'ecab-taxi-booking-manager'),
-                'cleaning'    => esc_html__('Cleaning', 'ecab-taxi-booking-manager'),
-                'driver_unavailable' => esc_html__('Driver Unavailable', 'ecab-taxi-booking-manager'),
-                'other'       => esc_html__('Other', 'ecab-taxi-booking-manager'),
-            ];
+            $reasons = MPTBM_Function::get_availability_reason_labels();
             ?>
             <div class="mptbm_rent_editor_wrapper" id="mptbm_vehicle_availability_section">
                 <input type="hidden" name="mptbm_availability_status_field_present" value="1">

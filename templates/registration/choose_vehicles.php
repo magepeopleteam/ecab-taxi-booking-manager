@@ -1034,10 +1034,15 @@ if ($all_posts->found_posts > 0) {
         $post_id = $post->ID;
 
         // Quantity/interval availability (Inventory Management > Booking Interval Time) always
-        // applies to search results when inventory is enabled, regardless of the check mode.
+        // applies when inventory is enabled, regardless of the check mode. Unavailable vehicles
+        // still show in results (with a reason) so the customer can see why - just not bookable.
+        $mptbm_unavailable = false;
+        $mptbm_unavailable_reason = '';
+
         $mptbm_enable_inventory_check = get_post_meta($post_id, 'mptbm_enable_inventory', true);
         if ($mptbm_enable_inventory_check === 'yes' && MPTBM_Function::get_available_quantity($post_id, $start_date, $start_time_formatted) <= 0) {
-            continue;
+            $mptbm_unavailable = true;
+            $mptbm_unavailable_reason = esc_html__('Fully booked for this time', 'ecab-taxi-booking-manager');
         }
 
         // Availability Check Mode: in Manual mode, the Vehicle Availability toggle is an
@@ -1045,7 +1050,8 @@ if ($all_posts->found_posts > 0) {
         // is ignored entirely and only the quantity/interval check above applies.
         $availability_check_mode = get_post_meta($post_id, 'mptbm_availability_check_mode', true) ?: 'automatic';
         if ($availability_check_mode === 'manual' && get_post_meta($post_id, 'mptbm_availability_status', true) === 'unavailable') {
-            continue;
+            $mptbm_unavailable = true;
+            $mptbm_unavailable_reason = MPTBM_Function::get_availability_reason_text($post_id);
         }
 
         $taxi_max_passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);

@@ -72,21 +72,7 @@ if (!class_exists('MPTBM_CPT')) {
 				case 'mptbm_availability_status':
 					$status = get_post_meta($post_id, 'mptbm_availability_status', true);
 					if ($status === 'unavailable') {
-						$reason_labels = [
-							'maintenance'        => esc_html__('Maintenance', 'ecab-taxi-booking-manager'),
-							'booked'             => esc_html__('Booked (external)', 'ecab-taxi-booking-manager'),
-							'accident'           => esc_html__('Accident', 'ecab-taxi-booking-manager'),
-							'repair'             => esc_html__('Repair', 'ecab-taxi-booking-manager'),
-							'cleaning'           => esc_html__('Cleaning', 'ecab-taxi-booking-manager'),
-							'driver_unavailable' => esc_html__('Driver Unavailable', 'ecab-taxi-booking-manager'),
-							'other'              => esc_html__('Other', 'ecab-taxi-booking-manager'),
-						];
-						$reason = get_post_meta($post_id, 'mptbm_availability_reason', true);
-						$reason_note = get_post_meta($post_id, 'mptbm_availability_reason_note', true);
-						$reason_text = isset($reason_labels[$reason]) ? $reason_labels[$reason] : '';
-						if ($reason === 'other' && $reason_note) {
-							$reason_text = $reason_note;
-						}
+						$reason_text = MPTBM_Function::get_availability_reason_text($post_id);
 						echo '<span style="display:inline-block;padding:3px 10px;border-radius:3px;background:#f8d7da;color:#842029;font-weight:600;">' . esc_html__('Unavailable', 'ecab-taxi-booking-manager') . '</span>';
 						if ($reason_text) {
 							echo '<br><span style="color:#842029;font-size:12px;">' . esc_html($reason_text) . '</span>';
