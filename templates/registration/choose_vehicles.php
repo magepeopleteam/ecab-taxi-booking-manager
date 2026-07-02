@@ -1032,6 +1032,13 @@ if ($all_posts->found_posts > 0) {
     
     foreach ($posts as $post) {
         $post_id = $post->ID;
+
+        // Admin can manually mark a vehicle unavailable (e.g. it's out on a long trip);
+        // while set, it's excluded from search results entirely.
+        if (get_post_meta($post_id, 'mptbm_availability_status', true) === 'unavailable') {
+            continue;
+        }
+
         $taxi_max_passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
         $taxi_max_bag = (int) get_post_meta($post_id, 'mptbm_maximum_bag', true);
         $taxi_max_hand_luggage = (int) get_post_meta($post_id, 'mptbm_maximum_hand_luggage', true);

@@ -120,6 +120,11 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                 $inclusive_manual_locations = isset($_POST['mptbm_inclusive_manual_locations']) ? 'on' : 'off';
                 update_post_meta( $post_id, 'mptbm_inclusive_manual_locations', $inclusive_manual_locations );
+
+                if ( get_post_type( $post_id ) === 'mptbm_rent' && isset( $_POST['mptbm_availability_status_field_present'] ) ) {
+                    $availability_status = isset( $_POST['mptbm_availability_status'] ) ? 'unavailable' : 'available';
+                    update_post_meta( $post_id, 'mptbm_availability_status', $availability_status );
+                }
             }
 
         }
@@ -633,6 +638,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                 <?php
 
+                self::taxi_availability_status( $post_id );
+
                 if (class_exists('MPTBM_Plugin_Pro')) {
                     self::taxi_inventory_manages($post_id, $all_features);
                 }
@@ -865,6 +872,37 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
 
             </div>
+        <?php }
+        public static function taxi_availability_status( $post_id ){
+            $status = MP_Global_Function::get_post_info($post_id, 'mptbm_availability_status', 'available');
+            $is_unavailable = $status === 'unavailable';
+            $status_text = $is_unavailable ? esc_html__('Unavailable', 'ecab-taxi-booking-manager') : esc_html__('Available', 'ecab-taxi-booking-manager');
+            $checked = $is_unavailable ? 'checked' : '';
+            ?>
+            <div class="mptbm_rent_editor_wrapper">
+                <input type="hidden" name="mptbm_availability_status_field_present" value="1">
+                <div class="mptbm_taxi_feature_header mptbm_rent_editor_header">
+                    <div class="mptbm_taxi_feature_title_area">
+                        <h2 class="mptbm_rent_editor_title"><?php esc_html_e( 'Vehicle Availability', 'ecab-taxi-booking-manager' ); ?></h2>
+                        <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Manually mark this vehicle unavailable (e.g. it\'s out on a long trip). While unavailable it will not appear in search results at all, until you switch it back.', 'ecab-taxi-booking-manager' ); ?></p>
+                    </div>
+                    <div class="mptbm_taxi_feature_switch">
+                        <span class="mptbm_taxi_feature_switch_text mptbm_availability_status_text" data-available-text="<?php esc_attr_e('Available', 'ecab-taxi-booking-manager'); ?>" data-unavailable-text="<?php esc_attr_e('Unavailable', 'ecab-taxi-booking-manager'); ?>"><?php echo esc_html( $status_text ); ?></span>
+                        <label class="mptbm_taxi_feature_toggle">
+                            <input type="checkbox" id="mptbm_availability_status" name="mptbm_availability_status" <?php echo esc_attr( $checked ); ?>>
+                            <span class="mptbm_taxi_feature_slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <script>
+            jQuery(function($) {
+                $('#mptbm_availability_status').on('change', function() {
+                    var $text = $(this).closest('.mptbm_taxi_feature_header').find('.mptbm_availability_status_text');
+                    $text.text(this.checked ? $text.data('unavailable-text') : $text.data('available-text'));
+                });
+            });
+            </script>
         <?php }
         public static function taxi_inventory_manages( $post_id, $all_features ){
             $display_features = MP_Global_Function::get_post_info($post_id, 'mptbm_enable_inventory', 'no');
