@@ -739,7 +739,20 @@ $start_place = isset($_POST["start_place"]) ? sanitize_text_field($_POST["start_
 $start_place_coordinates = isset($_POST["start_place_coordinates"]) ? $_POST["start_place_coordinates"] : "";
 $end_place_coordinates = isset($_POST["end_place_coordinates"]) ? $_POST["end_place_coordinates"] : "";
 $end_place = isset($_POST["end_place"]) ? sanitize_text_field($_POST["end_place"]) : "";
-$extra_stop_place = isset($_POST["mptbm_extra_stop_place"]) ? sanitize_text_field($_POST["mptbm_extra_stop_place"]) : "";
+$extra_stop_place_raw = isset($_POST["mptbm_extra_stop_place"]) ? $_POST["mptbm_extra_stop_place"] : "";
+$extra_stop_places = [];
+if (is_array($extra_stop_place_raw)) {
+    foreach ($extra_stop_place_raw as $mptbm_stop) {
+        $mptbm_stop = sanitize_text_field($mptbm_stop);
+        if ($mptbm_stop !== "") {
+            $extra_stop_places[] = $mptbm_stop;
+        }
+    }
+} elseif ($extra_stop_place_raw !== "") {
+    $extra_stop_places[] = sanitize_text_field($extra_stop_place_raw);
+}
+// Kept for any older code still expecting a single combined string.
+$extra_stop_place = implode(', ', $extra_stop_places);
 $mptbm_original_price_base = isset($_POST["mptbm_original_price_base"]) ? sanitize_text_field($_POST["mptbm_original_price_base"]) : "";
 
 
@@ -942,7 +955,9 @@ if (empty($duration)) {
 	<input type="hidden" name="mptbm_end_place" value="<?php echo esc_attr($end_place); ?>" />
 	<input type="hidden" name="mptbm_start_place_coordinates" value="<?php echo esc_attr(is_array($start_place_coordinates) ? json_encode($start_place_coordinates) : $start_place_coordinates); ?>" />
 	<input type="hidden" name="mptbm_end_place_coordinates" value="<?php echo esc_attr(is_array($end_place_coordinates) ? json_encode($end_place_coordinates) : $end_place_coordinates); ?>" />
-	<input type="hidden" name="mptbm_extra_stop_place" value="<?php echo esc_attr($extra_stop_place); ?>" />
+	<?php foreach ($extra_stop_places as $mptbm_stop_display) : ?>
+	<input type="hidden" name="mptbm_extra_stop_place[]" class="mptbm_hidden_extra_stop_place" value="<?php echo esc_attr($mptbm_stop_display); ?>" />
+	<?php endforeach; ?>
 	<input type="hidden" name="mptbm_date" value="<?php echo esc_attr($date); ?>" />
 	<input type="hidden" name="mptbm_time" value="<?php echo esc_attr($start_time); ?>"/>
     <input type="hidden" name="mptbm_hidden_distance" value="<?php echo esc_attr($distance); ?>" />

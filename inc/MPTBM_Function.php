@@ -1549,6 +1549,74 @@ if (!class_exists('MPTBM_Function')) {
 			
 			return false;
 		}
+
+		// Multi-stop version of get_server_distance(): $waypoints is an ordered array of
+		// ['lat' => .., 'lng' => ..] pairs - pickup first, dropoff last, any extra stops in between.
+		// Returns the total distance/duration across the whole route (all legs combined).
+		// With exactly 2 waypoints this is equivalent to get_server_distance().
+		public static function get_server_distance_multi($waypoints) {
+			$waypoints = array_values(array_filter($waypoints, function ($p) {
+				return isset($p['lat'], $p['lng']) && $p['lat'] !== '' && $p['lng'] !== '';
+			}));
+
+			if (count($waypoints) < 2) {
+				return false;
+			}
+
+			if (count($waypoints) === 2) {
+				return self::get_server_distance($waypoints[0]['lat'], $waypoints[0]['lng'], $waypoints[1]['lat'], $waypoints[1]['lng']);
+			}
+
+			// Google Directions API supports intermediate waypoints in one call.
+			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'map_api_key');
+			if ($api_key) {
+				$origin = $waypoints[0]['lat'] . ',' . $waypoints[0]['lng'];
+				$destination = end($waypoints)['lat'] . ',' . end($waypoints)['lng'];
+				$middle = array_slice($waypoints, 1, -1);
+				$waypoints_param = implode('|', array_map(function ($p) {
+					return $p['lat'] . ',' . $p['lng'];
+				}, $middle));
+
+				$url = "https://maps.googleapis.com/maps/api/directions/json?origin={$origin}&destination={$destination}&mode=driving&key={$api_key}";
+				if ($waypoints_param) {
+					$url .= '&waypoints=' . rawurlencode($waypoints_param);
+				}
+				$response = wp_remote_get($url);
+				if (!is_wp_error($response)) {
+					$body = wp_remote_retrieve_body($response);
+					$data = json_decode($body, true);
+					if (isset($data['status']) && $data['status'] === 'OK' && !empty($data['routes'][0]['legs'])) {
+						$distance = 0;
+						$duration = 0;
+						foreach ($data['routes'][0]['legs'] as $leg) {
+							$distance += $leg['distance']['value'];
+							$duration += $leg['duration']['value'];
+						}
+						return ['distance' => $distance, 'duration' => $duration];
+					}
+				}
+			}
+
+			// Fallback to OSRM - its route endpoint natively accepts more than 2 coordinates
+			// and returns one combined distance/duration for the whole ordered route.
+			$coords = implode(';', array_map(function ($p) {
+				return $p['lng'] . ',' . $p['lat']; // OSRM uses {lng},{lat} order
+			}, $waypoints));
+			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$coords}?overview=false";
+			$response = wp_remote_get($osrm_url);
+			if (!is_wp_error($response)) {
+				$body = wp_remote_retrieve_body($response);
+				$data = json_decode($body, true);
+				if (isset($data['code']) && $data['code'] === 'Ok' && isset($data['routes'][0])) {
+					return [
+						'distance' => $data['routes'][0]['distance'],
+						'duration' => $data['routes'][0]['duration'],
+					];
+				}
+			}
+
+			return false;
+		}
 	}
 	new MPTBM_Function();
 }

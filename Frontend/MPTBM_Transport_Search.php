@@ -158,14 +158,15 @@
 					$s_lng = isset($start_coords['longitude']) ? $start_coords['longitude'] : '';
 					$e_lat = isset($end_coords['latitude']) ? $end_coords['latitude'] : '';
 					$e_lng = isset($end_coords['longitude']) ? $end_coords['longitude'] : '';
-					
+
+
 					// Set transients for pricing logic in MPTBM_Function::get_price
 					set_transient('pickup_lat_transient', $s_lat, HOUR_IN_SECONDS);
 					set_transient('pickup_lng_transient', $s_lng, HOUR_IN_SECONDS);
 					set_transient('drop_lat_transient', $e_lat, HOUR_IN_SECONDS);
 					set_transient('drop_lng_transient', $e_lng, HOUR_IN_SECONDS);
 
-					$server_data = MPTBM_Function::get_server_distance($s_lat, $s_lng, $e_lat, $e_lng);
+					$server_data = $this->get_server_distance_with_stops($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 
 				if ($server_data) {
@@ -271,8 +272,9 @@
 					$s_lng = isset($start_coords['longitude']) ? $start_coords['longitude'] : '';
 					$e_lat = isset($end_coords['latitude']) ? $end_coords['latitude'] : '';
 					$e_lng = isset($end_coords['longitude']) ? $end_coords['longitude'] : '';
-					
-					$server_data = MPTBM_Function::get_server_distance($s_lat, $s_lng, $e_lat, $e_lng);
+
+
+					$server_data = $this->get_server_distance_with_stops($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 
 				if ($server_data) {
@@ -321,6 +323,36 @@
 			public function get_mptbm_end_place() {
 				include(MPTBM_Function::template_path('registration/get_end_place.php'));
 				die();
+			}
+
+			// Builds the ordered pickup -> stop 1 -> ... -> dropoff waypoint list from POST and
+			// resolves the total route distance/duration in one call. With no extra stops this
+			// behaves exactly like the old direct pickup->dropoff calculation.
+			private function get_server_distance_with_stops($start_lat, $start_lng, $end_lat, $end_lng) {
+				if (!$start_lat || !$start_lng || !$end_lat || !$end_lng) {
+					return false;
+				}
+
+				$waypoints = [['lat' => $start_lat, 'lng' => $start_lng]];
+
+				$stop_coords_raw = isset($_POST['mptbm_extra_stop_place_coordinates']) ? $_POST['mptbm_extra_stop_place_coordinates'] : [];
+				if (!is_array($stop_coords_raw)) {
+					$stop_coords_raw = [$stop_coords_raw];
+				}
+				foreach ($stop_coords_raw as $coord_str) {
+					$coord_str = sanitize_text_field($coord_str);
+					if (!$coord_str) {
+						continue;
+					}
+					$parts = array_map('trim', explode(',', $coord_str));
+					if (count($parts) === 2 && is_numeric($parts[0]) && is_numeric($parts[1])) {
+						$waypoints[] = ['lat' => (float) $parts[0], 'lng' => (float) $parts[1]];
+					}
+				}
+
+				$waypoints[] = ['lat' => $end_lat, 'lng' => $end_lng];
+
+				return MPTBM_Function::get_server_distance_multi($waypoints);
 			}
 			
 			/**
