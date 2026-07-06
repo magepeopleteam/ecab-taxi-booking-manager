@@ -652,6 +652,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                 self::taxi_feature_add_remove( $post_id, $all_features );
 
+                self::taxi_show_reviews_toggle( $post_id );
+
                 ?>
 
             </div>
@@ -877,6 +879,27 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 </div>
 
 
+            </div>
+        <?php }
+        public static function taxi_show_reviews_toggle( $post_id ){
+            $show_reviews = MP_Global_Function::get_post_info($post_id, 'mptbm_show_reviews', 'no');
+            $reviews_active = $show_reviews == 'yes' ? 'On' : 'Off';
+            $reviews_checked = $show_reviews == 'yes' ? 'checked' : '';
+            ?>
+            <div class="mptbm_rent_editor_wrapper">
+                <div class="mptbm_taxi_feature_header mptbm_rent_editor_header">
+                    <div class="mptbm_taxi_feature_title_area">
+                        <h2 class="mptbm_rent_editor_title"><?php esc_html_e( 'Customer Reviews', 'ecab-taxi-booking-manager' ); ?></h2>
+                        <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Show the star rating in search results and let customers leave a review for this vehicle after a completed trip.', 'ecab-taxi-booking-manager' ); ?></p>
+                    </div>
+                    <div class="mptbm_taxi_feature_switch">
+                        <span class="mptbm_taxi_feature_switch_text"><?php echo esc_html( $reviews_active );?></span>
+                        <label class="mptbm_taxi_feature_toggle">
+                            <input type="checkbox" id="mptbm_show_reviews" name="mptbm_show_reviews" <?php echo esc_attr( $reviews_checked );?>>
+                            <span class="mptbm_taxi_feature_slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
         <?php }
         public static function taxi_availability_status( $post_id ){

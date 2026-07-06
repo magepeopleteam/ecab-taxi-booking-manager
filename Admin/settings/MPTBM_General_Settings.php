@@ -227,6 +227,10 @@
 					
 					$display_features = isset($_POST['display_mptbm_features']) && sanitize_text_field($_POST['display_mptbm_features'])? 'on' : 'off';
 					update_post_meta($post_id, 'display_mptbm_features', $display_features);
+
+					// Customer Reviews: default off - only show the rating/review UI for this vehicle when explicitly enabled.
+					$show_reviews = isset($_POST['mptbm_show_reviews']) && sanitize_text_field($_POST['mptbm_show_reviews']) ? 'yes' : 'no';
+					update_post_meta($post_id, 'mptbm_show_reviews', $show_reviews);
 					$features_text = isset($_POST['mptbm_features_text']) ? array_map('sanitize_text_field',$_POST['mptbm_features_text']) : [];
 					if (sizeof($features_text) > 0) {
 						$features_icon = isset($_POST['mptbm_features_icon_image']) ? array_map('sanitize_text_field',$_POST['mptbm_features_icon_image']) : [];

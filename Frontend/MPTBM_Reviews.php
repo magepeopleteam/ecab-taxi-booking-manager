@@ -17,6 +17,11 @@
 				add_action('woocommerce_order_details_after_order_table', [$this, 'maybe_show_review_prompt']);
 			}
 
+			// Per-vehicle "Customer Reviews" toggle (Admin > Edit Rent > General), default off.
+			public static function reviews_enabled($post_id) {
+				return MP_Global_Function::get_post_info($post_id, 'mptbm_show_reviews', 'no') === 'yes';
+			}
+
 			public static function get_vehicle_reviews($post_id) {
 				return get_comments([
 					'post_id' => $post_id,
@@ -41,6 +46,9 @@
 
 			// Small stars + count badge, safe to echo anywhere a vehicle is listed (e.g. search results card).
 			public static function get_rating_html($post_id) {
+				if (!self::reviews_enabled($post_id)) {
+					return '';
+				}
 				$data = self::get_average_rating($post_id);
 				if ($data['count'] === 0) {
 					return '';
@@ -97,6 +105,9 @@
 
 			public function render_reviews_section($post_id) {
 				if (get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
+					return;
+				}
+				if (!self::reviews_enabled($post_id)) {
 					return;
 				}
 				$reviews = self::get_vehicle_reviews($post_id);
@@ -216,6 +227,9 @@
 				}
 				if (!$post_id || get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
 					wp_send_json_error(['message' => __('Invalid vehicle.', 'ecab-taxi-booking-manager')]);
+				}
+				if (!self::reviews_enabled($post_id)) {
+					wp_send_json_error(['message' => __('Reviews are not enabled for this vehicle.', 'ecab-taxi-booking-manager')]);
 				}
 
 				$rating = isset($_POST['rating']) ? absint($_POST['rating']) : 0;
