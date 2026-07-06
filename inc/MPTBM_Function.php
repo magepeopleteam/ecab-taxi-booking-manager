@@ -270,9 +270,9 @@ if (!class_exists('MPTBM_Function')) {
 		// Remaining inventory quantity for a vehicle at a given date/time, based on
 		// the "Booking Interval Time (minutes)" setting and overlapping bookings.
 		// Used by the "automatic" Availability Check Mode to decide search-result inclusion.
-		public static function get_available_quantity($post_id, $start_date, $start_time_formatted)
+		public static function get_available_quantity($post_id, $start_date, $start_time_formatted, $force_single_quantity = false)
 		{
-			$total_quantity = (int) MP_Global_Function::get_post_info($post_id, 'mptbm_quantity', 1);
+			$total_quantity = $force_single_quantity ? 1 : (int) MP_Global_Function::get_post_info($post_id, 'mptbm_quantity', 1);
 			$available_quantity = $total_quantity;
 
 			if (!$start_date || $start_time_formatted === '' || $start_time_formatted === null) {
@@ -682,7 +682,11 @@ if (!class_exists('MPTBM_Function')) {
 				$datetime_discount_enabled = get_post_meta($post_id, 'mptbm_datetime_discount_enabled', true);
 				$day_discount_enabled = get_post_meta($post_id, 'mptbm_day_discount_enabled', true);
 
-				if (strpos($selected_start_time, '.') !== false) {
+				if (strpos($selected_start_time, ':') !== false) {
+					// Already formatted as H:i (or H:i:s) by the search form's data-time attribute; keep the real minutes.
+					$time_parts = explode(':', $selected_start_time);
+					$selected_start_time = sprintf('%02d:%02d', (int) $time_parts[0], (int) ($time_parts[1] ?? 0));
+				} elseif (strpos($selected_start_time, '.') !== false) {
 					$selected_start_time = sprintf('%02d:%02d', floor($selected_start_time), ($selected_start_time - floor($selected_start_time)) * 60);
 				} else {
 					$selected_start_time = sprintf('%02d:00', $selected_start_time);
