@@ -900,7 +900,121 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </label>
                     </div>
                 </div>
+                <?php self::render_reviews_admin_list( $post_id ); ?>
             </div>
+        <?php }
+
+        // Reviews are only manageable here while the toggle above is on, and are not rendered
+        // up front - admin clicks a button to load them (20 at a time, with Load More), so a
+        // vehicle with hundreds of reviews doesn't bloat the edit page.
+        public static function render_reviews_admin_list( $post_id ){
+            if ( ! class_exists( 'MPTBM_Reviews' ) || ! MPTBM_Reviews::reviews_enabled( $post_id ) ) {
+                return;
+            }
+            $total = MPTBM_Reviews::get_average_rating( $post_id )['count'];
+            if ( $total === 0 ) {
+                return;
+            }
+            ?>
+            <div class="mptbm_taxi_advanced_card mptbm_reviews_manage_body" id="mptbm_admin_reviews_list" style="margin-top: 15px; border-top: 1px solid #e1e5e9; padding-top: 15px;">
+                <label class="mptbm_rent_label"><?php esc_html_e( 'Manage Reviews', 'ecab-taxi-booking-manager' ); ?></label>
+                <p>
+                    <button type="button" class="button" id="mptbm_view_reviews_btn"
+                        data-post-id="<?php echo esc_attr( $post_id ); ?>"
+                        data-nonce="<?php echo esc_attr( wp_create_nonce( 'mptbm_load_reviews_' . $post_id ) ); ?>">
+                        <?php
+                        printf(
+                            /* translators: %d: number of reviews */
+                            esc_html__( 'View Reviews (%d)', 'ecab-taxi-booking-manager' ),
+                            (int) $total
+                        );
+                        ?>
+                    </button>
+                </p>
+                <div id="mptbm_reviews_list_body"></div>
+                <p>
+                    <button type="button" class="button" id="mptbm_load_more_reviews_btn" style="display:none;" data-offset="0">
+                        <?php esc_html_e( 'Load More', 'ecab-taxi-booking-manager' ); ?>
+                    </button>
+                </p>
+            </div>
+            <script>
+            jQuery(function($){
+                function mptbmReviewRowHtml(review) {
+                    var stars = '';
+                    for (var i = 1; i <= 5; i++) { stars += (i <= review.rating) ? '★' : '☆'; }
+                    return '<div class="mptbm_admin_review_row" data-comment-id="' + review.id + '" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #eee;">' +
+                        '<div>' +
+                            '<div style="color:#f5a623;">' + stars + '</div>' +
+                            '<strong>' + review.author + '</strong>' +
+                            '<span style="color:#999;font-size:12px;"> — ' + review.date + '</span>' +
+                            '<p style="margin:4px 0 0;">' + review.content + '</p>' +
+                        '</div>' +
+                        '<button type="button" class="button mptbm_delete_review_btn" data-comment-id="' + review.id + '" data-nonce="' + review.delete_nonce + '">' +
+                            <?php echo wp_json_encode( __( 'Delete', 'ecab-taxi-booking-manager' ) ); ?> +
+                        '</button>' +
+                    '</div>';
+                }
+
+                function mptbmLoadReviews(offset) {
+                    var $viewBtn = $('#mptbm_view_reviews_btn');
+                    var $loadMoreBtn = $('#mptbm_load_more_reviews_btn').prop('disabled', true);
+                    $.post(ajaxurl, {
+                        action: 'mptbm_admin_load_reviews',
+                        post_id: $viewBtn.data('post-id'),
+                        offset: offset,
+                        nonce: $viewBtn.data('nonce')
+                    }, function(response){
+                        $loadMoreBtn.prop('disabled', false);
+                        if (!response.success) {
+                            alert((response.data && response.data.message) ? response.data.message : 'Error');
+                            return;
+                        }
+                        var html = '';
+                        $.each(response.data.reviews, function(i, review){ html += mptbmReviewRowHtml(review); });
+                        $('#mptbm_reviews_list_body').append(html);
+                        var newOffset = offset + response.data.reviews.length;
+                        $loadMoreBtn.data('offset', newOffset).toggle(response.data.has_more);
+                    }).fail(function(){
+                        $loadMoreBtn.prop('disabled', false);
+                        alert('Error, please try again.');
+                    });
+                }
+
+                $('#mptbm_view_reviews_btn').on('click', function(){
+                    $(this).prop('disabled', true).hide();
+                    mptbmLoadReviews(0);
+                });
+
+                $('#mptbm_load_more_reviews_btn').on('click', function(){
+                    mptbmLoadReviews($(this).data('offset') || 0);
+                });
+
+                $(document).on('click', '.mptbm_delete_review_btn', function(){
+                    if (!confirm(<?php echo wp_json_encode( __( 'Delete this review? This cannot be undone.', 'ecab-taxi-booking-manager' ) ); ?>)) {
+                        return;
+                    }
+                    var $btn = $(this).prop('disabled', true);
+                    var $row = $btn.closest('.mptbm_admin_review_row');
+                    $.post(ajaxurl, {
+                        action: 'mptbm_admin_delete_review',
+                        comment_id: $btn.data('comment-id'),
+                        post_id: <?php echo (int) $post_id; ?>,
+                        nonce: $btn.data('nonce')
+                    }, function(response){
+                        if (response.success) {
+                            $row.fadeOut(200, function(){ $(this).remove(); });
+                        } else {
+                            $btn.prop('disabled', false);
+                            alert((response.data && response.data.message) ? response.data.message : 'Error');
+                        }
+                    }).fail(function(){
+                        $btn.prop('disabled', false);
+                        alert('Error, please try again.');
+                    });
+                });
+            });
+            </script>
         <?php }
         public static function taxi_availability_status( $post_id ){
             $status = MP_Global_Function::get_post_info($post_id, 'mptbm_availability_status', 'available');
