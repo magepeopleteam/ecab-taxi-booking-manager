@@ -197,6 +197,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                 </div>
                 <div class="fdColumn _fullWidth mptbm_list_details">
                     <h5><?php echo esc_html(get_the_title($post_id)); ?></h5>
+                    <?php if (class_exists('MPTBM_Reviews')) { echo MPTBM_Reviews::get_rating_html($post_id); } ?>
                     <?php if ($mptbm_unavailable) { ?>
                         <div class="mptbm_unavailable_badge" style="display:inline-block; margin: 2px 0; padding: 2px 8px; border-radius: 3px; background: #f8d7da; color: #842029; font-size: 12px; font-weight: 600;">
                             <?php esc_html_e('Unavailable', 'ecab-taxi-booking-manager'); ?><?php echo $mptbm_unavailable_reason ? ' - ' . esc_html($mptbm_unavailable_reason) : ''; ?>
