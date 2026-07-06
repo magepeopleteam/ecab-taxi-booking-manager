@@ -3081,7 +3081,8 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
                     start_place_coordinates: start_place_coordinates ? JSON.stringify(start_place_coordinates) : '',
                     end_place_coordinates: end_place_coordinates ? JSON.stringify(end_place_coordinates) : '',
-                    mptbm_threshold_base_price: mptbm_threshold_base_price
+                    mptbm_threshold_base_price: mptbm_threshold_base_price,
+                    mptbm_add_to_cart_nonce: parent.find('input[name="mptbm_add_to_cart_nonce"]').val()
                 },
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));
