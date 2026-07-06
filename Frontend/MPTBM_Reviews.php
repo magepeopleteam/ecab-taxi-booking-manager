@@ -65,7 +65,9 @@
 				return ob_get_clean();
 			}
 
-			// Customer's most recent COMPLETED, already-happened booking for this vehicle - required to be allowed to review.
+			// Customer's most recent COMPLETED booking for this vehicle - required to be allowed to review.
+			// Only the order status matters; the trip date is not checked (an admin marking the order
+			// Completed is treated as confirmation the trip happened).
 			public static function find_eligible_booking($user_id, $vehicle_id) {
 				if (!$user_id) {
 					return null;
@@ -83,10 +85,6 @@
 					$order = $order_id ? wc_get_order($order_id) : false;
 					if (!$order || (int) $order->get_customer_id() !== (int) $user_id) {
 						continue;
-					}
-					$trip_date = get_post_meta($booking->ID, 'mptbm_date', true);
-					if ($trip_date && strtotime($trip_date) > current_time('timestamp')) {
-						continue; // Trip hasn't happened yet - order was marked completed early.
 					}
 					return $booking;
 				}
