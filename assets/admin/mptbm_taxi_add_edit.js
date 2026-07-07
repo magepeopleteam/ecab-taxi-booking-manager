@@ -190,6 +190,20 @@
             // $(this).closest('.mptbm_taxi_feature_switch').find('span').text(isChecked ? 'ON' : 'OFF');
         });
 
+        // 1. Customer Reviews Toggle Functionality
+        $('#mptbm_show_reviews').on('change', function(e) {
+            e.preventDefault();
+            const isChecked = $(this).is(':checked');
+            const $switchText = $(this).closest('.mptbm_taxi_feature_header').find('.mptbm_taxi_feature_switch_text');
+            if (isChecked) {
+                $('.mptbm_reviews_manage_body').fadeIn();
+                $switchText.text('On');
+            } else {
+                $('.mptbm_reviews_manage_body').fadeOut();
+                $switchText.text('Off');
+            }
+        });
+
         $(document).on('click', '.mptbm_taxi_feature_btn_del', function(e) {
             e.preventDefault();
             console.log('mptbm: feature delete clicked', this);
