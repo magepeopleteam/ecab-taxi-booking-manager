@@ -195,14 +195,26 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
                 </script>
                 <?php session_write_close();
-            } elseif ($startInAreaOne == "true" && $endInAreaOne == "true") { ?>
+            } elseif ($startInAreaOne == "true" && $endInAreaOne == "true") {
+                // Both in area one - no surcharge for this route. Clear any surcharge left over
+                // from a previous search in this session, or it would silently carry over here.
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                unset($_SESSION["geo_fence_post_" . $post_id]);
+                session_write_close();
+                ?>
                 <script>
                     var post_id = <?php echo wp_json_encode($post_id); ?>;
                     var selectorClass = `.mptbm_booking_item_${post_id}`;
                     jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
                 </script>
-            <?php } else { ?>
+            <?php } else {
+                // No direct PHP-side match - falls back to a client-side geolib re-check.
+                // Also not a surcharge route, so clear any stale surcharge from before.
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                unset($_SESSION["geo_fence_post_" . $post_id]);
+                session_write_close();
+                ?>
                 <script>
                 (function() {
                     var geoAreaOne  = <?php echo wp_json_encode($geo_area_one); ?>;
@@ -260,7 +272,11 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                 </script>
                 <?php session_write_close();
             } elseif ($startInAreaOne == "true" && $endInAreaOne == "true") {
-                // Show transport when both start and end are in area one
+                // Show transport when both start and end are in area one - no surcharge for this
+                // route, so clear any surcharge left over from a previous search this session.
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                unset($_SESSION["geo_fence_post_" . $post_id]);
+                session_write_close();
                 ?>
                 <script>
                     var post_id = <?php echo wp_json_encode($post_id); ?>;
@@ -270,7 +286,11 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                 </script>
                 <?php
             } elseif ($startInAreaTwo == "true" && $endInAreaTwo == "true") {
-                // Show transport when both start and end are in area two
+                // Show transport when both start and end are in area two - same as above, clear
+                // any stale surcharge from a previous search this session.
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                unset($_SESSION["geo_fence_post_" . $post_id]);
+                session_write_close();
                 ?>
                 <script>
                     var post_id = <?php echo wp_json_encode($post_id); ?>;
@@ -279,7 +299,13 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
                 </script>
                 <?php
-            } else { ?>
+            } else {
+                // No direct PHP-side match - falls back to a client-side geolib re-check.
+                // Also not a surcharge route, so clear any stale surcharge from before.
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                unset($_SESSION["geo_fence_post_" . $post_id]);
+                session_write_close();
+                ?>
                 <script>
                 (function() {
                     var geoAreaOne  = <?php echo wp_json_encode($geo_area_one); ?>;
