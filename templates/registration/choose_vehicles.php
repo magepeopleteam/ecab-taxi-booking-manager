@@ -335,7 +335,7 @@ function mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_pl
         return false;
     }
     $operation_area_type = get_post_meta($operation_area_id, "mptbm-operation-type", true);
-    
+
     // Determine meta key based on operation type
     if ($operation_area_type === "geo-matched-operation-area-type") {
         $coord_key = "mptbm-coordinates-four";
@@ -417,23 +417,23 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                     } elseif ($area_type === 'geo-fence-operation-area-type') {
                         $coord_key = 'mptbm-coordinates-one'; // Use the first one for intercity
                     }
-                    
+
                     $flat_operation_area_coordinates = get_post_meta($operation_area_id, $coord_key, true);
-                    
+
                     if (is_array($flat_operation_area_coordinates)) {
                         $operation_area_coordinates = [];
                         for ($i = 0; $i < count($flat_operation_area_coordinates); $i += 2) {
                             $operation_area_coordinates[] = ["latitude" => $flat_operation_area_coordinates[$i], "longitude" => $flat_operation_area_coordinates[$i + 1]];
                         }
-                        
+
                         $start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : json_decode($start_place_coordinates, true);
                         $end_coords = is_array($end_place_coordinates) ? $end_place_coordinates : json_decode($end_place_coordinates, true);
-                        
+
                         $start_in_area = false;
                         $end_in_area = false;
                         if (is_array($start_coords)) { $start_in_area = pointInPolygon($start_coords, $operation_area_coordinates); }
                         if (is_array($end_coords)) { $end_in_area = pointInPolygon($end_coords, $operation_area_coordinates); }
-                        
+
                         if ($start_in_area) {
                             $is_in_any_area = true;
                             $_SESSION["mptbm_fixed_distance_match_" . $post_id] = $end_in_area ? 'full' : 'partial';
@@ -444,7 +444,7 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                                 document.cookie = selectorClass + '=' + selectorClass + ";path=/";
                             </script>
                             <?php
-                            break; 
+                            break;
                         }
                     }
                     continue;
