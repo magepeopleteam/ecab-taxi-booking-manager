@@ -162,14 +162,18 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				);
 
 
-				// FIX: Prioritize POST data if available to prevent stale session data from causing price errors
-				// We still keep the session variables for reference but do NOT enforce them if POST is present.
-				if (isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance'])) {
-					$distance = absint($_POST['mptbm_distance']);
-					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : 0;
-				} elseif ($secure_distance && $places_match) {
+				// SECURITY (CWE-472): the trip distance drives the fare, so it MUST come from the
+				// value the server measured during the search step (stored in the session), never
+				// from the request body. Trusting $_POST['mptbm_distance'] let any visitor forge a
+				// tiny distance and pay a few cents for a real trip. The client-supplied distance is
+				// only used as a fallback when the server could not measure the trip (e.g. no
+				// Distance API configured) — the same degraded mode the plugin already relied on.
+				if ($secure_distance && $places_match) {
 					$distance = absint($secure_distance);
 					$duration = isset($_SESSION['mptbm_secure_duration']) ? absint($_SESSION['mptbm_secure_duration']) : 0;
+				} elseif (isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance'])) {
+					$distance = absint($_POST['mptbm_distance']);
+					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : 0;
 				} else {
 					$distance = isset($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : (isset($_POST['mptbm_hidden_distance']) ? absint($_POST['mptbm_hidden_distance']) : ''));
 					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : (isset($_POST['mptbm_hidden_duration']) ? absint($_POST['mptbm_hidden_duration']) : ''));
@@ -210,7 +214,11 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					session_start();
 				}
 				
-				$threshold_base_price = isset($_POST['mptbm_threshold_base_price']) ? floatval($_POST['mptbm_threshold_base_price']) : 0;
+				// SECURITY (CWE-20/CWE-602): this is an additive base fee. A negative value would
+				// subtract from the total and, because it is applied after the minimum-fare floor,
+				// could drive the order to a few cents or below zero. Clamp to a non-negative amount;
+				// the legitimate value is always a server-computed, non-negative base price.
+				$threshold_base_price = isset($_POST['mptbm_threshold_base_price']) ? max(0.0, floatval($_POST['mptbm_threshold_base_price'])) : 0;
 				$cart_item_data['mptbm_threshold_base_price'] = $threshold_base_price;
 				
 				

@@ -689,26 +689,33 @@ set_transient($transient_key_date, $start_date); // Set new transient
 
 if ($start_time !== "") {
     if ($start_time !== "0") {
-        
-        // Convert start time to hours and minutes
-        $time_parts = explode('.', $start_time);
-        $hours = isset($time_parts[0]) ? $time_parts[0] : 0;
-        $decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
-        $interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
-        
-        if ($interval_time == "5" || $interval_time == "15") {
-                if($decimal_part != 3){
-                    $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
-                }else{
-                    $minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 1 to convert to minutes
-                }
-                
-                
-            
-        }else {
-            $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 10 to convert to minutes
+
+        if (strpos($start_time, ':') !== false) {
+            // Already formatted as H:i by the search form's data-time attribute; keep the real minutes.
+            $time_parts = explode(':', $start_time);
+            $hours = (int) $time_parts[0];
+            $minutes = isset($time_parts[1]) ? (int) $time_parts[1] : 0;
+        } else {
+            // Convert start time to hours and minutes
+            $time_parts = explode('.', $start_time);
+            $hours = isset($time_parts[0]) ? $time_parts[0] : 0;
+            $decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
+            $interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
+
+            if ($interval_time == "5" || $interval_time == "15") {
+                    if($decimal_part != 3){
+                        $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+                    }else{
+                        $minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 1 to convert to minutes
+                    }
+
+
+
+            }else {
+                $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 10 to convert to minutes
+            }
         }
-        
+
     } else {
         $hours = 0;
         $minutes = 0;
@@ -840,23 +847,30 @@ if ($two_way > 1 && MP_Global_Function::get_settings("mptbm_general_settings", "
     
     if ($return_time !== "") {
         if ($return_time !== "0") {
-    
-            // Convert return time to hours and minutes
-            $time_parts = explode('.', $return_time);
-            $hours = isset($time_parts[0]) ? $time_parts[0] : 0;
-            $decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
-            $interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
-    
-            if ($interval_time == "5" || $interval_time == "15") {
-                if ($decimal_part != 3) {
-                    $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
-                } else {
-                    $minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 10 to convert to minutes
-                }
+
+            if (strpos($return_time, ':') !== false) {
+                // Already formatted as H:i by the search form's data-time attribute; keep the real minutes.
+                $time_parts = explode(':', $return_time);
+                $hours = (int) $time_parts[0];
+                $minutes = isset($time_parts[1]) ? (int) $time_parts[1] : 0;
             } else {
-                $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+                // Convert return time to hours and minutes
+                $time_parts = explode('.', $return_time);
+                $hours = isset($time_parts[0]) ? $time_parts[0] : 0;
+                $decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
+                $interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
+
+                if ($interval_time == "5" || $interval_time == "15") {
+                    if ($decimal_part != 3) {
+                        $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+                    } else {
+                        $minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 10 to convert to minutes
+                    }
+                } else {
+                    $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+                }
             }
-    
+
         } else {
             $hours = 0;
             $minutes = 0;
@@ -931,6 +945,8 @@ if (empty($duration)) {
 	<input type="hidden" name="mptbm_extra_stop_place" value="<?php echo esc_attr($extra_stop_place); ?>" />
 	<input type="hidden" name="mptbm_date" value="<?php echo esc_attr($date); ?>" />
 	<input type="hidden" name="mptbm_time" value="<?php echo esc_attr($start_time); ?>"/>
+	<?php // SECURITY: fresh add-to-cart nonce, regenerated on every server-side search response. ?>
+	<?php wp_nonce_field('mptbm_add_to_cart', 'mptbm_add_to_cart_nonce', false); ?>
     <input type="hidden" name="mptbm_hidden_distance" value="<?php echo esc_attr($distance); ?>" />
     <input type="hidden" name="mptbm_hidden_duration" value="<?php echo esc_attr($duration); ?>" />
     <input type="hidden" name="mptbm_hidden_duration_text" value="" />
@@ -1032,6 +1048,40 @@ if ($all_posts->found_posts > 0) {
     
     foreach ($posts as $post) {
         $post_id = $post->ID;
+
+        // Quantity/interval availability (Inventory Management > Booking Interval Time) always
+        // applies, regardless of the check mode.
+        // When Inventory Management is OFF for a vehicle, it still has exactly one physical
+        // unit, so treat its quantity as 1 to prevent the same slot being double-booked.
+        $mptbm_unavailable = false;
+        $mptbm_unavailable_reason = '';
+
+        $mptbm_enable_inventory_check = get_post_meta($post_id, 'mptbm_enable_inventory', true);
+        $mptbm_force_single_quantity = ($mptbm_enable_inventory_check !== 'yes');
+        if (MPTBM_Function::get_available_quantity($post_id, $start_date, $start_time_formatted, $mptbm_force_single_quantity) <= 0) {
+            $mptbm_unavailable = true;
+            $mptbm_unavailable_reason = esc_html__('Fully booked for this time', 'ecab-taxi-booking-manager');
+        }
+
+        // Availability Check Mode: in Manual mode, the Vehicle Availability toggle is an
+        // additional gate on top of the quantity check above. In Automatic mode, the toggle
+        // is ignored entirely and only the quantity/interval check above applies.
+        $availability_check_mode = get_post_meta($post_id, 'mptbm_availability_check_mode', true) ?: 'automatic';
+        $mptbm_manually_marked_unavailable = ($availability_check_mode === 'manual' && get_post_meta($post_id, 'mptbm_availability_status', true) === 'unavailable');
+        if ($mptbm_manually_marked_unavailable) {
+            $mptbm_unavailable = true;
+            $mptbm_unavailable_reason = MPTBM_Function::get_availability_reason_text($post_id);
+        }
+
+        // Only show an "Unavailable" badge with reason in the results when Inventory Management
+        // is ON AND the vehicle has explicitly been marked Unavailable via Manual Availability
+        // Check Mode. Any other cause of unavailability (e.g. quantity fully booked, or manual
+        // mode not set to Unavailable) hides the vehicle from the search results entirely.
+        $mptbm_show_unavailable_with_reason = ($mptbm_enable_inventory_check === 'yes' && $mptbm_manually_marked_unavailable);
+        if ($mptbm_unavailable && !$mptbm_show_unavailable_with_reason) {
+            continue; // Fully booked/unavailable - skip this vehicle from the results
+        }
+
         $taxi_max_passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
         $taxi_max_bag = (int) get_post_meta($post_id, 'mptbm_maximum_bag', true);
         $taxi_max_hand_luggage = (int) get_post_meta($post_id, 'mptbm_maximum_hand_luggage', true);

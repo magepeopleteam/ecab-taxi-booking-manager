@@ -18,7 +18,8 @@
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Dual_Booking_Shortcode.php';
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Woocommerce.php';
 				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Wc_Checkout_Fields_Helper.php';
-				
+				require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Reviews.php';
+
 			}
 			public function load_single_template($template): string {
 				global $post;
