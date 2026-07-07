@@ -960,6 +960,8 @@ if (empty($duration)) {
 	<?php endforeach; ?>
 	<input type="hidden" name="mptbm_date" value="<?php echo esc_attr($date); ?>" />
 	<input type="hidden" name="mptbm_time" value="<?php echo esc_attr($start_time); ?>"/>
+	<?php // SECURITY: fresh add-to-cart nonce, regenerated on every server-side search response. ?>
+	<?php wp_nonce_field('mptbm_add_to_cart', 'mptbm_add_to_cart_nonce', false); ?>
     <input type="hidden" name="mptbm_hidden_distance" value="<?php echo esc_attr($distance); ?>" />
     <input type="hidden" name="mptbm_hidden_duration" value="<?php echo esc_attr($duration); ?>" />
     <input type="hidden" name="mptbm_hidden_duration_text" value="" />

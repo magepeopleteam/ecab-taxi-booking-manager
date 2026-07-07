@@ -162,14 +162,18 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				);
 
 
-				// FIX: Prioritize POST data if available to prevent stale session data from causing price errors
-				// We still keep the session variables for reference but do NOT enforce them if POST is present.
-				if (isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance'])) {
-					$distance = absint($_POST['mptbm_distance']);
-					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : 0;
-				} elseif ($secure_distance && $places_match) {
+				// SECURITY (CWE-472): the trip distance drives the fare, so it MUST come from the
+				// value the server measured during the search step (stored in the session), never
+				// from the request body. Trusting $_POST['mptbm_distance'] let any visitor forge a
+				// tiny distance and pay a few cents for a real trip. The client-supplied distance is
+				// only used as a fallback when the server could not measure the trip (e.g. no
+				// Distance API configured) — the same degraded mode the plugin already relied on.
+				if ($secure_distance && $places_match) {
 					$distance = absint($secure_distance);
 					$duration = isset($_SESSION['mptbm_secure_duration']) ? absint($_SESSION['mptbm_secure_duration']) : 0;
+				} elseif (isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance'])) {
+					$distance = absint($_POST['mptbm_distance']);
+					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : 0;
 				} else {
 					$distance = isset($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : (isset($_POST['mptbm_hidden_distance']) ? absint($_POST['mptbm_hidden_distance']) : ''));
 					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : (isset($_POST['mptbm_hidden_duration']) ? absint($_POST['mptbm_hidden_duration']) : ''));
@@ -221,7 +225,11 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					session_start();
 				}
 				
-				$threshold_base_price = isset($_POST['mptbm_threshold_base_price']) ? floatval($_POST['mptbm_threshold_base_price']) : 0;
+				// SECURITY (CWE-20/CWE-602): this is an additive base fee. A negative value would
+				// subtract from the total and, because it is applied after the minimum-fare floor,
+				// could drive the order to a few cents or below zero. Clamp to a non-negative amount;
+				// the legitimate value is always a server-computed, non-negative base price.
+				$threshold_base_price = isset($_POST['mptbm_threshold_base_price']) ? max(0.0, floatval($_POST['mptbm_threshold_base_price'])) : 0;
 				$cart_item_data['mptbm_threshold_base_price'] = $threshold_base_price;
 				
 				
@@ -1261,7 +1269,15 @@ if (!class_exists('MPTBM_Woocommerce')) {
 		/****************************/
 		public function mptbm_add_to_cart()
 			{
-				
+				// SECURITY: reject forged / cross-site requests. The nonce is emitted inside the
+				// search-result markup, which is regenerated on every server-side search response,
+				// so it stays fresh even on fully page-cached sites (the search itself is an
+				// uncached admin-ajax POST). Legitimate bookings always run a search first.
+				$nonce = isset($_POST['mptbm_add_to_cart_nonce']) ? sanitize_text_field(wp_unslash($_POST['mptbm_add_to_cart_nonce'])) : '';
+				if (!wp_verify_nonce($nonce, 'mptbm_add_to_cart')) {
+					wp_send_json_error(esc_html__('Your booking session has expired. Please run the search again.', 'ecab-taxi-booking-manager'), 403);
+				}
+
 				$quantity = isset($_POST['transport_quantity']) ? sanitize_text_field($_POST['transport_quantity']) : 1;
 				$link_id = absint($_POST['link_id']);
 				$product_id = apply_filters('woocommerce_add_to_cart_product_id', $link_id);
