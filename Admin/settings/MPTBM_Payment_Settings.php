@@ -40,6 +40,7 @@
 
 				add_action( 'wp_ajax_mptbm_save_gateway_settings', array( $this, 'ajax_save_gateway_settings' ) );
 				add_action( 'wp_ajax_mptbm_install_activate_wc', array( $this, 'ajax_install_activate_wc' ) );
+				add_action( 'wp_ajax_mptbm_save_booking_mode', array( $this, 'ajax_save_booking_mode' ) );
 
 				// Gateway keys are managed by their own AJAX modals and never travel with
 				// the settings form, so preserve them when the Settings API saves the rest.
@@ -80,17 +81,14 @@
 			public function register_fields( $settings_fields ) {
 				$settings_fields[ self::OPTION ] = array(
 					array(
+						'name'     => 'mptbm_booking_mode_selector',
+						'label'    => '',
+						'callback' => array( $this, 'render_booking_mode_selector' ),
+					),
+					array(
 						'name'     => 'mptbm_payment_tabs_html',
 						'label'    => '',
 						'callback' => array( $this, 'render_sub_tabs' ),
-					),
-					array(
-						'name'    => 'mptbm_enable_wc_payment',
-						'label'   => __( 'Enable WooCommerce Payment', 'ecab-taxi-booking-manager' ),
-						'desc'    => __( 'If enabled, the WooCommerce cart/checkout flow is used for bookings.', 'ecab-taxi-booking-manager' ),
-						'type'    => 'checkbox',
-						'default' => 'on',
-						'class'   => 'woocommerce-field woocommerce-main-toggle mptbm-check-row',
 					),
 					array(
 						'name'     => 'mptbm_wc_payment_gateways_manager',
@@ -151,6 +149,229 @@
 				return $settings_fields;
 			}
 
+			/**
+			 * The "Booking Mode" card selector - the single, explicit, required switch
+			 * that decides whether WooCommerce or the Pro Custom Payment flow processes
+			 * bookings. See MPTBM_Booking_Mode for why this replaced the old implicit
+			 * "Enable WooCommerce Payment" checkbox.
+			 */
+			public function render_booking_mode_selector() {
+				if ( ! class_exists( 'MPTBM_Booking_Mode' ) ) {
+					return;
+				}
+
+				$availability = MPTBM_Booking_Mode::availability();
+
+				if ( 'none' === $availability ) {
+					?>
+					<div class="mptbm-bm-auto-note mptbm-bm-auto-note--warn">
+						<span class="dashicons dashicons-warning"></span>
+						<p><?php esc_html_e( 'No booking flow is available yet: WooCommerce is not active and the Pro plugin is not active. Activate WooCommerce or the Pro plugin to start taking bookings.', 'ecab-taxi-booking-manager' ); ?></p>
+					</div>
+					<?php
+					$this->booking_mode_styles();
+					return;
+				}
+
+				if ( 'woocommerce_only' === $availability ) {
+					?>
+					<div class="mptbm-bm-auto-note">
+						<span class="dashicons dashicons-yes-alt"></span>
+						<p><?php esc_html_e( 'Bookings are automatically processed through WooCommerce - it\'s the only booking flow available right now. Activate the Pro plugin to unlock the standalone Custom Payment flow (and a mode switch here).', 'ecab-taxi-booking-manager' ); ?></p>
+					</div>
+					<?php
+					$this->booking_mode_styles();
+					return;
+				}
+
+				if ( 'custom_only' === $availability ) {
+					?>
+					<div class="mptbm-bm-auto-note">
+						<span class="dashicons dashicons-yes-alt"></span>
+						<p><?php esc_html_e( 'Bookings are automatically processed through the Custom Payment flow - WooCommerce is not active. Activate WooCommerce to unlock the WooCommerce checkout flow (and a mode switch here).', 'ecab-taxi-booking-manager' ); ?></p>
+					</div>
+					<?php
+					$this->booking_mode_styles();
+					return;
+				}
+
+				// $availability === 'both': a real, required choice.
+				$needs_choice = MPTBM_Booking_Mode::needs_selection();
+				$mode         = MPTBM_Booking_Mode::get_mode();
+				$is_wc        = ! $needs_choice && 'woocommerce' === $mode;
+				$is_custom    = ! $needs_choice && 'custom' === $mode;
+				$has_gateway  = MPTBM_Booking_Mode::has_gateway_for_active_mode();
+				$nonce        = wp_create_nonce( 'mptbm_save_booking_mode' );
+				?>
+				<div class="mptbm-bm-wrap" data-nonce="<?php echo esc_attr( $nonce ); ?>">
+					<div class="mptbm-bm-head">
+						<h3>
+							<?php esc_html_e( 'Booking Mode', 'ecab-taxi-booking-manager' ); ?>
+							<span class="mptbm-bm-required"><?php esc_html_e( 'Required', 'ecab-taxi-booking-manager' ); ?></span>
+						</h3>
+						<p><?php esc_html_e( 'Choose exactly one flow to process bookings. This single switch decides everything below, so WooCommerce and Custom Payment never both try to handle the same booking.', 'ecab-taxi-booking-manager' ); ?></p>
+					</div>
+
+					<?php if ( $needs_choice ) : ?>
+						<div class="mptbm-bm-nudge">
+							<span class="dashicons dashicons-flag"></span>
+							<?php esc_html_e( 'Please choose a booking mode below to continue.', 'ecab-taxi-booking-manager' ); ?>
+						</div>
+					<?php endif; ?>
+
+					<div class="mptbm-bm-cards">
+						<label class="mptbm-bm-card<?php echo $is_wc ? ' is-selected' : ''; ?>" data-mode="woocommerce">
+							<input type="radio" name="mptbm_booking_mode_radio" value="woocommerce" <?php checked( $is_wc ); ?>>
+							<span class="mptbm-bm-card-icon dashicons dashicons-cart"></span>
+							<span class="mptbm-bm-card-body">
+								<span class="mptbm-bm-card-title-row">
+									<strong><?php esc_html_e( 'WooCommerce Checkout', 'ecab-taxi-booking-manager' ); ?></strong>
+									<?php if ( $is_wc ) : ?>
+										<span class="mptbm-bm-card-badge"><?php esc_html_e( 'Active', 'ecab-taxi-booking-manager' ); ?></span>
+									<?php endif; ?>
+								</span>
+								<span class="mptbm-bm-card-desc"><?php esc_html_e( 'Bookings go through the WooCommerce cart, checkout, and orders.', 'ecab-taxi-booking-manager' ); ?></span>
+							</span>
+						</label>
+						<label class="mptbm-bm-card<?php echo $is_custom ? ' is-selected' : ''; ?>" data-mode="custom">
+							<input type="radio" name="mptbm_booking_mode_radio" value="custom" <?php checked( $is_custom ); ?>>
+							<span class="mptbm-bm-card-icon dashicons dashicons-money-alt"></span>
+							<span class="mptbm-bm-card-body">
+								<span class="mptbm-bm-card-title-row">
+									<strong><?php esc_html_e( 'Custom Payment (Standalone)', 'ecab-taxi-booking-manager' ); ?></strong>
+									<?php if ( $is_custom ) : ?>
+										<span class="mptbm-bm-card-badge"><?php esc_html_e( 'Active', 'ecab-taxi-booking-manager' ); ?></span>
+									<?php endif; ?>
+								</span>
+								<span class="mptbm-bm-card-desc"><?php esc_html_e( 'Bookings are taken directly via PayPal, Stripe, or Offline payment - no WooCommerce.', 'ecab-taxi-booking-manager' ); ?></span>
+							</span>
+						</label>
+					</div>
+
+					<p class="mptbm-bm-status" role="status" aria-live="polite"></p>
+
+					<div class="mptbm-bm-gateway-warning-slot">
+						<?php if ( ! $needs_choice && ! $has_gateway ) : ?>
+							<div class="mptbm-bm-gateway-warning">
+								<span class="dashicons dashicons-warning"></span>
+								<p>
+									<?php if ( $is_wc ) : ?>
+										<?php esc_html_e( 'WooCommerce mode is selected, but no WooCommerce payment gateway is enabled yet. Customers won\'t be able to complete a booking until you enable one below.', 'ecab-taxi-booking-manager' ); ?>
+									<?php else : ?>
+										<?php esc_html_e( 'Custom Payment mode is selected, but no gateway (PayPal, Stripe, or Offline) is enabled yet. Customers won\'t be able to complete a booking until you enable one below.', 'ecab-taxi-booking-manager' ); ?>
+									<?php endif; ?>
+								</p>
+							</div>
+						<?php endif; ?>
+					</div>
+				</div>
+
+				<?php $this->booking_mode_styles(); ?>
+				<script>
+				jQuery( function ( $ ) {
+					var $wrap = $( '.mptbm-bm-wrap' );
+					if ( ! $wrap.length ) { return; }
+					var nonce = $wrap.data( 'nonce' );
+					var i18n  = {
+						saving: <?php echo wp_json_encode( __( 'Saving…', 'ecab-taxi-booking-manager' ) ); ?>,
+						saved:  <?php echo wp_json_encode( __( 'Booking mode saved.', 'ecab-taxi-booking-manager' ) ); ?>,
+						error:  <?php echo wp_json_encode( __( 'Could not save. Please try again.', 'ecab-taxi-booking-manager' ) ); ?>,
+						wcWarn: <?php echo wp_json_encode( __( 'WooCommerce mode is selected, but no WooCommerce payment gateway is enabled yet. Customers won\'t be able to complete a booking until you enable one below.', 'ecab-taxi-booking-manager' ) ); ?>,
+						customWarn: <?php echo wp_json_encode( __( 'Custom Payment mode is selected, but no gateway (PayPal, Stripe, or Offline) is enabled yet. Customers won\'t be able to complete a booking until you enable one below.', 'ecab-taxi-booking-manager' ) ); ?>,
+						active: <?php echo wp_json_encode( __( 'Active', 'ecab-taxi-booking-manager' ) ); ?>
+					};
+
+					$wrap.on( 'click', '.mptbm-bm-card', function () {
+						var $card = $( this ), mode = $card.data( 'mode' );
+						if ( $card.hasClass( 'is-selected' ) ) { return; }
+
+						$wrap.find( '.mptbm-bm-card' ).removeClass( 'is-selected' ).find( '.mptbm-bm-card-badge' ).remove();
+						$card.addClass( 'is-selected' ).find( '.mptbm-bm-card-title-row' ).append( '<span class="mptbm-bm-card-badge">' + i18n.active + '</span>' );
+						$card.find( 'input[type=radio]' ).prop( 'checked', true );
+						$wrap.find( '.mptbm-bm-nudge' ).hide();
+						var $status = $wrap.find( '.mptbm-bm-status' ).show().text( i18n.saving ).css( 'color', '#6b7280' );
+
+						$.post( ajaxurl, {
+							action: 'mptbm_save_booking_mode',
+							nonce: nonce,
+							mode: mode
+						} ).done( function ( res ) {
+							if ( res && res.success ) {
+								$status.text( i18n.saved ).css( 'color', '#0a7c2f' );
+								setTimeout( function () { $status.fadeOut( 400, function () { $( this ).text( '' ).show(); } ); }, 1800 );
+
+								// Refresh the "Active" badge on the sub-tab bar.
+								$( '.mptbm-pay-subtab-badge' ).hide();
+								$( '.mptbm-pay-subtab-badge[data-badge-for="' + mode + '"]' ).show();
+
+								// Jump to the matching sub-tab so the admin can configure it right away.
+								var targetHref = ( mode === 'custom' ) ? '#no-woocommerce-field' : '#woocommerce-field';
+								$( '.payment-sub-tabs .nav-tab[href="' + targetHref + '"]' ).trigger( 'click' );
+
+								// Refresh the "no gateway enabled" warning for the freshly active mode.
+								var $slot = $wrap.find( '.mptbm-bm-gateway-warning-slot' );
+								$slot.empty();
+								if ( res.data && res.data.has_gateway === false ) {
+									var msg = ( mode === 'woocommerce' ) ? i18n.wcWarn : i18n.customWarn;
+									$slot.append( '<div class="mptbm-bm-gateway-warning"><span class="dashicons dashicons-warning"></span><p>' + msg + '</p></div>' );
+								}
+							} else {
+								$status.show().text( ( res && res.data ) ? res.data : i18n.error ).css( 'color', '#d63638' );
+							}
+						} ).fail( function () {
+							$status.show().text( i18n.error ).css( 'color', '#d63638' );
+						} );
+					} );
+				} );
+				</script>
+				<?php
+			}
+
+			/** Styles for the Booking Mode selector + its auto-detected notices. Printed once. */
+			private function booking_mode_styles() {
+				static $printed = false;
+				if ( $printed ) {
+					return;
+				}
+				$printed = true;
+				?>
+				<style>
+				.mptbm-bm-wrap,
+				.mptbm-bm-wrap *,
+				.mptbm-bm-auto-note,
+				.mptbm-bm-auto-note *{box-sizing:border-box;}
+				.mptbm-bm-wrap{background:#fff;padding:0;margin:10px 0 0px;box-shadow:0 1px 2px rgba(16,24,40,0.04);max-width:100%;overflow:hidden;}
+				.mptbm-bm-head h3{margin:5px 0 2px;font-size:14px;font-weight:700;color:#1d2327;display:flex;align-items:center;gap:8px;}
+				.mptbm-bm-required{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:#fee2e2;color:#991b1b;padding:1px 8px;border-radius:20px;}
+				.mptbm-bm-head p{margin:0 0 10px;font-size:12px;color:#6b7280;max-width:640px;line-height:1.5;}
+				.mptbm-bm-nudge{display:flex;align-items:center;gap:8px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;margin-bottom:10px;}
+				.mptbm-bm-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:100%;}
+				.mptbm-bm-card{position:relative;display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;background:#fafafb;cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s;min-width:0;}
+				.mptbm-bm-card:hover{border-color:#d4b3c3;box-shadow:0 4px 14px rgba(16,24,40,0.06);}
+				.mptbm-bm-card.is-selected{border-color:#F12971;background:#fff;box-shadow:0 6px 18px rgba(241,41,113,0.12);}
+				.mptbm-bm-card input[type=radio]{position:absolute;opacity:0;width:0;height:0;}
+				.mptbm-bm-card-icon{flex:0 0 auto;width:30px;height:30px;border-radius:8px;background:rgba(241,41,113,0.1);color:#F12971;display:flex !important;align-items:center !important;justify-content:center !important;font-size:15px;box-sizing:border-box;padding:7px;}
+				/* The shared mp_global framework sets ".mpStyle label > span{white-space:nowrap}"
+				   with higher specificity than a single class, which would otherwise force this
+				   whole block onto one clipped line - override it explicitly on every level. */
+				.mptbm-bm-card-body{display:block !important;flex:1;min-width:0;white-space:normal !important;}
+				.mptbm-bm-card-title-row{display:flex !important;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px;width:100%;white-space:normal !important;}
+				.mptbm-bm-card-body strong{display:inline-block !important;font-size:13px;line-height:1.3;color:#1d2327;white-space:normal !important;}
+				.mptbm-bm-card-desc{display:block !important;font-size:11.5px;color:#6b7280;line-height:1.45;white-space:normal !important;overflow-wrap:break-word;}
+				.mptbm-bm-card-badge{flex:0 0 auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:#dcfce7;color:#166534;padding:1px 8px;border-radius:20px;display:none !important;}
+				.mptbm-bm-card.is-selected .mptbm-bm-card-badge{display:inline-block !important;}
+				.mptbm-bm-status{min-height:16px;margin:6px 2px 0;font-size:12px;font-weight:600;}
+				.mptbm-bm-gateway-warning{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding:9px 12px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12px;}
+				.mptbm-bm-gateway-warning p{margin:0;}
+				.mptbm-bm-auto-note{display:flex;align-items:flex-start;gap:10px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;border-radius:10px;padding:10px 14px;margin:4px 0 12px;font-size:12px;}
+				.mptbm-bm-auto-note--warn{background:#fef2f2;border-color:#fecaca;color:#991b1b;}
+				.mptbm-bm-auto-note p{margin:0;}
+				.mptbm-pay-subtab-badge{margin-left:6px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:rgba(255,255,255,0.9);color:#166534;padding:1px 7px;border-radius:20px;vertical-align:middle;}
+				@media (max-width:680px){.mptbm-bm-cards{grid-template-columns:1fr;}}
+				</style>
+				<?php
+			}
+
 			/** Sub-tab bar (WooCommerce / Custom Payment) + WC-inactive warning. */
 			public function render_sub_tabs() {
 				$wc_active    = $this->has_woo();
@@ -158,11 +379,22 @@
 				$btn_text     = $is_installed
 					? __( 'Activate WooCommerce Now', 'ecab-taxi-booking-manager' )
 					: __( 'Install &amp; Activate Now', 'ecab-taxi-booking-manager' );
+
+				$needs_choice = class_exists( 'MPTBM_Booking_Mode' ) && MPTBM_Booking_Mode::needs_selection();
+				$mode         = class_exists( 'MPTBM_Booking_Mode' ) ? MPTBM_Booking_Mode::get_mode() : 'woocommerce';
+				$wc_is_mode     = ! $needs_choice && 'woocommerce' === $mode;
+				$custom_is_mode = ! $needs_choice && 'custom' === $mode;
 				?>
 				<div class="payment-sub-tabs-wrapper">
 					<h2 class="nav-tab-wrapper payment-sub-tabs">
-						<a href="#woocommerce-field" class="nav-tab nav-tab-active"><?php esc_html_e( 'WooCommerce', 'ecab-taxi-booking-manager' ); ?></a>
-						<a href="#no-woocommerce-field" class="nav-tab"><?php esc_html_e( 'Custom Payment', 'ecab-taxi-booking-manager' ); ?></a>
+						<a href="#woocommerce-field" class="nav-tab<?php echo $custom_is_mode ? '' : ' nav-tab-active'; ?>">
+							<?php esc_html_e( 'WooCommerce', 'ecab-taxi-booking-manager' ); ?>
+							<span class="mptbm-pay-subtab-badge" data-badge-for="woocommerce"<?php echo $wc_is_mode ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Active', 'ecab-taxi-booking-manager' ); ?></span>
+						</a>
+						<a href="#no-woocommerce-field" class="nav-tab<?php echo $custom_is_mode ? ' nav-tab-active' : ''; ?>">
+							<?php esc_html_e( 'Custom Payment', 'ecab-taxi-booking-manager' ); ?>
+							<span class="mptbm-pay-subtab-badge" data-badge-for="custom"<?php echo $custom_is_mode ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Active', 'ecab-taxi-booking-manager' ); ?></span>
+						</a>
 					</h2>
 					<?php if ( ! $wc_active ) : ?>
 						<div class="woocommerce-field">
@@ -298,6 +530,21 @@
 								'option_none_value' => '0',
 							) );
 						?>
+					</div>
+				</div>
+
+				<!-- Require customer login (custom booking flow + portal) -->
+				<?php $require_login = $this->opt( 'mptbm_require_login', 'yes' ); ?>
+				<div class="mptbm-conf-page">
+					<div class="mptbm-conf-page-label">
+						<label><?php esc_html_e( 'Require Customer Login', 'ecab-taxi-booking-manager' ); ?></label>
+						<span><?php esc_html_e( 'When enabled, customers must log in (or register) before they can complete a Custom Payment booking or view the My Bookings portal. When disabled, guests can book and track by email + reference.', 'ecab-taxi-booking-manager' ); ?></span>
+					</div>
+					<div class="mptbm-conf-page-field">
+						<select name="<?php echo esc_attr( self::OPTION ); ?>[mptbm_require_login]">
+							<option value="yes" <?php selected( $require_login, 'yes' ); ?>><?php esc_html_e( 'Yes — require login / registration', 'ecab-taxi-booking-manager' ); ?></option>
+							<option value="no" <?php selected( $require_login, 'no' ); ?>><?php esc_html_e( 'No — allow guest checkout', 'ecab-taxi-booking-manager' ); ?></option>
+						</select>
 					</div>
 				</div>
 				<?php
@@ -664,10 +911,6 @@
 				   the duplicated label description for them and space the control. */
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] tr.mptbm-check-row .info_text{display:none;}
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] tr.mptbm-check-row td .checkbox{margin-right:8px;}
-				/* Enable WooCommerce Payment: contained card matching the panels below. */
-				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.woocommerce-main-toggle{background:#fff;border:1px solid #e7e8ec;border-radius:12px;margin:2px 0 18px;box-shadow:0 1px 2px rgba(16,24,40,0.04);}
-				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.woocommerce-main-toggle > th{padding:16px 24px 4px !important;font-size:14px;}
-				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.woocommerce-main-toggle > td{padding:0 24px 16px !important;}
 				/* Additional Settings accordion fields: standard ecab two-column row
 				   (label + description on the left, control on the right), grouped into a
 				   single bordered panel so the content reads as the accordion's body.
@@ -752,7 +995,6 @@
 					var wcActive = <?php echo $wc_active; ?>;
 					if ($('.payment-sub-tabs').length === 0) { return; }
 
-					var toggleSel = 'input.checkbox[name="<?php echo esc_js( self::OPTION ); ?>[mptbm_enable_wc_payment]"]';
 					var $paymentSubmit = $('div.tabsItem[data-tabs="#<?php echo esc_js( self::OPTION ); ?>"] .submit');
 
 					// --- WooCommerce sub-tab accordions: Payment Methods (open) + Additional Settings (collapsed) ---
@@ -781,7 +1023,7 @@
 					}
 
 					if ($methodsRows.length || $additionalRows.length) {
-						var $toggleRow = $('tr.woocommerce-main-toggle');
+						var $toggleRow = $('.payment-sub-tabs-wrapper').closest('tr');
 						$methodsHeader    = buildAccordionHeader('mptbm-acc-methods', <?php echo wp_json_encode( __( 'WooCommerce Payment Methods', 'ecab-taxi-booking-manager' ) ); ?>, true);
 						$additionalHeader = buildAccordionHeader('mptbm-acc-additional', <?php echo wp_json_encode( __( 'Additional Settings', 'ecab-taxi-booking-manager' ) ); ?>, false);
 
@@ -816,20 +1058,13 @@
 						});
 					}
 
-					function toggleWcSettings(){
-						var isChecked = $(toggleSel).is(':checked');
-						var $wcFields = $('tr.woocommerce-field').not('tr.woocommerce-main-toggle');
-						if (isChecked) { $wcFields.stop(true,true).show(); refreshAccordions(); } else { $wcFields.hide(); }
-					}
-					$(toggleSel).on('change', toggleWcSettings);
-
 					function updateTabs(){
 						var activeTabId = $('.payment-sub-tabs .nav-tab-active').attr('href').replace('#','');
 						$('tr.woocommerce-field, div.woocommerce-field, tr.no-woocommerce-field').hide();
 						$paymentSubmit.show();
 						if (activeTabId === 'woocommerce-field') {
 							$('div.woocommerce-field').show();
-							if (wcActive) { $('tr.woocommerce-field').show(); toggleWcSettings(); }
+							if (wcActive) { $('tr.woocommerce-field').stop(true,true).show(); refreshAccordions(); }
 						} else {
 							$('tr.' + activeTabId).show();
 						}
@@ -899,6 +1134,28 @@
 				wp_send_json_success( __( 'Settings saved successfully!', 'ecab-taxi-booking-manager' ) );
 			}
 
+			/** AJAX: save the Booking Mode selector (real-time, no page reload). */
+			public function ajax_save_booking_mode() {
+				check_ajax_referer( 'mptbm_save_booking_mode', 'nonce' );
+				if ( ! current_user_can( 'manage_options' ) ) {
+					wp_send_json_error( __( 'Permission denied.', 'ecab-taxi-booking-manager' ) );
+				}
+				if ( ! class_exists( 'MPTBM_Booking_Mode' ) || 'both' !== MPTBM_Booking_Mode::availability() ) {
+					wp_send_json_error( __( 'Booking mode cannot be changed right now.', 'ecab-taxi-booking-manager' ) );
+				}
+
+				$mode = isset( $_POST['mode'] ) ? sanitize_key( wp_unslash( $_POST['mode'] ) ) : '';
+				if ( ! MPTBM_Booking_Mode::set_mode( $mode ) ) {
+					wp_send_json_error( __( 'Invalid booking mode.', 'ecab-taxi-booking-manager' ) );
+				}
+
+				wp_send_json_success( array(
+					'message'     => __( 'Booking mode saved.', 'ecab-taxi-booking-manager' ),
+					'mode'        => $mode,
+					'has_gateway' => MPTBM_Booking_Mode::has_gateway_for_active_mode(),
+				) );
+			}
+
 			/** AJAX: install &/or activate WooCommerce. */
 			public function ajax_install_activate_wc() {
 				check_ajax_referer( 'mptbm_install_wc', 'nonce' );
@@ -947,9 +1204,10 @@
 			}
 
 			/**
-			 * Keep gateway credentials when the Settings API saves the rest of the form.
-			 * Only restores a key when it is ABSENT from the incoming value, so a gateway
-			 * modal's own AJAX save (which carries new values) is never clobbered.
+			 * Keep values saved outside this form (gateway credentials + the Booking Mode,
+			 * which are written by their own AJAX handlers and never travel with the form)
+			 * when the Settings API saves the rest. Only restores a key when it is ABSENT
+			 * from the incoming value, so an AJAX save with new values is never clobbered.
 			 */
 			public function preserve_gateway_keys( $new_value, $old_value ) {
 				$protected = array(
@@ -957,6 +1215,7 @@
 					'mptbm_stripe_enable', 'mptbm_stripe_sandbox', 'mptbm_stripe_test_pub', 'mptbm_stripe_test_sec',
 					'mptbm_stripe_live_pub', 'mptbm_stripe_live_sec',
 					'mptbm_offline_enable', 'mptbm_offline_label',
+					'mptbm_booking_mode',
 				);
 				if ( ! is_array( $new_value ) ) {
 					return $new_value;

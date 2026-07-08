@@ -35,6 +35,7 @@ if (!class_exists('MPTBM_Dependencies')) {
 		{
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Function.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Payment_Status_Checker.php';
+			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Booking_Mode.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Query.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Layout.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Rest_Api.php';

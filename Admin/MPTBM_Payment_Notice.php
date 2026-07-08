@@ -31,7 +31,7 @@
 				<div class="notice notice-warning is-dismissible">
 					<p>
 						<strong><?php esc_html_e('E-cab Taxi Booking Manager', 'ecab-taxi-booking-manager'); ?>:</strong>
-						<?php esc_html_e('No payment method is currently available. Customers will not be able to complete bookings until at least one payment method is enabled.', 'ecab-taxi-booking-manager'); ?>
+						<?php echo esc_html($this->get_notice_message()); ?>
 					</p>
 					<?php $links = $this->get_action_links(); ?>
 					<?php if (!empty($links)) : ?>
@@ -49,7 +49,39 @@
 					return false;
 				}
 
-				return !MPTBM_Payment_Status_Checker::has_available_payment_method();
+				if (class_exists('MPTBM_Booking_Mode') && MPTBM_Booking_Mode::needs_selection()) {
+					return true;
+				}
+
+				return class_exists('MPTBM_Booking_Mode')
+					? !MPTBM_Booking_Mode::has_gateway_for_active_mode()
+					: !MPTBM_Payment_Status_Checker::has_available_payment_method();
+			}
+
+			/**
+			 * Mode-aware copy. The active Booking Mode is what actually processes
+			 * bookings, so the notice names it explicitly instead of a generic
+			 * "no payment method" line that could be true for the OTHER, unused mode
+			 * while the active one has nothing configured.
+			 */
+			private function get_notice_message(): string {
+				if (!class_exists('MPTBM_Booking_Mode')) {
+					return __('No payment method is currently available. Customers will not be able to complete bookings until at least one payment method is enabled.', 'ecab-taxi-booking-manager');
+				}
+
+				if (MPTBM_Booking_Mode::needs_selection()) {
+					return __('A Booking Mode hasn\'t been chosen yet (WooCommerce or Custom Payment). Choose one in Payments settings so bookings have a single, deterministic checkout path.', 'ecab-taxi-booking-manager');
+				}
+
+				if ('none' === MPTBM_Booking_Mode::availability()) {
+					return __('No payment method is currently available. Customers will not be able to complete bookings until at least one payment method is enabled.', 'ecab-taxi-booking-manager');
+				}
+
+				if (MPTBM_Booking_Mode::is_woocommerce()) {
+					return __('Booking Mode is set to WooCommerce, but no WooCommerce payment gateway is enabled. Customers will not be able to complete a booking until one is enabled.', 'ecab-taxi-booking-manager');
+				}
+
+				return __('Booking Mode is set to Custom Payment, but no gateway (PayPal, Stripe, or Offline) is enabled. Customers will not be able to complete a booking until one is enabled.', 'ecab-taxi-booking-manager');
 			}
 
 			/**

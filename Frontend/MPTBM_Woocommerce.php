@@ -1256,12 +1256,11 @@ if (!class_exists('MPTBM_Woocommerce')) {
 		/****************************/
 		public function mptbm_add_to_cart()
 			{
-				// When both WooCommerce Payment and a custom payment method are
-				// enabled at the same time, WooCommerce always takes priority so
-				// the booking has one deterministic path instead of two handlers
-				// racing (which previously left the "Book Now" button stuck).
-				$use_wc_payment = MPTBM_Function::is_wc_active()
-					&& MP_Global_Function::get_settings('mptbm_payment_settings', 'mptbm_enable_wc_payment', 'on') !== 'off';
+				// The explicit Booking Mode setting (MPTBM_Booking_Mode) is the single
+				// source of truth for which flow owns a booking, so the booking has one
+				// deterministic path instead of two handlers racing (which previously
+				// left the "Book Now" button stuck).
+				$use_wc_payment = class_exists('MPTBM_Booking_Mode') && MPTBM_Booking_Mode::is_woocommerce();
 
 				if (!$use_wc_payment) {
 					// WooCommerce payment is unavailable/disabled: hand off to any

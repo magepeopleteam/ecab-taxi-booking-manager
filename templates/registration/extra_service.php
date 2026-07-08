@@ -86,7 +86,7 @@
 			do_action('mptbm_custom_checkout_form', $post_id);
 		?>
 		<?php $booking_available = class_exists('MPTBM_Function') && MPTBM_Function::is_booking_available(); ?>
-		<div class="justifyBetween">
+		<div class="justifyBetween" style="padding: 20px 0;">
 			<?php if ($booking_available) { ?>
 				<div></div>
 				<button class="_themeButton_min_200 mptbm_book_now" style="display:none;" type="button" data-wc_link_id="<?php echo esc_attr($link_wc_product); ?>">
