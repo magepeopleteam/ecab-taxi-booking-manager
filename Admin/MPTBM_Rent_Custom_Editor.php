@@ -1553,7 +1553,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                             <div class="mptbm_taxi_pricing_field"
                                  id="mptbm_distance_price"
-                                 style="display: <?php echo ($price_based === 'inclusive' || $price_based === 'distance' || $price_based === 'distance_duration' || $price_based === 'fixed_distance' ) ? 'block' : 'none'; ?>">
+                                 style="display: <?php echo ( $price_based === 'inclusive' || $price_based === 'distance' || $price_based === 'distance_duration' || $price_based === 'fixed_distance' ) ? 'block' : 'none'; ?>">
                                 <label><?php esc_html_e( 'Price per KM', 'ecab-taxi-booking-manager' ); ?></label>
                                 <input name="mptbm_km_price" value="<?php echo esc_attr( $distance_price );?>" type="text" placeholder="1.00">
 
@@ -1597,9 +1597,19 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                 </div>
                             </div>
 
+                            <?php
+                            $manual_pricing_set = 'none';
+                            if( $price_based === 'inclusive' && $inclusive_manual_locations === 'on' ){
+                                $manual_pricing_set = 'block';
+                            }
+
+                            if( $price_based === 'manual' ){
+                                $manual_pricing_set = 'block';
+                            }
+                            ?>
                             <div class="mptbm_taxi_pricing_field1"
                                  id="mptbm_manual_routes"
-                                 style="display: <?php echo ( $inclusive_manual_locations === 'on' ) ? 'block' : 'none'; ?>">
+                                 style="display: <?php echo esc_attr( $manual_pricing_set ) ; ?>">
                                 <div class="mptbm_taxi_pricing_row_head">
                                     <span class="mptbm_taxi_pricing_label"><i class="fas fa-route"></i> <?php esc_html_e( 'Manual Routes', 'ecab-taxi-booking-manager' ); ?></span>
                                 </div>
