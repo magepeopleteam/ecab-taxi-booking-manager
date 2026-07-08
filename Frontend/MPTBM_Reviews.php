@@ -14,6 +14,8 @@
 				add_action('mptbm_after_details_page', [$this, 'render_reviews_section']);
 				add_action('wp_ajax_mptbm_submit_review', [$this, 'submit_review']);
 				add_action('wp_ajax_nopriv_mptbm_submit_review', [$this, 'submit_review_guest']);
+				add_action('wp_ajax_mptbm_admin_delete_review', [$this, 'admin_delete_review']);
+				add_action('wp_ajax_mptbm_admin_load_reviews', [$this, 'admin_load_reviews']);
 				add_action('woocommerce_order_details_after_order_table', [$this, 'maybe_show_review_prompt']);
 			}
 
@@ -273,6 +275,80 @@
 
 			public function submit_review_guest() {
 				wp_send_json_error(['message' => __('Please log in to submit a review.', 'ecab-taxi-booking-manager')]);
+			}
+
+			// Admin-only: remove a review from the vehicle's "Manage Reviews" list in the edit screen.
+			public function admin_delete_review() {
+				$comment_id = isset($_POST['comment_id']) ? absint($_POST['comment_id']) : 0;
+				$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
+
+				if (!$comment_id || !check_ajax_referer('mptbm_delete_review_' . $comment_id, 'nonce', false)) {
+					wp_send_json_error(['message' => __('Security check failed, please refresh and try again.', 'ecab-taxi-booking-manager')]);
+				}
+				if (!is_user_logged_in() || !current_user_can('edit_post', $post_id)) {
+					wp_send_json_error(['message' => __('You do not have permission to do this.', 'ecab-taxi-booking-manager')]);
+				}
+				if (!$post_id || get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
+					wp_send_json_error(['message' => __('Invalid vehicle.', 'ecab-taxi-booking-manager')]);
+				}
+
+				$comment = get_comment($comment_id);
+				if (!$comment || $comment->comment_type !== self::COMMENT_TYPE || (int) $comment->comment_post_ID !== $post_id) {
+					// Don't let this endpoint touch any comment other than a review that actually belongs to this vehicle.
+					wp_send_json_error(['message' => __('Review not found.', 'ecab-taxi-booking-manager')]);
+				}
+
+				$deleted = wp_delete_comment($comment_id, true);
+				if (!$deleted) {
+					wp_send_json_error(['message' => __('Could not delete the review, please try again.', 'ecab-taxi-booking-manager')]);
+				}
+
+				wp_send_json_success(['message' => __('Review deleted.', 'ecab-taxi-booking-manager')]);
+			}
+
+			// Admin-only: fetch reviews for the "Manage Reviews" list in the edit screen, 20 at a
+			// time, so vehicles with a lot of reviews don't have to load them all at once.
+			public function admin_load_reviews() {
+				$per_page = 20;
+				$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
+				$offset = isset($_POST['offset']) ? absint($_POST['offset']) : 0;
+
+				if (!$post_id || !check_ajax_referer('mptbm_load_reviews_' . $post_id, 'nonce', false)) {
+					wp_send_json_error(['message' => __('Security check failed, please refresh and try again.', 'ecab-taxi-booking-manager')]);
+				}
+				if (!is_user_logged_in() || !current_user_can('edit_post', $post_id)) {
+					wp_send_json_error(['message' => __('You do not have permission to do this.', 'ecab-taxi-booking-manager')]);
+				}
+				if (get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
+					wp_send_json_error(['message' => __('Invalid vehicle.', 'ecab-taxi-booking-manager')]);
+				}
+
+				$total = count(self::get_vehicle_reviews($post_id));
+				$comments = get_comments([
+					'post_id' => $post_id,
+					'type'    => self::COMMENT_TYPE,
+					'status'  => 'approve',
+					'order'   => 'DESC',
+					'number'  => $per_page,
+					'offset'  => $offset,
+				]);
+
+				$data = [];
+				foreach ($comments as $comment) {
+					$data[] = [
+						'id'           => $comment->comment_ID,
+						'author'       => esc_html($comment->comment_author),
+						'date'         => esc_html(mysql2date(get_option('date_format'), $comment->comment_date)),
+						'content'      => esc_html($comment->comment_content),
+						'rating'       => (int) get_comment_meta($comment->comment_ID, 'rating', true),
+						'delete_nonce' => wp_create_nonce('mptbm_delete_review_' . $comment->comment_ID),
+					];
+				}
+
+				wp_send_json_success([
+					'reviews'  => $data,
+					'has_more' => ($offset + count($comments)) < $total,
+				]);
 			}
 
 			// Nudge customers to review right from their completed order page.
