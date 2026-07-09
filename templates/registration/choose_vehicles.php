@@ -1230,8 +1230,13 @@ if ($all_posts->found_posts > 0) {
                 }
             }
 
-            $display_price = $price + ($base_price_extra * $tax_multiplier);
-            
+            // Flat charge per extra stop the customer added between pickup and drop-off (matches
+            // the same calculation applied at add-to-cart time in MPTBM_Woocommerce.php).
+            $stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
+            $stop_total_price = $stop_price_per_unit * count($extra_stop_places);
+
+            $display_price = $price + ($base_price_extra * $tax_multiplier) + $stop_total_price;
+
 
             // Only skip display if price is 0 and we're not in zero or custom message mode
             if (!$display_price && $price_display_type === 'normal') {

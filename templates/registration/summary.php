@@ -326,6 +326,7 @@ if (!function_exists('mptbm_get_translation')) {
 							<?php endif; ?>
 						</div>
 						<div class="mptbm_base_price_detail"></div>
+						<div class="mptbm_stop_price_detail"></div>
 						<div class="mptbm_extra_service_summary"></div>
 						<div class="divider"></div>
 						<div class="justifyBetween">

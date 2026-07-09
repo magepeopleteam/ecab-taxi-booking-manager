@@ -2728,7 +2728,23 @@ function mptbm_price_calculation(parent) {
 
         let base_price_extra = unit_base_price_extra * quantityVal * tax_multiplier_val;
 
-        total = total + base_transport_price + base_price_extra;
+        // Flat charge per extra stop the customer added between pickup and drop-off
+        let stop_price_per_unit = parseFloat(parent.find('[name="mptbm_post_id"]').attr("data-stop-price") || 0);
+        let stop_count = parent.find('.mptbm_extra_stop_place_input').filter(function () {
+            return jQuery(this).val() && jQuery(this).val().trim() !== '';
+        }).length;
+        let stop_total_price = stop_price_per_unit * stop_count;
+
+        let stop_detail_container = parent.find(".mptbm_stop_price_detail");
+        if (stop_price_per_unit > 0 && stop_count > 0) {
+            let stop_html = '<div class="_textTheme" style="font-size: 13px; margin-top: 5px; padding-left: 25px;">' +
+                'Stopage Fare: ' + stop_count + ' x ' + mp_price_format(stop_price_per_unit) + ' = ' + mp_price_format(stop_total_price) + '</div>';
+            stop_detail_container.html(stop_html).show();
+        } else {
+            stop_detail_container.html('').hide();
+        }
+
+        total = total + base_transport_price + base_price_extra + stop_total_price;
 
 
         parent.find(".mptbm_extra_service_item").each(function () {
@@ -2916,6 +2932,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 parent.find('[name="mptbm_post_id"]').attr('data-unit-transport-price', transport_price);
                 parent.find('[name="mptbm_post_id"]').attr('data-base-price-calculated', 0);
                 parent.find('[name="mptbm_post_id"]').attr('data-unit-base-price', 0);
+                parent.find('[name="mptbm_post_id"]').attr('data-stop-price', $this.attr('data-stop-price') || 0);
 
                 // --- BASE PRICE CALCULATION ---
                 // FIX: Use the server-calculated base price directly to avoid discrepancies (1.30 difference)

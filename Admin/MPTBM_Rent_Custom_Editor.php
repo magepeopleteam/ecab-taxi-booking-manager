@@ -1320,6 +1320,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
             $waiting_time_check = MPTBM_Function::get_general_settings('taxi_waiting_time', 'enable');
             $waiting_price = MP_Global_Function::get_post_info($post_id, 'mptbm_waiting_price');
+            $stop_price = MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price');
+            $extra_stop_enabled = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff');
 
             $display            = MP_Global_Function::get_post_info( $post_id, 'mptbm_display_taxi_base_fare_pricing', 'off' );
             $active             = $display == 'off' ? 'none' : 'block';
@@ -1371,6 +1373,13 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                 <label><?php esc_html_e( 'Waiting Time Price / Hour', 'ecab-taxi-booking-manager' ); ?></label>
                                 <p class="mptbm_taxi_help"><?php esc_html_e( 'Hourly rate charged when the driver is waiting for the passenger.', 'ecab-taxi-booking-manager' ); ?></p>
                                 <input name="mptbm_waiting_price" type="text" value="<?php echo esc_attr( $waiting_price );?>" placeholder="<?php esc_html_e( 'e.g. 10', 'ecab-taxi-booking-manager' ); ?>">
+                            </div>
+                        <?php }?>
+                        <?php if ($extra_stop_enabled == 'yes') { ?>
+                            <div class="mptbm_taxi_field">
+                                <label><?php esc_html_e( 'Price Per Extra Stop', 'ecab-taxi-booking-manager' ); ?></label>
+                                <p class="mptbm_taxi_help"><?php esc_html_e( 'Flat charge added for each extra stop the customer adds between pickup and drop-off.', 'ecab-taxi-booking-manager' ); ?></p>
+                                <input name="mptbm_stop_price" type="text" value="<?php echo esc_attr( $stop_price );?>" placeholder="<?php esc_html_e( 'e.g. 5', 'ecab-taxi-booking-manager' ); ?>">
                             </div>
                         <?php }?>
                     </div>

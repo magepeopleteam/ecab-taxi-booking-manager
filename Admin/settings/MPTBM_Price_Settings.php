@@ -947,6 +947,8 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				update_post_meta($post_id, 'mptbm_terms_price_info', $terms_price_infos);
 				$waiting_price = isset($_POST['mptbm_waiting_price']) ? sanitize_text_field($_POST['mptbm_waiting_price']) : '';
 				update_post_meta($post_id, 'mptbm_waiting_price', $waiting_price);
+				$stop_price = isset($_POST['mptbm_stop_price']) ? sanitize_text_field($_POST['mptbm_stop_price']) : '';
+				update_post_meta($post_id, 'mptbm_stop_price', $stop_price);
 				$price_display_type = isset($_POST['mptbm_price_display_type']) ? sanitize_text_field($_POST['mptbm_price_display_type']) : 'normal';
 				update_post_meta($post_id, 'mptbm_price_display_type', $price_display_type);
 				$custom_price_message = isset($_POST['mptbm_custom_price_message']) ? sanitize_textarea_field($_POST['mptbm_custom_price_message']) : '';

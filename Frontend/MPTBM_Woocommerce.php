@@ -56,6 +56,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			$hidden[] = '_mptbm_bags';
 			$hidden[] = '_mptbm_hand_luggage';
 			$hidden[] = '_mptbm_threshold_base_price';
+			$hidden[] = '_mptbm_stop_price';
 			return $hidden;
 		}
 
@@ -279,8 +280,11 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				foreach ($extra_services as $svc) {
 					$extra_total_price += ($svc['service_price'] * $svc['service_quantity']);
 				}
-				// Final total: transport plus extra services plus threshold-based base distance price
-				$total_price = $transport_total_price + $extra_total_price + $threshold_base_price;
+				// Flat charge per extra stop the customer added between pickup and drop-off
+				$stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
+				$stop_total_price = $stop_price_per_unit * count($extra_stop_places);
+				// Final total: transport plus extra services plus threshold-based base distance price plus extra stops
+				$total_price = $transport_total_price + $extra_total_price + $threshold_base_price + $stop_total_price;
                 
                 
 				$cart_item_data['mptbm_date'] = isset($_POST['mptbm_date']) ? sanitize_text_field($_POST['mptbm_date']) : '';
@@ -504,6 +508,13 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 				if ($extra_stop_enabled === 'yes' && !empty($extra_stop_locations)) {
 					$item->add_meta_data(mptbm_get_translation('extra_stop_location_label', __('Extra Stops', 'ecab-taxi-booking-manager')), implode(', ', $extra_stop_locations));
+
+					$stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
+					$stop_total_price = $stop_price_per_unit * count($extra_stop_locations);
+					if ($stop_total_price > 0) {
+						$item->add_meta_data(mptbm_get_translation('extra_stop_price_label', __('Extra Stop Charge', 'ecab-taxi-booking-manager')), wp_kses_post(wc_price($stop_total_price)));
+						$item->add_meta_data('_mptbm_stop_price', $stop_total_price);
+					}
 				}
 				$distance = isset($values['mptbm_distance']) ? $values['mptbm_distance'] : '';
 				$distance_text = isset($values['mptbm_distance_text']) ? $values['mptbm_distance_text'] : '';
@@ -690,6 +701,11 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				// Add hidden extra stops meta (ordered array) if any exist
 				if (!empty($extra_stop_locations)) {
 					$item->add_meta_data('_mptbm_extra_stop_place', $extra_stop_locations);
+					$stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
+					$stop_total_price = $stop_price_per_unit * count($extra_stop_locations);
+					if ($stop_total_price > 0) {
+						$item->add_meta_data('_mptbm_stop_price', $stop_total_price);
+					}
 				}
 				$item->add_meta_data('_mptbm_taxi_return', $return);
 				$item->add_meta_data('_mptbm_waiting_time', $waiting_time);
@@ -955,6 +971,16 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							<h6 class="_mR_xs"><?php echo mptbm_get_translation('extra_stop_location_label', __('Extra Stops', 'ecab-taxi-booking-manager')); ?> :</h6>
 							<span><?php echo esc_html(implode(', ', $extra_stop_locations)); ?></span>
 						</li>
+						<?php
+						$stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
+						$stop_total_price = $stop_price_per_unit * count($extra_stop_locations);
+						if ($stop_total_price > 0): ?>
+						<li>
+							<span class="fas fa-hand-holding-usd"></span>
+							<h6 class="_mR_xs"><?php echo mptbm_get_translation('extra_stop_price_label', __('Extra Stop Charge', 'ecab-taxi-booking-manager')); ?> :</h6>
+							<span><?php echo wp_kses_post(wc_price($stop_total_price)); ?></span>
+						</li>
+						<?php endif; ?>
 						<?php endif; ?>
 						<?php
 						if ($original_price_based !== 'manual') {
