@@ -173,12 +173,24 @@
 
 .mptbm_fixed_header_top {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     height: 52px;
     padding: 0 20px;
     border-bottom: 1px solid var(--mp-border-light);
     gap: 12px;
+}
+
+/* Fix V alignment of back-link + add-new wrapper */
+.mptbm_fixed_header_top > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.mptbm_fixed_header_top .mptbm-add-btn {
+    margin-top: 0;
+    vertical-align: middle;
+    line-height: 2.4;
 }
 
 /* Back link */
@@ -206,7 +218,7 @@
 }
 
 /* Page Title */
-.mptbm_header_left { flex: 1; min-width: 0; }
+.mptbm_header_left { flex: 1; min-width: 0; text-align: center; }
 
 .mptbm_page_title {
     margin: 0;
