@@ -2728,17 +2728,20 @@ function mptbm_price_calculation(parent) {
 
         let base_price_extra = unit_base_price_extra * quantityVal * tax_multiplier_val;
 
-        // Flat charge per extra stop the customer added between pickup and drop-off
+        // Flat charge per extra stop the customer added between pickup and drop-off,
+        // scaled by quantity like the base transport price (each vehicle makes the same stops).
         let stop_price_per_unit = parseFloat(parent.find('[name="mptbm_post_id"]').attr("data-stop-price") || 0);
         let stop_count = parent.find('.mptbm_extra_stop_place_input').filter(function () {
             return jQuery(this).val() && jQuery(this).val().trim() !== '';
         }).length;
-        let stop_total_price = stop_price_per_unit * stop_count;
+        let stop_total_price = stop_price_per_unit * stop_count * quantityVal;
 
         let stop_detail_container = parent.find(".mptbm_stop_price_detail");
         if (stop_price_per_unit > 0 && stop_count > 0) {
             let stop_html = '<div class="_textTheme" style="font-size: 13px; margin-top: 5px; padding-left: 25px;">' +
-                'Stopage Fare: ' + stop_count + ' x ' + mp_price_format(stop_price_per_unit) + ' = ' + mp_price_format(stop_total_price) + '</div>';
+                'Stopage Fare: ' + stop_count + ' x ' + mp_price_format(stop_price_per_unit) +
+                (quantityVal > 1 ? ' x ' + quantityVal : '') +
+                ' = ' + mp_price_format(stop_total_price) + '</div>';
             stop_detail_container.html(stop_html).show();
         } else {
             stop_detail_container.html('').hide();

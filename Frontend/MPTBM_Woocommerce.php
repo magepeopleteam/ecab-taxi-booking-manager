@@ -280,9 +280,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				foreach ($extra_services as $svc) {
 					$extra_total_price += ($svc['service_price'] * $svc['service_quantity']);
 				}
-				// Flat charge per extra stop the customer added between pickup and drop-off
+				// Flat charge per extra stop the customer added between pickup and drop-off,
+				// scaled by quantity like the base transport price (each vehicle makes the same stops).
 				$stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
-				$stop_total_price = $stop_price_per_unit * count($extra_stop_places);
+				$stop_total_price = $stop_price_per_unit * count($extra_stop_places) * $quantity;
 				// Final total: transport plus extra services plus threshold-based base distance price plus extra stops
 				$total_price = $transport_total_price + $extra_total_price + $threshold_base_price + $stop_total_price;
                 
@@ -510,7 +511,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					$item->add_meta_data(mptbm_get_translation('extra_stop_location_label', __('Extra Stops', 'ecab-taxi-booking-manager')), implode(', ', $extra_stop_locations));
 
 					$stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
-					$stop_total_price = $stop_price_per_unit * count($extra_stop_locations);
+					$stop_quantity = isset($values['mptbm_transport_quantity']) ? (int) $values['mptbm_transport_quantity'] : 1;
+					$stop_total_price = $stop_price_per_unit * count($extra_stop_locations) * $stop_quantity;
 					if ($stop_total_price > 0) {
 						$item->add_meta_data(mptbm_get_translation('extra_stop_price_label', __('Extra Stop Charge', 'ecab-taxi-booking-manager')), wp_kses_post(wc_price($stop_total_price)));
 						$item->add_meta_data('_mptbm_stop_price', $stop_total_price);
@@ -702,7 +704,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				if (!empty($extra_stop_locations)) {
 					$item->add_meta_data('_mptbm_extra_stop_place', $extra_stop_locations);
 					$stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
-					$stop_total_price = $stop_price_per_unit * count($extra_stop_locations);
+					$stop_total_price = $stop_price_per_unit * count($extra_stop_locations) * $transport_quantity;
 					if ($stop_total_price > 0) {
 						$item->add_meta_data('_mptbm_stop_price', $stop_total_price);
 					}
@@ -973,7 +975,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						</li>
 						<?php
 						$stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
-						$stop_total_price = $stop_price_per_unit * count($extra_stop_locations);
+						$stop_quantity = array_key_exists('mptbm_transport_quantity', $cart_item) ? (int) $cart_item['mptbm_transport_quantity'] : 1;
+						$stop_total_price = $stop_price_per_unit * count($extra_stop_locations) * $stop_quantity;
 						if ($stop_total_price > 0): ?>
 						<li>
 							<span class="fas fa-hand-holding-usd"></span>
