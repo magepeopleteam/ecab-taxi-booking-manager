@@ -1726,7 +1726,10 @@
         }
     }
     function filterEndSelect($startSelect, isInit = false) {
-
+        // Allowed pairs in this tab: Zone→Location, Location→Location, Location→Zone.
+        // Zone→Zone is excluded here (that combination belongs in the dedicated
+        // "Zone To Zone" tab), so when Start is an Operation Area, End must be a Location.
+        // When Start is a Location, End may be either a Location or an Operation Area.
         var $row       = $startSelect.closest('tr');
         var $endSelect = $row.find('.mptbm_fixed_map_route_end_location');
         var startType  = getType($startSelect.val());
@@ -1740,13 +1743,7 @@
                 return;
             }
 
-            var shouldHide = false;
-
-            if (startType === 'post') {
-                shouldHide = (optType === 'post');
-            } else if (startType === 'term') {
-                shouldHide = (optType === 'term');
-            }
+            var shouldHide = (startType === 'post' && optType === 'post');
 
             $opt.prop('disabled', shouldHide).toggle(!shouldHide);
         });
