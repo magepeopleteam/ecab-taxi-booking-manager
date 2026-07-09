@@ -957,9 +957,11 @@
             let selectedValues = [];
 
             // collect selected values (only same group)
+            // Only Operation Area zones (post_*) are restricted to a single use;
+            // Locations (term_*) may be reused across multiple rows.
             $(selector).each(function () {
                 let val = $(this).val();
-                if (val) {
+                if (val && val.indexOf('post_') === 0) {
                     selectedValues.push(val);
                 }
             });
