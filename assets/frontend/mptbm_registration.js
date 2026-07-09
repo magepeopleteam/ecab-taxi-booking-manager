@@ -10,7 +10,8 @@ var mptbm_osm_markers = [];
 var mptbm_osm_route = null;
 var mptbm_osm_start_marker = null;
 var mptbm_osm_end_marker = null;
-var mptbm_osm_extra_marker = null;
+var mptbm_osm_extra_marker = null; // kept for backward compat, unused once multi-stop rows exist
+var mptbm_osm_extra_markers = []; // one marker per dynamic extra-stop row, in order
 
 // Base Price global variables
 var mptbm_base_to_pickup_data = { distance: 0, duration: 0 };
@@ -625,6 +626,7 @@ function mptbm_init_osm_map() {
             mptbm_osm_start_marker = null;
             mptbm_osm_end_marker = null;
             mptbm_osm_extra_marker = null;
+            mptbm_osm_extra_markers = [];
         } catch (e) {
             console.log("[OSM] Error removing map:", e);
         }
@@ -667,6 +669,10 @@ function mptbm_init_osm_address_search() {
     if (endInput) {
         mptbm_setup_osm_autocomplete(endInput, 'end');
     }
+    // Multi-stop rows are added/removed dynamically - set up autocomplete on whichever exist now.
+    document.querySelectorAll('.mptbm_extra_stop_place_input').forEach(function (stopInput) {
+        mptbm_init_extra_stop_autocomplete(stopInput);
+    });
     var extraInput = document.getElementById('mptbm_map_extra_stop_place');
     if (extraInput) {
         mptbm_setup_osm_autocomplete(extraInput, 'extra');
@@ -853,7 +859,7 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery, 
                 item.addEventListener('click', function () {
                     input.value = result.display_name;
                     container.style.display = 'none';
-                    mptbm_handle_osm_address_selection(result, type);
+                    mptbm_handle_osm_address_selection(result, type, input);
                 });
 
                 item.addEventListener('mouseenter', function () {
@@ -885,18 +891,32 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery, 
         });
 }
 
-function mptbm_handle_osm_address_selection(address, type) {
+// Sets up autocomplete on one extra-stop row's input, giving it its own unique
+// tracked marker slot ('extra_<n>') so multiple stop rows don't clobber each other.
+function mptbm_init_extra_stop_autocomplete(stopInput) {
+    var $row = jQuery(stopInput).closest('.mptbm_extra_stop_row');
+    var idx = $row.data('stop-index');
+    if (idx === undefined || idx === null) {
+        idx = mptbm_osm_extra_markers.length;
+        $row.attr('data-stop-index', idx).data('stop-index', idx);
+    }
+    mptbm_setup_osm_autocomplete(stopInput, 'extra_' + idx);
+}
+
+function mptbm_handle_osm_address_selection(address, type, input) {
     var lat = parseFloat(address.lat);
     var lng = parseFloat(address.lon);
     var price_based = jQuery('[name="mptbm_price_based"]').val();
+    var isExtraStop = type.indexOf('extra_') === 0;
+    var stopIndex = isExtraStop ? parseInt(type.split('_')[1], 10) : -1;
 
     // Remove existing marker for this type
     if (type === 'start' && mptbm_osm_start_marker) {
         mptbm_osm_map.removeLayer(mptbm_osm_start_marker);
     } else if (type === 'end' && mptbm_osm_end_marker) {
         mptbm_osm_map.removeLayer(mptbm_osm_end_marker);
-    } else if (type === 'extra' && mptbm_osm_extra_marker) {
-        mptbm_osm_map.removeLayer(mptbm_osm_extra_marker);
+    } else if (isExtraStop && mptbm_osm_extra_markers[stopIndex]) {
+        mptbm_osm_map.removeLayer(mptbm_osm_extra_markers[stopIndex]);
     }
 
     // Create new marker if map exists
@@ -910,18 +930,20 @@ function mptbm_handle_osm_address_selection(address, type) {
         } else if (type === 'end') {
             mptbm_osm_end_marker = marker;
             window.mptbm_fixed_zone_end_coords = { latitude: lat, longitude: lng };
-        } else if (type === 'extra') {
-            mptbm_osm_extra_marker = marker;
+        } else if (isExtraStop) {
+            mptbm_osm_extra_markers[stopIndex] = marker;
+            if (input) {
+                jQuery(input).closest('.mptbm_extra_stop_row').find('.mptbm_extra_stop_coords').val(lat + ',' + lng);
+            }
         }
 
-        // Calculate distance if we have start marker and either end marker OR extra marker
-        if (mptbm_osm_start_marker && (mptbm_osm_end_marker || mptbm_osm_extra_marker)) {
+        // Calculate distance if we have start marker and either end marker OR any extra stop marker
+        if (mptbm_osm_start_marker && (mptbm_osm_end_marker || mptbm_osm_extra_markers.some(Boolean))) {
             mptbm_calculate_osm_distance();
         }
 
         // Fit map to show all markers
-        var markersToFit = [mptbm_osm_start_marker, mptbm_osm_end_marker];
-        if (mptbm_osm_extra_marker) markersToFit.push(mptbm_osm_extra_marker);
+        var markersToFit = [mptbm_osm_start_marker, mptbm_osm_end_marker].concat(mptbm_osm_extra_markers);
 
         var group = new L.featureGroup(markersToFit.filter(Boolean));
         if (group.getLayers().length > 0) {
@@ -931,23 +953,28 @@ function mptbm_handle_osm_address_selection(address, type) {
 }
 
 function mptbm_calculate_osm_distance() {
-    // We need at least start marker and either end marker OR extra marker
-    if (!mptbm_osm_start_marker || (!mptbm_osm_end_marker && !mptbm_osm_extra_marker)) return;
+    // We need at least a start marker and either an end marker OR at least one extra stop marker
+    var hasAnyExtraStop = mptbm_osm_extra_markers.some(Boolean);
+    if (!mptbm_osm_start_marker || (!mptbm_osm_end_marker && !hasAnyExtraStop)) return;
 
     var startLatLng = mptbm_osm_start_marker.getLatLng();
 
-    // Use end marker if available, otherwise use extra marker as destination
-    var actualEndMarker = mptbm_osm_end_marker || mptbm_osm_extra_marker;
+    // Use end marker if available, otherwise use the last extra stop marker as the destination
+    var lastExtraMarker = mptbm_osm_extra_markers.filter(Boolean).slice(-1)[0];
+    var actualEndMarker = mptbm_osm_end_marker || lastExtraMarker;
     var endLatLng = actualEndMarker.getLatLng();
 
-    // Determine if we should use extra as waypoint (only if we have both end and extra)
-    var useExtraAsWaypoint = mptbm_osm_end_marker && mptbm_osm_extra_marker;
+    // If we have a real dropoff AND extra stops, route through all of them in order first
+    var useExtraAsWaypoint = mptbm_osm_end_marker && hasAnyExtraStop;
 
     var urlCoords = startLatLng.lng + ',' + startLatLng.lat;
 
     if (useExtraAsWaypoint) {
-        var extraLatLng = mptbm_osm_extra_marker.getLatLng();
-        urlCoords += ';' + extraLatLng.lng + ',' + extraLatLng.lat;
+        mptbm_osm_extra_markers.forEach(function (extraMarker) {
+            if (!extraMarker) return;
+            var extraLatLng = extraMarker.getLatLng();
+            urlCoords += ';' + extraLatLng.lng + ',' + extraLatLng.lat;
+        });
     }
 
     urlCoords += ';' + endLatLng.lng + ',' + endLatLng.lat;
@@ -1087,6 +1114,57 @@ function mptbm_calculate_osm_distance() {
         }).addTo(mptbm_osm_map);
     }
 }
+
+// ---- Multi-stop: add/remove extra-stop rows ----
+jQuery(document).on('click', '.mptbm_add_extra_stop_row', function () {
+    var $wrapper = jQuery(this).closest('.mptbm_extra_stops_wrapper');
+    var $list = $wrapper.find('.mptbm_extra_stops_list');
+    var maxStops = parseInt($wrapper.data('max-stops'), 10) || 3;
+
+    if ($list.children('.mptbm_extra_stop_row').length >= maxStops) {
+        return;
+    }
+
+    var template = document.getElementById('mptbm_extra_stop_row_template');
+    if (!template) return;
+
+    var $row = jQuery(template.content.cloneNode(true));
+    $list.append($row);
+
+    var newInput = $list.find('.mptbm_extra_stop_place_input').last().get(0);
+    if (newInput) {
+        mptbm_init_extra_stop_autocomplete(newInput);
+    }
+
+    if ($list.children('.mptbm_extra_stop_row').length >= maxStops) {
+        jQuery(this).prop('disabled', true).hide();
+    }
+});
+
+jQuery(document).on('click', '.mptbm_remove_extra_stop_row', function () {
+    var $wrapper = jQuery(this).closest('.mptbm_extra_stops_wrapper');
+    var $row = jQuery(this).closest('.mptbm_extra_stop_row');
+    var idx = $row.data('stop-index');
+
+    if (idx !== undefined && idx !== null && mptbm_osm_extra_markers[idx] && mptbm_osm_map) {
+        mptbm_osm_map.removeLayer(mptbm_osm_extra_markers[idx]);
+        mptbm_osm_extra_markers[idx] = null;
+    }
+
+    $row.remove();
+
+    var maxStops = parseInt($wrapper.data('max-stops'), 10) || 3;
+    var $addBtn = $wrapper.find('.mptbm_add_extra_stop_row');
+    if ($wrapper.find('.mptbm_extra_stop_row').length < maxStops) {
+        $addBtn.prop('disabled', false).show();
+    }
+
+    // Refresh the on-page distance/time preview now that a stop is gone - otherwise it
+    // keeps showing the total from before the removal.
+    if (mptbm_osm_start_marker && (mptbm_osm_end_marker || mptbm_osm_extra_markers.some(Boolean))) {
+        mptbm_calculate_osm_distance();
+    }
+});
 
 function mptbm_calculate_google_route_from_markers() {
     if (!mptbm_start_marker || !mptbm_end_marker || !mptbm_map) return;
@@ -1618,6 +1696,17 @@ function mptbm_init_google_map() {
         let fixed_time = parent.find('[name="mptbm_fixed_hours"]').val();
         let mptbm_original_price_base = parent.find('[name="mptbm_original_price_base"]').val();
 
+        // Multi-stop: gather every filled-in extra-stop row, in order, with its captured coordinates.
+        let extra_stop_places = [];
+        let extra_stop_coordinates = [];
+        parent.find('.mptbm_extra_stop_place_input').each(function () {
+            let stopVal = jQuery(this).val();
+            if (stopVal) {
+                extra_stop_places.push(stopVal);
+                extra_stop_coordinates.push(jQuery(this).closest('.mptbm_extra_stop_row').find('.mptbm_extra_stop_coords').val() || '');
+            }
+        });
+
 
         let mptbm_enable_view_search_result_page = parent
             .find('[name="mptbm_enable_view_search_result_page"]')
@@ -1880,7 +1969,8 @@ function mptbm_init_google_map() {
                                         mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                         mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                         mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                        mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                        mptbm_extra_stop_place: extra_stop_places,
+                                        mptbm_extra_stop_place_coordinates: extra_stop_coordinates,
                                         mptbm_original_price_base: mptbm_original_price_base,
                                         mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                         mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -1928,7 +2018,8 @@ function mptbm_init_google_map() {
                                         mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                         mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                         mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                        mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                        mptbm_extra_stop_place: extra_stop_places,
+                                        mptbm_extra_stop_place_coordinates: extra_stop_coordinates,
                                         mptbm_original_price_base: mptbm_original_price_base,
                                         mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                         mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -2007,7 +2098,8 @@ function mptbm_init_google_map() {
                                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                     mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                    mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                    mptbm_extra_stop_place: extra_stop_places,
+                                        mptbm_extra_stop_place_coordinates: extra_stop_coordinates,
                                     mptbm_original_price_base: mptbm_original_price_base,
                                     mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                     mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -2065,7 +2157,8 @@ function mptbm_init_google_map() {
                                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                     mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                    mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                    mptbm_extra_stop_place: extra_stop_places,
+                                        mptbm_extra_stop_place_coordinates: extra_stop_coordinates,
                                     mptbm_original_price_base: mptbm_original_price_base,
                                     mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                     mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -2126,7 +2219,8 @@ function mptbm_init_google_map() {
                                 mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                mptbm_extra_stop_place: extra_stop_places,
+                                        mptbm_extra_stop_place_coordinates: extra_stop_coordinates,
                                 mptbm_original_price_base: mptbm_original_price_base,
                                 mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                 mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -2184,7 +2278,8 @@ function mptbm_init_google_map() {
                                 mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                mptbm_extra_stop_place: extra_stop_places,
+                                        mptbm_extra_stop_place_coordinates: extra_stop_coordinates,
                                 mptbm_original_price_base: mptbm_original_price_base,
                                 mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                 mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -2633,7 +2728,26 @@ function mptbm_price_calculation(parent) {
 
         let base_price_extra = unit_base_price_extra * quantityVal * tax_multiplier_val;
 
-        total = total + base_transport_price + base_price_extra;
+        // Flat charge per extra stop the customer added between pickup and drop-off,
+        // scaled by quantity like the base transport price (each vehicle makes the same stops).
+        let stop_price_per_unit = parseFloat(parent.find('[name="mptbm_post_id"]').attr("data-stop-price") || 0);
+        let stop_count = parent.find('.mptbm_extra_stop_place_input').filter(function () {
+            return jQuery(this).val() && jQuery(this).val().trim() !== '';
+        }).length;
+        let stop_total_price = stop_price_per_unit * stop_count * quantityVal;
+
+        let stop_detail_container = parent.find(".mptbm_stop_price_detail");
+        if (stop_price_per_unit > 0 && stop_count > 0) {
+            let stop_html = '<div class="_textTheme" style="font-size: 13px; margin-top: 5px; padding-left: 25px;">' +
+                'Stopage Fare: ' + stop_count + ' x ' + mp_price_format(stop_price_per_unit) +
+                (quantityVal > 1 ? ' x ' + quantityVal : '') +
+                ' = ' + mp_price_format(stop_total_price) + '</div>';
+            stop_detail_container.html(stop_html).show();
+        } else {
+            stop_detail_container.html('').hide();
+        }
+
+        total = total + base_transport_price + base_price_extra + stop_total_price;
 
 
         parent.find(".mptbm_extra_service_item").each(function () {
@@ -2821,6 +2935,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 parent.find('[name="mptbm_post_id"]').attr('data-unit-transport-price', transport_price);
                 parent.find('[name="mptbm_post_id"]').attr('data-base-price-calculated', 0);
                 parent.find('[name="mptbm_post_id"]').attr('data-unit-base-price', 0);
+                parent.find('[name="mptbm_post_id"]').attr('data-stop-price', $this.attr('data-stop-price') || 0);
 
                 // --- BASE PRICE CALCULATION ---
                 // FIX: Use the server-calculated base price directly to avoid discrepancies (1.30 difference)
@@ -3074,14 +3189,15 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                     mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                    mptbm_extra_stop_place: parent.find('input[name="mptbm_extra_stop_place"]').val(),
+                    mptbm_extra_stop_place: parent.find('.mptbm_hidden_extra_stop_place').map(function () { return jQuery(this).val(); }).get(),
                     mptbm_original_price_base: mptbm_original_price_base,
                     mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
                     mptbm_duration: parent.find('input[name="mptbm_hidden_duration"]').val(),
                     mptbm_duration_text: parent.find('input[name="mptbm_hidden_duration_text"]').val(),
                     start_place_coordinates: start_place_coordinates ? JSON.stringify(start_place_coordinates) : '',
                     end_place_coordinates: end_place_coordinates ? JSON.stringify(end_place_coordinates) : '',
-                    mptbm_threshold_base_price: mptbm_threshold_base_price
+                    mptbm_threshold_base_price: mptbm_threshold_base_price,
+                    mptbm_add_to_cart_nonce: parent.find('input[name="mptbm_add_to_cart_nonce"]').val()
                 },
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));

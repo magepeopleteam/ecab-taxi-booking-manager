@@ -190,6 +190,20 @@
             // $(this).closest('.mptbm_taxi_feature_switch').find('span').text(isChecked ? 'ON' : 'OFF');
         });
 
+        // 1. Customer Reviews Toggle Functionality
+        $('#mptbm_show_reviews').on('change', function(e) {
+            e.preventDefault();
+            const isChecked = $(this).is(':checked');
+            const $switchText = $(this).closest('.mptbm_taxi_feature_header').find('.mptbm_taxi_feature_switch_text');
+            if (isChecked) {
+                $('.mptbm_reviews_manage_body').fadeIn();
+                $switchText.text('On');
+            } else {
+                $('.mptbm_reviews_manage_body').fadeOut();
+                $switchText.text('Off');
+            }
+        });
+
         $(document).on('click', '.mptbm_taxi_feature_btn_del', function(e) {
             e.preventDefault();
             console.log('mptbm: feature delete clicked', this);
@@ -943,9 +957,11 @@
             let selectedValues = [];
 
             // collect selected values (only same group)
+            // Only Operation Area zones (post_*) are restricted to a single use;
+            // Locations (term_*) may be reused across multiple rows.
             $(selector).each(function () {
                 let val = $(this).val();
-                if (val) {
+                if (val && val.indexOf('post_') === 0) {
                     selectedValues.push(val);
                 }
             });
@@ -1710,7 +1726,10 @@
         }
     }
     function filterEndSelect($startSelect, isInit = false) {
-
+        // Allowed pairs in this tab: Zone→Location, Location→Location, Location→Zone.
+        // Zone→Zone is excluded here (that combination belongs in the dedicated
+        // "Zone To Zone" tab), so when Start is an Operation Area, End must be a Location.
+        // When Start is a Location, End may be either a Location or an Operation Area.
         var $row       = $startSelect.closest('tr');
         var $endSelect = $row.find('.mptbm_fixed_map_route_end_location');
         var startType  = getType($startSelect.val());
@@ -1724,13 +1743,7 @@
                 return;
             }
 
-            var shouldHide = false;
-
-            if (startType === 'post') {
-                shouldHide = (optType === 'post');
-            } else if (startType === 'term') {
-                shouldHide = (optType === 'term');
-            }
+            var shouldHide = (startType === 'post' && optType === 'post');
 
             $opt.prop('disabled', shouldHide).toggle(!shouldHide);
         });

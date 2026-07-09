@@ -2504,9 +2504,12 @@ input.mptbm_taxi_feature_input:focus {
     border: 1.5px solid var(--mp-border);
     border-radius: var(--mp-r-lg);
     overflow: hidden;
-    margin: 12px 0;
+    margin-top: 15px !important;
     background: var(--mp-white);
     box-shadow: var(--mp-shadow-sm);
+    padding: 15px !important;
+    width: calc(100% - 30px) !important;
+
 }
 
 /* Advanced toggle for date type */

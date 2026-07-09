@@ -55,14 +55,17 @@ if (!class_exists('MPTBM_Dependencies')) {
             $api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
             $map_type = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'openstreetmap');
             
+            // geolib is required for geo-fence checks in choose_vehicles.php regardless of map type
+            wp_enqueue_script('mptbm_geoLib', MPTBM_PLUGIN_URL . '/assets/admin/geolib.js', array(), null, true);
+
             // Check map type FIRST, then decide what to load
             if ($map_type === 'openstreetmap') {
                 // OpenStreetMap is selected - load only the map JS without Google Maps API
                 wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('jquery'), time(), true);
             } elseif ($map_type === 'enable' && $api_key) {
                 // Google Maps is selected and API key exists
-                wp_enqueue_script('mptbm_map_api', 'https://maps.googleapis.com/maps/api/js?libraries=places,drawing&language=en&v=weekly&key=' . $api_key, array(), null, true);
-                wp_enqueue_script('mptbm_geoLib', MPTBM_PLUGIN_URL . '/assets/admin/geolib.js', array(), null, true);
+//                wp_enqueue_script('mptbm_map_api', 'https://maps.googleapis.com/maps/api/js?libraries=places,drawing&language=en&v=weekly&key=' . $api_key, array(), null, true);
+                wp_enqueue_script('mptbm_map_api', 'https://maps.googleapis.com/maps/api/js?libraries=places,drawing,geometry&language=en&v=3.64&key=' . $api_key, array(), null, true);
                 wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('mptbm_map_api'), time(), true);
             } elseif ($map_type === 'enable' && !$api_key) {
                 // Google Maps is selected but no API key
@@ -96,14 +99,10 @@ if (!class_exists('MPTBM_Dependencies')) {
             if ( $editor_type !== 'old') {
                 if ( class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) {
                     wp_enqueue_style('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css', array(), time());
-                    wp_enqueue_style('distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/css/distance-tier-pricing.css', array(), time());
-
                     wp_enqueue_script('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js', array('jquery'), time(), true);
-                    wp_enqueue_script('distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/js/distance-tier-pricing.js', array('jquery'), time(), true);
                 }
 
                 if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) {
-                    error_log( print_r( [ 'here' => 'ok'], true ) );
                     wp_enqueue_style('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css', array(), time());
                     wp_enqueue_script('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js', array('jquery'), time(), true);
                 }

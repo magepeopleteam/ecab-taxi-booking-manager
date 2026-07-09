@@ -195,14 +195,26 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
                 </script>
                 <?php session_write_close();
-            } elseif ($startInAreaOne == "true" && $endInAreaOne == "true") { ?>
+            } elseif ($startInAreaOne == "true" && $endInAreaOne == "true") {
+                // Both in area one - no surcharge for this route. Clear any surcharge left over
+                // from a previous search in this session, or it would silently carry over here.
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                unset($_SESSION["geo_fence_post_" . $post_id]);
+                session_write_close();
+                ?>
                 <script>
                     var post_id = <?php echo wp_json_encode($post_id); ?>;
                     var selectorClass = `.mptbm_booking_item_${post_id}`;
                     jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
                 </script>
-            <?php } else { ?>
+            <?php } else {
+                // No direct PHP-side match - falls back to a client-side geolib re-check.
+                // Also not a surcharge route, so clear any stale surcharge from before.
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                unset($_SESSION["geo_fence_post_" . $post_id]);
+                session_write_close();
+                ?>
                 <script>
                 (function() {
                     var geoAreaOne  = <?php echo wp_json_encode($geo_area_one); ?>;
@@ -260,7 +272,11 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                 </script>
                 <?php session_write_close();
             } elseif ($startInAreaOne == "true" && $endInAreaOne == "true") {
-                // Show transport when both start and end are in area one
+                // Show transport when both start and end are in area one - no surcharge for this
+                // route, so clear any surcharge left over from a previous search this session.
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                unset($_SESSION["geo_fence_post_" . $post_id]);
+                session_write_close();
                 ?>
                 <script>
                     var post_id = <?php echo wp_json_encode($post_id); ?>;
@@ -270,7 +286,11 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                 </script>
                 <?php
             } elseif ($startInAreaTwo == "true" && $endInAreaTwo == "true") {
-                // Show transport when both start and end are in area two
+                // Show transport when both start and end are in area two - same as above, clear
+                // any stale surcharge from a previous search this session.
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                unset($_SESSION["geo_fence_post_" . $post_id]);
+                session_write_close();
                 ?>
                 <script>
                     var post_id = <?php echo wp_json_encode($post_id); ?>;
@@ -279,7 +299,13 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
                     document.cookie = selectorClass + '=' + selectorClass + ";path=/";
                 </script>
                 <?php
-            } else { ?>
+            } else {
+                // No direct PHP-side match - falls back to a client-side geolib re-check.
+                // Also not a surcharge route, so clear any stale surcharge from before.
+                if (session_status() === PHP_SESSION_NONE) session_start();
+                unset($_SESSION["geo_fence_post_" . $post_id]);
+                session_write_close();
+                ?>
                 <script>
                 (function() {
                     var geoAreaOne  = <?php echo wp_json_encode($geo_area_one); ?>;
@@ -309,7 +335,7 @@ function mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_pl
         return false;
     }
     $operation_area_type = get_post_meta($operation_area_id, "mptbm-operation-type", true);
-    
+
     // Determine meta key based on operation type
     if ($operation_area_type === "geo-matched-operation-area-type") {
         $coord_key = "mptbm-coordinates-four";
@@ -391,23 +417,23 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                     } elseif ($area_type === 'geo-fence-operation-area-type') {
                         $coord_key = 'mptbm-coordinates-one'; // Use the first one for intercity
                     }
-                    
+
                     $flat_operation_area_coordinates = get_post_meta($operation_area_id, $coord_key, true);
-                    
+
                     if (is_array($flat_operation_area_coordinates)) {
                         $operation_area_coordinates = [];
                         for ($i = 0; $i < count($flat_operation_area_coordinates); $i += 2) {
                             $operation_area_coordinates[] = ["latitude" => $flat_operation_area_coordinates[$i], "longitude" => $flat_operation_area_coordinates[$i + 1]];
                         }
-                        
+
                         $start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : json_decode($start_place_coordinates, true);
                         $end_coords = is_array($end_place_coordinates) ? $end_place_coordinates : json_decode($end_place_coordinates, true);
-                        
+
                         $start_in_area = false;
                         $end_in_area = false;
                         if (is_array($start_coords)) { $start_in_area = pointInPolygon($start_coords, $operation_area_coordinates); }
                         if (is_array($end_coords)) { $end_in_area = pointInPolygon($end_coords, $operation_area_coordinates); }
-                        
+
                         if ($start_in_area) {
                             $is_in_any_area = true;
                             $_SESSION["mptbm_fixed_distance_match_" . $post_id] = $end_in_area ? 'full' : 'partial';
@@ -418,7 +444,7 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                                 document.cookie = selectorClass + '=' + selectorClass + ";path=/";
                             </script>
                             <?php
-                            break; 
+                            break;
                         }
                     }
                     continue;
@@ -689,26 +715,33 @@ set_transient($transient_key_date, $start_date); // Set new transient
 
 if ($start_time !== "") {
     if ($start_time !== "0") {
-        
-        // Convert start time to hours and minutes
-        $time_parts = explode('.', $start_time);
-        $hours = isset($time_parts[0]) ? $time_parts[0] : 0;
-        $decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
-        $interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
-        
-        if ($interval_time == "5" || $interval_time == "15") {
-                if($decimal_part != 3){
-                    $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
-                }else{
-                    $minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 1 to convert to minutes
-                }
-                
-                
-            
-        }else {
-            $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 10 to convert to minutes
+
+        if (strpos($start_time, ':') !== false) {
+            // Already formatted as H:i by the search form's data-time attribute; keep the real minutes.
+            $time_parts = explode(':', $start_time);
+            $hours = (int) $time_parts[0];
+            $minutes = isset($time_parts[1]) ? (int) $time_parts[1] : 0;
+        } else {
+            // Convert start time to hours and minutes
+            $time_parts = explode('.', $start_time);
+            $hours = isset($time_parts[0]) ? $time_parts[0] : 0;
+            $decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
+            $interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
+
+            if ($interval_time == "5" || $interval_time == "15") {
+                    if($decimal_part != 3){
+                        $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+                    }else{
+                        $minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 1 to convert to minutes
+                    }
+
+
+
+            }else {
+                $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 10 to convert to minutes
+            }
         }
-        
+
     } else {
         $hours = 0;
         $minutes = 0;
@@ -732,7 +765,20 @@ $start_place = isset($_POST["start_place"]) ? sanitize_text_field($_POST["start_
 $start_place_coordinates = isset($_POST["start_place_coordinates"]) ? $_POST["start_place_coordinates"] : "";
 $end_place_coordinates = isset($_POST["end_place_coordinates"]) ? $_POST["end_place_coordinates"] : "";
 $end_place = isset($_POST["end_place"]) ? sanitize_text_field($_POST["end_place"]) : "";
-$extra_stop_place = isset($_POST["mptbm_extra_stop_place"]) ? sanitize_text_field($_POST["mptbm_extra_stop_place"]) : "";
+$extra_stop_place_raw = isset($_POST["mptbm_extra_stop_place"]) ? $_POST["mptbm_extra_stop_place"] : "";
+$extra_stop_places = [];
+if (is_array($extra_stop_place_raw)) {
+    foreach ($extra_stop_place_raw as $mptbm_stop) {
+        $mptbm_stop = sanitize_text_field($mptbm_stop);
+        if ($mptbm_stop !== "") {
+            $extra_stop_places[] = $mptbm_stop;
+        }
+    }
+} elseif ($extra_stop_place_raw !== "") {
+    $extra_stop_places[] = sanitize_text_field($extra_stop_place_raw);
+}
+// Kept for any older code still expecting a single combined string.
+$extra_stop_place = implode(', ', $extra_stop_places);
 $mptbm_original_price_base = isset($_POST["mptbm_original_price_base"]) ? sanitize_text_field($_POST["mptbm_original_price_base"]) : "";
 
 
@@ -840,23 +886,30 @@ if ($two_way > 1 && MP_Global_Function::get_settings("mptbm_general_settings", "
     
     if ($return_time !== "") {
         if ($return_time !== "0") {
-    
-            // Convert return time to hours and minutes
-            $time_parts = explode('.', $return_time);
-            $hours = isset($time_parts[0]) ? $time_parts[0] : 0;
-            $decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
-            $interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
-    
-            if ($interval_time == "5" || $interval_time == "15") {
-                if ($decimal_part != 3) {
-                    $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
-                } else {
-                    $minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 10 to convert to minutes
-                }
+
+            if (strpos($return_time, ':') !== false) {
+                // Already formatted as H:i by the search form's data-time attribute; keep the real minutes.
+                $time_parts = explode(':', $return_time);
+                $hours = (int) $time_parts[0];
+                $minutes = isset($time_parts[1]) ? (int) $time_parts[1] : 0;
             } else {
-                $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+                // Convert return time to hours and minutes
+                $time_parts = explode('.', $return_time);
+                $hours = isset($time_parts[0]) ? $time_parts[0] : 0;
+                $decimal_part = isset($time_parts[1]) ? $time_parts[1] : 0;
+                $interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time');
+
+                if ($interval_time == "5" || $interval_time == "15") {
+                    if ($decimal_part != 3) {
+                        $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+                    } else {
+                        $minutes = isset($decimal_part) ? (int) $decimal_part * 10 : 0; // Multiply by 10 to convert to minutes
+                    }
+                } else {
+                    $minutes = isset($decimal_part) ? (int) $decimal_part * 1 : 0; // Multiply by 1 to convert to minutes
+                }
             }
-    
+
         } else {
             $hours = 0;
             $minutes = 0;
@@ -928,9 +981,13 @@ if (empty($duration)) {
 	<input type="hidden" name="mptbm_end_place" value="<?php echo esc_attr($end_place); ?>" />
 	<input type="hidden" name="mptbm_start_place_coordinates" value="<?php echo esc_attr(is_array($start_place_coordinates) ? json_encode($start_place_coordinates) : $start_place_coordinates); ?>" />
 	<input type="hidden" name="mptbm_end_place_coordinates" value="<?php echo esc_attr(is_array($end_place_coordinates) ? json_encode($end_place_coordinates) : $end_place_coordinates); ?>" />
-	<input type="hidden" name="mptbm_extra_stop_place" value="<?php echo esc_attr($extra_stop_place); ?>" />
+	<?php foreach ($extra_stop_places as $mptbm_stop_display) : ?>
+	<input type="hidden" name="mptbm_extra_stop_place[]" class="mptbm_hidden_extra_stop_place" value="<?php echo esc_attr($mptbm_stop_display); ?>" />
+	<?php endforeach; ?>
 	<input type="hidden" name="mptbm_date" value="<?php echo esc_attr($date); ?>" />
 	<input type="hidden" name="mptbm_time" value="<?php echo esc_attr($start_time); ?>"/>
+	<?php // SECURITY: fresh add-to-cart nonce, regenerated on every server-side search response. ?>
+	<?php wp_nonce_field('mptbm_add_to_cart', 'mptbm_add_to_cart_nonce', false); ?>
     <input type="hidden" name="mptbm_hidden_distance" value="<?php echo esc_attr($distance); ?>" />
     <input type="hidden" name="mptbm_hidden_duration" value="<?php echo esc_attr($duration); ?>" />
     <input type="hidden" name="mptbm_hidden_duration_text" value="" />
@@ -1032,6 +1089,40 @@ if ($all_posts->found_posts > 0) {
     
     foreach ($posts as $post) {
         $post_id = $post->ID;
+
+        // Quantity/interval availability (Inventory Management > Booking Interval Time) always
+        // applies, regardless of the check mode.
+        // When Inventory Management is OFF for a vehicle, it still has exactly one physical
+        // unit, so treat its quantity as 1 to prevent the same slot being double-booked.
+        $mptbm_unavailable = false;
+        $mptbm_unavailable_reason = '';
+
+        $mptbm_enable_inventory_check = get_post_meta($post_id, 'mptbm_enable_inventory', true);
+        $mptbm_force_single_quantity = ($mptbm_enable_inventory_check !== 'yes');
+        if (MPTBM_Function::get_available_quantity($post_id, $start_date, $start_time_formatted, $mptbm_force_single_quantity) <= 0) {
+            $mptbm_unavailable = true;
+            $mptbm_unavailable_reason = esc_html__('Fully booked for this time', 'ecab-taxi-booking-manager');
+        }
+
+        // Availability Check Mode: in Manual mode, the Vehicle Availability toggle is an
+        // additional gate on top of the quantity check above. In Automatic mode, the toggle
+        // is ignored entirely and only the quantity/interval check above applies.
+        $availability_check_mode = get_post_meta($post_id, 'mptbm_availability_check_mode', true) ?: 'automatic';
+        $mptbm_manually_marked_unavailable = ($availability_check_mode === 'manual' && get_post_meta($post_id, 'mptbm_availability_status', true) === 'unavailable');
+        if ($mptbm_manually_marked_unavailable) {
+            $mptbm_unavailable = true;
+            $mptbm_unavailable_reason = MPTBM_Function::get_availability_reason_text($post_id);
+        }
+
+        // Only show an "Unavailable" badge with reason in the results when Inventory Management
+        // is ON AND the vehicle has explicitly been marked Unavailable via Manual Availability
+        // Check Mode. Any other cause of unavailability (e.g. quantity fully booked, or manual
+        // mode not set to Unavailable) hides the vehicle from the search results entirely.
+        $mptbm_show_unavailable_with_reason = ($mptbm_enable_inventory_check === 'yes' && $mptbm_manually_marked_unavailable);
+        if ($mptbm_unavailable && !$mptbm_show_unavailable_with_reason) {
+            continue; // Fully booked/unavailable - skip this vehicle from the results
+        }
+
         $taxi_max_passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
         $taxi_max_bag = (int) get_post_meta($post_id, 'mptbm_maximum_bag', true);
         $taxi_max_hand_luggage = (int) get_post_meta($post_id, 'mptbm_maximum_hand_luggage', true);
@@ -1139,8 +1230,13 @@ if ($all_posts->found_posts > 0) {
                 }
             }
 
-            $display_price = $price + ($base_price_extra * $tax_multiplier);
-            
+            // Flat charge per extra stop the customer added between pickup and drop-off (matches
+            // the same calculation applied at add-to-cart time in MPTBM_Woocommerce.php).
+            $stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
+            $stop_total_price = $stop_price_per_unit * count($extra_stop_places);
+
+            $display_price = $price + ($base_price_extra * $tax_multiplier) + $stop_total_price;
+
 
             // Only skip display if price is 0 and we're not in zero or custom message mode
             if (!$display_price && $price_display_type === 'normal') {
