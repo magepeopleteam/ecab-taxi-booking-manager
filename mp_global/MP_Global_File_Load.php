@@ -37,8 +37,8 @@
 			public function global_enqueue() {
 				wp_enqueue_script('jquery');
 				wp_enqueue_script('jquery-ui-core');
-				wp_enqueue_script('jquery-ui-datepicker');
-				wp_enqueue_style('mp_jquery_ui', MP_GLOBAL_PLUGIN_URL . '/assets/jquery-ui.min.css', array(), '1.13.2');
+				wp_enqueue_style('flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css', array(), '4.6.13');
+				wp_enqueue_script('flatpickr', 'https://cdn.jsdelivr.net/npm/flatpickr', array(), '4.6.13', true);
 				wp_enqueue_style('mp_font_awesome', '//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css', array(), '5.15.4');
 				wp_enqueue_style('mp_select_2', MP_GLOBAL_PLUGIN_URL . '/assets/select_2/select2.min.css', array(), '4.0.13');
 				wp_enqueue_script('mp_select_2', MP_GLOBAL_PLUGIN_URL . '/assets/select_2/select2.min.js', array(), '4.0.13');
@@ -90,8 +90,8 @@
 					window.mp_num_of_decimal = "";
 					window.mp_ajax_url = "<?php echo admin_url('admin-ajax.php'); ?>";
 					window.mp_empty_image_url = "<?php echo esc_attr(MP_GLOBAL_PLUGIN_URL . '/assets/images/no_image.png'); ?>";
-					window.mp_date_format = "<?php echo esc_attr(MP_Global_Function::get_settings('mp_global_settings', 'date_format', 'D d M , yy')); ?>";
-					window.mp_date_format_without_year = "<?php echo esc_attr(MP_Global_Function::get_settings('mp_global_settings', 'date_format_without_year', 'D d M')); ?>";
+					window.mp_date_format = "<?php echo esc_attr(self::to_flatpickr_format(MP_Global_Function::get_settings('mp_global_settings', 'date_format', 'D d M , yy'))); ?>";
+					window.mp_date_format_without_year = "<?php echo esc_attr(self::to_flatpickr_format(MP_Global_Function::get_settings('mp_global_settings', 'date_format_without_year', 'D d M'))); ?>";
 				</script>
 				<?php
 				if (MP_Global_Function::check_woocommerce() == 1) {
@@ -115,6 +115,22 @@
 				</style>
 				<?php
 				echo ob_get_clean();
+			}
+			public static function to_flatpickr_format($format) {
+				$map = array(
+					'yy/mm/dd' => 'Y/m/d',
+					'yy-dd-mm' => 'Y-d-m',
+					'yy/dd/mm' => 'Y/d/m',
+					'dd-mm-yy' => 'd-m-Y',
+					'dd/mm/yy' => 'd/m/Y',
+					'mm-dd-yy' => 'm-d-Y',
+					'mm/dd/yy' => 'm/d/Y',
+					'd M , yy' => 'j M Y',
+					'D d M , yy' => 'D j M Y',
+					'M d , yy' => 'M j, Y',
+					'D M d , yy' => 'D M j, Y',
+				);
+				return isset($map[$format]) ? $map[$format] : 'Y-m-d';
 			}
 		}
 		new MP_Global_File_Load();

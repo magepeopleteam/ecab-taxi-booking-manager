@@ -828,17 +828,27 @@ document.addEventListener('DOMContentLoaded', function() {
 		updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>);
 		
 		jQuery('#mptbm_start_date').on('change', function() {
-			updateTimeRangeForDay(jQuery(this).val());
+			var fp = this._flatpickr;
+			if (fp && fp.selectedDates.length > 0) {
+				var d = fp.selectedDates[0];
+				var isoDate = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+				updateTimeRangeForDay(isoDate);
+			}
 		});
 		
 		jQuery('#mptbm_return_date').on('change', function() {
-			updateTimeRangeForDay(jQuery(this).val());
+			var fp = this._flatpickr;
+			if (fp && fp.selectedDates.length > 0) {
+				var d = fp.selectedDates[0];
+				var isoDate = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+				updateTimeRangeForDay(isoDate);
+			}
 		});
 		
-		// Also trigger on date picker selection
-		jQuery(document).on('click', '.ui-datepicker-calendar td a', function() {
+		// Also trigger on flatpickr date selection
+		jQuery(document).on('click', '.flatpickr-day:not(.prevMonthDay):not(.nextMonthDay):not(.flatpickr-disabled)', function() {
 			setTimeout(function() {
-				var selectedDate = jQuery('#mptbm_start_date').val();
+				var selectedDate = jQuery('#mptbm_map_start_date').val();
 				if (selectedDate) {
 					updateTimeRangeForDay(selectedDate);
 				}

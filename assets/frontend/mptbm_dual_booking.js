@@ -103,7 +103,7 @@ jQuery(function ($) {
 		var firstCalendarDate = parent.find('[name="mptbm_first_calendar_date"]').val();
 
 		var selectedDate = parent.find('#mptbm_map_start_date').val();
-		var formattedDate = $.datepicker.parseDate('yy-mm-dd', selectedDate);
+		var formattedDate = flatpickr.parseDate(selectedDate, 'Y-m-d');
 		var today = currentDateStr();
 
 		function appendAllowedTimes(isAllowed) {
@@ -137,8 +137,8 @@ jQuery(function ($) {
 
 		if (enableReturnDiffDate == 'yes') {
 			var returnDate = parent.find('#mptbm_return_date');
-			if (returnDate.length && returnDate.data('datepicker')) {
-				returnDate.datepicker('option', 'minDate', formattedDate);
+			if (returnDate.length && returnDate[0]._flatpickr) {
+				returnDate[0]._flatpickr.set('minDate', formattedDate);
 			}
 		}
 

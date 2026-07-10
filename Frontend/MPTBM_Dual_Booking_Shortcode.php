@@ -63,7 +63,7 @@ if (!class_exists('MPTBM_Dual_Booking_Shortcode')) {
             wp_enqueue_script(
                 'mptbm_dual_booking',
                 MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_dual_booking.js',
-                array('jquery', 'jquery-ui-datepicker', 'mptbm_registration'),
+                array('jquery', 'flatpickr', 'mptbm_registration'),
                 MPTBM_PLUGIN_VERSION,
                 true
             );
@@ -189,8 +189,8 @@ if (!class_exists('MPTBM_Dual_Booking_Shortcode')) {
          */
         private function scope_datepicker_init($html, $scope_class) {
             $replacements = array(
-                'jQuery("#mptbm_start_date").datepicker({'  => 'jQuery("' . $scope_class . ' #mptbm_start_date").datepicker({',
-                'jQuery("#mptbm_return_date").datepicker({' => 'jQuery("' . $scope_class . ' #mptbm_return_date").datepicker({',
+                'jQuery("#mptbm_start_date").each('  => 'jQuery("' . $scope_class . ' #mptbm_start_date").each(',
+                'jQuery("#mptbm_return_date").each(' => 'jQuery("' . $scope_class . ' #mptbm_return_date").each(',
             );
 
             return str_replace(array_keys($replacements), array_values($replacements), $html);

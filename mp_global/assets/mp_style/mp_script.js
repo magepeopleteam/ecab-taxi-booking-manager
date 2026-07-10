@@ -81,39 +81,42 @@ function pageScrollTo(target) {
 }
 //====================================================Load Date picker==============//
 function mp_load_date_picker(parent = jQuery('.mpStyle')) {
-	parent.find(".date_type.hasDatepicker").each(function () {
-		jQuery(this).removeClass('hasDatepicker').attr('id', '').removeData('datepicker').unbind();
-	}).promise().done(function () {
-		parent.find(".date_type").datepicker({
+	parent.find(".date_type").each(function () {
+		if (this._flatpickr) return;
+		jQuery(this).flatpickr({
 			dateFormat: mp_date_format,
-			//showButtonPanel: true,
-			autoSize: true,
-			changeMonth: true,
-			changeYear: true,
-			onSelect: function (dateString, data) {
-				let date = data.selectedYear + '-' + ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + ('0' + parseInt(data.selectedDay)).slice(-2);
-				jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
-			},
-			// closeText: 'Clear Date',
-			// onClose: function (dateText, inst) {
-			// 	if (jQuery(this).hasClass('ui-datepicker-close')) {
-			// 		document.getElementById(this.id).reset();
-			// 	}
-			// }
+			appendTo: document.body,
+			clickOpens: true,
+			enableMonthSelector: true,
+			enableYearSelector: true,
+			disableMobile: false,
+			onChange: function(selectedDates, dateStr, instance) {
+				if (selectedDates.length > 0) {
+					var y = selectedDates[0].getFullYear();
+					var m = ('0' + (selectedDates[0].getMonth() + 1)).slice(-2);
+					var d = ('0' + selectedDates[0].getDate()).slice(-2);
+					var isoDate = y + '-' + m + '-' + d;
+					jQuery(instance.element).closest('label').find('input[type="hidden"]').val(isoDate).trigger('change');
+				}
+			}
 		});
 	});
-	parent.find(".date_type_without_year.hasDatepicker").each(function () {
-		jQuery(this).removeClass('hasDatepicker').attr('id', '').removeData('datepicker').unbind();
-	}).promise().done(function () {
-		parent.find(".date_type_without_year").datepicker({
+	parent.find(".date_type_without_year").each(function () {
+		if (this._flatpickr) return;
+		jQuery(this).flatpickr({
 			dateFormat: mp_date_format_without_year,
-			//showButtonPanel: true,
-			autoSize: true,
-			changeMonth: true,
-			changeYear: false,
-			onSelect: function (dateString, data) {
-				let date = ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + ('0' + parseInt(data.selectedDay)).slice(-2);
-				jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
+			appendTo: document.body,
+			clickOpens: true,
+			enableMonthSelector: true,
+			enableYearSelector: true,
+			disableMobile: false,
+			onChange: function(selectedDates, dateStr, instance) {
+				if (selectedDates.length > 0) {
+					var m = ('0' + (selectedDates[0].getMonth() + 1)).slice(-2);
+					var d = ('0' + selectedDates[0].getDate()).slice(-2);
+					var isoDate = m + '-' + d;
+					jQuery(instance.element).closest('label').find('input[type="hidden"]').val(isoDate).trigger('change');
+				}
 			}
 		});
 	});

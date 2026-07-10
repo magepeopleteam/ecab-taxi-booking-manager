@@ -429,7 +429,7 @@ if (!class_exists('MPTBM_Plugin')) {
         }
 
         /**
-         * Dequeue CSS that overrides our jQuery UI datepicker styling.
+         * Dequeue CSS that may conflict with our flatpickr calendar styling.
          */
         public function dequeue_conflicting_styles() {
             // Handle used by WP Travel Engine for jQuery UI Datepicker theme.
@@ -437,15 +437,6 @@ if (!class_exists('MPTBM_Plugin')) {
 
             // WTE bundles many generic styles (including .ui-datepicker) into this handle.
             wp_dequeue_style('wp-travel-engine');
-
-            // Ensure our jQuery UI stylesheet prints after others for higher cascade priority.
-            if (wp_style_is('mp_jquery_ui', 'enqueued')) {
-                wp_dequeue_style('mp_jquery_ui');
-                wp_enqueue_style('mp_jquery_ui', MPTBM_PLUGIN_URL . '/mp_global/assets/jquery-ui.min.css', array(), '1.13.2');
-            }
-
-            // If any theme or plugin enqueues their own jQuery UI base with this handle,
-            // leave it as-is. Our plugin already enqueues its own scoped UI CSS as 'mp_jquery_ui'.
         }
     }
 
