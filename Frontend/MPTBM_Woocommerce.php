@@ -1283,6 +1283,18 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 				$quantity = isset($_POST['transport_quantity']) ? sanitize_text_field($_POST['transport_quantity']) : 1;
 				$link_id = absint($_POST['link_id']);
+				if (get_post_type($link_id) !== 'product' && class_exists('MPTBM_Hidden_Product')) {
+					// The posted id isn't a real WooCommerce product - most likely stale
+					// cached markup (rendered as a vehicle id before WooCommerce/the mirror
+					// product existed) or a mirror product that was deleted. Resolve back to
+					// the vehicle and self-heal instead of failing the booking.
+					$vehicle_id = get_post_type($link_id) === MPTBM_Function::get_cpt()
+						? $link_id
+						: absint(get_post_meta($link_id, 'link_mptbm_id', true));
+					if ($vehicle_id) {
+						$link_id = MPTBM_Hidden_Product::get_or_create_wc_product($vehicle_id);
+					}
+				}
 				$product_id = apply_filters('woocommerce_add_to_cart_product_id', $link_id);
 				$passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity);
 				$product_status = get_post_status($product_id);

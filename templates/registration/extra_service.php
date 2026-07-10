@@ -8,11 +8,22 @@
 	} // Cannot access pages directly
 	$post_id = absint($_POST['post_id']);
 	if ($post_id && $post_id > 0) {
-		$link_wc_product = MP_Global_Function::get_post_info($post_id, 'link_wc_product');
-		// Standalone mode (WooCommerce inactive): the "Book Now" button must target the
-		// transportation post directly, not a (possibly stale) mirror WC product id. The
-		// Pro custom booking flow (MPTBM_Native_Checkout) handles this link_id.
-		if (class_exists('MPTBM_Function') && !MPTBM_Function::is_wc_active()) {
+		// Whether the WooCommerce cart actually owns this submit is decided by Booking
+		// Mode, not merely whether WooCommerce happens to be installed - a site can run
+		// WooCommerce alongside the Pro custom checkout, or start Pro-only and have WC
+		// added later. In custom/standalone mode the "Book Now" button must target the
+		// transportation post directly (MPTBM_Native_Checkout resolves it back to the
+		// vehicle); in WooCommerce mode it needs a real, existing mirror WC product id -
+		// self-heal it here rather than relying on save_post having already created one
+		// (vehicles imported before WooCommerce was installed never went through that).
+		$wc_owns_booking = class_exists('MPTBM_Booking_Mode')
+			? MPTBM_Booking_Mode::is_woocommerce()
+			: (class_exists('MPTBM_Function') && MPTBM_Function::is_wc_active());
+		if ($wc_owns_booking) {
+			$link_wc_product = class_exists('MPTBM_Hidden_Product')
+				? MPTBM_Hidden_Product::get_or_create_wc_product($post_id)
+				: MP_Global_Function::get_post_info($post_id, 'link_wc_product');
+		} else {
 			$link_wc_product = $post_id;
 		}
 		$display_extra_services = MP_Global_Function::get_post_info($post_id, 'display_mptbm_extra_services', 'on');

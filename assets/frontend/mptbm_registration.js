@@ -3142,6 +3142,12 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     console.log(response);
                 }
             });
+        } else {
+            // Missing required data - bail out loud instead of leaving the button
+            // looking clicked with no visible feedback and nothing in the console.
+            console.warn('mptbm_book_now: missing required booking data, not submitting', {
+                start_place: start_place, end_place: end_place, link_id: link_id, post_id: post_id
+            });
         }
     });
 
