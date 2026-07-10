@@ -765,7 +765,20 @@ $start_place = isset($_POST["start_place"]) ? sanitize_text_field($_POST["start_
 $start_place_coordinates = isset($_POST["start_place_coordinates"]) ? $_POST["start_place_coordinates"] : "";
 $end_place_coordinates = isset($_POST["end_place_coordinates"]) ? $_POST["end_place_coordinates"] : "";
 $end_place = isset($_POST["end_place"]) ? sanitize_text_field($_POST["end_place"]) : "";
-$extra_stop_place = isset($_POST["mptbm_extra_stop_place"]) ? sanitize_text_field($_POST["mptbm_extra_stop_place"]) : "";
+$extra_stop_place_raw = isset($_POST["mptbm_extra_stop_place"]) ? $_POST["mptbm_extra_stop_place"] : "";
+$extra_stop_places = [];
+if (is_array($extra_stop_place_raw)) {
+    foreach ($extra_stop_place_raw as $mptbm_stop) {
+        $mptbm_stop = sanitize_text_field($mptbm_stop);
+        if ($mptbm_stop !== "") {
+            $extra_stop_places[] = $mptbm_stop;
+        }
+    }
+} elseif ($extra_stop_place_raw !== "") {
+    $extra_stop_places[] = sanitize_text_field($extra_stop_place_raw);
+}
+// Kept for any older code still expecting a single combined string.
+$extra_stop_place = implode(', ', $extra_stop_places);
 $mptbm_original_price_base = isset($_POST["mptbm_original_price_base"]) ? sanitize_text_field($_POST["mptbm_original_price_base"]) : "";
 
 
@@ -968,7 +981,9 @@ if (empty($duration)) {
 	<input type="hidden" name="mptbm_end_place" value="<?php echo esc_attr($end_place); ?>" />
 	<input type="hidden" name="mptbm_start_place_coordinates" value="<?php echo esc_attr(is_array($start_place_coordinates) ? json_encode($start_place_coordinates) : $start_place_coordinates); ?>" />
 	<input type="hidden" name="mptbm_end_place_coordinates" value="<?php echo esc_attr(is_array($end_place_coordinates) ? json_encode($end_place_coordinates) : $end_place_coordinates); ?>" />
-	<input type="hidden" name="mptbm_extra_stop_place" value="<?php echo esc_attr($extra_stop_place); ?>" />
+	<?php foreach ($extra_stop_places as $mptbm_stop_display) : ?>
+	<input type="hidden" name="mptbm_extra_stop_place[]" class="mptbm_hidden_extra_stop_place" value="<?php echo esc_attr($mptbm_stop_display); ?>" />
+	<?php endforeach; ?>
 	<input type="hidden" name="mptbm_date" value="<?php echo esc_attr($date); ?>" />
 	<input type="hidden" name="mptbm_time" value="<?php echo esc_attr($start_time); ?>"/>
 	<?php // SECURITY: fresh add-to-cart nonce, regenerated on every server-side search response. ?>
@@ -1215,8 +1230,13 @@ if ($all_posts->found_posts > 0) {
                 }
             }
 
-            $display_price = $price + ($base_price_extra * $tax_multiplier);
-            
+            // Flat charge per extra stop the customer added between pickup and drop-off (matches
+            // the same calculation applied at add-to-cart time in MPTBM_Woocommerce.php).
+            $stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
+            $stop_total_price = $stop_price_per_unit * count($extra_stop_places);
+
+            $display_price = $price + ($base_price_extra * $tax_multiplier) + $stop_total_price;
+
 
             // Only skip display if price is 0 and we're not in zero or custom message mode
             if (!$display_price && $price_display_type === 'normal') {

@@ -341,48 +341,33 @@ if (sizeof($all_dates) > 0) {
 						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
 					</label>
 				</div>
-				<?php 
+				<?php
 					$extra_stop = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
+					$max_extra_stops = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_max_extra_stops', 3);
+					$max_extra_stops = $max_extra_stops > 0 ? $max_extra_stops : 3;
 					$excluded_price_based = ['fixed_zone', 'fixed_zone_dropoff', 'fixed_hourly', 'fixed_price', 'fixed_zone_pickup', 'manual'];
 					if ($extra_stop == 'yes' && !in_array($price_based, $excluded_price_based)) {
 				?>
-					<div class="inputList">
-                        <label class="fdColumn">
-                            <span id="mptbm_toggle_extra_stop" style="cursor: pointer; color: var(--color_theme); display: inline-flex; align-items: center; font-size: 14px; font-weight: 500; margin: 10px 0;">
-                                <i class="fas fa-plus-circle" style="margin-right: 5px;"></i> <?php echo mptbm_get_translation('add_extra_stop_label', __('Add Extra Stop', 'ecab-taxi-booking-manager')); ?>
-                            </span>
-                        </label>
-						<label class="fdColumn mptbm_extra_stop_container" style="display: none;">
-							<span><?php echo mptbm_get_translation('extra_stop_location_label', __('Extra Stop Location', 'ecab-taxi-booking-manager')); ?></span>
-                            <div style="position: relative; width: 100%;">
-							    <input type="text" id="mptbm_map_extra_stop_place" name="mptbm_extra_stop_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_extra_stop_location_placeholder', __('Enter Extra Stop Location', 'ecab-taxi-booking-manager')); ?>" value="" />
-							    <i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
-                            </div>
-                            <span id="mptbm_remove_extra_stop" style="display: inline-block; text-align: right; margin-top: 8px; margin-bottom: 8px; cursor: pointer; color: #dc3545; font-size: 12px; align-self: flex-end;">
-                                <i class="fas fa-times"></i> <?php echo mptbm_get_translation('remove_label', __('Remove', 'ecab-taxi-booking-manager')); ?>
-                            </span>
+					<div class="inputList mptbm_extra_stops_wrapper" data-max-stops="<?php echo esc_attr($max_extra_stops); ?>">
+						<div class="mptbm_extra_stops_list"></div>
+						<label class="fdColumn">
+							<span class="mptbm_add_extra_stop_row" style="cursor: pointer; color: var(--color_theme); display: inline-flex; align-items: center; font-size: 14px; font-weight: 500; margin: 10px 0;">
+								<i class="fas fa-plus-circle" style="margin-right: 5px;"></i> <?php echo mptbm_get_translation('add_extra_stop_label', __('Add Extra Stop', 'ecab-taxi-booking-manager')); ?>
+							</span>
 						</label>
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                var toggle = document.getElementById('mptbm_toggle_extra_stop');
-                                var container = document.querySelector('.mptbm_extra_stop_container');
-                                var remove = document.getElementById('mptbm_remove_extra_stop');
-                                var input = document.getElementById('mptbm_map_extra_stop_place');
-
-                                if(toggle && container && remove) {
-                                    toggle.addEventListener('click', function() {
-                                        container.style.display = 'flex';
-                                        toggle.style.display = 'none';
-                                    });
-
-                                    remove.addEventListener('click', function() {
-                                        container.style.display = 'none';
-                                        toggle.style.display = 'inline-flex';
-                                        if(input) input.value = '';
-                                    });
-                                }
-                            });
-                        </script>
+						<template id="mptbm_extra_stop_row_template">
+							<label class="fdColumn mptbm_extra_stop_row">
+								<span><?php echo mptbm_get_translation('extra_stop_location_label', __('Extra Stop Location', 'ecab-taxi-booking-manager')); ?></span>
+								<div style="position: relative; width: 100%;">
+									<input type="text" class="formControl mptbm_extra_stop_place_input" name="mptbm_extra_stop_place[]" placeholder="<?php echo mptbm_get_translation('enter_extra_stop_location_placeholder', __('Enter Extra Stop Location', 'ecab-taxi-booking-manager')); ?>" value="" />
+									<input type="hidden" class="mptbm_extra_stop_coords" name="mptbm_extra_stop_place_coordinates[]" value="" />
+									<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
+								</div>
+								<span class="mptbm_remove_extra_stop_row" style="display: inline-block; text-align: right; margin-top: 8px; margin-bottom: 8px; cursor: pointer; color: #dc3545; font-size: 12px; align-self: flex-end;">
+									<i class="fas fa-times"></i> <?php echo mptbm_get_translation('remove_label', __('Remove', 'ecab-taxi-booking-manager')); ?>
+								</span>
+							</label>
+						</template>
 					</div>
 				<?php } ?>
 				<?php if (!($hide_dropoff && $price_based === 'fixed_hourly')): ?>

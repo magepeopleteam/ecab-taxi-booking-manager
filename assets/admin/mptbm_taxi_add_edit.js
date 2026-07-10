@@ -407,6 +407,11 @@
         $(document).on('click','.mptbm_taxi_pricing_add_route_btn', function() {
             var tr = $('.mptbm_taxi_pricing_route_list tr:first').clone();
             tr.find('input').val('');
+            // The cloned row must start blank, not carry over the first row's
+            // already-picked Start/End Zone (and any disabled/hidden options
+            // that were applied to it by the duplicate/cross-type filtering).
+            tr.find('select').val('');
+            tr.find('select option').prop('disabled', false).show();
             tr.find('input, select, textarea').prop('disabled', false);
             $('.mptbm_taxi_pricing_route_list').append(tr);
         });
@@ -414,6 +419,8 @@
         $(document).on('click','.mptbm_taxi_pricing_add_zone_to_zone_route_btn', function() {
             var tr = $('.mptbm_taxi_pricing_zone_to_zone_route_list tr:first').clone();
             tr.find('input').val('');
+            tr.find('select').val('');
+            tr.find('select option').prop('disabled', false).show();
             tr.find('input, select, textarea').prop('disabled', false);
             $('.mptbm_taxi_pricing_zone_to_zone_route_list').append(tr);
         });
@@ -421,6 +428,8 @@
         $(document).on('click', '.mptbm_taxi_pricing_add_zone_btn', function() {
             var tr = $('.mptbm_taxi_pricing_fixed_zone_route_list tr:first').clone();
             tr.find('input').val('');
+            tr.find('select').val('');
+            tr.find('select option').prop('disabled', false).show();
             tr.find('input, select, textarea').prop('disabled', false);
             $('.mptbm_taxi_pricing_fixed_zone_route_list').append(tr);
         });
@@ -954,29 +963,10 @@
         // updatePricingContainer();
 
         function handleGroup(selector) {
-            let selectedValues = [];
-
-            // collect selected values (only same group)
-            $(selector).each(function () {
-                let val = $(this).val();
-                if (val) {
-                    selectedValues.push(val);
-                }
-            });
-
-            // reset options (only same group)
+            // No cross-row restriction: a Zone or Location may be used as Start in as many
+            // rows as needed (each row's End defines a different destination/price for it).
+            // The only thing enforced per row is Start != End, handled in filterEndSelect().
             $(selector).find('option').prop('disabled', false);
-
-            // disable duplicates inside same group
-            $(selector).each(function () {
-                let current = $(this);
-
-                selectedValues.forEach(function (value) {
-                    current.find('option[value="' + value + '"]')
-                        .not(':selected')
-                        .prop('disabled', true);
-                });
-            });
         }
 
         function updateSelections() {
@@ -1724,10 +1714,29 @@
         }
     }
     function filterEndSelect($startSelect, isInit = false) {
-
+        // Allowed pairs in this tab: Zone→Location, Location→Location, Location→Zone.
+        // Zone→Zone is excluded here (that combination belongs in the dedicated
+        // "Zone To Zone" tab), so when Start is an Operation Area, End must be a Location.
+        // When Start is a Location, End may be either a Location or an Operation Area.
         var $row       = $startSelect.closest('tr');
         var $endSelect = $row.find('.mptbm_fixed_map_route_end_location');
         var startType  = getType($startSelect.val());
+        var startVal   = $startSelect.val();
+
+        // Collect exact (start -> end) pairs already used by OTHER rows, so the
+        // same route can't be added twice (a Start reused with a DIFFERENT End is fine).
+        var usedPairs = [];
+        $('.mptbm_fixed_map_route_start_location').each(function () {
+            var $otherRow = $(this).closest('tr');
+            if ($otherRow.is($row)) {
+                return;
+            }
+            var otherStart = $(this).val();
+            var otherEnd   = $otherRow.find('.mptbm_fixed_map_route_end_location').val();
+            if (otherStart && otherEnd) {
+                usedPairs.push(otherStart + '|' + otherEnd);
+            }
+        });
 
         $endSelect.find('option').each(function () {
             var $opt    = $(this);
@@ -1738,13 +1747,12 @@
                 return;
             }
 
-            var shouldHide = false;
-
-            if (startType === 'post') {
-                shouldHide = (optType === 'post');
-            } else if (startType === 'term') {
-                shouldHide = (optType === 'term');
-            }
+            // Zone→Zone is excluded (belongs in the "Zone To Zone" tab), a route can't
+            // start and end at the same Zone/Location, and the exact same Start→End
+            // pair can't be added twice across rows.
+            var shouldHide = (startType === 'post' && optType === 'post')
+                || ($opt.val() === startVal)
+                || (usedPairs.indexOf(startVal + '|' + $opt.val()) !== -1);
 
             $opt.prop('disabled', shouldHide).toggle(!shouldHide);
         });
@@ -1777,6 +1785,17 @@
             }
         }
     );
+
+    // If an End Zone changes, other rows' available End options may need to
+    // reflect the newly-used pair too (their own selection isn't forced, only
+    // what remains selectable going forward).
+    $(document).on('change', '.mptbm_fixed_map_route_end_location', function () {
+        $('.mptbm_fixed_map_route_start_location').each(function () {
+            if ($(this).val()) {
+                filterEndSelect($(this), true);
+            }
+        });
+    });
 
     $(function () {
         $('.mptbm_fixed_map_route_start_location').each(function () {
