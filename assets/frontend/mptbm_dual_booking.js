@@ -209,9 +209,9 @@ jQuery(function ($) {
 			return;
 		}
 
-		var $customWrapper = $('<div class="mptbm-custom-select-wrapper" style="position: fixed !important; z-index: 9999 !important; background: white !important; border: 1px solid #ddd !important; border-radius: 4px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;"></div>');
-		var $searchInput = $('<input type="text" class="mptbm-custom-search-input" placeholder="Search locations..." style="width: 100% !important; padding: 8px !important; border: none !important; border-bottom: 1px solid #eee !important; border-radius: 4px 4px 0 0 !important; font-size: 14px !important; box-sizing: border-box !important; background: #F5F6F8 !important; color: #222222 !important; font-weight: 400 !important; outline: none !important;" />');
-		var $optionsContainer = $('<div class="mptbm-custom-options" style="max-height: 200px !important; overflow-y: auto !important; background: white !important;"></div>');
+		var $customWrapper = $('<div class="mptbm-custom-select-wrapper"></div>');
+		var $searchInput = $('<input type="text" class="mptbm-custom-search-input" placeholder="Search locations..." />');
+		var $optionsContainer = $('<div class="mptbm-custom-options"></div>');
 
 		function updateDropdownPosition() {
 			var currentOffset = $select.offset();
@@ -254,7 +254,7 @@ jQuery(function ($) {
 			var isSelected = $(this).is(':selected');
 
 			var selectedClass = isSelected ? 'mptbm-option-selected' : '';
-			optionsHtml += '<div class="mptbm-custom-option ' + selectedClass + '" data-value="' + optionValue + '" style="padding: 8px !important; cursor: pointer !important; border-bottom: 1px solid #f5f5f5 !important; font-size: 14px !important; color: #222222 !important;">' + optionText + '</div>';
+			optionsHtml += '<div class="mptbm-custom-option ' + selectedClass + '" data-value="' + optionValue + '">' + optionText + '</div>';
 		});
 
 		$optionsContainer.html(optionsHtml);

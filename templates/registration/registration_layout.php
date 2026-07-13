@@ -104,11 +104,13 @@ $progressbar_class = ($progressbar == 'yes' && $tab == 'no') ? '' : 'dNone';
 						<?php
                         foreach ($available_tabs as $key => $tab_name) {
 							$tab_form_style = ($tab_name === 'flat-rate') ? 'inline' : $original_form_style;
+							// Override form style for manual tab dynamically
+							$current_form_style = ($tab_name === 'flat-rate') ? 'inline' : $original_form_style;
 						?>
 							<li class="tab-link <?php echo ($key === $first_tab) ? 'current' : ''; ?>"
 								mptbm-data-tab="<?php echo $tab_name; ?>"
 								mptbm-data-map="<?php echo $map; ?>"
-								mptbm-data-form-style="<?php echo $tab_form_style; ?>">
+								mptbm-data-form-style="<?php echo $current_form_style; ?>">
 
 								<?php
 								$label = '';

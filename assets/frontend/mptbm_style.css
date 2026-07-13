@@ -59,7 +59,7 @@
     }
     
     /* Container for price to allow horizontal scrolling if needed */
-    .mptbm_list_details ._min_150_mL_xs {
+    .mptbm_list_details .mptbm_vehicle_cta {
         overflow-x: auto;
         overflow-y: hidden;
     }
@@ -153,4 +153,1003 @@
 .mptbm-error-field:focus {
     border-color: #dc3545 !important;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+/* ============================================
+   MPTBM Summary Box — Modern Pretty Skin
+   Appended at bottom of mptbm_style.css
+   ============================================ */
+
+/* ----- Card shell ----- */
+div.mptbm_transport_search_area div.mp_sticky_on_scroll.summary-box {
+    background: #ffffff;
+    background-image:
+        radial-gradient(1200px 200px at 0% 0%, rgba(99, 102, 241, 0.08), transparent 60%),
+        radial-gradient(800px 200px at 100% 0%, rgba(16, 185, 129, 0.06), transparent 60%);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 18px;
+    padding: 22px 22px 20px;
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 10px 30px -10px rgba(15, 23, 42, 0.10);
+    min-height: 400px;
+    position: sticky;
+    top: 20px;
+    overflow: hidden;
+    transition: box-shadow .25s ease, transform .25s ease;
+}
+div.mptbm_transport_search_area div.mp_sticky_on_scroll.summary-box:hover {
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 18px 40px -12px rgba(15, 23, 42, 0.16);
+}
+
+/* ----- Header (SUMMARY) ----- */
+.mptbm_transport_search_area .mp_sticky_on_scroll h3 {
+    margin: 0 0 14px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #6366f1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.mptbm_transport_search_area .mp_sticky_on_scroll h3::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #10b981);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
+}
+
+/* ----- Section heading (h6) ----- */
+div.mp_sticky_on_scroll.summary-box h6 {
+    margin: 0 0 4px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: #94a3b8 !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+div.mp_sticky_on_scroll.summary-box h6::before {
+    content: "";
+    width: 4px;
+    height: 4px;
+    background: #cbd5e1;
+    border-radius: 50%;
+    flex: 0 0 4px;
+}
+
+/* ----- Value text (p) ----- */
+div.mp_sticky_on_scroll.summary-box p {
+    margin: 0 0 4px !important;
+    color: #0f172a !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 1.45 !important;
+    word-break: break-word;
+}
+
+/* ----- Divider (soft) ----- */
+div.mp_sticky_on_scroll.summary-box .divider {
+    background: none !important;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(15, 23, 42, .08), transparent) !important;
+    margin: 10px 0 !important;
+    border: 0;
+}
+
+/* ----- Section grouping: stack rows with breathing room ----- */
+div.mp_sticky_on_scroll.summary-box > div._dFlex_fdColumn > * + * {
+    margin-top: 2px;
+}
+
+/* ----- Transportation  Details block ----- */
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary {
+    margin-top: 14px;
+    padding: 14px 14px 12px;
+    background: linear-gradient(180deg, #f8fafc, #ffffff);
+    border: 1px dashed rgba(99, 102, 241, .25);
+    border-radius: 12px;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .divider {
+    margin: 8px 0 !important;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h6 {
+    color: #6366f1 !important;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h6::before {
+    background: #6366f1;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary ._textColor_4 {
+    color: #0f172a !important;
+    font-size: 14px;
+    font-weight: 600;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_name {
+    font-weight: 600;
+    color: #0f172a;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_price {
+    color: #10b981 !important;
+    font-weight: 700;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .justifyBetween {
+    align-items: center;
+    margin-top: 4px;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h4 {
+    margin: 0 !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_total_price {
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    color: #10b981 !important;
+    letter-spacing: -.01em;
+}
+
+/* ----- Icon styling for the check-square in transport row ----- */
+div.mp_sticky_on_scroll.summary-box ._textColor_4 .fas.fa-check-square {
+    color: #10b981;
+    font-size: 14px;
+}
+
+/* ----- "Previous" button ----- */
+div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_prev {
+    margin-top: 16px;
+    width: 100%;
+    padding: 12px 18px;
+    background: #0f172a;
+    color: #ffffff;
+    border: 0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background .2s ease, transform .15s ease, box-shadow .2s ease;
+    box-shadow: 0 6px 16px -6px rgba(15, 23, 42, .45);
+}
+div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_prev:hover {
+    background: #1e293b;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px -8px rgba(15, 23, 42, .55);
+}
+div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_prev:active {
+    transform: translateY(0);
+}
+div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_prev span {
+    color: #ffffff;
+}
+
+/* ----- Mobile polish ----- */
+@media (max-width: 768px) {
+    div.mptbm_transport_search_area div.mp_sticky_on_scroll.summary-box {
+        border-radius: 14px;
+        padding: 18px 16px;
+    }
+    div.mp_sticky_on_scroll.summary-box p { font-size: 13px !important; }
+    div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_total_price { font-size: 18px !important; }
+}
+
+/* ============================================
+   MPTBM Vehicle Card — Modern Pretty Skin
+   Appended at bottom of mptbm_style.css
+   ============================================ */
+
+/* ----- Vehicle wrapper spacing ----- */
+.mptbm-vehicle-wrapper {
+    width: 100%;
+    display: block;
+    margin-bottom: 14px;
+}
+
+/* ----- Vehicle card (the main item) ----- */
+.mptbm_transport_search_area .mptbm_booking_item {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    background: #ffffff;
+    border: none !important;
+    border-radius: 16px;
+    padding: 14px;
+    gap: 18px;
+    min-height: 132px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 6px 16px rgba(15, 23, 42, 0.04);
+    transition: box-shadow .2s ease, transform .2s ease;
+    position: relative;
+}
+.mptbm_transport_search_area .mptbm_booking_item:hover {
+    box-shadow: 0 8px 24px -8px rgba(15, 23, 42, 0.12);
+    transform: translateY(-1px);
+}
+.mptbm_transport_search_area .mptbm_booking_item.mptbm_booking_item_hidden {
+    display: none !important;
+}
+
+/* ----- Selected state ----- */
+.mptbm_transport_search_area .mptbm_booking_item.active,
+.mptbm_transport_search_area .mptbm_booking_item.selected {
+    border: none !important;
+    background: linear-gradient(180deg, #eef2ff 0%, #ffffff 70%);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.18), 0 8px 24px -8px rgba(99, 102, 241, 0.18);
+}
+.mptbm_transport_search_area .mptbm_booking_item.selected {
+    box-shadow: 0 0 0 1px #5e5eee, 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* ----- Vehicle image ----- */
+.mptbm_transport_search_area .mptbm_vehicle_image {
+    flex: 0 0 190px;
+    width: 190px;
+    max-width: 190px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f1f5f9;
+    align-self: stretch;
+}
+.mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area {
+    width: 100%;
+    height: 100%;
+    min-height: 104px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area > div {
+    width: 100%;
+    height: 100%;
+    min-height: 104px;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    border-radius: 12px;
+}
+
+/* ----- Right column ----- */
+.mptbm_transport_search_area .mptbm_list_details {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* ----- Vehicle header (title + rating) ----- */
+.mptbm_vehicle_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.mptbm_vehicle_title {
+    margin: 0 !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    letter-spacing: -.01em;
+    line-height: 1.3;
+}
+.mptbm_vehicle_rating { line-height: 1; }
+
+/* ----- Body row: features left | price+button right ----- */
+.mptbm_transport_search_area .mptbm_vehicle_body {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 12px 16px !important;
+}
+
+/* ----- Features (flowing pills, hug their content) ----- */
+ul.mptbm_features_grid.list_inline_two {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center;
+    gap: 6px 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    flex: 1 1 220px;
+    min-width: 0;
+}
+ul.mptbm_features_grid > li.mptbm_feature_item {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: #f1f5f9;
+    border: 1px solid rgba(15, 23, 42, 0.05);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    line-height: 1.2;
+    flex: 0 1 auto;
+    max-width: 100%;
+    transition: border-color .2s ease, background .2s ease;
+}
+ul.mptbm_features_grid > li.mptbm_feature_item:hover {
+    border-color: rgba(99, 102, 241, 0.30);
+    background: #eef2ff;
+}
+ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_icon {
+    color: #6366f1;
+    font-size: 12px;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_text {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #94a3b8;
+}
+ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ----- Price + button column ----- */
+.mptbm_transport_search_area .mptbm_vehicle_body > .mptbm_vehicle_cta {
+    flex: 0 0 auto;
+    min-width: 150px;
+    max-width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 8px;
+}
+.mptbm_vehicle_body .mptbm-tier-pricing-savings-ticket-container {
+    min-height: 0;
+}
+.mptbm_transport_search_area .mptbm_vehicle_body > .mptbm_vehicle_cta h4.textCenter {
+    margin: 0 !important;
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    text-align: right !important;
+    letter-spacing: -.01em;
+    white-space: nowrap;
+}
+.mptbm_vehicle_body h4.textCenter .woocommerce-Price-amount { color: #0f172a; }
+.mptbm_vehicle_body h4.textCenter .woocommerce-Price-currencySymbol { color: #64748b; margin-right: 2px; }
+
+/* ----- "Select Car" / "Selected" button ----- */
+.mptbm_vehicle_body button._mpBtn_xs.mptbm_transport_select,
+.mptbm_vehicle_body button._mpBtn_xs.mptbm_out_of_stock {
+    width: auto;
+    white-space: nowrap;
+    padding: 11px 18px !important;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    color: #ffffff !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
+    box-shadow: 0 6px 16px -6px rgba(79, 70, 229, 0.55);
+    position: relative;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.mptbm_vehicle_body button._mpBtn_xs.mptbm_transport_select:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px -8px rgba(79, 70, 229, 0.65);
+    filter: brightness(1.05);
+}
+.mptbm_vehicle_body button._mpBtn_xs.mptbm_transport_select:active {
+    transform: translateY(0);
+}
+.mptbm_vehicle_body button._mpBtn_xs.mptbm_out_of_stock {
+    background: #e2e8f0 !important;
+    color: #64748b !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+}
+
+/* ----- Info button (the (i) badge next to Select) ----- */
+.mptbm-button-container {
+    display: inline-flex;
+    position: relative;
+    max-width: 100%;
+}
+.mptbm_vehicle_body .mptbm-info-button {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    border-top-right-radius: 10px !important;
+    border-bottom-right-radius: 10px !important;
+    color: #fff;
+    font-size: 12px;
+    transition: filter 0.2s ease;
+}
+.mptbm_vehicle_body .mptbm-info-button:hover { filter: brightness(1.1); }
+.mptbm_vehicle_body button._mpBtn_xs.mptbm_transport_select.mptbm-has-extra-info {
+    padding-right: 48px !important;
+    width: auto;
+}
+
+/* ----- Extra info accordion block ----- */
+.mptbm_transport_search_area .mptbm-extra-info-content {
+    border-top: 3px solid #6366f1 !important;
+    border-radius: 12px !important;
+}
+
+/* ----- Mobile polish ----- */
+@media (max-width: 768px) {
+    .mptbm_transport_search_area .mptbm_booking_item {
+        flex-wrap: wrap !important;
+        min-height: 0;
+    }
+    .mptbm_transport_search_area .mptbm_vehicle_image {
+        flex: 0 0 130px;
+        width: 130px;
+        max-width: 130px;
+    }
+    .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area,
+    .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area > div {
+        min-height: 110px;
+    }
+    .mptbm_vehicle_title { font-size: 16px !important; }
+    .mptbm_transport_search_area .mptbm_vehicle_body {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    .mptbm_transport_search_area .mptbm_vehicle_body > .mptbm_vehicle_cta {
+        min-width: 0;
+        max-width: 100%;
+    }
+    .mptbm_transport_search_area .mptbm_vehicle_body > .mptbm_vehicle_cta h4.textCenter {
+        text-align: left !important;
+    }
+    ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_text { max-width: 140px; }
+}
+@media (max-width: 480px) {
+    .mptbm_transport_search_area .mptbm_vehicle_image {
+        flex: 0 0 100%;
+        width: 100%;
+        max-width: 100%;
+        height: 160px;
+    }
+    .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area,
+    .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area > div {
+        height: 160px;
+        min-height: 160px;
+    }
+}
+
+/* ============================================
+   Extra Services Section — Modern Card Design
+   ============================================ */
+
+/* Panel */
+.mptbm_extra_service .mptbm_exsvc_panel,
+.mptbm_extra_service .dLayout.mptbm_exsvc_panel {
+    background: #ffffff;
+    border: none;
+    border-radius: 16px;
+    padding: 28px 24px 12px;
+    margin-top: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.04);
+}
+
+.mptbm_exsvc_header {
+    margin-bottom: 20px;
+}
+.mptbm_exsvc_header h3 {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    letter-spacing: -.02em;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.mptbm_exsvc_header h3::before {
+    content: "";
+    width: 6px;
+    height: 22px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #6366f1, #818cf8);
+    flex-shrink: 0;
+}
+
+/* Service Card */
+.mptbm_extra_service_item {
+    display: flex !important;
+    gap: 16px;
+    padding: 18px 16px;
+    margin: 0 -8px;
+    border-radius: 12px;
+    align-items: flex-start;
+    transition: background .2s ease, box-shadow .2s ease;
+    border-left: 3px solid transparent;
+}
+.mptbm_extra_service_item:hover {
+    background: #f8fafc;
+}
+.mptbm_extra_service_item + .divider {
+    margin: 0;
+    border: none;
+}
+
+/* Thumbnail */
+.mptbm_exsvc_thumb {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f1f5f9;
+}
+.mptbm_exsvc_thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Icon Fallback */
+.mptbm_exsvc_icon {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ede9fe, #e0e7ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.mptbm_exsvc_icon span {
+    font-size: 26px;
+    color: #6366f1;
+}
+
+/* Info + Meta Layout */
+.mptbm_exsvc_top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+}
+.mptbm_exsvc_info {
+    flex: 1;
+    min-width: 0;
+}
+.mptbm_exsvc_meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* Title */
+.mptbm_exsvc_info h4 {
+    margin: 0 0 4px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.3;
+}
+.mptbm_exsvc_info h4 .mi {
+    font-size: 16px;
+    color: #6366f1;
+    flex-shrink: 0;
+}
+
+/* Price Badge */
+.mptbm_exsvc_price {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+}
+.mptbm_exsvc_price .woocommerce-Price-currencySymbol {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+/* Description */
+.mptbm_exsvc_desc {
+    margin-top: 2px;
+}
+.mptbm_exsvc_desc .mp_load_more_text_area,
+.mp_load_more_text_area {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.55;
+}
+.mptbm_exsvc_desc .mp_load_more_text_area div[data-read],
+.mp_load_more_text_area div[data-read] {
+    color: #6366f1;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 12px;
+    letter-spacing: .01em;
+    transition: color .15s ease;
+}
+.mptbm_exsvc_desc .mp_load_more_text_area div[data-read]:hover,
+.mp_load_more_text_area div[data-read]:hover {
+    color: #4f46e5;
+}
+
+/* Actions Row (qty + select) */
+.mptbm_exsvc_actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Quantity Control */
+.mptbm_exsvc_actions .qtyIncDec,
+.qtyIncDec {
+    display: flex;
+    align-items: center;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 5px 6px;
+    gap: 4px;
+    height: 38px;
+}
+.mptbm_exsvc_actions .decQty,
+.mptbm_exsvc_actions .incQty,
+.qtyIncDec .decQty,
+.qtyIncDec .incQty {
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: #64748b;
+    font-size: 11px;
+    transition: background .15s ease, color .15s ease;
+    flex-shrink: 0;
+}
+.mptbm_exsvc_actions .decQty:hover,
+.mptbm_exsvc_actions .incQty:hover,
+.qtyIncDec .decQty:hover,
+.qtyIncDec .incQty:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+.mptbm_exsvc_actions .decQty .fas,
+.mptbm_exsvc_actions .incQty .fas,
+.qtyIncDec .decQty .fas,
+.qtyIncDec .incQty .fas {
+    margin: 0;
+}
+.mptbm_exsvc_actions .qtyIncDec input[type="text"],
+.qtyIncDec input[type="text"] {
+    border: none;
+    background: transparent;
+    text-align: center;
+    width: 32px;
+    height: 28px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    padding: 0;
+    box-shadow: none !important;
+    outline: none;
+}
+
+/* Select Button — matches car-select style */
+.mptbm_exsvc_select,
+button.mptbm_price_calculation.mptbm_exsvc_select {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 16px;
+    min-width: 0;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    color: #ffffff !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    box-shadow: 0 4px 12px -4px rgba(79, 70, 229, 0.5);
+    transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
+}
+.mptbm_exsvc_select span[data-text] {
+    text-transform: uppercase;
+    letter-spacing: .02em;
+}
+.mptbm_exsvc_select:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.6);
+    filter: brightness(1.05);
+}
+.mptbm_exsvc_select:active {
+    transform: translateY(0);
+}
+.mptbm_exsvc_select.mActive {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    box-shadow: 0 4px 12px -4px rgba(16, 185, 129, 0.5);
+}
+.mptbm_exsvc_select.mActive:hover {
+    box-shadow: 0 8px 20px -6px rgba(16, 185, 129, 0.6);
+    filter: brightness(1.05);
+}
+
+/* Active / Selected Card State */
+.mptbm_extra_service_item.mActive {
+    background: #f0fdf4;
+    border-left-color: #10b981;
+}
+.mptbm_extra_service_item.mActive:hover {
+    background: #ecfdf5;
+}
+
+/* Divider between cards */
+.mptbm_exsvc_panel > .divider {
+    height: 1px;
+    background: #f1f5f9;
+    margin: 0 16px;
+    border: none;
+}
+
+/* Book Now Footer */
+.mptbm_exsvc_footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 20px 0 4px;
+}
+.mptbm_exsvc_booknow,
+button.mptbm_exsvc_booknow.mptbm_book_now {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .01em;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(5,150,105,.25);
+    transition: transform .15s ease, box-shadow .2s ease;
+}
+.mptbm_exsvc_booknow:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(5,150,105,.35);
+}
+.mptbm_exsvc_booknow:active {
+    transform: translateY(0);
+}
+.mptbm_exsvc_booknow:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Unavailable Booking Message */
+.mptbm_booking_unavailable_msg {
+    margin: 0;
+    color: #ef4444;
+    font-size: 13px;
+    max-width: 65%;
+    line-height: 1.4;
+}
+
+/* ============================================
+   Responsive — Tablets & Mobile
+   ============================================ */
+@media (max-width: 768px) {
+    .mptbm_extra_service .mptbm_exsvc_panel,
+    .mptbm_extra_service .dLayout.mptbm_exsvc_panel {
+        padding: 20px 16px 8px;
+        border-radius: 12px;
+    }
+    .mptbm_exsvc_header h3 {
+        font-size: 17px !important;
+    }
+    .mptbm_extra_service_item {
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px 12px;
+        margin: 0;
+    }
+    .mptbm_exsvc_thumb,
+    .mptbm_exsvc_icon {
+        width: 100%;
+        height: 140px;
+    }
+    .mptbm_exsvc_top {
+        flex-direction: column;
+        gap: 14px;
+    }
+    .mptbm_exsvc_meta {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    .mptbm_exsvc_actions {
+        gap: 8px;
+    }
+    .mptbm_exsvc_select,
+    button.mptbm_price_calculation.mptbm_exsvc_select {
+        flex: 1;
+        min-width: 0;
+    }
+    .qtyIncDec {
+        flex: 0 0 auto;
+    }
+    .mptbm_exsvc_footer {
+        justify-content: stretch;
+    }
+    .mptbm_exsvc_booknow,
+    button.mptbm_exsvc_booknow.mptbm_book_now {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .mptbm_exsvc_price {
+        font-size: 15px;
+    }
+    .mptbm_exsvc_actions {
+        flex-wrap: wrap;
+    }
+    .mptbm_exsvc_select,
+    button.mptbm_price_calculation.mptbm_exsvc_select {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+/* Legacy fallback — hide old divider-based layout artifacts */
+.dLayout .mptbm_extra_service_item + .divider {
+    display: none;
+}
+
+/* ============================================
+   Override mp_style.css / mp_global conflicts
+   ============================================ */
+
+/* mp_style.css:2250 — .mpStyle .qtyIncDec { max-width: 100px } too small */
+.mptbm_extra_service .qtyIncDec,
+.mptbm_extra_service .mptbm_exsvc_actions .qtyIncDec {
+    max-width: none;
+}
+
+/* mp_style.css:1639-1646 — .mpStyle .dLayout base border/padding/radius conflicts */
+.mptbm_extra_service .dLayout.mptbm_exsvc_panel,
+.mptbm_extra_service .mptbm_exsvc_panel {
+    border: none !important;
+    border-radius: 16px !important;
+    padding: 28px 24px 12px !important;
+    margin-top: 20px !important;
+}
+
+/* mp_style.css:1647 — .mpStyle .dLayout:last-child adds unwanted border-bottom */
+.mptbm_extra_service .mptbm_exsvc_panel:last-child {
+    border-bottom: none !important;
+}
+
+/* mp_style.css:3755 — .mpStyle .mp_load_more_text_area overrides color */
+.mptbm_extra_service .mp_load_more_text_area {
+    color: #64748b;
+}
+
+/* mp_style.css:3758 — .mpStyle [data-read] overrides link color */
+.mptbm_extra_service div[data-read] {
+    color: #6366f1;
+}
+
+/* mp_style.css:696 — .mpStyle .divider generic height/background */
+.mptbm_extra_service .mptbm_exsvc_panel > .divider {
+    height: 1px;
+    background: #f1f5f9;
+    margin: 0 16px;
+    border: none;
+}
+
+/* mp_style.css:571 — .mpStyle [class*="_themeButton"] on Book Now button */
+.mptbm_extra_service .mptbm_exsvc_booknow,
+.mptbm_extra_service button.mptbm_exsvc_booknow.mptbm_book_now {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #fff !important;
+    border: 0 !important;
+    box-shadow: 0 4px 12px rgba(5,150,105,.25) !important;
+}
+
+/* mp_style.css:2820 — ._fullWidth max-width constraint */
+.mptbm_extra_service .fdColumn._fullWidth {
+    min-width: 0;
+}
+
+/* mp_style.css:185-189 — div.mpStyle h3 color/margin overrides */
+.mptbm_extra_service .mptbm_exsvc_header h3 {
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* mp_style.css:198-203 — div.mpStyle h4 font-size/font-weight overrides */
+.mptbm_extra_service .mptbm_exsvc_info h4 {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+}
+
+/* mp_style.css:495 — button font-size from var(--button_fs) */
+.mptbm_extra_service .mptbm_exsvc_select,
+.mptbm_extra_service button.mptbm_price_calculation.mptbm_exsvc_select {
+    font-size: 13px !important;
+}
+
+/* Ensure no stray theme-color bleed from generic .active_select rules */
+.mptbm_extra_service button.mptbm_price_calculation.active_select {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #fff !important;
+    border: 0 !important;
+    box-shadow: 0 4px 12px -4px rgba(16, 185, 129, 0.5) !important;
 }

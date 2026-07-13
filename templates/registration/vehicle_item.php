@@ -188,43 +188,75 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
         $extra_info = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_info', '');
         $has_extra_info = !empty(trim($extra_info));
 ?>
-        <div class="mptbm-vehicle-wrapper" style="width: 100%; display: block;">
+        <div class="mptbm-vehicle-wrapper">
             <div class="_dFlex mptbm_booking_item <?php echo $has_extra_info ? 'mptbm-has-extra-info' : ''; ?> <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" data-placeholder>
-                <div class="_max_200_mR_xs">
+                <div class="_max_200_mR_xs mptbm_vehicle_image">
                     <div class="bg_image_area"  data-placeholder>
                         <div data-bg-image="<?php echo esc_attr($thumbnail); ?>"></div>
                     </div>
                 </div>
                 <div class="fdColumn _fullWidth mptbm_list_details">
-                    <h5><?php echo esc_html(get_the_title($post_id)); ?></h5>
-                    <?php if (class_exists('MPTBM_Reviews')) { echo MPTBM_Reviews::get_rating_html($post_id); } ?>
+                    <div class="mptbm_vehicle_header">
+                        <h5 class="mptbm_vehicle_title"><?php echo esc_html(get_the_title($post_id)); ?></h5>
+                        <?php if (class_exists('MPTBM_Reviews')) { echo '<div class="mptbm_vehicle_rating">' . MPTBM_Reviews::get_rating_html($post_id) . '</div>'; } ?>
+                    </div>
                     <?php if ($mptbm_unavailable) { ?>
                         <div class="mptbm_unavailable_badge" style="display:inline-block; margin: 2px 0; padding: 2px 8px; border-radius: 3px; background: #f8d7da; color: #842029; font-size: 12px; font-weight: 600;">
                             <?php esc_html_e('Unavailable', 'ecab-taxi-booking-manager'); ?><?php echo $mptbm_unavailable_reason ? ' - ' . esc_html($mptbm_unavailable_reason) : ''; ?>
                         </div>
                     <?php } ?>
-                    <div class="justifyBetween _mT_xs">
+                    <div class="justifyBetween _mT_xs mptbm_vehicle_body">
                         <?php if ($display_features == 'on' && is_array($all_features) && sizeof($all_features) > 0) { ?>
-                            <ul class="list_inline_two">
+                            <?php
+                            // Build a clean, deduplicated list of meaningful features
+                            $clean_features = array();
+                            $seen_values = array();
+                            $generic_labels = array('name', 'model', 'test', 'demo', 'sample', 'cars side view', 'cars front view');
+                            $meaningless_values = array('test', 'best', 'bd', 'de', 'dc', 'ad', 'nothing', 'n/a', 'na', 'sample', 'demo');
+                            foreach ($all_features as $features) {
+                                $f_label = isset($features['label']) ? trim(strtolower($features['label'])) : '';
+                                $f_text  = isset($features['text'])  ? trim($features['text']) : '';
+                                if ($f_text === '' || mb_strlen($f_text) < 2) { continue; }
+                                if (in_array($f_label, $generic_labels, true)) { continue; }
+                                if (in_array(strtolower($f_text), $meaningless_values, true)) { continue; }
+                                if (in_array(strtolower($f_text), $seen_values, true)) { continue; }
+                                $seen_values[] = strtolower($f_text);
+                                $clean_features[] = $features;
+                                if (count($clean_features) >= 6) { break; }
+                            }
+                            ?>
+                            <?php if (count($clean_features) > 0) { ?>
+                            <ul class="mptbm_features_grid list_inline_two">
                                 <?php
-                                foreach ($all_features as $features) {
-                                    $label = array_key_exists('label', $features) ? $features['label'] : '';
-                                    $text = array_key_exists('text', $features) ? $features['text'] : '';
-                                    $icon = array_key_exists('icon', $features) ? $features['icon'] : '';
+                                $feature_index = 0;
+                                foreach ($clean_features as $features) {
+                                    $label = array_key_exists('label', $features) ? trim($features['label']) : '';
+                                    $text  = array_key_exists('text',  $features) ? trim($features['text'])  : '';
+                                    $icon  = array_key_exists('icon',  $features) ? $features['icon']  : '';
                                     $image = array_key_exists('image', $features) ? $features['image'] : '';
+                                    $show_label = ($label !== '' && strcasecmp($label, $text) !== 0 && mb_strlen($label) <= 20);
+                                    $feature_index++;
                                 ?>
-                                    <li>
+                                    <li class="mptbm_feature_item" title="<?php echo esc_attr($label !== '' ? $label.': '.$text : $text); ?>">
                                         <?php if ($icon) { ?>
-                                            <i class="<?php echo esc_attr($icon); ?>"></i>
+                                            <i class="<?php echo esc_attr($icon); ?> mptbm_feature_icon"></i>
                                         <?php } ?>
-                                        <span title="<?php echo esc_html($label.':'.$text); ?>"><?php echo esc_html( mb_strimwidth( $text, 0, 30, '...' ) ); ?></span>
+                                        <span class="mptbm_feature_text">
+                                            <?php if ($show_label) { ?>
+                                                <span class="mptbm_feature_label"><?php echo esc_html($label); ?></span>
+                                            <?php } ?>
+                                            <span class="mptbm_feature_value"><?php echo esc_html( mb_strimwidth( $text, 0, 24, '...' ) ); ?></span>
+                                        </span>
                                     </li>
                                 <?php } ?>
                             </ul>
+                            <?php } else { ?>
+                                <div></div>
+                            <?php } ?>
                         <?php } else { ?>
                             <div></div>
                         <?php } ?>
-                        <div class="_min_150_mL_xs" style="position:relative;">
+                        <div class="mptbm_vehicle_cta" style="position:relative;">
                             <div class="mptbm-tier-pricing-savings-ticket-container">
                             <?php 
                             // Calculate and display tier pricing savings if applicable
@@ -279,7 +311,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                             ?>
                             
                             <?php if ($mptbm_unavailable) { ?>
-                                <button type="button" class="_mpBtn_xs_w_150 mptbm_out_of_stock" disabled style="background-color: #ccc; cursor: not-allowed;">
+                                <button type="button" class="_mpBtn_xs mptbm_out_of_stock" disabled style="background-color: #ccc; cursor: not-allowed;">
                                     <span><?php esc_html_e('Unavailable', 'ecab-taxi-booking-manager'); ?></span>
                                 </button>
                             <?php } else { ?>
@@ -306,30 +338,30 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                                     <?php } ?>
                                 <?php } ?>
                                 <?php if ($enable_inventory == 'yes' && $available_quantity > 0) { ?>
-                                    <div class="mptbm-button-container" style="position: relative;">
-                                        <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-stop-price="<?php echo esc_attr($stop_price_per_unit ?? 0); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs" style="<?php echo $has_extra_info ? 'padding-right: 35px;' : ''; ?>">
+                                    <div class="mptbm-button-container">
+                                        <button type="button" class="_mpBtn_xs mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-stop-price="<?php echo esc_attr($stop_price_per_unit ?? 0); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
                                         <span class="" data-icon></span>
                                         <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
                                     </button>
                                         <?php if ($has_extra_info) { ?>
-                                            <div class="mptbm-info-button" style="position: absolute; right: 0; top: 0; bottom: 0; width: 30px; background: var(--color_theme); border-top-right-radius: 4px; border-bottom-right-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>">
-                                                <i class="fas fa-info" style="color: white; font-size: 12px;"></i>
+                                            <div class="mptbm-info-button" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>">
+                                                <i class="fas fa-info"></i>
                                             </div>
                                         <?php } ?>
                                     </div>
                                 <?php } else if ($enable_inventory == 'yes' && $available_quantity <= 0) { ?>
-                                    <button type="button" class="_mpBtn_xs_w_150 mptbm_out_of_stock" disabled style="background-color: #ccc; cursor: not-allowed;">
+                                    <button type="button" class="_mpBtn_xs mptbm_out_of_stock" disabled style="background-color: #ccc; cursor: not-allowed;">
                                         <span><?php esc_html_e('Out of Stock', 'ecab-taxi-booking-manager'); ?></span>
                                     </button>
                                 <?php } else { ?>
-                                    <div class="mptbm-button-container" style="position: relative;">
-                                        <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-stop-price="<?php echo esc_attr($stop_price_per_unit ?? 0); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs" style="<?php echo $has_extra_info ? 'padding-right: 35px;' : ''; ?>">
+                                    <div class="mptbm-button-container">
+                                        <button type="button" class="_mpBtn_xs mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-stop-price="<?php echo esc_attr($stop_price_per_unit ?? 0); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
                                         <span class="" data-icon></span>
                                         <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
                                     </button>
                                         <?php if ($has_extra_info) { ?>
-                                            <div class="mptbm-info-button" style="position: absolute; right: 0; top: 0; bottom: 0; width: 30px; background: var(--color_theme); border-top-right-radius: 4px; border-bottom-right-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>">
-                                                <i class="fas fa-info" style="color: white; font-size: 12px;"></i>
+                                            <div class="mptbm-info-button" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>">
+                                                <i class="fas fa-info"></i>
                                             </div>
                                         <?php } ?>
                                     </div>

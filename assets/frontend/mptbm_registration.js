@@ -444,6 +444,7 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
                     jQuery(".mptbm_total_distance").html(distance_text);
                     jQuery(".mptbm_total_time").html(duration_text);
                     jQuery(".mptbm_distance_time").slideDown("fast");
+                    mptbm_update_fixed_hours_warning();
 
 
                 } catch (error) {
@@ -716,7 +717,7 @@ function mptbm_setup_osm_autocomplete(input, type) {
     var resultsContainer = document.createElement('div');
     resultsContainer.className = 'mptbm-osm-autocomplete';
     resultsContainer.setAttribute('data-autocomplete-type', type);
-    resultsContainer.style.cssText = 'position: fixed; font-size:16px; background: white; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 99999 !important; display: none; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);';
+    resultsContainer.style.cssText = 'position: fixed; font-size:14px; background: #fff; border: 1px solid #e7eaf0; border-radius: 14px; max-height: 240px; overflow-y: auto; z-index: 99999 !important; display: none; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06); padding: 6px;';
 
     // Append to body to avoid parent overflow issues
     document.body.appendChild(resultsContainer);
@@ -786,7 +787,7 @@ function mptbm_setup_osm_autocomplete(input, type) {
 }
 
 function mptbm_search_osm_address(query, container, input, type, expectedQuery, autocompleteState) {
-    container.innerHTML = '<div style="padding: 10px; text-align: center; color: #666;">Searching...</div>';
+    container.innerHTML = '<div style="padding: 14px 12px; text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600;">Searching&hellip;</div>';
     container.style.display = 'block';
 
     // Use WordPress AJAX proxy
@@ -832,13 +833,13 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery, 
             container.innerHTML = '';
 
             if (!response.success) {
-                container.innerHTML = '<div style="padding: 10px; color: #f00;">Error: ' + response.data + '</div>';
+                container.innerHTML = '<div style="padding: 14px 12px; text-align: center; color: #dc2626; font-size: 13px; font-weight: 600;">Error: ' + response.data + '</div>';
                 container.style.display = 'block';
                 return;
             }
 
             if (!response.data || response.data.length === 0) {
-                container.innerHTML = '<div style="padding: 10px; color: #666;">No results found</div>';
+                container.innerHTML = '<div style="padding: 14px 12px; text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600;">No results found</div>';
                 container.style.display = 'block';
                 return;
             }
@@ -847,8 +848,18 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery, 
 
             data.forEach(function (result) {
                 var item = document.createElement('div');
-                item.style.cssText = 'padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; background-color: white;';
-                item.textContent = result.display_name;
+                item.style.cssText = 'display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; margin: 2px 0; cursor: pointer; border-radius: 10px; color: #0f172a; font-size: 13.5px; font-weight: 500; line-height: 1.4; transition: background-color .15s ease;';
+
+                var icon = document.createElement('i');
+                icon.className = 'fas fa-map-marker-alt';
+                icon.style.cssText = 'flex: 0 0 auto; width: 14px; margin-top: 2px; color: #94a3b8; font-size: 13px;';
+
+                var text = document.createElement('span');
+                text.textContent = result.display_name;
+                text.style.cssText = 'flex: 1 1 auto; min-width: 0;';
+
+                item.appendChild(icon);
+                item.appendChild(text);
 
                 item.addEventListener('click', function () {
                     input.value = result.display_name;
@@ -857,11 +868,11 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery, 
                 });
 
                 item.addEventListener('mouseenter', function () {
-                    this.style.backgroundColor = '#f5f5f5';
+                    this.style.backgroundColor = '#f1f4f9';
                 });
 
                 item.addEventListener('mouseleave', function () {
-                    this.style.backgroundColor = 'white';
+                    this.style.backgroundColor = 'transparent';
                 });
 
                 container.appendChild(item);
@@ -880,7 +891,7 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery, 
             }
 
             console.error('[OSM Search] Fetch error:', error);
-            container.innerHTML = '<div style="padding: 10px; color: #f00;">Search failed. Please try again.</div>';
+            container.innerHTML = '<div style="padding: 14px 12px; text-align: center; color: #dc2626; font-size: 13px; font-weight: 600;">Search failed. Please try again.</div>';
             container.style.display = 'block';
         });
 }
@@ -929,6 +940,81 @@ function mptbm_handle_osm_address_selection(address, type) {
         }
     }
 }
+
+// Warn the user when the selected "Select Hours" rental duration is shorter
+// than the estimated drive time for the chosen pickup/drop-off route.
+function mptbm_update_fixed_hours_warning() {
+    var priceBasedEl = document.querySelector('[name="mptbm_price_based"]');
+    if (!priceBasedEl || priceBasedEl.value !== 'fixed_hourly') return;
+
+    var warningEl = document.getElementById('mptbm_fixed_hours_warning');
+    var hoursEl = document.getElementById('mptbm_fixed_hours');
+    var durationEl = document.getElementById('mptbm_calculated_duration');
+    if (!warningEl || !hoursEl || !durationEl) return;
+
+    var durationSeconds = parseFloat(durationEl.value) || 0;
+    var selectedHours = parseInt(hoursEl.value, 10) || 0;
+
+    if (durationSeconds <= 0) {
+        warningEl.style.display = 'none';
+        return;
+    }
+
+    var requiredHours = Math.max(1, Math.ceil(durationSeconds / 3600));
+
+    if (requiredHours > selectedHours) {
+        var totalMinutes = Math.round(durationSeconds / 60);
+        var h = Math.floor(totalMinutes / 60);
+        var m = totalMinutes % 60;
+        var tripTimeText = h > 0 ? (h + 'h' + (m > 0 ? ' ' + m + 'm' : '')) : m + 'm';
+        var hourWord = requiredHours === 1 ? 'hour' : 'hours';
+
+        var textEl = warningEl.querySelector('span');
+        if (textEl) {
+            textEl.textContent = 'Estimated trip time is ~' + tripTimeText + '. Select at least ' + requiredHours + ' ' + hourWord + ' to cover this trip.';
+        }
+        warningEl.style.display = 'flex';
+    } else {
+        warningEl.style.display = 'none';
+    }
+}
+
+jQuery(document).on('mp_change change', '#mptbm_fixed_hours', function () {
+    mptbm_update_fixed_hours_warning();
+});
+
+// Custom-styled dropdown proxy for Transfer Type / Extra Waiting Hours.
+// A real (visually hidden) <select> stays in the DOM so existing behaviour
+// (the Return-date/time collapse toggle, price refresh listeners) keeps
+// working untouched -- clicking a list item just updates that select and
+// fires a native "change" event on it.
+(function ($) {
+    "use strict";
+
+    $(document).on('click', '.mptbm_select_proxy input.formControl', function (e) {
+        e.stopPropagation();
+        var $list = $(this).closest('.mptbm_select_proxy').find('.mp_input_select_list');
+        var isOpen = $list.is(':visible');
+        $('.mptbm_select_proxy .mp_input_select_list').not($list).slideUp(200);
+        $list[isOpen ? 'slideUp' : 'slideDown'](200);
+    });
+
+    $(document).on('click', '.mptbm_select_proxy .mp_input_select_list li', function (e) {
+        e.preventDefault();
+        var $li = $(this);
+        var $wrapper = $li.closest('.mptbm_select_proxy');
+
+        $wrapper.find('input.formControl').val($li.text());
+        $wrapper.find('select.mptbm_proxy_native_select').val($li.data('value')).trigger('change');
+        $wrapper.find('.mp_input_select_list').slideUp(200);
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.mptbm_select_proxy').length) {
+            $('.mptbm_select_proxy .mp_input_select_list').slideUp(200);
+        }
+    });
+})(jQuery);
 
 function mptbm_calculate_osm_distance() {
     // We need at least start marker and either end marker OR extra marker
@@ -1028,6 +1114,7 @@ function mptbm_calculate_osm_distance() {
 
                 // Show distance/time section
                 jQuery(".mptbm_distance_time").slideDown("fast");
+                mptbm_update_fixed_hours_warning();
 
                 // Draw route on map
                 if (mptbm_osm_route) {
@@ -1164,6 +1251,7 @@ function mptbm_calculate_google_route_from_markers() {
                 jQuery(".mptbm_total_distance").html(distance_text);
                 jQuery(".mptbm_total_time").html(duration_text);
                 jQuery(".mptbm_distance_time").slideDown("fast");
+                mptbm_update_fixed_hours_warning();
 
                 // Fit map to show the entire route
                 var bounds = new google.maps.LatLngBounds();
@@ -2788,6 +2876,11 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
             $this.removeClass('active_select');
             mp_all_content_change($this);
             target_summary.slideUp(400);
+            // No vehicle selected anymore -- step 3 is no longer a preview.
+            // Matched by data-tabs-target-next rather than .step-place-order:
+            // that class only exists in transport_result.php's copy of this
+            // stepper, not the one registration_layout.php renders.
+            parent.find('[data-tabs-target-next="#mptbm_order_summary"]').removeClass('active');
         } else {
             parent.find('.mptbm_transport_select.active_select').each(function () {
                 $(this).removeClass('active_select');
@@ -2816,6 +2909,10 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 $this.addClass('active_select');
                 $('.mptbm_booking_item').removeClass('selected');
                 $this.closest('.mptbm_booking_item').addClass('selected');
+
+                // Preview step 3 ("Place Order") as active as soon as a vehicle is
+                // picked, ahead of the checkout content actually loading.
+                parent.find('[data-tabs-target-next="#mptbm_order_summary"]').addClass('active');
 
                 mp_all_content_change($this);
 
@@ -3196,11 +3293,14 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 // Remove any existing loading overlay
                 $('.mptbm-loading-overlay').remove();
 
-                // Create a new loading overlay with CSS spinner animation
-                var loadingOverlay = $('<div class="mptbm-loading-overlay" style="position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; z-index: 9999 !important; padding: 30px !important; text-align: center !important;"><div class="mptbm-spinner"></div></div>');
+                // Create a new loading overlay with CSS spinner animation, centered over
+                // the tab container itself (not the whole viewport -- a fixed/body-centered
+                // overlay ends up wherever the page happens to scroll to, which can land on
+                // top of unrelated content like the tab pills).
+                var $tabContainer = $(this).closest('.mptb-tab-container');
+                var loadingOverlay = $('<div class="mptbm-loading-overlay"><div class="mptbm-spinner"></div></div>');
 
-                // Append to body to ensure it's visible
-                $('body').append(loadingOverlay);
+                ($tabContainer.length ? $tabContainer : $('body')).append(loadingOverlay);
             }
 
             // Mark the clicked tab as active
@@ -3358,13 +3458,14 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
         // $select.hide(); // REMOVED - keep select visible
 
         // Create custom select wrapper with dynamic positioning
-        var $customWrapper = $('<div class="mptbm-custom-select-wrapper" style="position: fixed !important; z-index: 9999 !important; background: white !important; border: 1px solid #ddd !important; border-radius: 4px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;"></div>');
+        // (cosmetic styling lives in mptbm_registration.css; only positioning is set inline)
+        var $customWrapper = $('<div class="mptbm-custom-select-wrapper"></div>');
 
         // Create search input
-        var $searchInput = $('<input type="text" class="mptbm-custom-search-input" placeholder="Search locations..." style="width: 100% !important; padding: 8px !important; border: none !important; border-bottom: 1px solid #eee !important; border-radius: 4px 4px 0 0 !important; font-size: 14px !important; box-sizing: border-box !important; background: #F5F6F8 !important; color: #222222 !important; font-weight: 400 !important; outline: none !important;" />');
+        var $searchInput = $('<input type="text" class="mptbm-custom-search-input" placeholder="Search locations..." />');
 
         // Create options container
-        var $optionsContainer = $('<div class="mptbm-custom-options" style="max-height: 200px !important; overflow-y: auto !important; background: white !important;"></div>');
+        var $optionsContainer = $('<div class="mptbm-custom-options"></div>');
 
         // Function to update dropdown position
         function updateDropdownPosition() {
@@ -3413,7 +3514,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
             var isSelected = $(this).is(':selected');
 
             var selectedClass = isSelected ? 'mptbm-option-selected' : '';
-            optionsHtml += '<div class="mptbm-custom-option ' + selectedClass + '" data-value="' + optionValue + '" style="padding: 8px !important; cursor: pointer !important; border-bottom: 1px solid #f5f5f5 !important; font-size: 14px !important; color: #222222 !important;">' + optionText + '</div>';
+            optionsHtml += '<div class="mptbm-custom-option ' + selectedClass + '" data-value="' + optionValue + '">' + optionText + '</div>';
         });
 
         $optionsContainer.html(optionsHtml);
