@@ -195,3 +195,4 @@ Related add-ons:
 
 - Entry file: `MPTBM_Plugin.php`.
 - Vendor: https://github.com/magepeopleteam/ecab-taxi-booking-manager.git
+

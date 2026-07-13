@@ -34,10 +34,15 @@ if (!class_exists('MPTBM_Dependencies')) {
 		private function load_file(): void
 		{
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Function.php';
+			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Payment_Status_Checker.php';
+			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Booking_Mode.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Query.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Layout.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Rest_Api.php';
-			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Hidden_Product.php';
+			// Hidden WooCommerce product mirror is only relevant when WooCommerce is active.
+			if (MP_Global_Function::check_woocommerce() == 1) {
+				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Hidden_Product.php';
+			}
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Admin.php';
 			require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Frontend.php';
 		}

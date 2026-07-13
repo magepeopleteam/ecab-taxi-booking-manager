@@ -2986,6 +2986,12 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
     });
     //===========================//
     $(document).on("click", ".mptbm_book_now[type='button']", function () {
+        if ($(this).is(':disabled')) {
+            // Booking is unavailable (no WooCommerce and no Pro plugin active);
+            // the disabled state can still be reached via the auto-click that
+            // fires when a vehicle has no extra services, so bail out here too.
+            return;
+        }
         let parent = $(this).closest('.mptbm_transport_search_area');
         let target_checkout = parent.find('.mptbm_checkout_area');
         let start_place = parent.find('[name="mptbm_start_place"]').val();
@@ -3085,7 +3091,12 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     start_place_coordinates: start_place_coordinates ? JSON.stringify(start_place_coordinates) : '',
                     end_place_coordinates: end_place_coordinates ? JSON.stringify(end_place_coordinates) : '',
                     mptbm_threshold_base_price: mptbm_threshold_base_price,
-                    mptbm_add_to_cart_nonce: parent.find('input[name="mptbm_add_to_cart_nonce"]').val()
+                    // Standalone (no-WooCommerce) Pro custom booking flow fields. Ignored
+                    // by the WooCommerce add-to-cart handler when WooCommerce is active.
+                    mptbm_payment_method: parent.find('[name="mptbm_payment_method"]:checked').val() || '',
+                    mptbm_billing_name: parent.find('[name="mptbm_billing_name"]').val() || '',
+                    mptbm_billing_email: parent.find('[name="mptbm_billing_email"]').val() || '',
+                    mptbm_billing_phone: parent.find('[name="mptbm_billing_phone"]').val() || ''
                 },
                 beforeSend: function () {
                     dLoader(parent.find('.tabsContentNext'));
@@ -3118,13 +3129,27 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                                 target_checkout[0].style.display = '';
                             }
                         });
-                    } else {
+                    } else if (data && /^https?:\/\//i.test(data.trim())) {
                         window.location.href = data;
+                    } else {
+                        // Empty/invalid response (e.g. both WooCommerce and a
+                        // custom payment method were enabled and the request
+                        // fell through without a usable result) - clear the
+                        // loader instead of leaving the button stuck.
+                        dLoaderRemove(parent.find('.tabsContentNext'));
+                        console.log('mptbm_add_to_cart: unexpected response', data);
                     }
                 },
                 error: function (response) {
+                    dLoaderRemove(parent.find('.tabsContentNext'));
                     console.log(response);
                 }
+            });
+        } else {
+            // Missing required data - bail out loud instead of leaving the button
+            // looking clicked with no visible feedback and nothing in the console.
+            console.warn('mptbm_book_now: missing required booking data, not submitting', {
+                start_place: start_place, end_place: end_place, link_id: link_id, post_id: post_id
             });
         }
     });

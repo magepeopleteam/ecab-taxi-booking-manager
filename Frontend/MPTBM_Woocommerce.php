@@ -1298,17 +1298,45 @@ if (!class_exists('MPTBM_Woocommerce')) {
 		/****************************/
 		public function mptbm_add_to_cart()
 			{
-				// SECURITY: reject forged / cross-site requests. The nonce is emitted inside the
-				// search-result markup, which is regenerated on every server-side search response,
-				// so it stays fresh even on fully page-cached sites (the search itself is an
-				// uncached admin-ajax POST). Legitimate bookings always run a search first.
-				$nonce = isset($_POST['mptbm_add_to_cart_nonce']) ? sanitize_text_field(wp_unslash($_POST['mptbm_add_to_cart_nonce'])) : '';
-				if (!wp_verify_nonce($nonce, 'mptbm_add_to_cart')) {
-					wp_send_json_error(esc_html__('Your booking session has expired. Please run the search again.', 'ecab-taxi-booking-manager'), 403);
+				// The explicit Booking Mode setting (MPTBM_Booking_Mode) is the single
+				// source of truth for which flow owns a booking, so the booking has one
+				// deterministic path instead of two handlers racing (which previously
+				// left the "Book Now" button stuck).
+				$use_wc_payment = class_exists('MPTBM_Booking_Mode') && MPTBM_Booking_Mode::is_woocommerce();
+
+				if (!$use_wc_payment) {
+					// WooCommerce payment is unavailable/disabled: hand off to any
+					// registered custom payment flow (e.g. the Pro plugin). If
+					// nothing handles it, return a visible error instead of an
+					// empty response so the frontend doesn't hang on a spinner.
+					$response = apply_filters('mptbm_custom_payment_add_to_cart', '', $_POST);
+					if ($response === '') {
+						ob_start();
+						?>
+						<div class="dLayout mptbm-cart-error">
+							<p class="mptbm-error-message"><?php esc_html_e('No payment method is currently available. Please contact the site admin.', 'ecab-taxi-booking-manager'); ?></p>
+						</div>
+						<?php
+						$response = ob_get_clean();
+					}
+					echo $response;
+					die();
 				}
 
 				$quantity = isset($_POST['transport_quantity']) ? sanitize_text_field($_POST['transport_quantity']) : 1;
 				$link_id = absint($_POST['link_id']);
+				if (get_post_type($link_id) !== 'product' && class_exists('MPTBM_Hidden_Product')) {
+					// The posted id isn't a real WooCommerce product - most likely stale
+					// cached markup (rendered as a vehicle id before WooCommerce/the mirror
+					// product existed) or a mirror product that was deleted. Resolve back to
+					// the vehicle and self-heal instead of failing the booking.
+					$vehicle_id = get_post_type($link_id) === MPTBM_Function::get_cpt()
+						? $link_id
+						: absint(get_post_meta($link_id, 'link_mptbm_id', true));
+					if ($vehicle_id) {
+						$link_id = MPTBM_Hidden_Product::get_or_create_wc_product($vehicle_id);
+					}
+				}
 				$product_id = apply_filters('woocommerce_add_to_cart_product_id', $link_id);
 				$passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity);
 				$product_status = get_post_status($product_id);
@@ -1328,6 +1356,12 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						</div>
 			<?php
 					}
+				} else {
+					?>
+					<div class="dLayout mptbm-cart-error">
+						<p class="mptbm-error-message"><?php esc_html_e('Unable to add this booking to the cart. Please try again.', 'ecab-taxi-booking-manager'); ?></p>
+					</div>
+					<?php
 				}
 				echo ob_get_clean();
 				die();

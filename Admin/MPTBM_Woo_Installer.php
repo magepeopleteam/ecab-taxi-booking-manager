@@ -136,6 +136,7 @@ if ( ! class_exists( 'MPTBM_Woo_Installer' ) ) {
 		}
 
 		public function render_popup() {
+			return false;
 			if ( ! $this->should_show_popup() ) {
 				return;
 			}
