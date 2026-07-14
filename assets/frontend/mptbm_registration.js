@@ -180,7 +180,8 @@ function showLocationError(element, message) {
     errorDiv.className = 'mptbm-location-error';
     errorDiv.style.color = '#dc3545';
     errorDiv.style.fontSize = '12px';
-    errorDiv.style.marginTop = '5px';
+    errorDiv.style.marginTop = '8px';
+    errorDiv.style.marginBottom = '10px';
     errorDiv.textContent = message;
 
     // Insert error message after the input
@@ -717,7 +718,7 @@ function mptbm_setup_osm_autocomplete(input, type) {
     var resultsContainer = document.createElement('div');
     resultsContainer.className = 'mptbm-osm-autocomplete';
     resultsContainer.setAttribute('data-autocomplete-type', type);
-    resultsContainer.style.cssText = 'position: fixed; font-size:14px; background: #fff; border: 1px solid #e7eaf0; border-radius: 14px; max-height: 240px; overflow-y: auto; z-index: 99999 !important; display: none; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06); padding: 6px;';
+    resultsContainer.style.cssText = 'position: fixed; box-sizing: border-box; font-size:14px; background: #fff; border: 1px solid #e7eaf0; border-radius: 14px; max-height: 240px; overflow-y: auto; z-index: 99999 !important; display: none; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06); padding: 6px;';
 
     // Append to body to avoid parent overflow issues
     document.body.appendChild(resultsContainer);
@@ -787,7 +788,7 @@ function mptbm_setup_osm_autocomplete(input, type) {
 }
 
 function mptbm_search_osm_address(query, container, input, type, expectedQuery, autocompleteState) {
-    container.innerHTML = '<div style="padding: 14px 12px; text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600;">Searching&hellip;</div>';
+    container.innerHTML = '<div style="padding: 9px 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600;">Searching&hellip;</div>';
     container.style.display = 'block';
 
     // Use WordPress AJAX proxy
@@ -833,13 +834,13 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery, 
             container.innerHTML = '';
 
             if (!response.success) {
-                container.innerHTML = '<div style="padding: 14px 12px; text-align: center; color: #dc2626; font-size: 13px; font-weight: 600;">Error: ' + response.data + '</div>';
+                container.innerHTML = '<div style="padding: 9px 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; color: #dc2626; font-size: 13px; font-weight: 600;">Error: ' + response.data + '</div>';
                 container.style.display = 'block';
                 return;
             }
 
             if (!response.data || response.data.length === 0) {
-                container.innerHTML = '<div style="padding: 14px 12px; text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600;">No results found</div>';
+                container.innerHTML = '<div style="padding: 9px 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600;">No results found</div>';
                 container.style.display = 'block';
                 return;
             }
@@ -891,7 +892,7 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery, 
             }
 
             console.error('[OSM Search] Fetch error:', error);
-            container.innerHTML = '<div style="padding: 14px 12px; text-align: center; color: #dc2626; font-size: 13px; font-weight: 600;">Search failed. Please try again.</div>';
+            container.innerHTML = '<div style="padding: 9px 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; color: #dc2626; font-size: 13px; font-weight: 600;">Search failed. Please try again.</div>';
             container.style.display = 'block';
         });
 }
@@ -3671,6 +3672,29 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
         }
     });
 
+    // "View Details" toggle - expands the real specs/reviews panel rendered
+    // server-side in vehicle_item.php (only present when there is genuinely
+    // more content than the visible feature chips).
+    $(document).on('click', '.mptbm_view_details_toggle', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var $button = $(this);
+        var postId = $button.data('post-id');
+        var $wrapper = $button.closest('.mptbm-vehicle-wrapper');
+        var $panel = $wrapper.find('.mptbm_vehicle_details_panel[data-post-id="' + postId + '"]');
+        if (!$panel.length) {
+            return;
+        }
+
+        $panel.slideToggle(250, function () {
+            var isOpen = $panel.is(':visible');
+            $button.attr('aria-expanded', isOpen ? 'true' : 'false');
+            $button.toggleClass('is-open', isOpen);
+            $button.find('[data-label]').text(isOpen ? $button.data('hide-text') : $button.data('view-text'));
+        });
+    });
+
 }(jQuery));
 
 function gm_authFailure() {
@@ -3754,3 +3778,127 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
         });
     }
 }
+
+// "Best Price" badge on the search-results vehicle cards: computed from the
+// actual prices rendered for the current search (not a fabricated claim).
+// The vehicle list loads in over AJAX after a search, and .mainSection
+// itself doesn't exist until then, so this watches the whole document for
+// it to appear/change rather than trying to bind to a specific element.
+(function ($) {
+    "use strict";
+
+    function highlightBestPrice() {
+        $('.mainSection').each(function () {
+            var mainSection = $(this);
+            var cheapestBtn = null;
+            var cheapestPrice = Infinity;
+
+            mainSection.find('.mptbm_transport_select[data-transport-price]').each(function () {
+                var price = parseFloat($(this).attr('data-transport-price'));
+                var item = $(this).closest('.mptbm_booking_item');
+                if (!price || price <= 0 || item.hasClass('mptbm_booking_item_hidden')) {
+                    return;
+                }
+                if (price < cheapestPrice) {
+                    cheapestPrice = price;
+                    cheapestBtn = $(this);
+                }
+            });
+
+            mainSection.find('.mptbm_best_price_badge').remove();
+
+            if (cheapestBtn) {
+                var image = cheapestBtn.closest('.mptbm_booking_item').find('.mptbm_vehicle_image').first();
+                image.append('<span class="mptbm_best_price_badge">Best Price</span>');
+            }
+        });
+    }
+
+    // Results toolbar: live count of vehicles actually visible after geo-fence /
+    // availability filtering (real data — same "hidden" class the rest of the
+    // page already relies on), not the raw server-side query count.
+    function updateResultsCount() {
+        $('.mainSection').each(function () {
+            var mainSection = $(this);
+            var visible = mainSection.find('.mptbm_booking_item').not('.mptbm_booking_item_hidden').length;
+            mainSection.find('.mptbm_results_count_number').text(visible);
+        });
+    }
+
+    var debounceTimer = null;
+    function scheduleHighlight() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function () {
+            highlightBestPrice();
+            updateResultsCount();
+        }, 150);
+    }
+
+    // Sort vehicle cards by their real rendered price. "Recommended" restores
+    // the original server-rendered order (first time we see a given results
+    // list, its current DOM order is cached as that baseline).
+    function sortVehicles(mainSection, mode) {
+        var area = mainSection.find('.mp_sticky_depend_area').first();
+        var wrappers = area.children('.mptbm-vehicle-wrapper').toArray();
+        if (!wrappers.length) {
+            return;
+        }
+        if (!area.data('mptbmOriginalOrder')) {
+            area.data('mptbmOriginalOrder', wrappers.slice());
+        }
+
+        var ordered;
+        if (mode === 'price_low' || mode === 'price_high') {
+            ordered = wrappers.slice().sort(function (a, b) {
+                var priceA = parseFloat($(a).find('[data-transport-price]').first().attr('data-transport-price')) || 0;
+                var priceB = parseFloat($(b).find('[data-transport-price]').first().attr('data-transport-price')) || 0;
+                return mode === 'price_high' ? priceB - priceA : priceA - priceB;
+            });
+        } else if (mode === 'rating') {
+            ordered = wrappers.slice().sort(function (a, b) {
+                var ratingA = parseFloat($(a).find('[data-transport-rating]').first().attr('data-transport-rating')) || 0;
+                var ratingB = parseFloat($(b).find('[data-transport-rating]').first().attr('data-transport-rating')) || 0;
+                return ratingB - ratingA;
+            });
+        } else {
+            ordered = area.data('mptbmOriginalOrder');
+        }
+
+        var anchor = area.find('.geo-fence-no-transport').first();
+        ordered.forEach(function (el) {
+            if (anchor.length) {
+                $(el).insertBefore(anchor);
+            } else {
+                area.append(el);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        highlightBestPrice();
+        updateResultsCount();
+        if (typeof MutationObserver !== 'undefined') {
+            new MutationObserver(scheduleHighlight).observe(document.body, { childList: true, subtree: true });
+        }
+    });
+
+    $(document).on('change', '.mptbm_sort_select', function () {
+        var mainSection = $(this).closest('.mainSection');
+        sortVehicles(mainSection, $(this).val());
+    });
+
+    // Grid/List view toggle - purely a layout reflow of the same real cards,
+    // no data changes.
+    $(document).on('click', '.mptbm_results_view_toggle button', function () {
+        var $btn = $(this);
+        if ($btn.hasClass('is-active')) {
+            return;
+        }
+        var view = $btn.data('view');
+        var area = $btn.closest('.mainSection').find('.mp_sticky_depend_area').first();
+        $btn.siblings().removeClass('is-active');
+        $btn.addClass('is-active');
+        area.toggleClass('mptbm_view_grid', view === 'grid');
+        area.toggleClass('mptbm_view_list', view === 'list');
+    });
+})(jQuery);

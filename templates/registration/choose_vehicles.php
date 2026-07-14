@@ -1040,7 +1040,7 @@ if (empty($duration)) {
             
 			<?php include MPTBM_Function::template_path("registration/summary.php"); ?>
 			<div class="mainSection ">
-				<div class="mp_sticky_depend_area fdColumn">
+				<div class="mp_sticky_depend_area mptbm_view_list">
 				<!-- Filter area start -->
 				<?php if (MP_Global_Function::get_settings("mptbm_general_settings", "enable_filter_via_features") == "yes") { ?>
 				<div class="_dLayout_dFlex_fdColumn_btLight_2 mptbm-filter-feature">
@@ -1074,6 +1074,111 @@ if (empty($duration)) {
 				<?php
 } ?>
 				<!-- Filter area end -->
+					<?php
+					// Resolve human-readable pickup/dropoff for the trip summary bar - same
+					// taxonomy-resolution rules summary.php uses, so this never shows a raw
+					// slug/term id for manual or fixed-zone bookings.
+					$toolbar_start_display = $start_place;
+					if ($price_based == 'manual') {
+						$toolbar_start_display = MPTBM_Function::get_taxonomy_name_by_slug($start_place, 'locations');
+					} elseif ($price_based == 'fixed_zone' && strpos($start_place, 'term_') === 0) {
+						$toolbar_term = get_term(absint(str_replace('term_', '', $start_place)), 'locations');
+						if ($toolbar_term && !is_wp_error($toolbar_term)) {
+							$toolbar_start_display = $toolbar_term->name;
+						}
+					}
+					$toolbar_end_display = $end_place;
+					if ($price_based == 'manual') {
+						$toolbar_end_display = MPTBM_Function::get_taxonomy_name_by_slug($end_place, 'locations');
+					} elseif (($price_based == 'fixed_zone' || $price_based == 'fixed_zone_dropoff') && strpos($end_place, 'term_') === 0) {
+						$toolbar_term = get_term(absint(str_replace('term_', '', $end_place)), 'locations');
+						if ($toolbar_term && !is_wp_error($toolbar_term)) {
+							$toolbar_end_display = $toolbar_term->name;
+						}
+					}
+					$toolbar_show_dropoff = !($price_based == 'fixed_hourly' && $disable_dropoff_hourly === 'disable');
+					$toolbar_show_passengers = ($pro_active && $enable_max_passenger_filter === 'yes' && $selected_max_passenger);
+					// The toolbar has room for the place name only, not the full "City, Region,
+					// Country" string the map autocomplete stores - take just the first segment.
+					$toolbar_place_short = function ($place) {
+						$parts = explode(',', $place);
+						return trim($parts[0]);
+					};
+					$toolbar_start_display = $toolbar_place_short($toolbar_start_display);
+					$toolbar_end_display = $toolbar_place_short($toolbar_end_display);
+					?>
+					<div class="mptbm_results_toolbar">
+						<div class="mptbm_results_trip">
+							<span class="mptbm_results_trip_place">
+								<i class="fas fa-map-marker-alt mptbm_results_pin_start"></i>
+								<?php echo esc_html($toolbar_start_display); ?>
+							</span>
+							<?php if ($toolbar_show_dropoff && $toolbar_end_display) : ?>
+							<span class="mptbm_results_trip_dots">&bull;&bull;&bull;</span>
+							<span class="mptbm_results_trip_place">
+								<i class="fas fa-map-marker-alt mptbm_results_pin_end"></i>
+								<?php echo esc_html($toolbar_end_display); ?>
+							</span>
+							<?php endif; ?>
+							<?php if ($toolbar_show_passengers) : ?>
+							<span class="mptbm_results_trip_divider"></span>
+							<span class="mptbm_results_trip_meta">
+								<i class="fas fa-users"></i>
+								<?php echo esc_html($selected_max_passenger); ?> <?php esc_html_e('passengers', 'ecab-taxi-booking-manager'); ?>
+							</span>
+							<?php endif; ?>
+						</div>
+						<?php if ($date) : ?>
+						<div class="mptbm_results_toolbar_middle">
+							<div class="mptbm_summary_top_row">
+								<?php if ($fixed_time && $fixed_time > 0) : ?>
+								<div class="mptbm_summary_top_col mptbm_summary_col_duration">
+									<h6 class="_mB_xs"><?php echo mptbm_get_translation('service_times_label', __('Duration', 'ecab-taxi-booking-manager')); ?></h6>
+									<p class="_textLight_1"><?php echo esc_html($fixed_time); ?>&nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
+								</div>
+								<?php endif; ?>
+								<div class="mptbm_summary_top_col mptbm_summary_col_date">
+									<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_date_label', __('Pickup Date', 'ecab-taxi-booking-manager')); ?></h6>
+									<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date)); ?></p>
+								</div>
+								<div class="mptbm_summary_top_col mptbm_summary_col_time">
+									<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_time_label', __('Pickup Time', 'ecab-taxi-booking-manager')); ?></h6>
+									<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date, 'time')); ?></p>
+								</div>
+							</div>
+						</div>
+						<?php endif; ?>
+						<div class="mptbm_results_actions">
+							<button type="button" class="mptbm_results_edit mptbm_get_vehicle_prev" aria-label="<?php esc_attr_e('Edit Search', 'ecab-taxi-booking-manager'); ?>">
+								<i class="fas fa-pen"></i>
+								<span class="mptbm_results_edit_label"><?php esc_html_e('Edit Search', 'ecab-taxi-booking-manager'); ?></span>
+							</button>
+						</div>
+					</div>
+					<div class="mptbm_results_controls_row">
+						<h3 class="mptbm_results_summary_title">
+							<strong class="mptbm_results_count_number">0</strong> <?php esc_html_e('available', 'ecab-taxi-booking-manager'); ?>
+						</h3>
+						<div class="mptbm_results_controls_right">
+							<label class="mptbm_results_sort">
+								<span class="mptbm_results_sort_label_sr"><?php esc_html_e('Sort by', 'ecab-taxi-booking-manager'); ?></span>
+								<select class="mptbm_sort_select formControl" aria-label="<?php esc_attr_e('Sort by', 'ecab-taxi-booking-manager'); ?>">
+									<option value="recommended"><?php esc_html_e('Recommended', 'ecab-taxi-booking-manager'); ?></option>
+									<option value="price_low"><?php esc_html_e('Price: Low to High', 'ecab-taxi-booking-manager'); ?></option>
+									<option value="price_high"><?php esc_html_e('Price: High to Low', 'ecab-taxi-booking-manager'); ?></option>
+									<option value="rating"><?php esc_html_e('Highest Rated', 'ecab-taxi-booking-manager'); ?></option>
+								</select>
+							</label>
+							<div class="mptbm_results_view_toggle" role="group" aria-label="<?php esc_attr_e('Layout view', 'ecab-taxi-booking-manager'); ?>">
+								<button type="button" class="is-active" data-view="list" aria-label="<?php esc_attr_e('List view', 'ecab-taxi-booking-manager'); ?>">
+									<i class="fas fa-list"></i>
+								</button>
+								<button type="button" data-view="grid" aria-label="<?php esc_attr_e('Grid view', 'ecab-taxi-booking-manager'); ?>">
+									<i class="fas fa-th-large"></i>
+								</button>
+							</div>
+						</div>
+					</div>
 					<?php
 
 $all_posts = MPTBM_Query::query_transport_list($price_based);

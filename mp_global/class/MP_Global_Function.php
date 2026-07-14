@@ -159,16 +159,22 @@
 									enableMonthSelector: true,
 									enableYearSelector: true,
 									disableMobile: false,
-									onChange: function(selectedDates, dateStr, instance) {
-										if (selectedDates.length > 0) {
-											var y = selectedDates[0].getFullYear();
-											var m = ('0' + (selectedDates[0].getMonth() + 1)).slice(-2);
-											var d = ('0' + selectedDates[0].getDate()).slice(-2);
-											var isoDate = y + '-' + m + '-' + d;
-											jQuery(instance.element).closest('label').find('input[type="hidden"]').val(isoDate).trigger('change');
-										}
-									}
+									onChange: mptbm_sync_hidden_date,
+									// defaultDate pre-fills the visible field on page load but does NOT
+									// fire onChange, so without this the hidden input (what search
+									// validation actually reads) stays empty until the user reopens the
+									// calendar and reselects -- searching before that silently no-ops.
+									onReady: mptbm_sync_hidden_date
 								});
+								function mptbm_sync_hidden_date(selectedDates, dateStr, instance) {
+									if (selectedDates.length > 0) {
+										var y = selectedDates[0].getFullYear();
+										var m = ('0' + (selectedDates[0].getMonth() + 1)).slice(-2);
+										var d = ('0' + selectedDates[0].getDate()).slice(-2);
+										var isoDate = y + '-' + m + '-' + d;
+										jQuery(instance.element).closest('label').find('input[type="hidden"]').val(isoDate).trigger('change');
+									}
+								}
 							});
 						}
 						mptbm_try_init_fp();

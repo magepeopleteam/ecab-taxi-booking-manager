@@ -325,6 +325,14 @@ div.mptbm_transport_search_area .mptbm_search_area label {
 	text-transform: uppercase;
 }
 
+/* Error text injected inside the label (showLocationError() appends it as a
+   sibling of the input) must not inherit the label's uppercase styling. */
+div.mptbm_transport_search_area .mptbm_search_area label .mptbm-location-error {
+	text-transform: none;
+	font-weight: 600;
+	letter-spacing: normal;
+}
+
 div.mptbm_transport_search_area .mptbm_search_area label .formControl {
 	height: 48px;
 	background-color: #f1f4f9;
@@ -379,7 +387,7 @@ div.mptbm_transport_search_area div.mp_input_select .formControl {
 div.mptbm_transport_search_area .mptbm_left_icon {
 	position: absolute;
 	left: 0;
-	bottom: 0;
+	top: 8px;
 	width: 42px !important;
 	font-size: 15px;
 	color: var(--color_theme) !important;

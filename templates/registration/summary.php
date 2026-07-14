@@ -68,11 +68,22 @@ if (!function_exists('mptbm_get_translation')) {
 					<h3><?php echo mptbm_get_translation('summary_label', __('SUMMARY', 'ecab-taxi-booking-manager')); ?></h3>
 					<div class="divider"></div>
 
-					<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_date_label', __('Pickup Date', 'ecab-taxi-booking-manager')); ?></h6>
-					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date)); ?></p>
-					<div class="divider"></div>
-					<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_time_label', __('Pickup Time', 'ecab-taxi-booking-manager')); ?></h6>
-					<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date, 'time')); ?></p>
+					<div class="mptbm_summary_top_row">
+						<?php if ($fixed_time && $fixed_time > 0) : ?>
+						<div class="mptbm_summary_top_col">
+							<h6 class="_mB_xs"><?php echo mptbm_get_translation('service_times_label', __('Duration', 'ecab-taxi-booking-manager')); ?></h6>
+							<p class="_textLight_1"><?php echo esc_html($fixed_time); ?>&nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
+						</div>
+						<?php endif; ?>
+						<div class="mptbm_summary_top_col">
+							<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_date_label', __('Pickup Date', 'ecab-taxi-booking-manager')); ?></h6>
+							<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date)); ?></p>
+						</div>
+						<div class="mptbm_summary_top_col">
+							<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_time_label', __('Pickup Time', 'ecab-taxi-booking-manager')); ?></h6>
+							<p class="_textLight_1"><?php echo esc_html(MP_Global_Function::date_format($date, 'time')); ?></p>
+						</div>
+					</div>
 					<div class="divider"></div>
 					<h6 class="_mB_xs"><?php echo mptbm_get_translation('pickup_location_label', __('Pickup Location', 'ecab-taxi-booking-manager')); ?></h6>
 					<?php if($price_based == 'manual'){ ?>
@@ -305,11 +316,6 @@ if (!function_exists('mptbm_get_translation')) {
 					?>
 				</p>
 			<?php } ?>
-					<?php if($fixed_time && $fixed_time>0){ ?>
-						<div class="divider"></div>
-						<h6 class="_mB_xs"><?php echo mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')); ?></h6>
-						<p class="_textLight_1"><?php echo esc_html($fixed_time); ?> &nbsp;<?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></p>
-					<?php } ?>
 					
 					<div class="mptbm_transport_summary">
 						<div class="divider"></div>

@@ -244,6 +244,17 @@ div.mp_sticky_on_scroll.summary-box .divider {
     border: 0;
 }
 
+/* ----- Top row: Service Times + Pickup Date and Time side by side ----- */
+div.mp_sticky_on_scroll.summary-box .mptbm_summary_top_row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_summary_top_col {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
 /* ----- Section grouping: stack rows with breathing room ----- */
 div.mp_sticky_on_scroll.summary-box > div._dFlex_fdColumn > * + * {
     margin-top: 2px;
@@ -351,11 +362,14 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
    Appended at bottom of mptbm_style.css
    ============================================ */
 
-/* ----- Vehicle wrapper spacing ----- */
+/* ----- Vehicle wrapper spacing -----
+   Spacing between cards comes entirely from the parent's `gap` (list or
+   grid mode) - not from a margin here - so list and grid share one source
+   of truth for the value instead of stacking margin on top of gap. */
 .mptbm-vehicle-wrapper {
     width: 100%;
     display: block;
-    margin-bottom: 14px;
+    margin-bottom: 0;
 }
 
 /* ----- Vehicle card (the main item) ----- */
@@ -365,17 +379,18 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     flex-wrap: nowrap !important;
     align-items: stretch !important;
     background: #ffffff;
-    border: none !important;
-    border-radius: 16px;
-    padding: 14px;
-    gap: 16px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 6px 16px rgba(15, 23, 42, 0.04);
-    transition: box-shadow .2s ease, transform .2s ease;
+    border: 1px solid rgba(15, 23, 42, 0.06) !important;
+    border-radius: 18px;
+    padding: 18px;
+    gap: 18px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    transition: box-shadow .25s ease, transform .25s ease, border-color .25s ease;
     position: relative;
 }
 .mptbm_transport_search_area .mptbm_booking_item:hover {
-    box-shadow: 0 8px 24px -8px rgba(15, 23, 42, 0.12);
-    transform: translateY(-1px);
+    box-shadow: 0 20px 40px -16px rgba(15, 23, 42, 0.18), 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+    transform: translateY(-3px);
+    border-color: rgba(5, 150, 105, 0.20) !important;
 }
 .mptbm_transport_search_area .mptbm_booking_item.mptbm_booking_item_hidden {
     display: none !important;
@@ -391,10 +406,10 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
 
 /* ----- Vehicle image ----- */
 .mptbm_transport_search_area .mptbm_vehicle_image {
-    flex: 0 0 150px;
-    width: 150px;
-    max-width: 150px;
-    border-radius: 12px;
+    flex: 0 0 168px;
+    width: 168px;
+    max-width: 168px;
+    border-radius: 14px;
     overflow: hidden;
     background: #f1f5f9;
     align-self: stretch;
@@ -403,18 +418,43 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
 .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area {
     width: 100%;
     height: 100%;
-    min-height: 130px;
-    border-radius: 12px;
+    min-height: 140px;
+    border-radius: 14px;
     overflow: hidden;
 }
 .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area > div {
     width: 100%;
     height: 100%;
-    min-height: 130px;
+    min-height: 140px;
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
-    border-radius: 12px;
+    border-radius: 14px;
+    transition: transform .5s cubic-bezier(.2,.8,.2,1);
+}
+.mptbm_transport_search_area .mptbm_booking_item:hover .mptbm_vehicle_image .bg_image_area > div {
+    transform: scale(1.06);
+}
+
+/* ----- "Best Price" badge (added by JS, computed from the real prices
+   actually shown in the current result set -- not a fabricated claim) ----- */
+.mptbm_transport_search_area .mptbm_best_price_badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color_theme);
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 999px;
+    box-shadow: 0 4px 10px -3px rgba(0, 0, 0, 0.35);
 }
 
 /* ----- Right column ----- */
@@ -443,16 +483,19 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
 }
 .mptbm_vehicle_title {
     margin: 0 !important;
-    font-size: 17px !important;
+    font-size: 19px !important;
     font-weight: 700 !important;
     color: #0f172a !important;
-    letter-spacing: -.01em;
+    letter-spacing: -.015em;
     line-height: 1.3;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 .mptbm_vehicle_rating { line-height: 1; flex: 0 0 auto; }
+.mptbm_vehicle_rating .mptbm_rating_summary { margin: 0 !important; }
+.mptbm_vehicle_rating .mptbm_rating_summary span:first-child { font-size: 14px !important; }
+.mptbm_vehicle_rating .mptbm_rating_summary span:last-child { font-size: 12.5px !important; font-weight: 600 !important; }
 
 .mptbm_transport_search_area .mptbm_vehicle_price_col {
     flex: 0 0 auto;
@@ -466,11 +509,11 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
 }
 .mptbm_transport_search_area h4.mptbm_vehicle_price {
     margin: 0 !important;
-    font-size: 20px !important;
+    font-size: 24px !important;
     font-weight: 800 !important;
     color: #0f172a !important;
     text-align: right !important;
-    letter-spacing: -.01em;
+    letter-spacing: -.02em;
     white-space: nowrap;
 }
 .mptbm_vehicle_price .woocommerce-Price-amount { color: #0f172a; }
@@ -497,11 +540,11 @@ ul.mptbm_features_grid > li.mptbm_feature_item {
     display: inline-flex !important;
     align-items: center;
     gap: 6px;
-    padding: 5px 10px;
-    background: #f1f5f9;
-    border: 1px solid rgba(15, 23, 42, 0.05);
+    padding: 7px 12px;
+    background: #f8fafc;
+    border: 1px solid rgba(15, 23, 42, 0.06);
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 600;
     color: #334155;
     line-height: 1.2;
@@ -1145,4 +1188,571 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
     color: #fff !important;
     border: 0 !important;
     box-shadow: 0 4px 12px -4px rgba(16, 185, 129, 0.5) !important;
+}
+
+/* ============================================
+   MPTBM Results Toolbar — trip summary + sort
+   ============================================ */
+.mptbm_results_toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: nowrap;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    overflow-x: auto;
+}
+
+/* ----- Left: route / date / passengers ----- */
+.mptbm_results_trip {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+    flex: 0 0 auto;
+    min-width: 0;
+}
+.mptbm_results_trip_place {
+    /* mp_style.css:.mpStyle span sets inline-block at equal specificity (both
+       have 1 class + this also matches the "span" element selector) and wins
+       on source order - must force flex back on to lay out icon + text. */
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0f172a;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* overflow:hidden makes the flex auto-min-width resolve to 0, so without
+       flex-shrink:0 this collapses to nothing instead of just truncating. */
+    flex: 0 0 auto;
+}
+.mptbm_results_trip_place > i {
+    font-size: 12px;
+    flex: 0 0 auto;
+}
+.mptbm_results_pin_start {
+    color: var(--color_theme);
+}
+.mptbm_results_pin_end {
+    color: #ef4444;
+}
+.mptbm_results_trip_dots {
+    color: #cbd5e1;
+    font-size: 8px;
+    letter-spacing: 2px;
+    line-height: 1;
+}
+.mptbm_results_trip_divider {
+    /* mp_style.css: [class*="_divider"] matches this class name by substring
+       and sets width:100%/display:block/margin - must force our own values. */
+    display: block !important;
+    width: 1px !important;
+    height: 16px !important;
+    margin: 0 !important;
+    background: rgba(15, 23, 42, 0.1) !important;
+    flex: 0 0 auto;
+}
+.mptbm_results_trip_meta {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+.mptbm_results_trip_meta > i {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* ----- Middle: Service Times + Pickup Date and Time ----- */
+.mptbm_results_toolbar_middle {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+.mptbm_results_toolbar_middle .mptbm_summary_top_row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+.mptbm_results_toolbar_middle .mptbm_summary_top_col {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+    white-space: nowrap;
+}
+.mptbm_results_toolbar_middle h6 {
+    margin: 0 !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #94a3b8 !important;
+    white-space: nowrap;
+}
+.mptbm_results_toolbar_middle p {
+    margin: 0 !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    white-space: nowrap;
+}
+
+/* ----- Right: availability, sort, edit ----- */
+.mptbm_results_actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    flex: 0 0 auto;
+}
+.mptbm_results_count_number {
+    color: var(--color_theme);
+}
+.mptbm_results_sort {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 0;
+}
+.mptbm_results_sort_label_sr {
+    /* Visually hidden but still announced by screen readers - the select's
+       own aria-label duplicates this for browsers that don't associate a
+       wrapping <label> reliably, so sighted users don't need to see it too. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+.mptbm_results_sort select.mptbm_sort_select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    border-radius: 999px;
+    padding: 7px 30px 7px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #0f172a;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    transition: border-color .15s ease;
+}
+.mptbm_results_sort select.mptbm_sort_select:hover {
+    border-color: rgba(5, 150, 105, .35);
+}
+.mptbm_results_sort select.mptbm_sort_select:focus {
+    outline: none;
+    border-color: var(--color_theme);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, .12);
+}
+button.mptbm_results_edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 10px;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color .15s ease, background-color .15s ease, color .15s ease;
+}
+button.mptbm_results_edit i {
+    font-size: 11px;
+    color: #94a3b8;
+    transition: color .15s ease;
+}
+button.mptbm_results_edit:hover {
+    border-color: var(--color_theme);
+    background: rgba(5, 150, 105, .06);
+    color: var(--color_theme);
+}
+button.mptbm_results_edit:hover i {
+    color: var(--color_theme);
+}
+
+@media (max-width: 640px) {
+    .mptbm_results_toolbar {
+        padding: 14px 16px;
+        flex-direction: column;
+        align-items: stretch;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    /* Stacked mobile order: route/location on top, then date, then
+       duration + pickup time together, then the edit action. */
+    .mptbm_results_trip {
+        order: 1;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    .mptbm_results_toolbar_middle {
+        order: 2;
+        width: 100%;
+    }
+    .mptbm_results_actions {
+        order: 3;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    .mptbm_results_trip_place {
+        max-width: 46%;
+    }
+    .mptbm_results_toolbar_middle .mptbm_summary_top_row {
+        flex-wrap: wrap;
+        row-gap: 4px;
+        column-gap: 18px;
+    }
+    .mptbm_results_toolbar_middle .mptbm_summary_col_date {
+        order: 1;
+        flex-basis: 100%;
+    }
+    .mptbm_results_toolbar_middle .mptbm_summary_col_duration {
+        order: 2;
+    }
+    .mptbm_results_toolbar_middle .mptbm_summary_col_time {
+        order: 3;
+    }
+}
+@media (max-width: 480px) {
+    .mptbm_results_toolbar {
+        padding: 12px 14px;
+    }
+    .mptbm_results_summary_title {
+        font-size: 15px;
+    }
+}
+
+/* ============================================
+   MPTBM Results Controls Row — count + sort + view toggle
+   (separate row below the trip-summary toolbar)
+   ============================================ */
+.mptbm_results_controls_row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: none;
+    border: 0;
+    padding: 10px;
+    margin-bottom: 0;
+    box-shadow: none;
+}
+.mptbm_results_summary_title {
+    margin: 0 !important;
+    font-size: 19px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    letter-spacing: -.01em;
+}
+.mptbm_results_controls_right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+    margin-left: auto;
+}
+
+/* ----- Grid / List view toggle ----- */
+.mptbm_results_view_toggle {
+    display: flex;
+    align-items: center;
+    background: #f1f5f9;
+    border-radius: 9px;
+    padding: 3px;
+    flex: 0 0 auto;
+}
+.mptbm_results_view_toggle button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 26px;
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    color: #94a3b8;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+}
+.mptbm_results_view_toggle button.is-active {
+    background: #ffffff;
+    color: var(--color_theme);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .12);
+}
+.mptbm_results_view_toggle button:hover:not(.is-active) {
+    color: #475569;
+}
+
+/* ----- List layout mode (default) -----
+   Same flex-column behavior the shared fdColumn utility class provided,
+   plus an explicit gap so list and grid draw their spacing from the same
+   10px value instead of list relying on each card's own margin. */
+.mp_sticky_depend_area.mptbm_view_list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ----- Grid layout mode ----- */
+.mp_sticky_depend_area.mptbm_view_grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: start;
+}
+.mp_sticky_depend_area.mptbm_view_grid > .mptbm_results_toolbar,
+.mp_sticky_depend_area.mptbm_view_grid > .mptbm_results_controls_row,
+.mp_sticky_depend_area.mptbm_view_grid > .geo-fence-no-transport,
+.mp_sticky_depend_area.mptbm_view_grid > .mptbm_extra_service,
+.mp_sticky_depend_area.mptbm_view_grid > ._dLayout_dFlex_fdColumn_btLight_2 {
+    grid-column: 1 / -1;
+}
+.mp_sticky_depend_area.mptbm_view_grid .mptbm-vehicle-wrapper {
+    min-width: 0;
+    height: 100%;
+}
+
+/* Grid cards get their own column layout (image on top, full-width content
+   below) instead of the list view's side-by-side row - the row layout only
+   leaves ~140px for title/chips at grid-column widths, which is what was
+   truncating everything unreadably. */
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_booking_item {
+    flex-direction: column !important;
+    height: 100%;
+    padding: 0 !important;
+    gap: 0 !important;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_image {
+    width: 100%;
+    max-width: none;
+    flex: 0 0 auto;
+    border-radius: 0;
+    align-self: auto;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_image .bg_image_area,
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_image .bg_image_area > div {
+    min-height: 150px;
+    border-radius: 0;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_list_details {
+    justify-content: flex-start;
+    padding: 14px 16px 16px;
+    gap: 8px;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_top_row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_title {
+    font-size: 16px !important;
+    white-space: normal;
+    line-height: 1.25;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_price_col {
+    align-items: flex-start !important;
+    width: 100%;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid h4.mptbm_vehicle_price {
+    font-size: 19px !important;
+    text-align: left !important;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid ul.mptbm_features_grid.list_inline_two {
+    flex-direction: column !important;
+    align-items: stretch;
+    gap: 5px !important;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid ul.mptbm_features_grid > li.mptbm_feature_item {
+    font-size: 12px;
+    padding: 5px 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_text {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid ul.mptbm_features_grid > li.mptbm_feature_item:nth-child(n+4) {
+    display: none !important;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_view_details_toggle {
+    margin-top: 4px;
+}
+@media (max-width: 640px) {
+    .mp_sticky_depend_area.mptbm_view_grid {
+        grid-template-columns: 1fr;
+    }
+    .mptbm_results_controls_row {
+        padding: 10px;
+    }
+}
+
+/* ============================================
+   MPTBM "View Details" — real specs + reviews
+   ============================================ */
+button.mptbm_view_details_toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: transparent;
+    border: 0;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    color: #64748b;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color .15s ease;
+}
+button.mptbm_view_details_toggle:hover {
+    color: var(--color_theme);
+}
+button.mptbm_view_details_toggle i {
+    font-size: 10px;
+    transition: transform .2s ease;
+}
+button.mptbm_view_details_toggle.is-open i {
+    transform: rotate(180deg);
+}
+
+.mptbm_vehicle_details_panel {
+    width: 100%;
+    margin: -6px 0 10px 0;
+    padding: 16px 18px;
+    background: #f8fafc;
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    border-radius: 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.mptbm_details_block h4 {
+    margin: 0 0 10px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #334155 !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.mptbm_details_reviews_avg {
+    color: #f5a623;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 12.5px;
+}
+
+/* ----- Specifications ----- */
+.mptbm_details_spec_list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.mptbm_details_spec_list li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: #1e293b;
+}
+.mptbm_details_spec_list li i {
+    color: var(--color_theme);
+    font-size: 12px;
+    width: 14px;
+    flex: 0 0 auto;
+}
+.mptbm_details_spec_label {
+    color: #64748b;
+    font-weight: 600;
+}
+.mptbm_details_spec_value {
+    font-weight: 600;
+}
+
+/* ----- Reviews ----- */
+.mptbm_details_reviews_list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.mptbm_details_review {
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+.mptbm_details_review:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+.mptbm_details_review_head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 3px;
+}
+.mptbm_details_review_author {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+}
+.mptbm_details_review_date {
+    font-size: 11.5px;
+    color: #94a3b8;
+}
+.mptbm_details_review_stars {
+    display: block;
+    color: #f5a623;
+    font-size: 12px;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+.mptbm_details_review p {
+    margin: 0 !important;
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+    color: #475569 !important;
+}
+
+@media (max-width: 640px) {
+    .mptbm_details_spec_list {
+        grid-template-columns: 1fr;
+    }
 }
