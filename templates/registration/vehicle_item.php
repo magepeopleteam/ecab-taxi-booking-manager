@@ -188,6 +188,20 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
         $extra_info = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_info', '');
         $has_extra_info = !empty(trim($extra_info));
 
+        // Real, fixed vehicle-identity fields (Admin > Vehicle Specification). Only the
+        // ones the admin actually filled in are kept/shown - never fabricated placeholders.
+        $vehicle_spec_rows = array(
+            'make_model' => array(esc_html__('Make & Model', 'ecab-taxi-booking-manager'), MP_Global_Function::get_post_info($post_id, 'mptbm_spec_make_model', '')),
+            'year'       => array(esc_html__('Year', 'ecab-taxi-booking-manager'), MP_Global_Function::get_post_info($post_id, 'mptbm_spec_year', '')),
+            'color'      => array(esc_html__('Color', 'ecab-taxi-booking-manager'), MP_Global_Function::get_post_info($post_id, 'mptbm_spec_color', '')),
+            'engine'     => array(esc_html__('Engine', 'ecab-taxi-booking-manager'), MP_Global_Function::get_post_info($post_id, 'mptbm_spec_engine', '')),
+            'plate'      => array(esc_html__('Plate Class', 'ecab-taxi-booking-manager'), MP_Global_Function::get_post_info($post_id, 'mptbm_spec_plate', '')),
+            'mileage'    => array(esc_html__('Mileage', 'ecab-taxi-booking-manager'), MP_Global_Function::get_post_info($post_id, 'mptbm_spec_mileage', '')),
+        );
+        $vehicle_spec_rows = array_filter($vehicle_spec_rows, function ($row) {
+            return trim((string) $row[1]) !== '';
+        });
+
         // Real average rating (0 when reviews are disabled/absent) - exposed as a data
         // attribute so the results toolbar can offer a genuine "Highest Rated" sort.
         $vehicle_avg_rating = (class_exists('MPTBM_Reviews') && MPTBM_Reviews::reviews_enabled($post_id))
@@ -195,70 +209,17 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
             : 0;
 ?>
         <div class="mptbm-vehicle-wrapper">
-            <div class="_dFlex mptbm_booking_item <?php echo $has_extra_info ? 'mptbm-has-extra-info' : ''; ?> <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" data-placeholder>
+            <div class="_dFlex mptbm_booking_item <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" data-placeholder>
                 <div class="_max_200_mR_xs mptbm_vehicle_image">
                     <div class="bg_image_area"  data-placeholder>
                         <div data-bg-image="<?php echo esc_attr($thumbnail); ?>"></div>
                     </div>
                 </div>
-                <div class="fdColumn _fullWidth mptbm_list_details">
-                    <div class="mptbm_vehicle_top_row">
-                        <div class="mptbm_vehicle_header">
-                            <h5 class="mptbm_vehicle_title"><?php echo esc_html(get_the_title($post_id)); ?></h5>
-                            <?php if (class_exists('MPTBM_Reviews')) { echo '<div class="mptbm_vehicle_rating">' . MPTBM_Reviews::get_rating_html($post_id) . '</div>'; } ?>
-                        </div>
-                        <div class="mptbm_vehicle_price_col">
-                            <div class="mptbm-tier-pricing-savings-ticket-container">
-                            <?php
-                            // Calculate and display tier pricing savings if applicable
-                            if (class_exists('MPTBM_Distance_Tier_Pricing')) {
-                                    $tier_pricing_enabled = get_post_meta($post_id, 'mptbm_distance_tier_enabled', true);
-                                    if ($tier_pricing_enabled === 'on') {
-                                        $regular_price = MPTBM_Distance_Tier_Pricing::calculate_regular_price(
-                                            $post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time
-                                        );
-
-                                        $savings = $regular_price - $price;
-
-                                        // Avoid division by zero
-                                        $savings_percentage = $regular_price > 0 ? ($savings / $regular_price) * 100 : 0;
-
-                                        if ($savings > 0) {
-                                            ?>
-                                            <div class="mptbm-tier-pricing-savings-ticket">
-                                                <span class="mptbm-tier-pricing-savings-ticket-amount">
-                                                    <?php echo wp_kses_post(MP_Global_Function::format_price($savings)); ?>
-                                                </span>
-                                                <span class="mptbm-tier-pricing-savings-ticket-label">
-                                                    Save
-                                                </span>
-                                                <span class="mptbm-tier-pricing-savings-ticket-percent">
-                                                    (<?php echo round($savings_percentage, 0); ?>%)
-                                                </span>
-                                            </div>
-                                            <?php
-                                        }
-                                    }
-                                }
-                            ?>
-                            </div>
-                            <?php
-                            // Show tier badge under price when available
-                            if (class_exists('MPTBM_Distance_Tier_Pricing')) {
-                                $dtp = new MPTBM_Distance_Tier_Pricing();
-                                $tier_badge = $dtp->get_tier_badge($post_id, $distance);
-                                if ($tier_badge) {
-                                    echo $tier_badge; // safe small HTML snippet generated by addon
-                                }
-                            }
-                            ?>
-                            <h4 class="mptbm_vehicle_price"> <?php echo wp_kses_post($price_display); ?></h4>
-                            <?php
-                            // Hook for peak hour badge display
-                            do_action('mptbm_after_vehicle_price', $post_id, $price_display);
-                            ?>
-                        </div>
+                <div class="fdColumn _fullWidth mptbm_vehicle_main">
+                    <div class="mptbm_vehicle_header">
+                        <h5 class="mptbm_vehicle_title"><?php echo esc_html(get_the_title($post_id)); ?></h5>
                     </div>
+                    <?php if (class_exists('MPTBM_Reviews')) { echo '<div class="mptbm_vehicle_rating">' . MPTBM_Reviews::get_rating_html($post_id) . '</div>'; } ?>
                     <?php if ($mptbm_unavailable) { ?>
                         <div class="mptbm_unavailable_badge" style="display:inline-block; margin: 2px 0; padding: 2px 8px; border-radius: 3px; background: #f8d7da; color: #842029; font-size: 12px; font-weight: 600;">
                             <?php esc_html_e('Unavailable', 'ecab-taxi-booking-manager'); ?><?php echo $mptbm_unavailable_reason ? ' - ' . esc_html($mptbm_unavailable_reason) : ''; ?>
@@ -318,17 +279,73 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                             <div></div>
                         <?php } ?>
                     </div>
+                    <!-- poro feature used this hook for showing driver's data -->
+                    <?php do_action('mptbm_booking_item_after_feature',$post_id); ?>
+                </div>
+                <div class="fdColumn mptbm_vehicle_cta">
+                    <div class="mptbm_vehicle_price_col">
+                        <div class="mptbm-tier-pricing-savings-ticket-container">
+                        <?php
+                        // Calculate and display tier pricing savings if applicable
+                        if (class_exists('MPTBM_Distance_Tier_Pricing')) {
+                                $tier_pricing_enabled = get_post_meta($post_id, 'mptbm_distance_tier_enabled', true);
+                                if ($tier_pricing_enabled === 'on') {
+                                    $regular_price = MPTBM_Distance_Tier_Pricing::calculate_regular_price(
+                                        $post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time
+                                    );
+
+                                    $savings = $regular_price - $price;
+
+                                    // Avoid division by zero
+                                    $savings_percentage = $regular_price > 0 ? ($savings / $regular_price) * 100 : 0;
+
+                                    if ($savings > 0) {
+                                        ?>
+                                        <div class="mptbm-tier-pricing-savings-ticket">
+                                            <span class="mptbm-tier-pricing-savings-ticket-amount">
+                                                <?php echo wp_kses_post(MP_Global_Function::format_price($savings)); ?>
+                                            </span>
+                                            <span class="mptbm-tier-pricing-savings-ticket-label">
+                                                Save
+                                            </span>
+                                            <span class="mptbm-tier-pricing-savings-ticket-percent">
+                                                (<?php echo round($savings_percentage, 0); ?>%)
+                                            </span>
+                                        </div>
+                                        <?php
+                                    }
+                                }
+                            }
+                        ?>
+                        </div>
+                        <?php
+                        // Show tier badge under price when available
+                        if (class_exists('MPTBM_Distance_Tier_Pricing')) {
+                            $dtp = new MPTBM_Distance_Tier_Pricing();
+                            $tier_badge = $dtp->get_tier_badge($post_id, $distance);
+                            if ($tier_badge) {
+                                echo $tier_badge; // safe small HTML snippet generated by addon
+                            }
+                        }
+                        ?>
+                        <h4 class="mptbm_vehicle_price"> <?php echo wp_kses_post($price_display); ?></h4>
+                        <?php
+                        // Hook for peak hour badge display
+                        do_action('mptbm_after_vehicle_price', $post_id, $price_display);
+                        ?>
+                    </div>
                     <?php
                     // "View Details" only appears when there is genuinely more to show than the
-                    // feature chips already on the card - real specs beyond the first 6, and/or
-                    // real customer reviews (MPTBM_Reviews, gated by the per-vehicle admin toggle).
-                    // Never populated with placeholder or fabricated content.
+                    // feature chips already on the card - real specs beyond the first 6, real
+                    // customer reviews (MPTBM_Reviews, gated by the per-vehicle admin toggle),
+                    // and/or admin-entered extra info. Never populated with placeholder or
+                    // fabricated content.
                     $clean_features_full = $clean_features_full ?? array();
                     $has_more_specs = count($clean_features_full) > 6;
                     $vehicle_reviews = (class_exists('MPTBM_Reviews') && MPTBM_Reviews::reviews_enabled($post_id))
                         ? MPTBM_Reviews::get_vehicle_reviews($post_id)
                         : array();
-                    $show_details_toggle = $has_more_specs || count($vehicle_reviews) > 0;
+                    $show_details_toggle = apply_filters('mptbm_show_vehicle_details_toggle', $has_more_specs || count($vehicle_reviews) > 0 || $has_extra_info || count($vehicle_spec_rows) > 0, $post_id);
                     ?>
                     <div class="mptbm_vehicle_cta_row">
                             <?php if ($mptbm_unavailable) { ?>
@@ -360,15 +377,10 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                                 <?php } ?>
                                 <?php if ($enable_inventory == 'yes' && $available_quantity > 0) { ?>
                                     <div class="mptbm-button-container">
-                                        <button type="button" class="_mpBtn_xs mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-transport-rating="<?php echo esc_attr($vehicle_avg_rating); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-stop-price="<?php echo esc_attr($stop_price_per_unit ?? 0); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
+                                        <button type="button" class="_mpBtn_xs mptbm_transport_select" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-transport-rating="<?php echo esc_attr($vehicle_avg_rating); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-stop-price="<?php echo esc_attr($stop_price_per_unit ?? 0); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
                                         <span class="" data-icon></span>
                                         <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
                                     </button>
-                                        <?php if ($has_extra_info) { ?>
-                                            <div class="mptbm-info-button" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>">
-                                                <i class="fas fa-info"></i>
-                                            </div>
-                                        <?php } ?>
                                     </div>
                                 <?php } else if ($enable_inventory == 'yes' && $available_quantity <= 0) { ?>
                                     <button type="button" class="_mpBtn_xs mptbm_out_of_stock" disabled style="background-color: #ccc; cursor: not-allowed;">
@@ -376,15 +388,10 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                                     </button>
                                 <?php } else { ?>
                                     <div class="mptbm-button-container">
-                                        <button type="button" class="_mpBtn_xs mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-transport-rating="<?php echo esc_attr($vehicle_avg_rating); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-stop-price="<?php echo esc_attr($stop_price_per_unit ?? 0); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
+                                        <button type="button" class="_mpBtn_xs mptbm_transport_select" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-transport-rating="<?php echo esc_attr($vehicle_avg_rating); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-stop-price="<?php echo esc_attr($stop_price_per_unit ?? 0); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs">
                                         <span class="" data-icon></span>
                                         <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
                                     </button>
-                                        <?php if ($has_extra_info) { ?>
-                                            <div class="mptbm-info-button" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>">
-                                                <i class="fas fa-info"></i>
-                                            </div>
-                                        <?php } ?>
                                     </div>
                                 <?php } ?>
                             <?php } ?>
@@ -395,15 +402,26 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                             <i class="fas fa-chevron-down"></i>
                         </button>
                     <?php } ?>
-                    <!-- poro feature used this hook for showing driver's data -->
-                    <?php do_action('mptbm_booking_item_after_feature',$post_id); ?>
                 </div>
             </div>
             <?php if ($show_details_toggle) { ?>
                 <div class="mptbm_vehicle_details_panel" data-post-id="<?php echo esc_attr($post_id); ?>" style="display:none;">
-                    <?php if ($has_more_specs) { ?>
+                    <?php if (count($vehicle_spec_rows) > 0) { ?>
                         <div class="mptbm_details_block">
                             <h4><?php esc_html_e('Vehicle Specifications', 'ecab-taxi-booking-manager'); ?></h4>
+                            <div class="mptbm_spec_table">
+                                <?php foreach ($vehicle_spec_rows as $row) { ?>
+                                    <div class="mptbm_spec_row">
+                                        <span><?php echo esc_html($row[0]); ?></span>
+                                        <span><?php echo esc_html($row[1]); ?></span>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        </div>
+                    <?php } ?>
+                    <?php if ($has_more_specs) { ?>
+                        <div class="mptbm_details_block">
+                            <h4><?php esc_html_e('Additional Features', 'ecab-taxi-booking-manager'); ?></h4>
                             <ul class="mptbm_details_spec_list">
                                 <?php foreach ($clean_features_full as $features) {
                                     $label = array_key_exists('label', $features) ? trim($features['label']) : '';
@@ -448,20 +466,13 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                             </div>
                         </div>
                     <?php } ?>
-                </div>
-            <?php } ?>
-            <?php if ($has_extra_info) { ?>
-                <div class="mptbm-extra-info-content" style="display: none; width: 100%; margin:-8px 0 10px 0; padding: 12px 15px; background: linear-gradient(to right, #f8f9fa 0%, #ffffff 100%); border: 1px solid #e1e5e9; border-top: 3px solid var(--color_theme); border-radius:8px 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); font-size: 13px; line-height: 1.5; clear: both; box-sizing: border-box; position: relative;" data-post-id="<?php echo esc_attr($post_id); ?>">
-                    <div style="position: absolute; top: -3px; left: 20px; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid var(--color_theme);"></div>
-                    <div style="border-left: 3px solid var(--color_theme); padding-left: 12px; background: rgba(255,255,255,0.7); margin: -5px 0; padding-top: 8px; padding-bottom: 8px; border-radius: 4px;">
-                        <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                            <i class="fas fa-info-circle" style="color: var(--color_theme); margin-right: 6px; font-size: 14px;"></i>
-                            <strong style="color: var(--color_theme); font-size: 14px;">Additional Information</strong>
+                    <?php if ($has_extra_info) { ?>
+                        <div class="mptbm_details_block">
+                            <h4><?php esc_html_e('Additional Information', 'ecab-taxi-booking-manager'); ?></h4>
+                            <div class="mptbm_details_extra_info"><?php echo wp_kses_post(nl2br($extra_info)); ?></div>
                         </div>
-                        <div style="color: #555; font-size: 13px; line-height: 1.6;">
-                            <?php echo wp_kses_post(nl2br($extra_info)); ?>
-                        </div>
-                    </div>
+                    <?php } ?>
+                    <?php do_action('mptbm_vehicle_details_panel_content', $post_id); ?>
                 </div>
             <?php } ?>
         </div>

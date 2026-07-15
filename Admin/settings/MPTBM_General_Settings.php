@@ -203,6 +203,21 @@
 					update_post_meta($post_id, 'mptbm_maximum_bag', $max_bag);
 					update_post_meta($post_id, 'mptbm_maximum_hand_luggage', $max_hand_luggage);
 					update_post_meta($post_id, 'mptbm_extra_info', $extra_info);
+
+					// Vehicle Specification - real, fixed identity fields (distinct from the
+					// free-form features list above). Any left blank by the admin are simply
+					// not saved as empty strings so the frontend spec table can skip them.
+					$spec_fields = array(
+						'mptbm_spec_make_model' => isset($_POST['mptbm_spec_make_model']) ? sanitize_text_field($_POST['mptbm_spec_make_model']) : '',
+						'mptbm_spec_year'       => isset($_POST['mptbm_spec_year']) ? sanitize_text_field($_POST['mptbm_spec_year']) : '',
+						'mptbm_spec_color'      => isset($_POST['mptbm_spec_color']) ? sanitize_text_field($_POST['mptbm_spec_color']) : '',
+						'mptbm_spec_engine'     => isset($_POST['mptbm_spec_engine']) ? sanitize_text_field($_POST['mptbm_spec_engine']) : '',
+						'mptbm_spec_plate'      => isset($_POST['mptbm_spec_plate']) ? sanitize_text_field($_POST['mptbm_spec_plate']) : '',
+						'mptbm_spec_mileage'    => isset($_POST['mptbm_spec_mileage']) ? sanitize_text_field($_POST['mptbm_spec_mileage']) : '',
+					);
+					foreach ($spec_fields as $meta_key => $value) {
+						update_post_meta($post_id, $meta_key, $value);
+					}
 					
 					// Save inventory settings
 					$enable_inventory = isset($_POST['mptbm_enable_inventory']) && sanitize_text_field($_POST['mptbm_enable_inventory']) ? 'yes' : 'no';

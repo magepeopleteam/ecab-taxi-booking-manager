@@ -507,6 +507,16 @@
 
 .mptbm_rent_editor_wrapper:first-child { margin-top: 0; }
 
+/* mp_style.css (loaded globally on every wp-admin page) has `div.mpStyle {
+   margin: 0; padding: 0; }` - higher specificity (element+class) than the
+   plain `.mptbm_rent_editor_wrapper` class rule above, so on the one wrapper
+   that also carries .mpStyle (Vehicle Features, which needs it for its
+   icon/image picker widget), it silently zeroed out margin-top, leaving that
+   section flush against the one above it with no gap. Restore it here with
+   matching specificity. */
+.mptbm_rent_editor_wrapper.mpStyle { margin-top: 16px; }
+.mptbm_rent_editor_wrapper.mpStyle:first-child { margin-top: 0; }
+
 /* Card Header */
 .mptbm_rent_editor_header {
     background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
@@ -1763,6 +1773,14 @@ input.mptbm_taxi_feature_input:focus {
     flex-direction: column;
     gap: 10px;
     width: 100%;
+}
+/* The nested "Vehicle Availability" wrapper (taxi_availability_status()) is the
+   last item in this flex column. As a .mptbm_rent_editor_wrapper it normally
+   carries its own margin-top:16px, which stacked on top of the 10px flex gap
+   above - 26px there vs. only 10px between the other setting cards. Zero it
+   out so the flex gap is the only spacing, consistent with its siblings. */
+.mptbm_taxi_inventory_settings_card > .mptbm_rent_editor_wrapper {
+    margin-top: 0;
 }
 
 .mptbm_taxi_inventory_styled_input {
@@ -3107,6 +3125,259 @@ select.formControl,
 /* Cancel the old ::after "✓ Selected" — superseded by .mptbm-oa-lbl-on */
 .mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner::after {
     content: none;
+}
+
+/* ================================================================
+   SECTION: MANAGE REVIEWS (vehicle edit screen)
+   ================================================================ */
+/* Always rendered inside .mptbm_rent_editor_wrapper (which already supplies
+   the card's own border/radius/shadow, below its own header) - so this is
+   just a continuation of that same card via a divider, not a second nested
+   bordered box. Horizontal padding matches .mptbm_rent_editor_header's
+   (14px 20px) so "Manage Reviews" lines up with the header title above it. */
+.mptbm_reviews_manage_card {
+    border-top: 1px solid var(--mp-border-light);
+    padding: 18px 20px 20px;
+}
+.mptbm_reviews_manage_head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.mptbm_reviews_manage_head .mptbm_rent_label { margin: 0; }
+.mptbm_reviews_count_badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--mp-primary);
+    background: var(--mp-primary-light);
+    padding: 3px 10px;
+    border-radius: var(--mp-r-full);
+}
+
+/* ----- Add Review card ----- */
+.mptbm_add_review_card {
+    background: var(--mp-bg);
+    border: 1px solid var(--mp-border-light);
+    border-radius: var(--mp-r-md);
+    padding: 16px;
+    margin-bottom: 20px;
+}
+.mptbm_add_review_title {
+    margin: 0 0 2px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--mp-text-800);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mptbm_add_review_title .dashicons { color: var(--mp-warning); font-size: 16px; width: 16px; height: 16px; }
+.mptbm_add_review_subtitle {
+    margin: 0 0 14px;
+    font-size: 12px;
+    color: var(--mp-text-500);
+}
+.mptbm_add_review_grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    align-items: start;
+    margin-bottom: 12px;
+}
+.mptbm_review_field_text { margin-bottom: 12px; }
+.mptbm_review_field label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mp-text-600);
+}
+.mptbm_review_input,
+.mptbm_review_textarea {
+    border: 1.5px solid var(--mp-border);
+    border-radius: var(--mp-r-md);
+    font-size: 13.5px;
+    font-family: var(--mp-font);
+    background: var(--mp-white);
+    color: var(--mp-text-800);
+    transition: border-color .15s ease, box-shadow .15s ease;
+    box-sizing: border-box;
+    outline: none;
+}
+.mptbm_review_input {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+}
+.mptbm_review_textarea {
+    width: 100%;
+    min-height: 76px;
+    padding: 10px 12px;
+    line-height: 1.6;
+    resize: vertical;
+}
+.mptbm_review_input:focus,
+.mptbm_review_textarea:focus {
+    border-color: var(--mp-primary);
+    box-shadow: var(--mp-shadow-focus);
+}
+.mptbm_review_input::placeholder,
+.mptbm_review_textarea::placeholder { color: var(--mp-text-400); }
+
+/* Clickable 1-5 star picker (replaces the old plain <select>) */
+.mptbm_star_picker {
+    display: inline-flex;
+    gap: 3px;
+    height: 38px;
+    align-items: center;
+}
+.mptbm_star_picker .dashicons {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    color: var(--mp-border-dark);
+    cursor: pointer;
+    transition: color .1s ease, transform .1s ease;
+}
+.mptbm_star_picker .dashicons:hover { transform: scale(1.12); }
+.mptbm_star_picker .dashicons.is-filled { color: var(--mp-warning); }
+
+.mptbm_add_review_actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.mptbm_review_btn_primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--mp-primary);
+    color: var(--mp-white) !important;
+    border: 0;
+    border-radius: var(--mp-r-md);
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s ease;
+    box-shadow: var(--mp-shadow-sm);
+}
+.mptbm_review_btn_primary:hover { background: var(--mp-primary-dark); }
+.mptbm_review_btn_primary:disabled { opacity: .6; cursor: not-allowed; }
+.mptbm_add_review_message {
+    font-size: 12.5px;
+    font-weight: 600;
+}
+.mptbm_add_review_message.is-error { color: var(--mp-danger); }
+.mptbm_add_review_message.is-success { color: var(--mp-success); }
+
+/* ----- Existing reviews list ----- */
+.mptbm_review_btn_ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--mp-white);
+    border: 1.5px solid var(--mp-border);
+    border-radius: var(--mp-r-md);
+    padding: 8px 16px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--mp-text-700);
+    cursor: pointer;
+    transition: border-color .15s ease, color .15s ease;
+}
+.mptbm_review_btn_ghost:hover { border-color: var(--mp-primary); color: var(--mp-primary); }
+.mptbm_review_btn_ghost:disabled { opacity: .6; cursor: not-allowed; }
+
+.mptbm_reviews_empty_state {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--mp-text-500);
+    padding: 10px 2px;
+}
+.mptbm_reviews_empty_state .dashicons { color: var(--mp-text-300); font-size: 18px; width: 18px; height: 18px; }
+
+.mptbm_reviews_list { margin-top: 12px; }
+#mptbm_load_more_reviews_btn { margin-top: 12px; }
+.mptbm_review_row {
+    display: flex;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--mp-border-light);
+}
+.mptbm_review_row:first-child { padding-top: 0; }
+.mptbm_review_row:last-child { border-bottom: 0; }
+.mptbm_review_avatar {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--mp-primary);
+    color: var(--mp-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+.mptbm_review_body { flex: 1 1 auto; min-width: 0; }
+.mptbm_review_row_head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.mptbm_review_author {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--mp-text-800);
+}
+.mptbm_review_date {
+    font-size: 11.5px;
+    color: var(--mp-text-400);
+}
+.mptbm_review_stars {
+    color: var(--mp-warning);
+    font-size: 12px;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+.mptbm_review_text {
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--mp-text-600);
+}
+.mptbm_review_delete_btn {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--mp-r-md);
+    border: 1px solid var(--mp-border);
+    background: var(--mp-white);
+    color: var(--mp-text-400);
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.mptbm_review_delete_btn:hover {
+    background: var(--mp-danger-light);
+    border-color: var(--mp-danger-border);
+    color: var(--mp-danger);
+}
+.mptbm_review_delete_btn:disabled { opacity: .6; cursor: not-allowed; }
+.mptbm_review_delete_btn .dashicons { font-size: 15px; width: 15px; height: 15px; }
+
+@media (max-width: 640px) {
+    .mptbm_add_review_grid { grid-template-columns: 1fr; }
 }
 
 /* Responsive: 2-col on small viewports */

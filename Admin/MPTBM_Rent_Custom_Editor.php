@@ -438,6 +438,74 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
             </div>
         <?php }
+
+        // Real, fixed vehicle-identity fields (make/model/year/color/engine/plate/mileage) -
+        // distinct from the free-form "Vehicle Features" chip list. Displayed in the
+        // frontend "View Details" panel as a Make & Model / Year / Color / ... spec table,
+        // only for whichever fields the admin actually filled in.
+        public static function vehicle_specification_fields( $post_id ){
+            $make_model = MP_Global_Function::get_post_info( $post_id, 'mptbm_spec_make_model', '' );
+            $year       = MP_Global_Function::get_post_info( $post_id, 'mptbm_spec_year', '' );
+            $color      = MP_Global_Function::get_post_info( $post_id, 'mptbm_spec_color', '' );
+            $engine     = MP_Global_Function::get_post_info( $post_id, 'mptbm_spec_engine', '' );
+            $plate      = MP_Global_Function::get_post_info( $post_id, 'mptbm_spec_plate', '' );
+            $mileage    = MP_Global_Function::get_post_info( $post_id, 'mptbm_spec_mileage', '' );
+            ?>
+            <div class="mptbm_rent_editor_wrapper">
+
+                <!-- Header -->
+                <div class="mptbm_rent_editor_header">
+                    <div>
+                        <h2 class="mptbm_rent_editor_title"><?php esc_html_e( 'Vehicle Specification', 'ecab-taxi-booking-manager' ); ?></h2>
+                        <p class="mptbm_rent_editor_subtitle">
+                            <?php esc_html_e( 'Real vehicle identity details shown to customers in "View Details". Leave any field blank to omit it.', 'ecab-taxi-booking-manager' ); ?>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="mptbm_rent_editor_body mptbm_field_grid_2col">
+
+                    <div class="mptbm_rent_field_group">
+                        <label><?php esc_html_e( 'Make & Model', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'The vehicle\'s manufacturer and model.', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_spec_make_model" type="text" value="<?php echo esc_attr( $make_model );?>" placeholder="<?php esc_html_e( 'e.g. Toyota Premio', 'ecab-taxi-booking-manager' ); ?>">
+                    </div>
+
+                    <div class="mptbm_rent_field_group">
+                        <label><?php esc_html_e( 'Year', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Model year of the vehicle.', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_spec_year" type="text" value="<?php echo esc_attr( $year );?>" placeholder="<?php esc_html_e( 'e.g. 2023', 'ecab-taxi-booking-manager' ); ?>">
+                    </div>
+
+                    <div class="mptbm_rent_field_group">
+                        <label><?php esc_html_e( 'Color', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Exterior color of the vehicle.', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_spec_color" type="text" value="<?php echo esc_attr( $color );?>" placeholder="<?php esc_html_e( 'e.g. Pearl White', 'ecab-taxi-booking-manager' ); ?>">
+                    </div>
+
+                    <div class="mptbm_rent_field_group">
+                        <label><?php esc_html_e( 'Engine', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Engine size/type.', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_spec_engine" type="text" value="<?php echo esc_attr( $engine );?>" placeholder="<?php esc_html_e( 'e.g. 1.8L Hybrid', 'ecab-taxi-booking-manager' ); ?>">
+                    </div>
+
+                    <div class="mptbm_rent_field_group">
+                        <label><?php esc_html_e( 'Plate Class', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Registration/plate class shown to customers (not the full plate number).', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_spec_plate" type="text" value="<?php echo esc_attr( $plate );?>" placeholder="<?php esc_html_e( 'e.g. Dhaka Metro-GA', 'ecab-taxi-booking-manager' ); ?>">
+                    </div>
+
+                    <div class="mptbm_rent_field_group">
+                        <label><?php esc_html_e( 'Mileage', 'ecab-taxi-booking-manager' ); ?></label>
+                        <p class="mptbm_taxi_help"><?php esc_html_e( 'Fuel efficiency, as you\'d like it shown to customers.', 'ecab-taxi-booking-manager' ); ?></p>
+                        <input name="mptbm_spec_mileage" type="text" value="<?php echo esc_attr( $mileage );?>" placeholder="<?php esc_html_e( 'e.g. 18 km/l', 'ecab-taxi-booking-manager' ); ?>">
+                    </div>
+
+                </div>
+
+            </div>
+        <?php }
         public static function taxi_title_description_set( $post_id ){ ?>
             <div class="mptbm_rent_editor_wrapper">
 
@@ -606,8 +674,10 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 <?php wp_nonce_field('mptbm_transportation_type_nonce', 'mptbm_transportation_type_nonce');
 
                 self::taxi_title_description_set( $post_id );
-                
+
                 self::general_data_configuration( $max_passenger, $max_bag, $max_hand_luggage, $extra_info );
+
+                self::vehicle_specification_fields( $post_id );
 
                 ?>
 
@@ -904,54 +974,120 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             </div>
         <?php }
 
-        // Reviews are only manageable here while the toggle above is on, and are not rendered
-        // up front - admin clicks a button to load them (20 at a time, with Load More), so a
-        // vehicle with hundreds of reviews doesn't bloat the edit page.
+        // Reviews are only manageable here while the toggle above is on. Existing reviews are
+        // not rendered up front - admin clicks a button to load them (20 at a time, with Load
+        // More), so a vehicle with hundreds of reviews doesn't bloat the edit page. The "Add
+        // Review" form always shows (even at zero reviews) since real reviews collected outside
+        // the normal completed-booking flow (phone, in person, another platform) had no way to
+        // ever be entered otherwise.
         public static function render_reviews_admin_list( $post_id ){
             if ( ! class_exists( 'MPTBM_Reviews' ) || ! MPTBM_Reviews::reviews_enabled( $post_id ) ) {
                 return;
             }
             $total = MPTBM_Reviews::get_average_rating( $post_id )['count'];
-            if ( $total === 0 ) {
-                return;
-            }
             ?>
-            <div class="mptbm_taxi_advanced_card mptbm_reviews_manage_body" id="mptbm_admin_reviews_list" style="margin-top: 15px; border-top: 1px solid #e1e5e9; padding-top: 15px;">
-                <label class="mptbm_rent_label"><?php esc_html_e( 'Manage Reviews', 'ecab-taxi-booking-manager' ); ?></label>
-                <p>
-                    <button type="button" class="button" id="mptbm_view_reviews_btn"
-                        data-post-id="<?php echo esc_attr( $post_id ); ?>"
-                        data-nonce="<?php echo esc_attr( wp_create_nonce( 'mptbm_load_reviews_' . $post_id ) ); ?>">
+            <div class="mptbm_reviews_manage_card" id="mptbm_admin_reviews_list">
+                <div class="mptbm_reviews_manage_head">
+                    <label class="mptbm_rent_label"><?php esc_html_e( 'Manage Reviews', 'ecab-taxi-booking-manager' ); ?></label>
+                    <span class="mptbm_reviews_count_badge" id="mptbm_reviews_count_badge">
                         <?php
                         printf(
                             /* translators: %d: number of reviews */
-                            esc_html__( 'View Reviews (%d)', 'ecab-taxi-booking-manager' ),
+                            esc_html( _n( '%d review', '%d reviews', $total, 'ecab-taxi-booking-manager' ) ),
                             (int) $total
                         );
                         ?>
-                    </button>
+                    </span>
+                </div>
+
+                <div class="mptbm_add_review_card">
+                    <p class="mptbm_add_review_title"><span class="dashicons dashicons-star-filled"></span><?php esc_html_e( 'Add a Review', 'ecab-taxi-booking-manager' ); ?></p>
+                    <p class="mptbm_add_review_subtitle"><?php esc_html_e( 'For real feedback collected outside the normal completed-booking flow (phone, in person, another platform).', 'ecab-taxi-booking-manager' ); ?></p>
+
+                    <div class="mptbm_add_review_grid">
+                        <div class="mptbm_review_field">
+                            <label for="mptbm_new_review_author"><?php esc_html_e( 'Reviewer Name', 'ecab-taxi-booking-manager' ); ?></label>
+                            <input type="text" id="mptbm_new_review_author" class="mptbm_review_input" placeholder="<?php esc_attr_e( 'e.g. Tasnim R.', 'ecab-taxi-booking-manager' ); ?>">
+                        </div>
+                        <div class="mptbm_review_field">
+                            <label><?php esc_html_e( 'Rating', 'ecab-taxi-booking-manager' ); ?></label>
+                            <div class="mptbm_star_picker" id="mptbm_new_review_star_picker">
+                                <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
+                                    <span class="dashicons dashicons-star-filled is-filled" data-value="<?php echo esc_attr( $i ); ?>"></span>
+                                <?php endfor; ?>
+                            </div>
+                            <input type="hidden" id="mptbm_new_review_rating" value="5">
+                        </div>
+                    </div>
+
+                    <div class="mptbm_review_field mptbm_review_field_text">
+                        <label for="mptbm_new_review_content"><?php esc_html_e( 'Review Text', 'ecab-taxi-booking-manager' ); ?></label>
+                        <textarea id="mptbm_new_review_content" rows="3" class="mptbm_review_textarea" placeholder="<?php esc_attr_e( 'What did the customer say about their trip?', 'ecab-taxi-booking-manager' ); ?>"></textarea>
+                    </div>
+
+                    <div class="mptbm_add_review_actions">
+                        <button type="button" class="mptbm_review_btn_primary" id="mptbm_add_review_btn"
+                            data-post-id="<?php echo esc_attr( $post_id ); ?>"
+                            data-nonce="<?php echo esc_attr( wp_create_nonce( 'mptbm_add_review_' . $post_id ) ); ?>">
+                            <span class="dashicons dashicons-plus-alt2"></span>
+                            <?php esc_html_e( 'Add Review', 'ecab-taxi-booking-manager' ); ?>
+                        </button>
+                        <span class="mptbm_add_review_message" id="mptbm_add_review_message"></span>
+                    </div>
+                </div>
+
+                <button type="button" class="mptbm_review_btn_ghost" id="mptbm_view_reviews_btn"
+                    data-post-id="<?php echo esc_attr( $post_id ); ?>"
+                    data-nonce="<?php echo esc_attr( wp_create_nonce( 'mptbm_load_reviews_' . $post_id ) ); ?>"
+                    <?php echo $total === 0 ? 'style="display:none;"' : ''; ?>>
+                    <span class="dashicons dashicons-visibility"></span>
+                    <span id="mptbm_view_reviews_btn_label">
+                    <?php
+                    printf(
+                        /* translators: %d: number of reviews */
+                        esc_html__( 'View Reviews (%d)', 'ecab-taxi-booking-manager' ),
+                        (int) $total
+                    );
+                    ?>
+                    </span>
+                </button>
+                <p class="mptbm_reviews_empty_state" id="mptbm_no_reviews_yet" <?php echo $total > 0 ? 'style="display:none;"' : ''; ?>>
+                    <span class="dashicons dashicons-format-status"></span>
+                    <?php esc_html_e( 'No reviews yet.', 'ecab-taxi-booking-manager' ); ?>
                 </p>
-                <div id="mptbm_reviews_list_body"></div>
-                <p>
-                    <button type="button" class="button" id="mptbm_load_more_reviews_btn" style="display:none;" data-offset="0">
-                        <?php esc_html_e( 'Load More', 'ecab-taxi-booking-manager' ); ?>
-                    </button>
-                </p>
+                <div class="mptbm_reviews_list" id="mptbm_reviews_list_body"></div>
+                <button type="button" class="mptbm_review_btn_ghost" id="mptbm_load_more_reviews_btn" style="display:none;" data-offset="0">
+                    <?php esc_html_e( 'Load More', 'ecab-taxi-booking-manager' ); ?>
+                </button>
             </div>
             <script>
             jQuery(function($){
+                var mptbmReviewTotal = <?php echo (int) $total; ?>;
+
+                function mptbmEscapeHtml(str) {
+                    return $('<div>').text(str || '').html();
+                }
+                function mptbmInitials(name) {
+                    var parts = $.trim(name || '').split(/\s+/);
+                    var initials = '';
+                    $.each(parts.slice(0, 2), function(i, part) { initials += part.charAt(0).toUpperCase(); });
+                    return initials || '?';
+                }
                 function mptbmReviewRowHtml(review) {
                     var stars = '';
                     for (var i = 1; i <= 5; i++) { stars += (i <= review.rating) ? '★' : '☆'; }
-                    return '<div class="mptbm_admin_review_row" data-comment-id="' + review.id + '" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #eee;">' +
-                        '<div>' +
-                            '<div style="color:#f5a623;">' + stars + '</div>' +
-                            '<strong>' + review.author + '</strong>' +
-                            '<span style="color:#999;font-size:12px;"> — ' + review.date + '</span>' +
-                            '<p style="margin:4px 0 0;">' + review.content + '</p>' +
+                    return '<div class="mptbm_review_row" data-comment-id="' + review.id + '">' +
+                        '<div class="mptbm_review_avatar">' + mptbmInitials(review.author) + '</div>' +
+                        '<div class="mptbm_review_body">' +
+                            '<div class="mptbm_review_row_head">' +
+                                '<strong class="mptbm_review_author">' + mptbmEscapeHtml(review.author) + '</strong>' +
+                                '<span class="mptbm_review_date">' + mptbmEscapeHtml(review.date) + '</span>' +
+                            '</div>' +
+                            '<div class="mptbm_review_stars">' + stars + '</div>' +
+                            '<p class="mptbm_review_text">' + mptbmEscapeHtml(review.content) + '</p>' +
                         '</div>' +
-                        '<button type="button" class="button mptbm_delete_review_btn" data-comment-id="' + review.id + '" data-nonce="' + review.delete_nonce + '">' +
-                            <?php echo wp_json_encode( __( 'Delete', 'ecab-taxi-booking-manager' ) ); ?> +
+                        '<button type="button" class="mptbm_review_delete_btn" data-comment-id="' + review.id + '" data-nonce="' + review.delete_nonce + '" title="<?php echo esc_js( __( 'Delete', 'ecab-taxi-booking-manager' ) ); ?>">' +
+                            '<span class="dashicons dashicons-trash"></span>' +
                         '</button>' +
                     '</div>';
                 }
@@ -990,12 +1126,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     mptbmLoadReviews($(this).data('offset') || 0);
                 });
 
-                $(document).on('click', '.mptbm_delete_review_btn', function(){
+                $(document).on('click', '.mptbm_review_delete_btn', function(){
                     if (!confirm(<?php echo wp_json_encode( __( 'Delete this review? This cannot be undone.', 'ecab-taxi-booking-manager' ) ); ?>)) {
                         return;
                     }
                     var $btn = $(this).prop('disabled', true);
-                    var $row = $btn.closest('.mptbm_admin_review_row');
+                    var $row = $btn.closest('.mptbm_review_row');
                     $.post(ajaxurl, {
                         action: 'mptbm_admin_delete_review',
                         comment_id: $btn.data('comment-id'),
@@ -1004,6 +1140,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     }, function(response){
                         if (response.success) {
                             $row.fadeOut(200, function(){ $(this).remove(); });
+                            mptbmReviewTotal = Math.max(0, mptbmReviewTotal - 1);
+                            $('#mptbm_reviews_count_badge').text(mptbmReviewTotal + (mptbmReviewTotal === 1 ? ' <?php echo esc_js( __( 'review', 'ecab-taxi-booking-manager' ) ); ?>' : ' <?php echo esc_js( __( 'reviews', 'ecab-taxi-booking-manager' ) ); ?>'));
                         } else {
                             $btn.prop('disabled', false);
                             alert((response.data && response.data.message) ? response.data.message : 'Error');
@@ -1011,6 +1149,63 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     }).fail(function(){
                         $btn.prop('disabled', false);
                         alert('Error, please try again.');
+                    });
+                });
+
+                /* ---------- Clickable star picker ---------- */
+                function mptbmPaintStars($picker, value) {
+                    $picker.find('.dashicons').each(function(){
+                        var starVal = $(this).data('value');
+                        $(this)
+                            .toggleClass('dashicons-star-filled', starVal <= value)
+                            .toggleClass('dashicons-star-empty', starVal > value)
+                            .toggleClass('is-filled', starVal <= value);
+                    });
+                }
+                $('#mptbm_new_review_star_picker .dashicons').on('click', function(){
+                    var val = $(this).data('value');
+                    $('#mptbm_new_review_rating').val(val);
+                    mptbmPaintStars($('#mptbm_new_review_star_picker'), val);
+                });
+
+                $('#mptbm_add_review_btn').on('click', function(){
+                    var $btn = $(this).prop('disabled', true);
+                    var $msg = $('#mptbm_add_review_message').removeClass('is-error is-success').text('<?php echo esc_js( __( 'Saving…', 'ecab-taxi-booking-manager' ) ); ?>');
+                    $.post(ajaxurl, {
+                        action: 'mptbm_admin_add_review',
+                        post_id: $btn.data('post-id'),
+                        nonce: $btn.data('nonce'),
+                        author: $('#mptbm_new_review_author').val(),
+                        rating: $('#mptbm_new_review_rating').val(),
+                        content: $('#mptbm_new_review_content').val()
+                    }, function(response){
+                        $btn.prop('disabled', false);
+                        if (!response.success) {
+                            $msg.addClass('is-error').text((response.data && response.data.message) ? response.data.message : 'Error');
+                            return;
+                        }
+                        $msg.addClass('is-success').text(response.data.message);
+                        $('#mptbm_new_review_author').val('');
+                        $('#mptbm_new_review_content').val('');
+                        $('#mptbm_new_review_rating').val('5');
+                        mptbmPaintStars($('#mptbm_new_review_star_picker'), 5);
+
+                        mptbmReviewTotal++;
+                        $('#mptbm_no_reviews_yet').hide();
+                        $('#mptbm_reviews_count_badge').text(mptbmReviewTotal + (mptbmReviewTotal === 1 ? ' <?php echo esc_js( __( 'review', 'ecab-taxi-booking-manager' ) ); ?>' : ' <?php echo esc_js( __( 'reviews', 'ecab-taxi-booking-manager' ) ); ?>'));
+                        $('#mptbm_view_reviews_btn_label').text(
+                            <?php echo wp_json_encode( __( 'View Reviews', 'ecab-taxi-booking-manager' ) ); ?> + ' (' + mptbmReviewTotal + ')'
+                        );
+                        // If the list is already open (View Reviews was clicked), show the new
+                        // review immediately instead of requiring a page reload to see it.
+                        if ($('#mptbm_view_reviews_btn').is(':hidden') && $('#mptbm_view_reviews_btn').data('post-id')) {
+                            $('#mptbm_reviews_list_body').prepend(mptbmReviewRowHtml(response.data.review));
+                        } else {
+                            $('#mptbm_view_reviews_btn').show();
+                        }
+                    }).fail(function(){
+                        $btn.prop('disabled', false);
+                        $msg.addClass('is-error').text('Error, please try again.');
                     });
                 });
             });

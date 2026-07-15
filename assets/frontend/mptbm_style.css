@@ -362,7 +362,11 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
    Appended at bottom of mptbm_style.css
    ============================================ */
 
-/* ----- Vehicle wrapper spacing -----
+/* ----- Vehicle wrapper — this is the actual card box now (border, shadow,
+   radius, hover elevation) so that the expanded "View Details" panel, which
+   lives here as a sibling of .mptbm_booking_item, shares the same box and
+   rises together with it on hover instead of looking like a separate,
+   disconnected panel underneath.
    Spacing between cards comes entirely from the parent's `gap` (list or
    grid mode) - not from a margin here - so list and grid share one source
    of truth for the value instead of stacking margin on top of gap. */
@@ -370,46 +374,56 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     width: 100%;
     display: block;
     margin-bottom: 0;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    transition: box-shadow .25s ease, transform .25s ease, border-color .25s ease;
+}
+.mptbm-vehicle-wrapper:hover {
+    box-shadow: 0 20px 40px -16px rgba(15, 23, 42, 0.18), 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+    transform: translateY(-3px);
+    border-color: rgba(5, 150, 105, 0.20);
+}
+/* JS toggles mptbm_booking_item_hidden on .mptbm_booking_item (search/geo-fence/
+   feature filters, in several files) - collapse the whole wrapper box (not just
+   the now-borderless row) whenever that happens, so a filtered-out card doesn't
+   leave a stray empty bordered/shadowed shell behind. */
+.mptbm-vehicle-wrapper:has(> .mptbm_booking_item.mptbm_booking_item_hidden) {
+    display: none !important;
 }
 
-/* ----- Vehicle card (the main item) ----- */
+/* ----- Vehicle card (the main item) - no border/background/shadow of its
+   own anymore; .mptbm-vehicle-wrapper owns those. ----- */
 .mptbm_transport_search_area .mptbm_booking_item {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: stretch !important;
-    background: #ffffff;
-    border: 1px solid rgba(15, 23, 42, 0.06) !important;
-    border-radius: 18px;
-    padding: 18px;
+    padding: 0;
     gap: 18px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-    transition: box-shadow .25s ease, transform .25s ease, border-color .25s ease;
     position: relative;
-}
-.mptbm_transport_search_area .mptbm_booking_item:hover {
-    box-shadow: 0 20px 40px -16px rgba(15, 23, 42, 0.18), 0 4px 12px -4px rgba(15, 23, 42, 0.08);
-    transform: translateY(-3px);
-    border-color: rgba(5, 150, 105, 0.20) !important;
 }
 .mptbm_transport_search_area .mptbm_booking_item.mptbm_booking_item_hidden {
     display: none !important;
 }
 
 /* ----- Selected state ----- */
-.mptbm_transport_search_area .mptbm_booking_item.active,
-.mptbm_transport_search_area .mptbm_booking_item.selected {
-    border: none !important;
+.mptbm-vehicle-wrapper:has(> .mptbm_booking_item.active),
+.mptbm-vehicle-wrapper:has(> .mptbm_booking_item.selected) {
+    border-color: transparent;
     background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 70%);
     box-shadow: 0 0 0 2px var(--color_theme_88, rgba(5, 150, 105, 0.35)), 0 8px 24px -8px rgba(5, 150, 105, 0.25);
 }
 
-/* ----- Vehicle image ----- */
+/* ----- Vehicle image (bleeds flush to the card's own left edge/corners -
+   no inner padding/gap around it, full height of the card) ----- */
 .mptbm_transport_search_area .mptbm_vehicle_image {
     flex: 0 0 168px;
     width: 168px;
     max-width: 168px;
-    border-radius: 14px;
+    border-radius: 0;
     overflow: hidden;
     background: #f1f5f9;
     align-self: stretch;
@@ -418,8 +432,9 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
 .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area {
     width: 100%;
     height: 100%;
+    max-height: none;
     min-height: 140px;
-    border-radius: 14px;
+    border-radius: 0;
     overflow: hidden;
 }
 .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area > div {
@@ -429,10 +444,9 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
-    border-radius: 14px;
     transition: transform .5s cubic-bezier(.2,.8,.2,1);
 }
-.mptbm_transport_search_area .mptbm_booking_item:hover .mptbm_vehicle_image .bg_image_area > div {
+.mptbm-vehicle-wrapper:hover .mptbm_vehicle_image .bg_image_area > div {
     transform: scale(1.06);
 }
 
@@ -457,8 +471,10 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     box-shadow: 0 4px 10px -3px rgba(0, 0, 0, 0.35);
 }
 
-/* ----- Right column ----- */
-.mptbm_transport_search_area .mptbm_list_details {
+/* ----- Middle column: title/rating, feature chips, driver info -----
+   Carries the card's own vertical padding now that .mptbm_booking_item is
+   unpadded (so the image can bleed flush to the card's edges). ----- */
+.mptbm_transport_search_area .mptbm_vehicle_main {
     flex: 1 1 auto;
     width: auto;
     min-width: 0;
@@ -466,14 +482,7 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     flex-direction: column;
     justify-content: center;
     gap: 10px;
-}
-
-/* ----- Top row: title (left) + price (right) ----- */
-.mptbm_transport_search_area .mptbm_vehicle_top_row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
+    padding: 18px 0;
 }
 .mptbm_vehicle_header {
     display: flex;
@@ -492,11 +501,52 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.mptbm_vehicle_rating { line-height: 1; flex: 0 0 auto; }
-.mptbm_vehicle_rating .mptbm_rating_summary { margin: 0 !important; }
-.mptbm_vehicle_rating .mptbm_rating_summary span:first-child { font-size: 14px !important; }
-.mptbm_vehicle_rating .mptbm_rating_summary span:last-child { font-size: 12.5px !important; font-weight: 600 !important; }
+/* ----- Rating line - its own row below the title (not inline beside it) ----- */
+.mptbm_vehicle_rating { line-height: 1; }
+.mptbm_rating_summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 !important;
+}
+.mptbm_rating_stars {
+    color: #f59e0b;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+.mptbm_rating_value {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+}
+.mptbm_rating_count {
+    font-size: 12.5px;
+    color: #64748b;
+}
 
+/* ----- Right column: price + Book Now + View Details ----- */
+.mptbm_transport_search_area .mptbm_vehicle_cta {
+    flex: 0 0 200px;
+    width: 200px;
+    max-width: 200px;
+    min-width: 0;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+    border-left: 1px solid rgba(15, 23, 42, 0.06);
+    padding: 18px;
+}
+/* Keeps the price pinned to the top and the Select Car + View Details pair
+   pinned to the bottom as one tightly-spaced unit, regardless of how tall
+   the card is (varies with feature-chip wrapping) - margin-top:auto on the
+   first button absorbs all the leftover vertical space above it, instead of
+   justify-content:space-between spreading that space between every child
+   (which stretched the gap *between the two buttons* on taller cards). */
+.mptbm_transport_search_area .mptbm_vehicle_cta_row {
+    margin-top: auto;
+}
 .mptbm_transport_search_area .mptbm_vehicle_price_col {
     flex: 0 0 auto;
     display: flex !important;
@@ -519,66 +569,69 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
 .mptbm_vehicle_price .woocommerce-Price-amount { color: #0f172a; }
 .mptbm_vehicle_price .woocommerce-Price-currencySymbol { color: #64748b; margin-right: 2px; font-weight: 600; }
 
-/* ----- Features row (full width, flowing pills) ----- */
+/* ----- Features row (full width, flowing spec chips) ----- */
+/* Reserves space for up to 2 wrapped rows of chips regardless of how many a
+   vehicle actually has (0, 3, 5...) - without this, card height (and with it
+   the stretched image's height) varied per card based on chip count/wrap,
+   which is what made the featured image look a different height on every
+   card in the results list. */
 .mptbm_transport_search_area .mptbm_vehicle_features_row {
     display: flex !important;
     flex-wrap: wrap !important;
     align-items: center;
+    min-height: 90px;
 }
-ul.mptbm_features_grid.list_inline_two {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: center;
-    gap: 6px 8px !important;
+.mptbm_transport_search_area ul.mptbm_features_grid.list_inline_two {
+    display: flow-root; /* clears the floated <li> children without extra markup */
     margin: 0 !important;
     padding: 0 !important;
     list-style: none !important;
     width: 100%;
     min-width: 0;
 }
-ul.mptbm_features_grid > li.mptbm_feature_item {
-    display: inline-flex !important;
+.mptbm_transport_search_area ul.mptbm_features_grid > li.mptbm_feature_item {
+    float: left;
+    width: auto;
+    display: flex !important;
     align-items: center;
     gap: 6px;
-    padding: 7px 12px;
+    padding: 6px 10px;
+    margin: 0 8px 8px 0;
     background: #f8fafc;
-    border: 1px solid rgba(15, 23, 42, 0.06);
+    border: 1px solid #e5e7eb;
     border-radius: 999px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
-    color: #334155;
+    color: #475569;
     line-height: 1.2;
-    flex: 0 1 auto;
     max-width: 100%;
-    transition: border-color .2s ease, background .2s ease;
 }
-ul.mptbm_features_grid > li.mptbm_feature_item:hover {
-    border-color: rgba(5, 150, 105, 0.30);
-    background: #ecfdf5;
-}
-ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_icon {
-    color: #64748b;
+.mptbm_transport_search_area ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_icon {
+    color: #94a3b8;
     font-size: 12px;
     line-height: 1;
     flex: 0 0 auto;
 }
-ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_text {
+.mptbm_transport_search_area ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_text {
     display: inline-flex;
     align-items: baseline;
     gap: 4px;
+    margin: 0 !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 180px;
 }
-ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_label {
+.mptbm_transport_search_area ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_label {
     font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .06em;
     color: #94a3b8;
+    margin: 0 !important;
 }
-ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_value {
+.mptbm_transport_search_area ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_value {
+    margin: 0 !important;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -630,69 +683,88 @@ ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_value {
     cursor: not-allowed !important;
 }
 
-/* ----- Info button (the (i) badge next to Select) ----- */
-.mptbm_transport_search_area .mptbm-info-button {
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 38px;
-    display: flex;
+/* ----- "View Details" as a secondary outline button, stacked under the
+   primary CTA in the right column (replaces the old small (i) icon button -
+   one single expand action per card now). Consolidated into a single rule
+   (a stale duplicate block used to live further down the file setting
+   display/gap/layout, fighting this one over which properties won). ----- */
+.mptbm_transport_search_area button.mptbm_view_details_toggle {
+    display: flex !important;
     align-items: center;
     justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 0;
+    padding: 10px 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px;
+    color: #334155;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-transform: none;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.18) !important;
-    border-top-right-radius: 10px !important;
-    border-bottom-right-radius: 10px !important;
-    color: #fff;
-    font-size: 12px;
-    transition: filter 0.2s ease;
+    transition: color .15s ease, border-color .15s ease, background .15s ease;
 }
-.mptbm_transport_search_area .mptbm-info-button:hover { filter: brightness(1.15); }
-.mptbm_transport_search_area button._mpBtn_xs.mptbm_transport_select.mptbm-has-extra-info {
-    padding-right: 48px !important;
+.mptbm_transport_search_area button.mptbm_view_details_toggle span[data-label] {
+    color: inherit;
+}
+.mptbm_transport_search_area button.mptbm_view_details_toggle i {
+    font-size: 10px;
+    color: inherit;
+    transition: transform .2s ease;
+}
+.mptbm_transport_search_area button.mptbm_view_details_toggle:hover {
+    color: var(--color_theme);
+    border-color: var(--color_theme_88, rgba(5, 150, 105, 0.4)) !important;
+}
+.mptbm_transport_search_area button.mptbm_view_details_toggle.is-open {
+    background: #ecfdf5;
+    border-color: var(--color_theme_88, rgba(5, 150, 105, 0.4)) !important;
+    color: var(--color_theme);
+}
+.mptbm_transport_search_area button.mptbm_view_details_toggle.is-open i {
+    transform: rotate(180deg);
 }
 
-/* ----- Extra info accordion block ----- */
-.mptbm_transport_search_area .mptbm-extra-info-content {
-    border-top: 3px solid var(--color_theme) !important;
-    border-radius: 12px !important;
-}
-
-/* ----- Mobile polish ----- */
+/* ----- Mobile polish: stack image / middle / price+CTA into one column ----- */
 @media (max-width: 768px) {
     .mptbm_transport_search_area .mptbm_booking_item {
-        flex-wrap: wrap !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
         min-height: 0;
     }
     .mptbm_transport_search_area .mptbm_vehicle_image {
-        flex: 0 0 110px;
-        width: 110px;
-        max-width: 110px;
-    }
-    .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area,
-    .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area > div {
-        min-height: 100px;
-    }
-    .mptbm_vehicle_title { font-size: 15px !important; }
-    .mptbm_transport_search_area h4.mptbm_vehicle_price { font-size: 17px !important; }
-    ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_text { max-width: 110px; }
-}
-@media (max-width: 480px) {
-    .mptbm_transport_search_area .mptbm_booking_item {
-        flex-wrap: wrap !important;
-    }
-    .mptbm_transport_search_area .mptbm_vehicle_image {
-        flex: 0 0 100%;
+        flex: 0 0 auto;
         width: 100%;
         max-width: 100%;
         height: 150px;
     }
     .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area,
     .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area > div {
-        height: 150px;
         min-height: 150px;
     }
+    .mptbm_transport_search_area .mptbm_vehicle_main {
+        padding: 14px 18px 0;
+    }
+    .mptbm_transport_search_area .mptbm_vehicle_cta {
+        flex: 0 0 auto;
+        width: 100%;
+        max-width: 100%;
+        border-left: 0;
+        padding-left: 0;
+        border-top: 1px solid rgba(15, 23, 42, 0.06);
+        padding-top: 14px;
+    }
+    .mptbm_transport_search_area .mptbm_vehicle_price_col {
+        align-items: flex-start !important;
+    }
+    .mptbm_transport_search_area h4.mptbm_vehicle_price {
+        text-align: left !important;
+    }
+    .mptbm_vehicle_title { font-size: 15px !important; }
+    .mptbm_transport_search_area h4.mptbm_vehicle_price { font-size: 20px !important; }
+    ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_text { max-width: 110px; }
 }
 
 /* ============================================
@@ -1534,16 +1606,20 @@ button.mptbm_results_edit:hover i {
 }
 .mp_sticky_depend_area.mptbm_view_grid .mptbm-vehicle-wrapper {
     min-width: 0;
-    height: 100%;
 }
 
 /* Grid cards get their own column layout (image on top, full-width content
    below) instead of the list view's side-by-side row - the row layout only
    leaves ~140px for title/chips at grid-column widths, which is what was
-   truncating everything unreadably. */
+   truncating everything unreadably.
+   Cards intentionally do NOT stretch to match the tallest card in their row
+   (no height:100%): once any single card's own details panel expands, its
+   grid row grows to fit it - forcing every card in that row to also stretch
+   to the new row height would push each of THEIR price/button sections down
+   with dead space above them, even on cards nobody expanded. Natural,
+   independent per-card height avoids that entirely. */
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_booking_item {
     flex-direction: column !important;
-    height: 100%;
     padding: 0 !important;
     gap: 0 !important;
     overflow: hidden;
@@ -1561,20 +1637,22 @@ button.mptbm_results_edit:hover i {
     min-height: 150px;
     border-radius: 0;
 }
-.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_list_details {
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_main {
     justify-content: flex-start;
-    padding: 14px 16px 16px;
+    padding: 14px 16px 0;
     gap: 8px;
-}
-.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_top_row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
 }
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_title {
     font-size: 16px !important;
     white-space: normal;
     line-height: 1.25;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_cta {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    border-left: 0;
+    padding: 14px 16px 16px;
 }
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_price_col {
     align-items: flex-start !important;
@@ -1584,15 +1662,11 @@ button.mptbm_results_edit:hover i {
     font-size: 19px !important;
     text-align: left !important;
 }
-.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid ul.mptbm_features_grid.list_inline_two {
-    flex-direction: column !important;
-    align-items: stretch;
-    gap: 5px !important;
-}
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid ul.mptbm_features_grid > li.mptbm_feature_item {
     font-size: 12px;
     padding: 5px 10px;
     width: 100%;
+    margin-right: 0;
     box-sizing: border-box;
 }
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_text {
@@ -1606,6 +1680,17 @@ button.mptbm_results_edit:hover i {
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_view_details_toggle {
     margin-top: 4px;
 }
+/* Grid cards are always narrow (2-up), regardless of viewport width, so the
+   details panel's 2-column layout never has enough room - it was cramming
+   the spec-table's own 2-column grid + block titles into ~200px sub-columns,
+   reading as overlapping/collided text. Always single-column here. */
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_details_panel {
+    columns: 1;
+    padding: 18px 16px 20px;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_spec_table {
+    grid-template-columns: 1fr;
+}
 @media (max-width: 640px) {
     .mp_sticky_depend_area.mptbm_view_grid {
         grid-template-columns: 1fr;
@@ -1618,63 +1703,46 @@ button.mptbm_results_edit:hover i {
 /* ============================================
    MPTBM "View Details" — real specs + reviews
    ============================================ */
-button.mptbm_view_details_toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-    margin-top: 8px;
-    padding: 8px 10px;
-    background: transparent;
-    border: 0;
-    border-top: 1px solid rgba(15, 23, 42, 0.08);
-    color: #64748b;
-    font-size: 12.5px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: color .15s ease;
-}
-button.mptbm_view_details_toggle:hover {
-    color: var(--color_theme);
-}
-button.mptbm_view_details_toggle i {
-    font-size: 10px;
-    transition: transform .2s ease;
-}
-button.mptbm_view_details_toggle.is-open i {
-    transform: rotate(180deg);
-}
-
 .mptbm_vehicle_details_panel {
     width: 100%;
-    margin: -6px 0 10px 0;
-    padding: 16px 18px;
-    background: #f8fafc;
-    border: 1px solid rgba(15, 23, 42, 0.07);
-    border-radius: 12px;
+    margin: 0;
+    padding: 26px 28px 30px;
+    background: #ffffff;
+    border: 0;
+    border-top: 1px solid #e5e7eb;
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    columns: 2;
+    column-gap: 32px;
 }
+.mptbm_details_block {
+    min-width: 0;
+    break-inside: avoid-column;
+    margin-bottom: 28px;
+}
+.mptbm_details_block:last-child { margin-bottom: 0; }
 .mptbm_details_block h4 {
-    margin: 0 0 10px !important;
-    font-size: 12px !important;
+    margin: 0 0 12px !important;
+    font-size: 12.5px !important;
     font-weight: 700 !important;
     text-transform: uppercase;
-    letter-spacing: .08em;
-    color: #334155 !important;
+    letter-spacing: .06em;
+    color: #94a3b8 !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 .mptbm_details_reviews_avg {
-    color: #f5a623;
+    color: #f59e0b;
     font-weight: 700;
     text-transform: none;
     letter-spacing: normal;
     font-size: 12.5px;
+}
+@media (max-width: 640px) {
+    .mptbm_vehicle_details_panel {
+        columns: 1;
+        padding: 18px 16px 20px;
+    }
 }
 
 /* ----- Specifications ----- */
@@ -1739,7 +1807,7 @@ button.mptbm_view_details_toggle.is-open i {
 }
 .mptbm_details_review_stars {
     display: block;
-    color: #f5a623;
+    color: #f59e0b;
     font-size: 12px;
     letter-spacing: 1px;
     margin-bottom: 4px;
@@ -1751,7 +1819,39 @@ button.mptbm_view_details_toggle.is-open i {
     color: #475569 !important;
 }
 
+/* ----- Additional information (real admin-entered extra_info field) ----- */
+.mptbm_details_extra_info {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #475569;
+}
+
+/* ----- Vehicle Specifications (real make/model/year/color/engine/plate/
+   mileage fields - Admin > Vehicle Specification) ----- */
+.mptbm_spec_table {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 18px;
+}
+.mptbm_spec_row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 13px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #e5e7eb;
+}
+.mptbm_spec_row span:first-child { color: #94a3b8; }
+.mptbm_spec_row span:last-child {
+    color: #0f172a;
+    font-weight: 600;
+    text-align: right;
+}
+
 @media (max-width: 640px) {
+    .mptbm_spec_table {
+        grid-template-columns: 1fr;
+    }
     .mptbm_details_spec_list {
         grid-template-columns: 1fr;
     }

@@ -16,6 +16,7 @@
 				add_action('wp_ajax_nopriv_mptbm_submit_review', [$this, 'submit_review_guest']);
 				add_action('wp_ajax_mptbm_admin_delete_review', [$this, 'admin_delete_review']);
 				add_action('wp_ajax_mptbm_admin_load_reviews', [$this, 'admin_load_reviews']);
+				add_action('wp_ajax_mptbm_admin_add_review', [$this, 'admin_add_review']);
 				add_action('woocommerce_order_details_after_order_table', [$this, 'maybe_show_review_prompt']);
 			}
 
@@ -57,11 +58,12 @@
 				}
 				ob_start();
 				?>
-				<div class="mptbm_rating_summary" style="display:flex;align-items:center;gap:4px;margin:2px 0;">
-					<span style="color:#f5a623;font-size:13px;letter-spacing:1px;">
+				<div class="mptbm_rating_summary">
+					<span class="mptbm_rating_stars">
 						<?php for ($i = 1; $i <= 5; $i++) { echo ($i <= round($data['average'])) ? '&#9733;' : '&#9734;'; } ?>
 					</span>
-					<span style="font-size:12px;color:#666;"><?php echo esc_html($data['average']); ?> (<?php echo esc_html($data['count']); ?>)</span>
+					<b class="mptbm_rating_value"><?php echo esc_html($data['average']); ?></b>
+					<span class="mptbm_rating_count">(<?php echo esc_html(sprintf(_n('%d Review', '%d Reviews', $data['count'], 'ecab-taxi-booking-manager'), $data['count'])); ?>)</span>
 				</div>
 				<?php
 				return ob_get_clean();
@@ -304,6 +306,67 @@
 				}
 
 				wp_send_json_success(['message' => __('Review deleted.', 'ecab-taxi-booking-manager')]);
+			}
+
+			// Admin-only: manually add a review from the vehicle's edit screen. Real reviews are
+			// normally customer-submitted after a completed booking, but an admin often has real
+			// feedback collected some other way (phone, in person, a review left on another
+			// platform) with no matching WooCommerce order to satisfy that flow - this lets them
+			// enter it directly instead of it never appearing anywhere.
+			public function admin_add_review() {
+				$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
+
+				if (!$post_id || !check_ajax_referer('mptbm_add_review_' . $post_id, 'nonce', false)) {
+					wp_send_json_error(['message' => __('Security check failed, please refresh and try again.', 'ecab-taxi-booking-manager')]);
+				}
+				if (!current_user_can('edit_post', $post_id)) {
+					wp_send_json_error(['message' => __('You do not have permission to do this.', 'ecab-taxi-booking-manager')]);
+				}
+				if (get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
+					wp_send_json_error(['message' => __('Invalid vehicle.', 'ecab-taxi-booking-manager')]);
+				}
+
+				$author  = isset($_POST['author']) ? sanitize_text_field(wp_unslash($_POST['author'])) : '';
+				$rating  = isset($_POST['rating']) ? absint($_POST['rating']) : 0;
+				$content = isset($_POST['content']) ? sanitize_textarea_field(wp_unslash($_POST['content'])) : '';
+
+				if ($author === '') {
+					wp_send_json_error(['message' => __('Please enter the reviewer\'s name.', 'ecab-taxi-booking-manager')]);
+				}
+				if ($rating < 1 || $rating > 5) {
+					wp_send_json_error(['message' => __('Please select a rating between 1 and 5 stars.', 'ecab-taxi-booking-manager')]);
+				}
+				if ($content === '') {
+					wp_send_json_error(['message' => __('Please enter the review text.', 'ecab-taxi-booking-manager')]);
+				}
+
+				$comment_id = wp_insert_comment([
+					'comment_post_ID'      => $post_id,
+					'comment_author'       => $author,
+					'comment_content'      => $content,
+					'comment_type'         => self::COMMENT_TYPE,
+					'comment_approved'     => 1,
+					'user_id'              => 0,
+				]);
+
+				if (!$comment_id) {
+					wp_send_json_error(['message' => __('Could not save the review, please try again.', 'ecab-taxi-booking-manager')]);
+				}
+
+				update_comment_meta($comment_id, 'rating', $rating);
+				update_comment_meta($comment_id, 'mptbm_review_added_by_admin', 1);
+
+				wp_send_json_success([
+					'message' => __('Review added.', 'ecab-taxi-booking-manager'),
+					'review'  => [
+						'id'           => $comment_id,
+						'author'       => esc_html($author),
+						'date'         => esc_html(mysql2date(get_option('date_format'), current_time('mysql'))),
+						'content'      => esc_html($content),
+						'rating'       => $rating,
+						'delete_nonce' => wp_create_nonce('mptbm_delete_review_' . $comment_id),
+					],
+				]);
 			}
 
 			// Admin-only: fetch reviews for the "Manage Reviews" list in the edit screen, 20 at a

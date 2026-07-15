@@ -2689,17 +2689,6 @@ function mptbm_init_google_map() {
     );
 })(jQuery);
 
-// Add this test to verify jQuery and event handlers are working
-jQuery(document).ready(function ($) {
-
-    // Test if info buttons exist
-    setTimeout(function () {
-        var infoButtons = $('.mptbm-info-button');
-        if (infoButtons.length > 0) {
-        }
-    }, 1000);
-});
-
 function mptbm_content_refresh(parent) {
     parent.find('[name="mptbm_post_id"]').val("");
     parent.find(".mptbm_map_search_result").remove();
@@ -3630,45 +3619,6 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 e.preventDefault();
                 e.stopPropagation();
             }
-        }
-    });
-
-    // Handle extra info toggle functionality
-    $(document).on('click', '.mptbm-info-button', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        var $button = $(this);
-        var postId = $button.data('post-id');
-        var $vehicleWrapper = $button.closest('.mptbm-vehicle-wrapper');
-        var $content = $vehicleWrapper.find('.mptbm-extra-info-content[data-post-id="' + postId + '"]');
-        var $icon = $button.find('i');
-
-
-        // Close other open info panels
-        $('.mptbm-extra-info-content').not($content).slideUp(200);
-        $('.mptbm-info-button').not($button).css('background', 'var(--color_theme)').find('i').removeClass('fa-times').addClass('fa-info');
-
-        if ($content.length > 0) {
-            $content.slideToggle(300, function () {
-                if ($content.is(':visible')) {
-                    $button.css('background', '#dc3545'); // Red when open
-                    $icon.removeClass('fa-info').addClass('fa-times');
-                } else {
-                    $button.css('background', 'var(--color_theme)');
-                    $icon.removeClass('fa-times').addClass('fa-info');
-                }
-            });
-        } else {
-            console.log('No content found for post ID:', postId); // Debug log
-        }
-    });
-
-    // Close info panels when clicking outside
-    $(document).on('click', function (e) {
-        if (!$(e.target).closest('.mptbm-button-container, .mptbm-extra-info-content').length) {
-            $('.mptbm-extra-info-content').slideUp(200);
-            $('.mptbm-info-button').css('background', 'var(--color_theme)').find('i').removeClass('fa-times').addClass('fa-info');
         }
     });
 

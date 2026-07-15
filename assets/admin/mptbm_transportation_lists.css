@@ -100,8 +100,13 @@
 
 /* GRID */
 .mptbm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;}
-.mptbm-card{background:var(--mp-white);border-radius:16px;border:1px solid var(--mp-border);overflow:hidden;transition:box-shadow .25s,transform .2s;animation:mptbmFadeUp .4s ease both;}
-.mptbm-card:hover{box-shadow:var(--mp-shadow-hover);transform:translateY(-3px);}
+.mptbm-card{background:var(--mp-white);border-radius:16px;border:1px solid var(--mp-border);overflow:hidden;transition:box-shadow .25s;animation:mptbmFadeUp .4s ease both;}
+/* No transform on :hover here on purpose - translateY() shifted the card's
+   actual box under the cursor, and since the Edit/Delete buttons live inside
+   it (revealed on this same hover), that self-cancelling shift caused the
+   blinking and made clicks land inconsistently. Shadow-only lift keeps the
+   "hover" feel without moving anything under the pointer. */
+.mptbm-card:hover{box-shadow:var(--mp-shadow-hover);}
 @keyframes mptbmFadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 .mptbm-thumb{height:160px;position:relative;overflow:hidden;background:linear-gradient(135deg,#312e81,#4f46e5);}
 .mptbm-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
@@ -114,8 +119,7 @@
 .mptbm-thumb-badge.alt{background:rgba(255,255,255,.9);color:var(--mp-ink);}
 .mptbm-actions-top{position:absolute;top:10px;right:10px;display:flex;gap:6px;opacity:0;transition:opacity .2s;z-index:3;}
 .mptbm-card:hover .mptbm-actions-top,.mptbm-card:focus-within .mptbm-actions-top{opacity:1;}
-.mptbm-act-btn{width:32px;height:32px;border-radius:9px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);transition:background .15s,transform .15s;text-decoration:none;box-shadow:0 2px 6px rgba(15,23,42,.25);}
-.mptbm-act-btn:hover{transform:translateY(-1px);}
+.mptbm-act-btn{width:32px;height:32px;border-radius:9px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);transition:background .15s;text-decoration:none;box-shadow:0 2px 6px rgba(15,23,42,.25);}
 .mptbm-act-btn.edit{background:rgba(255,255,255,.92);color:var(--mp-ink);}
 .mptbm-act-btn.edit:hover{background:#fff;}
 .mptbm-act-btn.del{background:rgba(239,68,68,.95);color:#fff;}
@@ -172,8 +176,11 @@ a.mptbm-table-del { border: 1px solid red; }
 /* TABLE */
 .mptbm-table{width:100%;border-collapse:separate;border-spacing:0 10px;display:none;}
 .mptbm-table th{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mp-muted);padding:0 16px 4px;text-align:left;}
-.mptbm-table tr.mptbm-row{background:var(--mp-white);transition:box-shadow .2s,transform .15s;animation:mptbmFadeUp .35s ease both;}
-.mptbm-table tr.mptbm-row:hover{box-shadow:var(--mp-shadow-hover);transform:translateY(-2px);}
+.mptbm-table tr.mptbm-row{background:var(--mp-white);transition:box-shadow .2s;animation:mptbmFadeUp .35s ease both;}
+/* No transform here either, same reason as .mptbm-card above - the row
+   contains the Edit/Delete action links, and lifting the row on hover shifted
+   them out from under the cursor (self-cancelling hover flicker). */
+.mptbm-table tr.mptbm-row:hover{box-shadow:var(--mp-shadow-hover);}
 .mptbm-table td{padding:14px 16px;font-size:13px;color:var(--mp-ink2);border-top:1px solid var(--mp-border);border-bottom:1px solid var(--mp-border);vertical-align:middle;}
 .mptbm-table td:first-child{border-left:1px solid var(--mp-border);border-radius:12px 0 0 12px;font-weight:700;}
 .mptbm-table td:first-child a{color:var(--mp-ink) !important;text-decoration:none;}
