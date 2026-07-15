@@ -1632,9 +1632,15 @@ button.mptbm_results_edit:hover i {
     border-radius: 0;
     align-self: auto;
 }
+/* mp_script.js's mp_resize_bg_image_area() sets an inline min-height on the
+   inner div, computed from each photo's own aspect ratio (outerWidth *
+   imgHeight / imgWidth) - so without an !important override here, every
+   card's thumbnail ends up a different height depending on the source
+   photo's aspect ratio. Only !important can beat that inline style. */
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_image .bg_image_area,
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_image .bg_image_area > div {
-    min-height: 150px;
+    min-height: 170px !important;
+    height: 170px !important;
     border-radius: 0;
 }
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_main {
