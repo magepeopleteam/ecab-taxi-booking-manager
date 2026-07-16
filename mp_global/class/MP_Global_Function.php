@@ -164,15 +164,23 @@
 									// fire onChange, so without this the hidden input (what search
 									// validation actually reads) stays empty until the user reopens the
 									// calendar and reselects -- searching before that silently no-ops.
-									onReady: mptbm_sync_hidden_date
+									// Passed isInitialSync=true (see below) so listeners downstream of
+									// the hidden field's "change" event (mptbm_registration.js /
+									// mptbm_dual_booking.js) can tell this apart from a real user pick -
+									// those also auto-open the pickup-time dropdown as a "guide user to
+									// the next field" convenience, which should only happen when the
+									// user actually just picked a date, not on every tab load/init.
+									onReady: function (selectedDates, dateStr, instance) {
+										mptbm_sync_hidden_date(selectedDates, dateStr, instance, true);
+									}
 								});
-								function mptbm_sync_hidden_date(selectedDates, dateStr, instance) {
+								function mptbm_sync_hidden_date(selectedDates, dateStr, instance, isInitialSync) {
 									if (selectedDates.length > 0) {
 										var y = selectedDates[0].getFullYear();
 										var m = ('0' + (selectedDates[0].getMonth() + 1)).slice(-2);
 										var d = ('0' + selectedDates[0].getDate()).slice(-2);
 										var isoDate = y + '-' + m + '-' + d;
-										jQuery(instance.element).closest('label').find('input[type="hidden"]').val(isoDate).trigger('change');
+										jQuery(instance.element).closest('label').find('input[type="hidden"]').val(isoDate).trigger('change', [{ initial: !!isInitialSync }]);
 									}
 								}
 							});

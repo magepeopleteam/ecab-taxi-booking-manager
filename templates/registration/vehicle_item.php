@@ -406,73 +406,77 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
             </div>
             <?php if ($show_details_toggle) { ?>
                 <div class="mptbm_vehicle_details_panel" data-post-id="<?php echo esc_attr($post_id); ?>" style="display:none;">
-                    <?php if (count($vehicle_spec_rows) > 0) { ?>
-                        <div class="mptbm_details_block">
-                            <h4><?php esc_html_e('Vehicle Specifications', 'ecab-taxi-booking-manager'); ?></h4>
-                            <div class="mptbm_spec_table">
-                                <?php foreach ($vehicle_spec_rows as $row) { ?>
-                                    <div class="mptbm_spec_row">
-                                        <span><?php echo esc_html($row[0]); ?></span>
-                                        <span><?php echo esc_html($row[1]); ?></span>
-                                    </div>
-                                <?php } ?>
+                    <div class="mptbm_details_col_left">
+                        <?php if ($has_extra_info) { ?>
+                            <div class="mptbm_details_block">
+                                <h4><?php esc_html_e('Description', 'ecab-taxi-booking-manager'); ?></h4>
+                                <div class="mptbm_details_extra_info"><?php echo wp_kses_post($extra_info); ?></div>
                             </div>
-                        </div>
-                    <?php } ?>
-                    <?php if ($has_more_specs) { ?>
-                        <div class="mptbm_details_block">
-                            <h4><?php esc_html_e('Additional Features', 'ecab-taxi-booking-manager'); ?></h4>
-                            <ul class="mptbm_details_spec_list">
-                                <?php foreach ($clean_features_full as $features) {
-                                    $label = array_key_exists('label', $features) ? trim($features['label']) : '';
-                                    $text  = array_key_exists('text',  $features) ? trim($features['text'])  : '';
-                                    $icon  = array_key_exists('icon',  $features) ? $features['icon']  : '';
-                                    $show_label = ($label !== '' && strcasecmp($label, $text) !== 0);
-                                ?>
-                                    <li>
-                                        <?php if ($icon) { ?><i class="<?php echo esc_attr($icon); ?>"></i><?php } ?>
-                                        <?php if ($show_label) { ?><span class="mptbm_details_spec_label"><?php echo esc_html($label); ?>:</span><?php } ?>
-                                        <span class="mptbm_details_spec_value"><?php echo esc_html($text); ?></span>
-                                    </li>
-                                <?php } ?>
-                            </ul>
-                        </div>
-                    <?php } ?>
-                    <?php if (count($vehicle_reviews) > 0) {
-                        $rating_data = MPTBM_Reviews::get_average_rating($post_id);
-                    ?>
-                        <div class="mptbm_details_block">
-                            <h4>
-                                <?php esc_html_e('Customer Reviews', 'ecab-taxi-booking-manager'); ?>
-                                <span class="mptbm_details_reviews_avg"><?php echo esc_html($rating_data['average']); ?> &#9733; (<?php echo esc_html($rating_data['count']); ?>)</span>
-                            </h4>
-                            <div class="mptbm_details_reviews_list">
-                                <?php foreach (array_slice($vehicle_reviews, 0, 3) as $review) {
-                                    $review_rating = (int) get_comment_meta($review->comment_ID, 'rating', true);
-                                ?>
-                                    <div class="mptbm_details_review">
-                                        <div class="mptbm_details_review_head">
-                                            <span class="mptbm_details_review_author"><?php echo esc_html($review->comment_author); ?></span>
-                                            <span class="mptbm_details_review_date"><?php echo esc_html(human_time_diff(strtotime($review->comment_date), current_time('timestamp'))); ?> <?php esc_html_e('ago', 'ecab-taxi-booking-manager'); ?></span>
+                        <?php } ?>
+                        <?php if (count($vehicle_spec_rows) > 0) { ?>
+                            <div class="mptbm_details_block">
+                                <h4><?php esc_html_e('Vehicle Specifications', 'ecab-taxi-booking-manager'); ?></h4>
+                                <div class="mptbm_spec_table">
+                                    <?php foreach ($vehicle_spec_rows as $row) { ?>
+                                        <div class="mptbm_spec_row">
+                                            <span><?php echo esc_html($row[0]); ?></span>
+                                            <span><?php echo esc_html($row[1]); ?></span>
                                         </div>
-                                        <?php if ($review_rating > 0) { ?>
-                                            <span class="mptbm_details_review_stars">
-                                                <?php for ($i = 1; $i <= 5; $i++) { echo $i <= $review_rating ? '&#9733;' : '&#9734;'; } ?>
-                                            </span>
-                                        <?php } ?>
-                                        <p><?php echo esc_html($review->comment_content); ?></p>
-                                    </div>
-                                <?php } ?>
+                                    <?php } ?>
+                                </div>
                             </div>
-                        </div>
-                    <?php } ?>
-                    <?php if ($has_extra_info) { ?>
-                        <div class="mptbm_details_block">
-                            <h4><?php esc_html_e('Additional Information', 'ecab-taxi-booking-manager'); ?></h4>
-                            <div class="mptbm_details_extra_info"><?php echo wp_kses_post(nl2br($extra_info)); ?></div>
-                        </div>
-                    <?php } ?>
-                    <?php do_action('mptbm_vehicle_details_panel_content', $post_id); ?>
+                        <?php } ?>
+                        <?php if ($has_more_specs) { ?>
+                            <div class="mptbm_details_block">
+                                <h4><?php esc_html_e('Additional Features', 'ecab-taxi-booking-manager'); ?></h4>
+                                <ul class="mptbm_details_spec_list">
+                                    <?php foreach ($clean_features_full as $features) {
+                                        $label = array_key_exists('label', $features) ? trim($features['label']) : '';
+                                        $text  = array_key_exists('text',  $features) ? trim($features['text'])  : '';
+                                        $icon  = array_key_exists('icon',  $features) ? $features['icon']  : '';
+                                        $show_label = ($label !== '' && strcasecmp($label, $text) !== 0);
+                                    ?>
+                                        <li>
+                                            <?php if ($icon) { ?><i class="<?php echo esc_attr($icon); ?>"></i><?php } ?>
+                                            <?php if ($show_label) { ?><span class="mptbm_details_spec_label"><?php echo esc_html($label); ?>:</span><?php } ?>
+                                            <span class="mptbm_details_spec_value"><?php echo esc_html($text); ?></span>
+                                        </li>
+                                    <?php } ?>
+                                </ul>
+                            </div>
+                        <?php } ?>
+                    </div>
+                    <div class="mptbm_details_col_right">
+                        <?php if (count($vehicle_reviews) > 0) {
+                            $rating_data = MPTBM_Reviews::get_average_rating($post_id);
+                        ?>
+                            <div class="mptbm_details_block">
+                                <h4>
+                                    <?php esc_html_e('Customer Reviews', 'ecab-taxi-booking-manager'); ?>
+                                    <span class="mptbm_details_reviews_avg"><?php echo esc_html($rating_data['average']); ?> &#9733; (<?php echo esc_html($rating_data['count']); ?>)</span>
+                                </h4>
+                                <div class="mptbm_details_reviews_list">
+                                    <?php foreach (array_slice($vehicle_reviews, 0, 3) as $review) {
+                                        $review_rating = (int) get_comment_meta($review->comment_ID, 'rating', true);
+                                    ?>
+                                        <div class="mptbm_details_review">
+                                            <div class="mptbm_details_review_head">
+                                                <span class="mptbm_details_review_author"><?php echo esc_html($review->comment_author); ?></span>
+                                                <span class="mptbm_details_review_date"><?php echo esc_html(human_time_diff(strtotime($review->comment_date), current_time('timestamp'))); ?> <?php esc_html_e('ago', 'ecab-taxi-booking-manager'); ?></span>
+                                            </div>
+                                            <?php if ($review_rating > 0) { ?>
+                                                <span class="mptbm_details_review_stars">
+                                                    <?php for ($i = 1; $i <= 5; $i++) { echo $i <= $review_rating ? '&#9733;' : '&#9734;'; } ?>
+                                                </span>
+                                            <?php } ?>
+                                            <p><?php echo esc_html($review->comment_content); ?></p>
+                                        </div>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                        <?php } ?>
+                        <?php do_action('mptbm_vehicle_details_panel_content', $post_id); ?>
+                    </div>
                 </div>
             <?php } ?>
         </div>

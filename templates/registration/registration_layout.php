@@ -137,23 +137,25 @@ $progressbar_class = ($progressbar == 'yes' && $tab == 'no') ? '' : 'dNone';
 							</li>
 						<?php } ?>
 					</ul>
-						
+
+					<div class="mptb-tabs-content-wrap">
 						<?php foreach ($available_tabs as $key => $tab_name) { ?>
 							<div id="<?php echo $tab_name; ?>" class="mptb-tab-content <?php echo ($key === $first_tab) ? 'current' : ''; ?>">
-							
-								<?php if ($key === $first_tab && $first_tab != 'custom') { 
+
+								<?php if ($key === $first_tab && $first_tab != 'custom') {
 									$current_form_style = ($tab_name === 'flat-rate') ? 'inline' : $original_form_style;
 									$form_style = $current_form_style;
 								?>
-										
+
 										<?php include MPTBM_Function::template_path('registration/get_details.php'); ?>
 									<?php } else { ?>
-										
+
 										<?php do_action('mptbm_render_' . $tab_name); ?>
 									<?php } ?>
 							</div>
-							
+
 						<?php } ?>
+					</div>
 						<div class="mptbm-hide-gif mptbm-gif">
 							<img src="<?php echo plugin_dir_url(dirname(__DIR__)) . 'assets/images/loader.gif'; ?>" class="mptb-tabs-loader" />
 						</div>

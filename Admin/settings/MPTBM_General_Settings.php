@@ -196,7 +196,7 @@
 					$max_passenger = isset($_POST['mptbm_maximum_passenger']) ? sanitize_text_field($_POST['mptbm_maximum_passenger']) : '';
 					$max_bag = isset($_POST['mptbm_maximum_bag']) ? sanitize_text_field($_POST['mptbm_maximum_bag']) : '';
 					$max_hand_luggage = isset($_POST['mptbm_maximum_hand_luggage']) ? sanitize_text_field($_POST['mptbm_maximum_hand_luggage']) : '';
-					$extra_info = isset($_POST['mptbm_extra_info']) ? sanitize_textarea_field($_POST['mptbm_extra_info']) : '';
+					$extra_info = isset($_POST['mptbm_extra_info']) ? wp_kses_post($_POST['mptbm_extra_info']) : '';
 					
 					// Save maximum passenger and bag
 					update_post_meta($post_id, 'mptbm_maximum_passenger', $max_passenger);

@@ -667,6 +667,29 @@ p.mptbm_taxi_help {
     color: var(--mp-text-400);
     font-style: italic;
 }
+/* wp_editor()'s own textarea (Description, Extra Info) already sits inside
+   WordPress's .wp-editor-wrap chrome (tabs + toolbar + its own border) - the
+   generic textarea styling above would double up the border/radius/padding
+   around it. */
+.mptbm_rent_field_group .wp-editor-wrap textarea {
+    border: none;
+    border-radius: 0;
+    min-height: 180px;
+    padding: 8px 10px;
+}
+/* WordPress core's .wp-switch-editor (the "Visual | Text" tabs, only present
+   once TinyMCE actually loads) carries its own margin-top:15px, on top of
+   our own label/help-text spacing above it - stacking into a much bigger
+   gap than the rest of this compact form uses. */
+.mptbm_rent_field_group .wp-editor-tabs {
+    margin-top: 0;
+}
+.mptbm_rent_field_group .wp-switch-editor {
+    margin-top: 0;
+}
+.mptbm_rent_field_group .wp-editor-wrap textarea:focus {
+    box-shadow: none;
+}
 
 /* Universal Select */
 select.formControl,
@@ -2805,6 +2828,7 @@ input.mptbm_taxi_feature_input:focus {
     grid-template-columns: 1fr 1fr;
     gap: 18px 24px;
 }
+.mptbm_rent_field_full { grid-column: 1 / -1; }
 @media (max-width: 900px) {
     .mptbm_field_grid_2col { grid-template-columns: 1fr; }
 }

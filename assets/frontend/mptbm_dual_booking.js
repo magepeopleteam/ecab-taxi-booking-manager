@@ -92,7 +92,7 @@ jQuery(function ($) {
 		parent.find('#mptbm_map_return_time').val(selectedValue).trigger('change');
 	});
 
-	$(document).on('change', '#mptbm_map_start_date', function () {
+	$(document).on('change', '#mptbm_map_start_date', function (e, meta) {
 		var parent = $(this).closest('.mptbm_transport_search_area');
 
 		parent.find('#mptbm_map_start_time').siblings('.start_time_list').empty();
@@ -145,7 +145,15 @@ jQuery(function ($) {
 		if (typeof mptbm_content_refresh === 'function') {
 			mptbm_content_refresh(parent);
 		}
-		parent.find('#mptbm_map_start_time').closest('.mp_input_select').find('input.formControl').trigger('click');
+		// Auto-opening the time dropdown is a "guide the user to the next
+		// field" convenience for when they've just picked a date themselves -
+		// this same "change" event also fires once on every tab load/init
+		// (flatpickr's onReady syncing its defaultDate into this hidden field,
+		// see MP_Global_Function::date_picker_js) with meta.initial set, which
+		// should rebuild the time list above but not pop its dropdown open.
+		if (!(meta && meta.initial)) {
+			parent.find('#mptbm_map_start_time').closest('.mp_input_select').find('input.formControl').trigger('click');
+		}
 	});
 
 	$(document).on('change', '#mptbm_map_return_date', function () {

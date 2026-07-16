@@ -711,7 +711,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			height: 100% !important;
 			width: 100% !important;
 			border: 1px solid #ddd;
-			border-radius: 4px;
+			border-radius: 12px;
+			overflow: hidden;
 		}
 		.mptbm-osm-autocomplete {
 			position: absolute;
@@ -734,54 +735,67 @@ document.addEventListener('DOMContentLoaded', function() {
 		</style>
 		<?php endif; ?>
 		<span class="mptbm-map-warning" style="display:none"><?php _e('Map Authentication Failed! Please contact site admin.','ecab-taxi-booking-manager'); ?></span>
-		<div class="mptbm_map_area fdColumn" style="display: <?php echo (($price_based != 'manual') && $map === 'yes' && !($hide_dropoff && $price_based === 'fixed_hourly')) ? 'block' : 'none'; ?>;">
-			<div class="fullHeight">
-				<?php if($map_type === 'openstreetmap'): ?>
-					<div id="mptbm_map_area"></div>
-				<?php elseif($map_type === 'enable' && !empty($map_key['gmap_api_key'])): ?>
-					<div id="mptbm_map_area"></div>
-				<?php elseif($map_type === 'enable' && empty($map_key['gmap_api_key'])): ?>
-					<div class="mptbm-map-warning"><h6>
-						<?php _e('Google Map API key not configured! Please contact site admin.','ecab-taxi-booking-manager'); ?></h6>
-					</div>
-				<?php else: ?>
-					<div class="mptbm-map-warning"><h6>
-						<?php _e('Map functionality is disabled.','ecab-taxi-booking-manager'); ?></h6>
-					</div>
-				<?php endif; ?>
+		<div class="mptbm_map_area fdColumn" style="display: <?php echo (($price_based != 'manual') && $map === 'yes' && !($hide_dropoff && $price_based === 'fixed_hourly')) ? 'flex' : 'none'; ?>;">
+			<div class="mptbm_map_area_header">
+				<h6><span class="fas fa-map-marked-alt mR_xs"></span><?php echo mptbm_get_translation('route_map_label', __('Route Map', 'ecab-taxi-booking-manager')); ?></h6>
+				<button type="button" class="mptbm_map_collapse_toggle" aria-expanded="true" data-expand-text="<?php esc_attr_e('Show Map', 'ecab-taxi-booking-manager'); ?>" data-collapse-text="<?php esc_attr_e('Hide Map', 'ecab-taxi-booking-manager'); ?>">
+					<span data-label><?php esc_html_e('Hide Map', 'ecab-taxi-booking-manager'); ?></span>
+					<i class="fas fa-chevron-up"></i>
+				</button>
 			</div>
-			<div class="_dLayout mptbm_distance_time">
-				<div class="_equalChild_separatorRight">
-					<div class="_dFlex_pR_xs">
-						<h1 class="_mR">
-							<span class="mi mi-car-journey textTheme"></span>
-						</h1>
-						<div class="fdColumn">
-							<h6><?php echo mptbm_get_translation('total_distance_label', __('TOTAL DISTANCE', 'ecab-taxi-booking-manager')); ?></h6>
-							<?php if ($km_or_mile != 'km') { ?>
-								<strong class="mptbm_total_distance"><?php echo mptbm_get_translation('zero_mile_label', __(' 0 MILE', 'ecab-taxi-booking-manager')); ?></strong>
-							<?php } else { ?>
-								<strong class="mptbm_total_distance"><?php echo mptbm_get_translation('zero_km_label', __(' 0 KM', 'ecab-taxi-booking-manager')); ?></strong>
-							<?php } ?>
+			<div class="mptbm_map_collapsible_body">
+				<div class="fullHeight">
+					<?php if($map_type === 'openstreetmap'): ?>
+						<div id="mptbm_map_area"></div>
+					<?php elseif($map_type === 'enable' && !empty($map_key['gmap_api_key'])): ?>
+						<div id="mptbm_map_area"></div>
+					<?php elseif($map_type === 'enable' && empty($map_key['gmap_api_key'])): ?>
+						<div class="mptbm-map-warning"><h6>
+							<?php _e('Google Map API key not configured! Please contact site admin.','ecab-taxi-booking-manager'); ?></h6>
 						</div>
-					</div>
-					<div class="dFlex">
-						<h1 class="_mLR">
-							<span class="mi mi-clock-three textTheme"></span>
-						</h1>
-						<div class="fdColumn">
+					<?php else: ?>
+						<div class="mptbm-map-warning"><h6>
+							<?php _e('Map functionality is disabled.','ecab-taxi-booking-manager'); ?></h6>
+						</div>
+					<?php endif; ?>
+				</div>
+				<div class="_dLayout mptbm_distance_time">
+					<div class="_equalChild_separatorRight">
+						<div class="_dFlex_pR_xs">
+							<h1 class="_mR">
+								<span class="mi mi-car-journey textTheme"></span>
+							</h1>
 							<div class="fdColumn">
-								<h6><?php echo mptbm_get_translation('total_time_label', __('TOTAL TIME', 'ecab-taxi-booking-manager')); ?></h6>
-								<strong class="mptbm_total_time"><?php echo mptbm_get_translation('zero_hour_label', __('0 Hour', 'ecab-taxi-booking-manager')); ?></strong>
+								<h6><?php echo mptbm_get_translation('total_distance_label', __('TOTAL DISTANCE', 'ecab-taxi-booking-manager')); ?></h6>
+								<?php if ($km_or_mile != 'km') { ?>
+									<strong class="mptbm_total_distance"><?php echo mptbm_get_translation('zero_mile_label', __(' 0 MILE', 'ecab-taxi-booking-manager')); ?></strong>
+								<?php } else { ?>
+									<strong class="mptbm_total_distance"><?php echo mptbm_get_translation('zero_km_label', __(' 0 KM', 'ecab-taxi-booking-manager')); ?></strong>
+								<?php } ?>
+							</div>
+						</div>
+						<div class="dFlex">
+							<h1 class="_mLR">
+								<span class="mi mi-clock-three textTheme"></span>
+							</h1>
+							<div class="fdColumn">
+								<div class="fdColumn">
+									<h6><?php echo mptbm_get_translation('total_time_label', __('TOTAL TIME', 'ecab-taxi-booking-manager')); ?></h6>
+									<strong class="mptbm_total_time"><?php echo mptbm_get_translation('zero_hour_label', __('0 Hour', 'ecab-taxi-booking-manager')); ?></strong>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
+			<div class="mptbm_inline_search_results">
+			<button type="button" class="mptbm_inline_results_reset" aria-label="<?php esc_attr_e('Reset search', 'ecab-taxi-booking-manager'); ?>" title="<?php esc_attr_e('Reset search', 'ecab-taxi-booking-manager'); ?>">
+				<i class="fas fa-times"></i>
+			</button>
+		</div>
 		</div>
 	</div>
-	
-	
+
 	<div class="_fullWidth get_details_next_link">
 		<div class="divider"></div>
 		<div class="justifyBetween">

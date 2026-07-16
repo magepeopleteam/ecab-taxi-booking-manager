@@ -579,7 +579,6 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     display: flex !important;
     flex-wrap: wrap !important;
     align-items: center;
-    min-height: 90px;
 }
 .mptbm_transport_search_area ul.mptbm_features_grid.list_inline_two {
     display: flow-root; /* clears the floated <li> children without extra markup */
@@ -646,22 +645,25 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     width: 100%;
     position: relative;
 }
+/* Simpler/more compact than the old version: less horizontal padding (was
+   12px 18px, reading as oversized for a 200px-wide column), sentence case
+   instead of uppercase+letter-spacing, and a flat, low-key shadow instead of
+   a heavy tinted glow - keeps this the clear primary action without it
+   visually dominating the card. */
 .mptbm_transport_search_area button._mpBtn_xs.mptbm_transport_select,
 .mptbm_transport_search_area button._mpBtn_xs.mptbm_out_of_stock {
     width: 100%;
     white-space: nowrap;
-    padding: 12px 18px !important;
+    padding: 10px 14px !important;
     background: var(--color_theme) !important;
     color: #ffffff !important;
     border: 0 !important;
     border-radius: 10px !important;
     font-size: 13px !important;
-    font-weight: 700 !important;
-    letter-spacing: .03em;
-    text-transform: uppercase;
+    font-weight: 600 !important;
     cursor: pointer;
-    transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
-    box-shadow: 0 6px 16px -6px var(--color_theme_88, rgba(5, 150, 105, 0.5));
+    transition: background-color .15s ease, box-shadow .15s ease;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
     position: relative;
     display: inline-flex !important;
     align-items: center;
@@ -669,12 +671,20 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     gap: 6px;
 }
 .mptbm_transport_search_area button._mpBtn_xs.mptbm_transport_select:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.05);
-    box-shadow: 0 10px 22px -8px var(--color_theme_88, rgba(5, 150, 105, 0.6));
+    /* No pre-darkened "--color_theme_dark" token exists in this codebase to
+       reach for (would silently no-op as an unresolved var() fallback) -
+       filter reliably darkens whatever the live theme color happens to be. */
+    filter: brightness(0.92);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
 }
 .mptbm_transport_search_area button._mpBtn_xs.mptbm_transport_select:active {
-    transform: translateY(0);
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+/* Selected state keeps the same fill (still the clearest "this one's picked"
+   signal alongside the label/checkmark swap) plus a thin inner ring, so it
+   reads as "confirmed" rather than just another hoverable button. */
+.mptbm_transport_search_area button._mpBtn_xs.mptbm_transport_select.active_select {
+    box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
 }
 .mptbm_transport_search_area button._mpBtn_xs.mptbm_out_of_stock {
     background: #e2e8f0 !important;
@@ -1369,7 +1379,7 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
 .mptbm_results_toolbar_middle h6 {
     margin: 0 !important;
     font-size: 10.5px !important;
-    font-weight: 700 !important;
+    font-weight: 400 !important;
     text-transform: uppercase;
     letter-spacing: .06em;
     color: #94a3b8 !important;
@@ -1668,18 +1678,6 @@ button.mptbm_results_edit:hover i {
     font-size: 19px !important;
     text-align: left !important;
 }
-.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid ul.mptbm_features_grid > li.mptbm_feature_item {
-    font-size: 12px;
-    padding: 5px 10px;
-    width: 100%;
-    margin-right: 0;
-    box-sizing: border-box;
-}
-.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid ul.mptbm_features_grid > li.mptbm_feature_item .mptbm_feature_text {
-    max-width: none;
-    overflow: visible;
-    text-overflow: clip;
-}
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid ul.mptbm_features_grid > li.mptbm_feature_item:nth-child(n+4) {
     display: none !important;
 }
@@ -1691,7 +1689,8 @@ button.mptbm_results_edit:hover i {
    the spec-table's own 2-column grid + block titles into ~200px sub-columns,
    reading as overlapping/collided text. Always single-column here. */
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_details_panel {
-    columns: 1;
+    grid-template-columns: 1fr;
+    gap: 28px 0;
     padding: 18px 16px 20px;
 }
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_spec_table {
@@ -1709,6 +1708,10 @@ button.mptbm_results_edit:hover i {
 /* ============================================
    MPTBM "View Details" — real specs + reviews
    ============================================ */
+/* Two explicit column containers (not CSS balanced-columns) so the split is
+   always Description+Specifications on the left, Reviews+Driver Info on the
+   right, deterministically - regardless of how tall any one block is. Column
+   balancing would otherwise regroup blocks purely by height. */
 .mptbm_vehicle_details_panel {
     width: 100%;
     margin: 0;
@@ -1717,15 +1720,21 @@ button.mptbm_results_edit:hover i {
     border: 0;
     border-top: 1px solid #e5e7eb;
     box-sizing: border-box;
-    columns: 2;
-    column-gap: 32px;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 0 32px;
+    align-items: start;
+}
+.mptbm_details_col_left,
+.mptbm_details_col_right {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    min-width: 0;
 }
 .mptbm_details_block {
     min-width: 0;
-    break-inside: avoid-column;
-    margin-bottom: 28px;
 }
-.mptbm_details_block:last-child { margin-bottom: 0; }
 .mptbm_details_block h4 {
     margin: 0 0 12px !important;
     font-size: 12.5px !important;
@@ -1746,7 +1755,8 @@ button.mptbm_results_edit:hover i {
 }
 @media (max-width: 640px) {
     .mptbm_vehicle_details_panel {
-        columns: 1;
+        grid-template-columns: 1fr;
+        gap: 28px 0;
         padding: 18px 16px 20px;
     }
 }

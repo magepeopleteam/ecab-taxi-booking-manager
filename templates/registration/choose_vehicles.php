@@ -1160,6 +1160,14 @@ if (empty($duration)) {
 							<strong class="mptbm_results_count_number">0</strong> <?php esc_html_e('available', 'ecab-taxi-booking-manager'); ?>
 						</h3>
 						<div class="mptbm_results_controls_right">
+							<div class="mptbm_results_view_toggle" role="group" aria-label="<?php esc_attr_e('Layout view', 'ecab-taxi-booking-manager'); ?>">
+								<button type="button" class="is-active" data-view="list" aria-label="<?php esc_attr_e('List view', 'ecab-taxi-booking-manager'); ?>">
+									<i class="fas fa-list"></i>
+								</button>
+								<button type="button" data-view="grid" aria-label="<?php esc_attr_e('Grid view', 'ecab-taxi-booking-manager'); ?>">
+									<i class="fas fa-th-large"></i>
+								</button>
+							</div>
 							<label class="mptbm_results_sort">
 								<span class="mptbm_results_sort_label_sr"><?php esc_html_e('Sort by', 'ecab-taxi-booking-manager'); ?></span>
 								<select class="mptbm_sort_select formControl" aria-label="<?php esc_attr_e('Sort by', 'ecab-taxi-booking-manager'); ?>">
@@ -1169,14 +1177,6 @@ if (empty($duration)) {
 									<option value="rating"><?php esc_html_e('Highest Rated', 'ecab-taxi-booking-manager'); ?></option>
 								</select>
 							</label>
-							<div class="mptbm_results_view_toggle" role="group" aria-label="<?php esc_attr_e('Layout view', 'ecab-taxi-booking-manager'); ?>">
-								<button type="button" class="is-active" data-view="list" aria-label="<?php esc_attr_e('List view', 'ecab-taxi-booking-manager'); ?>">
-									<i class="fas fa-list"></i>
-								</button>
-								<button type="button" data-view="grid" aria-label="<?php esc_attr_e('Grid view', 'ecab-taxi-booking-manager'); ?>">
-									<i class="fas fa-th-large"></i>
-								</button>
-							</div>
 						</div>
 					</div>
 					<?php
