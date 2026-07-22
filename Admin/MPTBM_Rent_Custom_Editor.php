@@ -12,6 +12,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
         public function __construct() {
             add_action('admin_menu', [$this, 'register_menu']);
             add_action('admin_post_save_mptbm_rent', [$this, 'save_post']);
+            add_action('wp_ajax_mptbm_ajax_save_rent', [$this, 'ajax_save_rent']);
             add_action('admin_init', [$this, 'redirect_default_editor']);
             add_action('admin_init', [$this, 'redirect_add_new']);
 
@@ -286,7 +287,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     </div>
                 </div>
 
-                <form class="mptbm_rent_form" method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+                <form class="mptbm_rent_form" method="post" action="<?php echo admin_url('admin-post.php'); ?>" novalidate>
 
                     <input type="hidden" name="editor_type" value="custom">
 
@@ -295,7 +296,28 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <input type="hidden" name="post_id" value="<?php echo esc_attr($post_id); ?>">
 
                     <?php wp_nonce_field('save_mptbm_rent_nonce');
-                    $add_url   = admin_url('admin.php?page=mptbm-rent-edit');
+                    $add_url = admin_url('admin.php?page=mptbm-rent-edit');
+                    $list_url = admin_url('admin.php?page=mptbm_transportation_lists');
+
+                    // Status pill next to the title.
+                    switch (get_post_status($post_id)) {
+                        case 'publish':
+                            $status_slug = 'publish';
+                            $status_label = __('Published', 'ecab-taxi-booking-manager');
+                            break;
+                        case 'pending':
+                            $status_slug = 'pending';
+                            $status_label = __('Pending', 'ecab-taxi-booking-manager');
+                            break;
+                        case 'private':
+                            $status_slug = 'private';
+                            $status_label = __('Private', 'ecab-taxi-booking-manager');
+                            break;
+                        default:
+                            $status_slug = 'draft';
+                            $status_label = __('Draft', 'ecab-taxi-booking-manager');
+                            break;
+                    }
                     ?>
 
                     <!-- FIXED HEADER -->
@@ -303,35 +325,34 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                         <div class="mptbm_fixed_header_top">
 
-                            <div class="">
-                                <a class="mptbm-link" href="<?php echo admin_url('admin.php?page=mptbm_transportation_lists'); ?>">
-                                    <span class="dashicons dashicons-arrow-left-alt"></span>
-                                    <?php esc_html_e( 'Back to Transports', 'ecab-taxi-booking-manager' ); ?>
+                            <div class="mptbm_header_lead">
+                                <a class="mptbm_back_btn" href="<?php echo esc_url($list_url); ?>" title="<?php esc_attr_e('Back to Transports', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Back to Transports', 'ecab-taxi-booking-manager'); ?>">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                                 </a>
 
-                                <a class="mptbm-add-btn" href="<?php echo esc_url($add_url); ?>">
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                    <?php esc_html_e('Add New Transportation', 'ecab-taxi-booking-manager'); ?>
-                                </a>
-                            </div>
-
-
-
-                            <div class="mptbm_header_left">
-                                <h1 class="mptbm_page_title">
-                                    <?php echo esc_html($title); ?>
-                                </h1>
+                                <div class="mptbm_header_titlewrap">
+                                    <span class="mptbm_header_eyebrow">
+                                        <?php esc_html_e('Transportation', 'ecab-taxi-booking-manager'); ?>
+                                        <span class="mptbm_status_pill is-<?php echo esc_attr($status_slug); ?>"><?php echo esc_html($status_label); ?></span>
+                                    </span>
+                                    <h1 class="mptbm_page_title">
+                                        <?php echo esc_html($title ? $title : __('Untitled transportation', 'ecab-taxi-booking-manager')); ?>
+                                    </h1>
+                                </div>
                             </div>
 
                             <div class="mptbm_header_right">
-
-                                <?php
-                                submit_button($post_id ? 'Update' : 'Publish', 'primary', '', false); ?>
-                                
-                                <a href="<?php echo esc_url($old_editor_url); ?>" class="button">
-                                    <?php esc_html_e( 'Open classic Editor', 'ecab-taxi-booking-manager' ); ?>
+                                <a class="mptbm-add-btn" href="<?php echo esc_url($add_url); ?>" title="<?php esc_attr_e('Add New Transportation', 'ecab-taxi-booking-manager'); ?>">
+                                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    <span class="mptbm_btn_label"><?php esc_html_e('Add New', 'ecab-taxi-booking-manager'); ?></span>
                                 </a>
 
+                                <a href="<?php echo esc_url($old_editor_url); ?>" class="button mptbm_btn_ghost" title="<?php esc_attr_e('Open classic Editor', 'ecab-taxi-booking-manager'); ?>">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    <span class="mptbm_btn_label"><?php esc_html_e('Classic Editor', 'ecab-taxi-booking-manager'); ?></span>
+                                </a>
+
+                                <?php submit_button($post_id ? __('Update', 'ecab-taxi-booking-manager') : __('Publish', 'ecab-taxi-booking-manager'), 'primary', '', false); ?>
                             </div>
 
                         </div>
@@ -3371,18 +3392,16 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             }
         }
 
-        // 3. Save / Update post
-        public function save_post() {
-
-            if (
-                !isset($_POST['_wpnonce']) ||
-                !wp_verify_nonce($_POST['_wpnonce'], 'save_mptbm_rent_nonce')
-            ) {
-                wp_die('Security check failed');
-            }
-
-            $post_id = intval($_POST['post_id']);
-            $title   =  isset($_POST['post_title'] ) ? sanitize_text_field($_POST['post_title']) : 'TEst';
+        /**
+         * Core save routine shared by the classic (redirect) and AJAX handlers.
+         * Runs wp_update_post so every registered save_post hook (general,
+         * price, date, base-price, tax, extra services...) persists its own
+         * $_POST fields, then stores the manual route table. Returns the post
+         * ID on success or a WP_Error/0 on failure.
+         */
+        private function persist_rent() {
+            $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+            $title   = isset($_POST['post_title']) ? sanitize_text_field(wp_unslash($_POST['post_title'])) : '';
 
             $data = [
                 'post_title'  => $title,
@@ -3392,9 +3411,13 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
             if ($post_id) {
                 $data['ID'] = $post_id;
-                $post_id = wp_update_post($data);
+                $post_id = wp_update_post($data, true);
             } else {
-                $post_id = wp_insert_post($data);
+                $post_id = wp_insert_post($data, true);
+            }
+
+            if (is_wp_error($post_id) || !$post_id) {
+                return $post_id;
             }
 
             // Save manual routes
@@ -3416,8 +3439,76 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             }
             update_post_meta($post_id, 'mptbm_terms_price_info', $terms_price_infos);
 
+            return $post_id;
+        }
+
+        // 3. Save / Update post (classic full-page submit fallback — no JS).
+        public function save_post() {
+
+            if (
+                !isset($_POST['_wpnonce']) ||
+                !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'save_mptbm_rent_nonce')
+            ) {
+                wp_die('Security check failed');
+            }
+            if (!current_user_can('manage_options')) {
+                wp_die('You are not allowed to do this.');
+            }
+
+            $post_id = $this->persist_rent();
+            if (is_wp_error($post_id) || !$post_id) {
+                wp_die('Could not save transportation. Please go back and try again.');
+            }
+
             wp_redirect(admin_url('admin.php?page=mptbm-rent-edit&post_id=' . $post_id . '&updated=1'));
             exit;
+        }
+
+        /**
+         * AJAX save — used by the editor for instant, reload-free updates.
+         * Returns a translated success/error JSON payload the frontend turns
+         * into a toast. Validates the one hard-required field (Rent Title)
+         * server-side as a safety net behind the client-side check.
+         */
+        public function ajax_save_rent() {
+
+            if (
+                !isset($_POST['_wpnonce']) ||
+                !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'save_mptbm_rent_nonce')
+            ) {
+                wp_send_json_error(['message' => __('Security check failed. Please refresh the page and try again.', 'ecab-taxi-booking-manager')]);
+            }
+            if (!current_user_can('manage_options')) {
+                wp_send_json_error(['message' => __('You are not allowed to do this.', 'ecab-taxi-booking-manager')]);
+            }
+
+            $title = isset($_POST['post_title']) ? trim(sanitize_text_field(wp_unslash($_POST['post_title']))) : '';
+            if ($title === '') {
+                wp_send_json_error([
+                    'message' => __('Rent Title is required.', 'ecab-taxi-booking-manager'),
+                    'field'   => 'post_title',
+                    'step'    => 1,
+                ]);
+            }
+
+            if (function_exists('wp_raise_memory_limit')) {
+                wp_raise_memory_limit('admin');
+            }
+
+            $post_id = $this->persist_rent();
+            if (is_wp_error($post_id) || !$post_id) {
+                $message = is_wp_error($post_id) ? $post_id->get_error_message() : __('Could not save. Please try again.', 'ecab-taxi-booking-manager');
+                wp_send_json_error(['message' => $message]);
+            }
+
+            wp_send_json_success([
+                'message'      => __('Transportation saved successfully.', 'ecab-taxi-booking-manager'),
+                'post_id'      => (int) $post_id,
+                'title'        => get_the_title($post_id),
+                'status'       => get_post_status($post_id),
+                'status_slug'  => 'publish',
+                'status_label' => __('Published', 'ecab-taxi-booking-manager'),
+            ]);
         }
 
         // 4. Redirect default WP editor → custom page

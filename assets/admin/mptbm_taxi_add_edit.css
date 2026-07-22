@@ -178,39 +178,102 @@
     height: 52px;
     padding: 0 20px;
     border-bottom: 1px solid var(--mp-border-light);
-    gap: 12px;
+    gap: 16px;
 }
 
-/* Back link */
-.mptbm_fixed_header_top a.mptbm-link {
+/* Left cluster: back button + title block */
+.mptbm_header_lead {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+}
+
+.mptbm_back_btn {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    color: var(--mp-text-500);
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 6px 12px;
+    justify-content: center;
     border-radius: var(--mp-r-md);
+    border: 1px solid var(--mp-border-dark);
+    background: var(--mp-white);
+    color: var(--mp-text-600);
+    text-decoration: none;
+    box-shadow: none;
     transition: var(--mp-transition);
-    white-space: nowrap;
 }
-.mptbm_fixed_header_top a.mptbm-link:hover {
+.mptbm_back_btn:hover {
     color: var(--mp-primary);
+    border-color: var(--mp-primary-border);
     background: var(--mp-primary-light);
 }
-.mptbm_fixed_header_top a.mptbm-link .dashicons {
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
+.mptbm_back_btn:focus { box-shadow: none; outline: none; }
+.mptbm_back_btn svg {
+    display: block;
+    width: 18px;
+    height: 18px;
 }
 
-/* Page Title */
-.mptbm_header_left { flex: 1; min-width: 0; }
+.mptbm_header_titlewrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    min-width: 0;
+    line-height: 1.2;
+}
 
-.mptbm_page_title {
+.mptbm_header_eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--mp-text-500);
+}
+
+/* Status pill */
+.mptbm_status_pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: none;
+    line-height: 1.6;
+}
+.mptbm_status_pill::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .9;
+}
+.mptbm_status_pill.is-publish { color: #15803d; background: #dcfce7; }
+.mptbm_status_pill.is-draft   { color: #b45309; background: #fef3c7; }
+.mptbm_status_pill.is-pending { color: #1d4ed8; background: #dbeafe; }
+.mptbm_status_pill.is-private { color: #6d28d9; background: #ede9fe; }
+
+/* Page Title
+   Scoped under .mptbm_fixed_header_top so it beats WordPress core's
+   `.wrap h1` (23px + 9px/4px padding), which would otherwise overflow
+   the fixed-height header row and clip the eyebrow above it. */
+.mptbm_header_left { flex: 1; min-width: 0; }  /* legacy hook, kept harmless */
+
+.mptbm_fixed_header_top .mptbm_page_title {
     margin: 0;
+    padding: 0;
     font-size: 16px;
+    line-height: 1.25;
     font-weight: 700;
     color: var(--mp-text-800);
     white-space: nowrap;
@@ -224,6 +287,29 @@
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
+}
+
+/* Soft-primary "Add New" button, normalised for the header row */
+.mptbm_fixed_header_top .mptbm_header_right a.mptbm-add-btn {
+    margin: 0;
+    height: 34px;
+    line-height: 1;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--mp-r-md);
+    background: var(--mp-primary-light);
+    color: var(--mp-primary);
+    border: 1px solid var(--mp-primary-border);
+    vertical-align: middle;
+}
+.mptbm_fixed_header_top .mptbm_header_right a.mptbm-add-btn:hover {
+    background: var(--mp-primary);
+    color: var(--mp-white);
+    border-color: var(--mp-primary);
 }
 
 .mptbm_fixed_header_top .mptbm_header_right .button {
@@ -241,6 +327,14 @@
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    gap: 6px;
+}
+/* Icons inside header action buttons render as centered blocks so they
+   align to the text baseline via flexbox (no dashicons vertical-align quirk). */
+.mptbm_fixed_header_top .mptbm_header_right a.mptbm-add-btn svg,
+.mptbm_fixed_header_top .mptbm_header_right .button svg {
+    display: block;
+    flex-shrink: 0;
 }
 .mptbm_fixed_header_top .mptbm_header_right .button:hover {
     background: var(--mp-bg-muted);
@@ -2615,14 +2709,28 @@ input.mptbm_taxi_feature_input:focus {
         padding: 8px 14px;
     }
     .mptbm_fixed_header_top .mptbm_page_title { font-size: 14px; }
+    .mptbm_header_lead { gap: 10px; }
+    .mptbm_back_btn { width: 32px; height: 32px; }
+    .mptbm_back_btn .dashicons { width: 18px; height: 18px; font-size: 18px; }
     .mptbm_fixed_header_top .mptbm_header_right { flex-wrap: wrap; gap: 6px; }
     .mptbm_fixed_header_top .mptbm_header_right .button,
     .mptbm_fixed_header_top .mptbm_header_right .button-primary,
+    .mptbm_fixed_header_top .mptbm_header_right a.mptbm-add-btn,
     .mptbm_fixed_header_top .mptbm_header_right input[type="submit"] {
         font-size: 12px;
         height: 30px;
         line-height: 28px;
         padding: 0 10px;
+    }
+    /* Collapse the two secondary buttons to icon-only to keep the row tidy */
+    .mptbm_fixed_header_top .mptbm_header_right a.mptbm-add-btn .mptbm_btn_label,
+    .mptbm_fixed_header_top .mptbm_header_right .mptbm_btn_ghost .mptbm_btn_label {
+        display: none;
+    }
+    .mptbm_fixed_header_top .mptbm_header_right a.mptbm-add-btn,
+    .mptbm_fixed_header_top .mptbm_header_right .mptbm_btn_ghost {
+        gap: 0;
+        padding: 0 9px;
     }
 
     .mptbm_fixed_header .mptbm_taxi_header_holder {
@@ -2656,6 +2764,8 @@ input.mptbm_taxi_feature_input:focus {
         padding: 10px 14px;
     }
     .mptbm_fixed_header_top .mptbm_header_left { text-align: center; }
+    .mptbm_header_lead { justify-content: center; flex: none; }
+    .mptbm_header_titlewrap { align-items: center; }
     .mptbm_fixed_header_top .mptbm_header_right { justify-content: center; }
 
     .mptbm_scroll_content { margin-top: 170px; padding: 16px 0 140px; }
@@ -3101,4 +3211,119 @@ select.formControl,
 @media (max-width: 600px) {
     .mptbm-oa-grid { grid-template-columns: 1fr 1fr; }
     .mptbm-oa-card-inner { padding-top: 34px; }
+}
+
+/* ================================================================
+   SECTION: INSTANT SAVE — toast, required-field error, saving state
+   ================================================================ */
+
+/* Toast notifications (bottom-right) */
+.mptbm_toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1000000;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    max-width: min(420px, calc(100vw - 40px));
+    padding: 13px 18px;
+    border-radius: 12px;
+    background: var(--mp-white, #fff);
+    border: 1px solid var(--mp-border, #e2e8f0);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12), 0 18px 40px rgba(15, 23, 42, 0.14);
+    font-family: var(--mp-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--mp-text-800, #1e293b);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+    transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mptbm_toast.is-show { opacity: 1; transform: translateY(0) scale(1); }
+.mptbm_toast_icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.mptbm_toast_icon svg { width: 16px; height: 16px; display: block; }
+.mptbm_toast_msg { line-height: 1.45; }
+
+/* Filled, high-contrast variants so a save is unmistakable every time */
+.mptbm_toast_success {
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    border-color: #15803d;
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(21, 128, 61, 0.30), 0 18px 42px rgba(21, 128, 61, 0.22);
+}
+.mptbm_toast_success .mptbm_toast_icon { background: rgba(255, 255, 255, 0.22); color: #fff; }
+
+.mptbm_toast_error {
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+    border-color: #b91c1c;
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(185, 28, 28, 0.30), 0 18px 42px rgba(185, 28, 28, 0.22);
+}
+.mptbm_toast_error .mptbm_toast_icon { background: rgba(255, 255, 255, 0.22); color: #fff; }
+
+/* Icon pop on show to grab the eye */
+.mptbm_toast.is-show .mptbm_toast_icon { animation: mptbmToastPop 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes mptbmToastPop {
+    0%   { transform: scale(0.4); }
+    60%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+}
+
+/* Required-field error highlight */
+.mptbm_field_error,
+.mptbm_rent_input.mptbm_field_error,
+select.mptbm_field_error,
+textarea.mptbm_field_error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14) !important;
+    background: #fff5f5 !important;
+    animation: mptbmFieldShake 0.35s ease;
+}
+@keyframes mptbmFieldShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+/* Saving state — spinner on the primary button, dimmed footer nav */
+.mptbm_header_right input[type="submit"]:disabled,
+.mptbm_header_right .button-primary:disabled {
+    opacity: 0.85;
+    cursor: progress;
+    position: relative;
+    padding-left: 32px;
+}
+.mptbm_header_right input[type="submit"]:disabled::before,
+.mptbm_header_right .button-primary:disabled::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    width: 13px;
+    height: 13px;
+    margin-top: -7px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: mptbmBtnSpin 0.7s linear infinite;
+}
+@keyframes mptbmBtnSpin { to { transform: rotate(360deg); } }
+.mptbm_rent_form.mptbm_is_saving .mptbm_taxi_btn_next,
+.mptbm_rent_form.mptbm_is_saving .mptbm_taxi_btn_prev {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+@media (max-width: 600px) {
+    .mptbm_toast { right: 12px; left: 12px; bottom: 12px; max-width: none; }
 }

@@ -12,6 +12,7 @@ class MPTBM_Transportation
         add_action('admin_post_mptbm_trash_transport', array($this, 'mptbm_trash_transport_callback'));
         add_action('admin_post_mptbm_restore_transport', array($this, 'mptbm_restore_transport_callback'));
         add_action('admin_post_mptbm_delete_transport', array($this, 'mptbm_delete_transport_callback'));
+        add_action('admin_post_mptbm_duplicate_transport', array($this, 'mptbm_duplicate_transport_callback'));
     }
 
     public function reorder_mptbm_submenu()
@@ -91,6 +92,118 @@ class MPTBM_Transportation
         exit;
     }
 
+    /**
+     * Duplicate a transportation vehicle as a fresh draft, cloning every meta
+     * field, the featured image, gallery and taxonomy terms, and minting a new
+     * linked hidden WooCommerce product (never sharing the source's product).
+     */
+    public function mptbm_duplicate_transport_callback()
+    {
+        $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+        if (!$id || !isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'mptbm_duplicate_' . $id)) {
+            wp_die('Invalid request');
+        }
+        if (!current_user_can('edit_post', $id) || !current_user_can('edit_posts')) {
+            wp_die('You are not allowed to duplicate this item.');
+        }
+
+        $new_id = $this->duplicate_transport($id);
+        if (is_wp_error($new_id) || !$new_id) {
+            wp_safe_redirect(add_query_arg('mptbm_message', 'duplicate_failed', $this->base_url()));
+            exit;
+        }
+
+        wp_safe_redirect(add_query_arg(
+            array('mptbm_message' => 'duplicated', 'mptbm_new' => $new_id),
+            $this->base_url()
+        ));
+        exit;
+    }
+
+    /**
+     * Deep-clones a mptbm_rent post. Returns the new post ID or a WP_Error.
+     * Copies all meta except internal/link keys, re-attaches taxonomy terms,
+     * and rebuilds the hidden WooCommerce product link from scratch.
+     */
+    private function duplicate_transport($source_id)
+    {
+        $source = get_post($source_id);
+        if (!$source || $source->post_type !== 'mptbm_rent' || $source->post_status === 'trash') {
+            return new WP_Error('mptbm_invalid_source', __('Source transportation not found.', 'ecab-taxi-booking-manager'));
+        }
+
+        /* translators: %s: original vehicle title. */
+        $new_title = sprintf(__('%s (Copy)', 'ecab-taxi-booking-manager'), $source->post_title);
+
+        $new_id = wp_insert_post(array(
+            'post_title'   => $new_title,
+            'post_content' => $source->post_content,
+            'post_excerpt' => $source->post_excerpt,
+            'post_status'  => 'draft',
+            'post_type'    => 'mptbm_rent',
+            'post_author'  => get_current_user_id(),
+            'menu_order'   => $source->menu_order,
+            'comment_status' => $source->comment_status,
+            'ping_status'  => $source->ping_status,
+        ), true);
+
+        if (is_wp_error($new_id) || !$new_id) {
+            return $new_id ?: new WP_Error('mptbm_insert_failed', __('Could not create the duplicate.', 'ecab-taxi-booking-manager'));
+        }
+
+        // Re-attach every taxonomy term (locations, etc.).
+        foreach (get_object_taxonomies('mptbm_rent') as $taxonomy) {
+            $terms = wp_get_object_terms($source_id, $taxonomy, array('fields' => 'ids'));
+            if (!is_wp_error($terms) && !empty($terms)) {
+                wp_set_object_terms($new_id, array_map('intval', $terms), $taxonomy);
+            }
+        }
+
+        // Copy all post meta except internal editor locks and the WC product
+        // link (which must be unique per vehicle and is rebuilt below).
+        $excluded = array(
+            'link_wc_product',   // rebuilt fresh so two vehicles never share one product
+            'link_mptbm_id',     // lives on the product side only
+            'check_if_run_once', // lets the hidden-product hook run for the copy
+            '_edit_lock',
+            '_edit_last',
+            '_wp_old_slug',
+            '_wp_old_date',
+        );
+        $all_meta = get_post_meta($source_id);
+        foreach ($all_meta as $key => $values) {
+            if (in_array($key, $excluded, true)) {
+                continue;
+            }
+            foreach ($values as $value) {
+                add_post_meta($new_id, $key, maybe_unserialize($value));
+            }
+        }
+
+        // Rebuild the hidden WooCommerce product link only when WC is active.
+        // In standalone mode there is no mirror product to create; the link
+        // will self-heal later via MPTBM_Hidden_Product::get_or_create_wc_product().
+        $wc_active = class_exists('MPTBM_Function') && MPTBM_Function::is_wc_active();
+        if ($wc_active && class_exists('MPTBM_Hidden_Product')) {
+            MPTBM_Hidden_Product::create_hidden_wc_product($new_id, $new_title);
+            $new_product_id = absint(get_post_meta($new_id, 'link_wc_product', true));
+            if ($new_product_id) {
+                $thumb_id = get_post_thumbnail_id($new_id);
+                if ($thumb_id) {
+                    set_post_thumbnail($new_product_id, $thumb_id);
+                }
+                $tax_status = get_post_meta($new_id, '_tax_status', true) ?: 'none';
+                $tax_class  = get_post_meta($new_id, '_tax_class', true) ?: '';
+                update_post_meta($new_product_id, '_tax_status', $tax_status);
+                update_post_meta($new_product_id, '_tax_class', $tax_class);
+                update_post_meta($new_product_id, '_stock_status', 'instock');
+                update_post_meta($new_product_id, '_manage_stock', 'no');
+            }
+        }
+
+        return $new_id;
+    }
+
     /* ---- Data --------------------------------------------------------- */
     private function get_items($statuses = array('publish', 'draft', 'pending', 'private'))
     {
@@ -139,6 +252,7 @@ class MPTBM_Transportation
                 'trash_link'  => wp_nonce_url(admin_url('admin-post.php?action=mptbm_trash_transport&id=' . $pid), 'mptbm_trash_' . $pid),
                 'restore_link' => wp_nonce_url(admin_url('admin-post.php?action=mptbm_restore_transport&id=' . $pid), 'mptbm_restore_' . $pid),
                 'delete_link'  => wp_nonce_url(admin_url('admin-post.php?action=mptbm_delete_transport&id=' . $pid), 'mptbm_delete_' . $pid),
+                'duplicate_link' => wp_nonce_url(admin_url('admin-post.php?action=mptbm_duplicate_transport&id=' . $pid), 'mptbm_duplicate_' . $pid),
             );
         }
 
@@ -270,6 +384,28 @@ class MPTBM_Transportation
         <div class="wrap mptbm-fleet-wrap">
             <div class="mptbm-fleet mptbm-view-list">
 
+                <?php
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                $mptbm_msg = isset($_GET['mptbm_message']) ? sanitize_key(wp_unslash($_GET['mptbm_message'])) : '';
+                if ($mptbm_msg === 'duplicated') :
+                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                    $new_id    = isset($_GET['mptbm_new']) ? intval($_GET['mptbm_new']) : 0;
+                    $edit_copy = ($new_id && get_post_type($new_id) === 'mptbm_rent') ? admin_url('admin.php?page=mptbm-rent-edit&post_id=' . $new_id) : '';
+                    ?>
+                    <div class="mptbm-notice success">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                        <span><?php esc_html_e('Transportation duplicated as a draft.', 'ecab-taxi-booking-manager'); ?></span>
+                        <?php if ($edit_copy) : ?>
+                            <a href="<?php echo esc_url($edit_copy); ?>"><?php esc_html_e('Edit the copy', 'ecab-taxi-booking-manager'); ?> &rarr;</a>
+                        <?php endif; ?>
+                    </div>
+                <?php elseif ($mptbm_msg === 'duplicate_failed') : ?>
+                    <div class="mptbm-notice error">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span><?php esc_html_e('Could not duplicate this transportation. Please try again.', 'ecab-taxi-booking-manager'); ?></span>
+                    </div>
+                <?php endif; ?>
+
                 <div class="mptbm-page-header">
                     <div class="mptbm-page-title"><?php esc_html_e('Transportation', 'ecab-taxi-booking-manager'); ?>
                         <span><?php echo esc_html(sprintf(_n('%d vehicle', '%d vehicles', $total, 'ecab-taxi-booking-manager'), $total)); ?></span>
@@ -394,6 +530,9 @@ class MPTBM_Transportation
                                         <a class="mptbm-act-btn edit" href="<?php echo esc_url($it['edit_link']); ?>" title="<?php esc_attr_e('Edit', 'ecab-taxi-booking-manager'); ?>">
                                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                         </a>
+                                        <a class="mptbm-act-btn dup" href="<?php echo esc_url($it['duplicate_link']); ?>" title="<?php esc_attr_e('Duplicate', 'ecab-taxi-booking-manager'); ?>" onclick="return confirm('<?php echo esc_js(__('Create a duplicate of this transportation?', 'ecab-taxi-booking-manager')); ?>');">
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                        </a>
                                         <a class="mptbm-act-btn del" href="<?php echo esc_url($it['trash_link']); ?>" title="<?php esc_attr_e('Move to Trash', 'ecab-taxi-booking-manager'); ?>" onclick="return confirm('<?php echo esc_js(__('Move this item to Trash?', 'ecab-taxi-booking-manager')); ?>');">
                                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                                         </a>
@@ -492,6 +631,7 @@ class MPTBM_Transportation
                                         <a class="mptbm-table-del" href="<?php echo esc_url($it['delete_link']); ?>" onclick="return confirm('<?php echo esc_js(__('Permanently delete this item? This cannot be undone.', 'ecab-taxi-booking-manager')); ?>');"><?php esc_html_e('Delete', 'ecab-taxi-booking-manager'); ?></a>
                                     <?php else : ?>
                                         <a class="mptbm-table-edit" href="<?php echo esc_url($it['edit_link']); ?>"><?php esc_html_e('Edit', 'ecab-taxi-booking-manager'); ?></a>
+                                        <a class="mptbm-table-dup" href="<?php echo esc_url($it['duplicate_link']); ?>" onclick="return confirm('<?php echo esc_js(__('Create a duplicate of this transportation?', 'ecab-taxi-booking-manager')); ?>');"><?php esc_html_e('Duplicate', 'ecab-taxi-booking-manager'); ?></a>
                                         <a class="mptbm-table-del" href="<?php echo esc_url($it['trash_link']); ?>" onclick="return confirm('<?php echo esc_js(__('Move this item to Trash?', 'ecab-taxi-booking-manager')); ?>');"><?php esc_html_e('Trash', 'ecab-taxi-booking-manager'); ?></a>
                                     <?php endif; ?>
                                 </td>
