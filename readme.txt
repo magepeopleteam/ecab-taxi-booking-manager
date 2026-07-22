@@ -25,7 +25,7 @@ https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerc
 
 ## Make Yourself Comfortable With:
 🧶 [View Live Taxi Booking Demo](https://demo.ecabtaxi.com/)
-👉 [Plugin Documentation](https://ecabtaxi.com/docs/)
+👉 [Plugin Documentation](https://docs.mage-people.com/plugins/ecab/overview)
 
 ## Why Choose E-cab? (Key Features):
 **🗺️ Multiple Map Providers**
@@ -196,7 +196,7 @@ You can check the demo of this plugin from here:
 [View Live PRO Version Demo For Business](https://demo.ecabtaxi.com/)
 
 = Q.Any Documentation? =
-A. Yes! Here is the [Online Documentation](https://ecabtaxi.com/docs/).
+A. Yes! Here is the [Online Documentation](https://docs.mage-people.com/plugins/ecab/overview).
  
 = Q.I installed correctly but 404 error what can I do?  =
 A. You need to Re-save permalink settings it will solve the 404. if still does not work that means your permalink not working, or you may have an access problem or you have a server permission problem. 
