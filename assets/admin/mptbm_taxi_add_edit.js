@@ -1565,24 +1565,44 @@
 
         /**
          * 3. Driver Selection Update
-         * Updates the info box when a different driver is selected.
+         * Loads the selected driver's info via AJAX and fills the info box.
          */
-        $('.mptbm_taxi_advanced_driver_select_row select').on('change', function(e) {
+        $(document).on('change', '#mptbm_selected_driver', function(e) {
             e.preventDefault();
-            const selectedDriver = $(this).val();
+            const $select = $(this);
+            const driverId = $select.val();
             const $infoBox = $('.mptbm_taxi_advanced_driver_info_box');
 
-            // Example data mapping
-            const driverData = {
-                "John Conner": { username: "John", email: "eyesblade30@gmail.com" },
-                "Sarah Connor": { username: "SarahC", email: "sarah.c@sky.net" }
-            };
-
-            if (driverData[selectedDriver]) {
-                $infoBox.find('.mptbm_taxi_advanced_info_col:eq(0) p').text(selectedDriver);
-                $infoBox.find('.mptbm_taxi_advanced_info_col:eq(1) p').text(driverData[selectedDriver].username);
-                $infoBox.find('.mptbm_taxi_advanced_info_col:eq(2) p').text(driverData[selectedDriver].email);
+            if (!driverId) {
+                $infoBox.hide();
+                $infoBox.find('.mptbm_taxi_advanced_info_col:eq(0) p').text('');
+                $infoBox.find('.mptbm_taxi_advanced_info_col:eq(1) p').text('');
+                $infoBox.find('.mptbm_taxi_advanced_info_col:eq(2) p').text('');
+                return;
             }
+
+            const nonce = $('input[name="mptbm_transportation_type_nonce"]').val();
+
+            $select.prop('disabled', true);
+
+            $.post(mptbm_editor_l10n.ajax_url, {
+                action: 'mptbm_get_driver_info',
+                driver_id: driverId,
+                nonce: nonce
+            }).done(function(response) {
+                if (response && response.success) {
+                    $infoBox.find('.mptbm_taxi_advanced_info_col:eq(0) p').text(response.data.name);
+                    $infoBox.find('.mptbm_taxi_advanced_info_col:eq(1) p').text(response.data.username);
+                    $infoBox.find('.mptbm_taxi_advanced_info_col:eq(2) p').text(response.data.email);
+                    $infoBox.show();
+                } else {
+                    $infoBox.hide();
+                }
+            }).fail(function() {
+                $infoBox.hide();
+            }).always(function() {
+                $select.prop('disabled', false);
+            });
         });
 
         /**
