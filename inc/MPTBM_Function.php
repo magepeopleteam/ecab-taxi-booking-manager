@@ -445,9 +445,11 @@ if (!class_exists('MPTBM_Function')) {
 			if ($tier_price !== false) {
 				$price = $tier_price;
 			} else {
-				// Check if the session is active
-				if (session_status() !== PHP_SESSION_ACTIVE) {
-					// Start the session if it's not active
+				// Start the session only if it isn't active AND output hasn't started —
+				// session_start() sets a cookie header, so calling it after headers are
+				// sent emits a warning. If we can't start one, the code below degrades
+				// gracefully (the session is only used as a recompute cache here).
+				if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
 					session_start();
 				}
 

@@ -385,8 +385,9 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
     $timestamp = strtotime($selected_day);
     $selected_day = date('l', $timestamp);
     
-    // Check & destroy transport session if exist
-    if (session_status() !== PHP_SESSION_ACTIVE) {
+    // Check & destroy transport session if exist. Guard on headers_sent() too: this
+    // template can render after output has begun, where session_start() would warn.
+    if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
         session_start();
     }
     if (isset($_SESSION["mptbm_fixed_distance_match_" . $post_id])) {

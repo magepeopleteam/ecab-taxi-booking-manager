@@ -53,39 +53,49 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                        value="<?php echo esc_attr($post_id); ?>">
 
                 <div class="mptbm_taxi_category_card">
-                    <div class="" style="display: flex; justify-content: space-between">
-                        <label class="mptbm_taxi_category_label"> <?php esc_html_e( 'Categories', 'ecab-taxi-booking-manager' ); ?></label>
-                        <label class="mptbm_taxi_all_category_label"> <?php esc_html_e( 'All Categories', 'ecab-taxi-booking-manager' ); ?></label>
-
+                    <div class="mptbm_taxi_card_head">
+                        <span class="mptbm_taxi_card_icon" aria-hidden="true">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                        </span>
+                        <div class="mptbm_taxi_card_head_text">
+                            <label class="mptbm_taxi_category_label"><?php esc_html_e( 'Categories', 'ecab-taxi-booking-manager' ); ?></label>
+                            <span class="mptbm_taxi_category_subtext"><?php esc_html_e( 'Select vehicle category', 'ecab-taxi-booking-manager' ); ?></span>
+                        </div>
+                        <button type="button" class="mptbm_taxi_all_category_label">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                            <?php esc_html_e( 'All Categories', 'ecab-taxi-booking-manager' ); ?>
+                        </button>
                     </div>
-                    <span class="mptbm_taxi_category_subtext">
-                         <?php esc_html_e( 'Select vehicle category', 'ecab-taxi-booking-manager' ); ?>
-                    </span>
 
                     <div class="mptbm_taxi_category_flex_group" id="mptbm_taxi_category_flex_group">
 
-                        <select id="mptbm_taxi_category_dropdown"
-                                class="mptbm_taxi_category_select">
+                        <div class="mptbm_taxi_select_wrap">
+                            <select id="mptbm_taxi_category_dropdown"
+                                    class="mptbm_taxi_category_select">
 
-                            <option value="" disabled><?php esc_html_e( 'Select Category', 'ecab-taxi-booking-manager' ); ?></option>
+                                <option value="" disabled <?php selected($saved_category, ''); ?>><?php esc_html_e( 'Select Category', 'ecab-taxi-booking-manager' ); ?></option>
 
-                            <?php foreach ($categories as $cat) : ?>
+                                <?php foreach ($categories as $cat) : ?>
 
-                                <option value="<?php echo esc_attr($cat['id']); ?>"
-                                    <?php selected($saved_category, $cat['id']); ?>>
+                                    <option value="<?php echo esc_attr($cat['id']); ?>"
+                                        <?php selected($saved_category, $cat['id']); ?>>
 
-                                    <?php echo esc_html($cat['name']); ?>
+                                        <?php echo esc_html($cat['name']); ?>
 
-                                </option>
+                                    </option>
 
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
 
-                        </select>
+                            </select>
+                            <svg class="mptbm_taxi_select_chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
 
                         <button type="button"
                                 id="mptbm_taxi_category_open_popup"
-                                class="mptbm_taxi_category_btn_add">
-                            +
+                                class="mptbm_taxi_category_btn_add"
+                                title="<?php esc_attr_e( 'Add new category', 'ecab-taxi-booking-manager' ); ?>"
+                                aria-label="<?php esc_attr_e( 'Add new category', 'ecab-taxi-booking-manager' ); ?>">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         </button>
 
                     </div>
@@ -104,15 +114,21 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                 ?>
 
                 <div class="mptbm_taxi_category_card">
-                    <label class="mptbm_taxi_category_label"><?php esc_html_e( 'Tags', 'ecab-taxi-booking-manager' ); ?></label>
-                    <span class="mptbm_taxi_category_subtext">
-                        <?php esc_html_e( 'Add keywords for searching', 'ecab-taxi-booking-manager' ); ?>
-                    </span>
+                    <div class="mptbm_taxi_card_head">
+                        <span class="mptbm_taxi_card_icon" aria-hidden="true">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                        </span>
+                        <div class="mptbm_taxi_card_head_text">
+                            <label class="mptbm_taxi_category_label"><?php esc_html_e( 'Tags', 'ecab-taxi-booking-manager' ); ?></label>
+                            <span class="mptbm_taxi_category_subtext"><?php esc_html_e( 'Add keywords for searching', 'ecab-taxi-booking-manager' ); ?></span>
+                        </div>
+                    </div>
                     <div class="mptbm_taxi_category_tag_input_wrapper">
+                        <svg class="mptbm_taxi_tag_input_icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                         <input type="text"
                                id="mptbm_taxi_category_tag_input"
                                class="mptbm_taxi_category_input"
-                               placeholder="<?php esc_html_e( 'Add a tag and press Enter', 'ecab-taxi-booking-manager' ); ?>">
+                               placeholder="<?php esc_attr_e( 'Add a tag and press Enter', 'ecab-taxi-booking-manager' ); ?>">
                     </div>
                     <div id="mptbm_taxi_category_tags_list"
                          class="mptbm_taxi_category_tags_container">

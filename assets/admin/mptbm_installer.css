@@ -455,3 +455,212 @@
 		gap: 8px;
 	}
 }
+
+/* ============================================
+   MPTBM Demo Data — floating progress widget
+   Bottom-right radial progress ring used by the
+   auto demo-data importer. Fully self-contained
+   under .mptbm-dw-* so it never touches the
+   shared .mptbm-inst-* installer styles above.
+   ============================================ */
+
+.mptbm-dw {
+	position: fixed;
+	right: 24px;
+	bottom: 24px;
+	z-index: 999999;
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	width: 340px;
+	max-width: calc(100vw - 40px);
+	padding: 16px 18px;
+	background: #fff;
+	border: 1px solid #eceef2;
+	border-radius: 16px;
+	box-shadow: 0 6px 16px rgba(15, 23, 42, 0.10), 0 24px 48px rgba(15, 23, 42, 0.14);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	animation: mptbmDwIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes mptbmDwIn {
+	from { opacity: 0; transform: translateY(24px) scale(0.96); }
+	to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mptbm-dw.is-hiding {
+	animation: mptbmDwOut 0.3s ease forwards;
+}
+
+@keyframes mptbmDwOut {
+	to { opacity: 0; transform: translateY(16px) scale(0.96); }
+}
+
+/* ---------- Radial ring ---------- */
+.mptbm-dw-ring {
+	position: relative;
+	flex-shrink: 0;
+	width: 66px;
+	height: 66px;
+}
+
+.mptbm-dw-svg {
+	display: block;
+	transform: rotate(-90deg); /* start the arc at 12 o'clock */
+}
+
+.mptbm-dw-track {
+	fill: none;
+	stroke: #eef1f6;
+	stroke-width: 7;
+}
+
+.mptbm-dw-arc {
+	fill: none;
+	stroke: url(#mptbmDwGrad);
+	stroke-width: 7;
+	stroke-linecap: round;
+	stroke-dasharray: 213.63;   /* 2 * PI * r(34) */
+	stroke-dashoffset: 213.63;
+	transition: stroke-dashoffset 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mptbm-dw-pct {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	font-weight: 700;
+	color: #1f2a44;
+	letter-spacing: -0.01em;
+}
+
+.mptbm-dw-mark {
+	position: absolute;
+	inset: 0;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	color: #12b76a;
+}
+
+/* ---------- Body ---------- */
+.mptbm-dw-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.mptbm-dw-brand {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	margin-bottom: 3px;
+}
+
+.mptbm-dw-brand-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 6px;
+	background: linear-gradient(135deg, #eff4ff 0%, #e0e7ff 100%);
+	color: #1f6feb;
+	flex-shrink: 0;
+}
+
+.mptbm-dw-title {
+	font-size: 13.5px;
+	font-weight: 700;
+	color: #1d2327;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.mptbm-dw-status {
+	margin: 0;
+	font-size: 12.5px;
+	line-height: 1.45;
+	color: #667085;
+}
+
+/* ---------- Retry / close ---------- */
+.mptbm-dw-retry {
+	display: none;
+	align-items: center;
+	margin-top: 8px;
+	padding: 6px 14px;
+	border: none;
+	border-radius: 7px;
+	background: linear-gradient(135deg, #1f6feb 0%, #4f46e5 100%);
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(31, 111, 235, 0.25);
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mptbm-dw-retry:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(31, 111, 235, 0.3);
+	color: #fff;
+}
+
+.mptbm-dw-close {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	display: none; /* revealed only on the error state */
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: #98a2b3;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.mptbm-dw-close:hover {
+	background: #f2f4f7;
+	color: #475467;
+}
+
+/* ---------- Success state ---------- */
+.mptbm-dw.is-success .mptbm-dw-arc { stroke: #12b76a; }
+.mptbm-dw.is-success .mptbm-dw-track { stroke: #d1fadf; }
+.mptbm-dw.is-success .mptbm-dw-pct { display: none; }
+.mptbm-dw.is-success .mptbm-dw-title { color: #039855; }
+.mptbm-dw.is-success .mptbm-dw-mark {
+	display: flex;
+	animation: mptbmDwPop 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mptbmDwPop {
+	0%   { transform: scale(0.4); opacity: 0; }
+	60%  { transform: scale(1.12); opacity: 1; }
+	100% { transform: scale(1); }
+}
+
+/* ---------- Error state ---------- */
+.mptbm-dw.is-error .mptbm-dw-arc { stroke: #f04438; }
+.mptbm-dw.is-error .mptbm-dw-track { stroke: #fee4e2; }
+.mptbm-dw.is-error .mptbm-dw-pct { color: #d92d20; }
+.mptbm-dw.is-error .mptbm-dw-title { color: #d92d20; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+	.mptbm-dw {
+		right: 12px;
+		left: 12px;
+		bottom: 12px;
+		width: auto;
+	}
+}

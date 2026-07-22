@@ -94,6 +94,17 @@ if (!class_exists('MPTBM_Dependencies')) {
             wp_enqueue_style('mptbm_date_and_advanced', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_date_and_advanced.css', array(), time());
             // Ensure jQuery UI Sortable is loaded before the add/edit script so drag handles work
             wp_enqueue_script('mptbm_taxi_add_edit', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_taxi_add_edit.js', array('jquery', 'jquery-ui-sortable'), time(), true);
+            wp_localize_script('mptbm_taxi_add_edit', 'mptbm_editor_l10n', array(
+                'ajax_url'   => admin_url('admin-ajax.php'),
+                'action'     => 'mptbm_ajax_save_rent',
+                'i18n'       => array(
+                    'saving'        => __('Saving…', 'ecab-taxi-booking-manager'),
+                    'saved'         => __('Transportation saved successfully.', 'ecab-taxi-booking-manager'),
+                    'required'      => __('Please complete the required field: %s', 'ecab-taxi-booking-manager'),
+                    'required_generic' => __('Please complete the highlighted required field.', 'ecab-taxi-booking-manager'),
+                    'network_error' => __('Could not reach the server. Please check your connection and try again.', 'ecab-taxi-booking-manager'),
+                ),
+            ));
             wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), time(), true);
             wp_enqueue_script('mptbm_tooltip', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_tooltip.js', array('jquery'), time(), true);
             wp_enqueue_script('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.js', array('jquery'), time(), true);

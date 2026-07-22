@@ -87,6 +87,174 @@
 
         updateStep(1);
 
+        /* ===============================================================
+           Instant AJAX save + required-field validation.
+           Intercepts the form submit (header "Update" and the last-step
+           footer button both trigger it), validates required fields,
+           jumps to the first missing one, or saves without a reload and
+           shows a success / error toast.
+           =============================================================== */
+        (function () {
+            var $form = $('.mptbm_rent_form');
+            if (!$form.length) { return; }
+
+            var cfg  = window.mptbm_editor_l10n || {};
+            var i18n = cfg.i18n || {};
+
+            // ---- Toast ----
+            function dismissToast($t) {
+                $t.removeClass('is-show');
+                setTimeout(function () { $t.remove(); }, 300);
+            }
+            function showToast(type, message) {
+                $('.mptbm_toast').each(function () { dismissToast($(this)); });
+                var isOk = type === 'success';
+                var icon = isOk
+                    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
+                    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+                var $t = $('<div class="mptbm_toast ' + (isOk ? 'mptbm_toast_success' : 'mptbm_toast_error') + '" role="status" aria-live="polite"></div>');
+                $t.html('<span class="mptbm_toast_icon">' + icon + '</span><span class="mptbm_toast_msg"></span>');
+                $t.find('.mptbm_toast_msg').text(message || '');
+                $('body').append($t);
+                $t[0].offsetHeight; // reflow so the transition plays
+                $t.addClass('is-show');
+                var timer = setTimeout(function () { dismissToast($t); }, 4200);
+                $t.on('click', function () { clearTimeout(timer); dismissToast($t); });
+            }
+
+            // ---- Required-field helpers ----
+            function fieldLabel(el) {
+                var $el = $(el), id = $el.attr('id'), txt = '';
+                if (id) { txt = $('label[for="' + id + '"]').first().clone().children().remove().end().text(); }
+                if (!txt) { txt = $el.closest('.mptbm_rent_field_group, .mptbm_taxi_field, .mptbm_taxi_form_group, .formGroup').find('label').first().clone().children().remove().end().text(); }
+                if (!txt) { txt = $el.attr('placeholder') || $el.attr('name') || ''; }
+                return $.trim(txt).replace(/\*+\s*$/, '').trim();
+            }
+            function isEmptyField(el) {
+                var $el = $(el), type = (el.type || '').toLowerCase();
+                if (type === 'checkbox' || type === 'radio') {
+                    var name = $el.attr('name');
+                    return name ? $form.find('input[name="' + name + '"]:checked').length === 0 : !el.checked;
+                }
+                return $.trim($el.val() || '') === '';
+            }
+            // Skip hidden inputs, disabled/readonly controls, self-hidden fields,
+            // and required fields inside a collapsed sub-section (unreachable) —
+            // only the wizard-step wrapper being hidden should not disqualify.
+            function isValidatable(el) {
+                var $el = $(el), type = (el.type || '').toLowerCase();
+                if (type === 'hidden' || el.disabled || el.readOnly) { return false; }
+                if ($el.css('display') === 'none') { return false; }
+                var $step = $el.closest('[data-step]');
+                var reachable = true;
+                $el.parentsUntil($step).each(function () {
+                    if ($(this).css('display') === 'none') { reachable = false; return false; }
+                });
+                return reachable;
+            }
+            function firstInvalidRequired() {
+                var found = null;
+                $form.find('[required]').each(function () {
+                    if (!isValidatable(this)) { return; }
+                    if (isEmptyField(this)) { found = this; return false; }
+                });
+                return found;
+            }
+            function goToField(el) {
+                var $el = $(el);
+                var step = parseInt($el.closest('[data-step]').data('step'), 10);
+                if (step >= 1) { updateStep(step); }
+                $el.addClass('mptbm_field_error');
+                var $header = $('.mptbm_fixed_header');
+                var offset = ($header.length ? $header.outerHeight() : 0) + 24;
+                $('html, body').animate({ scrollTop: Math.max(0, $el.offset().top - offset) }, 300, function () {
+                    try { $el.trigger('focus'); } catch (e) {}
+                });
+            }
+            $form.on('input change', '.mptbm_field_error', function () {
+                $(this).removeClass('mptbm_field_error');
+            });
+
+            // ---- Saving state ----
+            var $saveBtns = $('.mptbm_header_right').find('input[type="submit"], .button-primary');
+            function setSaving(on) {
+                $form.toggleClass('mptbm_is_saving', on);
+                if (on) {
+                    $saveBtns.each(function () {
+                        var $b = $(this);
+                        if ($b.data('mptbmLabel') == null) { $b.data('mptbmLabel', $b.is('input') ? $b.val() : $b.text()); }
+                        if ($b.is('input')) { $b.val(i18n.saving || 'Saving…'); } else { $b.text(i18n.saving || 'Saving…'); }
+                    }).prop('disabled', true);
+                } else {
+                    $saveBtns.each(function () {
+                        var $b = $(this), lbl = $b.data('mptbmLabel');
+                        if (lbl != null) { if ($b.is('input')) { $b.val(lbl); } else { $b.text(lbl); } }
+                    }).prop('disabled', false);
+                }
+            }
+
+            // ---- Submit ----
+            var submitting = false;
+            $form.on('submit', function (e) {
+                e.preventDefault();
+                if (submitting) { return; }
+
+                var invalid = firstInvalidRequired();
+                if (invalid) {
+                    goToField(invalid);
+                    var name = fieldLabel(invalid);
+                    var msg = name
+                        ? (i18n.required || 'Please complete the required field: %s').replace('%s', name)
+                        : (i18n.required_generic || 'Please complete the highlighted required field.');
+                    showToast('error', msg);
+                    return;
+                }
+
+                if (window.tinyMCE && window.tinyMCE.triggerSave) { try { window.tinyMCE.triggerSave(); } catch (err) {} }
+
+                var fd = new FormData(this);
+                fd.set('action', cfg.action || 'mptbm_ajax_save_rent');
+
+                submitting = true;
+                setSaving(true);
+
+                $.ajax({
+                    url: cfg.ajax_url || window.ajaxurl,
+                    type: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json'
+                }).done(function (res) {
+                    if (res && res.success) {
+                        var d = res.data || {};
+                        showToast('success', d.message || i18n.saved);
+                        if (d.title) { $('.mptbm_page_title').text(d.title); }
+                        if (d.status_slug) {
+                            $('.mptbm_status_pill')
+                                .removeClass('is-publish is-draft is-pending is-private')
+                                .addClass('is-' + d.status_slug)
+                                .text(d.status_label || '');
+                        }
+                        if (d.post_id) { $('input[name="post_id"]').val(d.post_id); }
+                    } else {
+                        var d2 = (res && res.data) || {};
+                        showToast('error', d2.message || i18n.network_error);
+                        if (d2.field) {
+                            var $f = $form.find('[name="' + d2.field + '"]').first();
+                            if ($f.length) { goToField($f[0]); }
+                        }
+                    }
+                }).fail(function (xhr) {
+                    if (window.console) { console.error('[MPTBM] save failed', xhr && xhr.status, xhr && xhr.responseText); }
+                    showToast('error', i18n.network_error || 'Could not save. Please try again.');
+                }).always(function () {
+                    submitting = false;
+                    setSaving(false);
+                });
+            });
+        })();
+
         $('.mptbm_taxi_toggle_trigger').on('change', function() {
             const isChecked = $(this).is(':checked');
             const $parentSection = $(this).closest('.mptbm_taxi_toggle_box');
