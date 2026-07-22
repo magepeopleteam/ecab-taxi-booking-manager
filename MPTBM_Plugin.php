@@ -3,7 +3,7 @@
  * Plugin Name: E-cab Taxi Booking Manager for Woocommerce
  * Plugin URI: https://wordpress.org/plugins/ecab-taxi-booking-manager/
  * Description: A Complete Transportation Solution for WordPress by MagePeople.
- * Version: 2.0.2
+ * Version: 2.0.4
  * Author: MagePeople Team
  * Author URI: http://www.mage-people.com/
  * License: GPL v2 or later
@@ -49,7 +49,7 @@ if (!class_exists('MPTBM_Plugin')) {
                 // define('MPTBM_PLUGIN_DATA', get_plugin_data(__FILE__));
             }
             if (!defined('MPTBM_PLUGIN_VERSION')) {
-                define('MPTBM_PLUGIN_VERSION', '1.2.1');
+                define('MPTBM_PLUGIN_VERSION', '2.0.4');
             }
 
             // Create required directories if they don't exist
@@ -65,44 +65,42 @@ if (!class_exists('MPTBM_Plugin')) {
             }
 
             require_once MPTBM_PLUGIN_DIR . '/mp_global/MP_Global_File_Load.php';
+
+            // WooCommerce is now OPTIONAL. The core plugin (CPT, settings, booking
+            // search & pricing) always loads. WooCommerce-specific integration is
+            // gated by MP_Global_Function::check_woocommerce() here and inside the
+            // Admin/Frontend/Dependencies loaders, so the plugin runs standalone too.
+            add_action('activated_plugin', array($this, 'activation_redirect'), 90, 1);
+            self::on_activation_page_create();
+            require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Dependencies.php';
+            require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Geo_Lib.php';
+
+            // Load Block Editor Integration (does not require WooCommerce)
+            if (function_exists('register_block_type')) {
+                require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Block.php';
+                add_action('enqueue_block_editor_assets', array($this, 'enqueue_block_editor_assets'));
+            }
+
+            // Load Elementor Integration (does not require WooCommerce)
+            add_action('elementor/widgets/register', array($this, 'register_elementor_widget'));
+            add_action('elementor/elements/categories_registered', array($this, 'add_elementor_widget_category'));
+
             if (MP_Global_Function::check_woocommerce() == 1) {
-                add_action('activated_plugin', array($this, 'activation_redirect'), 90, 1);
-                self::on_activation_page_create();
-                require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Dependencies.php';
-                require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Geo_Lib.php';
-				
-
-                // Load Block Editor Integration
-                if (function_exists('register_block_type')) {
-                    require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Block.php';
-                    add_action('enqueue_block_editor_assets', array($this, 'enqueue_block_editor_assets'));
-                }
-
-                // Load Elementor Integration
-                add_action('elementor/widgets/register', array($this, 'register_elementor_widget'));
-                add_action('elementor/elements/categories_registered', array($this, 'add_elementor_widget_category'));
-
-                // Always load the checkout fields helper on frontend
+                // WooCommerce active: load the WC checkout-fields helper on frontend.
                 require_once MPTBM_PLUGIN_DIR . '/Frontend/MPTBM_Wc_Checkout_Fields_Helper.php';
-            } else {
-                require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Quick_Setup.php';
-                add_action('activated_plugin', array($this, 'activation_redirect_setup'), 90, 1);
+            } elseif (is_admin()) {
+                // WooCommerce missing: still offer the (optional, non-blocking) installer
+                // popup so admins can add WooCommerce if they want the WC checkout flow.
+                require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Woo_Installer.php';
             }
         }
 
         public function activation_redirect($plugin)
         {
-            $mptbm_quick_setup_done = get_option('mptbm_quick_setup_done');
-            if ($plugin == plugin_basename(__FILE__) && $mptbm_quick_setup_done != 'yes') {
-                exit(wp_redirect(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_quick_setup')));
-            }
-        }
-
-        public function activation_redirect_setup($plugin)
-        {
-            $mptbm_quick_setup_done = get_option('mptbm_quick_setup_done');
-            if ($plugin == plugin_basename(__FILE__) && $mptbm_quick_setup_done != 'yes') {
-                exit(wp_redirect(admin_url('admin.php?post_type=mptbm_rent&page=mptbm_quick_setup')));
+            // On activation (with WooCommerce active) land on the transportation
+            // list, where the demo-import popup is offered. Skip on bulk activations.
+            if ($plugin == plugin_basename(__FILE__) && ! isset($_GET['activate-multi'])) {
+                exit(wp_redirect(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_transportation_lists')));
             }
         }
 

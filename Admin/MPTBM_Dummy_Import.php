@@ -12,14 +12,160 @@ if (!class_exists('MPTBM_Dummy_Import')) {
 	{
 		public function __construct()
 		{
-			add_action('admin_init', array($this, 'dummy_import'), 99);
+			add_action('admin_enqueue_scripts', array($this, 'enqueue_assets'));
+			add_action('admin_footer', array($this, 'render_widget'));
+			add_action('wp_ajax_mptbm_import_dummy_data', array($this, 'ajax_import_dummy_data'));
 		}
-		public function dummy_import()
+
+		/**
+		 * Demo import is offered only when the plugin is active, there are no
+		 * transports yet, and we have not already imported.
+		 */
+		public function is_eligible(): bool
+		{
+			if (get_option('mptbm_dummy_already_inserted', 'no') === 'yes') {
+				return false;
+			}
+			$plugin_active = MP_Global_Function::check_plugin('ecab-taxi-booking-manager', 'MPTBM_Plugin.php');
+			if ($plugin_active != 1) {
+				return false;
+			}
+			return (int) wp_count_posts('mptbm_rent')->publish === 0;
+		}
+
+		/**
+		 * Limit the auto-import widget to the plugin's own admin screens.
+		 * Since the demo data now imports automatically (no confirmation),
+		 * we intentionally keep it inside the Taxi Booking Manager area and
+		 * off the global WP Dashboard.
+		 */
+		private function is_relevant_screen(): bool
+		{
+			$screen = get_current_screen();
+			if (!$screen) {
+				return false;
+			}
+			return (
+				strpos($screen->id, 'mptbm') !== false
+				|| $screen->post_type === 'mptbm_rent'
+			);
+		}
+
+		public function enqueue_assets(): void
+		{
+			if (!$this->is_eligible() || !$this->is_relevant_screen()) {
+				return;
+			}
+			$css_path = MPTBM_PLUGIN_DIR . '/assets/admin/mptbm_installer.css';
+			$js_path  = MPTBM_PLUGIN_DIR . '/assets/admin/mptbm_demo_import.js';
+
+			wp_enqueue_style(
+				'mptbm-installer',
+				MPTBM_PLUGIN_URL . '/assets/admin/mptbm_installer.css',
+				array(),
+				file_exists($css_path) ? filemtime($css_path) : MPTBM_PLUGIN_VERSION
+			);
+
+			// Enqueued (not inline) with a jquery dependency so WP guarantees
+			// jQuery is ready before this runs. filemtime() versioning so edits
+			// are never served stale from the browser cache.
+			wp_enqueue_script(
+				'mptbm-demo-import',
+				MPTBM_PLUGIN_URL . '/assets/admin/mptbm_demo_import.js',
+				array('jquery'),
+				file_exists($js_path) ? filemtime($js_path) : MPTBM_PLUGIN_VERSION,
+				true
+			);
+			wp_localize_script('mptbm-demo-import', 'mptbm_demo_import', array(
+				'ajax_url'     => admin_url('admin-ajax.php'),
+				'import_nonce' => wp_create_nonce('mptbm_import_dummy'),
+				'i18n'         => array(
+					'title'         => __('Setting up demo data', 'ecab-taxi-booking-manager'),
+					'preparing'     => __('Preparing your demo workspace…', 'ecab-taxi-booking-manager'),
+					'importing'     => __('Importing sample transports & locations…', 'ecab-taxi-booking-manager'),
+					'finishing'     => __('Almost there, finishing up…', 'ecab-taxi-booking-manager'),
+					'success_title' => __('All set!', 'ecab-taxi-booking-manager'),
+					'success'       => __('Demo data ready — reloading…', 'ecab-taxi-booking-manager'),
+					'error_title'   => __('Import failed', 'ecab-taxi-booking-manager'),
+					'error'         => __('Something went wrong. Please try again.', 'ecab-taxi-booking-manager'),
+					'retry'         => __('Retry', 'ecab-taxi-booking-manager'),
+				),
+			));
+		}
+
+		/**
+		 * Renders the modern bottom-right progress widget. On a fresh install
+		 * with no transports yet, the demo data imports automatically and this
+		 * radial progress ring reports its status — no blocking modal.
+		 */
+		public function render_widget(): void
+		{
+			if (!$this->is_eligible() || !$this->is_relevant_screen()) {
+				return;
+			}
+			?>
+			<div id="mptbm-demo-widget" class="mptbm-dw" role="status" aria-live="polite">
+				<button type="button" class="mptbm-dw-close" id="mptbm-dw-close" aria-label="<?php esc_attr_e('Dismiss', 'ecab-taxi-booking-manager'); ?>">
+					<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+				</button>
+
+				<div class="mptbm-dw-ring">
+					<svg class="mptbm-dw-svg" width="66" height="66" viewBox="0 0 80 80" aria-hidden="true">
+						<defs>
+							<linearGradient id="mptbmDwGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+								<stop offset="0%" stop-color="#1f6feb"/>
+								<stop offset="100%" stop-color="#4f46e5"/>
+							</linearGradient>
+						</defs>
+						<circle class="mptbm-dw-track" cx="40" cy="40" r="34"/>
+						<circle class="mptbm-dw-arc" id="mptbm-dw-arc" cx="40" cy="40" r="34"/>
+					</svg>
+					<span class="mptbm-dw-pct" id="mptbm-dw-pct">0%</span>
+					<span class="mptbm-dw-mark" aria-hidden="true">
+						<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M6 12.5l3.5 3.5L18 7.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</span>
+				</div>
+
+				<div class="mptbm-dw-body">
+					<div class="mptbm-dw-brand">
+						<span class="mptbm-dw-brand-icon" aria-hidden="true">
+							<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 13l2-5h11l2 5M5 13h14v5H5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="18" r="1.5" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="18" r="1.5" stroke="currentColor" stroke-width="2"/></svg>
+						</span>
+						<span class="mptbm-dw-title" id="mptbm-dw-title"><?php esc_html_e('Setting up demo data', 'ecab-taxi-booking-manager'); ?></span>
+					</div>
+					<p class="mptbm-dw-status" id="mptbm-dw-status"><?php esc_html_e('Preparing your demo workspace…', 'ecab-taxi-booking-manager'); ?></p>
+					<button type="button" class="mptbm-dw-retry" id="mptbm-dw-retry"><?php esc_html_e('Retry', 'ecab-taxi-booking-manager'); ?></button>
+				</div>
+			</div>
+			<?php
+		}
+
+		public function ajax_import_dummy_data(): void
+		{
+			check_ajax_referer('mptbm_import_dummy', 'nonce');
+			if (!current_user_can('manage_options')) {
+				wp_send_json_error(array('message' => __('Permission denied.', 'ecab-taxi-booking-manager')));
+			}
+			if (function_exists('wp_raise_memory_limit')) {
+				wp_raise_memory_limit('admin');
+			}
+			if (function_exists('set_time_limit')) {
+				@set_time_limit(300);
+			}
+			$this->dummy_import();
+			wp_send_json_success();
+		}
+
+		public function dummy_import(): void
 		{
 			$dummy_post_inserted = get_option('mptbm_dummy_already_inserted', 'no');
 			$count_existing_event = wp_count_posts('mptbm_rent')->publish;
 			$plugin_active = MP_Global_Function::check_plugin('ecab-taxi-booking-manager', 'MPTBM_Plugin.php');
 			if ($count_existing_event == 0 && $plugin_active == 1 && $dummy_post_inserted != 'yes') {
+				// media_sideload_image() and friends are not loaded during AJAX.
+				require_once ABSPATH . 'wp-admin/includes/media.php';
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+				require_once ABSPATH . 'wp-admin/includes/image.php';
 				$dummy_post_data = $this->dummy_post_data();
 				$this->add_post($dummy_post_data);
 				$this->location_taxonomy();

@@ -141,6 +141,26 @@ if (!class_exists('MPTBM_Function')) {
 		{
 			return 'mptbm_rent';
 		}
+		/**
+		 * Whether the plugin should run in WooCommerce mode.
+		 * WooCommerce is optional: when inactive, the plugin runs in standalone mode
+		 * (custom booking + payment flow). Use this for readable mode checks.
+		 */
+		public static function is_wc_active(): bool
+		{
+			return MP_Global_Function::check_woocommerce() === 1;
+		}
+		/**
+		 * Whether a booking can actually be completed end-to-end.
+		 * Free plugin needs WooCommerce for cart/checkout; without it, only the
+		 * Pro plugin's custom (standalone) checkout can complete a booking. If
+		 * neither is available there is no way to take payment, so booking must
+		 * be blocked rather than left to fail silently at the final step.
+		 */
+		public static function is_booking_available(): bool
+		{
+			return self::is_wc_active() || class_exists('MPTBM_Plugin_Pro');
+		}
 		public static function get_name()
 		{
 			return self::get_general_settings('label', esc_html__('Transportation', 'ecab-taxi-booking-manager'));
@@ -239,6 +259,85 @@ if (!class_exists('MPTBM_Function')) {
 			}
 			return apply_filters('mptbm_get_date', $all_dates, $post_id);
 		}
+
+		// Labels for the "Reason" dropdown on the manual Vehicle Availability toggle.
+		// Shared by the admin editor, the admin vehicle list column, and the front-end search result.
+		public static function get_availability_reason_labels()
+		{
+			return [
+				'maintenance'        => esc_html__('Maintenance', 'ecab-taxi-booking-manager'),
+				'booked'             => esc_html__('Booked (external)', 'ecab-taxi-booking-manager'),
+				'accident'           => esc_html__('Accident', 'ecab-taxi-booking-manager'),
+				'repair'             => esc_html__('Repair', 'ecab-taxi-booking-manager'),
+				'cleaning'           => esc_html__('Cleaning', 'ecab-taxi-booking-manager'),
+				'driver_unavailable' => esc_html__('Driver Unavailable', 'ecab-taxi-booking-manager'),
+				'other'              => esc_html__('Other', 'ecab-taxi-booking-manager'),
+			];
+		}
+
+		// Human-readable reason a vehicle was manually marked unavailable (custom note for "Other").
+		public static function get_availability_reason_text($post_id)
+		{
+			$reason = get_post_meta($post_id, 'mptbm_availability_reason', true);
+			$note = get_post_meta($post_id, 'mptbm_availability_reason_note', true);
+			if ($reason === 'other' && $note) {
+				return $note;
+			}
+			$labels = self::get_availability_reason_labels();
+			return isset($labels[$reason]) ? $labels[$reason] : esc_html__('Unavailable', 'ecab-taxi-booking-manager');
+		}
+
+		// Remaining inventory quantity for a vehicle at a given date/time, based on
+		// the "Booking Interval Time (minutes)" setting and overlapping bookings.
+		// Used by the "automatic" Availability Check Mode to decide search-result inclusion.
+		public static function get_available_quantity($post_id, $start_date, $start_time_formatted, $force_single_quantity = false)
+		{
+			$total_quantity = $force_single_quantity ? 1 : (int) MP_Global_Function::get_post_info($post_id, 'mptbm_quantity', 1);
+			$available_quantity = $total_quantity;
+
+			if (!$start_date || $start_time_formatted === '' || $start_time_formatted === null) {
+				return $available_quantity;
+			}
+
+			$start_datetime = strtotime($start_date . ' ' . $start_time_formatted);
+			if (!$start_datetime) {
+				return $available_quantity;
+			}
+
+			$booking_interval_time = (int) MP_Global_Function::get_post_info($post_id, 'mptbm_booking_interval_time', 0);
+			$interval_before = $start_datetime - ($booking_interval_time * 60);
+			$interval_after = $start_datetime + ($booking_interval_time * 60);
+
+			$query = new WP_Query([
+				'post_type' => 'mptbm_booking',
+				'posts_per_page' => -1,
+				'meta_query' => [
+					[
+						'key' => 'mptbm_id',
+						'value' => $post_id,
+						'compare' => '='
+					]
+				]
+			]);
+
+			if ($query->have_posts()) {
+				while ($query->have_posts()) {
+					$query->the_post();
+					$booking_datetime = get_post_meta(get_the_ID(), 'mptbm_date', true);
+					$booking_transport_quantity = (int) get_post_meta(get_the_ID(), 'mptbm_transport_quantity', true);
+					$booking_transport_quantity = $booking_transport_quantity ?: 1;
+					$booking_timestamp = strtotime($booking_datetime);
+
+					if ($booking_timestamp >= $interval_before && $booking_timestamp <= $interval_after) {
+						$available_quantity -= $booking_transport_quantity;
+					}
+				}
+			}
+			wp_reset_postdata();
+
+			return $available_quantity;
+		}
+
 		public static function get_all_dates($price_based = 'dynamic', $expire = false)
 		{
 			$all_posts = MPTBM_Query::query_transport_list($price_based);
@@ -256,47 +355,50 @@ if (!class_exists('MPTBM_Function')) {
 			usort($all_dates, "MP_Global_Function::sort_date");
 			return $all_dates;
 		}
+
         //*************Price*********************************//
 		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0, $end_coords = null)
 		{
 			$price = 0;
 			delete_transient('mptbm_fixed_route_found_' . $post_id);
-			
+
+            $operation_area_type = MP_Global_Function::get_post_info($post_id, 'mptbm_operation_area_type', '' );
+
 			// Force fresh pricing calculations to prevent caching issues on repeated searches
 			$is_transport_result_page = false;
 			$is_ajax_search = false;
-			
+
 			// Check if we're on the transport result page by various methods
 			if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'transport-result') !== false) {
 				$is_transport_result_page = true;
 			}
-			
+
 			// Check if current page template is transport_result.php
 			if (is_page() && get_page_template_slug() === 'transport_result.php') {
 				$is_transport_result_page = true;
 			}
-			
+
 			// Check if we're on the custom search result page from settings
 			$search_result_slug = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_search_result_page');
 			if (!empty($search_result_slug) && isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], $search_result_slug) !== false) {
 				$is_transport_result_page = true;
 			}
-			
+
 			// Check if this is an AJAX search request
-			if (defined('DOING_AJAX') && DOING_AJAX && 
+			if (defined('DOING_AJAX') && DOING_AJAX &&
 				(isset($_POST['action']) && (
-					$_POST['action'] === 'get_mptbm_map_search_result' || 
+					$_POST['action'] === 'get_mptbm_map_search_result' ||
 					$_POST['action'] === 'get_mptbm_map_search_result_redirect'
 				))) {
 				$is_ajax_search = true;
 			}
-			
+
 			if ($is_transport_result_page || $is_ajax_search) {
 				// Clear pricing-specific cache groups for fresh calculations
 				wp_cache_flush_group('mptbm_pricing');
 				wp_cache_flush_group('weather_pricing');
 				wp_cache_flush_group('traffic_data');
-				
+
 				// Also clear specific location-based transients if start/end places are provided
 				if (!empty($start_place) && !empty($destination_place)) {
 					$location_cache_key = md5($start_place . $destination_place);
@@ -307,12 +409,12 @@ if (!class_exists('MPTBM_Function')) {
 
 			// Get price display type
 			$price_display_type = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
-			
+
 			// If price display type is zero, return 0
 			if ($price_display_type === 'zero') {
 				return 0;
 			}
-			
+
 			// If price display type is custom message, store it in a transient and return 0
 			if ($price_display_type === 'custom_message') {
 				$custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
@@ -328,7 +430,7 @@ if (!class_exists('MPTBM_Function')) {
 			if ($original_price_based === 'fixed_hourly' && $price_based === 'distance') {
 				return false;
 			}
-			
+
 			// Check if mptbm_distance_tier_enabled Distance Tier Pricing addon is active and apply tier pricing if available
 			$tier_price = false;
 			if (class_exists('MPTBM_Distance_Tier_Pricing')) {
@@ -343,16 +445,26 @@ if (!class_exists('MPTBM_Function')) {
 			if ($tier_price !== false) {
 				$price = $tier_price;
 			} else {
-				// Check if the session is active
-				if (session_status() !== PHP_SESSION_ACTIVE) {
-					// Start the session if it's not active
+				// Start the session only if it isn't active AND output hasn't started —
+				// session_start() sets a cookie header, so calling it after headers are
+				// sent emits a warning. If we can't start one, the code below degrades
+				// gracefully (the session is only used as a recompute cache here).
+				if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
 					session_start();
 				}
-				$initial_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_initial_price');
-				$min_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_min_price');
-				$return_min_price = MP_Global_Function::get_post_info($post_id, 'mptbm_min_price_return');
 
-				$waiting_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_waiting_price', 0) * (float) $waiting_time;
+				$display_taxi_base_fare = MP_Global_Function::get_post_info($post_id, 'mptbm_display_taxi_base_fare_pricing' );
+                if( $display_taxi_base_fare === 'on' ){
+                    $initial_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_initial_price');
+                    $min_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_min_price');
+                    $return_min_price = MP_Global_Function::get_post_info($post_id, 'mptbm_min_price_return');
+                    $waiting_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_waiting_price', 0) * (float) $waiting_time;
+                }else{
+                    $initial_price = 0;
+                    $min_price = 0;
+                    $return_min_price = 0;
+                    $waiting_price = 0;
+                }
 
 				if ($price_based == 'inclusive' && $original_price_based == 'dynamic') {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
@@ -376,34 +488,68 @@ if (!class_exists('MPTBM_Function')) {
 					$price = $km_price * ((float) $distance / 1000);
 				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_distance' || $price_based == 'fixed_map') && ($original_price_based == 'fixed_distance' || $original_price_based == 'fixed_map')) {
 					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_route_price_info', []);
+
+					$fixed_map_area_to_area_price_info = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_area_to_area_price_info', []);
+					$operation_area_fixed_map_type = MP_Global_Function::get_post_info($post_id, 'mptbm_operation_area_fixed_map_type', 'zone_to_location');
+
 					$found_zone_price = false;
 
-					if (!empty($fixed_zone_prices) && is_array($fixed_zone_prices)) {
-						$pickup_lat = get_transient('pickup_lat_transient');
-						$pickup_lng = get_transient('pickup_lng_transient');
-						$dropoff_lat = get_transient('drop_lat_transient');
-						$dropoff_lng = get_transient('drop_lng_transient');
+                    if( $operation_area_fixed_map_type === 'zone_to_location' ){
+                        if (!empty($fixed_zone_prices) && is_array($fixed_zone_prices)) {
+                            $pickup_lat = get_transient('pickup_lat_transient');
+                            $pickup_lng = get_transient('pickup_lng_transient');
+                            $dropoff_lat = get_transient('drop_lat_transient');
+                            $dropoff_lng = get_transient('drop_lng_transient');
 
-						if ($pickup_lat && $pickup_lng && $dropoff_lat && $dropoff_lng) {
-							$pickup_coords = ['lat' => $pickup_lat, 'lng' => $pickup_lng];
-							$dropoff_coords = ['lat' => $dropoff_lat, 'lng' => $dropoff_lng];
+                            if ($pickup_lat && $pickup_lng && $dropoff_lat && $dropoff_lng) {
+                                $pickup_coords = ['lat' => $pickup_lat, 'lng' => $pickup_lng];
+                                $dropoff_coords = ['lat' => $dropoff_lat, 'lng' => $dropoff_lng];
 
-							foreach ($fixed_zone_prices as $fixed_zone_price) {
-								$start_location = $fixed_zone_price['start_location'] ?? '';
-								$end_location = $fixed_zone_price['end_location'] ?? '';
+                                foreach ($fixed_zone_prices as $fixed_zone_price) {
+                                    $start_location = $fixed_zone_price['start_location'] ?? '';
+                                    $end_location = $fixed_zone_price['end_location'] ?? '';
 
-                                $start_match = self::is_point_in_fixed_zone($start_location, $pickup_coords);
-                                $end_match = self::is_point_in_fixed_zone($end_location, $dropoff_coords);
-                                
-								if ($start_match && $end_match) {
-									$price = (float) ($fixed_zone_price['price'] ?? 0);
-									$found_zone_price = true;
-                                    set_transient('mptbm_fixed_route_found_' . $post_id, 'yes', MINUTE_IN_SECONDS);
-									break;
-								}
-							}
-						}
-					}
+                                    $start_match = self::is_point_in_fixed_zone($start_location, $pickup_coords);
+                                    $end_match = self::is_point_in_fixed_zone($end_location, $dropoff_coords);
+
+                                    if ($start_match && $end_match) {
+                                        $price = (float) ($fixed_zone_price['price'] ?? 0);
+                                        $found_zone_price = true;
+                                        set_transient('mptbm_fixed_route_found_' . $post_id, 'yes', MINUTE_IN_SECONDS);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }else{
+                        if (!empty($fixed_map_area_to_area_price_info) && is_array($fixed_map_area_to_area_price_info)) {
+                            $area_to_area_pickup_lat = get_transient('pickup_lat_transient');
+                            $area_to_area_pickup_lng = get_transient('pickup_lng_transient');
+                            $area_to_area_dropoff_lat = get_transient('drop_lat_transient');
+                            $area_to_area_dropoff_lng = get_transient('drop_lng_transient');
+
+                            if ($area_to_area_pickup_lat && $area_to_area_pickup_lng && $area_to_area_dropoff_lat && $area_to_area_dropoff_lng) {
+                                $area_to_area_pickup_coords = ['lat' => $area_to_area_pickup_lat, 'lng' => $area_to_area_pickup_lng];
+                                $area_to_area_dropoff_coords = ['lat' => $area_to_area_dropoff_lat, 'lng' => $area_to_area_dropoff_lng];
+
+                                foreach ($fixed_map_area_to_area_price_info as $fixed_map_area_to_area_price) {
+                                    $area_to_area_start_location = $fixed_map_area_to_area_price['start_location'] ?? '';
+                                    $area_to_area_end_location = $fixed_map_area_to_area_price['end_location'] ?? '';
+
+                                    $area_to_area_start_match = self::is_point_in_fixed_zone($area_to_area_start_location, $area_to_area_pickup_coords);
+                                    $area_to_area_end_match = self::is_point_in_fixed_zone($area_to_area_end_location, $area_to_area_dropoff_coords);
+
+                                    if ($area_to_area_start_match && $area_to_area_end_match ) {
+                                        $price = (float) ($fixed_map_area_to_area_price['price'] ?? 0);
+                                        $found_zone_price = true;
+                                        set_transient('mptbm_fixed_route_found_' . $post_id, 'yes', MINUTE_IN_SECONDS);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
 
 					if (!$found_zone_price) {
 
@@ -450,15 +596,15 @@ if (!class_exists('MPTBM_Function')) {
 				}
 				elseif (($price_based == 'inclusive' || $price_based == 'fixed_zone' || $price_based == 'fixed_zone_dropoff') && ($original_price_based == 'fixed_zone' || $original_price_based == 'fixed_zone_dropoff')) {
 					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
-					
+
 					if (!empty($fixed_zone_prices) && is_array($fixed_zone_prices)) {
 						// Use original_price_based to determine the mode (pickup vs dropoff)
 						$mode = $original_price_based ?: $price_based;
-						
+
 						foreach ($fixed_zone_prices as $index => $fixed_zone_price) {
 							$start_location = $fixed_zone_price['start_location'] ?? '';
 							$end_location = $fixed_zone_price['end_location'] ?? '';
-							
+
 							if ($mode === 'fixed_zone_dropoff') {
 								// For dropoff: destination_place must match end_location exactly
 								if ($destination_place !== $end_location) {
@@ -527,7 +673,7 @@ if (!class_exists('MPTBM_Function')) {
 				} elseif ($two_way > 1) {
 					$price = $price * 2;
 				}
-				
+
 				if ($waiting_time > 0) {
 					$price += $waiting_price;
 				}
@@ -558,7 +704,11 @@ if (!class_exists('MPTBM_Function')) {
 				$datetime_discount_enabled = get_post_meta($post_id, 'mptbm_datetime_discount_enabled', true);
 				$day_discount_enabled = get_post_meta($post_id, 'mptbm_day_discount_enabled', true);
 
-				if (strpos($selected_start_time, '.') !== false) {
+				if (strpos($selected_start_time, ':') !== false) {
+					// Already formatted as H:i (or H:i:s) by the search form's data-time attribute; keep the real minutes.
+					$time_parts = explode(':', $selected_start_time);
+					$selected_start_time = sprintf('%02d:%02d', (int) $time_parts[0], (int) ($time_parts[1] ?? 0));
+				} elseif (strpos($selected_start_time, '.') !== false) {
 					$selected_start_time = sprintf('%02d:%02d', floor($selected_start_time), ($selected_start_time - floor($selected_start_time)) * 60);
 				} else {
 					$selected_start_time = sprintf('%02d:00', $selected_start_time);
@@ -573,11 +723,11 @@ if (!class_exists('MPTBM_Function')) {
 							$end_date = isset($discount['end_date']) ? date('Y-m-d', strtotime($discount['end_date'])) : '';
 							$time_slots = isset($discount['time_slots']) ? $discount['time_slots'] : [];
 
-							if (strtotime($selected_start_date) >= strtotime($start_date) && 
+							if (strtotime($selected_start_date) >= strtotime($start_date) &&
 								strtotime($selected_start_date) <= strtotime($end_date)) {
-								
+
 								$date_range_matched = true;
-								
+
 								$time_slot_matched = false;
 								foreach ($time_slots as $slot) {
 									$start_time = isset($slot['start_time']) ? sanitize_text_field($slot['start_time']) : '';
@@ -591,9 +741,9 @@ if (!class_exists('MPTBM_Function')) {
 									}
 
 									if (strtotime($start_time) > strtotime($end_time)) {
-										if (strtotime($selected_start_time) >= strtotime($start_time) || 
+										if (strtotime($selected_start_time) >= strtotime($start_time) ||
 											strtotime($selected_start_time) <= strtotime($end_time)) {
-											
+
 											$percentage = floatval(rtrim($slot['percentage'], '%'));
 											$type = isset($slot['type']) ? $slot['type'] : 'increase';
 
@@ -608,9 +758,9 @@ if (!class_exists('MPTBM_Function')) {
 											$time_slot_matched = true;
 										}
 									} else {
-										if (strtotime($selected_start_time) >= strtotime($start_time) && 
+										if (strtotime($selected_start_time) >= strtotime($start_time) &&
 											strtotime($selected_start_time) <= strtotime($end_time)) {
-											
+
 											$percentage = floatval(rtrim($slot['percentage'], '%'));
 											$type = isset($slot['type']) ? $slot['type'] : 'increase';
 
@@ -626,7 +776,7 @@ if (!class_exists('MPTBM_Function')) {
 										}
 									}
 								}
-								
+
 								if (!empty($time_slots) && !$time_slot_matched) {
 									continue;
 								}
@@ -638,18 +788,18 @@ if (!class_exists('MPTBM_Function')) {
 				// Apply Day-based discount if enabled and no date-range discount was applied
 				// Check if addon is handling both date-time and day-based discounts
 				$skip_day_discount = apply_filters('mptbm_skip_day_discount_when_both_enabled', false, $post_id);
-				
+
 				if ($day_discount_enabled === 'on' && !empty($selected_start_date) && !$date_range_matched && !$skip_day_discount) {
 					$day_of_week = strtolower(date('l', strtotime($selected_start_date)));
-					
+
 					// Get day-based discounts
 					$day_discounts = get_post_meta($post_id, 'mptbm_day_discounts', true);
-					if (is_array($day_discounts) && isset($day_discounts[$day_of_week]) && 
+					if (is_array($day_discounts) && isset($day_discounts[$day_of_week]) &&
 						$day_discounts[$day_of_week]['status'] === 'active') {
-						
+
 						$day_data = $day_discounts[$day_of_week];
 						$amount = floatval($day_data['amount']);
-						
+
 						if ($amount > 0) {
 							if ($day_data['amount_type'] === 'percentage') {
 								$discount_amount = ($amount / 100) * $original_price;
@@ -670,16 +820,19 @@ if (!class_exists('MPTBM_Function')) {
 				// Weather and Traffic pricing is now handled by the filter below to avoid double application
 			}
 
-			if (isset($_SESSION['geo_fence_post_' . $post_id])) {
-				$session_data = $_SESSION['geo_fence_post_' . $post_id];
-				if (isset($session_data[0])) {
-					if (isset($session_data[1]) && $session_data[1] == 'geo-fence-fixed-price') {
-						$price += (float) $session_data[0];
-					} else {
-						$price += ((float) $session_data[0] / 100) * $price;
-					}
-				}
-			}
+            if( !empty( $operation_area_type ) && $operation_area_type === 'geo-fence-operation-area-type' ){
+                if (isset($_SESSION['geo_fence_post_' . $post_id])) {
+                    $session_data = $_SESSION['geo_fence_post_' . $post_id];
+                    if (isset($session_data[0])) {
+                        if (isset($session_data[1]) && $session_data[1] == 'geo-fence-fixed-price') {
+                            $price += (float) $session_data[0];
+                        } else {
+                            $price += ((float) $session_data[0] / 100) * $price;
+                        }
+                    }
+                }
+            }
+
 
 			session_write_close();
 
@@ -728,7 +881,7 @@ if (!class_exists('MPTBM_Function')) {
 				$price = apply_filters('mptbm_calculate_price', $price, $post_id, $selected_start_date, $selected_start_time, $extra_data);
 			}
 
-			
+
 
 
 			return (float) $price;
@@ -832,21 +985,36 @@ if (!class_exists('MPTBM_Function')) {
 		}
 
 		public static function get_base_price_settings($post_id) {
-			$location_id = MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_location');
-			$coords = '';
-			if ($location_id) {
-				$coords = get_term_meta($location_id, 'mptbm_geo_location', true);
-			}
-			
-			$settings = [
-				'location_id' => $location_id,
-				'coords'      => $coords,
-				'price_km'    => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_km', 0),
-				'price_hour'  => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_hour', 0),
-				'threshold'   => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_min_threshold', 0),
-				'charge_pickup' => MP_Global_Function::get_post_info($post_id, 'mptbm_charge_base_pickup', 'no'),
-				'charge_dropoff' => MP_Global_Function::get_post_info($post_id, 'mptbm_charge_base_dropoff', 'no'),
-			];
+
+            $taxi_base_location_pricing = MP_Global_Function::get_post_info( $post_id, 'mptbm_display_taxi_base_location_pricing', 'off' );
+            $settings = [
+                'location_id'    => '',
+                'coords'         => '',
+                'price_km'       => 0,
+                'price_hour'     => 0,
+                'threshold'      => 0,
+                'charge_pickup'  => 'no',
+                'charge_dropoff' => 'no',
+            ];
+
+            if( $taxi_base_location_pricing === 'on' ){
+                $location_id = MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_location');
+                $coords = '';
+                if ($location_id) {
+                    $coords = get_term_meta($location_id, 'mptbm_geo_location', true);
+                }
+
+                $settings = [
+                    'location_id' => $location_id,
+                    'coords'      => $coords,
+                    'price_km'    => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_km', 0),
+                    'price_hour'  => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_price_hour', 0),
+                    'threshold'   => (float)MP_Global_Function::get_post_info($post_id, 'mptbm_base_min_threshold', 0),
+                    'charge_pickup' => MP_Global_Function::get_post_info($post_id, 'mptbm_charge_base_pickup', 'no'),
+                    'charge_dropoff' => MP_Global_Function::get_post_info($post_id, 'mptbm_charge_base_dropoff', 'no'),
+                ];
+            }
+
 			return $settings;
 		}
 		
@@ -1401,6 +1569,74 @@ if (!class_exists('MPTBM_Function')) {
 				}
 			}
 			
+			return false;
+		}
+
+		// Multi-stop version of get_server_distance(): $waypoints is an ordered array of
+		// ['lat' => .., 'lng' => ..] pairs - pickup first, dropoff last, any extra stops in between.
+		// Returns the total distance/duration across the whole route (all legs combined).
+		// With exactly 2 waypoints this is equivalent to get_server_distance().
+		public static function get_server_distance_multi($waypoints) {
+			$waypoints = array_values(array_filter($waypoints, function ($p) {
+				return isset($p['lat'], $p['lng']) && $p['lat'] !== '' && $p['lng'] !== '';
+			}));
+
+			if (count($waypoints) < 2) {
+				return false;
+			}
+
+			if (count($waypoints) === 2) {
+				return self::get_server_distance($waypoints[0]['lat'], $waypoints[0]['lng'], $waypoints[1]['lat'], $waypoints[1]['lng']);
+			}
+
+			// Google Directions API supports intermediate waypoints in one call.
+			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'map_api_key');
+			if ($api_key) {
+				$origin = $waypoints[0]['lat'] . ',' . $waypoints[0]['lng'];
+				$destination = end($waypoints)['lat'] . ',' . end($waypoints)['lng'];
+				$middle = array_slice($waypoints, 1, -1);
+				$waypoints_param = implode('|', array_map(function ($p) {
+					return $p['lat'] . ',' . $p['lng'];
+				}, $middle));
+
+				$url = "https://maps.googleapis.com/maps/api/directions/json?origin={$origin}&destination={$destination}&mode=driving&key={$api_key}";
+				if ($waypoints_param) {
+					$url .= '&waypoints=' . rawurlencode($waypoints_param);
+				}
+				$response = wp_remote_get($url);
+				if (!is_wp_error($response)) {
+					$body = wp_remote_retrieve_body($response);
+					$data = json_decode($body, true);
+					if (isset($data['status']) && $data['status'] === 'OK' && !empty($data['routes'][0]['legs'])) {
+						$distance = 0;
+						$duration = 0;
+						foreach ($data['routes'][0]['legs'] as $leg) {
+							$distance += $leg['distance']['value'];
+							$duration += $leg['duration']['value'];
+						}
+						return ['distance' => $distance, 'duration' => $duration];
+					}
+				}
+			}
+
+			// Fallback to OSRM - its route endpoint natively accepts more than 2 coordinates
+			// and returns one combined distance/duration for the whole ordered route.
+			$coords = implode(';', array_map(function ($p) {
+				return $p['lng'] . ',' . $p['lat']; // OSRM uses {lng},{lat} order
+			}, $waypoints));
+			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$coords}?overview=false";
+			$response = wp_remote_get($osrm_url);
+			if (!is_wp_error($response)) {
+				$body = wp_remote_retrieve_body($response);
+				$data = json_decode($body, true);
+				if (isset($data['code']) && $data['code'] === 'Ok' && isset($data['routes'][0])) {
+					return [
+						'distance' => $data['routes'][0]['distance'],
+						'duration' => $data['routes'][0]['duration'],
+					];
+				}
+			}
+
 			return false;
 		}
 	}

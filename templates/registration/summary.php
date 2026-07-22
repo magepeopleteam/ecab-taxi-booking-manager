@@ -16,7 +16,20 @@ if (!function_exists('mptbm_get_translation')) {
 	$date = $date ?? '';
 	$start_place = $start_place ?? (isset($_REQUEST['mptbm_start_place']) ? sanitize_text_field($_REQUEST['mptbm_start_place']) : '');
 	$end_place = $end_place ?? (isset($_REQUEST['mptbm_end_place']) ? sanitize_text_field($_REQUEST['mptbm_end_place']) : '');
-	$extra_stop_place = $extra_stop_place ?? (isset($_REQUEST['mptbm_extra_stop_place']) ? sanitize_text_field($_REQUEST['mptbm_extra_stop_place']) : '');
+	if (!isset($extra_stop_places)) {
+		$extra_stop_places_raw = isset($_REQUEST['mptbm_extra_stop_place']) ? $_REQUEST['mptbm_extra_stop_place'] : '';
+		$extra_stop_places = [];
+		if (is_array($extra_stop_places_raw)) {
+			foreach ($extra_stop_places_raw as $mptbm_summary_stop) {
+				$mptbm_summary_stop = sanitize_text_field($mptbm_summary_stop);
+				if ($mptbm_summary_stop !== '') {
+					$extra_stop_places[] = $mptbm_summary_stop;
+				}
+			}
+		} elseif ($extra_stop_places_raw !== '') {
+			$extra_stop_places[] = sanitize_text_field($extra_stop_places_raw);
+		}
+	}
 	$two_way = $two_way ?? 1;
 	$waiting_time = $waiting_time ?? 0;
 	$fixed_time = $fixed_time ?? '';
@@ -88,43 +101,40 @@ if (!function_exists('mptbm_get_translation')) {
 						<p class="_textLight_1 "><?php echo esc_html($start_place); ?></p>
 					<?php } ?>
 			
-			<?php 
-			// Display Extra Stop Location if setting is enabled and data exists
+			<?php
+			// Display extra stops (one or more, in order) if the setting is enabled and any exist
 			$extra_stop_enabled = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
-			// Ensure we have the latest value from request if not already set
-			if (empty($extra_stop_place) && isset($_REQUEST['mptbm_extra_stop_place'])) {
-				$extra_stop_place = sanitize_text_field($_REQUEST['mptbm_extra_stop_place']);
-			}
-			
-			if ($extra_stop_enabled === 'yes' && !empty($extra_stop_place) && 
+
+			if ($extra_stop_enabled === 'yes' && !empty($extra_stop_places) &&
 			    !in_array($price_based, ['fixed_zone', 'fixed_zone_dropoff', 'fixed_hourly', 'fixed_price', 'fixed_zone_pickup'])) {
 			?>
 				<div class="divider"></div>
-				<h6 class="_mB_xs"><?php echo mptbm_get_translation('extra_stop_location_label', __('Extra Stop Location', 'ecab-taxi-booking-manager')); ?></h6>
-				<?php 
-				$extra_stop_display = $extra_stop_place;
-				if ($price_based == 'manual') {
-					$extra_stop_display = MPTBM_Function::get_taxonomy_name_by_slug($extra_stop_place, 'locations');
-				} elseif (strpos($extra_stop_place, 'term_') === 0) {
-					// Resolve term_XX to location name
-					$term_id = absint(str_replace('term_', '', $extra_stop_place));
-					$term = get_term($term_id, 'locations');
-					if ($term && !is_wp_error($term)) {
-						$extra_stop_display = $term->name;
-					} else {
-						// Fallback: try direct DB query
-						global $wpdb;
-						$term_name = $wpdb->get_var($wpdb->prepare(
-							"SELECT name FROM {$wpdb->terms} WHERE term_id = %d",
-							$term_id
-						));
-						if ($term_name) {
-							$extra_stop_display = $term_name;
+				<h6 class="_mB_xs"><?php echo mptbm_get_translation('extra_stop_location_label', count($extra_stop_places) > 1 ? __('Extra Stops', 'ecab-taxi-booking-manager') : __('Extra Stop Location', 'ecab-taxi-booking-manager')); ?></h6>
+				<?php foreach ($extra_stop_places as $mptbm_stop_number => $extra_stop_place) :
+					$extra_stop_display = $extra_stop_place;
+					if ($price_based == 'manual') {
+						$extra_stop_display = MPTBM_Function::get_taxonomy_name_by_slug($extra_stop_place, 'locations');
+					} elseif (strpos($extra_stop_place, 'term_') === 0) {
+						// Resolve term_XX to location name
+						$term_id = absint(str_replace('term_', '', $extra_stop_place));
+						$term = get_term($term_id, 'locations');
+						if ($term && !is_wp_error($term)) {
+							$extra_stop_display = $term->name;
+						} else {
+							// Fallback: try direct DB query
+							global $wpdb;
+							$term_name = $wpdb->get_var($wpdb->prepare(
+								"SELECT name FROM {$wpdb->terms} WHERE term_id = %d",
+								$term_id
+							));
+							if ($term_name) {
+								$extra_stop_display = $term_name;
+							}
 						}
 					}
-				}
-				?>
-				<p class="_textLight_1"><?php echo esc_html($extra_stop_display); ?></p>
+					?>
+					<p class="_textLight_1"><?php echo count($extra_stop_places) > 1 ? esc_html(($mptbm_stop_number + 1) . '. ' . $extra_stop_display) : esc_html($extra_stop_display); ?></p>
+				<?php endforeach; ?>
 			<?php } ?>
 			
 					
@@ -316,6 +326,7 @@ if (!function_exists('mptbm_get_translation')) {
 							<?php endif; ?>
 						</div>
 						<div class="mptbm_base_price_detail"></div>
+						<div class="mptbm_stop_price_detail"></div>
 						<div class="mptbm_extra_service_summary"></div>
 						<div class="divider"></div>
 						<div class="justifyBetween">

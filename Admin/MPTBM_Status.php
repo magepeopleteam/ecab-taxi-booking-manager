@@ -20,7 +20,7 @@
 				$wc_i = MP_Global_Function::check_woocommerce();
 				$wc_i_text = $wc_i == 1 ? esc_html__('Yes', 'ecab-taxi-booking-manager') : esc_html__('No', 'ecab-taxi-booking-manager');
 				$wp_v = get_bloginfo('version');
-				$wc_v = WC()->version;
+				$wc_v = ($wc_i == 1 && function_exists('WC')) ? WC()->version : esc_html__('Not installed', 'ecab-taxi-booking-manager');
 				$from_name = get_option('woocommerce_email_from_name');
 				$from_email = get_option('woocommerce_email_from_address');
 				?>

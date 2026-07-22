@@ -271,13 +271,30 @@
 			//***********************************//
 			public static function price_convert_raw($price) {
 				$price = wp_strip_all_tags($price);
-				$price = str_replace(get_woocommerce_currency_symbol(), '', $price);
-				$price = str_replace(wc_get_price_thousand_separator(), 't_s', $price);
-				$price = str_replace(wc_get_price_decimal_separator(), 'd_s', $price);
-				$price = str_replace('t_s', '', $price);
-				$price = str_replace('d_s', '.', $price);
+				if (self::check_woocommerce() === 1) {
+					$price = str_replace(get_woocommerce_currency_symbol(), '', $price);
+					$price = str_replace(wc_get_price_thousand_separator(), 't_s', $price);
+					$price = str_replace(wc_get_price_decimal_separator(), 'd_s', $price);
+					$price = str_replace('t_s', '', $price);
+					$price = str_replace('d_s', '.', $price);
+				} else {
+					// Standalone (no WooCommerce): format_price() uses number_format(),
+					// i.e. ',' thousands separator and '.' decimal separator.
+					$price = str_replace(',', '', $price);
+				}
 				$price = str_replace('&nbsp;', '', $price);
 				return max($price, 0);
+			}
+			/**
+			 * WooCommerce-safe price formatter for display.
+			 * Uses wc_price() when WooCommerce is active, otherwise falls back to a
+			 * plain number so templates never fatal in standalone (no-WC) mode.
+			 */
+			public static function format_price($price) {
+				if (self::check_woocommerce() === 1 && function_exists('wc_price')) {
+					return wc_price($price);
+				}
+				return number_format((float) $price, 2);
 			}
 			public static function wc_price($post_id, $price, $args = array()): string {
 				// Check if WooCommerce is active before using WooCommerce functions

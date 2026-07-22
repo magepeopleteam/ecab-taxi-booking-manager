@@ -9,6 +9,8 @@ if (!defined('ABSPATH')) {
 
 $post_id = $post_id ?? '';
 $original_price_based = $price_based ?? '';
+$mptbm_unavailable = $mptbm_unavailable ?? false;
+$mptbm_unavailable_reason = $mptbm_unavailable_reason ?? '';
 $feature_class = ''; // Default empty value
 if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_filter_via_features') == 'yes') {
     $max_passenger = MP_Global_Function::get_post_info($post_id, 'mptbm_maximum_passenger');
@@ -195,6 +197,12 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                 </div>
                 <div class="fdColumn _fullWidth mptbm_list_details">
                     <h5><?php echo esc_html(get_the_title($post_id)); ?></h5>
+                    <?php if (class_exists('MPTBM_Reviews')) { echo MPTBM_Reviews::get_rating_html($post_id); } ?>
+                    <?php if ($mptbm_unavailable) { ?>
+                        <div class="mptbm_unavailable_badge" style="display:inline-block; margin: 2px 0; padding: 2px 8px; border-radius: 3px; background: #f8d7da; color: #842029; font-size: 12px; font-weight: 600;">
+                            <?php esc_html_e('Unavailable', 'ecab-taxi-booking-manager'); ?><?php echo $mptbm_unavailable_reason ? ' - ' . esc_html($mptbm_unavailable_reason) : ''; ?>
+                        </div>
+                    <?php } ?>
                     <div class="justifyBetween _mT_xs">
                         <?php if ($display_features == 'on' && is_array($all_features) && sizeof($all_features) > 0) { ?>
                             <ul class="list_inline_two">
@@ -236,7 +244,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                                             ?>
                                             <div class="mptbm-tier-pricing-savings-ticket">
                                                 <span class="mptbm-tier-pricing-savings-ticket-amount">
-                                                    <?php echo wp_kses_post(wc_price($savings)); ?>
+                                                    <?php echo wp_kses_post(MP_Global_Function::format_price($savings)); ?>
                                                 </span>
                                                 <span class="mptbm-tier-pricing-savings-ticket-label">
                                                     Save
@@ -270,56 +278,62 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                             // error_log("VEHICLE ITEM DEBUG: mptbm_after_vehicle_price hook called for post_id: $post_id");
                             ?>
                             
-                            <?php if (class_exists('MPTBM_Plugin_Pro')) { 
-                                if ($enable_inventory == 'yes' && $available_quantity > 1) { ?>
-                                    <div style="margin-bottom: 2px;" class="textCenter _mT_xs mptbm_quantity_selector mptbm_booking_item_hidden <?php echo 'mptbm_quantity_selector_' . $post_id; ?> ">
-                                        <div class="mp_quantity_selector">
-                                            <button type="button" class="mp_quantity_minus" data-post-id="<?php echo esc_attr($post_id); ?>">
-                                                <i class="fas fa-minus"></i>
-                                            </button>
-                                            <input type="number" 
-                                                   class="mp_quantity_input" 
-                                                   name="vehicle_quantity[<?php echo esc_attr($post_id); ?>]" 
-                                                   value="1" 
-                                                   min="1" 
-                                                   max="<?php echo esc_attr($available_quantity); ?>" 
-                                                   data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>"
-                                                   readonly />
-                                            <button type="button" class="mp_quantity_plus" data-post-id="<?php echo esc_attr($post_id); ?>">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                <?php } ?>
-                            <?php } ?>
-                            <?php if ($enable_inventory == 'yes' && $available_quantity > 0) { ?>
-                                <div class="mptbm-button-container" style="position: relative;">
-                                    <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs" style="<?php echo $has_extra_info ? 'padding-right: 35px;' : ''; ?>">
-                                    <span class="" data-icon></span>
-                                    <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
-                                </button>
-                                    <?php if ($has_extra_info) { ?>
-                                        <div class="mptbm-info-button" style="position: absolute; right: 0; top: 0; bottom: 0; width: 30px; background: var(--color_theme); border-top-right-radius: 4px; border-bottom-right-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>">
-                                            <i class="fas fa-info" style="color: white; font-size: 12px;"></i>
-                                        </div>
-                                    <?php } ?>
-                                </div>
-                            <?php } else if ($enable_inventory == 'yes' && $available_quantity <= 0) { ?>
+                            <?php if ($mptbm_unavailable) { ?>
                                 <button type="button" class="_mpBtn_xs_w_150 mptbm_out_of_stock" disabled style="background-color: #ccc; cursor: not-allowed;">
-                                    <span><?php esc_html_e('Out of Stock', 'ecab-taxi-booking-manager'); ?></span>
+                                    <span><?php esc_html_e('Unavailable', 'ecab-taxi-booking-manager'); ?></span>
                                 </button>
                             <?php } else { ?>
-                                <div class="mptbm-button-container" style="position: relative;">
-                                    <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs" style="<?php echo $has_extra_info ? 'padding-right: 35px;' : ''; ?>">
-                                    <span class="" data-icon></span>
-                                    <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
-                                </button>
-                                    <?php if ($has_extra_info) { ?>
-                                        <div class="mptbm-info-button" style="position: absolute; right: 0; top: 0; bottom: 0; width: 30px; background: var(--color_theme); border-top-right-radius: 4px; border-bottom-right-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>">
-                                            <i class="fas fa-info" style="color: white; font-size: 12px;"></i>
+                                <?php if (class_exists('MPTBM_Plugin_Pro')) {
+                                    if ($enable_inventory == 'yes' && $available_quantity > 1) { ?>
+                                        <div style="margin-bottom: 2px;" class="textCenter _mT_xs mptbm_quantity_selector mptbm_booking_item_hidden <?php echo 'mptbm_quantity_selector_' . $post_id; ?> ">
+                                            <div class="mp_quantity_selector">
+                                                <button type="button" class="mp_quantity_minus" data-post-id="<?php echo esc_attr($post_id); ?>">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                                <input type="number"
+                                                       class="mp_quantity_input"
+                                                       name="vehicle_quantity[<?php echo esc_attr($post_id); ?>]"
+                                                       value="1"
+                                                       min="1"
+                                                       max="<?php echo esc_attr($available_quantity); ?>"
+                                                       data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>"
+                                                       readonly />
+                                                <button type="button" class="mp_quantity_plus" data-post-id="<?php echo esc_attr($post_id); ?>">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     <?php } ?>
-                                </div>
+                                <?php } ?>
+                                <?php if ($enable_inventory == 'yes' && $available_quantity > 0) { ?>
+                                    <div class="mptbm-button-container" style="position: relative;">
+                                        <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-stop-price="<?php echo esc_attr($stop_price_per_unit ?? 0); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs" style="<?php echo $has_extra_info ? 'padding-right: 35px;' : ''; ?>">
+                                        <span class="" data-icon></span>
+                                        <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
+                                    </button>
+                                        <?php if ($has_extra_info) { ?>
+                                            <div class="mptbm-info-button" style="position: absolute; right: 0; top: 0; bottom: 0; width: 30px; background: var(--color_theme); border-top-right-radius: 4px; border-bottom-right-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>">
+                                                <i class="fas fa-info" style="color: white; font-size: 12px;"></i>
+                                            </div>
+                                        <?php } ?>
+                                    </div>
+                                <?php } else if ($enable_inventory == 'yes' && $available_quantity <= 0) { ?>
+                                    <button type="button" class="_mpBtn_xs_w_150 mptbm_out_of_stock" disabled style="background-color: #ccc; cursor: not-allowed;">
+                                        <span><?php esc_html_e('Out of Stock', 'ecab-taxi-booking-manager'); ?></span>
+                                    </button>
+                                <?php } else { ?>
+                                    <div class="mptbm-button-container" style="position: relative;">
+                                        <button type="button" class="_mpBtn_xs_w_150 mptbm_transport_select<?php echo $has_extra_info ? ' mptbm-has-extra-info' : ''; ?>" data-transport-name="<?php echo esc_attr(get_the_title($post_id)); ?>" data-transport-price="<?php echo esc_attr($raw_price); ?>" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>" data-stop-price="<?php echo esc_attr($stop_price_per_unit ?? 0); ?>" data-base-price-settings='<?php echo wp_json_encode(MPTBM_Function::get_base_price_settings($post_id)); ?>' data-fixed-map-route-found="<?php echo get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes' ? 'yes' : 'no'; ?>" data-open-text="<?php esc_attr_e('Select Car', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_html_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-open-icon="" data-close-icon="fas fa-check mR_xs" style="<?php echo $has_extra_info ? 'padding-right: 35px;' : ''; ?>">
+                                        <span class="" data-icon></span>
+                                        <span data-text><?php esc_html_e('Select Car', 'ecab-taxi-booking-manager'); ?></span>
+                                    </button>
+                                        <?php if ($has_extra_info) { ?>
+                                            <div class="mptbm-info-button" style="position: absolute; right: 0; top: 0; bottom: 0; width: 30px; background: var(--color_theme); border-top-right-radius: 4px; border-bottom-right-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease;" data-post-id="<?php echo esc_attr($post_id); ?>" data-tax-multiplier="<?php echo esc_attr($tax_multiplier ?? 1); ?>" data-unit-base-price="<?php echo esc_attr($base_price_extra); ?>">
+                                                <i class="fas fa-info" style="color: white; font-size: 12px;"></i>
+                                            </div>
+                                        <?php } ?>
+                                    </div>
+                                <?php } ?>
                             <?php } ?>
                         </div>
                     </div>

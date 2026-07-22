@@ -47,7 +47,7 @@
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
 					$title = get_the_title($post_id);
 					if ($this->count_hidden_wc_product($post_id) == 0 || empty(MP_Global_Function::get_post_info($post_id, 'link_wc_product'))) {
-						$this->create_hidden_wc_product($post_id, $title);
+						self::create_hidden_wc_product($post_id, $title);
 					}
 					$product_id = MP_Global_Function::get_post_info($post_id, 'link_wc_product', $post_id);
 					set_post_thumbnail($product_id, get_post_thumbnail_id($post_id));
@@ -105,7 +105,7 @@
 				}
 			}
 			/**********************/
-			public function create_hidden_wc_product($post_id, $title) {
+			public static function create_hidden_wc_product($post_id, $title) {
 				$new_post = array(
 					'post_title' => $title,
 					'post_content' => '',
@@ -124,6 +124,24 @@
 				$terms = array('exclude-from-catalog', 'exclude-from-search');
 				wp_set_object_terms($pid, $terms, 'product_visibility');
 				update_post_meta($post_id, 'check_if_run_once', true);
+			}
+			/**
+			 * Return the vehicle's mirror WooCommerce product id, creating it on the fly
+			 * if it's missing or points at a product that no longer exists. Vehicles
+			 * created/imported while WooCommerce was inactive - or on a site whose
+			 * Booking Mode later switched from custom to WooCommerce - never went
+			 * through wp_insert_post/save_post, so link_wc_product can be empty even
+			 * though WooCommerce owns bookings now. Self-healing here means the
+			 * "Book Now" button works on first use instead of silently doing nothing
+			 * until an admin re-saves every vehicle by hand.
+			 */
+			public static function get_or_create_wc_product($post_id): int {
+				$product_id = absint(MP_Global_Function::get_post_info($post_id, 'link_wc_product'));
+				if ($product_id && get_post_type($product_id) === 'product') {
+					return $product_id;
+				}
+				self::create_hidden_wc_product($post_id, get_the_title($post_id));
+				return absint(get_post_meta($post_id, 'link_wc_product', true));
 			}
 			public function count_hidden_wc_product($post_id): int {
 				$args = array(

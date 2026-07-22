@@ -114,13 +114,19 @@
 				</button>
 				<?php
 			}
-			public static function move_remove_button() {
+			public static function move_remove_button( $type = '' ) {
 				?>
 				<div class="allCenter">
 					<div class="buttonGroup max_100">
 						<?php
-							self::remove_button();
-							self::move_button();
+                        if( $type === 'peak-hour' ){
+                            self::remove_button();
+                        }else{
+                            self::move_button();
+                            self::remove_button();
+                        }
+
+
 						?>
 					</div>
 				</div>

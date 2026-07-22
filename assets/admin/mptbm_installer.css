@@ -1,0 +1,666 @@
+/* ============================================
+   MPTBM Installer / Importer Popup
+   Light WordPress-native design with smooth
+   animations. Shared by the WooCommerce
+   installer and the demo data importer.
+   ============================================ */
+
+/* ---------- Overlay ---------- */
+.mptbm-inst-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 999999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.45);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+	animation: mptbmOverlayIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes mptbmOverlayIn {
+	from { opacity: 0; }
+	to   { opacity: 1; }
+}
+
+/* ---------- Popup Card ---------- */
+.mptbm-inst-popup {
+	position: relative;
+	width: 500px;
+	max-width: 92vw;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow:
+		0 1px 3px rgba(0, 0, 0, 0.08),
+		0 20px 60px rgba(0, 0, 0, 0.15);
+	text-align: center;
+	overflow: hidden;
+	animation: mptbmPopupIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+
+@keyframes mptbmPopupIn {
+	from {
+		opacity: 0;
+		transform: translateY(24px) scale(0.97);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* ---------- Header Strip ---------- */
+.mptbm-inst-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 14px 24px;
+	background: linear-gradient(135deg, #1f6feb 0%, #4f46e5 100%);
+	color: #fff;
+}
+
+.mptbm-inst-header-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	background: rgba(255, 255, 255, 0.18);
+	border-radius: 8px;
+}
+
+.mptbm-inst-header-icon svg {
+	width: 18px;
+	height: 18px;
+}
+
+.mptbm-inst-header-text {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
+/* ---------- Icon ---------- */
+.mptbm-inst-icon-wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding-top: 32px;
+	padding-bottom: 8px;
+}
+
+.mptbm-inst-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	background: linear-gradient(135deg, #eff4ff 0%, #dbe7ff 100%);
+	color: #1f6feb;
+	border: 1px solid #c7d7fe;
+	animation: mptbmPulseIcon 3s ease-in-out infinite;
+}
+
+@keyframes mptbmPulseIcon {
+	0%, 100% { box-shadow: 0 0 0 0 rgba(31, 111, 235, 0.08); }
+	50%      { box-shadow: 0 0 0 12px rgba(31, 111, 235, 0.04); }
+}
+
+/* ---------- Content ---------- */
+.mptbm-inst-content {
+	padding: 16px 36px 0;
+}
+
+.mptbm-inst-title {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 21px;
+	font-weight: 600;
+	color: #1d2327;
+	margin: 0 0 10px;
+	line-height: 1.3;
+}
+
+.mptbm-inst-desc {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 14px;
+	line-height: 1.6;
+	color: #50575e;
+	margin: 0;
+}
+
+/* ---------- Feature Highlights ---------- */
+.mptbm-inst-features {
+	display: flex;
+	justify-content: center;
+	gap: 20px;
+	flex-wrap: wrap;
+	padding: 20px 36px 0;
+}
+
+.mptbm-inst-feature {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 13px;
+	color: #3c434a;
+}
+
+.mptbm-inst-feature-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #ecfdf3;
+	color: #039855;
+	flex-shrink: 0;
+}
+
+.mptbm-inst-feature-icon svg {
+	width: 12px;
+	height: 12px;
+}
+
+/* ---------- Step checklist (multi-dependency installs) ---------- */
+.mptbm-inst-steps {
+	list-style: none;
+	margin: 18px 36px 0;
+	padding: 0;
+	text-align: left;
+}
+
+.mptbm-inst-step {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 7px 0;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 13px;
+	color: #50575e;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.mptbm-inst-step:last-child {
+	border-bottom: none;
+}
+
+.mptbm-inst-step-dot {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background: #f0f0f1;
+	color: #8c8f94;
+	flex-shrink: 0;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.mptbm-inst-step.is-working .mptbm-inst-step-dot {
+	background: #eff4ff;
+	color: #1f6feb;
+	animation: mptbmSpin 0.7s linear infinite;
+	border: 2px solid #c7d7fe;
+	border-top-color: #1f6feb;
+}
+
+.mptbm-inst-step.is-done .mptbm-inst-step-dot {
+	background: #ecfdf3;
+	color: #039855;
+	animation: none;
+	border: none;
+}
+
+.mptbm-inst-step.is-error .mptbm-inst-step-dot {
+	background: #fef3f2;
+	color: #d92d20;
+	animation: none;
+	border: none;
+}
+
+/* ---------- Progress ---------- */
+.mptbm-inst-progress {
+	padding: 0 36px;
+	margin-bottom: 8px;
+	margin-top: 18px;
+	animation: mptbmFadeIn 0.35s ease both;
+}
+
+@keyframes mptbmFadeIn {
+	from { opacity: 0; transform: translateY(6px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+
+.mptbm-inst-progress-bar {
+	width: 100%;
+	height: 8px;
+	background: #f0f0f1;
+	border-radius: 100px;
+	overflow: hidden;
+}
+
+.mptbm-inst-progress-fill {
+	height: 100%;
+	width: 0%;
+	border-radius: 100px;
+	background: linear-gradient(90deg, #1f6feb, #4f46e5);
+	transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+	position: relative;
+}
+
+.mptbm-inst-progress-fill::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+	animation: mptbmShimmer 1.5s linear infinite;
+}
+
+@keyframes mptbmShimmer {
+	from { transform: translateX(-100%); }
+	to   { transform: translateX(100%); }
+}
+
+.mptbm-inst-status-text {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 13px;
+	color: #50575e;
+	margin: 10px 0 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+/* Spinner for status text */
+.mptbm-inst-status-text::before {
+	content: '';
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border: 2px solid #dcdde1;
+	border-top-color: #1f6feb;
+	border-radius: 50%;
+	animation: mptbmSpin 0.7s linear infinite;
+	flex-shrink: 0;
+}
+
+@keyframes mptbmSpin {
+	to { transform: rotate(360deg); }
+}
+
+.mptbm-inst-status-text.mptbm-success {
+	color: #039855;
+}
+
+.mptbm-inst-status-text.mptbm-success::before {
+	display: none;
+}
+
+.mptbm-inst-status-text.mptbm-error {
+	color: #d92d20;
+}
+
+.mptbm-inst-status-text.mptbm-error::before {
+	display: none;
+}
+
+/* ---------- Action Buttons ---------- */
+.mptbm-inst-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	align-items: center;
+	padding: 24px 36px 0;
+}
+
+.mptbm-inst-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 14px;
+	font-weight: 600;
+	text-decoration: none;
+	transition: all 0.2s ease;
+	line-height: 1;
+}
+
+.mptbm-inst-btn-primary {
+	width: 100%;
+	padding: 14px 24px;
+	background: linear-gradient(135deg, #1f6feb 0%, #4f46e5 100%);
+	color: #fff;
+	box-shadow: 0 1px 2px rgba(31, 111, 235, 0.2), 0 4px 12px rgba(31, 111, 235, 0.15);
+}
+
+.mptbm-inst-btn-primary:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(31, 111, 235, 0.25), 0 8px 24px rgba(31, 111, 235, 0.2);
+	color: #fff;
+}
+
+.mptbm-inst-btn-primary:active {
+	transform: translateY(0);
+}
+
+.mptbm-inst-btn-primary:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+	transform: none !important;
+}
+
+.mptbm-inst-btn-secondary {
+	padding: 8px 16px;
+	background: transparent;
+	color: #50575e;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.mptbm-inst-btn-secondary:hover {
+	color: #2271b1;
+	text-decoration: underline;
+}
+
+/* ---------- Footer Note ---------- */
+.mptbm-inst-footer-note {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 12px;
+	color: #8c8f94;
+	margin: 0;
+	padding: 16px 36px 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+}
+
+/* ---------- Success State ---------- */
+.mptbm-inst-popup.mptbm-state-success .mptbm-inst-icon {
+	background: linear-gradient(135deg, #ecfdf3 0%, #d1fadf 100%);
+	color: #039855;
+	border-color: #a6f4c5;
+	animation: mptbmSuccessBounce 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mptbmSuccessBounce {
+	0%   { transform: scale(0.85); }
+	50%  { transform: scale(1.08); }
+	100% { transform: scale(1); }
+}
+
+.mptbm-inst-popup.mptbm-state-success .mptbm-inst-progress-fill {
+	background: linear-gradient(90deg, #039855, #12b76a);
+}
+
+.mptbm-inst-popup.mptbm-state-success .mptbm-inst-header {
+	background: linear-gradient(135deg, #039855 0%, #12b76a 100%);
+}
+
+/* ---------- Error State ---------- */
+.mptbm-inst-popup.mptbm-state-error .mptbm-inst-progress-fill {
+	background: linear-gradient(90deg, #d92d20, #f04438);
+}
+
+.mptbm-inst-popup.mptbm-state-error .mptbm-inst-header {
+	background: linear-gradient(135deg, #d92d20 0%, #f04438 100%);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 520px) {
+	.mptbm-inst-popup {
+		border-radius: 10px;
+	}
+
+	.mptbm-inst-content,
+	.mptbm-inst-features,
+	.mptbm-inst-actions,
+	.mptbm-inst-progress,
+	.mptbm-inst-steps,
+	.mptbm-inst-footer-note {
+		padding-left: 24px;
+		padding-right: 24px;
+	}
+
+	.mptbm-inst-steps {
+		margin-left: 24px;
+		margin-right: 24px;
+	}
+
+	.mptbm-inst-title {
+		font-size: 18px;
+	}
+
+	.mptbm-inst-desc {
+		font-size: 13px;
+	}
+
+	.mptbm-inst-features {
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+	}
+}
+
+/* ============================================
+   MPTBM Demo Data — floating progress widget
+   Bottom-right radial progress ring used by the
+   auto demo-data importer. Fully self-contained
+   under .mptbm-dw-* so it never touches the
+   shared .mptbm-inst-* installer styles above.
+   ============================================ */
+
+.mptbm-dw {
+	position: fixed;
+	right: 24px;
+	bottom: 24px;
+	z-index: 999999;
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	width: 340px;
+	max-width: calc(100vw - 40px);
+	padding: 16px 18px;
+	background: #fff;
+	border: 1px solid #eceef2;
+	border-radius: 16px;
+	box-shadow: 0 6px 16px rgba(15, 23, 42, 0.10), 0 24px 48px rgba(15, 23, 42, 0.14);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	animation: mptbmDwIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes mptbmDwIn {
+	from { opacity: 0; transform: translateY(24px) scale(0.96); }
+	to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mptbm-dw.is-hiding {
+	animation: mptbmDwOut 0.3s ease forwards;
+}
+
+@keyframes mptbmDwOut {
+	to { opacity: 0; transform: translateY(16px) scale(0.96); }
+}
+
+/* ---------- Radial ring ---------- */
+.mptbm-dw-ring {
+	position: relative;
+	flex-shrink: 0;
+	width: 66px;
+	height: 66px;
+}
+
+.mptbm-dw-svg {
+	display: block;
+	transform: rotate(-90deg); /* start the arc at 12 o'clock */
+}
+
+.mptbm-dw-track {
+	fill: none;
+	stroke: #eef1f6;
+	stroke-width: 7;
+}
+
+.mptbm-dw-arc {
+	fill: none;
+	stroke: url(#mptbmDwGrad);
+	stroke-width: 7;
+	stroke-linecap: round;
+	stroke-dasharray: 213.63;   /* 2 * PI * r(34) */
+	stroke-dashoffset: 213.63;
+	transition: stroke-dashoffset 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mptbm-dw-pct {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	font-weight: 700;
+	color: #1f2a44;
+	letter-spacing: -0.01em;
+}
+
+.mptbm-dw-mark {
+	position: absolute;
+	inset: 0;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	color: #12b76a;
+}
+
+/* ---------- Body ---------- */
+.mptbm-dw-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.mptbm-dw-brand {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	margin-bottom: 3px;
+}
+
+.mptbm-dw-brand-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 6px;
+	background: linear-gradient(135deg, #eff4ff 0%, #e0e7ff 100%);
+	color: #1f6feb;
+	flex-shrink: 0;
+}
+
+.mptbm-dw-title {
+	font-size: 13.5px;
+	font-weight: 700;
+	color: #1d2327;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.mptbm-dw-status {
+	margin: 0;
+	font-size: 12.5px;
+	line-height: 1.45;
+	color: #667085;
+}
+
+/* ---------- Retry / close ---------- */
+.mptbm-dw-retry {
+	display: none;
+	align-items: center;
+	margin-top: 8px;
+	padding: 6px 14px;
+	border: none;
+	border-radius: 7px;
+	background: linear-gradient(135deg, #1f6feb 0%, #4f46e5 100%);
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(31, 111, 235, 0.25);
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mptbm-dw-retry:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(31, 111, 235, 0.3);
+	color: #fff;
+}
+
+.mptbm-dw-close {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	display: none; /* revealed only on the error state */
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: #98a2b3;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.mptbm-dw-close:hover {
+	background: #f2f4f7;
+	color: #475467;
+}
+
+/* ---------- Success state ---------- */
+.mptbm-dw.is-success .mptbm-dw-arc { stroke: #12b76a; }
+.mptbm-dw.is-success .mptbm-dw-track { stroke: #d1fadf; }
+.mptbm-dw.is-success .mptbm-dw-pct { display: none; }
+.mptbm-dw.is-success .mptbm-dw-title { color: #039855; }
+.mptbm-dw.is-success .mptbm-dw-mark {
+	display: flex;
+	animation: mptbmDwPop 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mptbmDwPop {
+	0%   { transform: scale(0.4); opacity: 0; }
+	60%  { transform: scale(1.12); opacity: 1; }
+	100% { transform: scale(1); }
+}
+
+/* ---------- Error state ---------- */
+.mptbm-dw.is-error .mptbm-dw-arc { stroke: #f04438; }
+.mptbm-dw.is-error .mptbm-dw-track { stroke: #fee4e2; }
+.mptbm-dw.is-error .mptbm-dw-pct { color: #d92d20; }
+.mptbm-dw.is-error .mptbm-dw-title { color: #d92d20; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+	.mptbm-dw {
+		right: 12px;
+		left: 12px;
+		bottom: 12px;
+		width: auto;
+	}
+}

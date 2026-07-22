@@ -69,6 +69,18 @@ if (!class_exists('MPTBM_CPT')) {
 					}
 					echo esc_html(implode(', ', $area_names));
 					break;
+				case 'mptbm_availability_status':
+					$status = get_post_meta($post_id, 'mptbm_availability_status', true);
+					if ($status === 'unavailable') {
+						$reason_text = MPTBM_Function::get_availability_reason_text($post_id);
+						echo '<span style="display:inline-block;padding:3px 10px;border-radius:3px;background:#f8d7da;color:#842029;font-weight:600;">' . esc_html__('Unavailable', 'ecab-taxi-booking-manager') . '</span>';
+						if ($reason_text) {
+							echo '<br><span style="color:#842029;font-size:12px;">' . esc_html($reason_text) . '</span>';
+						}
+					} else {
+						echo '<span style="display:inline-block;padding:3px 10px;border-radius:3px;background:#d1e7dd;color:#0f5132;font-weight:600;">' . esc_html__('Available', 'ecab-taxi-booking-manager') . '</span>';
+					}
+					break;
 			}
 		}
 
@@ -81,6 +93,7 @@ if (!class_exists('MPTBM_CPT')) {
 			$columns['mptbm_price_based'] = esc_html__('Price based', 'ecab-taxi-booking-manager');
 			$columns['mptbm_km_price'] = esc_html__('Kilometer price', 'ecab-taxi-booking-manager');
 			$columns['mptbm_hour_price'] = esc_html__('Hourly price', 'ecab-taxi-booking-manager');
+			$columns['mptbm_availability_status'] = esc_html__('Availability', 'ecab-taxi-booking-manager');
 			
 			// Add Operation Area columns if Pro is active
 			if (class_exists('MPTBM_Dependencies_Pro') || class_exists('MPTBM_Plugin_Pro')) {
@@ -298,7 +311,7 @@ if (!class_exists('MPTBM_CPT')) {
 				'meta_box_cb' => false,
 			);
 
-			register_taxonomy('mptbm_service_status', $cpt, $service_status_args);
+//			register_taxonomy('mptbm_service_status', $cpt, $service_status_args);
 			register_taxonomy('locations', $cpt, $taxonomy_args);
 			register_post_type('mptbm_extra_services', $ex_args);
 			if (class_exists('MPTBM_Plugin_Pro')) {

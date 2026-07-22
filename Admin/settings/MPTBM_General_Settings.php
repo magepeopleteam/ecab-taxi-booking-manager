@@ -52,6 +52,7 @@
 				}
 				?>
                 <div class="tabsItem" data-tabs="#mptbm_general_info">
+                    <input type="hidden" name="return_url" value="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>">
                     <h2 ><?php esc_html_e('General Information Settings', 'ecab-taxi-booking-manager'); ?></h2>
 					<p><?php esc_html_e('Basic Configuration', 'ecab-taxi-booking-manager'); ?></p>
                     <div class="mp_settings_area">
@@ -145,9 +146,8 @@
 								<table>
 									<thead>
 									<tr class="bg-dark">
-										<th class="_w_150"><?php esc_html_e('Icon/Image', 'ecab-taxi-booking-manager'); ?></th>
-										<th><?php esc_html_e('Label', 'ecab-taxi-booking-manager'); ?></th>
-										<th><?php esc_html_e('Text', 'ecab-taxi-booking-manager'); ?></th>
+                                    <th class="_w_150"><?php esc_html_e('Icon/Image', 'ecab-taxi-booking-manager'); ?></th>
+                                    <th><?php esc_html_e('Description', 'ecab-taxi-booking-manager'); ?></th>
 										<th class="_w_125"><?php esc_html_e('Action', 'ecab-taxi-booking-manager'); ?></th>
 									</tr>
 									</thead>
@@ -172,18 +172,12 @@
 				<?php
 			}
 			public function features_item($features = array()) {
-				$label = array_key_exists('label', $features) ? $features['label'] : '';
 				$text = array_key_exists('text', $features) ? $features['text'] : '';
 				$icon = array_key_exists('icon', $features) ? $features['icon'] : '';
 				$image = array_key_exists('image', $features) ? $features['image'] : '';
 				?>
                 <tr class="mp_remove_area">
                     <td valign="middle"><?php do_action('mp_add_icon_image', 'mptbm_features_icon_image[]', $icon, $image); ?></td>
-                    <td valign="middle">
-                        <label>
-                            <input class="formControl mp_name_validation" name="mptbm_features_label[]" value="<?php echo esc_attr($label); ?>"/>
-                        </label>
-                    </td>
                     <td valign="middle">
                         <label>
                             <input class="formControl mp_name_validation" name="mptbm_features_text[]" value="<?php echo esc_attr($text); ?>"/>
@@ -213,7 +207,12 @@
 					// Save inventory settings
 					$enable_inventory = isset($_POST['mptbm_enable_inventory']) && sanitize_text_field($_POST['mptbm_enable_inventory']) ? 'yes' : 'no';
 					update_post_meta($post_id, 'mptbm_enable_inventory', $enable_inventory);
-					
+
+					// Availability Check Mode: 'manual' uses the Vehicle Availability toggle,
+					// 'automatic' uses the Booking Interval Time below instead - only one applies at a time.
+					$availability_check_mode = isset($_POST['mptbm_availability_check_mode']) && sanitize_text_field($_POST['mptbm_availability_check_mode']) === 'automatic' ? 'automatic' : 'manual';
+					update_post_meta($post_id, 'mptbm_availability_check_mode', $availability_check_mode);
+
 					// Only save quantity and interval time if inventory is enabled
 					if ($enable_inventory == 'yes') {
 						$quantity = isset($_POST['mptbm_quantity']) ? absint($_POST['mptbm_quantity']) : 1;
@@ -228,15 +227,18 @@
 					
 					$display_features = isset($_POST['display_mptbm_features']) && sanitize_text_field($_POST['display_mptbm_features'])? 'on' : 'off';
 					update_post_meta($post_id, 'display_mptbm_features', $display_features);
-					$features_label = isset($_POST['mptbm_features_label']) ? array_map('sanitize_text_field',$_POST['mptbm_features_label']) : [];
-					if (sizeof($features_label) > 0) {
-						$features_text = isset($_POST['mptbm_features_text']) ? array_map('sanitize_text_field',$_POST['mptbm_features_text']) : [];
+
+					// Customer Reviews: default off - only show the rating/review UI for this vehicle when explicitly enabled.
+					$show_reviews = isset($_POST['mptbm_show_reviews']) && sanitize_text_field($_POST['mptbm_show_reviews']) ? 'yes' : 'no';
+					update_post_meta($post_id, 'mptbm_show_reviews', $show_reviews);
+					$features_text = isset($_POST['mptbm_features_text']) ? array_map('sanitize_text_field',$_POST['mptbm_features_text']) : [];
+					if (sizeof($features_text) > 0) {
 						$features_icon = isset($_POST['mptbm_features_icon_image']) ? array_map('sanitize_text_field',$_POST['mptbm_features_icon_image']) : [];
 						$count = 0;
-						foreach ($features_label as $label) {
-							if ($label) {
-								$all_features[$count]['label'] = $label;
-								$all_features[$count]['text'] = $features_text[$count];
+						foreach ($features_text as $text) {
+							if ($text) {
+								$all_features[$count]['label'] = $text;
+								$all_features[$count]['text'] = $text;
 								$all_features[$count]['icon'] = '';
 								$all_features[$count]['image'] = '';
 								$current_image_icon = array_key_exists($count, $features_icon) ? $features_icon[$count] : '';
