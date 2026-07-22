@@ -210,7 +210,7 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                     <li><?php esc_html_e( 'What is the initial price in transport?', 'ecab-taxi-booking-manager' ); ?></li>
                 </ul>
 
-                <a href="https://docs.mage-people.com/ecab-taxi-booking-manager/" class="mptbm_quick_tips_btn">
+                <a href="https://docs.mage-people.com/plugins/ecab/overview" class="mptbm_quick_tips_btn">
                     <?php esc_html_e( 'View Documentation', 'ecab-taxi-booking-manager' ); ?>
                 </a>
 
