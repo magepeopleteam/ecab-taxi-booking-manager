@@ -30,7 +30,6 @@
 				$this->print_styles_once();
 
 				$payments_url = admin_url('edit.php?post_type=' . MPTBM_Function::get_cpt() . '&page=mptbm_settings_page&mptbm_tab=payments');
-				$pro_active   = class_exists('MPTBM_Plugin_Pro');
 				?>
 				<div class="notice is-dismissible mptbm-pay-notice">
 					<div class="mptbm-pn-inner">
@@ -49,22 +48,13 @@
 									<?php esc_html_e('Go to Payment Settings', 'ecab-taxi-booking-manager'); ?>
 								</a>
 
-								<?php if (MPTBM_Function::is_wc_active()) : ?>
-									<span class="mptbm-pn-hint"><?php esc_html_e('Enable a WooCommerce gateway there.', 'ecab-taxi-booking-manager'); ?></span>
-								<?php else : ?>
-									<span class="mptbm-pn-hint"><?php esc_html_e('Activate WooCommerce or enable Custom Payment there.', 'ecab-taxi-booking-manager'); ?></span>
-								<?php endif; ?>
+								<?php // Key the hint off the mode that is actually processing bookings, so it
+									// never tells an admin to fix the flow they aren't using. ?>
+								<span class="mptbm-pn-hint"><?php echo esc_html($this->get_action_hint()); ?></span>
 							</div>
 
-							<?php if (!$pro_active) : ?>
-								<div class="mptbm-pn-pro-row">
-									<span class="mptbm-pn-pro-chip"><?php esc_html_e('PRO', 'ecab-taxi-booking-manager'); ?></span>
-									<span class="mptbm-pn-pro-text"><?php esc_html_e('Want more gateways (Stripe, PayPal, offline) without WooCommerce?', 'ecab-taxi-booking-manager'); ?></span>
-									<a class="mptbm-pn-pro-link" href="https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce" target="_blank" rel="noopener noreferrer">
-										<?php esc_html_e('Explore Pro', 'ecab-taxi-booking-manager'); ?> &rarr;
-									</a>
-								</div>
-							<?php endif; ?>
+							<?php // The Pro pitch lives in its own notice (MPTBM_Pro_Features_Notice) so it
+								// isn't tied to - and doesn't disappear with - a payment misconfiguration. ?>
 						</div>
 					</div>
 				</div>
@@ -104,13 +94,6 @@
 				.mptbm-pn-btn-primary:hover{background:#4338ca;border-color:#4338ca;transform:translateY(-1px);
 					box-shadow:0 4px 10px rgba(79,70,229,.32);color:#fff !important;}
 				.mptbm-pn-hint{font-size:12px;color:#64748b;}
-				.mptbm-pn-pro-row{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:12px;padding-top:12px;
-					border-top:1px dashed #eceff3;}
-				.mptbm-pn-pro-chip{display:inline-flex;align-items:center;background:#f59e0b;color:#fff;font-weight:800;
-					font-size:9px;letter-spacing:.07em;padding:3px 8px;border-radius:20px;text-transform:uppercase;}
-				.mptbm-pn-pro-text{font-size:12px;color:#64748b;}
-				.mptbm-pn-pro-link{font-size:12px;font-weight:700;color:#b45309 !important;text-decoration:none;}
-				.mptbm-pn-pro-link:hover{color:#92400e !important;text-decoration:underline;}
 				@media (max-width:782px){
 					.mptbm-pay-notice{margin-right:10px !important;}
 					.mptbm-pn-inner{padding-right:34px;}
@@ -127,10 +110,11 @@
 					return false;
 				}
 
-				if (class_exists('MPTBM_Booking_Mode') && MPTBM_Booking_Mode::needs_selection()) {
-					return true;
-				}
-
+				// Only a real blocker belongs in a site-wide alarm notice: no payment method
+				// for the flow that is actually processing bookings. An unconfirmed Booking
+				// Mode is NOT a blocker - get_mode() always resolves to a working flow - so
+				// asking for that choice stays as the inline nudge on the Payments screen,
+				// right next to the selector, instead of nagging across wp-admin.
 				return class_exists('MPTBM_Booking_Mode')
 					? !MPTBM_Booking_Mode::has_gateway_for_active_mode()
 					: !MPTBM_Payment_Status_Checker::has_available_payment_method();
@@ -147,10 +131,6 @@
 					return __('No payment method is set up yet, so customers can\'t complete a booking. Activate WooCommerce or enable a Custom Payment method in Payment Settings to start taking bookings.', 'ecab-taxi-booking-manager');
 				}
 
-				if (MPTBM_Booking_Mode::needs_selection()) {
-					return __('A Booking Mode hasn\'t been chosen yet. Pick WooCommerce or Custom Payment in Payment Settings so every booking follows one clear checkout path.', 'ecab-taxi-booking-manager');
-				}
-
 				if ('none' === MPTBM_Booking_Mode::availability()) {
 					return __('No payment method is set up yet, so customers can\'t complete a booking. Activate WooCommerce or enable a Custom Payment method in Payment Settings to start taking bookings.', 'ecab-taxi-booking-manager');
 				}
@@ -160,6 +140,19 @@
 				}
 
 				return __('Booking Mode is set to Custom Payment, but no gateway (PayPal, Stripe, or Offline) is enabled yet. Enable one in Payment Settings so customers can complete a booking.', 'ecab-taxi-booking-manager');
+			}
+
+			/** Short call-to-action next to the button, matching the active Booking Mode. */
+			private function get_action_hint(): string {
+				if (!class_exists('MPTBM_Booking_Mode') || 'none' === MPTBM_Booking_Mode::availability()) {
+					return __('Activate WooCommerce or enable Offline Payment there.', 'ecab-taxi-booking-manager');
+				}
+
+				if (MPTBM_Booking_Mode::is_woocommerce()) {
+					return __('Enable a WooCommerce gateway there.', 'ecab-taxi-booking-manager');
+				}
+
+				return __('Enable a Custom Payment method there.', 'ecab-taxi-booking-manager');
 			}
 
 			/**

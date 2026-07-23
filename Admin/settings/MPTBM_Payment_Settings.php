@@ -18,7 +18,10 @@
 	 * from being wiped when the Settings API saves the rest of the form.
 	 *
 	 * PayPal & Stripe Configure are gated behind the Pro plugin (MPTBM_Plugin_Pro);
-	 * the free version shows a PRO badge. Offline payment is fully functional in free.
+	 * the free version shows a PRO badge for those two. Offline Payment is part of the
+	 * FREE plugin - it needs no online processor, so its card, Configure modal and AJAX
+	 * save all work without Pro (see MPTBM_Function::offline_payment_enabled()). Note the
+	 * standalone checkout that consumes an enabled Offline method still ships with Pro.
 	 */
 
 	if ( ! defined( 'ABSPATH' ) ) {
@@ -166,7 +169,7 @@
 					?>
 					<div class="mptbm-bm-auto-note mptbm-bm-auto-note--warn">
 						<span class="dashicons dashicons-warning"></span>
-						<p><?php esc_html_e( 'No booking flow is available yet: WooCommerce is not active and the Pro plugin is not active. Activate WooCommerce or the Pro plugin to start taking bookings.', 'ecab-taxi-booking-manager' ); ?></p>
+						<p><?php esc_html_e( 'No booking flow is available yet: WooCommerce is not active and no Custom Payment method is enabled. Activate WooCommerce, or enable Offline Payment below, to start taking bookings.', 'ecab-taxi-booking-manager' ); ?></p>
 					</div>
 					<?php
 					$this->booking_mode_styles();
@@ -177,7 +180,7 @@
 					?>
 					<div class="mptbm-bm-auto-note">
 						<span class="dashicons dashicons-yes-alt"></span>
-						<p><?php esc_html_e( 'Bookings are automatically processed through WooCommerce - it\'s the only booking flow available right now. Activate the Pro plugin to unlock the standalone Custom Payment flow (and a mode switch here).', 'ecab-taxi-booking-manager' ); ?></p>
+						<p><?php esc_html_e( 'Bookings are automatically processed through WooCommerce - it\'s the only booking flow available right now. Enable Offline Payment below (or activate the Pro plugin for PayPal & Stripe) to unlock the standalone Custom Payment flow and a mode switch here.', 'ecab-taxi-booking-manager' ); ?></p>
 					</div>
 					<?php
 					$this->booking_mode_styles();
@@ -300,13 +303,9 @@
 								$status.text( i18n.saved ).css( 'color', '#0a7c2f' );
 								setTimeout( function () { $status.fadeOut( 400, function () { $( this ).text( '' ).show(); } ); }, 1800 );
 
-								// Refresh the "Active" badge on the sub-tab bar.
-								$( '.mptbm-pay-subtab-badge' ).hide();
-								$( '.mptbm-pay-subtab-badge[data-badge-for="' + mode + '"]' ).show();
-
-								// Jump to the matching sub-tab so the admin can configure it right away.
-								var targetHref = ( mode === 'custom' ) ? '#no-woocommerce-field' : '#woocommerce-field';
-								$( '.payment-sub-tabs .nav-tab[href="' + targetHref + '"]' ).trigger( 'click' );
+								// Reveal the newly active mode's settings so the admin can configure
+								// it right away. payment_tabs_script() listens for this.
+								$( document ).trigger( 'mptbm:mode-changed', [ mode ] );
 
 								// Refresh the "no gateway enabled" warning for the freshly active mode.
 								var $slot = $wrap.find( '.mptbm-bm-gateway-warning-slot' );
@@ -368,36 +367,29 @@
 				.mptbm-bm-auto-note p{margin:0;font-weight:500;}
 				.mptbm-bm-auto-note--warn{background:#fff5f5;border-color:#fbcfcf;color:#8a1c1c;}
 				.mptbm-bm-auto-note--warn .dashicons{background:#fee2e2;color:#dc2626;}
-				.mptbm-pay-subtab-badge{margin-left:6px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:rgba(255,255,255,0.9);color:#166534;padding:1px 7px;border-radius:20px;vertical-align:middle;}
 				@media (max-width:680px){.mptbm-bm-cards{grid-template-columns:1fr;}}
 				</style>
 				<?php
 			}
 
-			/** Sub-tab bar (WooCommerce / Custom Payment) + WC-inactive warning. */
+			/**
+			 * Anchor row for the settings sections + the WooCommerce-inactive warning.
+			 *
+			 * There used to be a WooCommerce / Custom Payment sub-tab bar here, but it
+			 * duplicated the Booking Mode selector directly below it: two controls for one
+			 * decision, which could disagree (you could sit on the WooCommerce tab while
+			 * Custom Payment was the mode actually taking bookings). The Booking Mode cards
+			 * are now the single switch - they save the mode AND reveal that mode's settings
+			 * (see payment_tabs_script()).
+			 */
 			public function render_sub_tabs() {
 				$wc_active    = $this->has_woo();
 				$is_installed = file_exists( WP_PLUGIN_DIR . '/woocommerce/woocommerce.php' );
 				$btn_text     = $is_installed
 					? __( 'Activate WooCommerce Now', 'ecab-taxi-booking-manager' )
 					: __( 'Install &amp; Activate Now', 'ecab-taxi-booking-manager' );
-
-				$needs_choice = class_exists( 'MPTBM_Booking_Mode' ) && MPTBM_Booking_Mode::needs_selection();
-				$mode         = class_exists( 'MPTBM_Booking_Mode' ) ? MPTBM_Booking_Mode::get_mode() : 'woocommerce';
-				$wc_is_mode     = ! $needs_choice && 'woocommerce' === $mode;
-				$custom_is_mode = ! $needs_choice && 'custom' === $mode;
 				?>
 				<div class="payment-sub-tabs-wrapper">
-					<h2 class="nav-tab-wrapper payment-sub-tabs">
-						<a href="#woocommerce-field" class="nav-tab<?php echo $custom_is_mode ? '' : ' nav-tab-active'; ?>">
-							<?php esc_html_e( 'WooCommerce', 'ecab-taxi-booking-manager' ); ?>
-							<span class="mptbm-pay-subtab-badge" data-badge-for="woocommerce"<?php echo $wc_is_mode ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Active', 'ecab-taxi-booking-manager' ); ?></span>
-						</a>
-						<a href="#no-woocommerce-field" class="nav-tab<?php echo $custom_is_mode ? ' nav-tab-active' : ''; ?>">
-							<?php esc_html_e( 'Custom Payment', 'ecab-taxi-booking-manager' ); ?>
-							<span class="mptbm-pay-subtab-badge" data-badge-for="custom"<?php echo $custom_is_mode ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Active', 'ecab-taxi-booking-manager' ); ?></span>
-						</a>
-					</h2>
 					<?php if ( ! $wc_active ) : ?>
 						<div class="woocommerce-field">
 							<div class="mptbm-wc-callout">
@@ -407,7 +399,7 @@
 									</span>
 									<h4 class="mptbm-wc-callout-title"><?php esc_html_e( 'WooCommerce is not activated', 'ecab-taxi-booking-manager' ); ?></h4>
 								</div>
-								<p class="mptbm-wc-callout-text"><?php esc_html_e( 'To take bookings through the WooCommerce cart & checkout flow, install and activate WooCommerce. Prefer not to use it? Switch to the Custom Payment tab.', 'ecab-taxi-booking-manager' ); ?></p>
+								<p class="mptbm-wc-callout-text"><?php esc_html_e( 'To take bookings through the WooCommerce cart & checkout flow, install and activate WooCommerce. Prefer not to use it? Choose Custom Payment (Standalone) as your Booking Mode above.', 'ecab-taxi-booking-manager' ); ?></p>
 								<button type="button" class="mptbm-install-wc-trigger mptbm-wc-callout-btn">
 									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
 									<?php echo wp_kses_post( $btn_text ); ?>
@@ -424,7 +416,7 @@
 				$is_pro      = $this->is_pro();
 				$pp_enabled  = $this->opt( 'mptbm_paypal_enable' ) === 'on';
 				$st_enabled  = $this->opt( 'mptbm_stripe_enable' ) === 'on';
-				$off_enabled = $this->opt( 'mptbm_offline_enable' ) === 'on';
+				$off_enabled = MPTBM_Function::offline_payment_enabled();
 				$conf_page   = absint( $this->opt( 'mptbm_confirmation_page_id', 0 ) );
 
 				$enabled_txt  = __( 'Enabled', 'ecab-taxi-booking-manager' );
@@ -505,15 +497,10 @@
 								<span class="gateway-sub"><?php esc_html_e( 'Bank transfer, cash, pay on pickup', 'ecab-taxi-booking-manager' ); ?></span>
 							</span>
 						</div>
-						<?php if ( $is_pro ) : ?>
-							<span class="gateway-status <?php echo $off_enabled ? 'active' : ''; ?>"><?php echo esc_html( $off_enabled ? $enabled_txt : $disabled_txt ); ?></span>
-						<?php endif; ?>
+						<!-- Offline needs no online processor, so it is available in the free plugin. -->
+						<span class="gateway-status <?php echo $off_enabled ? 'active' : ''; ?>"><?php echo esc_html( $off_enabled ? $enabled_txt : $disabled_txt ); ?></span>
 						<div class="gateway-actions">
-							<?php if ( $is_pro ) : ?>
-								<button type="button" class="gateway-configure-btn" id="mptbm-offline-configure-btn"><?php esc_html_e( 'Configure', 'ecab-taxi-booking-manager' ); ?></button>
-							<?php else : ?>
-								<?php echo wp_kses_post( $pro_badge ); ?>
-							<?php endif; ?>
+							<button type="button" class="gateway-configure-btn" id="mptbm-offline-configure-btn"><?php esc_html_e( 'Configure', 'ecab-taxi-booking-manager' ); ?></button>
 						</div>
 					</div>
 				</div>
@@ -538,7 +525,8 @@
 				</div>
 
 				<!-- Require customer login (custom booking flow + portal) -->
-				<?php $require_login = $this->opt( 'mptbm_require_login', 'yes' ); ?>
+				<?php // Defaults to guest checkout - the admin opts in to forced login. ?>
+				<?php $require_login = $this->opt( 'mptbm_require_login', 'no' ); ?>
 				<div class="mptbm-conf-page">
 					<div class="mptbm-conf-page-label">
 						<label><?php esc_html_e( 'Require Customer Login', 'ecab-taxi-booking-manager' ); ?></label>
@@ -682,7 +670,7 @@
 				$st_test_sec = esc_attr( $this->opt( 'mptbm_stripe_test_sec' ) );
 				$st_live_pub = esc_attr( $this->opt( 'mptbm_stripe_live_pub' ) );
 				$st_live_sec = esc_attr( $this->opt( 'mptbm_stripe_live_sec' ) );
-				$off_enabled = $this->opt( 'mptbm_offline_enable' ) === 'on';
+				$off_enabled = MPTBM_Function::offline_payment_enabled();
 				$off_label   = esc_attr( $this->opt( 'mptbm_offline_label', __( 'Offline Payment', 'ecab-taxi-booking-manager' ) ) );
 				$nonce       = wp_create_nonce( 'mptbm_save_gateway' );
 				$is_pro      = $this->is_pro();
@@ -804,7 +792,9 @@
 						</div>
 					</div>
 				</div>
-				<!-- Offline Payment Config Modal (Pro-only) -->
+				<?php endif; ?>
+
+				<!-- Offline Payment Config Modal (free - no online processor needed). -->
 				<div id="mptbm-offline-modal" class="mptbm-gw-modal">
 					<div class="mptbm-gw-modal-box">
 						<div class="mptbm-gw-modal-header" style="background:linear-gradient(135deg,#0f766e 0%,#115e59 100%);">
@@ -832,7 +822,6 @@
 						</div>
 					</div>
 				</div>
-				<?php endif; ?>
 
 				<script>
 				var mptbmGateway = <?php echo wp_json_encode( array(
@@ -932,12 +921,11 @@
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-additional-last{border-bottom:1px solid #e7e8ec;border-radius:0 0 12px 12px;}
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table .formControl{max-width:340px;}
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] .submit{margin:20px 0 0;padding-top:20px;border-top:1px solid #e7e8ec;}
-				/* Sub-tab bar */
-				.payment-sub-tabs-wrapper{margin:0 0 24px;background:#fff;padding:6px;border-radius:12px;border:1px solid #e7e8ec;box-shadow:0 1px 2px rgba(16,24,40,0.04);display:inline-block;}
-				.payment-sub-tabs.nav-tab-wrapper{border-bottom:none !important;padding:0 !important;margin:0 !important;display:flex;gap:6px;}
-				.payment-sub-tabs .nav-tab{background:transparent;border:1px solid transparent;border-radius:8px;padding:9px 20px;font-size:14px;font-weight:600;color:#50575e !important;text-decoration:none;margin:0;transition:all 0.18s ease;}
-				.payment-sub-tabs .nav-tab:hover{background:#fbeaf1;color:var(--mptbm-pay-accent) !important;}
-				.payment-sub-tabs .nav-tab-active,.payment-sub-tabs .nav-tab-active:hover{background:var(--mptbm-pay-accent);color:#fff !important;box-shadow:0 4px 12px rgba(241,41,113,0.28);}
+				/* Anchor for the mode-driven sections. It used to hold the WooCommerce /
+				   Custom Payment sub-tab bar; that was removed (the Booking Mode cards are
+				   the single switch), so it is now an unstyled hook - the accordion script
+				   still uses its row as the insertion point. Any spacing comes from the
+				   callout inside it, so with WooCommerce active it takes up no room. */
 
 				/* WooCommerce-not-activated callout (modern) */
 				.mptbm-wc-callout{background:linear-gradient(180deg,#fffdf6,#fff8e8);border:1px solid #f2e0b0;border-radius:14px;padding:18px;margin:16px 0 6px;box-shadow:0 1px 2px rgba(16,24,40,0.03);}
@@ -1031,7 +1019,12 @@
 					})();
 
 					var wcActive = <?php echo $wc_active; ?>;
-					if ($('.payment-sub-tabs').length === 0) { return; }
+					if ($('.payment-sub-tabs-wrapper').length === 0) { return; }
+
+					// The mode actually in effect, resolved server-side. Used when the Booking
+					// Mode cards aren't rendered (only one flow is available, so there is
+					// nothing to choose) - the correct section must still be the visible one.
+					var resolvedMode = <?php echo wp_json_encode( class_exists( 'MPTBM_Booking_Mode' ) ? MPTBM_Booking_Mode::get_mode() : 'woocommerce' ); ?>;
 
 					var $paymentSubmit = $('div.tabsItem[data-tabs="#<?php echo esc_js( self::OPTION ); ?>"] .submit');
 
@@ -1096,25 +1089,28 @@
 						});
 					}
 
+					// Which settings section is showing follows the Booking Mode - the selected
+					// card when the selector is on screen, otherwise the server-resolved mode.
+					function activeMode(){
+						var $selected = $('.mptbm-bm-card.is-selected');
+						return $selected.length ? String($selected.data('mode')) : resolvedMode;
+					}
+
 					function updateTabs(){
-						var activeTabId = $('.payment-sub-tabs .nav-tab-active').attr('href').replace('#','');
 						$('tr.woocommerce-field, div.woocommerce-field, tr.no-woocommerce-field').hide();
 						$paymentSubmit.show();
-						if (activeTabId === 'woocommerce-field') {
+						if (activeMode() === 'custom') {
+							$('tr.no-woocommerce-field').show();
+						} else {
 							$('div.woocommerce-field').show();
 							if (wcActive) { $('tr.woocommerce-field').stop(true,true).show(); refreshAccordions(); }
-						} else {
-							$('tr.' + activeTabId).show();
 						}
 					}
-					$('.payment-sub-tabs .nav-tab').on('click', function(e){
-						e.preventDefault();
-						$('.payment-sub-tabs .nav-tab').removeClass('nav-tab-active');
-						$(this).addClass('nav-tab-active');
-						updateTabs();
-					});
 
-					// Move the tab bar above the settings table so it spans full width.
+					// Fired by the Booking Mode selector once a new mode has been saved.
+					$(document).on('mptbm:mode-changed', updateTabs);
+
+					// Move the anchor above the settings table so its callout spans full width.
 					var $tabContainer = $('.payment-sub-tabs-wrapper');
 					var $table = $tabContainer.closest('table.form-table');
 					if ($table.length) {
@@ -1153,8 +1149,9 @@
 					wp_send_json_error( __( 'Invalid gateway.', 'ecab-taxi-booking-manager' ) );
 				}
 
-				// PayPal, Stripe & Offline are Pro-only; never persist them from the free build.
-				if ( ! $this->is_pro() ) {
+				// PayPal & Stripe configuration is Pro-only; never persist them from the free
+				// build. Offline needs no online processor, so it stays configurable in free.
+				if ( 'offline' !== $gateway && ! $this->is_pro() ) {
 					wp_send_json_error( __( 'This gateway is available in the Pro version.', 'ecab-taxi-booking-manager' ) );
 				}
 

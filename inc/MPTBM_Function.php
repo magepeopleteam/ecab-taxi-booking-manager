@@ -152,14 +152,28 @@ if (!class_exists('MPTBM_Function')) {
 		}
 		/**
 		 * Whether a booking can actually be completed end-to-end.
-		 * Free plugin needs WooCommerce for cart/checkout; without it, only the
-		 * Pro plugin's custom (standalone) checkout can complete a booking. If
-		 * neither is available there is no way to take payment, so booking must
-		 * be blocked rather than left to fail silently at the final step.
+		 * Three routes qualify: the WooCommerce cart/checkout, the Pro plugin's custom
+		 * (standalone) checkout, or the free built-in Offline method handled by
+		 * MPTBM_Offline_Checkout. If none is available there is no way to take payment,
+		 * so booking must be blocked rather than left to fail silently at the final step.
 		 */
 		public static function is_booking_available(): bool
 		{
-			return self::is_wc_active() || class_exists('MPTBM_Plugin_Pro');
+			return self::is_wc_active() || class_exists('MPTBM_Plugin_Pro') || self::offline_payment_enabled();
+		}
+		/**
+		 * Whether the built-in Offline payment method is enabled on the Payments tab.
+		 *
+		 * Offline is the one custom payment method that is part of the FREE plugin: it
+		 * needs no online processor, so it can be configured and enabled without Pro
+		 * (PayPal & Stripe configuration stays Pro-only). Stored as
+		 * mptbm_payment_settings[mptbm_offline_enable].
+		 *
+		 * Single source of truth - callers must not read the option key directly.
+		 */
+		public static function offline_payment_enabled(): bool
+		{
+			return MP_Global_Function::get_settings('mptbm_payment_settings', 'mptbm_offline_enable', 'off') === 'on';
 		}
 		public static function get_name()
 		{
@@ -424,7 +438,20 @@ if (!class_exists('MPTBM_Function')) {
 
 			// Get price basis information
 			$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
-			$original_price_based = get_transient('original_price_based');
+			/**
+			 * The price model the customer originally searched with. It normally comes
+			 * from a transient the search step sets (MPTBM_Transport_Search), which means
+			 * anything recomputing a fare OUTSIDE that flow - e.g. an admin re-pricing an
+			 * existing booking - would match no branch below and silently get 0.
+			 *
+			 * The filter lets such callers supply the booking's own stored base for the
+			 * duration of one calculation instead of writing to the shared transient,
+			 * which is global and would corrupt a live customer's in-progress search.
+			 *
+			 * @param string $original_price_based Value from the transient.
+			 * @param int    $post_id              Transportation post being priced.
+			 */
+			$original_price_based = apply_filters('mptbm_original_price_based', get_transient('original_price_based'), $post_id);
 
 			// If original price basis is fixed_hourly but current price basis is distance, return false
 			if ($original_price_based === 'fixed_hourly' && $price_based === 'distance') {
@@ -888,21 +915,47 @@ if (!class_exists('MPTBM_Function')) {
 
 		}
 
-		public static function get_extra_service_price_by_name($post_id, $service_name)
+		/**
+		 * Every extra service a transportation offers, as name => price rows.
+		 *
+		 * Resolves the same way the booking form does: services can live on the vehicle
+		 * itself or on a shared service post referenced by mptbm_extra_services_id, and
+		 * an empty array is returned when the vehicle has them switched off.
+		 *
+		 * @return array<int,array{service_name:string,service_price:float}>
+		 */
+		public static function get_available_extra_services($post_id): array
 		{
 			$display_extra_services = MP_Global_Function::get_post_info($post_id, 'display_mptbm_extra_services', 'on');
+			if ($display_extra_services != 'on') {
+				return [];
+			}
 			$service_id = MP_Global_Function::get_post_info($post_id, 'mptbm_extra_services_id', $post_id);
 			$extra_services = MP_Global_Function::get_post_info($service_id, 'mptbm_extra_service_infos', []);
-			$price = 0;
-			if ($display_extra_services == 'on' && is_array($extra_services) && sizeof($extra_services) > 0) {
-				foreach ($extra_services as $service) {
-					$ex_service_name = array_key_exists('service_name', $service) ? $service['service_name'] : '';
-					if ($ex_service_name == $service_name) {
-						return array_key_exists('service_price', $service) ? $service['service_price'] : 0;
-					}
+			if (!is_array($extra_services)) {
+				return [];
+			}
+			$services = [];
+			foreach ($extra_services as $service) {
+				$name = array_key_exists('service_name', $service) ? $service['service_name'] : '';
+				if ($name === '') {
+					continue;
+				}
+				$services[] = [
+					'service_name'  => $name,
+					'service_price' => (float) (array_key_exists('service_price', $service) ? $service['service_price'] : 0),
+				];
+			}
+			return $services;
+		}
+		public static function get_extra_service_price_by_name($post_id, $service_name)
+		{
+			foreach (self::get_available_extra_services($post_id) as $service) {
+				if ($service['service_name'] == $service_name) {
+					return $service['service_price'];
 				}
 			}
-			return $price;
+			return 0;
 		}
 		/**
 		 * Check if coordinates fall within a fixed_zone end location (operation area polygon or location term radius)
