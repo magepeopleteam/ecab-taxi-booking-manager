@@ -36,9 +36,22 @@
 				return class_exists( 'MP_Global_Function' ) && MP_Global_Function::check_woocommerce() === 1;
 			}
 
-			/** Only the Pro plugin can actually run the custom/standalone checkout. */
+			/** The Pro plugin provides the full custom/standalone checkout (PayPal, Stripe, portal). */
 			public static function has_pro() {
 				return class_exists( 'MPTBM_Plugin_Pro' );
+			}
+
+			/**
+			 * Whether the custom/standalone flow can actually process a booking.
+			 *
+			 * Two independent sources qualify:
+			 *  - The Pro plugin's MPTBM_Native_Checkout (PayPal / Stripe / Offline).
+			 *  - The FREE built-in Offline method, which needs no online processor and is
+			 *    handled by MPTBM_Offline_Checkout (see MPTBM_Function::offline_payment_enabled()).
+			 */
+			public static function has_custom() {
+				return self::has_pro()
+					|| ( class_exists( 'MPTBM_Function' ) && MPTBM_Function::offline_payment_enabled() );
 			}
 
 			/**
@@ -48,15 +61,15 @@
 			 * @return string 'both' | 'woocommerce_only' | 'custom_only' | 'none'
 			 */
 			public static function availability() {
-				$woo = self::has_woo();
-				$pro = self::has_pro();
-				if ( $woo && $pro ) {
+				$woo    = self::has_woo();
+				$custom = self::has_custom();
+				if ( $woo && $custom ) {
 					return 'both';
 				}
 				if ( $woo ) {
 					return 'woocommerce_only';
 				}
-				if ( $pro ) {
+				if ( $custom ) {
 					return 'custom_only';
 				}
 				return 'none';
@@ -100,9 +113,9 @@
 			public static function get_mode() {
 				switch ( self::availability() ) {
 					case 'woocommerce_only':
-						return self::WOOCOMMERCE;
+						return self::remember( self::WOOCOMMERCE );
 					case 'custom_only':
-						return self::CUSTOM;
+						return self::remember( self::CUSTOM );
 					case 'none':
 						return '';
 					case 'both':
@@ -110,6 +123,27 @@
 						// Safe default (matches the old checkbox's default) until an explicit choice is saved.
 						return self::get_stored_mode() ?: self::WOOCOMMERCE;
 				}
+			}
+
+			/**
+			 * Record a mode that was auto-resolved because it was the ONLY flow available.
+			 *
+			 * Without this, a site running one flow has nothing stored, so the day the other
+			 * flow becomes available two things go wrong: the admin is nagged to choose a
+			 * mode they effectively already had, and - worse - the 'both' fallback silently
+			 * hands bookings to WooCommerce. A site taking Offline bookings would have its
+			 * checkout hijacked simply by activating WooCommerce.
+			 *
+			 * Only ever fills a blank: an explicit choice (or an earlier auto-resolution) is
+			 * never overwritten, so deactivating a flow temporarily doesn't erase intent.
+			 *
+			 * @return string The mode passed in, so callers can return it directly.
+			 */
+			private static function remember( $mode ) {
+				if ( '' === self::get_stored_mode() ) {
+					self::set_mode( $mode );
+				}
+				return $mode;
 			}
 
 			public static function is_woocommerce() {
