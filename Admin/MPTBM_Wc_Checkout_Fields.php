@@ -23,7 +23,6 @@
 				add_action('admin_notices', array($this, 'mp_admin_notice'));
 				add_action('add_switch_button', array($this, 'switch_button'), 10, 3);
 				add_action('wp_ajax_mptbm_disable_field', [$this, 'mptbm_disable_field']);
-				add_action('wp_ajax_nopriv_mptbm_disable_field', [$this, 'mptbm_disable_field']);
 			}
 			public function mptbm_disable_field() {
 				// Verify nonce

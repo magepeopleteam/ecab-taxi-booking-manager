@@ -176,7 +176,7 @@
 
 				// Remove the extra-service records tied to this booking.
 				$service_q = new WP_Query( array(
-					'post_type'      => 'mptbm_service_booking',
+					'post_type'      => 'mptbm_service_book',
 					'post_status'    => 'any',
 					'posts_per_page' => -1,
 					'fields'         => 'ids',

@@ -76,7 +76,9 @@
 				}
 				$bookings = get_posts([
 					'post_type'      => 'mptbm_booking',
-					'posts_per_page' => -1,
+					'posts_per_page' => 50,
+					'orderby'        => 'date',
+					'order'          => 'DESC',
 					'meta_query'     => [
 						['key' => 'mptbm_id', 'value' => $vehicle_id, 'compare' => '='],
 						['key' => 'mptbm_order_status', 'value' => 'completed', 'compare' => '='],
@@ -84,11 +86,14 @@
 				]);
 				foreach ($bookings as $booking) {
 					$order_id = get_post_meta($booking->ID, 'mptbm_order_id', true);
-					$order = $order_id ? wc_get_order($order_id) : false;
-					if (!$order || (int) $order->get_customer_id() !== (int) $user_id) {
-						continue;
+					if ($order_id && function_exists('wc_get_order')) {
+						$order = wc_get_order($order_id);
+						if ($order && (int) $order->get_customer_id() === (int) $user_id) {
+							return $booking;
+						}
+					} elseif ((int) get_post_meta($booking->ID, 'mptbm_user_id', true) === (int) $user_id) {
+						return $booking;
 					}
-					return $booking;
 				}
 				return null;
 			}
@@ -353,7 +358,7 @@
 
 			// Nudge customers to review right from their completed order page.
 			public function maybe_show_review_prompt($order) {
-				if (!$order->has_status('completed')) {
+				if (!is_object($order) || !is_callable(array($order, 'has_status')) || !$order->has_status('completed')) {
 					return;
 				}
 				$vehicle_id = 0;

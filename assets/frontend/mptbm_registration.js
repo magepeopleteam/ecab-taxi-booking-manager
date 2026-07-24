@@ -1953,6 +1953,7 @@ function mptbm_init_google_map() {
                                     url: mp_ajax_url,
                                     data: {
                                         action: actionValue,
+                                        nonce: mptbm_ajax.search_nonce,
                                         start_place: start_val,
                                         start_place_coordinates: JSON.stringify(startCoordinates),
                                         end_place_coordinates: JSON.stringify(endCoordinates),
@@ -2002,6 +2003,7 @@ function mptbm_init_google_map() {
                                     url: mp_ajax_url,
                                     data: {
                                         action: actionValue,
+                                        nonce: mptbm_ajax.search_nonce,
                                         start_place: start_val,
                                         start_place_coordinates: JSON.stringify(startCoordinates),
                                         end_place_coordinates: JSON.stringify(endCoordinates),
@@ -2082,6 +2084,7 @@ function mptbm_init_google_map() {
                                 url: mp_ajax_url,
                                 data: {
                                     action: actionValue,
+                                    nonce: mptbm_ajax.search_nonce,
                                     start_place: start_place.value,
                                     start_place_coordinates: startCoordinates,
                                     end_place_coordinates: endCoordinates,
@@ -2140,6 +2143,7 @@ function mptbm_init_google_map() {
                                 url: mp_ajax_url,
                                 data: {
                                     action: actionValue,
+                                    nonce: mptbm_ajax.search_nonce,
                                     start_place: start_place.value,
                                     start_place_coordinates: startCoordinates,
                                     end_place_coordinates: endCoordinates,
@@ -2205,6 +2209,7 @@ function mptbm_init_google_map() {
                             url: mp_ajax_url,
                             data: {
                                 action: actionValue,
+                                nonce: mptbm_ajax.search_nonce,
                                 start_place: start_place.value,
                                 end_place: end_place.value,
                                 start_date: start_date,
@@ -2263,6 +2268,7 @@ function mptbm_init_google_map() {
                             url: mp_ajax_url,
                             data: {
                                 action: actionValue,
+                                nonce: mptbm_ajax.search_nonce,
                                 start_place: start_place.value,
                                 end_place: end_place.value,
                                 start_date: start_date,
@@ -2554,6 +2560,7 @@ function mptbm_init_google_map() {
                     url: mp_ajax_url,
                     data: {
                         action: "get_mptbm_end_place",
+                        nonce: mptbm_ajax.search_nonce,
                         start_place: start_place,
                         price_based: price_based,
                         post_id: post_id,
@@ -2969,7 +2976,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 $.ajax({
                     type: 'POST',
                     url: mp_ajax_url,
-                    data: { "action": "get_mptbm_extra_service", "post_id": post_id },
+                    data: { "action": "get_mptbm_extra_service", "nonce": mptbm_ajax.search_nonce, "post_id": post_id },
                     beforeSend: function () { dLoader(parent.find('.tabsContentNext')); },
                     success: function (data) {
                         target_extra_service.html(data);
@@ -2984,7 +2991,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     $.ajax({
                         type: 'POST',
                         url: mp_ajax_url,
-                        data: { "action": "get_mptbm_extra_service_summary", "post_id": post_id },
+                        data: { "action": "get_mptbm_extra_service_summary", "nonce": mptbm_ajax.search_nonce, "post_id": post_id },
                         success: function (data) {
                             if (!data || data.length < 100) {
                             }
@@ -3178,6 +3185,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 url: mp_ajax_url,
                 data: {
                     action: "mptbm_add_to_cart",
+                    nonce: mptbm_ajax.search_nonce,
                     //"product_id": post_id,
                     transport_quantity: quantity,
                     link_id: link_id,
@@ -3344,6 +3352,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     url: mp_ajax_url, // WordPress AJAX URL
                     data: {
                         action: "load_get_details_page",
+                        nonce: mptbm_ajax.search_nonce,
                         tab_id: tab_id,
                         form_style: form_style,
                         map: map

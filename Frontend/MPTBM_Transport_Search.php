@@ -46,6 +46,7 @@
 				include(MPTBM_Function::template_path('registration/registration_layout.php'));
 			}
 			function load_get_details_page() {
+				$this->verify_search_request();
 				if (isset($_POST['tab_id'])) {
 					$tab_id = sanitize_text_field($_POST['tab_id']); // Sanitize input
 					$form_style = sanitize_text_field($_POST['form_style']);
@@ -84,35 +85,10 @@
 				wp_die(); // End AJAX call
 			}
 			public function get_mptbm_map_search_result() {
+				$this->verify_search_request(true);
 				// Debug logging for search initiation
 				
-				// Clear location-based pricing cache for fresh calculations on each search
-				// This prevents cached pricing data from affecting subsequent searches with same locations
-				// BUT preserve essential pricing data like original_price_based
-				global $wpdb;
-				$cache_patterns = array(
-					'weather_pricing_%',
-					'traffic_data_%',
-					'mptbm_custom_price_message_%'
-				);
-
-				foreach ($cache_patterns as $pattern) {
-					$deleted_transients = $wpdb->query($wpdb->prepare(
-						"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-						'_transient_' . $pattern
-					));
-					$deleted_timeouts = $wpdb->query($wpdb->prepare(
-						"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-						'_transient_timeout_' . $pattern
-					));
-				}
-				// Ensure original_price_based is set for proper pricing calculations
-				// Ensure original_price_based is set for proper pricing calculations
 				$price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
-				if ($price_based == 'fixed_distance') {
-					set_transient('original_price_based', 'fixed_distance', HOUR_IN_SECONDS);
-				}
-				set_transient('original_price_based', $price_based, HOUR_IN_SECONDS);
 				
 				// Buffer time validation
 				$buffer_time = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'enable_buffer_time');
@@ -149,8 +125,8 @@
 				}
 				
 				// Secure: Calculate distance server-side using coordinates passed from JS
-				$start_coords = isset($_POST['start_place_coordinates']) ? $_POST['start_place_coordinates'] : [];
-				$end_coords = isset($_POST['end_place_coordinates']) ? $_POST['end_place_coordinates'] : [];
+				$start_coords = $this->posted_coordinates('start_place_coordinates');
+				$end_coords = $this->posted_coordinates('end_place_coordinates');
 				
 				$server_data = false;
 				if (!empty($start_coords) && !empty($end_coords)) {
@@ -158,18 +134,10 @@
 					$s_lng = isset($start_coords['longitude']) ? $start_coords['longitude'] : '';
 					$e_lat = isset($end_coords['latitude']) ? $end_coords['latitude'] : '';
 					$e_lng = isset($end_coords['longitude']) ? $end_coords['longitude'] : '';
-
-
-					// Set transients for pricing logic in MPTBM_Function::get_price
-					set_transient('pickup_lat_transient', $s_lat, HOUR_IN_SECONDS);
-					set_transient('pickup_lng_transient', $s_lng, HOUR_IN_SECONDS);
-					set_transient('drop_lat_transient', $e_lat, HOUR_IN_SECONDS);
-					set_transient('drop_lng_transient', $e_lng, HOUR_IN_SECONDS);
-
 					$server_data = $this->get_server_distance_with_stops($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 
-				if ($server_data) {
+					if ($server_data) {
 					$distance = $server_data['distance'];
 					$duration = $server_data['duration'];
 					
@@ -180,12 +148,33 @@
 					$_SESSION['mptbm_secure_start_place'] = isset($_POST['start_place']) ? sanitize_text_field($_POST['start_place']) : '';
 					$_SESSION['mptbm_secure_end_place'] = isset($_POST['end_place']) ? sanitize_text_field($_POST['end_place']) : '';
 					session_write_close();
-				} else {
+					} else {
 					// Fallback (Less Secure, but keeps functionality if server API fails)
 					// We still try to use POST over Cookie as per previous fix
 					$distance = isset($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '');
-					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '');
-				}
+						$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '');
+					}
+					MPTBM_Function::set_search_context(array(
+						'distance'          => $server_data ? absint($server_data['distance']) : 0,
+						'duration'          => $server_data ? absint($server_data['duration']) : 0,
+						'distance_verified' => (bool) $server_data,
+						'start_place'       => isset($_POST['start_place']) ? sanitize_text_field(wp_unslash($_POST['start_place'])) : '',
+						'end_place'         => isset($_POST['end_place']) ? sanitize_text_field(wp_unslash($_POST['end_place'])) : '',
+						'start_coords'      => MPTBM_Function::normalize_coordinates($start_coords),
+						'end_coords'        => MPTBM_Function::normalize_coordinates($end_coords),
+						'price_based'       => $price_based,
+						'start_date'        => isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '',
+						'start_time'        => isset($_POST['start_time']) ? sanitize_text_field(wp_unslash($_POST['start_time'])) : '',
+						'booking_datetime'  => trim((isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '') . ' ' . str_replace('.', ':', isset($_POST['start_time']) ? sanitize_text_field(wp_unslash($_POST['start_time'])) : '')),
+						'waiting_time'      => isset($_POST['waiting_time']) ? absint($_POST['waiting_time']) : 0,
+						'two_way'           => isset($_POST['two_way']) ? max(1, absint($_POST['two_way'])) : 1,
+						'fixed_time'        => isset($_POST['fixed_time']) ? max(0, (float) $_POST['fixed_time']) : 0,
+						'extra_stop_places' => isset($_POST['mptbm_extra_stop_place']) ? array_values(array_filter(array_map('sanitize_text_field', (array) wp_unslash($_POST['mptbm_extra_stop_place'])))) : array(),
+						'extra_stop_count'  => isset($_POST['mptbm_extra_stop_place']) ? count(array_filter((array) $_POST['mptbm_extra_stop_place'])) : 0,
+						'return_date'       => isset($_POST['return_date']) ? sanitize_text_field(wp_unslash($_POST['return_date'])) : '',
+						'return_time'       => isset($_POST['return_time']) ? sanitize_text_field(wp_unslash($_POST['return_time'])) : '',
+						'return_datetime'   => trim((isset($_POST['return_date']) ? sanitize_text_field(wp_unslash($_POST['return_date'])) : '') . ' ' . str_replace('.', ':', isset($_POST['return_time']) ? sanitize_text_field(wp_unslash($_POST['return_time'])) : '')),
+					));
 				
 				
 				
@@ -197,34 +186,10 @@
 			die(); // Ensure further execution stops after outputting the JavaScript
 			}
 			public function get_mptbm_map_search_result_redirect(){
+				$this->verify_search_request(true);
 				// Debug logging for redirect search initiation
 				
-				// Clear location-based pricing cache for fresh calculations on each search
-				// This prevents cached pricing data from affecting subsequent searches with same locations
-				// BUT preserve essential pricing data like original_price_based
-				global $wpdb;
-				$cache_patterns = array(
-					'weather_pricing_%',
-					'traffic_data_%',
-					'mptbm_custom_price_message_%'
-				);
-
-				foreach ($cache_patterns as $pattern) {
-					$deleted_transients = $wpdb->query($wpdb->prepare(
-						"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-						'_transient_' . $pattern
-					));
-					$deleted_timeouts = $wpdb->query($wpdb->prepare(
-						"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-						'_transient_timeout_' . $pattern
-					));
-				}
-				// Ensure original_price_based is set for proper pricing calculations
 				$price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
-				if ($price_based == 'fixed_distance') {
-					set_transient('original_price_based', 'fixed_distance', HOUR_IN_SECONDS);
-				}
-				set_transient('original_price_based', $price_based, HOUR_IN_SECONDS);
 				
 				// Buffer time validation
 				$buffer_time = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'enable_buffer_time');
@@ -263,8 +228,8 @@
 				ob_start(); // Start output buffering
 					
 				// Secure: Calculate distance server-side using coordinates passed from JS
-				$start_coords = isset($_POST['start_place_coordinates']) ? $_POST['start_place_coordinates'] : [];
-				$end_coords = isset($_POST['end_place_coordinates']) ? $_POST['end_place_coordinates'] : [];
+				$start_coords = $this->posted_coordinates('start_place_coordinates');
+				$end_coords = $this->posted_coordinates('end_place_coordinates');
 				
 				$server_data = false;
 				if (!empty($start_coords) && !empty($end_coords)) {
@@ -277,7 +242,7 @@
 					$server_data = $this->get_server_distance_with_stops($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 
-				if ($server_data) {
+					if ($server_data) {
 					$distance = $server_data['distance'];
 					$duration = $server_data['duration'];
 					
@@ -288,10 +253,31 @@
 					$_SESSION['mptbm_secure_start_place'] = isset($_POST['start_place']) ? sanitize_text_field($_POST['start_place']) : '';
 					$_SESSION['mptbm_secure_end_place'] = isset($_POST['end_place']) ? sanitize_text_field($_POST['end_place']) : '';
 					session_write_close();
-				} else {
+					} else {
 					$distance = isset($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '');
-					$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '');
-				}
+						$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '');
+					}
+					MPTBM_Function::set_search_context(array(
+						'distance'          => $server_data ? absint($server_data['distance']) : 0,
+						'duration'          => $server_data ? absint($server_data['duration']) : 0,
+						'distance_verified' => (bool) $server_data,
+						'start_place'       => isset($_POST['start_place']) ? sanitize_text_field(wp_unslash($_POST['start_place'])) : '',
+						'end_place'         => isset($_POST['end_place']) ? sanitize_text_field(wp_unslash($_POST['end_place'])) : '',
+						'start_coords'      => MPTBM_Function::normalize_coordinates($start_coords),
+						'end_coords'        => MPTBM_Function::normalize_coordinates($end_coords),
+						'price_based'       => $price_based,
+						'start_date'        => isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '',
+						'start_time'        => isset($_POST['start_time']) ? sanitize_text_field(wp_unslash($_POST['start_time'])) : '',
+						'booking_datetime'  => trim((isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '') . ' ' . str_replace('.', ':', isset($_POST['start_time']) ? sanitize_text_field(wp_unslash($_POST['start_time'])) : '')),
+						'waiting_time'      => isset($_POST['waiting_time']) ? absint($_POST['waiting_time']) : 0,
+						'two_way'           => isset($_POST['two_way']) ? max(1, absint($_POST['two_way'])) : 1,
+						'fixed_time'        => isset($_POST['fixed_time']) ? max(0, (float) $_POST['fixed_time']) : 0,
+						'extra_stop_places' => isset($_POST['mptbm_extra_stop_place']) ? array_values(array_filter(array_map('sanitize_text_field', (array) wp_unslash($_POST['mptbm_extra_stop_place'])))) : array(),
+						'extra_stop_count'  => isset($_POST['mptbm_extra_stop_place']) ? count(array_filter((array) $_POST['mptbm_extra_stop_place'])) : 0,
+						'return_date'       => isset($_POST['return_date']) ? sanitize_text_field(wp_unslash($_POST['return_date'])) : '',
+						'return_time'       => isset($_POST['return_time']) ? sanitize_text_field(wp_unslash($_POST['return_time'])) : '',
+						'return_datetime'   => trim((isset($_POST['return_date']) ? sanitize_text_field(wp_unslash($_POST['return_date'])) : '') . ' ' . str_replace('.', ':', isset($_POST['return_time']) ? sanitize_text_field(wp_unslash($_POST['return_time'])) : '')),
+					));
 					// if ($distance && $duration) {
 						include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
 					// }
@@ -321,6 +307,7 @@
 			}
 
 			public function get_mptbm_end_place() {
+				$this->verify_search_request();
 				include(MPTBM_Function::template_path('registration/get_end_place.php'));
 				die();
 			}
@@ -339,13 +326,15 @@
 				if (!is_array($stop_coords_raw)) {
 					$stop_coords_raw = [$stop_coords_raw];
 				}
-				foreach ($stop_coords_raw as $coord_str) {
+				foreach (array_slice($stop_coords_raw, 0, 10) as $coord_str) {
 					$coord_str = sanitize_text_field($coord_str);
 					if (!$coord_str) {
 						continue;
 					}
 					$parts = array_map('trim', explode(',', $coord_str));
-					if (count($parts) === 2 && is_numeric($parts[0]) && is_numeric($parts[1])) {
+					if (count($parts) === 2 && is_numeric($parts[0]) && is_numeric($parts[1])
+						&& (float) $parts[0] >= -90 && (float) $parts[0] <= 90
+						&& (float) $parts[1] >= -180 && (float) $parts[1] <= 180) {
 						$waypoints[] = ['lat' => (float) $parts[0], 'lng' => (float) $parts[1]];
 					}
 				}
@@ -353,6 +342,25 @@
 				$waypoints[] = ['lat' => $end_lat, 'lng' => $end_lng];
 
 				return MPTBM_Function::get_server_distance_multi($waypoints);
+			}
+
+			private function posted_coordinates($key): array {
+				return isset($_POST[$key]) ? MPTBM_Function::normalize_coordinates($_POST[$key]) : array();
+			}
+
+			private function verify_search_request($rate_limit_route = false): void {
+				check_ajax_referer('mptbm_transport_search', 'nonce');
+				if (!$rate_limit_route) {
+					return;
+				}
+
+				$client_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
+				$rate_key = 'mptbm_route_rate_' . md5($client_ip);
+				$request_count = (int) get_transient($rate_key);
+				if ($request_count >= 20) {
+					wp_send_json_error(array('message' => esc_html__('Too many route searches. Please wait a few minutes and try again.', 'ecab-taxi-booking-manager')), 429);
+				}
+				set_transient($rate_key, $request_count + 1, 5 * MINUTE_IN_SECONDS);
 			}
 			
 			/**
@@ -385,6 +393,7 @@
 			}
 			
 			public function get_mptbm_extra_service() {
+				$this->verify_search_request();
 				$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
 				
 				// Security check: validate post access
@@ -396,6 +405,7 @@
 				die();
 			}
 			public function get_mptbm_extra_service_summary() {
+				$this->verify_search_request();
 				$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
 				
 				// Security check: validate post access

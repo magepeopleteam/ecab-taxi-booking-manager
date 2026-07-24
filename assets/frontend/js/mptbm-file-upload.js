@@ -28,7 +28,14 @@ jQuery(document).ready(function($){
 					if(preview.length === 0){
 						preview = $('<div class="mptbm-file-preview"></div>').insertAfter($input);
 					}
-					preview.html('<a href="'+resp.data.url+'" target="_blank">'+file.name+'</a>');
+					preview.empty().append(
+						$('<a>', {
+							href: resp.data.url,
+							target: '_blank',
+							rel: 'noopener noreferrer',
+							text: resp.data.name || file.name
+						})
+					);
 				}else{
 					alert('Upload failed');
 				}
@@ -55,4 +62,4 @@ jQuery(document).ready(function($){
 			e.preventDefault();
 		}
 	});
-}); 
+});
