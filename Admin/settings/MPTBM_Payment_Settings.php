@@ -524,8 +524,7 @@
 					</div>
 				</div>
 
-				<!-- Require customer login (custom booking flow + portal) -->
-				<?php // Defaults to guest checkout - the admin opts in to forced login. ?>
+				<!-- Require customer login (Pro custom booking flow + portal) -->
 				<?php $require_login = $this->opt( 'mptbm_require_login', 'no' ); ?>
 				<div class="mptbm-conf-page">
 					<div class="mptbm-conf-page-label">
@@ -533,10 +532,14 @@
 						<span><?php esc_html_e( 'When enabled, customers must log in (or register) before they can complete a Custom Payment booking or view the My Bookings portal. When disabled, guests can book and track by email + reference.', 'ecab-taxi-booking-manager' ); ?></span>
 					</div>
 					<div class="mptbm-conf-page-field">
-						<select name="<?php echo esc_attr( self::OPTION ); ?>[mptbm_require_login]">
-							<option value="yes" <?php selected( $require_login, 'yes' ); ?>><?php esc_html_e( 'Yes — require login / registration', 'ecab-taxi-booking-manager' ); ?></option>
-							<option value="no" <?php selected( $require_login, 'no' ); ?>><?php esc_html_e( 'No — allow guest checkout', 'ecab-taxi-booking-manager' ); ?></option>
-						</select>
+						<?php if ( $is_pro ) : ?>
+							<select name="<?php echo esc_attr( self::OPTION ); ?>[mptbm_require_login]">
+								<option value="yes" <?php selected( $require_login, 'yes' ); ?>><?php esc_html_e( 'Yes — require login / registration', 'ecab-taxi-booking-manager' ); ?></option>
+								<option value="no" <?php selected( $require_login, 'no' ); ?>><?php esc_html_e( 'No — allow guest checkout', 'ecab-taxi-booking-manager' ); ?></option>
+							</select>
+						<?php else : ?>
+							<?php echo wp_kses_post( $pro_badge ); ?>
+						<?php endif; ?>
 					</div>
 				</div>
 				<?php
@@ -1251,6 +1254,7 @@
 					'mptbm_stripe_live_pub', 'mptbm_stripe_live_sec',
 					'mptbm_offline_enable', 'mptbm_offline_label',
 					'mptbm_booking_mode',
+					'mptbm_require_login',
 				);
 				if ( ! is_array( $new_value ) ) {
 					return $new_value;

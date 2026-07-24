@@ -3126,6 +3126,9 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
         let quantity = parseInt(parent.find(`.mp_quantity_input[data-post-id="${post_id}"]`).val()) || 1;
         let mptbm_original_price_base = parent.find('[name="mptbm_original_price_base"]').val();
         let mptbm_threshold_base_price = parent.find('[name="mptbm_post_id"]').attr('data-base-price-calculated') || 0;
+        // Generated with the vehicle-result response, so it remains fresh even when a
+        // guest received the outer booking page from a full-page cache.
+        let add_to_cart_nonce = parent.find('[name="mptbm_add_to_cart_nonce"]').val() || '';
 
         if (start_place !== '' && end_place !== '' && link_id && post_id) {
             let extra_service_name = {};
@@ -3185,6 +3188,9 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 url: mp_ajax_url,
                 data: {
                     action: "mptbm_add_to_cart",
+                    mptbm_add_to_cart_nonce: add_to_cart_nonce,
+                    // Kept for one rolling-deployment cycle so an older PHP handler can
+                    // still validate clients whose assets update before the backend.
                     nonce: mptbm_ajax.search_nonce,
                     //"product_id": post_id,
                     transport_quantity: quantity,

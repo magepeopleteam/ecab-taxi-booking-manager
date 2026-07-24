@@ -1251,7 +1251,12 @@ if (!class_exists('MPTBM_Woocommerce')) {
 		/****************************/
 		public function mptbm_add_to_cart()
 			{
-				check_ajax_referer('mptbm_transport_search', 'nonce');
+				if (!MPTBM_Function::verify_add_to_cart_nonce()) {
+					wp_send_json_error(
+						array('message' => __('Your booking session expired. Please search again.', 'ecab-taxi-booking-manager')),
+						403
+					);
+				}
 				// The explicit Booking Mode setting (MPTBM_Booking_Mode) is the single
 				// source of truth for which flow owns a booking, so the booking has one
 				// deterministic path instead of two handlers racing (which previously
