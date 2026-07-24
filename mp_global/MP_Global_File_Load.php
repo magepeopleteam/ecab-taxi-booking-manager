@@ -104,6 +104,21 @@
 						window.mp_num_of_decimal = "<?php echo get_option('woocommerce_price_num_decimals', 2); ?>";
 					</script>
 					<?php
+				} else {
+					// Standalone (Custom Payment) mode: feed the same JS price formatter
+					// (mp_price_format) from the Currency Settings tab so live-updating
+					// fares on the booking form carry the configured symbol/position
+					// instead of an empty prefix. Mirrors native_format_amount().
+					$mp_cur = MP_Global_Function::native_currency_config();
+					?>
+					<script type="text/javascript">
+						window.mp_currency_symbol = "<?php echo esc_js($mp_cur['symbol']); ?>";
+						window.mp_currency_position = "<?php echo esc_js($mp_cur['position']); ?>";
+						window.mp_currency_decimal = "<?php echo esc_js($mp_cur['decimal_separator']); ?>";
+						window.mp_currency_thousands_separator = "<?php echo esc_js($mp_cur['thousand_separator']); ?>";
+						window.mp_num_of_decimal = "<?php echo esc_js((string) $mp_cur['decimals']); ?>";
+					</script>
+					<?php
 				}
 			}
 			public function custom_css() {

@@ -1,7 +1,7 @@
 <?php
 	/**
 	 * Single source of truth for "which flow processes a booking right now: WooCommerce
-	 * or the Pro custom/standalone checkout?"
+	 * or the custom/standalone checkout?"
 	 *
 	 * Before this class existed, that answer came from a single checkbox
 	 * ("Enable WooCommerce Payment") buried inside the WooCommerce sub-tab of the
@@ -36,22 +36,23 @@
 				return class_exists( 'MP_Global_Function' ) && MP_Global_Function::check_woocommerce() === 1;
 			}
 
-			/** The Pro plugin provides the full custom/standalone checkout (PayPal, Stripe, portal). */
+			/** The Pro plugin adds PayPal, Stripe, the portal, and other advanced features. */
 			public static function has_pro() {
 				return class_exists( 'MPTBM_Plugin_Pro' );
 			}
 
 			/**
-			 * Whether the custom/standalone flow can actually process a booking.
+			 * Whether the custom/standalone flow exists on this site.
 			 *
-			 * Two independent sources qualify:
-			 *  - The Pro plugin's MPTBM_Native_Checkout (PayPal / Stripe / Offline).
-			 *  - The FREE built-in Offline method, which needs no online processor and is
-			 *    handled by MPTBM_Offline_Checkout (see MPTBM_Function::offline_payment_enabled()).
+			 * Custom Payment is a FREE capability because the core plugin ships the
+			 * standalone Offline checkout. Gateway readiness is deliberately checked
+			 * separately by has_gateway_for_active_mode(): requiring Offline to be enabled
+			 * here would hide the Custom Payment controls needed to enable it.
+			 *
+			 * PayPal and Stripe remain Pro-only at their individual gateway boundaries.
 			 */
 			public static function has_custom() {
-				return self::has_pro()
-					|| ( class_exists( 'MPTBM_Function' ) && MPTBM_Function::offline_payment_enabled() );
+				return true;
 			}
 
 			/**
