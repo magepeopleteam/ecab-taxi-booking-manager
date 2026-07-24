@@ -55,6 +55,30 @@ if (!class_exists('MPTBM_Function')) {
 			return $stored !== '' && is_string($token) && hash_equals($stored, $token);
 		}
 
+		/**
+		 * Verify a Book Now request with the fresh nonce rendered in the vehicle results.
+		 *
+		 * Guest-facing booking pages are commonly page-cached. Their page-level search
+		 * nonce can therefore expire while the vehicle-result AJAX response is fresh.
+		 * Prefer that response's purpose-specific nonce, but temporarily accept the
+		 * legacy search nonce so cached JavaScript from the previous plugin version does
+		 * not break during a rolling deployment.
+		 */
+		public static function verify_add_to_cart_nonce(): bool
+		{
+			$nonce = isset($_POST['mptbm_add_to_cart_nonce'])
+				? sanitize_text_field(wp_unslash($_POST['mptbm_add_to_cart_nonce']))
+				: '';
+			if ($nonce !== '' && wp_verify_nonce($nonce, 'mptbm_add_to_cart')) {
+				return true;
+			}
+
+			$legacy_nonce = isset($_POST['nonce'])
+				? sanitize_text_field(wp_unslash($_POST['nonce']))
+				: '';
+			return $legacy_nonce !== '' && (bool) wp_verify_nonce($legacy_nonce, 'mptbm_transport_search');
+		}
+
 		public static function normalize_coordinates($coordinates): array
 		{
 			if (is_string($coordinates)) {

@@ -278,29 +278,94 @@
 					$price = str_replace('t_s', '', $price);
 					$price = str_replace('d_s', '.', $price);
 				} else {
-					// Standalone (no WooCommerce): format_price() uses number_format(),
-					// i.e. ',' thousands separator and '.' decimal separator.
-					$price = str_replace(',', '', $price);
+					// Standalone (no WooCommerce): strip the admin-configured symbol +
+					// separators (defaults '$', ',', '.') so the raw number parses back
+					// out no matter how native_format_amount() rendered it.
+					$symbol       = self::native_currency_setting('symbol', '$');
+					$thousand_sep = self::native_currency_setting('thousand_separator', ',');
+					$decimal_sep  = self::native_currency_setting('decimal_separator', '.');
+					$price = str_replace($symbol, '', $price);
+					$price = str_replace($thousand_sep, 't_s', $price);
+					$price = str_replace($decimal_sep, 'd_s', $price);
+					$price = str_replace('t_s', '', $price);
+					$price = str_replace('d_s', '.', $price);
 				}
 				$price = str_replace('&nbsp;', '', $price);
 				return max($price, 0);
 			}
+			//***** Native (non-WooCommerce) currency formatting *****//
+			/** Reads a value from the Currency Settings tab (mptbm_currency_settings). */
+			public static function native_currency_setting($key, $default = '') {
+				return self::get_settings('mptbm_currency_settings', $key, $default);
+			}
+			/**
+			 * Formats a raw amount using the Currency Settings tab (symbol, position,
+			 * decimals, separators) -- the standalone counterpart of wc_price(). Falls
+			 * back to "$1,234.56" defaults when nothing is configured yet.
+			 */
+			/**
+			 * Resolved native (non-WooCommerce) currency config from the Currency
+			 * Settings tab. Read directly from the option rather than via get_settings():
+			 * that helper treats a stored 0 / '' as "empty" and returns the default,
+			 * which would make 0-decimal currencies (JPY, BDT) and an intentionally
+			 * blank thousands separator impossible to set. Shared by both the PHP
+			 * formatter and the frontend JS constants so display never drifts.
+			 *
+			 * @return array{symbol:string,position:string,decimals:int,decimal_separator:string,thousand_separator:string,currency_code:string}
+			 */
+			public static function native_currency_config(): array {
+				$opt = get_option( 'mptbm_currency_settings' );
+				$opt = is_array( $opt ) ? $opt : array();
+				return array(
+					'symbol'             => isset( $opt['symbol'] ) && $opt['symbol'] !== '' ? $opt['symbol'] : '$',
+					'position'           => isset( $opt['position'] ) && $opt['position'] !== '' ? $opt['position'] : 'left',
+					'decimals'           => isset( $opt['decimals'] ) && $opt['decimals'] !== '' ? max( 0, (int) $opt['decimals'] ) : 2,
+					'decimal_separator'  => isset( $opt['decimal_separator'] ) && $opt['decimal_separator'] !== '' ? $opt['decimal_separator'] : '.',
+					'thousand_separator' => array_key_exists( 'thousand_separator', $opt ) ? $opt['thousand_separator'] : ',',
+					'currency_code'      => isset( $opt['currency_code'] ) && $opt['currency_code'] !== '' ? $opt['currency_code'] : 'USD',
+				);
+			}
+			public static function native_format_amount($amount): string {
+				$cfg          = self::native_currency_config();
+				$decimals     = $cfg['decimals'];
+				$decimal_sep  = $cfg['decimal_separator'];
+				$thousand_sep = $cfg['thousand_separator'];
+				$symbol       = $cfg['symbol'];
+				$position     = $cfg['position'];
+				$formatted    = number_format( (float) $amount, $decimals, $decimal_sep, $thousand_sep );
+				switch ($position) {
+					case 'right':
+						return $formatted . $symbol;
+					case 'left_space':
+						return $symbol . ' ' . $formatted;
+					case 'right_space':
+						return $formatted . ' ' . $symbol;
+					case 'left':
+					default:
+						return $symbol . $formatted;
+				}
+			}
 			/**
 			 * WooCommerce-safe price formatter for display.
-			 * Uses wc_price() when WooCommerce is active, otherwise falls back to a
-			 * plain number so templates never fatal in standalone (no-WC) mode.
+			 * Uses wc_price() when WooCommerce is active, otherwise formats through the
+			 * Currency Settings tab so standalone (no-WC) prices carry the configured
+			 * symbol/position instead of a bare number.
 			 */
 			public static function format_price($price) {
 				if (self::check_woocommerce() === 1 && function_exists('wc_price')) {
 					return wc_price($price);
 				}
-				return number_format((float) $price, 2);
+				return self::native_format_amount($price);
 			}
 			public static function wc_price($post_id, $price, $args = array()): string {
 				// Check if WooCommerce is active before using WooCommerce functions
 				if (self::check_woocommerce() !== 1) {
-					// If WooCommerce is not active, return a simple formatted price
-					return number_format($price, 2);
+					// Standalone: format through the Currency Settings tab so the symbol,
+					// position and separators the admin chose are honoured.
+					if ('' === $price) {
+						return '';
+					}
+					return self::native_format_amount($price);
 				}
 				
 				$num_of_decimal = get_option('woocommerce_price_num_decimals', 2);
