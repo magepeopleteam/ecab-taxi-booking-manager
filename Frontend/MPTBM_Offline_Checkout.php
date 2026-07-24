@@ -72,18 +72,6 @@
 				return $label ? $label : esc_html__('Offline Payment', 'ecab-taxi-booking-manager');
 			}
 
-			/**
-			 * Whether a customer must be signed in to book. Mirrors the Pro reader
-			 * (MPTBM_Customer_Portal::login_required()) so both builds agree; defaults to
-			 * NO, matching the "Require Customer Login" default on the Payments tab.
-			 */
-			private function login_required(): bool {
-				if (class_exists('MPTBM_Booking_Mode') && MPTBM_Booking_Mode::is_woocommerce()) {
-					return false;
-				}
-				return MP_Global_Function::get_settings(self::SETTINGS_OPTION, 'mptbm_require_login', 'no') === 'yes';
-			}
-
 			/*
 			 * ---------------------------------------------------------------
 			 * Frontend: customer details + payment method (final booking step)
@@ -91,11 +79,6 @@
 
 			public function render_checkout_form($post_id = 0): void {
 				if (!$this->is_active()) {
-					return;
-				}
-
-				if (!is_user_logged_in() && $this->login_required()) {
-					$this->render_login_required_panel();
 					return;
 				}
 
@@ -149,27 +132,6 @@
 				$this->checkout_form_assets();
 			}
 
-			/** Guest + "Require Customer Login" is on: point them at wp-login instead of a dead form. */
-			private function render_login_required_panel(): void {
-				$redirect = home_url(add_query_arg(array()));
-				?>
-				<div class="dLayout mptbm_custom_checkout">
-					<div class="mptbm_cc_head">
-						<span class="mptbm_cc_head_icon"><span class="fas fa-lock"></span></span>
-						<h3><?php esc_html_e('Please sign in to continue', 'ecab-taxi-booking-manager'); ?></h3>
-					</div>
-					<p class="mptbm_cc_login_text"><?php esc_html_e('An account is required to complete this booking. Sign in or create an account, then come back to finish.', 'ecab-taxi-booking-manager'); ?></p>
-					<p>
-						<a class="_themeButton_min_200" href="<?php echo esc_url(wp_login_url($redirect)); ?>"><?php esc_html_e('Sign in', 'ecab-taxi-booking-manager'); ?></a>
-						<?php if (get_option('users_can_register')) : ?>
-							<a class="_mpBtn_dBR_min_150" href="<?php echo esc_url(wp_registration_url()); ?>"><?php esc_html_e('Create an account', 'ecab-taxi-booking-manager'); ?></a>
-						<?php endif; ?>
-					</p>
-				</div>
-				<?php
-				$this->checkout_form_assets();
-			}
-
 			/** Checkout-form CSS, printed at most once per request. */
 			private function checkout_form_assets(): void {
 				static $printed = false;
@@ -193,7 +155,6 @@
 				.mptbm_cc_field input{width:100%;box-sizing:border-box;height:46px;padding:0 14px;border:1.5px solid var(--mptbm-cc-border);border-radius:10px;font-size:14px;color:#111827;background:#fff;transition:border-color .15s,box-shadow .15s;}
 				.mptbm_cc_field input::placeholder{color:#9ca3af;}
 				.mptbm_cc_field input:focus{outline:none;border-color:var(--mptbm-cc-accent);box-shadow:0 0 0 3px rgba(241,41,113,.12);}
-				.mptbm_cc_login_text{margin:0 0 16px;font-size:14px;color:#4b5563;line-height:1.6;}
 				.mptbm_payment_methods{display:flex;flex-direction:column;gap:12px;}
 				.mptbm_pm_card{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px solid var(--mptbm-cc-border);border-radius:14px;background:#fff;cursor:pointer;position:relative;transition:border-color .15s,box-shadow .15s,background .15s;}
 				.mptbm_pm_card:hover{border-color:#cbd5e1;box-shadow:0 4px 14px rgba(16,24,40,.06);}
@@ -230,10 +191,6 @@
 			public function process_checkout($response, $posted = array()) {
 				if ($response !== '' || !$this->is_active()) {
 					return $response;
-				}
-
-				if (!is_user_logged_in() && $this->login_required()) {
-					return $this->error_html(esc_html__('Please sign in to complete your booking.', 'ecab-taxi-booking-manager'));
 				}
 
 				$post_id = $this->resolve_vehicle_id(isset($_POST['link_id']) ? $_POST['link_id'] : 0);
