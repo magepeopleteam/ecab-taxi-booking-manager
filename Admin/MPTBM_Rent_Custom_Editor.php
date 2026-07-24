@@ -1261,6 +1261,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     </div>
                 </div>
             </div>
+            <script type="text/html" id="mptbm_taxi_ex_service_custom_template">
+                <?php self::extra_service_item( $post_id, $post_id ); ?>
+            </script>
         <?php }
 
         public static function extra_service_item( $post_id, $service_id ) {

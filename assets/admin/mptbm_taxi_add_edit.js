@@ -1406,10 +1406,20 @@
             }
         });
 
-        // 2. Delete Row Functionality
+        // 2. Extra Service dropdown change (predefined vs custom)
         $(document).on('change', '#mptbm_extra_services_id', function(e) {
-            let service_id = $(this).val();
+            let $select = $(this);
+            let service_id = $select.val();
+            let post_id = $('input[name="post_id"]').val();
             let nonce = $('#mptbm_extra_service_nonce').val();
+
+            // "Custom" option's value is the vehicle's own post ID, not a
+            // mptbm_extra_services post, so restore its own saved rows locally
+            // instead of hitting the server (which would reject it as invalid).
+            if (!service_id || service_id === post_id) {
+                $("#mptbm_taxi_ex_service_tbody").html($('#mptbm_taxi_ex_service_custom_template').html());
+                return;
+            }
 
             $.ajax({
                 url: ajaxurl,
@@ -1417,12 +1427,18 @@
                 data: {
                     action: 'mptbm_get_services_data',
                     service_id: service_id,
-                    post_id: 37,
+                    post_id: post_id,
                     nonce: nonce
                 },
                 success: function (response) {
-                    console.log(response);
-                    $("#mptbm_taxi_ex_service_tbody").html(response.data.service_date);
+                    if (response && response.success) {
+                        $("#mptbm_taxi_ex_service_tbody").html(response.data.service_date);
+                    } else {
+                        console.error('mptbm: failed to load extra service data', response);
+                    }
+                },
+                error: function (xhr) {
+                    console.error('mptbm: extra service AJAX request failed', xhr);
                 }
             });
 
