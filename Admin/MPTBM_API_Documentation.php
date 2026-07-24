@@ -221,13 +221,15 @@ Content-Type: application/json
                     'url' => '/auth/validate-key',
                     'description' => 'Validate an API key',
                     'parameters' => array(
-                        array('name' => 'api_key', 'type' => 'string', 'required' => true, 'description' => 'API key to validate')
+						array('name' => 'api_key', 'type' => 'string', 'required' => true, 'description' => 'API key to validate'),
+						array('name' => 'api_secret', 'type' => 'string', 'required' => true, 'description' => 'API secret shown once when the key is created')
                     ),
                     'example_request' => 'POST /wp-json/ecab-taxi/v1/auth/validate-key
 Content-Type: application/json
 
 {
-    "api_key": "etbm_abc123..."
+	"api_key": "etbm_abc123...",
+	"api_secret": "secret456..."
 }',
                     'example_response' => '{
     "success": true,
@@ -255,7 +257,8 @@ Content-Type: application/json
                         array('name' => 'status', 'type' => 'string', 'required' => false, 'description' => 'Filter by status (active, inactive)')
                     ),
                     'example_request' => 'GET /wp-json/ecab-taxi/v1/taxis?page=1&per_page=10
-X-API-Key: your-api-key',
+X-API-Key: your-api-key
+X-API-Secret: your-api-secret',
                     'example_response' => '{
     "success": true,
     "data": [
@@ -291,6 +294,7 @@ X-API-Key: your-api-key',
                     ),
                     'example_request' => 'POST /wp-json/ecab-taxi/v1/taxis
 X-API-Key: your-api-key
+X-API-Secret: your-api-secret
 Content-Type: application/json
 
 {
@@ -323,6 +327,7 @@ Content-Type: application/json
                     ),
                     'example_request' => 'POST /wp-json/ecab-taxi/v1/taxis/search
 X-API-Key: your-api-key
+X-API-Secret: your-api-secret
 Content-Type: application/json
 
 {

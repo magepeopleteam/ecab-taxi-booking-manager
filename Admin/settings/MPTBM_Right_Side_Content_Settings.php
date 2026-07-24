@@ -283,8 +283,12 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
             $post_id = isset( $_POST['post_id'] ) ? intval( wp_unslash( $_POST['post_id'] ) ) : "" ;
             $category_id = isset( $_POST['category_id'] ) ? sanitize_text_field( wp_unslash( $_POST['category_id'] ) ) : '' ;
 
-            if (!$post_id || !$category_id) {
+            if (!$post_id || !$category_id || get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
                 wp_send_json_error(['message' => 'Invalid data']);
+            }
+
+            if (!current_user_can('edit_post', $post_id)) {
+                wp_send_json_error(['message' => 'Permission denied'], 403);
             }
 
             update_post_meta(
@@ -574,6 +578,10 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                 wp_send_json_error(['message' => 'Security failed']);
             }
 
+            if (!current_user_can('manage_options')) {
+                wp_send_json_error(['message' => 'Permission denied'], 403);
+            }
+
             $category_id = isset( $_POST['category_id'] ) ? sanitize_text_field( wp_unslash( $_POST['category_id'] ) ) : '';
 
             $categories = get_option('mptbm_taxi_categories', []);
@@ -602,6 +610,10 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                 !wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'mptbm_taxi_nonce')
             ) {
                 wp_send_json_error(['message' => 'Security failed']);
+            }
+
+            if (!current_user_can('manage_options')) {
+                wp_send_json_error(['message' => 'Permission denied'], 403);
             }
 
 
@@ -680,8 +692,12 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
             }
             $post_id = isset( $_POST['post_id'] ) ? intval($_POST['post_id']) : '';
             $tag = isset( $_POST['tag'] ) ?sanitize_text_field( wp_unslash( $_POST['tag'] ) ) : '';
-            if (!$post_id || !$tag) {
+            if (!$post_id || !$tag || get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
                 wp_send_json_error(['message' => 'Invalid data']);
+            }
+
+            if (!current_user_can('edit_post', $post_id)) {
+                wp_send_json_error(['message' => 'Permission denied'], 403);
             }
             $tags = get_post_meta($post_id, 'mptbm_taxi_tags', true);
             if (!is_array($tags)) {
@@ -708,8 +724,12 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
             $post_id = isset( $_POST['post_id'] ) ? intval( wp_unslash( $_POST['post_id'] ) ) : '';
             $tag = isset( $_POST['tag'] ) ? sanitize_text_field( wp_unslash(  $_POST['tag'] ) ) : '';
 
-            if (!$post_id || !$tag) {
+            if (!$post_id || !$tag || get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
                 wp_send_json_error(['message' => 'Invalid data']);
+            }
+
+            if (!current_user_can('edit_post', $post_id)) {
+                wp_send_json_error(['message' => 'Permission denied'], 403);
             }
             $tags = get_post_meta($post_id, 'mptbm_taxi_tags', true);
             if (!is_array($tags)) {
@@ -729,4 +749,3 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
 
     new MPTBM_Right_Side_Content_Settings();
 }
-

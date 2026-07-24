@@ -961,14 +961,11 @@
 		
 		// Initialize the class after 'init' to ensure textdomain is loaded
 		add_action('init', function() {
-			$instance = new MPTBM_Wc_Checkout_Fields_Helper();
+			new MPTBM_Wc_Checkout_Fields_Helper();
 			
 			// Only add these if custom checkout system is not disabled
 			if (!MPTBM_Wc_Checkout_Fields_Helper::disable_custom_checkout_system()) {
 				add_action('wp_enqueue_scripts', array('MPTBM_Wc_Checkout_Fields_Helper', 'enqueue_file_upload_js'));
-				// Register AJAX actions outside the class
-				add_action('wp_ajax_mptbm_file_upload', array('MPTBM_Wc_Checkout_Fields_Helper', 'ajax_file_upload'));
-				add_action('wp_ajax_nopriv_mptbm_file_upload', array('MPTBM_Wc_Checkout_Fields_Helper', 'ajax_file_upload'));
 			}
 		});
 	}

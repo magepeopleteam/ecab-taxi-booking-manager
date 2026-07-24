@@ -7,19 +7,6 @@ if (!defined("ABSPATH")) {
     die();
 } // Cannot access pages directly
 
-// Clear only pricing-related cache to ensure fresh pricing on transport result page
-$current_page_template = get_page_template_slug();
-$is_transport_result_page = ($current_page_template === 'transport_result.php') || 
-                           (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'transport-result') !== false);
-
-if ($is_transport_result_page) {
-    // Clear only pricing-specific caches, not essential search data
-    global $wpdb;
-    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_weather_pricing_%'");
-    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_traffic_data_%'");
-    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_weather_pricing_%'");
-    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_traffic_data_%'");
-}
 $label = MPTBM_Function::get_name();
 $days = MP_Global_Function::week_day();
 $days_name = array_keys($days);
@@ -784,43 +771,6 @@ $mptbm_original_price_base = isset($_POST["mptbm_original_price_base"]) ? saniti
 
 
 
-// Parse and store coordinates for weather and traffic pricing
-if (!empty($start_place_coordinates)) {
-    // Handle both array and JSON string formats
-    if (is_array($start_place_coordinates)) {
-        $start_coords = $start_place_coordinates;
-    } else {
-        $start_coords = json_decode($start_place_coordinates, true);
-    }
-    
-    if (is_array($start_coords) && ((isset($start_coords['lat']) && isset($start_coords['lng'])) || (isset($start_coords['latitude']) && isset($start_coords['longitude'])))) {
-        // Handle both lat/lng and latitude/longitude formats
-        $lat = isset($start_coords['lat']) ? $start_coords['lat'] : $start_coords['latitude'];
-        $lng = isset($start_coords['lng']) ? $start_coords['lng'] : $start_coords['longitude'];
-        
-        set_transient('pickup_lat_transient', floatval($lat), HOUR_IN_SECONDS);
-        set_transient('pickup_lng_transient', floatval($lng), HOUR_IN_SECONDS);
-    }
-}
-
-if (!empty($end_place_coordinates)) {
-    // Handle both array and JSON string formats
-    if (is_array($end_place_coordinates)) {
-        $end_coords = $end_place_coordinates;
-    } else {
-        $end_coords = json_decode($end_place_coordinates, true);
-    }
-    
-    if (is_array($end_coords) && ((isset($end_coords['lat']) && isset($end_coords['lng'])) || (isset($end_coords['latitude']) && isset($end_coords['longitude'])))) {
-        // Handle both lat/lng and latitude/longitude formats
-        $lat = isset($end_coords['lat']) ? $end_coords['lat'] : $end_coords['latitude'];
-        $lng = isset($end_coords['lng']) ? $end_coords['lng'] : $end_coords['longitude'];
-        
-        set_transient('drop_lat_transient', floatval($lat), HOUR_IN_SECONDS);
-        set_transient('drop_lng_transient', floatval($lng), HOUR_IN_SECONDS);
-    }
-}
-
 $two_way = isset($_POST["two_way"]) ? absint($_POST["two_way"]) : 1;
 $waiting_time = isset($_POST["waiting_time"]) ? sanitize_text_field($_POST["waiting_time"]) : 0;
 $fixed_time = isset($_POST["fixed_time"]) ? sanitize_text_field($_POST["fixed_time"]) : "";
@@ -1100,7 +1050,8 @@ if ($all_posts->found_posts > 0) {
 
         $mptbm_enable_inventory_check = get_post_meta($post_id, 'mptbm_enable_inventory', true);
         $mptbm_force_single_quantity = ($mptbm_enable_inventory_check !== 'yes');
-        if (MPTBM_Function::get_available_quantity($post_id, $start_date, $start_time_formatted, $mptbm_force_single_quantity) <= 0) {
+		$mptbm_trip_duration = max(absint($duration ?? 0), (int) round((float) ($fixed_time ?? 0) * HOUR_IN_SECONDS));
+		if (MPTBM_Function::get_available_quantity($post_id, $start_date, $start_time_formatted, $mptbm_force_single_quantity, $mptbm_trip_duration, $return_date_time ?? '') <= 0) {
             $mptbm_unavailable = true;
             $mptbm_unavailable_reason = esc_html__('Fully booked for this time', 'ecab-taxi-booking-manager');
         }
@@ -1160,7 +1111,7 @@ if ($all_posts->found_posts > 0) {
             $base_price_extra = 0;
             $bp_settings = MPTBM_Function::get_base_price_settings($post_id);
             $price_based_mode = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
-            $fixed_route_found = get_transient('mptbm_fixed_route_found_' . $post_id) === 'yes';
+            $fixed_route_found = MPTBM_Function::fixed_route_found($post_id);
 
             if ($bp_settings && !empty($bp_settings['coords']) && ($price_based_mode !== 'fixed_map' || !$fixed_route_found)) {
                 $base_coords = $bp_settings['coords'];

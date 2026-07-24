@@ -39,6 +39,8 @@ if (!class_exists('MPTBM_Dependencies')) {
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Query.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Layout.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Rest_Api.php';
+			// Post types must be registered on frontend, REST and cron requests too.
+			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_CPT.php';
 			// Hidden WooCommerce product mirror is only relevant when WooCommerce is active.
 			if (MP_Global_Function::check_woocommerce() == 1) {
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Hidden_Product.php';
@@ -120,7 +122,10 @@ if (!class_exists('MPTBM_Dependencies')) {
                     'network_error' => __('Could not reach the server. Please check your connection and try again.', 'ecab-taxi-booking-manager'),
                 ),
             ));
-            wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_admin.js'), true);
+			wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_admin.js'), true);
+			wp_localize_script('mptbm_admin', 'mptbm_admin_security', array(
+				'extra_service_nonce' => wp_create_nonce('mptbm_get_extra_service'),
+			));
             wp_enqueue_script('mptbm_tooltip', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_tooltip.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_tooltip.js'), true);
             wp_enqueue_script('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_transportation_lists.js'), true);
             wp_enqueue_script('mptbm_right_side_js', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_right_side_js.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_right_side_js.js'), true);
@@ -191,7 +196,8 @@ if (!class_exists('MPTBM_Dependencies')) {
 			// Localize script for AJAX
 			wp_localize_script('mptbm_registration', 'mptbm_ajax', array(
 				'ajax_url' => admin_url('admin-ajax.php'),
-				'osm_nonce' => wp_create_nonce('mptbm_osm_search')
+				'osm_nonce' => wp_create_nonce('mptbm_osm_search'),
+				'search_nonce' => wp_create_nonce('mptbm_transport_search')
 			));
             
             // Font Awesome for template icons
@@ -253,12 +259,20 @@ if (!class_exists('MPTBM_Dependencies')) {
 			// Check nonce for security
 			check_ajax_referer('mptbm_osm_search', 'nonce');
 			
-			$query = isset($_REQUEST['q']) ? sanitize_text_field($_REQUEST['q']) : '';
+			$query = isset($_REQUEST['q']) ? sanitize_text_field(wp_unslash($_REQUEST['q'])) : '';
 			
-			if (empty($query)) {
+			if (strlen($query) < 2 || strlen($query) > 120) {
 				wp_send_json_error('No search query provided');
 				return;
 			}
+
+			$client_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
+			$rate_key = 'mptbm_osm_rate_' . md5($client_ip);
+			$rate = (int) get_transient($rate_key);
+			if ($rate >= 30) {
+				wp_send_json_error('Too many searches. Please wait and try again.', 429);
+			}
+			set_transient($rate_key, $rate + 1, 5 * MINUTE_IN_SECONDS);
 			
 			// Get country restriction settings
 			$restrict_to_country = MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country_restriction', 'no');
@@ -270,6 +284,11 @@ if (!class_exists('MPTBM_Dependencies')) {
 				'limit' => 5,
 				'lang' => 'en'
 			);
+			$cache_key = 'mptbm_osm_' . md5(wp_json_encode(array($search_params, $restrict_to_country, $country_code)));
+			$cached_results = get_transient($cache_key);
+			if (is_array($cached_results)) {
+				wp_send_json_success($cached_results);
+			}
 			
 			// Add country restriction if enabled
 			if ($restrict_to_country === 'yes' && !empty($country_code)) {
@@ -297,8 +316,7 @@ if (!class_exists('MPTBM_Dependencies')) {
 			
 			// Check if status is not 200
 			if ($status_code !== 200) {
-				$body = wp_remote_retrieve_body($response);
-				wp_send_json_error('OpenStreetMap returned status ' . $status_code . ': ' . $body);
+				wp_send_json_error('OpenStreetMap search is temporarily unavailable.');
 				return;
 			}
 			
@@ -390,14 +408,15 @@ if (!class_exists('MPTBM_Dependencies')) {
 					
 					// Photon uses [lon, lat] format, we need to convert to lat/lon
 					$results[] = array(
-						'display_name' => $display_name,
-						'lat' => isset($coordinates[1]) ? $coordinates[1] : 0,
-						'lon' => isset($coordinates[0]) ? $coordinates[0] : 0,
-						'address' => $properties
+						'display_name' => sanitize_text_field($display_name),
+						'lat' => isset($coordinates[1]) ? (float) $coordinates[1] : 0,
+						'lon' => isset($coordinates[0]) ? (float) $coordinates[0] : 0,
+						'address' => map_deep($properties, 'sanitize_text_field')
 					);
 				}
 			}
 			
+			set_transient($cache_key, $results, 5 * MINUTE_IN_SECONDS);
 			wp_send_json_success($results);
 		}
     }

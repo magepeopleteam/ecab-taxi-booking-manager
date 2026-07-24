@@ -26,27 +26,6 @@ if (empty($content)) {
     exit;
 }
 
-// Clear only pricing-related caches to ensure fresh pricing calculations
-// This prevents object caching from showing only minimum-priced vehicles
-// but preserves essential search data
-global $wpdb;
-$cache_patterns = array(
-    'weather_pricing_%',
-    'traffic_data_%',
-    'mptbm_custom_price_message_%'
-);
-
-foreach ($cache_patterns as $pattern) {
-    $wpdb->query($wpdb->prepare(
-        "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-        '_transient_' . $pattern
-    ));
-    $wpdb->query($wpdb->prepare(
-        "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-        '_transient_timeout_' . $pattern
-    ));
-}
-
 // Store content in a variable before unsetting session
 $display_content = $content;
 

@@ -251,15 +251,27 @@
 					$name  = $name ?: $user->display_name;
 					$email = $email ?: $user->user_email;
 				}
-				if (!$name || !$email || !is_email($email)) {
-					return $this->error_html(esc_html__('Please enter a valid name and email address.', 'ecab-taxi-booking-manager'));
-				}
+					if (!$name || !$email || !is_email($email)) {
+						return $this->error_html(esc_html__('Please enter a valid name and email address.', 'ecab-taxi-booking-manager'));
+					}
 
-				// Fare is always recomputed here - the posted price is display-only.
-				$unit_price = $this->get_total_price($post_id);
+					$start_place = isset($_POST['mptbm_start_place']) ? sanitize_text_field(wp_unslash($_POST['mptbm_start_place'])) : '';
+					$end_place   = isset($_POST['mptbm_end_place']) ? sanitize_text_field(wp_unslash($_POST['mptbm_end_place'])) : '';
+					$price_based = isset($_POST['mptbm_original_price_base']) ? sanitize_key(wp_unslash($_POST['mptbm_original_price_base'])) : '';
+					$context     = MPTBM_Function::get_checkout_search_context($start_place, $end_place, $price_based);
+					if (is_wp_error($context)) {
+						return $this->error_html($context->get_error_message());
+					}
+					$selection = MPTBM_Function::validate_checkout_selections($post_id);
+					if (is_wp_error($selection)) {
+						return $this->error_html($selection->get_error_message());
+					}
+
+					// Fare is always recomputed here - the posted price is display-only.
+					$unit_price = $this->get_total_price($post_id, $context);
 				$total      = round((float) $unit_price * $quantity, 2);
 
-				$meta = $this->build_booking_meta($post_id, $quantity, $unit_price, $total, $name, $email, $phone);
+					$meta = $this->build_booking_meta($post_id, $quantity, $unit_price, $total, $name, $email, $phone, $context);
 
 				$booking_id = $this->create_booking($name, $meta);
 				if (!$booking_id) {
@@ -273,20 +285,20 @@
 			 * Server-side fare for one vehicle incl. extra services.
 			 * Mirrors MPTBM_Woocommerce's cart price calculation.
 			 */
-			private function get_total_price($post_id): float {
-				$distance = isset($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : 1000);
-				$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : 3600);
-				$start    = isset($_POST['mptbm_start_place']) ? sanitize_text_field(wp_unslash($_POST['mptbm_start_place'])) : '';
-				$end      = isset($_POST['mptbm_end_place']) ? sanitize_text_field(wp_unslash($_POST['mptbm_end_place'])) : '';
-				$waiting  = isset($_POST['mptbm_waiting_time']) ? sanitize_text_field(wp_unslash($_POST['mptbm_waiting_time'])) : 0;
-				$two_way  = isset($_POST['mptbm_taxi_return']) ? sanitize_text_field(wp_unslash($_POST['mptbm_taxi_return'])) : 1;
-				$fixed    = isset($_POST['mptbm_fixed_hours']) ? sanitize_text_field(wp_unslash($_POST['mptbm_fixed_hours'])) : 0;
+			private function get_total_price($post_id, array $context): float {
+				$distance = absint($context['distance'] ?? 0);
+				$duration = absint($context['duration'] ?? 0);
+				$start    = sanitize_text_field($context['start_place'] ?? '');
+				$end      = sanitize_text_field($context['end_place'] ?? '');
+				$waiting  = absint($context['waiting_time'] ?? 0);
+				$two_way  = max(1, absint($context['two_way'] ?? 1));
+				$fixed    = max(0, (float) ($context['fixed_time'] ?? 0));
 
-				$price_based = isset($_POST['mptbm_original_price_base']) ? sanitize_text_field(wp_unslash($_POST['mptbm_original_price_base'])) : '';
+				$price_based = sanitize_key($context['price_based'] ?? '');
 				$geo_coords  = null;
 				if (in_array($price_based, array('fixed_zone', 'fixed_zone_dropoff'), true)) {
-					$start_coords = isset($_POST['start_place_coordinates']) ? wp_unslash($_POST['start_place_coordinates']) : '';
-					$end_coords   = isset($_POST['end_place_coordinates']) ? wp_unslash($_POST['end_place_coordinates']) : '';
+					$start_coords = $context['start_coords'] ?? array();
+					$end_coords   = $context['end_coords'] ?? array();
 					if ($price_based === 'fixed_zone_dropoff' && !empty($start_coords)) {
 						$geo_coords = $this->parse_coords($start_coords);
 					} elseif ($price_based === 'fixed_zone' && !empty($end_coords)) {
@@ -300,6 +312,8 @@
 				foreach ($this->posted_extra_services($post_id) as $service) {
 					$raw_price += (float) $service['service_price'] * (int) $service['service_quantity'];
 				}
+				$raw_price += MPTBM_Function::calculate_base_location_price($post_id, $context);
+				$raw_price += (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0) * absint($context['extra_stop_count'] ?? 0);
 
 				return $raw_price;
 			}
@@ -318,7 +332,7 @@
 					}
 					$rows[] = array(
 						'service_name'     => $names[$i],
-						'service_quantity' => (isset($qtys[$i]) && $qtys[$i] > 0) ? $qtys[$i] : 1,
+						'service_quantity' => (isset($qtys[$i]) && $qtys[$i] > 0) ? min(100, $qtys[$i]) : 1,
 						'service_price'    => (float) MPTBM_Function::get_extra_service_price_by_name($post_id, $names[$i]),
 					);
 				}
@@ -326,7 +340,7 @@
 			}
 
 			/** Booking meta, matching the schema the WooCommerce flow writes. */
-			private function build_booking_meta($post_id, $quantity, $unit_price, $total, $name, $email, $phone): array {
+			private function build_booking_meta($post_id, $quantity, $unit_price, $total, $name, $email, $phone, array $context): array {
 				$post_value = function ($key, $default = '') {
 					return isset($_POST[$key]) ? sanitize_text_field(wp_unslash($_POST[$key])) : $default;
 				};
@@ -336,18 +350,18 @@
 					// The price model the customer searched with. Stored so a fare can be
 					// recomputed later (admin booking edit) without it - see the
 					// mptbm_original_price_based filter in MPTBM_Function::get_price().
-					'mptbm_original_price_base'         => $post_value('mptbm_original_price_base'),
-					'mptbm_date'                        => $post_value('mptbm_date'),
-					'mptbm_start_place'                 => $post_value('mptbm_start_place'),
-					'mptbm_end_place'                   => $post_value('mptbm_end_place'),
-					'mptbm_extra_stop_place'            => $post_value('mptbm_extra_stop_place'),
-					'mptbm_waiting_time'                => $post_value('mptbm_waiting_time', 0),
-					'mptbm_taxi_return'                 => $post_value('mptbm_taxi_return', 1),
-					'mptbm_fixed_hours'                 => $post_value('mptbm_fixed_hours', 0),
-					'mptbm_distance'                    => isset($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : '',
-					'mptbm_duration'                    => isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : '',
+					'mptbm_original_price_base'         => sanitize_key($context['price_based'] ?? ''),
+					'mptbm_date'                        => sanitize_text_field($context['booking_datetime'] ?? ($context['start_date'] ?? '')),
+					'mptbm_start_place'                 => sanitize_text_field($context['start_place'] ?? ''),
+					'mptbm_end_place'                   => sanitize_text_field($context['end_place'] ?? ''),
+					'mptbm_extra_stop_place'            => implode(', ', (array) ($context['extra_stop_places'] ?? array())),
+					'mptbm_waiting_time'                => absint($context['waiting_time'] ?? 0),
+					'mptbm_taxi_return'                 => max(1, absint($context['two_way'] ?? 1)),
+					'mptbm_fixed_hours'                 => max(0, (float) ($context['fixed_time'] ?? 0)),
+					'mptbm_distance'                    => absint($context['distance'] ?? 0),
+					'mptbm_duration'                    => absint($context['duration'] ?? 0),
 					'mptbm_base_price'                  => $unit_price,
-					'mptbm_threshold_base_price'        => $post_value('mptbm_threshold_base_price', 0),
+					'mptbm_threshold_base_price'        => MPTBM_Function::calculate_base_location_price($post_id, $context),
 					'mptbm_order_status'                => 'pending',
 					'mptbm_user_id'                     => get_current_user_id(),
 					'mptbm_tp'                          => $total,
@@ -360,8 +374,8 @@
 					'mptbm_transport_quantity'          => $quantity,
 				);
 
-				$return_date = $post_value('mptbm_return_date');
-				$return_time = $post_value('mptbm_return_time');
+				$return_date = sanitize_text_field($context['return_date'] ?? '');
+				$return_time = sanitize_text_field($context['return_time'] ?? '');
 				if ($return_date) {
 					$meta['mptbm_return_target_date'] = $return_date;
 				}
@@ -385,6 +399,18 @@
 			 * confirms them manually.
 			 */
 			private function create_booking($title, $meta) {
+				$post_id = absint($meta['mptbm_id'] ?? 0);
+				if (!MPTBM_Function::acquire_inventory_lock($post_id)) {
+					return 0;
+				}
+				$force_single = get_post_meta($post_id, 'mptbm_enable_inventory', true) !== 'yes';
+				$trip_duration = max(absint($meta['mptbm_duration'] ?? 0), (int) round((float) ($meta['mptbm_fixed_hours'] ?? 0) * HOUR_IN_SECONDS));
+				$return_datetime = trim((string) ($meta['mptbm_return_target_date'] ?? '') . ' ' . (string) ($meta['mptbm_return_target_time'] ?? ''));
+				$available = MPTBM_Function::get_available_quantity($post_id, $meta['mptbm_date'] ?? '', '', $force_single, $trip_duration, $return_datetime);
+				if ($available < absint($meta['mptbm_transport_quantity'] ?? 1)) {
+					MPTBM_Function::release_inventory_lock($post_id);
+					return 0;
+				}
 				$booking_id = wp_insert_post(array(
 					'post_title'  => $title ?: esc_html__('Booking', 'ecab-taxi-booking-manager'),
 					'post_type'   => 'mptbm_booking',
@@ -392,6 +418,7 @@
 				));
 
 				if (is_wp_error($booking_id) || !$booking_id) {
+					MPTBM_Function::release_inventory_lock($post_id);
 					return 0;
 				}
 
@@ -403,10 +430,12 @@
 					update_post_meta($booking_id, $key, $value);
 				}
 
-				update_post_meta($booking_id, 'mptbm_pin', $meta['mptbm_user_id'] . $meta['mptbm_order_id'] . $meta['mptbm_id'] . $booking_id);
+				update_post_meta($booking_id, 'mptbm_pin', MPTBM_Function::create_booking_reference());
+				MPTBM_Function::get_booking_access_token($booking_id, true);
 
 				do_action('mptbm_custom_booking_created', $booking_id, $meta, 'pending');
 				$this->send_notifications($booking_id, $meta);
+				MPTBM_Function::release_inventory_lock($post_id);
 
 				return $booking_id;
 			}
@@ -452,7 +481,7 @@
 			 * Confirmation page
 			 * ------------------------------------------------------------ */
 
-			/** Confirmation URL, keyed by booking id + PIN so ids can't simply be guessed. */
+			/** Confirmation URL, keyed by a private random access token. */
 			private function confirmation_url($booking_id): string {
 				$opts    = get_option(self::SETTINGS_OPTION, array());
 				$page_id = (is_array($opts) && !empty($opts['mptbm_confirmation_page_id'])) ? absint($opts['mptbm_confirmation_page_id']) : 0;
@@ -461,7 +490,7 @@
 				return add_query_arg(array(
 					'mptbm_booking'    => 'pending',
 					'mptbm_booking_id' => $booking_id,
-					'mptbm_pin'        => rawurlencode((string) get_post_meta($booking_id, 'mptbm_pin', true)),
+					'mptbm_token'      => rawurlencode(MPTBM_Function::get_booking_access_token($booking_id)),
 				), $base);
 			}
 
@@ -514,17 +543,16 @@
 			/** [mptbm_booking_confirmation] - booking summary after an offline booking. */
 			public function render_confirmation() {
 				$booking_id = isset($_GET['mptbm_booking_id']) ? absint($_GET['mptbm_booking_id']) : 0;
-				$pin        = isset($_GET['mptbm_pin']) ? sanitize_text_field(wp_unslash($_GET['mptbm_pin'])) : '';
+				$token      = isset($_GET['mptbm_token']) ? sanitize_text_field(wp_unslash($_GET['mptbm_token'])) : '';
 
 				if (!$booking_id || get_post_type($booking_id) !== 'mptbm_booking') {
 					return '<p>' . esc_html__('No booking to show.', 'ecab-taxi-booking-manager') . '</p>';
 				}
 
 				// A booking is readable with its PIN, or by the account that placed it.
-				$stored_pin = (string) get_post_meta($booking_id, 'mptbm_pin', true);
 				$owner_id   = absint(get_post_meta($booking_id, 'mptbm_user_id', true));
 				$is_owner   = $owner_id && get_current_user_id() === $owner_id;
-				if (!hash_equals($stored_pin, $pin) && !$is_owner && !current_user_can('manage_options')) {
+				if (!MPTBM_Function::verify_booking_access_token($booking_id, $token) && !$is_owner && !current_user_can('manage_options')) {
 					return '<p>' . esc_html__('This booking could not be verified.', 'ecab-taxi-booking-manager') . '</p>';
 				}
 

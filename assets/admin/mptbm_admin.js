@@ -10,7 +10,7 @@
 		if (ex_id && post_id) {
 			$.ajax({
 				type: 'POST', url: mp_ajax_url, data: {
-					"action": "get_mptbm_ex_service", "ex_id": ex_id, "post_id": post_id
+					"action": "get_mptbm_ex_service", "nonce": mptbm_admin_security.extra_service_nonce, "ex_id": ex_id, "post_id": post_id
 				}, beforeSend: function () {
 					dLoader(target);
 				}, success: function (data) {

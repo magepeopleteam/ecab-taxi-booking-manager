@@ -876,10 +876,11 @@ if (!class_exists('MPTBM_Operation_Areas')) {
         }
         public function save_operate_areas_tab_settings($post_id)
         {
-            /*if (!isset($_POST['mptbm_operate_areas_tab']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['mptbm_operate_areas_tab'])), 'mptbm_operate_areas_tab') && defined('DOING_AUTOSAVE') && DOING_AUTOSAVE && !current_user_can('edit_post', $post_id)) {
-                return;
-            }*/
             if (
+				get_post_type($post_id) !== MPTBM_Function::get_cpt() ||
+				(defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) ||
+				wp_is_post_revision($post_id) ||
+				!current_user_can('edit_post', $post_id) ||
                 !isset($_POST['mptbm_price_settings_nonce']) ||
                 !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['mptbm_price_settings_nonce'])), 'mptbm_price_settings_action')
             ) {
@@ -887,7 +888,9 @@ if (!class_exists('MPTBM_Operation_Areas')) {
             }
             if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
                 // Save operation type
-                $operation_type = isset($_POST['mptbm_operation_area_type']) ? sanitize_text_field($_POST['mptbm_operation_area_type']) : '';
+				$operation_types = array('fixed-operation-area-type', 'fixed-map-operation-area-type', 'geo-fence-operation-area-type', 'geo-matched-operation-area-type');
+                $operation_type = isset($_POST['mptbm_operation_area_type']) ? sanitize_key(wp_unslash($_POST['mptbm_operation_area_type'])) : '';
+				$operation_type = in_array($operation_type, $operation_types, true) ? $operation_type : '';
                 update_post_meta($post_id, 'mptbm_operation_area_type', $operation_type);
 
                 // Save selected operation areas
@@ -900,7 +903,7 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                     if( empty( $selected_areas_str ) ){
                         $selected_areas = array();
                     }else{
-                        $selected_areas = explode(",", $selected_areas_str);
+					$selected_areas = array_map('absint', explode(",", $selected_areas_str));
                     }
                 }
                 
