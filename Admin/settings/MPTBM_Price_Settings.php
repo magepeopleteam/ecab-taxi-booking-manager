@@ -836,10 +836,25 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				update_post_meta($post_id, 'mptbm_manual_price_info', $manual_price_infos);
 
 				$fixed_zone_price_infos = array();
-				$start_zone = isset($_POST['mptbm_fixed_zone_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_zone_start_location']) : [];
-				$end_zone = isset($_POST['mptbm_fixed_zone_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_zone_end_location']) : [];
-				$zone_price = isset($_POST['mptbm_fixed_zone_price']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_zone_price']) : [];
-
+				// "Fixed Zone" pricing has two editor UIs posting under different field
+				// names for the same rows: the custom editor (active screen) posts
+				// mptbm_zone_to_zone_route_*, the legacy `?editor=old` screen posts
+				// mptbm_fixed_zone_*. Both save into mptbm_fixed_zone_price_info below, so
+				// only read whichever set the submitted form actually populated - otherwise
+				// whichever ran last would overwrite real data with an empty array.
+				if (isset($_POST['mptbm_zone_to_zone_route_start_location'])) {
+					$start_zone = array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_start_location']);
+					$end_zone = isset($_POST['mptbm_zone_to_zone_route_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_end_location']) : [];
+					$zone_price = isset($_POST['mptbm_zone_to_zone_route_price']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_price']) : [];
+				} elseif (isset($_POST['mptbm_fixed_zone_start_location'])) {
+					$start_zone = array_map('sanitize_text_field', $_POST['mptbm_fixed_zone_start_location']);
+					$end_zone = isset($_POST['mptbm_fixed_zone_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_zone_end_location']) : [];
+					$zone_price = isset($_POST['mptbm_fixed_zone_price']) ? array_map('sanitize_text_field', $_POST['mptbm_fixed_zone_price']) : [];
+				} else {
+					$start_zone = [];
+					$end_zone = [];
+					$zone_price = [];
+				}
 
 				if (count($start_zone) > 0) {
 					$count = 0;
@@ -901,27 +916,6 @@ if (!class_exists('MPTBM_Price_Settings')) {
                 $price_display_type = isset($_POST['mptbm_operation_area_fixed_map_type']) ? sanitize_text_field($_POST['mptbm_operation_area_fixed_map_type']) : 'zone_to_location';
                 update_post_meta( $post_id, 'mptbm_operation_area_fixed_map_type', $price_display_type);
 
-				$zone_to_zone_route_price_infos = array();
-				$start_zone_to_zone_route = isset($_POST['mptbm_zone_to_zone_route_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_start_location']) : [];
-				$end_zone_to_zone_route = isset($_POST['mptbm_zone_to_zone_route_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_end_location']) : [];
-				$zone_to_zone_route_price = isset($_POST['mptbm_zone_to_zone_route_price']) ? array_map('sanitize_text_field', $_POST['mptbm_zone_to_zone_route_price']) : [];
-
-				if (count($start_zone_to_zone_route) > 0) {
-					$count = 0;
-					foreach ($start_zone_to_zone_route as $key => $location) {
-						$e_route = isset($end_zone_to_zone_route[$key]) ? $end_zone_to_zone_route[$key] : '';
-						$r_price = isset($zone_to_zone_route_price[$key]) ? $zone_to_zone_route_price[$key] : '';
-
-						if ($location && $e_route && $r_price) {
-                            $zone_to_zone_route_price_infos[$count]['start_location'] = $location;
-                            $zone_to_zone_route_price_infos[$count]['end_location'] = $e_route;
-                            $zone_to_zone_route_price_infos[$count]['price'] = $r_price;
-							$count++;
-						}
-					}
-				}
-				update_post_meta($post_id, 'mptbm_fixed_zone_price_info', $zone_to_zone_route_price_infos);
-
 				$terms_price_infos = array();
 				$start_terms_location = isset($_POST['mptbm_terms_start_location']) ? array_map('sanitize_text_field', $_POST['mptbm_terms_start_location']) : [];
 				$end_terms_location = isset($_POST['mptbm_terms_end_location']) ? array_map('sanitize_text_field', $_POST['mptbm_terms_end_location']) : [];
@@ -960,33 +954,38 @@ if (!class_exists('MPTBM_Price_Settings')) {
 
         public function get_area_based_pricing( $post_id, $POST ){
 
+            // mptbm_area_based_post[] etc. are only rendered by the custom editor
+            // (MPTBM_Rent_Custom_Editor.php). The classic `?editor=old` screen's own
+            // "Operation Area Based Price Set" section saves separately via its own
+            // AJAX call (mptbm_operation_area_price_data_set) and never posts these
+            // fields on its main "Update" submit - so if we don't bail out here, that
+            // submit falls through to update_post_meta() below with an empty array and
+            // wipes out whatever the custom editor had saved.
+            if ( ! isset( $POST['mptbm_area_based_post'] ) || ! is_array( $POST['mptbm_area_based_post'] ) ) {
+                return;
+            }
+
             $area_based_pricing = [];
 
-            if (
-                !empty($POST['mptbm_area_based_post']) &&
-                is_array($POST['mptbm_area_based_post'])
-            ) {
-
-                foreach ($POST['mptbm_area_based_post'] as $index => $area_post_id ) {
-                    $area_post_id = trim($area_post_id);
-                    if (empty($area_post_id)) {
-                        continue;
-                    }
-
-                    $area_based_pricing[$area_post_id] = [
-                        'fixed' => isset($POST['mptbm_area_based_fixed'][$index])
-                            ? sanitize_text_field($POST['mptbm_area_based_fixed'][$index])
-                            : '',
-
-                        'per_km' => isset($POST['mptbm_area_based_per_km'][$index])
-                            ? sanitize_text_field($POST['mptbm_area_based_per_km'][$index])
-                            : '',
-
-                        'per_hour' => isset($POST['mptbm_area_based_per_hour'][$index])
-                            ? sanitize_text_field($POST['mptbm_area_based_per_hour'][$index])
-                            : '',
-                    ];
+            foreach ($POST['mptbm_area_based_post'] as $index => $area_post_id ) {
+                $area_post_id = trim($area_post_id);
+                if (empty($area_post_id)) {
+                    continue;
                 }
+
+                $area_based_pricing[$area_post_id] = [
+                    'fixed' => isset($POST['mptbm_area_based_fixed'][$index])
+                        ? sanitize_text_field($POST['mptbm_area_based_fixed'][$index])
+                        : '',
+
+                    'per_km' => isset($POST['mptbm_area_based_per_km'][$index])
+                        ? sanitize_text_field($POST['mptbm_area_based_per_km'][$index])
+                        : '',
+
+                    'per_hour' => isset($POST['mptbm_area_based_per_hour'][$index])
+                        ? sanitize_text_field($POST['mptbm_area_based_per_hour'][$index])
+                        : '',
+                ];
             }
 
             if ( !$post_id ) {
