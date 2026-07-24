@@ -18,10 +18,9 @@
 	 * from being wiped when the Settings API saves the rest of the form.
 	 *
 	 * PayPal & Stripe Configure are gated behind the Pro plugin (MPTBM_Plugin_Pro);
-	 * the free version shows a PRO badge for those two. Offline Payment is part of the
-	 * FREE plugin - it needs no online processor, so its card, Configure modal and AJAX
-	 * save all work without Pro (see MPTBM_Function::offline_payment_enabled()). Note the
-	 * standalone checkout that consumes an enabled Offline method still ships with Pro.
+	 * the free version shows a PRO badge for those two. Offline Payment and its
+	 * standalone checkout are part of the FREE plugin, so its card, Configure modal,
+	 * AJAX save, and customer booking flow all work without Pro.
 	 */
 
 	if ( ! defined( 'ABSPATH' ) ) {
@@ -31,7 +30,8 @@
 	if ( ! class_exists( 'MPTBM_Payment_Settings' ) ) :
 		class MPTBM_Payment_Settings {
 
-			const OPTION = 'mptbm_payment_settings';
+			const OPTION          = 'mptbm_payment_settings';
+			const CURRENCY_OPTION = 'mptbm_currency_settings';
 
 			public function __construct() {
 				add_filter( 'mp_settings_sec_reg', array( $this, 'register_section' ), 15 );
@@ -69,12 +69,20 @@
 				return isset( $o[ $key ] ) ? $o[ $key ] : $default;
 			}
 
-			/** Add the "Payments" tab to the settings navigation. */
+			/** Add the "Payments" + "Currency Settings" tabs to the settings navigation. */
 			public function register_section( $sections ) {
 				$sections[] = array(
 					'id'    => self::OPTION,
 					'icon'  => 'fas fa-credit-card',
 					'title' => esc_html__( 'Payments', 'ecab-taxi-booking-manager' ),
+				);
+				// Currency formatting for the standalone / Custom Payment flow. In
+				// WooCommerce mode WooCommerce's own currency settings apply instead,
+				// so this only drives MP_Global_Function::native_format_amount().
+				$sections[] = array(
+					'id'    => self::CURRENCY_OPTION,
+					'icon'  => 'fas fa-coins',
+					'title' => esc_html__( 'Currency Settings', 'ecab-taxi-booking-manager' ),
 				);
 
 				return $sections;
@@ -86,11 +94,16 @@
 					array(
 						'name'     => 'mptbm_booking_mode_selector',
 						'label'    => '',
+						'class'    => 'mptbm-fullrow mptbm-bm-row',
 						'callback' => array( $this, 'render_booking_mode_selector' ),
 					),
 					array(
 						'name'     => 'mptbm_payment_tabs_html',
 						'label'    => '',
+						// mptbm-woo-callout-row = the WooCommerce tab's own panel (install
+						// callout). Toggled by updateTabs() so it appears under the tabs on
+						// the WooCommerce tab and is hidden on the Custom Payment tab.
+						'class'    => 'mptbm-fullrow mptbm-woo-callout-row',
 						'callback' => array( $this, 'render_sub_tabs' ),
 					),
 					array(
@@ -149,14 +162,99 @@
 					),
 				);
 
+				// Currency Settings tab -- drives MP_Global_Function::native_format_amount()
+				// for the standalone / Custom Payment flow (WooCommerce mode uses its own).
+				$settings_fields[ self::CURRENCY_OPTION ] = array(
+					array(
+						'name'    => 'currency_code',
+						'label'   => __( 'Currency Code', 'ecab-taxi-booking-manager' ),
+						'desc'    => __( 'ISO code charged through PayPal/Stripe. Separate from the display symbol below — the gateways need a real code (a "$" alone is ambiguous between USD/CAD/AUD).', 'ecab-taxi-booking-manager' ),
+						'type'    => 'select',
+						'default' => 'USD',
+						'options' => array(
+							'USD' => 'USD - US Dollar',
+							'EUR' => 'EUR - Euro',
+							'GBP' => 'GBP - British Pound',
+							'CAD' => 'CAD - Canadian Dollar',
+							'AUD' => 'AUD - Australian Dollar',
+							'NZD' => 'NZD - New Zealand Dollar',
+							'JPY' => 'JPY - Japanese Yen',
+							'CHF' => 'CHF - Swiss Franc',
+							'SEK' => 'SEK - Swedish Krona',
+							'NOK' => 'NOK - Norwegian Krone',
+							'DKK' => 'DKK - Danish Krone',
+							'PLN' => 'PLN - Polish Zloty',
+							'CZK' => 'CZK - Czech Koruna',
+							'HUF' => 'HUF - Hungarian Forint',
+							'INR' => 'INR - Indian Rupee',
+							'SGD' => 'SGD - Singapore Dollar',
+							'HKD' => 'HKD - Hong Kong Dollar',
+							'MYR' => 'MYR - Malaysian Ringgit',
+							'PHP' => 'PHP - Philippine Peso',
+							'THB' => 'THB - Thai Baht',
+							'AED' => 'AED - UAE Dirham',
+							'SAR' => 'SAR - Saudi Riyal',
+							'ZAR' => 'ZAR - South African Rand',
+							'MXN' => 'MXN - Mexican Peso',
+							'BRL' => 'BRL - Brazilian Real',
+							'BDT' => 'BDT - Bangladeshi Taka',
+						),
+					),
+					array(
+						'name'    => 'symbol',
+						'label'   => __( 'Currency Symbol', 'ecab-taxi-booking-manager' ),
+						'desc'    => __( 'Used to format all fares when Booking Mode is Custom Payment.', 'ecab-taxi-booking-manager' ),
+						'type'    => 'text',
+						'default' => '$',
+					),
+					array(
+						'name'    => 'position',
+						'label'   => __( 'Currency Position', 'ecab-taxi-booking-manager' ),
+						'type'    => 'select',
+						'default' => 'left',
+						'options' => array(
+							'left'        => __( 'Left ($99.00)', 'ecab-taxi-booking-manager' ),
+							'right'       => __( 'Right (99.00$)', 'ecab-taxi-booking-manager' ),
+							'left_space'  => __( 'Left with space ($ 99.00)', 'ecab-taxi-booking-manager' ),
+							'right_space' => __( 'Right with space (99.00 $)', 'ecab-taxi-booking-manager' ),
+						),
+					),
+					array(
+						'name'    => 'decimals',
+						'label'   => __( 'Number of Decimals', 'ecab-taxi-booking-manager' ),
+						'type'    => 'number',
+						'min'     => 0,
+						'max'     => 4,
+						'default' => 2,
+					),
+					array(
+						'name'    => 'decimal_separator',
+						'label'   => __( 'Decimal Separator', 'ecab-taxi-booking-manager' ),
+						'type'    => 'text',
+						'default' => '.',
+					),
+					array(
+						'name'    => 'thousand_separator',
+						'label'   => __( 'Thousand Separator', 'ecab-taxi-booking-manager' ),
+						'type'    => 'text',
+						'default' => ',',
+					),
+				);
+
 				return $settings_fields;
 			}
 
 			/**
-			 * The "Booking Mode" card selector - the single, explicit, required switch
-			 * that decides whether WooCommerce or the Pro Custom Payment flow processes
-			 * bookings. See MPTBM_Booking_Mode for why this replaced the old implicit
-			 * "Enable WooCommerce Payment" checkbox.
+			 * WooCommerce | Custom Payment segmented tab bar (matches the Service
+			 * Booking free plugin's Payment Method toggle). The tab is ALWAYS shown so
+			 * the admin can flip between the WooCommerce settings and the Custom Payment
+			 * gateways in every state.
+			 *
+			 * When both flows are actually available it also persists the Booking Mode
+			 * (the single switch that decides which flow takes bookings - see
+			 * MPTBM_Booking_Mode). When only one flow is available the mode is
+			 * auto-resolved and can't be changed, so clicking a tab just reveals that
+			 * section (a view switch), and a note explains the current state.
 			 */
 			public function render_booking_mode_selector() {
 				if ( ! class_exists( 'MPTBM_Booking_Mode' ) ) {
@@ -164,61 +262,49 @@
 				}
 
 				$availability = MPTBM_Booking_Mode::availability();
+				$can_switch   = ( 'both' === $availability );
+				$needs_choice = $can_switch && MPTBM_Booking_Mode::needs_selection();
+				$wc_active    = $this->has_woo();
 
+				// Which tab starts active. With a pending choice, leave neither marked so
+				// the segmented control reads as "pick one"; otherwise use the resolved mode.
+				$mode = MPTBM_Booking_Mode::get_mode();
+				if ( 'woocommerce' !== $mode && 'custom' !== $mode ) {
+					$mode = $wc_active ? 'woocommerce' : 'custom';
+				}
+				$active      = $needs_choice ? '' : $mode;
+				$is_wc       = ( 'woocommerce' === $active );
+				$is_custom   = ( 'custom' === $active );
+				$has_gateway = $can_switch ? MPTBM_Booking_Mode::has_gateway_for_active_mode() : true;
+				$nonce       = wp_create_nonce( 'mptbm_save_booking_mode' );
+
+				// Contextual note under the tabs, per what's actually available.
+				$note_class = '';
+				$note_text  = '';
 				if ( 'none' === $availability ) {
-					?>
-					<div class="mptbm-bm-auto-note mptbm-bm-auto-note--warn">
-						<span class="dashicons dashicons-warning"></span>
-						<p><?php esc_html_e( 'No booking flow is available yet: WooCommerce is not active and no Custom Payment method is enabled. Activate WooCommerce, or enable Offline Payment below, to start taking bookings.', 'ecab-taxi-booking-manager' ); ?></p>
-					</div>
-					<?php
-					$this->booking_mode_styles();
-					return;
+					$note_class = 'mptbm-bm-auto-note--warn';
+					$note_text  = __( 'No booking flow is available yet. Use the WooCommerce tab to install/activate WooCommerce, or the Custom Payment tab to enable Offline Payment, to start taking bookings.', 'ecab-taxi-booking-manager' );
+				} elseif ( 'woocommerce_only' === $availability ) {
+					$note_text = __( 'WooCommerce is the only active flow right now, so it processes bookings automatically. Open the Custom Payment tab and enable Offline Payment (or the Pro PayPal / Stripe gateways) to unlock a real mode switch.', 'ecab-taxi-booking-manager' );
+				} elseif ( 'custom_only' === $availability ) {
+					$note_text = __( 'WooCommerce is not active, so Custom Payment is the live checkout flow. Open the Custom Payment tab to enable a gateway, or the WooCommerce tab to install & activate WooCommerce.', 'ecab-taxi-booking-manager' );
 				}
-
-				if ( 'woocommerce_only' === $availability ) {
-					?>
-					<div class="mptbm-bm-auto-note">
-						<span class="dashicons dashicons-yes-alt"></span>
-						<p><?php esc_html_e( 'Bookings are automatically processed through WooCommerce - it\'s the only booking flow available right now. Enable Offline Payment below (or activate the Pro plugin for PayPal & Stripe) to unlock the standalone Custom Payment flow and a mode switch here.', 'ecab-taxi-booking-manager' ); ?></p>
-					</div>
-					<?php
-					$this->booking_mode_styles();
-					return;
-				}
-
-				if ( 'custom_only' === $availability ) {
-					?>
-					<div class="mptbm-bm-auto-note">
-						<span class="dashicons dashicons-yes-alt"></span>
-						<p><?php esc_html_e( 'Bookings are automatically processed through the Custom Payment flow - WooCommerce is not active. Activate WooCommerce to unlock the WooCommerce checkout flow (and a mode switch here).', 'ecab-taxi-booking-manager' ); ?></p>
-					</div>
-					<?php
-					$this->booking_mode_styles();
-					return;
-				}
-
-				// $availability === 'both': a real, required choice.
-				$needs_choice = MPTBM_Booking_Mode::needs_selection();
-				$mode         = MPTBM_Booking_Mode::get_mode();
-				$is_wc        = ! $needs_choice && 'woocommerce' === $mode;
-				$is_custom    = ! $needs_choice && 'custom' === $mode;
-				$has_gateway  = MPTBM_Booking_Mode::has_gateway_for_active_mode();
-				$nonce        = wp_create_nonce( 'mptbm_save_booking_mode' );
 				?>
-				<div class="mptbm-bm-wrap" data-nonce="<?php echo esc_attr( $nonce ); ?>">
+				<div class="mptbm-bm-wrap" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-can-switch="<?php echo $can_switch ? '1' : '0'; ?>">
 					<div class="mptbm-bm-head">
 						<h3>
 							<?php esc_html_e( 'Booking Mode', 'ecab-taxi-booking-manager' ); ?>
-							<span class="mptbm-bm-required"><?php esc_html_e( 'Required', 'ecab-taxi-booking-manager' ); ?></span>
+							<?php if ( $needs_choice ) : ?>
+								<span class="mptbm-bm-required"><?php esc_html_e( 'Required', 'ecab-taxi-booking-manager' ); ?></span>
+							<?php endif; ?>
 						</h3>
-						<p><?php esc_html_e( 'Choose exactly one flow to process bookings. This single switch decides everything below, so WooCommerce and Custom Payment never both try to handle the same booking.', 'ecab-taxi-booking-manager' ); ?></p>
+						<p><?php esc_html_e( 'Switch between the WooCommerce and Custom Payment settings. When both flows are available this also sets which one processes bookings, so they never both handle the same booking.', 'ecab-taxi-booking-manager' ); ?></p>
 					</div>
 
 					<?php if ( $needs_choice ) : ?>
 						<div class="mptbm-bm-nudge">
 							<span class="dashicons dashicons-flag"></span>
-							<?php esc_html_e( 'Please choose a booking mode below to continue.', 'ecab-taxi-booking-manager' ); ?>
+							<?php esc_html_e( 'Please choose a booking mode to continue.', 'ecab-taxi-booking-manager' ); ?>
 						</div>
 					<?php endif; ?>
 
@@ -228,7 +314,7 @@
 							<span class="mptbm-bm-card-icon dashicons dashicons-cart"></span>
 							<span class="mptbm-bm-card-body">
 								<span class="mptbm-bm-card-title-row">
-									<strong><?php esc_html_e( 'WooCommerce Checkout', 'ecab-taxi-booking-manager' ); ?></strong>
+									<strong><?php esc_html_e( 'WooCommerce', 'ecab-taxi-booking-manager' ); ?></strong>
 									<?php if ( $is_wc ) : ?>
 										<span class="mptbm-bm-card-badge"><?php esc_html_e( 'Active', 'ecab-taxi-booking-manager' ); ?></span>
 									<?php endif; ?>
@@ -241,7 +327,7 @@
 							<span class="mptbm-bm-card-icon dashicons dashicons-money-alt"></span>
 							<span class="mptbm-bm-card-body">
 								<span class="mptbm-bm-card-title-row">
-									<strong><?php esc_html_e( 'Custom Payment (Standalone)', 'ecab-taxi-booking-manager' ); ?></strong>
+									<strong><?php esc_html_e( 'Custom Payment', 'ecab-taxi-booking-manager' ); ?></strong>
 									<?php if ( $is_custom ) : ?>
 										<span class="mptbm-bm-card-badge"><?php esc_html_e( 'Active', 'ecab-taxi-booking-manager' ); ?></span>
 									<?php endif; ?>
@@ -253,8 +339,15 @@
 
 					<p class="mptbm-bm-status" role="status" aria-live="polite"></p>
 
+					<?php if ( $note_text ) : ?>
+						<div class="mptbm-bm-auto-note <?php echo esc_attr( $note_class ); ?>">
+							<span class="dashicons <?php echo $note_class ? 'dashicons-warning' : 'dashicons-info-outline'; ?>"></span>
+							<p><?php echo esc_html( $note_text ); ?></p>
+						</div>
+					<?php endif; ?>
+
 					<div class="mptbm-bm-gateway-warning-slot">
-						<?php if ( ! $needs_choice && ! $has_gateway ) : ?>
+						<?php if ( $can_switch && ! $needs_choice && ! $has_gateway ) : ?>
 							<div class="mptbm-bm-gateway-warning">
 								<span class="dashicons dashicons-warning"></span>
 								<p>
@@ -274,7 +367,8 @@
 				jQuery( function ( $ ) {
 					var $wrap = $( '.mptbm-bm-wrap' );
 					if ( ! $wrap.length ) { return; }
-					var nonce = $wrap.data( 'nonce' );
+					var nonce     = $wrap.data( 'nonce' );
+					var canSwitch = String( $wrap.data( 'can-switch' ) ) === '1';
 					var i18n  = {
 						saving: <?php echo wp_json_encode( __( 'Saving…', 'ecab-taxi-booking-manager' ) ); ?>,
 						saved:  <?php echo wp_json_encode( __( 'Booking mode saved.', 'ecab-taxi-booking-manager' ) ); ?>,
@@ -292,8 +386,15 @@
 						$card.addClass( 'is-selected' ).find( '.mptbm-bm-card-title-row' ).append( '<span class="mptbm-bm-card-badge">' + i18n.active + '</span>' );
 						$card.find( 'input[type=radio]' ).prop( 'checked', true );
 						$wrap.find( '.mptbm-bm-nudge' ).hide();
-						var $status = $wrap.find( '.mptbm-bm-status' ).show().text( i18n.saving ).css( 'color', '#6b7280' );
 
+						// Always reveal the tab's own section (view switch). payment_tabs_script() listens.
+						$( document ).trigger( 'mptbm:mode-changed', [ mode ] );
+
+						// Only persist a real mode change when both flows are available; otherwise
+						// the mode is auto-resolved and the server would reject the save.
+						if ( ! canSwitch ) { return; }
+
+						var $status = $wrap.find( '.mptbm-bm-status' ).show().text( i18n.saving ).css( 'color', '#6b7280' );
 						$.post( ajaxurl, {
 							action: 'mptbm_save_booking_mode',
 							nonce: nonce,
@@ -302,12 +403,6 @@
 							if ( res && res.success ) {
 								$status.text( i18n.saved ).css( 'color', '#0a7c2f' );
 								setTimeout( function () { $status.fadeOut( 400, function () { $( this ).text( '' ).show(); } ); }, 1800 );
-
-								// Reveal the newly active mode's settings so the admin can configure
-								// it right away. payment_tabs_script() listens for this.
-								$( document ).trigger( 'mptbm:mode-changed', [ mode ] );
-
-								// Refresh the "no gateway enabled" warning for the freshly active mode.
 								var $slot = $wrap.find( '.mptbm-bm-gateway-warning-slot' );
 								$slot.empty();
 								if ( res.data && res.data.has_gateway === false ) {
@@ -344,21 +439,25 @@
 				.mptbm-bm-required{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:#fee2e2;color:#991b1b;padding:1px 8px;border-radius:20px;}
 				.mptbm-bm-head p{margin:0 0 10px;font-size:12px;color:#6b7280;max-width:640px;line-height:1.5;}
 				.mptbm-bm-nudge{display:flex;align-items:center;gap:8px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;margin-bottom:10px;}
-				.mptbm-bm-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:100%;}
-				.mptbm-bm-card{position:relative;display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;background:#fafafb;cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s;min-width:0;}
-				.mptbm-bm-card:hover{border-color:#d4b3c3;box-shadow:0 4px 14px rgba(16,24,40,0.06);}
-				.mptbm-bm-card.is-selected{border-color:#F12971;background:#fff;box-shadow:0 6px 18px rgba(241,41,113,0.12);}
+				/* WooCommerce | Custom Payment segmented tab bar (matches the Service
+				   Booking free plugin's Payment Method toggle). Same markup/JS as the
+				   old cards -- only restyled into a pill so the switch reads as tabs. */
+				.mptbm-bm-cards{display:inline-flex;gap:4px;padding:4px;margin:2px 0 0;border:1px solid #e5e7eb;border-radius:12px;background:#f1f5f9;max-width:100%;box-sizing:border-box;}
+				.mptbm-bm-card{position:relative;display:flex !important;align-items:center;gap:8px;padding:9px 18px;border:none;border-radius:9px;background:transparent;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s;min-width:0;}
+				.mptbm-bm-card:hover{background:rgba(255,255,255,.7);}
+				.mptbm-bm-card.is-selected{background:linear-gradient(135deg,#F12971,#c81e5b);box-shadow:0 4px 12px rgba(241,41,113,.28);}
 				.mptbm-bm-card input[type=radio]{position:absolute;opacity:0;width:0;height:0;}
-				.mptbm-bm-card-icon{flex:0 0 auto;width:30px;height:30px;border-radius:8px;background:rgba(241,41,113,0.1);color:#F12971;display:flex !important;align-items:center !important;justify-content:center !important;font-size:15px;box-sizing:border-box;padding:7px;}
-				/* The shared mp_global framework sets ".mpStyle label > span{white-space:nowrap}"
-				   with higher specificity than a single class, which would otherwise force this
-				   whole block onto one clipped line - override it explicitly on every level. */
-				.mptbm-bm-card-body{display:block !important;flex:1;min-width:0;white-space:normal !important;}
-				.mptbm-bm-card-title-row{display:flex !important;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px;width:100%;white-space:normal !important;}
-				.mptbm-bm-card-body strong{display:inline-block !important;font-size:13px;line-height:1.3;color:#1d2327;white-space:normal !important;}
-				.mptbm-bm-card-desc{display:block !important;font-size:11.5px;color:#6b7280;line-height:1.45;white-space:normal !important;overflow-wrap:break-word;}
-				.mptbm-bm-card-badge{flex:0 0 auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:#dcfce7;color:#166534;padding:1px 8px;border-radius:20px;display:none !important;}
-				.mptbm-bm-card.is-selected .mptbm-bm-card-badge{display:inline-block !important;}
+				.mptbm-bm-card-icon{flex:0 0 auto;width:24px;height:24px;border-radius:7px;background:rgba(241,41,113,0.1);color:#F12971;display:flex !important;align-items:center !important;justify-content:center !important;font-size:13px;box-sizing:border-box;padding:5px;transition:background .15s,color .15s;}
+				.mptbm-bm-card.is-selected .mptbm-bm-card-icon{background:rgba(255,255,255,.22);color:#fff;}
+				/* The shared mp_global framework sets ".mpStyle label > span{white-space:nowrap}";
+				   for a tab we WANT nowrap, and just the label (the card description/badge are
+				   redundant once the active tab is highlighted, so they're hidden). */
+				.mptbm-bm-card-body{display:inline-flex !important;align-items:center;flex:0 0 auto;min-width:0;white-space:nowrap !important;}
+				.mptbm-bm-card-title-row{display:inline-flex !important;align-items:center;gap:8px;margin:0 !important;width:auto;white-space:nowrap !important;}
+				.mptbm-bm-card-body strong{display:inline-block !important;font-size:13px;font-weight:700;line-height:1.3;color:#374151;white-space:nowrap !important;}
+				.mptbm-bm-card.is-selected .mptbm-bm-card-body strong{color:#fff;}
+				.mptbm-bm-card-desc{display:none !important;}
+				.mptbm-bm-card-badge{display:none !important;}
 				.mptbm-bm-status{min-height:16px;margin:6px 2px 0;font-size:12px;font-weight:600;}
 				.mptbm-bm-gateway-warning{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding:9px 12px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12px;}
 				.mptbm-bm-gateway-warning p{margin:0;}
@@ -367,7 +466,7 @@
 				.mptbm-bm-auto-note p{margin:0;font-weight:500;}
 				.mptbm-bm-auto-note--warn{background:#fff5f5;border-color:#fbcfcf;color:#8a1c1c;}
 				.mptbm-bm-auto-note--warn .dashicons{background:#fee2e2;color:#dc2626;}
-				@media (max-width:680px){.mptbm-bm-cards{grid-template-columns:1fr;}}
+				@media (max-width:680px){.mptbm-bm-cards{display:flex;width:100%;}.mptbm-bm-card{flex:1;justify-content:center;}}
 				</style>
 				<?php
 			}
@@ -1003,6 +1102,12 @@
 				tr.wc-payment-methods-field .mptbm-wc-payment-manager{margin-top:8px;padding:0;}
 				/* WooCommerce enable toggle row + additional fields: lighter rows */
 				tr.woocommerce-field td, tr.no-woocommerce-field td{vertical-align:middle;}
+				/* Booking Mode tabs + the WooCommerce callout panel span the full width:
+				   drop the empty settings-table label column so they sit flush under the
+				   tabs instead of being indented into the narrow value column. */
+				tr.mptbm-fullrow > th{display:none !important;}
+				tr.mptbm-fullrow > td{display:block;width:100%;padding-left:0 !important;padding-right:0 !important;}
+				tr.mptbm-woo-callout-row .payment-sub-tabs-wrapper{margin-top:12px;}
 				</style>
 				<script>
 				jQuery(function($){
@@ -1106,11 +1211,18 @@
 					}
 
 					function updateTabs(){
-						$('tr.woocommerce-field, div.woocommerce-field, tr.no-woocommerce-field').hide();
+						$('tr.woocommerce-field, div.woocommerce-field, tr.no-woocommerce-field, tr.mptbm-woo-callout-row').hide();
 						$paymentSubmit.show();
 						if (activeMode() === 'custom') {
+							// Custom Payment tab: only the gateway cards. The WooCommerce
+							// install callout lives on the WooCommerce tab, not here.
 							$('tr.no-woocommerce-field').show();
 						} else {
+							// WooCommerce tab: its panel renders directly under the tabs.
+							// The install callout row shows whether or not WooCommerce is
+							// active; the payment-methods manager + extra fields show only
+							// once WooCommerce is active.
+							$('tr.mptbm-woo-callout-row').show();
 							$('div.woocommerce-field').show();
 							if (wcActive) { $('tr.woocommerce-field').stop(true,true).show(); refreshAccordions(); }
 						}
@@ -1119,15 +1231,9 @@
 					// Fired by the Booking Mode selector once a new mode has been saved.
 					$(document).on('mptbm:mode-changed', updateTabs);
 
-					// Move the anchor above the settings table so its callout spans full width.
-					var $tabContainer = $('.payment-sub-tabs-wrapper');
-					var $table = $tabContainer.closest('table.form-table');
-					if ($table.length) {
-						$tabContainer.insertBefore($table);
-						$table.find('tr').each(function(){
-							if ($(this).find('.payment-sub-tabs-wrapper').length === 0 && $(this).text().trim() === '') { $(this).hide(); }
-						});
-					}
+					// The WooCommerce callout is a full-width row (.mptbm-fullrow) that sits
+					// right under the Booking Mode tabs, so it is NOT hoisted above the
+					// table any more -- each tab's panel now renders inside the tab area.
 					updateTabs();
 				});
 				</script>
