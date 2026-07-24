@@ -1027,7 +1027,13 @@
 					// The mode actually in effect, resolved server-side. Used when the Booking
 					// Mode cards aren't rendered (only one flow is available, so there is
 					// nothing to choose) - the correct section must still be the visible one.
+					// When neither flow is ready, get_mode() is intentionally empty; show the
+					// Custom section if WooCommerce is unavailable so the admin can enable
+					// Offline Payment instead of hiding the only control that can resolve it.
 					var resolvedMode = <?php echo wp_json_encode( class_exists( 'MPTBM_Booking_Mode' ) ? MPTBM_Booking_Mode::get_mode() : 'woocommerce' ); ?>;
+					if (resolvedMode !== 'woocommerce' && resolvedMode !== 'custom') {
+						resolvedMode = wcActive ? 'woocommerce' : 'custom';
+					}
 
 					var $paymentSubmit = $('div.tabsItem[data-tabs="#<?php echo esc_js( self::OPTION ); ?>"] .submit');
 
