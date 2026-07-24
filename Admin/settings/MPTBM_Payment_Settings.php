@@ -7,8 +7,8 @@
 	 * the MagePeople MAGE_Setting_API filter pattern used by MPTBM_Settings_Global.
 	 *
 	 * - Registers a new "Payments" tab via mp_settings_sec_reg.
-	 * - Adds the sub-tabbed UI (WooCommerce / Custom Payment), WooCommerce fields,
-	 *   and the PayPal / Stripe / Offline gateway cards via mp_settings_sec_fields.
+	 * - Adds the Booking Mode UI, WooCommerce fields, and the PayPal / Stripe /
+	 *   Offline gateway cards via mp_settings_sec_fields.
 	 * - Injects the gateway Configure modals + the WooCommerce install/activate
 	 *   modal + the tab-switching script on admin_footer (raw HTML, so the SVG /
 	 *   button / input markup is not stripped by the html field's wp_kses pass).
@@ -164,12 +164,22 @@
 				}
 
 				$availability = MPTBM_Booking_Mode::availability();
+				$is_installed = file_exists( WP_PLUGIN_DIR . '/woocommerce/woocommerce.php' );
+				$wc_btn_text  = $is_installed
+					? __( 'Activate WooCommerce Now', 'ecab-taxi-booking-manager' )
+					: __( 'Install & Activate WooCommerce', 'ecab-taxi-booking-manager' );
 
 				if ( 'none' === $availability ) {
 					?>
 					<div class="mptbm-bm-auto-note mptbm-bm-auto-note--warn">
 						<span class="dashicons dashicons-warning"></span>
-						<p><?php esc_html_e( 'No booking flow is available yet: WooCommerce is not active and no Custom Payment method is enabled. Activate WooCommerce, or enable Offline Payment below, to start taking bookings.', 'ecab-taxi-booking-manager' ); ?></p>
+						<div class="mptbm-bm-auto-note-content">
+							<p><?php esc_html_e( 'No booking flow is available yet: WooCommerce is not active and no Custom Payment method is enabled. Activate WooCommerce, or enable Offline Payment below, to start taking bookings.', 'ecab-taxi-booking-manager' ); ?></p>
+							<button type="button" class="mptbm-install-wc-trigger mptbm-bm-wc-action">
+								<span class="dashicons dashicons-download" aria-hidden="true"></span>
+								<?php echo esc_html( $wc_btn_text ); ?>
+							</button>
+						</div>
 					</div>
 					<?php
 					$this->booking_mode_styles();
@@ -191,7 +201,13 @@
 					?>
 					<div class="mptbm-bm-auto-note">
 						<span class="dashicons dashicons-yes-alt"></span>
-						<p><?php esc_html_e( 'Bookings are automatically processed through the Custom Payment flow - WooCommerce is not active. Activate WooCommerce to unlock the WooCommerce checkout flow (and a mode switch here).', 'ecab-taxi-booking-manager' ); ?></p>
+						<div class="mptbm-bm-auto-note-content">
+							<p><?php esc_html_e( 'Bookings are automatically processed through the Custom Payment flow - WooCommerce is not active. Activate WooCommerce to unlock the WooCommerce checkout flow (and a mode switch here).', 'ecab-taxi-booking-manager' ); ?></p>
+							<button type="button" class="mptbm-install-wc-trigger mptbm-bm-wc-action">
+								<span class="dashicons dashicons-download" aria-hidden="true"></span>
+								<?php echo esc_html( $wc_btn_text ); ?>
+							</button>
+						</div>
 					</div>
 					<?php
 					$this->booking_mode_styles();
@@ -365,49 +381,25 @@
 				.mptbm-bm-auto-note{display:flex;align-items:center;gap:12px;background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d;border-radius:12px;padding:14px 16px;margin:6px 0 14px;font-size:13px;line-height:1.55;box-shadow:0 1px 2px rgba(16,24,40,0.03);}
 				.mptbm-bm-auto-note .dashicons{flex:0 0 auto;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;border-radius:9px;background:#dcfce7;color:#16a34a;}
 				.mptbm-bm-auto-note p{margin:0;font-weight:500;}
+				.mptbm-bm-auto-note-content{display:flex;align-items:center;justify-content:space-between;gap:16px;flex:1;min-width:0;}
+				.mptbm-bm-wc-action{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:0 0 auto;min-height:36px;padding:7px 14px;border:0;border-radius:8px;background:#7f54b3;color:#fff;font-size:12px;font-weight:700;line-height:1.25;cursor:pointer;box-shadow:0 2px 6px rgba(127,84,179,.24);transition:background .18s ease,transform .18s ease,box-shadow .18s ease;}
+				.mptbm-bm-wc-action:hover{background:#6b4599;color:#fff;transform:translateY(-1px);box-shadow:0 4px 10px rgba(127,84,179,.3);}
+				.mptbm-bm-wc-action:focus-visible{outline:2px solid #7f54b3;outline-offset:2px;}
+				.mptbm-bm-wc-action .dashicons{width:16px;height:16px;padding:0;border-radius:0;background:transparent;color:inherit;font-size:16px;}
 				.mptbm-bm-auto-note--warn{background:#fff5f5;border-color:#fbcfcf;color:#8a1c1c;}
 				.mptbm-bm-auto-note--warn .dashicons{background:#fee2e2;color:#dc2626;}
-				@media (max-width:680px){.mptbm-bm-cards{grid-template-columns:1fr;}}
+				.mptbm-bm-auto-note--warn .mptbm-bm-wc-action .dashicons{background:transparent;color:inherit;}
+				@media (max-width:680px){.mptbm-bm-cards{grid-template-columns:1fr;}.mptbm-bm-auto-note-content{align-items:flex-start;flex-direction:column;}.mptbm-bm-wc-action{width:100%;}}
 				</style>
 				<?php
 			}
 
 			/**
-			 * Anchor row for the settings sections + the WooCommerce-inactive warning.
-			 *
-			 * There used to be a WooCommerce / Custom Payment sub-tab bar here, but it
-			 * duplicated the Booking Mode selector directly below it: two controls for one
-			 * decision, which could disagree (you could sit on the WooCommerce tab while
-			 * Custom Payment was the mode actually taking bookings). The Booking Mode cards
-			 * are now the single switch - they save the mode AND reveal that mode's settings
-			 * (see payment_tabs_script()).
+			 * Anchor row used to position the mode-specific settings sections.
 			 */
 			public function render_sub_tabs() {
-				$wc_active    = $this->has_woo();
-				$is_installed = file_exists( WP_PLUGIN_DIR . '/woocommerce/woocommerce.php' );
-				$btn_text     = $is_installed
-					? __( 'Activate WooCommerce Now', 'ecab-taxi-booking-manager' )
-					: __( 'Install &amp; Activate Now', 'ecab-taxi-booking-manager' );
 				?>
-				<div class="payment-sub-tabs-wrapper">
-					<?php if ( ! $wc_active ) : ?>
-						<div class="woocommerce-field">
-							<div class="mptbm-wc-callout">
-								<div class="mptbm-wc-callout-head">
-									<span class="mptbm-wc-callout-icon" aria-hidden="true">
-										<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-									</span>
-									<h4 class="mptbm-wc-callout-title"><?php esc_html_e( 'WooCommerce is not activated', 'ecab-taxi-booking-manager' ); ?></h4>
-								</div>
-								<p class="mptbm-wc-callout-text"><?php esc_html_e( 'To take bookings through the WooCommerce cart & checkout flow, install and activate WooCommerce. Prefer not to use it? Choose Custom Payment (Standalone) as your Booking Mode above.', 'ecab-taxi-booking-manager' ); ?></p>
-								<button type="button" class="mptbm-install-wc-trigger mptbm-wc-callout-btn">
-									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
-									<?php echo wp_kses_post( $btn_text ); ?>
-								</button>
-							</div>
-						</div>
-					<?php endif; ?>
-				</div>
+				<div class="payment-sub-tabs-wrapper"></div>
 				<?php
 			}
 
@@ -924,24 +916,6 @@
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table > tbody > tr.wc-additional-last{border-bottom:1px solid #e7e8ec;border-radius:0 0 12px 12px;}
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] > form > .form-table .formControl{max-width:340px;}
 				div.tabsItem[data-tabs="#mptbm_payment_settings"] .submit{margin:20px 0 0;padding-top:20px;border-top:1px solid #e7e8ec;}
-				/* Anchor for the mode-driven sections. It used to hold the WooCommerce /
-				   Custom Payment sub-tab bar; that was removed (the Booking Mode cards are
-				   the single switch), so it is now an unstyled hook - the accordion script
-				   still uses its row as the insertion point. Any spacing comes from the
-				   callout inside it, so with WooCommerce active it takes up no room. */
-
-				/* WooCommerce-not-activated callout (modern) */
-				.mptbm-wc-callout{background:linear-gradient(180deg,#fffdf6,#fff8e8);border:1px solid #f2e0b0;border-radius:14px;padding:18px;margin:16px 0 6px;box-shadow:0 1px 2px rgba(16,24,40,0.03);}
-				.mptbm-wc-callout .mptbm-wc-callout-head{display:flex !important;align-items:center;gap:12px;margin-bottom:9px;}
-				.mptbm-wc-callout .mptbm-wc-callout-icon{flex:0 0 auto;width:40px;height:40px;border-radius:11px;background:#fff2cf;color:#c07d16;border:1px solid #f2d484;display:flex !important;align-items:center;justify-content:center;}
-				.mptbm-wc-callout .mptbm-wc-callout-icon svg{width:21px;height:21px;display:block;}
-				.mptbm-wc-callout .mptbm-wc-callout-title{margin:0;padding:0;font-size:15px;font-weight:700;color:#1d2327;line-height:1.3;text-transform:none;}
-				.mptbm-wc-callout-text{margin:0 0 15px;font-size:13px;color:#6b7280;line-height:1.55;max-width:720px;}
-				.mptbm-wc-callout-btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 18px;border:none;border-radius:9px;background:#7f54b3;color:#fff !important;font-size:13.5px;font-weight:600;cursor:pointer;line-height:1;box-shadow:0 2px 6px rgba(127,84,179,0.3);transition:all .18s ease;text-decoration:none;}
-				.mptbm-wc-callout-btn:hover{background:#6b4599;transform:translateY(-1px);box-shadow:0 5px 14px rgba(127,84,179,0.34);color:#fff !important;}
-				.mptbm-wc-callout-btn:active{transform:translateY(0);}
-				.mptbm-wc-callout-btn svg{width:16px;height:16px;display:block;}
-
 				/* Custom Payment intro */
 				.mptbm-gw-intro{margin:4px 0 20px;}
 				.mptbm-gw-intro h3{margin:0 0 6px;font-size:16px;font-weight:700;color:#1d2327;}
@@ -1203,9 +1177,6 @@
 			/** AJAX: install &/or activate WooCommerce. */
 			public function ajax_install_activate_wc() {
 				check_ajax_referer( 'mptbm_install_wc', 'nonce' );
-				if ( ! current_user_can( 'install_plugins' ) ) {
-					wp_send_json_error( __( 'Permission denied.', 'ecab-taxi-booking-manager' ) );
-				}
 
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 				require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
@@ -1215,8 +1186,17 @@
 				require_once ABSPATH . 'wp-admin/includes/misc.php';
 
 				$plugin_file = 'woocommerce/woocommerce.php';
+				$is_installed = file_exists( WP_PLUGIN_DIR . '/' . $plugin_file );
 
-				if ( ! file_exists( WP_PLUGIN_DIR . '/' . $plugin_file ) ) {
+				if ( ! current_user_can( 'activate_plugins' ) || ( ! $is_installed && ! current_user_can( 'install_plugins' ) ) ) {
+					wp_send_json_error( __( 'Permission denied.', 'ecab-taxi-booking-manager' ) );
+				}
+
+				if ( is_plugin_active( $plugin_file ) ) {
+					wp_send_json_success( __( 'WooCommerce is already active.', 'ecab-taxi-booking-manager' ) );
+				}
+
+				if ( ! $is_installed ) {
 					$api = plugins_api( 'plugin_information', array(
 						'slug'   => 'woocommerce',
 						'fields' => array( 'sections' => false ),
@@ -1233,14 +1213,25 @@
 					}
 				}
 
-				// Activate via the options table to avoid loading woocommerce.php into this
-				// process (which would clash with the wc_price()/WC() fallback shims).
-				$active = get_option( 'active_plugins', array() );
-				if ( ! in_array( $plugin_file, $active, true ) ) {
-					$active[] = $plugin_file;
-					sort( $active );
-					update_option( 'active_plugins', $active );
+				$validation = validate_plugin( $plugin_file );
+				if ( is_wp_error( $validation ) ) {
+					wp_send_json_error( $validation->get_error_message() );
 				}
+
+				/*
+				 * Defer loading WooCommerce until the next request. Other MagePeople
+				 * plugins define guarded WooCommerce compatibility functions late on
+				 * plugins_loaded while WooCommerce is inactive. activate_plugin() would
+				 * load WooCommerce after those fallbacks exist and can cause a PHP
+				 * redeclaration fatal. Adding the validated plugin to active_plugins lets
+				 * WordPress load WooCommerce normally before plugins_loaded next time.
+				 */
+				$active   = get_option( 'active_plugins', array() );
+				$active[] = $plugin_file;
+				$active   = array_values( array_unique( $active ) );
+				sort( $active );
+				update_option( 'active_plugins', $active );
+
 				do_action( 'activate_' . $plugin_file );
 				do_action( 'activated_plugin', $plugin_file, false );
 
