@@ -28,6 +28,29 @@
 				/**************************/
 				add_action('wp_ajax_load_get_details_page', [$this, 'load_get_details_page']);
 				add_action('wp_ajax_nopriv_load_get_details_page', [$this, 'load_get_details_page']);
+				/**************************/
+				add_action('wp_ajax_mptbm_refresh_search_nonce', [$this, 'refresh_search_nonce']);
+				add_action('wp_ajax_nopriv_mptbm_refresh_search_nonce', [$this, 'refresh_search_nonce']);
+			}
+			/**
+			 * Issue a freshly generated booking nonce.
+			 *
+			 * Full-page caches (WP Rocket / LiteSpeed / Cloudflare APO / host cache) serve
+			 * logged-out visitors a cached copy of the booking page whose embedded WordPress
+			 * nonce expires after ~24h. The search AJAX then fails check_ajax_referer() with a
+			 * 403/-1 for guests only ("works when logged in, fails when logged out"), because
+			 * logged-in users bypass the page cache and always receive a fresh nonce.
+			 *
+			 * admin-ajax.php is never full-page cached, so a nonce generated here is always
+			 * live for the current (guest) session. Handing a CSRF token to any visitor is
+			 * exactly what a normal page render already does, so this endpoint needs no nonce
+			 * of its own.
+			 */
+			public function refresh_search_nonce(): void {
+				wp_send_json_success(array(
+					'search_nonce'      => wp_create_nonce('mptbm_transport_search'),
+					'add_to_cart_nonce' => wp_create_nonce('mptbm_add_to_cart'),
+				));
 			}
 			public function transport_search($params) {
 				$display_map = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'enable');

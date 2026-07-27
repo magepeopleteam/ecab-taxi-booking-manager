@@ -247,6 +247,36 @@ function mptbm_resolve_redirect_url(response) {
 
 // Add event listeners to clear errors when user starts typing
 jQuery(document).ready(function ($) {
+    // ---------------------------------------------------------------------
+    // Refresh the booking nonce for cached pages.
+    // Full-page caches serve logged-out visitors an HTML page whose embedded
+    // WordPress nonce expires after ~24h, so the search AJAX then fails with a
+    // 403/-1 ("works when logged in, fails when logged out"). admin-ajax.php is
+    // never full-page cached, so we pull a live nonce here and use it for every
+    // request. The user fills the pickup/dropoff/date form before searching, so
+    // this round-trip has completed long before the first search fires.
+    // ---------------------------------------------------------------------
+    window.mptbmNonceReady = (function () {
+        if (typeof mp_ajax_url === 'undefined' || typeof mptbm_ajax === 'undefined') {
+            return $.Deferred().resolve().promise();
+        }
+        return $.ajax({
+            type: 'POST',
+            url: mp_ajax_url,
+            data: { action: 'mptbm_refresh_search_nonce' },
+            dataType: 'json'
+        }).done(function (res) {
+            if (res && res.success && res.data) {
+                if (res.data.search_nonce) {
+                    mptbm_ajax.search_nonce = res.data.search_nonce;
+                }
+                if (res.data.add_to_cart_nonce) {
+                    mptbm_ajax.add_to_cart_nonce = res.data.add_to_cart_nonce;
+                }
+            }
+        });
+    })();
+
     // Clear errors on input for pickup location
     $(document).on('input change', '#mptbm_map_start_place, #mptbm_manual_start_place', function () {
         if (this.classList.contains('mptbm-error-field')) {
