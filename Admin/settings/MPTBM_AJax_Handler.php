@@ -13,7 +13,6 @@ if (!class_exists('MPTBM_AJax_Handler')) {
         public function __construct(){
 
             add_action('wp_ajax_mptbm_get_services_data', [$this, 'mptbm_get_services_data']);
-            add_action('wp_ajax_nopriv_mptbm_get_services_data', [$this, 'mptbm_get_services_data']);
         }
 
         public function mptbm_get_services_data() {
@@ -30,7 +29,11 @@ if (!class_exists('MPTBM_AJax_Handler')) {
                 ? absint( $_POST['post_id'] )
                 : '';
 
-            if ( ! $service_id ) {
+			if (!$post_id || get_post_type($post_id) !== MPTBM_Function::get_cpt() || !current_user_can('edit_post', $post_id)) {
+				wp_send_json_error(['message' => 'Permission denied'], 403);
+			}
+
+            if ( ! $service_id || get_post_type($service_id) !== 'mptbm_extra_services' ) {
 
                 wp_send_json_error( [
                     'message' => 'Invalid service ID',

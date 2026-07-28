@@ -338,8 +338,8 @@
 				echo wp_dropdown_pages($dropdown_args);
 			}
 			function sanitize_options($options) {
-				if (!$options) {
-					return $options;
+				if (!is_array($options)) {
+					return array();
 				}
 				foreach ($options as $option_slug => $option_value) {
 					$sanitize_callback = $this->get_sanitize_callback($option_slug);
@@ -348,8 +348,61 @@
 						$options[$option_slug] = call_user_func($sanitize_callback, $option_value);
 						continue;
 					}
+
+					$field = $this->get_field_definition($option_slug);
+					$options[$option_slug] = $this->sanitize_field_value($option_value, $field);
 				}
 				return $options;
+			}
+			private function get_field_definition($slug) {
+				foreach ($this->settings_fields as $options) {
+					foreach ($options as $option) {
+						if (isset($option['name']) && $option['name'] === $slug) {
+							return $option;
+						}
+					}
+				}
+				return array('type' => 'text');
+			}
+			private function sanitize_field_value($value, $field) {
+				$type = isset($field['type']) ? $field['type'] : 'text';
+
+				if (is_array($value)) {
+					$sanitized = array();
+					foreach ($value as $key => $item) {
+						$clean_key = is_int($key) ? $key : sanitize_key($key);
+						$sanitized[$clean_key] = is_array($item)
+							? $this->sanitize_field_value($item, array('type' => 'text'))
+							: sanitize_text_field(wp_unslash($item));
+					}
+					return $sanitized;
+				}
+
+				$value = wp_unslash((string) $value);
+				switch ($type) {
+					case 'wysiwyg':
+					case 'textarea':
+						return wp_kses_post($value);
+					case 'url':
+					case 'file':
+						return esc_url_raw($value);
+					case 'number':
+						return is_numeric($value) ? (string) (float) $value : '';
+					case 'pages':
+						return absint($value);
+					case 'color':
+						return sanitize_hex_color($value) ?: '';
+					case 'checkbox':
+					case 'switch_button':
+						return 'on' === $value ? 'on' : 'off';
+					case 'select':
+					case 'mp_select2':
+					case 'radio':
+						$options = isset($field['options']) && is_array($field['options']) ? $field['options'] : array();
+						return array_key_exists($value, $options) ? sanitize_text_field($value) : '';
+					default:
+						return sanitize_text_field($value);
+				}
 			}
 			function get_sanitize_callback($slug = '') {
 				if (empty($slug)) {

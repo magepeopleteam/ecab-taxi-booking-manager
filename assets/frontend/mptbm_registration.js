@@ -247,6 +247,36 @@ function mptbm_resolve_redirect_url(response) {
 
 // Add event listeners to clear errors when user starts typing
 jQuery(document).ready(function ($) {
+    // ---------------------------------------------------------------------
+    // Refresh the booking nonce for cached pages.
+    // Full-page caches serve logged-out visitors an HTML page whose embedded
+    // WordPress nonce expires after ~24h, so the search AJAX then fails with a
+    // 403/-1 ("works when logged in, fails when logged out"). admin-ajax.php is
+    // never full-page cached, so we pull a live nonce here and use it for every
+    // request. The user fills the pickup/dropoff/date form before searching, so
+    // this round-trip has completed long before the first search fires.
+    // ---------------------------------------------------------------------
+    window.mptbmNonceReady = (function () {
+        if (typeof mp_ajax_url === 'undefined' || typeof mptbm_ajax === 'undefined') {
+            return $.Deferred().resolve().promise();
+        }
+        return $.ajax({
+            type: 'POST',
+            url: mp_ajax_url,
+            data: { action: 'mptbm_refresh_search_nonce' },
+            dataType: 'json'
+        }).done(function (res) {
+            if (res && res.success && res.data) {
+                if (res.data.search_nonce) {
+                    mptbm_ajax.search_nonce = res.data.search_nonce;
+                }
+                if (res.data.add_to_cart_nonce) {
+                    mptbm_ajax.add_to_cart_nonce = res.data.add_to_cart_nonce;
+                }
+            }
+        });
+    })();
+
     // Clear errors on input for pickup location
     $(document).on('input change', '#mptbm_map_start_place, #mptbm_manual_start_place', function () {
         if (this.classList.contains('mptbm-error-field')) {
@@ -1953,6 +1983,7 @@ function mptbm_init_google_map() {
                                     url: mp_ajax_url,
                                     data: {
                                         action: actionValue,
+                                        nonce: mptbm_ajax.search_nonce,
                                         start_place: start_val,
                                         start_place_coordinates: JSON.stringify(startCoordinates),
                                         end_place_coordinates: JSON.stringify(endCoordinates),
@@ -2001,6 +2032,7 @@ function mptbm_init_google_map() {
                                     url: mp_ajax_url,
                                     data: {
                                         action: actionValue,
+                                        nonce: mptbm_ajax.search_nonce,
                                         start_place: start_val,
                                         start_place_coordinates: JSON.stringify(startCoordinates),
                                         end_place_coordinates: JSON.stringify(endCoordinates),
@@ -2080,6 +2112,7 @@ function mptbm_init_google_map() {
                                 url: mp_ajax_url,
                                 data: {
                                     action: actionValue,
+                                    nonce: mptbm_ajax.search_nonce,
                                     start_place: start_place.value,
                                     start_place_coordinates: startCoordinates,
                                     end_place_coordinates: endCoordinates,
@@ -2137,6 +2170,7 @@ function mptbm_init_google_map() {
                                 url: mp_ajax_url,
                                 data: {
                                     action: actionValue,
+                                    nonce: mptbm_ajax.search_nonce,
                                     start_place: start_place.value,
                                     start_place_coordinates: startCoordinates,
                                     end_place_coordinates: endCoordinates,
@@ -2201,6 +2235,7 @@ function mptbm_init_google_map() {
                             url: mp_ajax_url,
                             data: {
                                 action: actionValue,
+                                nonce: mptbm_ajax.search_nonce,
                                 start_place: start_place.value,
                                 end_place: end_place.value,
                                 start_date: start_date,
@@ -2258,6 +2293,7 @@ function mptbm_init_google_map() {
                             url: mp_ajax_url,
                             data: {
                                 action: actionValue,
+                                nonce: mptbm_ajax.search_nonce,
                                 start_place: start_place.value,
                                 end_place: end_place.value,
                                 start_date: start_date,
@@ -2559,6 +2595,7 @@ function mptbm_init_google_map() {
                     url: mp_ajax_url,
                     data: {
                         action: "get_mptbm_end_place",
+                        nonce: mptbm_ajax.search_nonce,
                         start_place: start_place,
                         price_based: price_based,
                         post_id: post_id,
@@ -3192,7 +3229,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 $.ajax({
                     type: 'POST',
                     url: mp_ajax_url,
-                    data: { "action": "get_mptbm_extra_service", "post_id": post_id },
+                    data: { "action": "get_mptbm_extra_service", "nonce": mptbm_ajax.search_nonce, "post_id": post_id },
                     beforeSend: function () { dLoader(parent.find('.tabsContentNext')); },
                     success: function (data) {
                         target_extra_service.html(data);
@@ -3207,7 +3244,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     $.ajax({
                         type: 'POST',
                         url: mp_ajax_url,
-                        data: { "action": "get_mptbm_extra_service_summary", "post_id": post_id },
+                        data: { "action": "get_mptbm_extra_service_summary", "nonce": mptbm_ajax.search_nonce, "post_id": post_id },
                         success: function (data) {
                             if (!data || data.length < 100) {
                             }
@@ -3357,6 +3394,9 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
         let quantity = parseInt(parent.find(`.mp_quantity_input[data-post-id="${post_id}"]`).val()) || 1;
         let mptbm_original_price_base = parent.find('[name="mptbm_original_price_base"]').val();
         let mptbm_threshold_base_price = parent.find('[name="mptbm_post_id"]').attr('data-base-price-calculated') || 0;
+        // Generated with the vehicle-result response, so it remains fresh even when a
+        // guest received the outer booking page from a full-page cache.
+        let add_to_cart_nonce = parent.find('[name="mptbm_add_to_cart_nonce"]').val() || '';
 
         if (start_place !== '' && end_place !== '' && link_id && post_id) {
             let extra_service_name = {};
@@ -3416,6 +3456,10 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 url: mp_ajax_url,
                 data: {
                     action: "mptbm_add_to_cart",
+                    mptbm_add_to_cart_nonce: add_to_cart_nonce,
+                    // Kept for one rolling-deployment cycle so an older PHP handler can
+                    // still validate clients whose assets update before the backend.
+                    nonce: mptbm_ajax.search_nonce,
                     //"product_id": post_id,
                     transport_quantity: quantity,
                     link_id: link_id,
@@ -3588,6 +3632,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     url: mp_ajax_url, // WordPress AJAX URL
                     data: {
                         action: "load_get_details_page",
+                        nonce: mptbm_ajax.search_nonce,
                         tab_id: tab_id,
                         form_style: form_style,
                         map: map

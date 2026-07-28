@@ -39,6 +39,8 @@ if (!class_exists('MPTBM_Dependencies')) {
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Query.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Layout.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Rest_Api.php';
+			// Post types must be registered on frontend, REST and cron requests too.
+			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_CPT.php';
 			// Hidden WooCommerce product mirror is only relevant when WooCommerce is active.
 			if (MP_Global_Function::check_woocommerce() == 1) {
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Hidden_Product.php';
@@ -55,6 +57,21 @@ if (!class_exists('MPTBM_Dependencies')) {
 				new MPTBM_REST_API();
 			}
 		}
+        /**
+         * Cache-busting version for a bundled asset: the file's own mtime, so the
+         * browser caches it until it actually changes. Replaces time(), which gave a
+         * unique ?ver= every request — the asset was never cached and got re-downloaded
+         * on every load, showing as a flash of unstyled content until it arrived.
+         *
+         * @param string $rel Path relative to the plugin root, e.g. 'assets/admin/x.css'.
+         * @return string|int
+         */
+        private function asset_ver($rel)
+        {
+            $path = MPTBM_PLUGIN_DIR . '/' . ltrim($rel, '/');
+            return file_exists($path) ? filemtime($path) : ( defined('MPTBM_PLUGIN_VERSION') ? MPTBM_PLUGIN_VERSION : '1.0' );
+        }
+
         public function global_enqueue()
         {
             $api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
@@ -66,12 +83,12 @@ if (!class_exists('MPTBM_Dependencies')) {
             // Check map type FIRST, then decide what to load
             if ($map_type === 'openstreetmap') {
                 // OpenStreetMap is selected - load only the map JS without Google Maps API
-                wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('jquery'), time(), true);
+                wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_map.js'), true);
             } elseif ($map_type === 'enable' && $api_key) {
                 // Google Maps is selected and API key exists
 //                wp_enqueue_script('mptbm_map_api', 'https://maps.googleapis.com/maps/api/js?libraries=places,drawing&language=en&v=weekly&key=' . $api_key, array(), null, true);
                 wp_enqueue_script('mptbm_map_api', 'https://maps.googleapis.com/maps/api/js?libraries=places,drawing,geometry&language=en&v=3.64&key=' . $api_key, array(), null, true);
-                wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('mptbm_map_api'), time(), true);
+                wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('mptbm_map_api'), $this->asset_ver('assets/admin/mptbm_map.js'), true);
             } elseif ($map_type === 'enable' && !$api_key) {
                 // Google Maps is selected but no API key
                 add_action('admin_notices', [$this, 'map_api_not_active']);
@@ -79,42 +96,56 @@ if (!class_exists('MPTBM_Dependencies')) {
             // If map_type is 'disable', don't load anything
             
             do_action('add_mptbm_common_script');
-            wp_enqueue_style('mage-icons', MPTBM_PLUGIN_URL . '/assets/mage-icon/css/mage-icon.css', array(), time());
+            wp_enqueue_style('mage-icons', MPTBM_PLUGIN_URL . '/assets/mage-icon/css/mage-icon.css', array(), $this->asset_ver('assets/mage-icon/css/mage-icon.css'));
         }
 
         public function admin_enqueue()
         {
             $this->global_enqueue();
             // custom
-            wp_enqueue_style('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.css', array(), time());
-            wp_enqueue_style('admin_style', MPTBM_PLUGIN_URL . '/assets/admin/admin_style.css', array(), time());
-            wp_enqueue_style('mptbm_right_side_style', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_right_side_style.css', array(), time());
-            wp_enqueue_style('mptbm_taxi_add_edit', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_taxi_add_edit.css', array(), time());
-            wp_enqueue_style('mptbm_ex_service', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_ex_service.css', array(), time());
-            wp_enqueue_style('mptbm_date_and_advanced', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_date_and_advanced.css', array(), time());
+            wp_enqueue_style('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.css', array(), $this->asset_ver('assets/admin/mptbm_admin.css'));
+            wp_enqueue_style('admin_style', MPTBM_PLUGIN_URL . '/assets/admin/admin_style.css', array(), $this->asset_ver('assets/admin/admin_style.css'));
+            wp_enqueue_style('mptbm_right_side_style', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_right_side_style.css', array(), $this->asset_ver('assets/admin/mptbm_right_side_style.css'));
+            wp_enqueue_style('mptbm_taxi_add_edit', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_taxi_add_edit.css', array(), $this->asset_ver('assets/admin/mptbm_taxi_add_edit.css'));
+            wp_enqueue_style('mptbm_ex_service', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_ex_service.css', array(), $this->asset_ver('assets/admin/mptbm_ex_service.css'));
+            wp_enqueue_style('mptbm_date_and_advanced', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_date_and_advanced.css', array(), $this->asset_ver('assets/admin/mptbm_date_and_advanced.css'));
             // Ensure jQuery UI Sortable is loaded before the add/edit script so drag handles work
-            wp_enqueue_script('mptbm_taxi_add_edit', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_taxi_add_edit.js', array('jquery', 'jquery-ui-sortable'), time(), true);
-            wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), time(), true);
-            wp_enqueue_script('mptbm_tooltip', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_tooltip.js', array('jquery'), time(), true);
-            wp_enqueue_script('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.js', array('jquery'), time(), true);
-            wp_enqueue_script('mptbm_right_side_js', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_right_side_js.js', array('jquery'), time(), true);
-            wp_enqueue_style('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.css', array(), time());
+            wp_enqueue_script('mptbm_taxi_add_edit', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_taxi_add_edit.js', array('jquery', 'jquery-ui-sortable'), $this->asset_ver('assets/admin/mptbm_taxi_add_edit.js'), true);
+            wp_localize_script('mptbm_taxi_add_edit', 'mptbm_editor_l10n', array(
+                'ajax_url'   => admin_url('admin-ajax.php'),
+                'action'     => 'mptbm_ajax_save_rent',
+                'i18n'       => array(
+                    'saving'        => __('Saving…', 'ecab-taxi-booking-manager'),
+                    'saved'         => __('Transportation saved successfully.', 'ecab-taxi-booking-manager'),
+                    'required'      => __('Please complete the required field: %s', 'ecab-taxi-booking-manager'),
+                    'required_generic' => __('Please complete the highlighted required field.', 'ecab-taxi-booking-manager'),
+                    'network_error' => __('Could not reach the server. Please check your connection and try again.', 'ecab-taxi-booking-manager'),
+                ),
+            ));
+			wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_admin.js'), true);
+			wp_localize_script('mptbm_admin', 'mptbm_admin_security', array(
+				'extra_service_nonce' => wp_create_nonce('mptbm_get_extra_service'),
+			));
+            wp_enqueue_script('mptbm_tooltip', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_tooltip.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_tooltip.js'), true);
+            wp_enqueue_script('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_transportation_lists.js'), true);
+            wp_enqueue_script('mptbm_right_side_js', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_right_side_js.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_right_side_js.js'), true);
+            wp_enqueue_style('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.css', array(), $this->asset_ver('assets/admin/mptbm_transportation_lists.css'));
 
             $editor_type = isset( $_GET['editor'] ) ? sanitize_text_field( wp_unslash( $_GET['editor'] ) ) : 'new';
             if ( $editor_type !== 'old') {
                 if ( class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) {
-                    wp_enqueue_style('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css', array(), time());
-                    wp_enqueue_script('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js', array('jquery'), time(), true);
+                    wp_enqueue_style('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css', array(), $this->asset_ver('assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css'));
+                    wp_enqueue_script('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js', array('jquery'), $this->asset_ver('assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js'), true);
                 }
 
                 if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) {
-                    wp_enqueue_style('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css', array(), time());
-                    wp_enqueue_script('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js', array('jquery'), time(), true);
+                    wp_enqueue_style('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css', array(), $this->asset_ver('assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css'));
+                    wp_enqueue_script('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js', array('jquery'), $this->asset_ver('assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js'), true);
                 }
             }
 
             // No transport templates
-            wp_enqueue_script('mptbm-no-transport-templates', MPTBM_PLUGIN_URL . '/assets/admin/js/no-transport-templates.js', array('jquery'), time(), true);
+            wp_enqueue_script('mptbm-no-transport-templates', MPTBM_PLUGIN_URL . '/assets/admin/js/no-transport-templates.js', array('jquery'), $this->asset_ver('assets/admin/js/no-transport-templates.js'), true);
             
             // Enqueue Leaflet.draw for OpenStreetMap polygon drawing on operation areas page AND settings page
             $screen = get_current_screen();
@@ -139,7 +170,7 @@ if (!class_exists('MPTBM_Dependencies')) {
 
                     // Re-enqueue mptbm_admin_map with Leaflet dependencies
                     wp_deregister_script('mptbm_admin_map');
-                    wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('jquery', 'leaflet', 'leaflet-draw'), time(), true);
+                    wp_enqueue_script('mptbm_admin_map', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_map.js', array('jquery', 'leaflet', 'leaflet-draw'), $this->asset_ver('assets/admin/mptbm_map.js'), true);
                 }
             }
 
@@ -165,14 +196,15 @@ if (!class_exists('MPTBM_Dependencies')) {
 			// Localize script for AJAX
 			wp_localize_script('mptbm_registration', 'mptbm_ajax', array(
 				'ajax_url' => admin_url('admin-ajax.php'),
-				'osm_nonce' => wp_create_nonce('mptbm_osm_search')
+				'osm_nonce' => wp_create_nonce('mptbm_osm_search'),
+				'search_nonce' => wp_create_nonce('mptbm_transport_search')
 			));
             
             // Font Awesome for template icons
             wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css', array(), '5.15.4');
             
             // No transport templates styles
-            wp_enqueue_style('mptbm-no-transport-templates', MPTBM_PLUGIN_URL . '/assets/frontend/css/no-transport-templates.css', array(), time());
+            wp_enqueue_style('mptbm-no-transport-templates', MPTBM_PLUGIN_URL . '/assets/frontend/css/no-transport-templates.css', array(), $this->asset_ver('assets/frontend/css/no-transport-templates.css'));
             
             // Enqueue selectWoo (searchable dropdown) if WooCommerce is active
             if (function_exists('WC')) {
@@ -227,12 +259,20 @@ if (!class_exists('MPTBM_Dependencies')) {
 			// Check nonce for security
 			check_ajax_referer('mptbm_osm_search', 'nonce');
 			
-			$query = isset($_REQUEST['q']) ? sanitize_text_field($_REQUEST['q']) : '';
+			$query = isset($_REQUEST['q']) ? sanitize_text_field(wp_unslash($_REQUEST['q'])) : '';
 			
-			if (empty($query)) {
+			if (strlen($query) < 2 || strlen($query) > 120) {
 				wp_send_json_error('No search query provided');
 				return;
 			}
+
+			$client_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
+			$rate_key = 'mptbm_osm_rate_' . md5($client_ip);
+			$rate = (int) get_transient($rate_key);
+			if ($rate >= 30) {
+				wp_send_json_error('Too many searches. Please wait and try again.', 429);
+			}
+			set_transient($rate_key, $rate + 1, 5 * MINUTE_IN_SECONDS);
 			
 			// Get country restriction settings
 			$restrict_to_country = MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country_restriction', 'no');
@@ -244,6 +284,11 @@ if (!class_exists('MPTBM_Dependencies')) {
 				'limit' => 5,
 				'lang' => 'en'
 			);
+			$cache_key = 'mptbm_osm_' . md5(wp_json_encode(array($search_params, $restrict_to_country, $country_code)));
+			$cached_results = get_transient($cache_key);
+			if (is_array($cached_results)) {
+				wp_send_json_success($cached_results);
+			}
 			
 			// Add country restriction if enabled
 			if ($restrict_to_country === 'yes' && !empty($country_code)) {
@@ -271,8 +316,7 @@ if (!class_exists('MPTBM_Dependencies')) {
 			
 			// Check if status is not 200
 			if ($status_code !== 200) {
-				$body = wp_remote_retrieve_body($response);
-				wp_send_json_error('OpenStreetMap returned status ' . $status_code . ': ' . $body);
+				wp_send_json_error('OpenStreetMap search is temporarily unavailable.');
 				return;
 			}
 			
@@ -364,14 +408,15 @@ if (!class_exists('MPTBM_Dependencies')) {
 					
 					// Photon uses [lon, lat] format, we need to convert to lat/lon
 					$results[] = array(
-						'display_name' => $display_name,
-						'lat' => isset($coordinates[1]) ? $coordinates[1] : 0,
-						'lon' => isset($coordinates[0]) ? $coordinates[0] : 0,
-						'address' => $properties
+						'display_name' => sanitize_text_field($display_name),
+						'lat' => isset($coordinates[1]) ? (float) $coordinates[1] : 0,
+						'lon' => isset($coordinates[0]) ? (float) $coordinates[0] : 0,
+						'address' => map_deep($properties, 'sanitize_text_field')
 					);
 				}
 			}
 			
+			set_transient($cache_key, $results, 5 * MINUTE_IN_SECONDS);
 			wp_send_json_success($results);
 		}
     }

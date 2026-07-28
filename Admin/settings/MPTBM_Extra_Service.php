@@ -18,7 +18,6 @@
 				add_action( 'save_post', [ $this, 'save_ex_service' ] );
 				//*******************//
 				add_action( 'wp_ajax_get_mptbm_ex_service', array( $this, 'get_mptbm_ex_service' ) );
-				add_action( 'wp_ajax_nopriv_get_mptbm_ex_service', array( $this, 'get_mptbm_ex_service' ) );
 			}
 			public function mptbm_extra_service_meta() {
 				$label = MPTBM_Function::get_name();
@@ -130,7 +129,12 @@
 				<?php
 			}
 			public function save_ex_service_settings( $post_id ) {
-				if ( ! isset( $_POST['mptbm_extra_service_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash ( $_POST['mptbm_extra_service_nonce'])), 'mptbm_extra_service_nonce' ) && defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE && ! current_user_can( 'edit_post', $post_id ) ) {
+				if ( get_post_type( $post_id ) !== 'mptbm_extra_services'
+					|| ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+					|| wp_is_post_revision( $post_id )
+					|| ! current_user_can( 'edit_post', $post_id )
+					|| ! isset( $_POST['mptbm_extra_service_nonce'] )
+					|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mptbm_extra_service_nonce'] ) ), 'mptbm_extra_service_nonce' ) ) {
 					return;
 				}
 				if ( get_post_type( $post_id ) == 'mptbm_extra_services' ) {
@@ -228,7 +232,12 @@
 				}
 			}
 			public function save_ex_service( $post_id ) {
-				if (!isset($_POST['mptbm_transportation_type_nonce']) || !wp_verify_nonce(sanitize_text_field( wp_unslash ($_POST['mptbm_transportation_type_nonce'])), 'mptbm_transportation_type_nonce') && defined('DOING_AUTOSAVE') && DOING_AUTOSAVE && !current_user_can('edit_post', $post_id)) {
+				if ( get_post_type( $post_id ) !== MPTBM_Function::get_cpt()
+					|| ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+					|| wp_is_post_revision( $post_id )
+					|| ! current_user_can( 'edit_post', $post_id )
+					|| ! isset( $_POST['mptbm_transportation_type_nonce'] )
+					|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mptbm_transportation_type_nonce'] ) ), 'mptbm_transportation_type_nonce' ) ) {
 					return;
 				}
 				if ( get_post_type( $post_id ) == MPTBM_Function::get_cpt() ) {
@@ -326,8 +335,12 @@
 			}
 			
 			public function get_mptbm_ex_service() {
+				check_ajax_referer('mptbm_get_extra_service', 'nonce');
 				$post_id    = isset($_REQUEST['post_id']) ? absint($_REQUEST['post_id']) : 0;
 				$service_id = isset($_REQUEST['ex_id']) ? absint($_REQUEST['ex_id']) : 0;
+				if (!$post_id || !current_user_can('edit_post', $post_id)) {
+					wp_die(esc_html__('You do not have permission to do this.', 'ecab-taxi-booking-manager'), esc_html__('Error', 'ecab-taxi-booking-manager'), array('response' => 403));
+				}
 				
 				// Security check: validate post access
 				if (!$this->validate_ex_service_access($post_id, $service_id)) {

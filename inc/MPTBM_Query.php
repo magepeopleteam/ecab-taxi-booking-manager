@@ -222,7 +222,7 @@ if (!class_exists('MPTBM_Query')) {
 				'compare' => '='
 			);
 			$args = array(
-				'post_type' => 'mptbm_service_booking',
+				'post_type' => 'mptbm_service_book',
 				'posts_per_page' => -1,
 				'meta_query' => array(
 					'relation' => 'AND',

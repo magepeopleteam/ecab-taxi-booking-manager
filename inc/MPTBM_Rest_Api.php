@@ -20,17 +20,15 @@ if (!class_exists('MPTBM_REST_API')) {
             
             add_action('rest_api_init', array($this, 'register_routes'));
             add_action('init', array($this, 'ensure_database_tables'));
-            add_action('wp_ajax_mptbm_generate_api_key', array($this, 'generate_api_key'));
-            add_action('wp_ajax_mptbm_revoke_api_key', array($this, 'revoke_api_key'));
-            add_filter('rest_pre_dispatch', array($this, 'check_api_permissions'), 10, 3);
+			add_filter('rest_pre_dispatch', array($this, 'check_api_permissions'), 10, 3);
             
             // Add CORS support
             add_action('rest_api_init', array($this, 'add_cors_support'));
             
             // Cleanup old logs daily
-            add_action('wp_daily_cron', array($this, 'cleanup_old_api_logs'));
-            if (!wp_next_scheduled('wp_daily_cron')) {
-                wp_schedule_event(time(), 'daily', 'wp_daily_cron');
+			add_action('mptbm_cleanup_api_logs', array($this, 'cleanup_old_api_logs'));
+			if (!wp_next_scheduled('mptbm_cleanup_api_logs')) {
+				wp_schedule_event(time() + HOUR_IN_SECONDS, 'daily', 'mptbm_cleanup_api_logs');
             }
         }
         
@@ -49,7 +47,17 @@ if (!class_exists('MPTBM_REST_API')) {
                 $this->init_table_names();
             }
             
-            // Check if tables exist, create them if they don't
+			if ('2' !== get_option('mptbm_api_schema_version')) {
+				if (method_exists('MPTBM_Plugin', 'create_api_tables')) {
+					MPTBM_Plugin::create_api_tables();
+				} else {
+					$this->create_api_tables();
+				}
+				update_option('mptbm_api_schema_version', '2', false);
+				return;
+			}
+
+			// Check if tables exist, create them if they don't
             $keys_table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->api_keys_table}'");
             $logs_table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->api_logs_table}'");
             
@@ -73,7 +81,7 @@ if (!class_exists('MPTBM_REST_API')) {
                 id int(11) NOT NULL AUTO_INCREMENT,
                 user_id int(11) NOT NULL,
                 api_key varchar(64) NOT NULL,
-                api_secret varchar(64) NOT NULL,
+                api_secret varchar(255) NOT NULL,
                 name varchar(200) NOT NULL,
                 permissions text,
                 last_used datetime DEFAULT NULL,
@@ -156,6 +164,10 @@ if (!class_exists('MPTBM_REST_API')) {
                     'api_key' => array(
                         'required' => true,
                         'type' => 'string'
+					),
+					'api_secret' => array(
+						'required' => false,
+						'type' => 'string'
                     )
                 )
             ));
@@ -394,9 +406,10 @@ if (!class_exists('MPTBM_REST_API')) {
                 ), 200);
             }
             
-            $key_data = $this->validate_api_key($api_key);
+			$key_data = $this->validate_api_key($api_key);
+			$api_secret = $this->get_api_secret_from_request($request);
             
-            if ($key_data) {
+			if ($key_data && $this->validate_api_secret($key_data, $api_secret)) {
                 return new WP_REST_Response(array(
                     'success' => true,
                     'valid' => true,
@@ -493,7 +506,8 @@ if (!class_exists('MPTBM_REST_API')) {
             }
             
             $api_key = 'etbm_' . wp_generate_password(32, false);
-            $api_secret = wp_generate_password(32, false);
+			$api_secret = wp_generate_password(48, false);
+			$api_secret_hash = wp_hash_password($api_secret);
             $expiry_days = absint(MP_Global_Function::get_settings('mptbm_rest_api_settings', 'api_key_expiry', 365));
             $expires_at = $expiry_days > 0 ? gmdate('Y-m-d H:i:s', strtotime("+{$expiry_days} days")) : null;
             
@@ -502,7 +516,7 @@ if (!class_exists('MPTBM_REST_API')) {
                 array(
                     'user_id' => $user_id,
                     'api_key' => $api_key,
-                    'api_secret' => $api_secret,
+					'api_secret' => $api_secret_hash,
                     'name' => $name,
                     'permissions' => json_encode($permissions),
                     'expires_at' => $expires_at,
@@ -587,15 +601,29 @@ if (!class_exists('MPTBM_REST_API')) {
                 return new WP_Error('missing_api_key', 'API key is required', array('status' => 401));
             }
             
-            $key_data = $this->validate_api_key($api_key);
+			$key_data = $this->validate_api_key($api_key);
             
-            if (!$key_data) {
-                return new WP_Error('invalid_api_key', 'Invalid or expired API key', array('status' => 401));
-            }
+			if (!$key_data) {
+				return new WP_Error('invalid_api_key', 'Invalid or expired API key', array('status' => 401));
+			}
+
+			if (!$this->validate_api_secret($key_data, $this->get_api_secret_from_request($request))) {
+				return new WP_Error('invalid_api_credentials', 'Invalid API credentials', array('status' => 401));
+			}
+
+			$permissions = json_decode((string) $key_data['permissions'], true);
+			$permissions = is_array($permissions) ? $permissions : array();
+			$method      = strtoupper($request->get_method());
+			$route       = $request->get_route();
+			$write_post  = $method === 'POST' && in_array($route, array('/' . $this->namespace . '/taxis', '/' . $this->namespace . '/bookings'), true);
+			$required    = $write_post || in_array($method, array('PUT', 'PATCH', 'DELETE'), true) ? 'write' : 'read';
+			if (!in_array($required, $permissions, true)) {
+				return new WP_Error('insufficient_api_scope', sprintf('This API key does not have %s permission', $required), array('status' => 403));
+			}
             
             // Check rate limiting with endpoint-specific limits
-            $endpoint = $request->get_route();
-            if ($this->is_rate_limited($key_data['id'], $endpoint)) {
+			$endpoint = $request->get_route();
+			if ($this->is_rate_limited($key_data['id'], $endpoint, $method)) {
                 return new WP_Error('rate_limited', 'Rate limit exceeded for this endpoint', array('status' => 429));
             }
             
@@ -629,8 +657,33 @@ if (!class_exists('MPTBM_REST_API')) {
             
             return $api_key;
         }
+
+		private function get_api_secret_from_request($request) {
+			$secret = $request->get_header('X-API-Secret');
+			if (empty($secret)) {
+				$secret = $request->get_param('api_secret');
+			}
+			return is_string($secret) && strlen($secret) <= 200 ? sanitize_text_field($secret) : '';
+		}
+
+		private function validate_api_secret($key_data, $provided_secret) {
+			if (empty($provided_secret) || empty($key_data['api_secret'])) {
+				return false;
+			}
+			$stored = (string) $key_data['api_secret'];
+			if (wp_check_password($provided_secret, $stored)) {
+				return true;
+			}
+			// Migrate keys created before secrets were hashed.
+			if (strlen($stored) === 32 && hash_equals($stored, $provided_secret)) {
+				global $wpdb;
+				$wpdb->update($this->api_keys_table, array('api_secret' => wp_hash_password($provided_secret)), array('id' => absint($key_data['id'])), array('%s'), array('%d'));
+				return true;
+			}
+			return false;
+		}
         
-        private function is_rate_limited($api_key_id, $endpoint = null) {
+        private function is_rate_limited($api_key_id, $endpoint = null, $method = 'GET') {
             $rate_limit_enabled = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'rate_limit_enabled', 'yes');
             
             if ($rate_limit_enabled !== 'yes') {
@@ -655,7 +708,22 @@ if (!class_exists('MPTBM_REST_API')) {
                     'calculate_distance' => 20, // Max 20 distance calculations per minute
                 );
                 
-                $endpoint_slug = str_replace('/', '_', trim($endpoint, '/'));
+				$path = preg_replace('#^/' . preg_quote($this->namespace, '#') . '#', '', (string) $endpoint);
+				if ($method === 'POST' && $path === '/bookings') {
+					$endpoint_slug = 'create_booking';
+				} elseif ($method === 'PUT' && preg_match('#^/bookings/\d+(?:/status)?$#', $path)) {
+					$endpoint_slug = 'update_booking';
+				} elseif ($method === 'DELETE' && preg_match('#^/bookings/\d+$#', $path)) {
+					$endpoint_slug = 'cancel_booking';
+				} elseif ($path === '/bookings/calculate-price') {
+					$endpoint_slug = 'calculate_booking_price';
+				} elseif ($path === '/locations/autocomplete') {
+					$endpoint_slug = 'location_autocomplete';
+				} elseif ($path === '/locations/distance' || $path === '/locations/routes') {
+					$endpoint_slug = 'calculate_distance';
+				} else {
+					$endpoint_slug = '';
+				}
                 $specific_limit = isset($endpoint_limits[$endpoint_slug]) ? $endpoint_limits[$endpoint_slug] : 50;
                 
                 $endpoint_count = $wpdb->get_var($wpdb->prepare(
@@ -710,8 +778,13 @@ if (!class_exists('MPTBM_REST_API')) {
             $request_params = $request->get_params();
             $sanitized_params = array();
             
-            foreach ($request_params as $key => $value) {
-                $sanitized_key = sanitize_key($key);
+			$sensitive_keys = array('api_key', 'api_secret', 'authorization', 'password', 'token', 'secret');
+			foreach ($request_params as $key => $value) {
+				$sanitized_key = sanitize_key($key);
+				if (in_array($sanitized_key, $sensitive_keys, true)) {
+					$sanitized_params[$sanitized_key] = '[redacted]';
+					continue;
+				}
                 if (is_array($value)) {
                     $sanitized_params[$sanitized_key] = array_map('sanitize_text_field', $value);
                 } else {
@@ -794,14 +867,25 @@ if (!class_exists('MPTBM_REST_API')) {
                 return;
             }
             
-            $allowed_origins = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'cors_allowed_origins', '*');
+			$allowed_origins = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'cors_allowed_origins', '*');
             
             remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
-            add_filter('rest_pre_serve_request', function ($value) use ($allowed_origins) {
-                header('Access-Control-Allow-Origin: ' . $allowed_origins);
-                header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-                header('Access-Control-Allow-Headers: Authorization, Content-Type, X-API-Key');
-                header('Access-Control-Allow-Credentials: true');
+			add_filter('rest_pre_serve_request', function ($value) use ($allowed_origins) {
+				$request_origin = isset($_SERVER['HTTP_ORIGIN']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_ORIGIN'])) : '';
+				$origins = array_filter(array_map('trim', explode(',', (string) $allowed_origins)));
+				if ('*' === trim((string) $allowed_origins)) {
+					header('Access-Control-Allow-Origin: *');
+				} elseif ($request_origin && in_array($request_origin, $origins, true)) {
+					header('Access-Control-Allow-Origin: ' . $request_origin);
+					header('Vary: Origin', false);
+				} else {
+					return $value;
+				}
+				header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+				header('Access-Control-Allow-Headers: Authorization, Content-Type, X-API-Key, X-API-Secret');
+				if ('*' !== trim((string) $allowed_origins)) {
+					header('Access-Control-Allow-Credentials: true');
+				}
                 header('Content-Type: application/json; charset=utf-8');
                 
                 return $value;
@@ -1114,20 +1198,18 @@ if (!class_exists('MPTBM_REST_API')) {
                 return new WP_Error('taxi_not_found', 'Taxi not found', array('status' => 404));
             }
             
-            // Check if taxi has active bookings
-            global $wpdb;
-            $active_bookings = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$wpdb->postmeta} 
-                 WHERE meta_key = 'mptbm_taxi_id' 
-                 AND meta_value = %d 
-                 AND post_id IN (
-                     SELECT ID FROM {$wpdb->posts} 
-                     WHERE post_status IN ('wc-pending', 'wc-processing', 'wc-on-hold', 'pending', 'processing')
-                 )",
-                $taxi_id
-            ));
+			$active_bookings = get_posts(array(
+				'post_type'      => 'mptbm_booking',
+				'post_status'    => array('publish', 'pending', 'private', 'draft'),
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+				'meta_query'     => array(
+					array('key' => 'mptbm_id', 'value' => $taxi_id, 'compare' => '='),
+					array('key' => 'mptbm_order_status', 'value' => array('cancelled', 'refunded', 'failed'), 'compare' => 'NOT IN'),
+				),
+			));
             
-            if ($active_bookings > 0) {
+			if (!empty($active_bookings)) {
                 return new WP_Error('taxi_has_bookings', 'Cannot delete taxi with active bookings', array('status' => 409));
             }
             
@@ -1179,27 +1261,10 @@ if (!class_exists('MPTBM_REST_API')) {
                 ), 200);
             }
             
-            // Check for conflicting bookings
-            global $wpdb;
-            $pickup_datetime = $pickup_date . ' ' . ($pickup_time ?: '00:00:00');
-            $return_datetime = $return_date ? ($return_date . ' ' . ($return_time ?: '23:59:59')) : $pickup_datetime;
-            
-            $conflicting_bookings = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$wpdb->postmeta} pm1
-                 INNER JOIN {$wpdb->postmeta} pm2 ON pm1.post_id = pm2.post_id
-                 INNER JOIN {$wpdb->postmeta} pm3 ON pm1.post_id = pm3.post_id
-                 INNER JOIN {$wpdb->posts} p ON pm1.post_id = p.ID
-                 WHERE pm1.meta_key = 'mptbm_taxi_id' AND pm1.meta_value = %d
-                 AND pm2.meta_key = 'mptbm_pickup_date'
-                 AND pm3.meta_key = 'mptbm_pickup_time'
-                 AND p.post_status IN ('wc-pending', 'wc-processing', 'wc-on-hold', 'wc-completed', 'pending', 'processing', 'completed')
-                 AND CONCAT(pm2.meta_value, ' ', IFNULL(pm3.meta_value, '00:00:00')) BETWEEN %s AND %s",
-                $taxi_id,
-                $pickup_datetime,
-                $return_datetime
-            ));
-            
-            $is_available = ($conflicting_bookings == 0);
+			$return_datetime = $return_date ? trim($return_date . ' ' . ($return_time ?: '23:59:59')) : '';
+			$force_single = get_post_meta($taxi_id, 'mptbm_enable_inventory', true) !== 'yes';
+			$available_quantity = MPTBM_Function::get_available_quantity($taxi_id, $pickup_date, $pickup_time ?: '00:00:00', $force_single, 0, $return_datetime);
+			$is_available = $available_quantity > 0;
             
             $response_data = array(
                 'success' => true,
@@ -1207,7 +1272,7 @@ if (!class_exists('MPTBM_REST_API')) {
                 'taxi_id' => $taxi_id,
                 'pickup_date' => $pickup_date,
                 'pickup_time' => $pickup_time,
-                'conflicting_bookings' => (int) $conflicting_bookings
+				'available_quantity' => (int) $available_quantity
             );
             
             if (!$is_available) {
@@ -1586,9 +1651,11 @@ if (!class_exists('MPTBM_REST_API')) {
             $customer_email = sanitize_email($request->get_param('customer_email'));
             $customer_name = sanitize_text_field($request->get_param('customer_name'));
             $customer_phone = sanitize_text_field($request->get_param('customer_phone'));
-            $distance = floatval($request->get_param('distance'));
-            $duration = sanitize_text_field($request->get_param('duration'));
-            $extra_service_info = $this->sanitize_extra_service_info($request->get_param('extra_service_info'));
+			$pricing_type = sanitize_key($request->get_param('pricing_type') ?: 'dynamic');
+			$pricing_type = $pricing_type === 'distance' ? 'dynamic' : $pricing_type;
+			if (!in_array($pricing_type, array('dynamic', 'manual', 'fixed_distance', 'fixed_map'), true)) {
+				return new WP_Error('invalid_pricing_type', 'Unsupported pricing type', array('status' => 400));
+			}
             
             // Validate taxi exists
             $taxi_post = get_post($taxi_id);
@@ -1600,29 +1667,39 @@ if (!class_exists('MPTBM_REST_API')) {
             if (!is_email($customer_email)) {
                 return new WP_Error('invalid_email', 'Invalid email address', array('status' => 400));
             }
+			$max_passengers = absint(get_post_meta($taxi_id, 'mptbm_maximum_passenger', true));
+			if ($max_passengers && $passenger_count > $max_passengers) {
+				return new WP_Error('capacity_exceeded', 'Passenger count exceeds this vehicle capacity', array('status' => 400));
+			}
             
             // Validate date format
-            if (!strtotime($pickup_date)) {
+			$pickup_timestamp = strtotime($pickup_date . ' ' . $pickup_time);
+            if (!$pickup_timestamp || $pickup_timestamp <= current_time('timestamp')) {
                 return new WP_Error('invalid_date', 'Invalid pickup date format', array('status' => 400));
             }
             
             // Check if this is actually a return trip (has return date and is not empty/false)
             $is_actual_return = $this->is_actual_return_trip($request->get_param('is_return'), $return_date);
-            // Calculate price
-            $base_price = floatval(MP_Global_Function::get_post_info($taxi_id, 'mptbm_rent_price', 0));
-            $distance_price = $distance > 0 ? ($distance * floatval(MP_Global_Function::get_settings('mptbm_general_settings', 'price_per_km', 1))) : 0;
-            $total_price = max($base_price + $distance_price, $base_price);
-            
-            // Apply passenger multiplier if configured
-            $passenger_multiplier = floatval(MP_Global_Function::get_settings('mptbm_general_settings', 'passenger_price_multiplier', 1));
-            if ($passenger_count > 1 && $passenger_multiplier > 1) {
-                $total_price *= (1 + (($passenger_count - 1) * ($passenger_multiplier - 1)));
-            }
-            
-            // Double price for return trip if it's actually a return trip
-            if ($is_actual_return) {
-                $total_price *= 2;
-            }
+			$route = $this->calculate_distance_between_locations($pickup_location, $dropoff_location);
+			if (is_wp_error($route)) {
+				return new WP_Error('route_not_verified', 'The route could not be verified by the server', array('status' => 400));
+			}
+			$distance = (float) $route['distance_km'] * 1000;
+			$duration = absint($route['duration_value'] ?? 0);
+			$return_multiplier = $is_actual_return ? 2 : 1;
+			$pricing_filter = static function () use ($pricing_type) { return $pricing_type; };
+			add_filter('mptbm_original_price_based', $pricing_filter);
+			$total_price = (float) MPTBM_Function::get_price($taxi_id, $distance, $duration, $pickup_location, $dropoff_location, 0, $return_multiplier, 0);
+			remove_filter('mptbm_original_price_based', $pricing_filter);
+
+			$extra_service_info = $this->normalize_api_extra_services($taxi_id, $request->get_param('extra_service_info'));
+			if (is_wp_error($extra_service_info)) {
+				return $extra_service_info;
+			}
+			foreach ($extra_service_info as $service) {
+				$total_price += (float) $service['service_price'] * absint($service['service_quantity']);
+			}
+			$total_price = round(max(0, $total_price), 2);
             
             // Create WooCommerce order if WooCommerce is active
             if (function_exists('wc_create_order')) {
@@ -1660,35 +1737,23 @@ if (!class_exists('MPTBM_REST_API')) {
                     
                     $order_id = $order->get_id();
 
-                    // Store any extra services on the order items for later retrieval
-                    if (!empty($extra_service_info)) {
-                        foreach ($order->get_items() as $item_id => $item) {
+					foreach ($order->get_items() as $item_id => $item) {
+						$item->add_meta_data('_mptbm_id', $taxi_id);
+						$item->add_meta_data('_mptbm_date', $pickup_date . ' ' . $pickup_time);
+						$item->add_meta_data('_mptbm_start_place', $pickup_location);
+						$item->add_meta_data('_mptbm_end_place', $dropoff_location);
+						$item->add_meta_data('_mptbm_distance', $distance);
+						$item->add_meta_data('_mptbm_duration', $duration);
+						if (!empty($extra_service_info)) {
                             $item->add_meta_data('_mptbm_service_info', $extra_service_info);
-                            $item->save();
                         }
+						$item->save();
                     }
                 } catch (Exception $e) {
                     return new WP_Error('order_creation_failed', 'Failed to create order: ' . $e->getMessage(), array('status' => 500));
                 }
             } else {
-                // Create a custom post for booking if WooCommerce is not available
-                $order_id = wp_insert_post(array(
-                    'post_type' => 'mptbm_booking',
-                    'post_title' => sprintf('Booking - %s to %s', $pickup_location, $dropoff_location),
-                    'post_status' => 'pending',
-                    'post_date' => current_time('mysql')
-                ));
-                
-                if (is_wp_error($order_id)) {
-                    return new WP_Error('booking_creation_failed', 'Failed to create booking', array('status' => 500));
-                }
-                
-                // Store total price
-                update_post_meta($order_id, '_order_total', $total_price);
-                update_post_meta($order_id, '_billing_email', $customer_email);
-                if ($customer_name) {
-                    update_post_meta($order_id, '_billing_first_name', $customer_name);
-                }
+				$order_id = 0;
             }
             
             // Store booking metadata
@@ -1708,14 +1773,53 @@ if (!class_exists('MPTBM_REST_API')) {
             );
             
             foreach ($booking_meta as $key => $value) {
-                update_post_meta($order_id, $key, $value);
+				if ($order_id) {
+					update_post_meta($order_id, $key, $value);
+				}
             }
+
+			$booking_data = array(
+				'mptbm_id'                    => $taxi_id,
+				'mptbm_order_id'              => $order_id,
+				'mptbm_order_status'          => 'pending',
+				'mptbm_date'                  => $pickup_date . ' ' . $pickup_time,
+				'mptbm_start_place'           => $pickup_location,
+				'mptbm_end_place'             => $dropoff_location,
+				'mptbm_return_target_date'    => $return_date,
+				'mptbm_return_target_time'    => $return_time,
+				'mptbm_taxi_return'           => $return_multiplier,
+				'mptbm_distance'              => $distance,
+				'mptbm_duration'              => $duration,
+				'mptbm_passengers'            => $passenger_count,
+				'mptbm_base_price'            => $total_price,
+				'mptbm_tp'                    => $total_price,
+				'mptbm_service_info'          => $extra_service_info,
+				'mptbm_billing_name'          => $customer_name,
+				'mptbm_billing_email'         => $customer_email,
+				'mptbm_billing_phone'         => $customer_phone,
+				'mptbm_transport_quantity'    => 1,
+				'mptbm_booking_created_via'   => 'api',
+				'mptbm_original_price_base'   => $pricing_type,
+			);
+			$booking_post_id = class_exists('MPTBM_Woocommerce')
+				? MPTBM_Woocommerce::add_cpt_data('mptbm_booking', $customer_name ?: sprintf('API Booking %d', $order_id), $booking_data, 'publish')
+				: 0;
+			if (!$booking_post_id) {
+				if (isset($order) && is_object($order) && method_exists($order, 'delete')) {
+					$order->delete(true);
+				}
+				return new WP_Error('taxi_unavailable', 'The taxi is no longer available for this time', array('status' => 409));
+			}
+			if (!$order_id) {
+				$order_id = $booking_post_id;
+			}
             
             // Prepare response data
             $response_data = array(
                 'success' => true,
                 'data' => array(
                     'booking_id' => $order_id,
+					'booking_post_id' => $booking_post_id,
                     'status' => 'pending',
                     'taxi_id' => $taxi_id,
                     'taxi_title' => $taxi_post->post_title,
@@ -2534,7 +2638,8 @@ if (!class_exists('MPTBM_REST_API')) {
             
             return array(
                 'distance_km' => $element['distance']['value'] / 1000,
-                'duration' => $element['duration']['text']
+				'duration' => $element['duration']['text'],
+				'duration_value' => absint($element['duration']['value'])
             );
         }
         
@@ -3156,6 +3261,37 @@ if (!class_exists('MPTBM_REST_API')) {
                 return sanitize_text_field($value);
             }, $extra_service);
         }
+
+		private function normalize_api_extra_services($taxi_id, $extra_service) {
+			$rows = $this->sanitize_extra_service_info($extra_service);
+			if (empty($rows)) {
+				return array();
+			}
+			if (!is_array($rows)) {
+				return new WP_Error('invalid_extra_service', 'Extra services must be an array', array('status' => 400));
+			}
+			if (isset($rows['service_name'])) {
+				$rows = array($rows);
+			}
+			$allowed = wp_list_pluck(MPTBM_Function::get_available_extra_services($taxi_id), 'service_name');
+			$normalized = array();
+			foreach (array_slice($rows, 0, 25) as $row) {
+				if (!is_array($row)) {
+					return new WP_Error('invalid_extra_service', 'Invalid extra service data', array('status' => 400));
+				}
+				$name = sanitize_text_field($row['service_name'] ?? $row['name'] ?? '');
+				$quantity = max(1, absint($row['service_quantity'] ?? $row['quantity'] ?? 1));
+				if (!$name || $quantity > 100 || !in_array($name, $allowed, true)) {
+					return new WP_Error('invalid_extra_service', 'An invalid extra service was selected', array('status' => 400));
+				}
+				$normalized[] = array(
+					'service_name'     => $name,
+					'service_quantity' => $quantity,
+					'service_price'    => (float) MPTBM_Function::get_extra_service_price_by_name($taxi_id, $name),
+				);
+			}
+			return $normalized;
+		}
 
         /**
          * Get the actual parent order if the provided order is a refund.

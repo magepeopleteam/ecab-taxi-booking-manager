@@ -4,7 +4,7 @@ Author URI : https://mage-people.com
 Tags: Taxi booking, Cab booking, Ride booking , Chauffeur service, Airport transfer, Distance based pricing, Fare calculator, Car booking, Map Booking, Limousine service, Transportation, Dispatch system
 Requires at least: 5.3
 Stable tag: trunk
-Tested up to: 6.8.2
+Tested up to: 7.0
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -25,7 +25,7 @@ https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerc
 
 ## Make Yourself Comfortable With:
 🧶 [View Live Taxi Booking Demo](https://demo.ecabtaxi.com/)
-👉 [Plugin Documentation](https://ecabtaxi.com/docs/)
+👉 [Plugin Documentation](https://docs.mage-people.com/plugins/ecab/overview)
 
 ## Why Choose E-cab? (Key Features):
 **🗺️ Multiple Map Providers**
@@ -196,7 +196,7 @@ You can check the demo of this plugin from here:
 [View Live PRO Version Demo For Business](https://demo.ecabtaxi.com/)
 
 = Q.Any Documentation? =
-A. Yes! Here is the [Online Documentation](https://ecabtaxi.com/docs/).
+A. Yes! Here is the [Online Documentation](https://docs.mage-people.com/plugins/ecab/overview).
  
 = Q.I installed correctly but 404 error what can I do?  =
 A. You need to Re-save permalink settings it will solve the 404. if still does not work that means your permalink not working, or you may have an access problem or you have a server permission problem. 
@@ -210,6 +210,45 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 2.0.5 =
+1. Offline payment added as a free method, with its own standalone checkout
+2. Payments settings split into WooCommerce / Custom tabs, plus a Currency Settings tab for standalone mode
+3. Booking, REST API and checkout security hardened
+4. Guest checkout fixed, along with the Pro login setting
+5. Guest booking search no longer returns 403 on cached pages (stale nonce)
+6. Zone to zone and fixed zone pricing no longer save empty from the classic editor
+7. Extra service issue fixed
+8. Driver added to taxi
+9. Documentation links corrected
+10. Tested up to WordPress 7.0
+
+= 2.0.4 =
+1. Booking Mode added to choose how payments are processed
+2. Location to location and many to many operation area pricing added
+3. Extra stops added, with their own price
+4. Bookings list added to the free version
+5. Payment status checker with admin notices when no payment method is available
+6. Book Now now reflects real booking availability
+7. Hidden WooCommerce product is recreated automatically when it goes missing
+8. Geo-fence surcharge session bleed fixed
+9. Manual price display issue fixed
+10. Admin UX modernised and PHP session warnings removed
+
+= 2.0.3 =
+1. Transportation editor and Transportation list redesigned
+2. Operation area based pricing added, including zone to zone and fixed zone
+3. Manual location pricing added, with sortable pricing rows
+4. Peak Hour and Distance Tier pricing addons redesigned
+5. Customer reviews added, shown after order completion and subject to admin approval
+6. Availability by stock added, with the reason shown in search results
+7. WooCommerce installer made memory safe and demo import now asks first
+8. Unauthenticated price manipulation in add to cart fixed
+9. Duplicate taxi booking issue fixed
+10. Duplicate OpenStreetMap autocomplete requests fixed
+11. Google Maps polygon creation issue fixed
+12. Time slot removal issue fixed
+13. Pro-only features now correctly hidden in the free version
+
 = 2.0.2 =
 1. Taxi duplication issue fixed
 2. Hidden product issue fixed

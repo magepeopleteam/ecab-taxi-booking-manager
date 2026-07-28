@@ -33,13 +33,20 @@
 
 			/**
 			 * Option (shared with MPTBM_Payment_Settings::OPTION) that stores the
-			 * PayPal/Stripe/Offline "Custom Payment" toggles. Their enable UI only
-			 * renders when the Pro plugin is active (see
-			 * Admin/settings/MPTBM_Payment_Settings.php:466-584), so today this
-			 * option - not a Pro-side API - is the actual source of truth for
-			 * "Pro custom payment methods enabled". Read directly rather than via
+			 * PayPal/Stripe/Offline "Custom Payment" toggles, which are what the
+			 * standalone (non-WooCommerce) checkout consumes - so today this option,
+			 * not a Pro-side API, is the actual source of truth for "custom payment
+			 * methods enabled". Read directly rather than via
 			 * MPTBM_Payment_Settings::OPTION so this class doesn't depend on that
 			 * file having loaded first.
+			 *
+			 * Note: PayPal/Stripe configuration is Pro-only, while Offline is
+			 * configurable in the free plugin (see
+			 * MPTBM_Function::offline_payment_enabled()). The counts below are still
+			 * gated on the Pro plugin because only Pro ships the standalone checkout
+			 * that can actually turn an enabled toggle into a completed booking - an
+			 * Offline toggle with nothing to consume it must not silence the
+			 * "no payment method" notice.
 			 */
 			const CUSTOM_PAYMENT_OPTION = 'mptbm_payment_settings';
 
@@ -109,16 +116,25 @@
 			}
 
 			/**
-			 * Number of currently enabled Pro plugin custom payment methods.
-			 * Always 0 when the Pro plugin is not installed/active, since the
-			 * toggles in CUSTOM_PAYMENT_OPTION can only be switched on through
-			 * UI that itself requires the Pro plugin.
+			 * Number of currently enabled custom (non-WooCommerce) payment methods that
+			 * can really complete a booking right now.
+			 *
+			 * Offline counts in the free plugin - MPTBM_Offline_Checkout handles it without
+			 * WooCommerce or Pro. PayPal/Stripe only count when Pro is active, since their
+			 * gateways (and the hosted-checkout return handling) ship with Pro; counting a
+			 * toggle nothing can consume would wrongly silence the payment-setup notice.
+			 *
+			 * Name kept for backward compatibility with existing callers/integrations.
 			 */
 			public static function get_enabled_pro_payment_method_count(): int {
 				$count = 0;
 
+				if (class_exists('MPTBM_Function') && MPTBM_Function::offline_payment_enabled()) {
+					$count++;
+				}
+
 				if (class_exists('MPTBM_Plugin_Pro')) {
-					$count += self::count_enabled_custom_payment_toggles();
+					$count += self::count_enabled_custom_payment_toggles(array('mptbm_paypal_enable', 'mptbm_stripe_enable'));
 				}
 
 				$filtered = apply_filters(self::PRO_PAYMENT_METHODS_FILTER, 0);
@@ -128,17 +144,20 @@
 			}
 
 			/**
-			 * How many of the paypal/stripe/offline toggles in CUSTOM_PAYMENT_OPTION
-			 * are currently set to 'on'.
+			 * How many of the given enable-toggles in CUSTOM_PAYMENT_OPTION are set to 'on'.
+			 *
+			 * @param array $keys Subset of CUSTOM_PAYMENT_ENABLE_KEYS to count; all of them when empty.
 			 */
-			private static function count_enabled_custom_payment_toggles(): int {
+			private static function count_enabled_custom_payment_toggles(array $keys = array()): int {
 				$options = get_option(self::CUSTOM_PAYMENT_OPTION, array());
 				if (!is_array($options)) {
 					return 0;
 				}
 
+				$keys = $keys ?: self::CUSTOM_PAYMENT_ENABLE_KEYS;
+
 				$count = 0;
-				foreach (self::CUSTOM_PAYMENT_ENABLE_KEYS as $key) {
+				foreach ($keys as $key) {
 					if (isset($options[$key]) && $options[$key] === 'on') {
 						$count++;
 					}

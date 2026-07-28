@@ -27,17 +27,78 @@
 				if (!$this->should_show_notice()) {
 					return;
 				}
+				$this->print_styles_once();
+
+				$payments_url = admin_url('edit.php?post_type=' . MPTBM_Function::get_cpt() . '&page=mptbm_settings_page&mptbm_tab=payments');
 				?>
-				<div class="notice notice-warning is-dismissible">
-					<p>
-						<strong><?php esc_html_e('E-cab Taxi Booking Manager', 'ecab-taxi-booking-manager'); ?>:</strong>
-						<?php echo esc_html($this->get_notice_message()); ?>
-					</p>
-					<?php $links = $this->get_action_links(); ?>
-					<?php if (!empty($links)) : ?>
-						<p><?php echo wp_kses_post(implode(' &nbsp;|&nbsp; ', $links)); ?></p>
-					<?php endif; ?>
+				<div class="notice is-dismissible mptbm-pay-notice">
+					<div class="mptbm-pn-inner">
+						<span class="mptbm-pn-icon" aria-hidden="true">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>
+						</span>
+						<div class="mptbm-pn-body">
+							<div class="mptbm-pn-title">
+								<?php esc_html_e('E-cab Taxi Booking Manager — payment setup needed', 'ecab-taxi-booking-manager'); ?>
+							</div>
+							<p class="mptbm-pn-text"><?php echo esc_html($this->get_notice_message()); ?></p>
+
+							<div class="mptbm-pn-actions">
+								<a class="mptbm-pn-btn mptbm-pn-btn-primary" href="<?php echo esc_url($payments_url); ?>">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+									<?php esc_html_e('Go to Payment Settings', 'ecab-taxi-booking-manager'); ?>
+								</a>
+
+								<?php // Key the hint off the mode that is actually processing bookings, so it
+									// never tells an admin to fix the flow they aren't using. ?>
+								<span class="mptbm-pn-hint"><?php echo esc_html($this->get_action_hint()); ?></span>
+							</div>
+
+							<?php // The Pro pitch lives in its own notice (MPTBM_Pro_Features_Notice) so it
+								// isn't tied to - and doesn't disappear with - a payment misconfiguration. ?>
+						</div>
+					</div>
 				</div>
+				<?php
+			}
+
+			/** Scoped CSS for the modern notice, printed at most once per request. */
+			private function print_styles_once(): void {
+				static $printed = false;
+				if ($printed) {
+					return;
+				}
+				$printed = true;
+				?>
+				<style>
+				.mptbm-pay-notice{
+					border:1px solid #e9d7bd !important;border-left:4px solid #f59e0b !important;
+					border-radius:12px !important;background:#fff !important;padding:0 !important;
+					margin:16px 20px 14px 0 !important;box-shadow:0 4px 16px rgba(16,24,40,.07) !important;overflow:hidden;
+				}
+				.mptbm-pn-inner{display:flex;gap:14px;align-items:flex-start;padding:16px 40px 16px 18px;
+					font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,sans-serif;}
+				.mptbm-pn-icon{flex:0 0 auto;width:40px;height:40px;border-radius:11px;
+					background:linear-gradient(135deg,#fff7ed,#ffedd5);color:#d97706;border:1px solid #fed7aa;
+					display:flex;align-items:center;justify-content:center;}
+				.mptbm-pn-icon svg{width:20px;height:20px;display:block;}
+				.mptbm-pn-body{flex:1;min-width:0;}
+				.mptbm-pn-title{font-size:14px;font-weight:700;color:#1e293b;margin:1px 0 4px;line-height:1.3;}
+				.mptbm-pn-text{font-size:13px;color:#50575e;margin:0 0 12px;line-height:1.55;max-width:840px;}
+				.mptbm-pn-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;}
+				.mptbm-pn-btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 16px;border-radius:8px;
+					font-size:13px;font-weight:600;text-decoration:none;line-height:1;box-sizing:border-box;
+					cursor:pointer;transition:all .18s ease;}
+				.mptbm-pn-btn svg{width:15px;height:15px;display:block;}
+				.mptbm-pn-btn-primary{background:#4f46e5;color:#fff !important;border:1px solid #4f46e5;
+					box-shadow:0 1px 3px rgba(79,70,229,.3);}
+				.mptbm-pn-btn-primary:hover{background:#4338ca;border-color:#4338ca;transform:translateY(-1px);
+					box-shadow:0 4px 10px rgba(79,70,229,.32);color:#fff !important;}
+				.mptbm-pn-hint{font-size:12px;color:#64748b;}
+				@media (max-width:782px){
+					.mptbm-pay-notice{margin-right:10px !important;}
+					.mptbm-pn-inner{padding-right:34px;}
+				}
+				</style>
 				<?php
 			}
 
@@ -49,10 +110,11 @@
 					return false;
 				}
 
-				if (class_exists('MPTBM_Booking_Mode') && MPTBM_Booking_Mode::needs_selection()) {
-					return true;
-				}
-
+				// Only a real blocker belongs in a site-wide alarm notice: no payment method
+				// for the flow that is actually processing bookings. An unconfirmed Booking
+				// Mode is NOT a blocker - get_mode() always resolves to a working flow - so
+				// asking for that choice stays as the inline nudge on the Payments screen,
+				// right next to the selector, instead of nagging across wp-admin.
 				return class_exists('MPTBM_Booking_Mode')
 					? !MPTBM_Booking_Mode::has_gateway_for_active_mode()
 					: !MPTBM_Payment_Status_Checker::has_available_payment_method();
@@ -66,22 +128,31 @@
 			 */
 			private function get_notice_message(): string {
 				if (!class_exists('MPTBM_Booking_Mode')) {
-					return __('No payment method is currently available. Customers will not be able to complete bookings until at least one payment method is enabled.', 'ecab-taxi-booking-manager');
-				}
-
-				if (MPTBM_Booking_Mode::needs_selection()) {
-					return __('A Booking Mode hasn\'t been chosen yet (WooCommerce or Custom Payment). Choose one in Payments settings so bookings have a single, deterministic checkout path.', 'ecab-taxi-booking-manager');
+					return __('No payment method is set up yet, so customers can\'t complete a booking. Activate WooCommerce or enable a Custom Payment method in Payment Settings to start taking bookings.', 'ecab-taxi-booking-manager');
 				}
 
 				if ('none' === MPTBM_Booking_Mode::availability()) {
-					return __('No payment method is currently available. Customers will not be able to complete bookings until at least one payment method is enabled.', 'ecab-taxi-booking-manager');
+					return __('No payment method is set up yet, so customers can\'t complete a booking. Activate WooCommerce or enable a Custom Payment method in Payment Settings to start taking bookings.', 'ecab-taxi-booking-manager');
 				}
 
 				if (MPTBM_Booking_Mode::is_woocommerce()) {
-					return __('Booking Mode is set to WooCommerce, but no WooCommerce payment gateway is enabled. Customers will not be able to complete a booking until one is enabled.', 'ecab-taxi-booking-manager');
+					return __('Booking Mode is set to WooCommerce, but no WooCommerce payment gateway is enabled yet. Enable one in Payment Settings so customers can complete a booking.', 'ecab-taxi-booking-manager');
 				}
 
-				return __('Booking Mode is set to Custom Payment, but no gateway (PayPal, Stripe, or Offline) is enabled. Customers will not be able to complete a booking until one is enabled.', 'ecab-taxi-booking-manager');
+				return __('Booking Mode is set to Custom Payment, but no gateway (PayPal, Stripe, or Offline) is enabled yet. Enable one in Payment Settings so customers can complete a booking.', 'ecab-taxi-booking-manager');
+			}
+
+			/** Short call-to-action next to the button, matching the active Booking Mode. */
+			private function get_action_hint(): string {
+				if (!class_exists('MPTBM_Booking_Mode') || 'none' === MPTBM_Booking_Mode::availability()) {
+					return __('Activate WooCommerce or enable Offline Payment there.', 'ecab-taxi-booking-manager');
+				}
+
+				if (MPTBM_Booking_Mode::is_woocommerce()) {
+					return __('Enable a WooCommerce gateway there.', 'ecab-taxi-booking-manager');
+				}
+
+				return __('Enable a Custom Payment method there.', 'ecab-taxi-booking-manager');
 			}
 
 			/**
@@ -102,40 +173,6 @@
 				);
 			}
 
-			/**
-			 * Contextual action links: only offer to configure the providers that
-			 * are actually present, and offer an upgrade link when Pro is missing.
-			 *
-			 * @return string[]
-			 */
-			private function get_action_links(): array {
-				$links = array();
-				$settings_url = admin_url('edit.php?post_type=' . MPTBM_Function::get_cpt() . '&page=mptbm_settings_page');
-
-				if (MPTBM_Function::is_wc_active()) {
-					$links[] = sprintf(
-						'<a href="%1$s">%2$s</a>',
-						esc_url($settings_url),
-						esc_html__('Configure WooCommerce Payments', 'ecab-taxi-booking-manager')
-					);
-				}
-
-				if (class_exists('MPTBM_Plugin_Pro')) {
-					$links[] = sprintf(
-						'<a href="%1$s">%2$s</a>',
-						esc_url($settings_url),
-						esc_html__('Configure Pro Payment Methods', 'ecab-taxi-booking-manager')
-					);
-				} else {
-					$links[] = sprintf(
-						'<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
-						esc_url('https://mage-people.com/'),
-						esc_html__('Upgrade to Pro', 'ecab-taxi-booking-manager')
-					);
-				}
-
-				return $links;
-			}
 		}
 		new MPTBM_Payment_Notice();
 	}

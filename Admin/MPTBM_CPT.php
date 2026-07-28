@@ -181,6 +181,22 @@ if (!class_exists('MPTBM_CPT')) {
 
 		public function add_cpt(): void
 		{
+			$management_capabilities = array(
+				'edit_post'              => 'manage_mptbm_transportation',
+				'read_post'              => 'read',
+				'delete_post'            => 'manage_mptbm_transportation',
+				'edit_posts'             => 'manage_mptbm_transportation',
+				'edit_others_posts'      => 'manage_mptbm_transportation',
+				'publish_posts'          => 'manage_mptbm_transportation',
+				'read_private_posts'     => 'manage_mptbm_transportation',
+				'delete_posts'           => 'manage_mptbm_transportation',
+				'delete_private_posts'   => 'manage_mptbm_transportation',
+				'delete_published_posts' => 'manage_mptbm_transportation',
+				'delete_others_posts'    => 'manage_mptbm_transportation',
+				'edit_private_posts'     => 'manage_mptbm_transportation',
+				'edit_published_posts'   => 'manage_mptbm_transportation',
+				'create_posts'           => 'manage_mptbm_transportation',
+			);
 			$cpt = MPTBM_Function::get_cpt();
 			$label = MPTBM_Function::get_name();
 			$slug = MPTBM_Function::get_slug();
@@ -220,7 +236,8 @@ if (!class_exists('MPTBM_CPT')) {
 				'menu_icon' => $icon,
 				'supports' => ['title', 'thumbnail'],
 				'show_in_rest' => true,
-				'capability_type' => 'post',
+				'capabilities' => $management_capabilities,
+				'map_meta_cap' => false,
 				'publicly_queryable' => true,  // you should be able to query it
 				'show_ui' => true,  // you should be able to edit it in wp-admin
 				'exclude_from_search' => true,  // you should exclude it from search results
@@ -229,12 +246,35 @@ if (!class_exists('MPTBM_CPT')) {
 				'rewrite' => ['slug' => $slug],
 			];
 			register_post_type($cpt, $args);
+			register_post_type('mptbm_booking', array(
+				'label'              => esc_html__('Taxi Bookings', 'ecab-taxi-booking-manager'),
+				'public'             => false,
+				'publicly_queryable' => false,
+				'show_ui'            => false,
+				'show_in_rest'       => false,
+				'exclude_from_search'=> true,
+				'supports'           => array('title'),
+				'capabilities'       => $management_capabilities,
+				'map_meta_cap'       => false,
+			));
+			register_post_type('mptbm_service_book', array(
+				'label'               => esc_html__('Taxi Extra-service Bookings', 'ecab-taxi-booking-manager'),
+				'public'              => false,
+				'publicly_queryable'  => false,
+				'show_ui'             => false,
+				'show_in_rest'        => false,
+				'exclude_from_search' => true,
+				'supports'            => array('title'),
+				'capabilities'        => $management_capabilities,
+				'map_meta_cap'        => false,
+			));
 			$ex_args = array(
 				'public' => false,
 				'label' => esc_html__('Extra Services', 'ecab-taxi-booking-manager'),
 				'supports' => array('title'),
 				'show_in_menu' => 'edit.php?post_type=' . $cpt,
-				'capability_type' => 'post',
+				'capabilities' => $management_capabilities,
+				'map_meta_cap' => false,
 				'publicly_queryable' => true,  // you should be able to query it
 				'show_ui' => true,  // you should be able to edit it in wp-admin
 				'exclude_from_search' => true,  // you should exclude it from search results
@@ -248,7 +288,8 @@ if (!class_exists('MPTBM_CPT')) {
 				'label' => esc_html__('Operation Areas', 'ecab-taxi-booking-manager'),
 				'supports' => array('title'),
 				'show_in_menu' => 'edit.php?post_type=' . $cpt,
-				'capability_type' => 'post',
+				'capabilities' => $management_capabilities,
+				'map_meta_cap' => false,
 				'publicly_queryable' => true,  // you should be able to query it
 				'show_ui' => true,  // you should be able to edit it in wp-admin
 				'exclude_from_search' => true,  // you should exclude it from search results
@@ -278,6 +319,12 @@ if (!class_exists('MPTBM_CPT')) {
 				'query_var' => true,
 				'rewrite' => array('slug' => 'locations'),  // Adjust the slug as needed
 				'meta_box_cb' => false,
+				'capabilities' => array(
+					'manage_terms' => 'manage_mptbm_transportation',
+					'edit_terms'   => 'manage_mptbm_transportation',
+					'delete_terms' => 'manage_mptbm_transportation',
+					'assign_terms' => 'manage_mptbm_transportation',
+				),
 			);
 
 			$service_status_labels = array(

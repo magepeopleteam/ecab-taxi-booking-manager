@@ -1,66 +1,106 @@
 /**
- * MPTBM demo-data importer popup.
+ * MPTBM demo-data importer — bottom-right circular progress widget.
  *
- * Uses delegated event binding (on `document`) so the handlers work no matter
- * when the popup markup appears or whether the page re-renders its DOM, and is
- * loaded as an enqueued script with a jQuery dependency. Nonces/strings come in
- * via wp_localize_script as `mptbm_demo_import`.
+ * On a fresh install with no transports yet, the widget auto-starts the demo
+ * import and shows a modern radial progress ring. No blocking modal and no
+ * confirmation step. Nonces/strings arrive via wp_localize_script as
+ * `mptbm_demo_import`. Delegated handlers keep retry/close working regardless
+ * of when the markup lands in the DOM.
  */
 (function ($) {
 	'use strict';
 
-	var config  = window.mptbm_demo_import || {};
-	var working = false;
+	var config   = window.mptbm_demo_import || {};
+	var i18n     = config.i18n || {};
+	var working  = false;
+	var creep    = null;
+	var progress = 0;
 
-	// Helps confirm in the console that this file actually loaded/ran.
-	if (window.console && console.log) {
-		console.log('[MPTBM] demo-import script loaded');
+	function byId(id) {
+		return document.getElementById(id);
 	}
 
-	function showError($overlay, message) {
-		var $popup    = $overlay.find('.mptbm-inst-popup');
-		var $progress = $('#mptbm-demo-progress');
-		var $fill     = $('#mptbm-demo-progress-fill');
-		var $status   = $('#mptbm-demo-status-text');
-		var $actions  = $overlay.find('.mptbm-inst-actions');
+	// Circumference of the progress arc, derived from its actual radius so the
+	// dash math stays correct even if the SVG geometry is tweaked later.
+	function ringCircumference() {
+		var arc = byId('mptbm-dw-arc');
+		var r   = arc ? (parseFloat(arc.getAttribute('r')) || 34) : 34;
+		return 2 * Math.PI * r;
+	}
 
+	function setProgress(p) {
+		p = Math.max(0, Math.min(1, p));
+		progress = p;
+		var arc = byId('mptbm-dw-arc');
+		var pct = byId('mptbm-dw-pct');
+		var c   = ringCircumference();
+		if (arc) { arc.style.strokeDashoffset = String(c * (1 - p)); }
+		if (pct) { pct.textContent = Math.round(p * 100) + '%'; }
+	}
+
+	function setStatus(text) {
+		var el = byId('mptbm-dw-status');
+		if (el && text) { el.textContent = text; }
+	}
+
+	// Decelerating creep toward 90% while the request is in flight — the import
+	// is a single server round-trip, so we simulate smooth forward motion and
+	// snap to 100% only once it truly completes.
+	function startCreep() {
+		stopCreep();
+		creep = window.setInterval(function () {
+			if (progress < 0.9) {
+				setProgress(progress + (0.9 - progress) * 0.06);
+			}
+			if (progress > 0.35 && progress < 0.75) {
+				setStatus(i18n.importing);
+			} else if (progress >= 0.75) {
+				setStatus(i18n.finishing);
+			}
+		}, 200);
+	}
+
+	function stopCreep() {
+		if (creep) { window.clearInterval(creep); creep = null; }
+	}
+
+	function showSuccess() {
+		stopCreep();
+		var widget = byId('mptbm-demo-widget');
+		var title  = byId('mptbm-dw-title');
+		if (widget) { widget.classList.remove('is-error'); widget.classList.add('is-success'); }
+		setProgress(1);
+		if (title) { title.textContent = i18n.success_title || 'All set!'; }
+		setStatus(i18n.success);
+		window.setTimeout(function () { window.location.reload(); }, 1400);
+	}
+
+	function showError() {
 		working = false;
-		$popup.addClass('mptbm-state-error');
-		$status.text(message).addClass('mptbm-error');
-		$fill.css('width', '100%');
-		$('#mptbm-demo-import-btn, #mptbm-demo-dismiss-btn').prop('disabled', false);
-		$actions.slideDown(250);
-		setTimeout(function () {
-			$popup.removeClass('mptbm-state-error');
-			$progress.slideUp(250);
-			$fill.css('width', '0%');
-		}, 3500);
+		stopCreep();
+		var widget = byId('mptbm-demo-widget');
+		var title  = byId('mptbm-dw-title');
+		var retry  = byId('mptbm-dw-retry');
+		var close  = byId('mptbm-dw-close');
+		if (widget) { widget.classList.remove('is-success'); widget.classList.add('is-error'); }
+		if (title) { title.textContent = i18n.error_title || 'Import failed'; }
+		setStatus(i18n.error);
+		if (retry) { retry.style.display = 'inline-flex'; }
+		if (close) { close.style.display = 'flex'; }
 	}
 
-	// Open from anywhere via a trigger element.
-	$(document).on('click', '#mptbm-trigger-demo-import', function (e) {
-		e.preventDefault();
-		$('#mptbm-demo-overlay').css('display', 'flex');
-	});
-
-	// Import.
-	$(document).on('click', '#mptbm-demo-import-btn', function (e) {
-		e.preventDefault();
+	function runImport() {
 		if (working) { return; }
 		working = true;
 
-		var $overlay  = $('#mptbm-demo-overlay');
-		var $popup    = $overlay.find('.mptbm-inst-popup');
-		var $progress = $('#mptbm-demo-progress');
-		var $fill     = $('#mptbm-demo-progress-fill');
-		var $status   = $('#mptbm-demo-status-text');
-		var $actions  = $overlay.find('.mptbm-inst-actions');
+		var widget = byId('mptbm-demo-widget');
+		var retry  = byId('mptbm-dw-retry');
+		if (widget) { widget.classList.remove('is-error', 'is-success'); }
+		if (retry) { retry.style.display = 'none'; }
 
-		$('#mptbm-demo-import-btn, #mptbm-demo-dismiss-btn').prop('disabled', true);
-		$actions.slideUp(250);
-		$progress.slideDown(300);
-		$fill.css('width', '55%');
-		$status.text((config.i18n && config.i18n.importing) || 'Importing...').removeClass('mptbm-success mptbm-error');
+		setProgress(0.08);
+		setStatus(i18n.preparing);
+		startCreep();
 
 		$.ajax({
 			url: (config.ajax_url || window.ajaxurl),
@@ -72,40 +112,45 @@
 			}
 		}).done(function (response) {
 			if (response && response.success) {
-				$fill.css('width', '100%');
-				$popup.addClass('mptbm-state-success');
-				$status.text((config.i18n && config.i18n.success) || 'Done!').addClass('mptbm-success');
-				$popup.find('.mptbm-inst-icon').html('<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
-				$popup.find('.mptbm-inst-title').text((config.i18n && config.i18n.success_title) || 'All set!');
-				setTimeout(function () { window.location.reload(); }, 1500);
+				showSuccess();
 			} else {
-				showError($overlay, (response && response.data && response.data.message) ? response.data.message : ((config.i18n && config.i18n.error) || 'Import failed.'));
+				showError();
 			}
 		}).fail(function (xhr) {
 			if (window.console && console.error) {
-				console.error('[MPTBM] demo import AJAX failed', xhr && xhr.status, xhr && xhr.responseText);
+				console.error('[MPTBM] demo import failed', xhr && xhr.status, xhr && xhr.responseText);
 			}
-			showError($overlay, (config.i18n && config.i18n.error) || 'Import failed.');
+			showError();
 		});
+	}
+
+	$(function () {
+		var widget = byId('mptbm-demo-widget');
+		if (!widget) { return; }
+
+		// Prime the ring so the stroke animates up from empty rather than
+		// flashing full on first paint.
+		var arc = byId('mptbm-dw-arc');
+		if (arc) {
+			var c = ringCircumference();
+			arc.style.strokeDasharray  = String(c);
+			arc.style.strokeDashoffset = String(c);
+		}
+
+		// Let the slide-in read before the ring starts moving.
+		window.setTimeout(runImport, 650);
 	});
 
-	// Dismiss.
-	$(document).on('click', '#mptbm-demo-dismiss-btn', function (e) {
+	$(document).on('click', '#mptbm-dw-retry', function (e) {
 		e.preventDefault();
-		if (working) { return; }
-		working = true;
-		var $overlay = $('#mptbm-demo-overlay');
-		$overlay.css('opacity', '0.5');
-		$.ajax({
-			url: (config.ajax_url || window.ajaxurl),
-			type: 'POST',
-			data: {
-				action: 'mptbm_dismiss_dummy_import',
-				nonce:  config.dismiss_nonce
-			}
-		}).always(function () {
-			$overlay.fadeOut(300, function () { $(this).remove(); });
-		});
+		runImport();
+	});
+
+	$(document).on('click', '#mptbm-dw-close', function (e) {
+		e.preventDefault();
+		var $w = $('#mptbm-demo-widget');
+		$w.addClass('is-hiding');
+		window.setTimeout(function () { $w.remove(); }, 300);
 	});
 
 })(jQuery);

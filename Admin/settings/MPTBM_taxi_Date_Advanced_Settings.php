@@ -12,6 +12,34 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
         public function __construct(){
     //        add_action('mptbm_date_and_advanced_settings', [ $this, 'mptbm_date_and_advanced_settings'], 10, 1 );
             add_action('mptbm_date_and_advanced_settings', [$this, 'date_settings'], 10, 1);
+            add_action('wp_ajax_mptbm_get_driver_info', [$this, 'ajax_get_driver_info']);
+        }
+
+        public function ajax_get_driver_info()
+        {
+            check_ajax_referer('mptbm_transportation_type_nonce', 'nonce');
+
+            if (!current_user_can('edit_posts')) {
+                wp_send_json_error(array('message' => esc_html__('You do not have permission to do this.', 'ecab-taxi-booking-manager')));
+            }
+
+            $driver_id = isset($_POST['driver_id']) ? absint($_POST['driver_id']) : 0;
+
+            if (!$driver_id) {
+                wp_send_json_error(array('message' => esc_html__('No driver selected.', 'ecab-taxi-booking-manager')));
+            }
+
+            $user = get_user_by('ID', $driver_id);
+
+            if (!$user || !in_array('mptbm_driver_role', (array) $user->roles, true)) {
+                wp_send_json_error(array('message' => esc_html__('Driver not found.', 'ecab-taxi-booking-manager')));
+            }
+
+            wp_send_json_success(array(
+                'name'     => $user->display_name,
+                'username' => $user->user_login,
+                'email'    => $user->user_email,
+            ));
         }
 
 
@@ -270,25 +298,21 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                                 <?php endif; ?>
                             </div>
 
-                            <?php if (!empty($selected_driver)): ?>
-                                <?php $user = get_user_by('ID', $selected_driver); ?>
-                                <?php if ($user): ?>
-                                <div class="mptbm_taxi_advanced_driver_info_box">
-                                    <div class="mptbm_taxi_advanced_info_col">
-                                        <label><?php esc_html_e("DRIVER'S NAME", 'mptbm_plugin_pro'); ?></label>
-                                        <p><?php echo esc_html($user->display_name); ?></p>
-                                    </div>
-                                    <div class="mptbm_taxi_advanced_info_col">
-                                        <label><?php esc_html_e('USERNAME', 'mptbm_plugin_pro'); ?></label>
-                                        <p><?php echo esc_html($user->user_login); ?></p>
-                                    </div>
-                                    <div class="mptbm_taxi_advanced_info_col">
-                                        <label><?php esc_html_e('EMAIL', 'mptbm_plugin_pro'); ?></label>
-                                        <p><?php echo esc_html($user->user_email); ?></p>
-                                    </div>
+                            <?php $driver_user = !empty($selected_driver) ? get_user_by('ID', $selected_driver) : false; ?>
+                            <div class="mptbm_taxi_advanced_driver_info_box" style="<?php echo esc_attr($driver_user ? '' : 'display:none;'); ?>">
+                                <div class="mptbm_taxi_advanced_info_col">
+                                    <label><?php esc_html_e("DRIVER'S NAME", 'mptbm_plugin_pro'); ?></label>
+                                    <p><?php echo esc_html($driver_user ? $driver_user->display_name : ''); ?></p>
                                 </div>
-                                <?php endif; ?>
-                            <?php endif; ?>
+                                <div class="mptbm_taxi_advanced_info_col">
+                                    <label><?php esc_html_e('USERNAME', 'mptbm_plugin_pro'); ?></label>
+                                    <p><?php echo esc_html($driver_user ? $driver_user->user_login : ''); ?></p>
+                                </div>
+                                <div class="mptbm_taxi_advanced_info_col">
+                                    <label><?php esc_html_e('EMAIL', 'mptbm_plugin_pro'); ?></label>
+                                    <p><?php echo esc_html($driver_user ? $driver_user->user_email : ''); ?></p>
+                                </div>
+                            </div>
 
                         <?php else: ?>
 
