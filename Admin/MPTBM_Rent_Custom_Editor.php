@@ -146,6 +146,17 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         MPTBM_Tax_Settings::tab_content( $post_id );
                         ?>
                     </div>
+                    <div class="mptbm-panel-row-nav" id="mptbm-panel-row-nav">
+                        <span class="mptbm-panel-row-nav__step" id="mptbm-panel-row-nav-step"></span>
+                        <div class="mptbm-panel-row-nav__btns">
+                            <button type="button" class="mptbm-btn mptbm-btn-secondary mptbm-panel-row-nav__prev" id="mptbm-panel-row-prev">
+                                <i class="fas fa-arrow-left"></i> <?php esc_html_e( 'Previous', 'ecab-taxi-booking-manager' ); ?>
+                            </button>
+                            <button type="button" class="mptbm-btn mptbm-btn-primary mptbm-panel-row-nav__next" id="mptbm-panel-row-next">
+                                <?php esc_html_e( 'Next', 'ecab-taxi-booking-manager' ); ?> <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>

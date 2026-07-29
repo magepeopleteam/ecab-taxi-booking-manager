@@ -598,8 +598,8 @@
                                     </div>
                                 </div>`;
 
-                // $('#mptbm_taxi_operation_araea_pricing_group').fadeIn();
-                mptbm_make_check_uncheck_operation_area(1);
+                // $('#mptbm_taxi_operation_araea_pricing_group').fadeOut();
+                mptbm_make_check_uncheck_operation_area(0);
 
             }
             else if(clicked_tab_id === 'mptbm_distance' ){

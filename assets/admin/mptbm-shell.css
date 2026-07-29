@@ -657,16 +657,89 @@ body.mptbm-admin.post-type-mptbm_rent #postdivrich {
     flex-wrap: wrap;
 }
 #mptbm_rent_settings_panel .mptbm-panel-row > .tabsContent {
+    order: 1;
     flex: 1 1 640px;
     min-width: 0;
     padding: 0;
     overflow: visible;
 }
 .mptbm-tabs-sidebar {
+    order: 2;
     flex: 0 0 300px;
     margin-top: 0;
     position: sticky;
     top: calc(var(--mp-shell-topbar-height) + 20px);
+}
+
+/* ---- Floating Previous/Next tab-step bar. `order: 3` (rather than
+   relying on DOM position) so it stays visually last regardless of
+   whether mptbm-shell.js has appended .mptbm-tabs-sidebar yet — that
+   append happens after this bar is already in the markup, which would
+   otherwise put it between the two columns instead of below them. ---- */
+.mptbm-panel-row-nav {
+    order: 3;
+    flex: 1 1 100%;
+    position: sticky;
+    bottom: 20px;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--mp-white, #fff);
+    border: 1px solid var(--mp-border, #e2e8f0);
+    border-radius: var(--mp-r-lg, 14px);
+    box-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.08);
+    padding: 12px 18px;
+    z-index: 5;
+}
+.mptbm-panel-row-nav__step {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--mp-text-500, #64748b);
+}
+/* Absolutely centered on the bar itself (not the flex row alongside the
+   step label) so Previous/Next stay dead-center regardless of how long
+   the step label text is — .mptbm-panel-row-nav's own `position: sticky`
+   already acts as the containing block for this. */
+.mptbm-panel-row-nav__btns {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.mptbm-panel-row-nav .mptbm-btn {
+    padding: 8px 16px;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.mptbm-btn-primary {
+    background: var(--mp-primary, #4f46e5);
+    border: 1px solid var(--mp-primary, #4f46e5);
+    color: #fff;
+}
+.mptbm-btn-primary:hover {
+    background: var(--mp-primary-hover, #3730a3);
+    border-color: var(--mp-primary-hover, #3730a3);
+}
+/* Same visual weight as .mptbm-btn-primary (solid fill, not a thin
+   outline) so Previous doesn't read as an afterthought next to Next —
+   just a neutral dark tone instead of the primary brand color. */
+.mptbm-btn-secondary {
+    background: var(--mp-text-700, #334155);
+    border: 1px solid var(--mp-text-700, #334155);
+    color: #fff;
+}
+.mptbm-btn-secondary:hover {
+    background: var(--mp-text-800, #1e293b);
+    border-color: var(--mp-text-800, #1e293b);
+}
+.mptbm-panel-row-nav__prev.is-disabled,
+.mptbm-panel-row-nav__next.is-disabled {
+    opacity: .4;
+    pointer-events: none;
 }
 
 /* ---- Featured image dropzone (relabeled by mptbm-shell.js) ---- */

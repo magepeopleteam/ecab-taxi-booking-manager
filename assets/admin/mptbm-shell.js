@@ -153,6 +153,26 @@
 			insideObserver.observe($inside[0], { childList: true });
 		}
 
+		// Pricing Rules / Shortcode Usage Guide card — lives inside the
+		// "Pricing" tab's markup (MPTBM_Rent_Custom_Editor::pricing_settings())
+		// and documents the rules/shortcode for whichever pricing model is
+		// currently selected there, so unlike the featured image/category/
+		// quick-tips cards it should NOT be visible on every tab — only
+		// while Pricing itself is active. Relocated here (directly after the
+		// featured image, before Categories/Tags) purely for layout; visibility
+		// is kept in sync with the active tab below since mp_script.js's tab
+		// switcher only shows/hides its own .tabsContent children, and this
+		// card no longer lives there.
+		var $pricingRulesBox = $('.mptbm_pricing_rules_wrapper');
+		if ($pricingRulesBox.length) {
+			$pricingRulesBox.hide();
+			$sidebar.append($pricingRulesBox);
+
+			$(document).on('click', '#mptbm_rent_settings_panel .mpStyle [data-tabs-target]', function () {
+				$pricingRulesBox.toggle($(this).data('tabs-target') === '#mptbm_settings_pricing');
+			});
+		}
+
 		// Move the Categories/Tags manager (from the "Transportation
 		// Details" side metabox) to sit directly under the featured image
 		// in this same persistent sidebar — the Pro-upsell card in that
@@ -168,6 +188,49 @@
 		if ($quickTipsBox.length) {
 			$sidebar.append($quickTipsBox);
 		}
+	}
+
+	// Floating Previous/Next bar (bottom of .mptbm-panel-row) — steps
+	// through the same .tabLists items the tab switcher above already
+	// drives, so clicking Next/Previous is equivalent to clicking the
+	// corresponding tab directly. currentTabIndex is tracked in JS rather
+	// than re-derived from the ".active" class on every click, since the
+	// Prev/Next buttons' own handlers would otherwise race mp_script.js's
+	// tab-click handler over which one sets/reads ".active" first.
+	var $tabListItems = $('#mptbm_rent_settings_panel .tabLists [data-tabs-target]');
+	var $navPrev = $('#mptbm-panel-row-prev');
+	var $navNext = $('#mptbm-panel-row-next');
+	var $navStep = $('#mptbm-panel-row-nav-step');
+	if ($tabListItems.length && $navPrev.length && $navNext.length) {
+		var currentTabIndex = -1;
+
+		var updatePanelRowNavFor = function (tabEl) {
+			var idx = $tabListItems.index(tabEl);
+			if (idx < 0) {
+				return;
+			}
+			currentTabIndex = idx;
+			$navPrev.toggleClass('is-disabled', idx === 0);
+			$navNext.toggleClass('is-disabled', idx === $tabListItems.length - 1);
+			$navStep.text(
+				$tabListItems.eq(idx).find('.menu-text').text() + ' (' + (idx + 1) + '/' + $tabListItems.length + ')'
+			);
+		};
+
+		$(document).on('click', '#mptbm_rent_settings_panel .mpStyle [data-tabs-target]', function () {
+			updatePanelRowNavFor(this);
+		});
+
+		$navPrev.on('click', function () {
+			if (currentTabIndex > 0) {
+				$tabListItems.eq(currentTabIndex - 1).trigger('click');
+			}
+		});
+		$navNext.on('click', function () {
+			if (currentTabIndex > -1 && currentTabIndex < $tabListItems.length - 1) {
+				$tabListItems.eq(currentTabIndex + 1).trigger('click');
+			}
+		});
 	}
 
 	// Reveal the panel now that every relocation above is done — see
