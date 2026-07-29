@@ -1277,6 +1277,50 @@
             });
         });
 
+        // Keep each schedule row's "Default / Custom" status in sync while
+        // the admin changes its start and end time.
+        $(document).on('change', '#mptbm_rent_settings_panel .mptbm_schedule_day_row select', function() {
+            const $row = $(this).closest('.mptbm_schedule_day_row');
+            const hasCustomHours = $row.find('select').filter(function() {
+                return $(this).val() !== '';
+            }).length > 0;
+
+            $row.find('.mptbm_schedule_day_state').text(
+                hasCustomHours ? $row.data('custom-label') : $row.data('inherited-label')
+            );
+            $row.find('.mptbm_schedule_status').toggleClass('is-hidden', !hasCustomHours);
+        });
+
+        // Refresh the modern date cards' status labels immediately, without
+        // making the admin save before the interface reflects their choice.
+        $(document).on('change', '#mptbm_date_type', function() {
+            const $badge = $(this).closest('.mptbm_date_config_section').find('.mptbm_date_mode_badge');
+            const isParticular = $(this).val() === 'particular';
+
+            $badge.find('i')
+                .toggleClass('fa-calendar-day', isParticular)
+                .toggleClass('fa-sync-alt', !isParticular);
+            $badge.find('span').text(
+                isParticular ? $badge.data('particular-label') : $badge.data('repeated-label')
+            );
+        });
+
+        $(document).on('change', 'input[name="mptbm_available_for_all_time"]', function() {
+            const $control = $(this).closest('.mptbm_date_toggle_control');
+            $control.find('.mptbm_date_toggle_status').text(
+                this.checked ? $control.data('enabled-label') : $control.data('disabled-label')
+            );
+        });
+
+        $(document).on('change', '.mptbm_off_days_conainer input[type="checkbox"]', function() {
+            const $container = $(this).closest('.mptbm_off_days_conainer');
+            const count = $container.find('input[type="checkbox"]:checked').length;
+            const $counter = $container.closest('.mptbm_off_days_card').find('.mptbm_off_count');
+            const template = count === 1 ? $counter.data('singular') : $counter.data('plural');
+
+            $counter.text(String(template).replace('%d', count));
+        });
+
 
         /*Date And Advanced*/
         /**

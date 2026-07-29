@@ -55,126 +55,187 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
             $repeated_after = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
             $active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 60);
             $available_for_all_time = MP_Global_Function::get_post_info($post_id, 'mptbm_available_for_all_time', 'on');
-            $active = $available_for_all_time == 'off' ? '' : 'mActive';
             $checked = $available_for_all_time == 'off' ? '' : 'checked';
+            $particular_date_lists = (array) MP_Global_Function::get_post_info($post_id, 'mptbm_particular_dates', array());
+            $off_days = MP_Global_Function::get_post_info($post_id, 'mptbm_off_days');
+            $days = MP_Global_Function::week_day();
+            $off_day_array = array_filter(explode(',', $off_days));
+            $off_day_lists = (array) MP_Global_Function::get_post_info($post_id, 'mptbm_off_dates', array());
 
 
             ?>
             <div class="tabsItem mpStyle" data-tabs="#mptbm_settings_date">
 
-                <div class="mptbm_rent_editor_wrapper" >
-                    <div class="mptbm_rent_editor_header">
-                        <h4 class="mptbm_rent_editor_title"><?php esc_html_e('General Date Configuration', 'ecab-taxi-booking-manager'); ?></h4>
-                        <p class="mptbm_rent_editor_subtitle"><?php esc_html_e('Here you can configure advanced abd general date', 'ecab-taxi-booking-manager'); ?></p>
-                    </div>
-                    <div class="mptbm_general_date_config" style="padding: 10px">
-                        <div class="mptbm_taxi_advanced_card">
-                            <div class="mptbm_taxi_advanced_card_header">
-                                <div class="mptbm_taxi_advanced_title_block">
-                                    <h6><?php esc_html_e('Date Type', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></h6>
-                                    <span class="desc"><?php esc_html_e('Specifies the date type: "Repeated" for recurring dates, or "Particular" for a specific date', "ecab-taxi-booking-manager"); ?></span>
-                                </div>
-                                <div class="mptbm_taxi_advanced_toggle">
-                                    <select class="formControl" name="mptbm_date_type" data-collapse-target required>
-                                        <option disabled selected><?php esc_html_e('Please select ...', 'ecab-taxi-booking-manager'); ?></option>
-                                        <option value="particular" data-option-target="#mp_particular" <?php echo esc_attr($date_type == 'particular' ? 'selected' : ''); ?>><?php esc_html_e('Particular', 'ecab-taxi-booking-manager'); ?></option>
-                                        <option value="repeated" data-option-target="#mp_repeated" <?php echo esc_attr($date_type == 'repeated' ? 'selected' : ''); ?>><?php esc_html_e('Repeated', 'ecab-taxi-booking-manager'); ?></option>
-                                    </select>
-                                </div>
-
+                <div class="mptbm_rent_editor_wrapper mptbm_schedule_section mptbm_date_config_section">
+                    <div class="mptbm_rent_editor_header mptbm_schedule_section_header">
+                        <div class="mptbm_schedule_heading">
+                            <span class="mptbm_schedule_heading_icon mptbm_date_config_icon" aria-hidden="true">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                            <div>
+                                <h4 class="mptbm_rent_editor_title"><?php esc_html_e('General Date Configuration', 'ecab-taxi-booking-manager'); ?></h4>
+                                <p class="mptbm_rent_editor_subtitle"><?php esc_html_e('Control when this transportation becomes available and how far ahead customers can book.', 'ecab-taxi-booking-manager'); ?></p>
                             </div>
                         </div>
-                        <div data-collapse="#mp_particular" class="mptbm_taxi_advanced_card <?php echo esc_attr($date_type == 'particular' ? 'mActive' : ''); ?>">
-                            <div class="mptbm_taxi_advanced_card_header">
-                                <div class="mptbm_taxi_advanced_title_block">
-                                    <h6><?php esc_html_e('Particular Dates', 'ecab-taxi-booking-manager'); ?></h6>
-                                    <span class="desc"><?php esc_html_e('Add Particular Dates', 'ecab-taxi-booking-manager'); ?></span>
-                                </div>
+                        <span
+                            class="mptbm_date_mode_badge"
+                            data-particular-label="<?php esc_attr_e('Particular dates', 'ecab-taxi-booking-manager'); ?>"
+                            data-repeated-label="<?php esc_attr_e('Recurring schedule', 'ecab-taxi-booking-manager'); ?>"
+                        >
+                            <i class="<?php echo esc_attr($date_type === 'particular' ? 'fas fa-calendar-day' : 'fas fa-sync-alt'); ?>" aria-hidden="true"></i>
+                            <span><?php echo esc_html($date_type === 'particular' ? __('Particular dates', 'ecab-taxi-booking-manager') : __('Recurring schedule', 'ecab-taxi-booking-manager')); ?></span>
+                        </span>
+                    </div>
 
-                                <div class="mp_settings_area">
-                                    <div class="mp_item_insert mp_sortable_area">
-                                        <?php
-                                        $particular_date_lists = MP_Global_Function::get_post_info($post_id, 'mptbm_particular_dates', array());
-                                        if (sizeof($particular_date_lists)) {
-                                            foreach ($particular_date_lists as $particular_date) {
-                                                if ($particular_date) {
-                                                    $this->particular_date_item('mptbm_particular_dates[]', $particular_date);
-                                                }
+                    <div class="mptbm_date_config_body">
+                        <div class="mptbm_date_type_card">
+                            <div class="mptbm_date_field_intro">
+                                <span class="mptbm_date_field_icon" aria-hidden="true"><i class="fas fa-calendar-check"></i></span>
+                                <div>
+                                    <label for="mptbm_date_type"><?php esc_html_e('Availability Type', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></label>
+                                    <p><?php esc_html_e('Choose recurring availability or publish only selected dates.', 'ecab-taxi-booking-manager'); ?></p>
+                                </div>
+                            </div>
+                            <div class="mptbm_date_select_wrap">
+                                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                                <select id="mptbm_date_type" class="formControl" name="mptbm_date_type" data-collapse-target required>
+                                    <option disabled <?php echo esc_attr(!in_array($date_type, array('particular', 'repeated'), true) ? 'selected' : ''); ?>><?php esc_html_e('Please select ...', 'ecab-taxi-booking-manager'); ?></option>
+                                    <option value="particular" data-option-target="#mp_particular" <?php echo esc_attr($date_type == 'particular' ? 'selected' : ''); ?>><?php esc_html_e('Particular Dates', 'ecab-taxi-booking-manager'); ?></option>
+                                    <option value="repeated" data-option-target="#mp_repeated" <?php echo esc_attr($date_type == 'repeated' ? 'selected' : ''); ?>><?php esc_html_e('Recurring Schedule', 'ecab-taxi-booking-manager'); ?></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div data-collapse="#mp_particular" class="mptbm_taxi_advanced_card mptbm_date_subpanel <?php echo esc_attr($date_type == 'particular' ? 'mActive' : ''); ?>">
+                            <div class="mptbm_date_subpanel_header">
+                                <div class="mptbm_date_field_intro">
+                                    <span class="mptbm_date_field_icon is-amber" aria-hidden="true"><i class="fas fa-calendar-day"></i></span>
+                                    <div>
+                                        <h6><?php esc_html_e('Particular Dates', 'ecab-taxi-booking-manager'); ?></h6>
+                                        <p><?php esc_html_e('Add each date on which this transportation can be booked.', 'ecab-taxi-booking-manager'); ?></p>
+                                    </div>
+                                </div>
+                                <span class="mptbm_date_count_badge">
+                                    <?php echo esc_html(sprintf(_n('%d date', '%d dates', count($particular_date_lists), 'ecab-taxi-booking-manager'), count($particular_date_lists))); ?>
+                                </span>
+                            </div>
+                            <div class="mp_settings_area mptbm_modern_date_list">
+                                <div class="mp_item_insert mp_sortable_area">
+                                    <?php
+                                    if (sizeof($particular_date_lists)) {
+                                        foreach ($particular_date_lists as $particular_date) {
+                                            if ($particular_date) {
+                                                $this->particular_date_item('mptbm_particular_dates[]', $particular_date);
                                             }
                                         }
-                                        ?>
-                                    </div>
-                                    <?php MP_Custom_Layout::add_new_button(esc_html__('Add New Particular date', 'ecab-taxi-booking-manager')); ?>
-                                    <div class="mp_hidden_content">
-                                        <div class="mp_hidden_item">
-                                            <?php $this->particular_date_item('mptbm_particular_dates[]'); ?>
-                                        </div>
+                                    }
+                                    ?>
+                                </div>
+                                <?php MP_Custom_Layout::add_new_button(esc_html__('Add Particular Date', 'ecab-taxi-booking-manager')); ?>
+                                <div class="mp_hidden_content">
+                                    <div class="mp_hidden_item">
+                                        <?php $this->particular_date_item('mptbm_particular_dates[]'); ?>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div data-collapse="#mp_repeated" class=" mptbm_taxi_advanced_card <?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
-                            <div class="mptbm_taxi_advanced_card_header">
-                                <div class="mptbm_taxi_advanced_title_block">
-                                    <h6><?php esc_html_e('Repeated Start Date', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></h6>
-                                    <span class="desc"><?php esc_html_e('Sets the start date for recurring services', 'ecab-taxi-booking-manager'); ?></span>
+                        <div data-collapse="#mp_repeated" class="mptbm_date_repeated_grid <?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
+                            <div class="mptbm_date_field_card">
+                                <div class="mptbm_date_field_intro">
+                                    <span class="mptbm_date_field_icon" aria-hidden="true"><i class="fas fa-play"></i></span>
+                                    <div>
+                                        <label for="mptbm_repeated_start_date_display"><?php esc_html_e('Recurring Start Date', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></label>
+                                        <p><?php esc_html_e('First day the recurring schedule becomes active.', 'ecab-taxi-booking-manager'); ?></p>
+                                    </div>
                                 </div>
-                                <label class="label">
+                                <label class="mptbm_date_input_wrap">
+                                    <i class="far fa-calendar-alt" aria-hidden="true"></i>
                                     <input type="hidden" name="mptbm_repeated_start_date" value="<?php echo esc_attr($hidden_repeated_start_date); ?>" required/>
-                                    <input type="text" readonly required class="formControl date_type" value="<?php echo esc_attr($visible_repeated_start_date); ?>" placeholder="<?php echo esc_attr($now); ?>"/>
+                                    <input id="mptbm_repeated_start_date_display" type="text" readonly required class="formControl date_type" value="<?php echo esc_attr($visible_repeated_start_date); ?>" placeholder="<?php echo esc_attr($now); ?>"/>
+                                </label>
+                            </div>
+
+                            <div class="mptbm_date_field_card">
+                                <div class="mptbm_date_field_intro">
+                                    <span class="mptbm_date_field_icon is-violet" aria-hidden="true"><i class="fas fa-redo"></i></span>
+                                    <div>
+                                        <label for="mptbm_repeated_after"><?php esc_html_e('Repeat Interval', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></label>
+                                        <p><?php esc_html_e('How often the availability cycle repeats.', 'ecab-taxi-booking-manager'); ?></p>
+                                    </div>
+                                </div>
+                                <label class="mptbm_number_input_wrap">
+                                    <input id="mptbm_repeated_after" type="text" name="mptbm_repeated_after" class="formControl mp_number_validation" value="<?php echo esc_attr($repeated_after); ?>"/>
+                                    <span><?php esc_html_e('Days', 'ecab-taxi-booking-manager'); ?></span>
+                                </label>
+                            </div>
+
+                            <div class="mptbm_date_field_card">
+                                <div class="mptbm_date_field_intro">
+                                    <span class="mptbm_date_field_icon is-green" aria-hidden="true"><i class="fas fa-hourglass-half"></i></span>
+                                    <div>
+                                        <label for="mptbm_active_days"><?php esc_html_e('Advance Booking Window', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></label>
+                                        <p><?php esc_html_e('Maximum number of days customers can book ahead.', 'ecab-taxi-booking-manager'); ?></p>
+                                    </div>
+                                </div>
+                                <label class="mptbm_number_input_wrap">
+                                    <input id="mptbm_active_days" type="text" name="mptbm_active_days" class="formControl mp_number_validation" value="<?php echo esc_attr($active_days); ?>"/>
+                                    <span><?php esc_html_e('Days', 'ecab-taxi-booking-manager'); ?></span>
                                 </label>
                             </div>
                         </div>
 
-                        <div data-collapse="#mp_repeated" class=" mptbm_taxi_advanced_card <?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
-                            <div class="mptbm_taxi_advanced_card_header">
-                                <div class="mptbm_taxi_advanced_title_block">
-                                    <h6><?php esc_html_e('Repeated after', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></h6>
-                                    <span class="desc"><?php esc_html_e('Defines the number of days after which the service or event will repeat', 'ecab-taxi-booking-manager'); ?></span>
+                        <div class="mptbm_date_always_card">
+                            <div class="mptbm_date_field_intro">
+                                <span class="mptbm_date_field_icon is-green" aria-hidden="true"><i class="fas fa-business-time"></i></span>
+                                <div>
+                                    <h6><?php esc_html_e('24-Hour Availability', 'ecab-taxi-booking-manager'); ?></h6>
+                                    <p><?php esc_html_e('Allow bookings at any time of day without restricting operating hours.', 'ecab-taxi-booking-manager'); ?></p>
                                 </div>
-                                <input type="text" name="mptbm_repeated_after" class="formControl mp_number_validation" value="<?php echo esc_attr($repeated_after); ?>"/>
                             </div>
-                        </div>
-
-                        <div data-collapse="#mp_repeated" class="mptbm_taxi_advanced_card <?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
-                            <div class="mptbm_taxi_advanced_card_header">
-                                <div class="mptbm_taxi_advanced_title_block">
-                                    <h6><?php esc_html_e('Maximum Advanced Day Booking', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></h6>
-                                    <span class="desc"><?php esc_html_e('Sets the maximum number of days in advance a booking can be made', 'ecab-taxi-booking-manager'); ?></span>
-                                </div>
-                                <input type="text" name="mptbm_active_days" class="formControl mp_number_validation" value="<?php echo esc_attr($active_days); ?>"/>
-                            </div>
-                        </div>
-
-                        <div class="mptbm_taxi_advanced_card">
-                            <div class="mptbm_taxi_advanced_card_header">
-                                <div class="mptbm_taxi_advanced_title_block">
-                                    <h6><?php esc_html_e('Make Transport Available For 24 Hours', 'ecab-taxi-booking-manager'); ?></h6>
-                                    <span class="desc"><?php MPTBM_Settings::info_text('display_mptbm_features'); ?></span>
-                                </div>
+                            <div
+                                class="mptbm_date_toggle_control"
+                                data-enabled-label="<?php esc_attr_e('Always open', 'ecab-taxi-booking-manager'); ?>"
+                                data-disabled-label="<?php esc_attr_e('Disabled', 'ecab-taxi-booking-manager'); ?>"
+                            >
+                                <span class="mptbm_date_toggle_status"><?php echo esc_html($available_for_all_time === 'off' ? __('Disabled', 'ecab-taxi-booking-manager') : __('Always open', 'ecab-taxi-booking-manager')); ?></span>
                                 <?php MP_Custom_Layout::switch_button('mptbm_available_for_all_time', $checked); ?>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
 
-                <div class="mptbm_rent_editor_wrapper" >
-                    <div class="mptbm_rent_editor_header">
-                        <h4 class="mptbm_rent_editor_title"><?php esc_html_e('Schedule Date Configuration', 'ecab-taxi-booking-manager'); ?></h4>
-                        <p class="mptbm_rent_editor_subtitle"><?php esc_html_e('Here you can configure Schedule date.', 'ecab-taxi-booking-manager'); ?></p>
+                <div class="mptbm_rent_editor_wrapper mptbm_schedule_section">
+                    <div class="mptbm_rent_editor_header mptbm_schedule_section_header">
+                        <div class="mptbm_schedule_heading">
+                            <span class="mptbm_schedule_heading_icon" aria-hidden="true">
+                                <i class="fas fa-calendar-week"></i>
+                            </span>
+                            <div>
+                                <h4 class="mptbm_rent_editor_title"><?php esc_html_e('Schedule Date Configuration', 'ecab-taxi-booking-manager'); ?></h4>
+                                <p class="mptbm_rent_editor_subtitle"><?php esc_html_e('Set the default operating window, then customize individual days when needed.', 'ecab-taxi-booking-manager'); ?></p>
+                            </div>
+                        </div>
+                        <span class="mptbm_schedule_header_badge">
+                            <span class="mptbm_schedule_header_badge_dot" aria-hidden="true"></span>
+                            <?php esc_html_e('Weekly availability', 'ecab-taxi-booking-manager'); ?>
+                        </span>
                     </div>
-                    <div class="mptbm_taxi_advanced_card">
-                        <table>
+                    <div class="mptbm_schedule_card">
+                        <div class="mptbm_schedule_table_wrap">
+                        <table class="mptbm_schedule_table">
                             <thead>
                             <tr>
-                                <th><?php esc_html_e('Day', 'ecab-taxi-booking-manager'); ?></th>
-                                <th><?php esc_html_e('Start Time', 'ecab-taxi-booking-manager'); ?></th>
-                                <th><?php esc_html_e('To', 'ecab-taxi-booking-manager'); ?></th>
-                                <th><?php esc_html_e('End Time', 'ecab-taxi-booking-manager'); ?></th>
-
+                                <th scope="col"><?php esc_html_e('Day', 'ecab-taxi-booking-manager'); ?></th>
+                                <th scope="col">
+                                    <i class="far fa-clock" aria-hidden="true"></i>
+                                    <?php esc_html_e('Start Time', 'ecab-taxi-booking-manager'); ?>
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-flag-checkered" aria-hidden="true"></i>
+                                    <?php esc_html_e('End Time', 'ecab-taxi-booking-manager'); ?>
+                                </th>
                             </tr>
                             </thead>
                             <tbody>
@@ -186,67 +247,111 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                             ?>
                             </tbody>
                         </table>
+                        </div>
+                        <div class="mptbm_schedule_hint">
+                            <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            <span><?php esc_html_e('Days left as “Default” automatically follow the daily default hours.', 'ecab-taxi-booking-manager'); ?></span>
+                        </div>
                     </div>
                 </div>
 
 
                 <!-- End Schedule date config -->
 
-                <div class="mptbm_rent_editor_wrapper" >
-                    <div class="mptbm_rent_editor_header">
-                        <h4 class="mptbm_rent_editor_title"><?php esc_html_e('Off Days & Dates Configuration', 'ecab-taxi-booking-manager'); ?></h4>
-                        <p class="mptbm_rent_editor_subtitle"><?php esc_html_e('Here you can configure Off Days & Dates.', 'ecab-taxi-booking-manager'); ?></p>
-                    </div>
-                    <div data-collapse="#mp_repeated" class="mptbm_taxi_advanced_card <?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
-                        <div class="label">
+                <div class="mptbm_rent_editor_wrapper mptbm_schedule_section mptbm_off_dates_section">
+                    <div class="mptbm_rent_editor_header mptbm_schedule_section_header">
+                        <div class="mptbm_schedule_heading">
+                            <span class="mptbm_schedule_heading_icon mptbm_off_dates_icon" aria-hidden="true">
+                                <i class="fas fa-calendar-times"></i>
+                            </span>
                             <div>
-                                <h6><?php esc_html_e('Off Day', 'ecab-taxi-booking-manager'); ?></h6>
-                                <span class="desc"><?php esc_html_e('Select checkbox for off day', 'ecab-taxi-booking-manager'); ?></span>
+                                <h4 class="mptbm_rent_editor_title"><?php esc_html_e('Off Days & Dates Configuration', 'ecab-taxi-booking-manager'); ?></h4>
+                                <p class="mptbm_rent_editor_subtitle"><?php esc_html_e('Block recurring weekdays or individual dates when this transportation is unavailable.', 'ecab-taxi-booking-manager'); ?></p>
                             </div>
-                            <div>
-                                <?php
+                        </div>
+                        <span class="mptbm_off_dates_summary">
+                            <i class="fas fa-ban" aria-hidden="true"></i>
+                            <?php
+                            echo esc_html(
+                                sprintf(
+                                    _n('%d closure configured', '%d closures configured', count($off_day_array) + count($off_day_lists), 'ecab-taxi-booking-manager'),
+                                    count($off_day_array) + count($off_day_lists)
+                                )
+                            );
+                            ?>
+                        </span>
+                    </div>
 
-                                $off_days = MP_Global_Function::get_post_info($post_id, 'mptbm_off_days');
-                                $days = MP_Global_Function::week_day();
-                                $off_day_array = explode(',', $off_days);
-                                ?>
-                                <div class="groupCheckBox mptbm_off_days_conainer">
-                                    <input type="hidden" name="mptbm_off_days" value="<?php echo esc_attr($off_days); ?>"/>
-                                    <?php foreach ($days as $key => $day) { ?>
-                                        <label class="customCheckboxLabel">
-                                            <input type="checkbox" <?php echo esc_attr(in_array($key, $off_day_array) ? 'checked' : ''); ?> data-checked="<?php echo esc_attr($key); ?>"/>
-                                            <span class="customCheckbox me-1"><?php echo esc_html($day); ?></span>
-                                        </label>
-                                    <?php } ?>
+                    <div class="mptbm_off_dates_body">
+                        <div data-collapse="#mp_repeated" class="mptbm_off_days_card <?php echo esc_attr($date_type == 'repeated' ? 'mActive' : ''); ?>">
+                            <div class="mptbm_off_card_header">
+                                <div class="mptbm_date_field_intro">
+                                    <span class="mptbm_date_field_icon is-red" aria-hidden="true"><i class="fas fa-calendar-minus"></i></span>
+                                    <div>
+                                        <h6><?php esc_html_e('Weekly Off Days', 'ecab-taxi-booking-manager'); ?></h6>
+                                        <p><?php esc_html_e('Choose weekdays that should always be unavailable.', 'ecab-taxi-booking-manager'); ?></p>
+                                    </div>
+                                </div>
+                                <span
+                                    class="mptbm_off_count"
+                                    data-singular="<?php echo esc_attr(_n('%d selected', '%d selected', 1, 'ecab-taxi-booking-manager')); ?>"
+                                    data-plural="<?php echo esc_attr(_n('%d selected', '%d selected', 2, 'ecab-taxi-booking-manager')); ?>"
+                                >
+                                    <?php echo esc_html(sprintf(_n('%d selected', '%d selected', count($off_day_array), 'ecab-taxi-booking-manager'), count($off_day_array))); ?>
+                                </span>
+                            </div>
+                            <div class="groupCheckBox mptbm_off_days_conainer">
+                                <input type="hidden" name="mptbm_off_days" value="<?php echo esc_attr($off_days); ?>"/>
+                                <?php foreach ($days as $key => $day) { ?>
+                                    <label class="customCheckboxLabel">
+                                        <input type="checkbox" <?php echo esc_attr(in_array($key, $off_day_array) ? 'checked' : ''); ?> data-checked="<?php echo esc_attr($key); ?>"/>
+                                        <span class="customCheckbox me-1">
+                                            <i class="fas fa-check" aria-hidden="true"></i>
+                                            <?php echo esc_html($day); ?>
+                                        </span>
+                                    </label>
+                                <?php } ?>
+                            </div>
+                        </div>
+
+                        <div class="mptbm_taxi_advanced_card mptbm_off_dates_card">
+                            <div class="mptbm_off_card_header">
+                                <div class="mptbm_date_field_intro">
+                                    <span class="mptbm_date_field_icon is-amber" aria-hidden="true"><i class="fas fa-calendar-day"></i></span>
+                                    <div>
+                                        <h6><?php esc_html_e('Specific Off Dates', 'ecab-taxi-booking-manager'); ?></h6>
+                                        <p><?php esc_html_e('Add holidays, maintenance dates, or one-time closures.', 'ecab-taxi-booking-manager'); ?></p>
+                                    </div>
+                                </div>
+                                <span class="mptbm_date_count_badge">
+                                    <?php echo esc_html(sprintf(_n('%d date', '%d dates', count($off_day_lists), 'ecab-taxi-booking-manager'), count($off_day_lists))); ?>
+                                </span>
+                            </div>
+                            <div class="mp_settings_area mptbm_modern_date_list">
+                                <div class="mp_item_insert mp_sortable_area mb-1">
+                                    <?php
+                                    if (sizeof($off_day_lists)) {
+                                        foreach ($off_day_lists as $off_day) {
+                                            if ($off_day) {
+                                                $this->particular_date_item('mptbm_off_dates[]', $off_day);
+                                            }
+                                        }
+                                    }
+                                    ?>
+                                </div>
+                                <?php MP_Custom_Layout::add_new_button(esc_html__('Add Off Date', 'ecab-taxi-booking-manager')); ?>
+                                <div class="mp_hidden_content">
+                                    <div class="mp_hidden_item">
+                                        <?php $this->particular_date_item('mptbm_off_dates[]'); ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-
-                    <div class="mptbm_taxi_advanced_card">
-                        <h6><?php esc_html_e('Off Dates', 'ecab-taxi-booking-manager'); ?></h6>
-                        <span class="desc"><?php esc_html_e('Add off dates', 'ecab-taxi-booking-manager'); ?></span>
-                    </div>
-                    <div class="mp_settings_area" style="padding: 10px">
-                        <div class="mp_item_insert mp_sortable_area mb-1">
-                            <?php
-                            $off_day_lists = MP_Global_Function::get_post_info($post_id, 'mptbm_off_dates', array());
-                            if (sizeof($off_day_lists)) {
-                                foreach ($off_day_lists as $off_day) {
-                                    if ($off_day) {
-                                        $this->particular_date_item('mptbm_off_dates[]', $off_day);
-                                    }
-                                }
-                            }
-                            ?>
-                        </div>
-                        <?php MP_Custom_Layout::add_new_button(esc_html__('Add New Off date', 'ecab-taxi-booking-manager')); ?>
-                        <div class="mp_hidden_content">
-                            <div class="mp_hidden_item">
-                                <?php $this->particular_date_item('mptbm_off_dates[]'); ?>
-                            </div>
-                        </div>
+                    <div class="mptbm_off_dates_hint">
+                        <i class="fas fa-info-circle" aria-hidden="true"></i>
+                        <span><?php esc_html_e('Specific off dates override the regular weekly schedule for the selected date.', 'ecab-taxi-booking-manager'); ?></span>
                     </div>
                 </div>
 
@@ -462,12 +567,60 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
             $default_end_time = $day == 'default' ? 24 : '';
 
             $end_time = MP_Global_Function::get_post_info($post_id, $end_name, $default_end_time);
+            $is_default = $day === 'default';
+            $is_inherited = !$is_default && $start_time === '' && $end_time === '';
+            $days = MP_Global_Function::week_day();
+            $day_label = $is_default
+                ? esc_html__('Daily Default', 'ecab-taxi-booking-manager')
+                : (isset($days[$day]) ? $days[$day] : ucfirst($day));
+            $day_short = $is_default
+                ? ''
+                : (function_exists('mb_substr') ? mb_substr($day_label, 0, 2) : substr($day_label, 0, 2));
 
             ?>
-            <tr>
-                <th style="text-transform: capitalize;"><?php echo esc_html($day); ?></th>
+            <tr
+                class="<?php echo esc_attr($is_default ? 'mptbm_schedule_default_row' : 'mptbm_schedule_day_row'); ?>"
+                <?php if (!$is_default) { ?>
+                    data-inherited-label="<?php esc_attr_e('Uses default hours', 'ecab-taxi-booking-manager'); ?>"
+                    data-custom-label="<?php esc_attr_e('Custom hours', 'ecab-taxi-booking-manager'); ?>"
+                <?php } ?>
+            >
+                <th scope="row">
+                    <div class="mptbm_schedule_day">
+                        <span class="mptbm_schedule_day_badge <?php echo esc_attr($is_default ? 'is-default' : ''); ?>" aria-hidden="true">
+                            <?php if ($is_default) { ?>
+                                <i class="fas fa-layer-group"></i>
+                            <?php } else { ?>
+                                <?php echo esc_html(strtoupper($day_short)); ?>
+                            <?php } ?>
+                        </span>
+                        <span class="mptbm_schedule_day_copy">
+                            <strong><?php echo esc_html($day_label); ?></strong>
+                            <small class="mptbm_schedule_day_state">
+                                <?php
+                                echo esc_html(
+                                    $is_default
+                                        ? __('Fallback for every day', 'ecab-taxi-booking-manager')
+                                        : ($is_inherited
+                                            ? __('Uses default hours', 'ecab-taxi-booking-manager')
+                                            : __('Custom hours', 'ecab-taxi-booking-manager'))
+                                );
+                                ?>
+                            </small>
+                        </span>
+                        <?php if ($is_default) { ?>
+                            <span class="mptbm_schedule_status is-primary"><?php esc_html_e('Default', 'ecab-taxi-booking-manager'); ?></span>
+                        <?php } else { ?>
+                            <span class="mptbm_schedule_status<?php echo esc_attr($is_inherited ? ' is-hidden' : ''); ?>"><?php esc_html_e('Custom', 'ecab-taxi-booking-manager'); ?></span>
+                        <?php } ?>
+                    </div>
+                </th>
                 <td class="mptbm_start_time" data-day-name="<?php echo esc_attr($day); ?>">
-                    <label>
+                    <label class="mptbm_schedule_time_field">
+                        <span class="screen-reader-text">
+                            <?php echo esc_html(sprintf(__('Start time for %s', 'ecab-taxi-booking-manager'), $day_label)); ?>
+                        </span>
+                        <i class="far fa-clock" aria-hidden="true"></i>
                         <select class="formControl" name="<?php echo esc_attr($start_name); ?>">
                             <option value="" <?php echo esc_attr($start_time == '' ? 'selected' : ''); ?>>
                                 <?php $this->default_text($day); ?>
@@ -476,17 +629,19 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                         </select>
                     </label>
                 </td>
-                <td class="textCenter">
-                    <strong><?php esc_html_e('To', 'ecab-taxi-booking-manager'); ?></strong>
-                </td>
                 <td class="mptbm_end_time">
-                    <select class="formControl" name="<?php echo esc_attr($end_name); ?>">
-                        <option value="" <?php echo esc_attr($end_time == '' ? 'selected' : ''); ?>>
-                            <?php $this->default_text($day); ?>
-                        </option>
-                        <?php $this->time_slot($end_time); ?>
-                    </select>
-
+                    <label class="mptbm_schedule_time_field">
+                        <span class="screen-reader-text">
+                            <?php echo esc_html(sprintf(__('End time for %s', 'ecab-taxi-booking-manager'), $day_label)); ?>
+                        </span>
+                        <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        <select class="formControl" name="<?php echo esc_attr($end_name); ?>">
+                            <option value="" <?php echo esc_attr($end_time == '' ? 'selected' : ''); ?>>
+                                <?php $this->default_text($day); ?>
+                            </option>
+                            <?php $this->time_slot($end_time); ?>
+                        </select>
+                    </label>
                 </td>
 
             </tr>

@@ -262,6 +262,860 @@ input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px)
 .mptbm_taxi_advanced_tax_body {
     padding: 0 20px 20px;
 }
-.mptbm_off_days_conainer span.customCheckbox.me-1 {
-    margin-right: 40px;
+/* General Date Configuration
+   ------------------------------------------------------------------ */
+#mptbm_rent_settings_panel .mptbm_date_config_icon {
+    color: #0369a1;
+    background: #f0f9ff;
+    border-color: #bae6fd;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_mode_badge,
+#mptbm_rent_settings_panel .mptbm_off_dates_summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 7px 11px;
+    border: 1px solid var(--mp-primary-border);
+    border-radius: var(--mp-r-full);
+    color: var(--mp-primary);
+    background: var(--mp-primary-light);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_config_body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px 22px 22px;
+    background: #f8fafc;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_type_card,
+#mptbm_rent_settings_panel .mptbm_date_always_card,
+#mptbm_rent_settings_panel .mptbm_date_field_card,
+#mptbm_rent_settings_panel .mptbm_date_subpanel,
+#mptbm_rent_settings_panel .mptbm_off_days_card,
+#mptbm_rent_settings_panel .mptbm_off_dates_card {
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-r-md);
+    background: var(--mp-white);
+    box-shadow: var(--mp-shadow-xs);
+}
+
+#mptbm_rent_settings_panel .mptbm_date_type_card,
+#mptbm_rent_settings_panel .mptbm_date_always_card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 17px 18px;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_type_card {
+    border-color: #c7d2fe;
+    background:
+        linear-gradient(110deg, rgba(var(--mp-primary-rgb), 0.055), transparent 48%),
+        var(--mp-white);
+}
+
+#mptbm_rent_settings_panel .mptbm_date_field_intro {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_field_intro > div {
+    min-width: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_field_intro label,
+#mptbm_rent_settings_panel .mptbm_date_field_intro h6 {
+    display: block;
+    margin: 0 0 3px;
+    color: var(--mp-text-800);
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 700;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_field_intro p {
+    margin: 0;
+    color: var(--mp-text-500);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_field_icon {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 38px;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    color: #2563eb;
+    background: #eff6ff;
+    font-size: 14px;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_field_icon.is-violet {
+    color: #7c3aed;
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_field_icon.is-green {
+    color: #059669;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_field_icon.is-amber {
+    color: #d97706;
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_field_icon.is-red {
+    color: #dc2626;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_select_wrap {
+    position: relative;
+    width: min(100%, 290px);
+    flex: 0 0 290px;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_select_wrap > i {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    right: 14px;
+    color: var(--mp-text-400);
+    font-size: 10px;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+#mptbm_rent_settings_panel .mptbm_date_select_wrap select.formControl {
+    width: 100%;
+    margin: 0;
+    padding-right: 38px;
+    border-color: var(--mp-primary-border);
+    color: var(--mp-text-800);
+    background-image: none;
+    font-weight: 600;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_subpanel {
+    padding: 0;
+    overflow: hidden;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_subpanel:not(.mActive),
+#mptbm_rent_settings_panel .mptbm_date_repeated_grid:not(.mActive),
+#mptbm_rent_settings_panel .mptbm_off_days_card:not(.mActive) {
+    display: none !important;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_subpanel_header,
+#mptbm_rent_settings_panel .mptbm_off_card_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--mp-border-light);
+}
+
+#mptbm_rent_settings_panel .mptbm_date_count_badge,
+#mptbm_rent_settings_panel .mptbm_off_count {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 5px 9px;
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-r-full);
+    color: var(--mp-text-500);
+    background: var(--mp-bg-muted);
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 700;
+}
+
+#mptbm_rent_settings_panel .mptbm_modern_date_list {
+    width: 100%;
+    padding: 14px 18px 18px;
+    box-sizing: border-box;
+}
+
+#mptbm_rent_settings_panel .mptbm_modern_date_list .mp_sortable_area {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 0 12px;
+}
+
+#mptbm_rent_settings_panel .mptbm_modern_date_list .mp_sortable_area:empty {
+    display: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_modern_date_list .mp_remove_area {
+    margin: 0 !important;
+    padding: 8px !important;
+    border-color: var(--mp-border) !important;
+    background: #fbfcfe !important;
+}
+
+#mptbm_rent_settings_panel .mptbm_modern_date_list .mp_remove_area > .justifyBetween {
+    gap: 10px;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+#mptbm_rent_settings_panel .mptbm_modern_date_list .mp_remove_area label {
+    position: relative;
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_modern_date_list .date_type {
+    width: 100%;
+    height: 38px;
+    margin: 0;
+    padding-left: 38px;
+    box-sizing: border-box;
+    background-color: var(--mp-white);
+}
+
+#mptbm_rent_settings_panel .mptbm_modern_date_list .mp_remove_area label::before {
+    content: "\f073";
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 13px;
+    color: var(--mp-text-400);
+    font-family: "Font Awesome 5 Free";
+    font-size: 12px;
+    font-weight: 400;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+#mptbm_rent_settings_panel .mptbm_modern_date_list .mp_add_item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border: 1px solid var(--mp-primary-border);
+    border-radius: var(--mp-r-md);
+    color: var(--mp-primary) !important;
+    background: var(--mp-primary-light) !important;
+    box-shadow: none;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--mp-transition);
+}
+
+#mptbm_rent_settings_panel .mptbm_modern_date_list .mp_add_item span {
+    color: inherit !important;
+}
+
+#mptbm_rent_settings_panel .mptbm_modern_date_list .mp_add_item:hover {
+    color: var(--mp-white) !important;
+    background: var(--mp-primary) !important;
+    border-color: var(--mp-primary);
+    transform: translateY(-1px);
+}
+
+#mptbm_rent_settings_panel .mptbm_date_repeated_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_repeated_grid.mActive {
+    display: grid !important;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_field_card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 17px;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_input_wrap,
+#mptbm_rent_settings_panel .mptbm_number_input_wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_input_wrap > i {
+    position: absolute;
+    z-index: 1;
+    left: 13px;
+    color: var(--mp-text-400);
+    font-size: 12px;
+    pointer-events: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_input_wrap input.formControl {
+    width: 100%;
+    height: 40px;
+    margin: 0;
+    padding-left: 38px;
+    border-color: var(--mp-border);
+    background: var(--mp-white);
+    box-sizing: border-box;
+}
+
+#mptbm_rent_settings_panel .mptbm_number_input_wrap input.formControl {
+    width: 100%;
+    height: 40px;
+    margin: 0;
+    padding-right: 54px;
+    border-color: var(--mp-border);
+    box-sizing: border-box;
+}
+
+#mptbm_rent_settings_panel .mptbm_number_input_wrap > span {
+    position: absolute;
+    right: 12px;
+    color: var(--mp-text-400);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_always_card {
+    border-color: #a7f3d0;
+    background:
+        linear-gradient(110deg, rgba(16, 185, 129, 0.055), transparent 48%),
+        var(--mp-white);
+}
+
+#mptbm_rent_settings_panel .mptbm_date_toggle_control {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    flex: 0 0 auto;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_toggle_status {
+    color: #047857;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_toggle_control .roundSwitchLabel {
+    margin: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_date_always_card .roundSwitchLabel input:checked + .roundSwitch {
+    background-color: var(--mp-success) !important;
+}
+
+/* Off Days & Dates Configuration
+   ------------------------------------------------------------------ */
+#mptbm_rent_settings_panel .mptbm_off_dates_icon {
+    color: #dc2626;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+#mptbm_rent_settings_panel .mptbm_off_dates_summary {
+    color: #b91c1c;
+    background: #fff7f7;
+    border-color: #fecaca;
+}
+
+#mptbm_rent_settings_panel .mptbm_off_dates_body {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: 14px;
+    padding: 20px 22px;
+    background: #f8fafc;
+}
+
+#mptbm_rent_settings_panel .mptbm_off_days_card,
+#mptbm_rent_settings_panel .mptbm_off_dates_card {
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#mptbm_rent_settings_panel .mptbm_off_days_card:not(.mActive) + .mptbm_off_dates_card {
+    grid-column: 1 / -1;
+}
+
+#mptbm_rent_settings_panel .mptbm_off_days_conainer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 14px 18px 18px;
+    background: var(--mp-white);
+}
+
+#mptbm_rent_settings_panel .mptbm_off_days_conainer .customCheckboxLabel {
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_off_days_conainer .customCheckbox {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    margin: 0;
+    padding: 0 11px;
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-r-md);
+    color: var(--mp-text-600);
+    background: #fbfcfe;
+    box-sizing: border-box;
+    font-size: 12px;
+    font-weight: 600;
+    transition: var(--mp-transition);
+}
+
+#mptbm_rent_settings_panel .mptbm_off_days_conainer .customCheckbox::before,
+#mptbm_rent_settings_panel .mptbm_off_days_conainer .customCheckbox::after {
+    display: none !important;
+}
+
+#mptbm_rent_settings_panel .mptbm_off_days_conainer .customCheckbox i {
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--mp-border-dark);
+    border-radius: 6px;
+    color: transparent;
+    background: var(--mp-white);
+    font-size: 9px;
+    transition: var(--mp-transition);
+}
+
+#mptbm_rent_settings_panel .mptbm_off_days_conainer .customCheckboxLabel:hover .customCheckbox {
+    border-color: var(--mp-primary-border);
+    background: var(--mp-primary-light);
+}
+
+#mptbm_rent_settings_panel .mptbm_off_days_conainer input:checked ~ .customCheckbox {
+    color: var(--mp-primary);
+    background: var(--mp-primary-light);
+    border-color: var(--mp-primary-border);
+}
+
+#mptbm_rent_settings_panel .mptbm_off_days_conainer input:checked ~ .customCheckbox i {
+    color: var(--mp-white);
+    background: var(--mp-primary);
+    border-color: var(--mp-primary);
+}
+
+#mptbm_rent_settings_panel .mptbm_off_dates_hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 12px 22px;
+    color: var(--mp-text-500);
+    background: #fffafa;
+    border-top: 1px solid #fee2e2;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+#mptbm_rent_settings_panel .mptbm_off_dates_hint i {
+    margin-top: 2px;
+    color: var(--mp-danger);
+}
+
+/* Schedule Date Configuration
+   ------------------------------------------------------------------ */
+#mptbm_rent_settings_panel .mptbm_schedule_section {
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-r-lg);
+    background: var(--mp-white);
+    overflow: hidden;
+    box-shadow: var(--mp-shadow-xs);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_section_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 22px;
+    margin: 0;
+    background:
+        radial-gradient(circle at top right, rgba(var(--mp-primary-rgb), 0.08), transparent 38%),
+        var(--mp-white);
+    border-bottom: 1px solid var(--mp-border-light);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_heading_icon {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 44px;
+    border-radius: 12px;
+    color: var(--mp-primary);
+    background: var(--mp-primary-light);
+    border: 1px solid var(--mp-primary-border);
+    font-size: 18px;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_heading .mptbm_rent_editor_title {
+    margin: 0 0 4px;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_heading .mptbm_rent_editor_subtitle {
+    margin: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_header_badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 7px 11px;
+    border: 1px solid var(--mp-success-border);
+    border-radius: var(--mp-r-full);
+    color: #047857;
+    background: var(--mp-success-light);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_header_badge_dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--mp-success);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_card {
+    background: var(--mp-white);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table {
+    width: 100%;
+    min-width: 680px;
+    margin: 0;
+    border: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table thead th {
+    padding: 11px 18px;
+    color: var(--mp-text-500);
+    background: var(--mp-bg-muted);
+    border: 0;
+    border-bottom: 1px solid var(--mp-border);
+    font-size: 11px;
+    line-height: 1.4;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table thead th:first-child {
+    width: 38%;
+    padding-left: 22px;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table thead th:not(:first-child) {
+    width: 31%;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table thead th i {
+    margin-right: 6px;
+    color: var(--mp-text-400);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody th,
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody td {
+    padding: 12px 18px;
+    background: var(--mp-white);
+    border: 0;
+    border-bottom: 1px solid var(--mp-border-light);
+    vertical-align: middle;
+    transition: background-color 0.18s ease;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody th {
+    padding-left: 22px;
+    text-align: left;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody tr:last-child th,
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody tr:hover th,
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody tr:hover td {
+    background: #fafbff;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody .mptbm_schedule_default_row th,
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody .mptbm_schedule_default_row td {
+    background: linear-gradient(90deg, var(--mp-primary-light), #fafaff);
+    border-bottom-color: var(--mp-primary-border);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_day {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_day_badge {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 36px;
+    border-radius: 10px;
+    color: var(--mp-text-600);
+    background: var(--mp-bg-muted);
+    border: 1px solid var(--mp-border);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_day_badge.is-default {
+    color: var(--mp-primary);
+    background: var(--mp-white);
+    border-color: var(--mp-primary-border);
+    box-shadow: var(--mp-shadow-xs);
+    font-size: 14px;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_day_copy {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_day_copy strong {
+    overflow: hidden;
+    color: var(--mp-text-800);
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_day_copy small {
+    overflow: hidden;
+    color: var(--mp-text-400);
+    font-size: 11px;
+    line-height: 1.35;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_status {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-r-full);
+    color: var(--mp-text-500);
+    background: var(--mp-bg-muted);
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 700;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_status.is-primary {
+    color: var(--mp-primary);
+    background: var(--mp-white);
+    border-color: var(--mp-primary-border);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_status.is-hidden {
+    display: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_time_field {
+    position: relative;
+    display: block;
+    margin: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_time_field > i {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 13px;
+    width: 15px;
+    color: var(--mp-text-400);
+    font-size: 12px;
+    text-align: center;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_time_field select.formControl {
+    width: 100%;
+    height: 40px;
+    margin: 0;
+    padding-left: 38px;
+    border-color: var(--mp-border);
+    border-radius: var(--mp-r-md);
+    color: var(--mp-text-700);
+    background-color: var(--mp-white);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_time_field select.formControl:hover {
+    border-color: var(--mp-border-dark);
+    background-color: #fcfcff;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_time_field select.formControl:focus {
+    border-color: var(--mp-primary);
+    box-shadow: var(--mp-shadow-focus);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 12px 22px;
+    color: var(--mp-text-500);
+    background: #fafbfc;
+    border-top: 1px solid var(--mp-border-light);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_hint i {
+    margin-top: 2px;
+    color: var(--mp-primary);
+}
+
+@media (max-width: 782px) {
+    #mptbm_rent_settings_panel .mptbm_schedule_section_header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 18px;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_schedule_header_badge {
+        margin-left: 58px;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_schedule_table thead th,
+    #mptbm_rent_settings_panel .mptbm_schedule_table tbody td {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_schedule_table thead th:first-child,
+    #mptbm_rent_settings_panel .mptbm_schedule_table tbody th {
+        padding-left: 18px;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_date_config_body,
+    #mptbm_rent_settings_panel .mptbm_off_dates_body {
+        padding: 16px;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_date_type_card,
+    #mptbm_rent_settings_panel .mptbm_date_always_card {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_date_select_wrap {
+        width: 100%;
+        flex-basis: auto;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_date_repeated_grid,
+    #mptbm_rent_settings_panel .mptbm_off_dates_body {
+        grid-template-columns: 1fr;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_date_toggle_control {
+        width: 100%;
+        justify-content: space-between;
+        padding-left: 50px;
+        box-sizing: border-box;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_date_mode_badge,
+    #mptbm_rent_settings_panel .mptbm_off_dates_summary {
+        margin-left: 58px;
+    }
+}
+
+@media (max-width: 520px) {
+    #mptbm_rent_settings_panel .mptbm_date_subpanel_header,
+    #mptbm_rent_settings_panel .mptbm_off_card_header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_off_days_conainer {
+        grid-template-columns: 1fr;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_date_mode_badge,
+    #mptbm_rent_settings_panel .mptbm_off_dates_summary,
+    #mptbm_rent_settings_panel .mptbm_schedule_header_badge {
+        margin-left: 0;
+    }
 }
