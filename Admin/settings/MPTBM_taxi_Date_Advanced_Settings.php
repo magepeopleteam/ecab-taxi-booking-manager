@@ -60,7 +60,7 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
 
 
             ?>
-            <div class="tabsItem mpStyle" data-tabs="#mptbm_settings_date ">
+            <div class="tabsItem mpStyle" data-tabs="#mptbm_settings_date">
 
                 <div class="mptbm_rent_editor_wrapper" >
                     <div class="mptbm_rent_editor_header">

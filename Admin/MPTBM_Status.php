@@ -23,8 +23,8 @@
 				$wc_v = ($wc_i == 1 && function_exists('WC')) ? WC()->version : esc_html__('Not installed', 'ecab-taxi-booking-manager');
 				$from_name = get_option('woocommerce_email_from_name');
 				$from_email = get_option('woocommerce_email_from_address');
+				MPTBM_Admin_Shell::render_shell_open();
 				?>
-				<div class="wrap"></div>
 				<div class="mpStyle">
 					<?php do_action('mp_status_notice_sec'); ?>
 					<div class=_dShadow_6_adminLayout">
@@ -70,6 +70,7 @@
 					</div>
 				</div>
 				<?php
+				MPTBM_Admin_Shell::render_shell_close();
 			}
 		}
 		new MPTBM_Status();

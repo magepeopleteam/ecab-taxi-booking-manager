@@ -71,6 +71,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
          * Render the analytics dashboard page
          */
         public function analytics_dashboard_page() {
+            MPTBM_Admin_Shell::render_shell_open();
             ?>
             <div class="wrap">
                 <h1><?php esc_html_e('E-Cab Taxi Booking Analytics Dashboard', 'ecab-taxi-booking-manager'); ?></h1>
@@ -263,6 +264,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
                 </div>
             </div>
             <?php
+            MPTBM_Admin_Shell::render_shell_close();
         }
 
         /**

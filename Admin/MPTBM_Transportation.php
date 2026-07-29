@@ -248,7 +248,7 @@ class MPTBM_Transportation
                 'tags'        => is_array($tags) ? array_filter($tags) : array(),
                 'modified'    => $post->post_modified,
                 'author'      => get_the_author_meta('display_name', $post->post_author),
-                'edit_link'   => admin_url('admin.php?page=mptbm-rent-edit&post_id=' . $pid),
+                'edit_link'   => get_edit_post_link($pid, ''),
                 'trash_link'  => wp_nonce_url(admin_url('admin-post.php?action=mptbm_trash_transport&id=' . $pid), 'mptbm_trash_' . $pid),
                 'restore_link' => wp_nonce_url(admin_url('admin-post.php?action=mptbm_restore_transport&id=' . $pid), 'mptbm_restore_' . $pid),
                 'delete_link'  => wp_nonce_url(admin_url('admin-post.php?action=mptbm_delete_transport&id=' . $pid), 'mptbm_delete_' . $pid),
@@ -379,7 +379,8 @@ class MPTBM_Transportation
         $items     = $is_trash ? $this->get_items(array('trash')) : $active;
         $base_url  = $this->base_url();
         $trash_url = add_query_arg('mptbm_status', 'trash', $base_url);
-        $add_url   = admin_url('admin.php?page=mptbm-rent-edit');
+        $add_url   = admin_url('post-new.php?post_type=mptbm_rent');
+        MPTBM_Admin_Shell::render_shell_open();
         ?>
         <div class="wrap mptbm-fleet-wrap">
             <div class="mptbm-fleet mptbm-view-list">
@@ -390,7 +391,7 @@ class MPTBM_Transportation
                 if ($mptbm_msg === 'duplicated') :
                     // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                     $new_id    = isset($_GET['mptbm_new']) ? intval($_GET['mptbm_new']) : 0;
-                    $edit_copy = ($new_id && get_post_type($new_id) === 'mptbm_rent') ? admin_url('admin.php?page=mptbm-rent-edit&post_id=' . $new_id) : '';
+                    $edit_copy = ($new_id && get_post_type($new_id) === 'mptbm_rent') ? get_edit_post_link($new_id, '') : '';
                     ?>
                     <div class="mptbm-notice success">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
@@ -651,6 +652,7 @@ class MPTBM_Transportation
             </div>
         </div>
         <?php
+        MPTBM_Admin_Shell::render_shell_close();
     }
 }
 

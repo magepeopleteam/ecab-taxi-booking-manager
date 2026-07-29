@@ -12,7 +12,7 @@
 				add_action('add_mptbm_settings_tab_content', [$this, 'tab_content']);
 				add_action('save_post', [$this, 'settings_save']);
 			}
-			public function tab_content($post_id) {
+			public static function tab_content($post_id) {
 				?>
 				<div class="tabsItem" data-tabs="#wbtm_settings_tax">
 					<h3><?php esc_html_e('Tax Configuration', 'ecab-taxi-booking-manager'); ?></h3>

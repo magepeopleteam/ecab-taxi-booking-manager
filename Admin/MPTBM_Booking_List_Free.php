@@ -218,6 +218,7 @@
 				}
 				$nonce   = wp_create_nonce( 'mptbm_free_bookings' );
 				$upgrade = $this->upgrade_url();
+				MPTBM_Admin_Shell::render_shell_open();
 				?>
 				<div class="mptbm-orders-wrap mptbm-free-wrap">
 					<div class="mptbm-orders-header">
@@ -321,8 +322,10 @@
 						<?php endif; ?>
 					</div>
 				</div>
-
-				<?php $this->render_styles(); ?>
+				<?php
+				MPTBM_Admin_Shell::render_shell_close();
+				$this->render_styles();
+				?>
 				<script>
 				(function($){
 					var cfg = { ajax:'<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>', nonce:'<?php echo esc_js( $nonce ); ?>' };

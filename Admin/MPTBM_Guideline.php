@@ -22,8 +22,8 @@ if (!class_exists('MPTBM_Guideline')) {
 		{
 			$label = MPTBM_Function::get_name();
 			wp_enqueue_style('mptbm-guideline-style', MPTBM_PLUGIN_URL . '/assets/admin/css/guideline.css', array(), time());
+			MPTBM_Admin_Shell::render_shell_open();
 ?>
-			<div class="wrap"></div>
 			<div class="mpStyle mptbm-documentation">
 				<div class="mptbm-doc-header">
 					<div class="mptbm-doc-header-content">
@@ -177,6 +177,7 @@ if (!class_exists('MPTBM_Guideline')) {
 				</script>
 			</div>
 <?php
+			MPTBM_Admin_Shell::render_shell_close();
 		}
 	}
 	new MPTBM_Guideline();

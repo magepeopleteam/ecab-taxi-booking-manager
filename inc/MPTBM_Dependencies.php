@@ -111,17 +111,6 @@ if (!class_exists('MPTBM_Dependencies')) {
             wp_enqueue_style('mptbm_date_and_advanced', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_date_and_advanced.css', array(), $this->asset_ver('assets/admin/mptbm_date_and_advanced.css'));
             // Ensure jQuery UI Sortable is loaded before the add/edit script so drag handles work
             wp_enqueue_script('mptbm_taxi_add_edit', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_taxi_add_edit.js', array('jquery', 'jquery-ui-sortable'), $this->asset_ver('assets/admin/mptbm_taxi_add_edit.js'), true);
-            wp_localize_script('mptbm_taxi_add_edit', 'mptbm_editor_l10n', array(
-                'ajax_url'   => admin_url('admin-ajax.php'),
-                'action'     => 'mptbm_ajax_save_rent',
-                'i18n'       => array(
-                    'saving'        => __('Saving…', 'ecab-taxi-booking-manager'),
-                    'saved'         => __('Transportation saved successfully.', 'ecab-taxi-booking-manager'),
-                    'required'      => __('Please complete the required field: %s', 'ecab-taxi-booking-manager'),
-                    'required_generic' => __('Please complete the highlighted required field.', 'ecab-taxi-booking-manager'),
-                    'network_error' => __('Could not reach the server. Please check your connection and try again.', 'ecab-taxi-booking-manager'),
-                ),
-            ));
 			wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_admin.js'), true);
 			wp_localize_script('mptbm_admin', 'mptbm_admin_security', array(
 				'extra_service_nonce' => wp_create_nonce('mptbm_get_extra_service'),
@@ -131,17 +120,14 @@ if (!class_exists('MPTBM_Dependencies')) {
             wp_enqueue_script('mptbm_right_side_js', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_right_side_js.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_right_side_js.js'), true);
             wp_enqueue_style('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.css', array(), $this->asset_ver('assets/admin/mptbm_transportation_lists.css'));
 
-            $editor_type = isset( $_GET['editor'] ) ? sanitize_text_field( wp_unslash( $_GET['editor'] ) ) : 'new';
-            if ( $editor_type !== 'old') {
-                if ( class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) {
-                    wp_enqueue_style('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css', array(), $this->asset_ver('assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css'));
-                    wp_enqueue_script('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js', array('jquery'), $this->asset_ver('assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js'), true);
-                }
+            if ( class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) {
+                wp_enqueue_style('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css', array(), $this->asset_ver('assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css'));
+                wp_enqueue_script('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js', array('jquery'), $this->asset_ver('assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js'), true);
+            }
 
-                if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) {
-                    wp_enqueue_style('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css', array(), $this->asset_ver('assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css'));
-                    wp_enqueue_script('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js', array('jquery'), $this->asset_ver('assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js'), true);
-                }
+            if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) {
+                wp_enqueue_style('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css', array(), $this->asset_ver('assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css'));
+                wp_enqueue_script('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js', array('jquery'), $this->asset_ver('assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js'), true);
             }
 
             // No transport templates

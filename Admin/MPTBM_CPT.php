@@ -234,7 +234,7 @@ if (!class_exists('MPTBM_CPT')) {
 				'public' => false,
 				'labels' => $labels,
 				'menu_icon' => $icon,
-				'supports' => ['title', 'thumbnail'],
+				'supports' => ['title', 'editor', 'thumbnail'],
 				'show_in_rest' => true,
 				'capabilities' => $management_capabilities,
 				'map_meta_cap' => false,

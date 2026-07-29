@@ -39,6 +39,7 @@
 
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Transportation.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Rent_Custom_Editor.php';
+			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Admin_Shell.php';
 			// Limited "Bookings" list (upgrade teaser). Self-instantiates; internally stands
 			// down when the Pro plugin is active so the Pro unified list takes over.
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Booking_List_Free.php';

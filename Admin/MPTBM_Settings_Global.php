@@ -27,6 +27,7 @@ if (!class_exists('MPTBM_Settings_Global')) {
 		}
 		public function settings_page()
 		{
+			MPTBM_Admin_Shell::render_shell_open();
 ?>
 			<div class="mpStyle mp_global_settings">
 				<div class="mpPanel">
@@ -42,6 +43,7 @@ if (!class_exists('MPTBM_Settings_Global')) {
 				</div>
 			</div>
 <?php
+			MPTBM_Admin_Shell::render_shell_close();
 		}
 
 		public function admin_init()

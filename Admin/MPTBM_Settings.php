@@ -11,7 +11,10 @@ if (!class_exists('MPTBM_Settings')) {
 	{
 		public function __construct()
 		{
-			add_action('add_meta_boxes', [$this, 'settings_meta']);
+			// settings_meta()'s metabox is superseded by
+			// MPTBM_Rent_Custom_Editor::render_settings_metabox() — not hooked
+			// here anymore to avoid two overlapping panels on the same screen.
+			// description_array()/info_text() below are still used elsewhere.
 		}
 		//************************//
 		public function settings_meta()

@@ -110,7 +110,9 @@
 				
 				do_action('mptbm_save_checkout_fields_settings');
 				do_action('mptbm_wc_checkout_fields');
+				MPTBM_Admin_Shell::render_shell_open();
 				self::checkout_field_list();
+				MPTBM_Admin_Shell::render_shell_close();
 			}
 			
 			/**

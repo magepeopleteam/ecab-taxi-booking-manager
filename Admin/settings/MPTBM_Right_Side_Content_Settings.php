@@ -10,6 +10,7 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
     class MPTBM_Right_Side_Content_Settings{
         public function __construct(){
             add_action('mptbm_right_side_section', [ $this, 'mptbm_right_side_section'], 10, 1 );
+            add_action('add_meta_boxes', [ $this, 'register_side_metabox' ] );
 
             add_action('wp_ajax_mptbm_taxi_save_category', [ $this, 'mptbm_taxi_save_category' ] );
             add_action('wp_ajax_mptbm_taxi_save_post_category', [ $this, 'mptbm_taxi_save_post_category' ]);
@@ -36,6 +37,28 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
 
             self::category_tag_add( $post_id );
 
+        }
+
+        // Native post-new.php/post.php screen: the featured-image picker
+        // above is redundant with WordPress's own Featured Image box now
+        // that mptbm_rent supports 'thumbnail' natively, so this side
+        // metabox only carries the Pro upsell / quick tips / category-tag
+        // manager — not the feature image.
+        public function register_side_metabox() {
+            add_meta_box(
+                'mptbm_rent_right_side_panel',
+                __('Transportation Details', 'ecab-taxi-booking-manager'),
+                [ $this, 'render_side_metabox' ],
+                MPTBM_Function::get_cpt(),
+                'side',
+                'default'
+            );
+        }
+
+        public function render_side_metabox( $post ) {
+            self::mptbm_right_pro_features_card();
+            self::mptbm_right_quick_tipcs( $post->ID );
+            self::category_tag_add( $post->ID );
         }
 
         public static function category_tag_add( $post_id ){
