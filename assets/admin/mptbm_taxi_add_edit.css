@@ -1641,43 +1641,59 @@ select#mptbm_extra_services_id:focus {
     box-shadow: var(--mp-shadow-focus);
 }
 
+/* border-collapse:separate + border-spacing gives each <tr> visible gaps,
+   so a background+shadow on its <td>s reads as a floating rounded card —
+   the same "soft row" language as the redesigned Vehicle Features list —
+   without changing the underlying <table>/<tr> markup that the add-row/
+   sortable/remove-row JS targets directly. */
 .mptbm_taxi_ex_service_table {
     width: 100%;
-    border-collapse: collapse;
-    background: var(--mp-white);
-    border: 1px solid var(--mp-border);
-    border-radius: var(--mp-r-md);
-    overflow: hidden;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    background: transparent;
     font-size: 13px;
 }
 .mptbm_taxi_ex_service_table th {
     text-align: left;
-    padding: 12px 14px;
-    border-bottom: 2px solid var(--mp-border);
-    color: var(--mp-text-600);
-    font-size: 12px;
+    padding: 0 14px 10px;
+    border-bottom: 1px solid var(--mp-border-light);
+    color: var(--mp-text-400);
+    font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: var(--mp-bg-muted);
+    letter-spacing: 0.06em;
+    background: transparent;
 }
 .mptbm_taxi_ex_service_table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--mp-border-light);
+    padding: 12px;
     vertical-align: middle;
+    background: var(--mp-white);
+    border-top: 1px solid var(--mp-border-light);
+    border-bottom: 1px solid var(--mp-border-light);
+    transition: var(--mp-transition);
 }
-.mptbm_taxi_ex_service_table tr:last-child td { border-bottom: none; }
-.mptbm_taxi_ex_service_table tr:hover td { background: var(--mp-bg); }
+.mptbm_taxi_ex_service_table td:first-child {
+    border-left: 1px solid var(--mp-border-light);
+    border-radius: var(--mp-r-lg, 14px) 0 0 var(--mp-r-lg, 14px);
+}
+.mptbm_taxi_ex_service_table td:last-child {
+    border-right: 1px solid var(--mp-border-light);
+    border-radius: 0 var(--mp-r-lg, 14px) var(--mp-r-lg, 14px) 0;
+}
+.mptbm_taxi_ex_service_table tr:hover td {
+    border-color: var(--mp-primary-border, var(--mp-border-dark));
+    box-shadow: 0 4px 12px rgba(15, 23, 42, .06);
+}
 
 /* Table Inputs */
 .mptbm_taxi_ex_service_input,
 .mptbm_taxi_ex_service_select {
     width: 100%;
-    height: 38px;
+    height: 40px;
     padding: 0 12px;
-    border: 1.5px solid var(--mp-border);
-    border-radius: var(--mp-r-sm);
-    background: var(--mp-white);
+    border: 1.5px solid var(--mp-border-light);
+    border-radius: var(--mp-r-md, 10px);
+    background: var(--mp-bg-muted);
     color: var(--mp-text-800);
     font-size: 13px;
     font-family: var(--mp-font);
@@ -1687,12 +1703,17 @@ select#mptbm_extra_services_id:focus {
     display: block;
 }
 input.mptbm_taxi_ex_service_input {
-    height: 38px;
+    height: 40px;
     padding: 0 12px;
     font-size: 13px;
 }
+.mptbm_taxi_ex_service_input:hover,
+.mptbm_taxi_ex_service_select:hover {
+    border-color: var(--mp-border);
+}
 .mptbm_taxi_ex_service_input:focus,
 .mptbm_taxi_ex_service_select:focus {
+    background: var(--mp-white);
     border-color: var(--mp-primary);
     box-shadow: var(--mp-shadow-focus);
 }
@@ -1700,11 +1721,12 @@ input.mptbm_taxi_ex_service_input {
 .mptbm_center { text-align: left !important; }
 
 textarea.mptbm_taxi_ex_service_select {
-    height: 38px;
+    height: 40px;
     resize: none;
     overflow: hidden;
     white-space: nowrap;
-    line-height: 22px;
+    text-overflow: ellipsis;
+    line-height: 23px;
     padding-top: 8px;
 }
 
@@ -1728,17 +1750,17 @@ select.mptbm_taxi_ex_service_select.mideum { max-width: 160px; }
 }
 .mptbm_taxi_ex_service_btn_del,
 .mptbm_taxi_ex_service_btn_drag {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--mp-r-sm);
+    border-radius: var(--mp-r-md, 10px);
     cursor: pointer;
     transition: var(--mp-transition);
     font-size: 14px;
-    background: var(--mp-white);
-    border: 1px solid var(--mp-border);
+    background: var(--mp-bg-muted);
+    border: 1px solid var(--mp-border-light);
     line-height: 1;
 }
 .mptbm_taxi_ex_service_btn_del:hover {
@@ -1747,7 +1769,41 @@ select.mptbm_taxi_ex_service_select.mideum { max-width: 160px; }
     color: var(--mp-danger);
 }
 .mptbm_taxi_ex_service_btn_drag { cursor: grab; }
-.mptbm_taxi_ex_service_btn_drag:hover { background: var(--mp-bg-muted); }
+.mptbm_taxi_ex_service_btn_drag:hover { background: var(--mp-primary-light); border-color: var(--mp-primary-border); }
+
+/* Icon thumbnail: match the Vehicle Features redesign — soft tinted
+   square instead of the plain box with a border-color:var(--color_theme)
+   bleed-through (rendering as an odd green outline), and the
+   always-visible remove badge (opacity:1 forced further up the cascade)
+   restyled from a bare solid-red circle to a small white badge. */
+.mptbm_taxi_ex_service_table .mp_add_icon_image_area {
+    max-width: 64px;
+    border: none;
+    border-radius: var(--mp-r-md, 10px);
+    background: var(--mp-primary-light, #eef1ff);
+}
+.mptbm_taxi_ex_service_table .mp_icon_item {
+    border-radius: var(--mp-r-md, 10px);
+    background: transparent;
+}
+.mptbm_taxi_ex_service_table .mp_icon_item .allCenter {
+    color: var(--mp-primary, #4f46e5);
+    font-size: 18px;
+}
+.mptbm_taxi_ex_service_table .mp_image_item,
+.mptbm_taxi_ex_service_table .mp_image_add { display: none !important; }
+.mptbm_taxi_ex_service_table .mp_add_icon_image_area .mp_remove_icon {
+    background: var(--mp-white);
+    color: var(--mp-text-400, #94a3b8);
+    box-shadow: 0 1px 4px rgba(15, 23, 42, .18);
+    border: 1px solid var(--mp-border-light);
+    transition: var(--mp-transition);
+}
+.mptbm_taxi_ex_service_table .mp_add_icon_image_area .mp_remove_icon:hover {
+    background: var(--mp-danger-light);
+    color: var(--mp-danger);
+    border-color: var(--mp-danger-border);
+}
 
 /* Footer */
 .mptbm_taxi_ex_service_footer {
@@ -2108,6 +2164,11 @@ input.mptbm_taxi_feature_input:focus {
     color: var(--mp-text-400);
     margin-bottom: 6px;
 }
+.mptbm_taxi_pricing_selection_group label #mptbm_single_mul_operation_area {
+    margin-left: 4px;
+    color: var(--mp-text-500);
+    font-weight: 600;
+}
 
 /* Empty Operation Area Warning */
 .mptbm_empty_selected_area {
@@ -2137,21 +2198,21 @@ input.mptbm_taxi_feature_input:focus {
     align-items: center;
     gap: 8px;
     padding: 10px 20px;
-    background: linear-gradient(135deg, #0073aa, #00a0d2);
+    background: var(--mp-primary);
     color: var(--mp-white) !important;
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
     border-radius: var(--mp-r-md);
-    box-shadow: 0 3px 10px rgba(0,115,170,0.25);
+    box-shadow: 0 3px 10px rgba(var(--mp-primary-rgb), 0.25);
     transition: var(--mp-transition);
     border: none;
     cursor: pointer;
 }
 .mptbm_create_area_btn:hover {
-    background: linear-gradient(135deg, #005f8d, #008ec2);
+    background: var(--mp-primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,115,170,0.3);
+    box-shadow: 0 6px 16px rgba(var(--mp-primary-rgb), 0.3);
     color: var(--mp-white);
 }
 
@@ -2917,8 +2978,10 @@ input.mptbm_taxi_feature_input:focus {
 /* Date/Advanced section holder */
 #mptbm_price_per_hour { margin-top: 12px; }
 
-/* "mpStyle" class used in some wrappers */
-.mptbm_taxi_ex_service_table th,
+/* "mpStyle" class used in some wrappers — ".mptbm_taxi_ex_service_table th"
+   removed from this list: it duplicated (and, being later in the file,
+   silently won over) the header styling declared with the rest of this
+   table's own rules further up. */
 .mpStyle table th {
     background: var(--mp-bg-muted);
     padding: 10px 14px;
@@ -3300,15 +3363,20 @@ select.formControl,
     line-height: 1;
     transition: color 0.2s;
 }
+/* !important here: "mpStyle span" (mp_global's generic span reset, further
+   up the cascade) forces every <span> — including this one — to
+   display:inline-block, at a higher specificity (0,1,1) than a plain
+   ".mptbm-oa-lbl-on" class (0,1,0). Without it, "SELECTED" showed on
+   every card regardless of which radio was actually checked. */
 .mptbm-oa-lbl-on {
-    display: none;
+    display: none !important;
     color: var(--mp-primary);
     font-weight: 700;
 }
 .mptbm-oa-lbl-on::before { content: '✓ '; }
 
-.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-lbl-off { display: none; }
-.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-lbl-on  { display: inline; }
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-lbl-off { display: none !important; }
+.mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner .mptbm-oa-lbl-on  { display: inline !important; }
 
 /* Cancel the old ::after "✓ Selected" — superseded by .mptbm-oa-lbl-on */
 .mptbm-oa-card input[type="radio"]:checked ~ .mptbm-oa-card-inner::after {
