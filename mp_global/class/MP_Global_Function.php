@@ -111,42 +111,81 @@
 			}
 			public function date_picker_js($selector, $dates) {
 				$start_date = $dates[0];
-				$start_year = date('Y', strtotime($start_date));
-				$start_month = (date('n', strtotime($start_date)) - 1);
-				$start_day = date('j', strtotime($start_date));
 				$end_date = end($dates);
-				$end_year = date('Y', strtotime($end_date));
-				$end_month = (date('n', strtotime($end_date)) - 1);
-				$end_day = date('j', strtotime($end_date));
-				$all_date = [];
+				$fp_format = MP_Global_File_Load::to_flatpickr_format(
+					MP_Global_Function::get_settings('mp_global_settings', 'date_format', 'D d M , yy')
+				);
+				$enable_dates = [];
 				foreach ($dates as $date) {
-					$all_date[] = '"' . date('j-n-Y', strtotime($date)) . '"';
+					$enable_dates[] = '"' . date('Y-m-d', strtotime($date)) . '"';
 				}
+				// flatpickr parses minDate/maxDate/defaultDate strings using the configured
+				// dateFormat (e.g. "D j M Y"), not ISO. Passing plain "Y-m-d" strings there
+				// makes parsing fail silently and fall back to a bogus January date with every
+				// day disabled. JS Date objects skip that parsing step entirely.
+				$js_date = function ($date) {
+					$ts = strtotime($date);
+					return sprintf('new Date(%d, %d, %d)', (int) date('Y', $ts), (int) date('n', $ts) - 1, (int) date('j', $ts));
+				};
 				?>
 				<script>
 					jQuery(document).ready(function () {
-						jQuery("<?php echo esc_attr($selector); ?>").datepicker({
-							dateFormat: mp_date_format,
-							minDate: new Date(<?php echo esc_attr($start_year); ?>, <?php echo esc_attr($start_month); ?>, <?php echo esc_attr($start_day); ?>),
-							maxDate: new Date(<?php echo esc_attr($end_year); ?>, <?php echo esc_attr($end_month); ?>, <?php echo esc_attr($end_day); ?>),
-							autoSize: true,
-							changeMonth: true,
-							changeYear: true,
-							beforeShowDay: WorkingDates,
-							onSelect: function (dateString, data) {
-								let date = data.selectedYear + '-' + ('0' + (parseInt(data.selectedMonth) + 1)).slice(-2) + '-' + ('0' + parseInt(data.selectedDay)).slice(-2);
-								jQuery(this).closest('label').find('input[type="hidden"]').val(date).trigger('change');
+						function mptbm_try_init_fp() {
+							if (typeof jQuery.fn.flatpickr === 'undefined') {
+								setTimeout(mptbm_try_init_fp, 100);
+								return;
 							}
-						});
-						function WorkingDates(date) {
-							let availableDates = [<?php echo implode(',', $all_date); ?>];
-							let dmy = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
-							if (jQuery.inArray(dmy, availableDates) !== -1) {
-								return [true, "", "Available"];
-							} else {
-								return [false, "", "unAvailable"];
-							}
+							var availableDates = [<?php echo implode(',', $enable_dates); ?>];
+							jQuery("<?php echo esc_attr($selector); ?>").each(function () {
+								if (this._flatpickr) {
+									this._flatpickr.destroy();
+								}
+								this._flatpickr = flatpickr(this, {
+									dateFormat: "<?php echo esc_js($fp_format); ?>",
+									minDate: <?php echo $js_date($start_date); ?>,
+									maxDate: <?php echo $js_date($end_date); ?>,
+									defaultDate: <?php echo $js_date($start_date); ?>,
+									appendTo: document.body,
+									clickOpens: true,
+									disable: [
+										function(date) {
+											var y = date.getFullYear();
+											var m = ('0' + (date.getMonth() + 1)).slice(-2);
+											var d = ('0' + date.getDate()).slice(-2);
+											var dateStr = y + '-' + m + '-' + d;
+											return availableDates.map(function(x){ return x.replace(/"/g,''); }).indexOf(dateStr) === -1;
+										}
+									],
+									enableMonthSelector: true,
+									enableYearSelector: true,
+									disableMobile: false,
+									onChange: mptbm_sync_hidden_date,
+									// defaultDate pre-fills the visible field on page load but does NOT
+									// fire onChange, so without this the hidden input (what search
+									// validation actually reads) stays empty until the user reopens the
+									// calendar and reselects -- searching before that silently no-ops.
+									// Passed isInitialSync=true (see below) so listeners downstream of
+									// the hidden field's "change" event (mptbm_registration.js /
+									// mptbm_dual_booking.js) can tell this apart from a real user pick -
+									// those also auto-open the pickup-time dropdown as a "guide user to
+									// the next field" convenience, which should only happen when the
+									// user actually just picked a date, not on every tab load/init.
+									onReady: function (selectedDates, dateStr, instance) {
+										mptbm_sync_hidden_date(selectedDates, dateStr, instance, true);
+									}
+								});
+								function mptbm_sync_hidden_date(selectedDates, dateStr, instance, isInitialSync) {
+									if (selectedDates.length > 0) {
+										var y = selectedDates[0].getFullYear();
+										var m = ('0' + (selectedDates[0].getMonth() + 1)).slice(-2);
+										var d = ('0' + selectedDates[0].getDate()).slice(-2);
+										var isoDate = y + '-' + m + '-' + d;
+										jQuery(instance.element).closest('label').find('input[type="hidden"]').val(isoDate).trigger('change', [{ initial: !!isInitialSync }]);
+									}
+								}
+							});
 						}
+						mptbm_try_init_fp();
 					});
 				</script>
 				<?php

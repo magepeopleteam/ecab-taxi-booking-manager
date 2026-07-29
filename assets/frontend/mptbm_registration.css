@@ -1,490 +1,1542 @@
- /******************************************************************** ************************************************/
 /* Loading Spinner Animation */
 .mptbm-spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: mptbm-spin 1s linear infinite;
-    margin: 0 auto;
+	border: 4px solid #f3f3f3;
+	border-top: 4px solid var(--color_theme);
+	border-radius: 50%;
+	width: 42px;
+	height: 42px;
+	animation: mptbm-spin 1s linear infinite;
+	margin: 0 auto;
 }
 
 @keyframes mptbm-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
 }
 
-/******************************************************************** ************************************************/
-@media only screen and (min-width: 10px) {
-	div.mptbm_transport_search_area {
-		width: 100%;
-		max-width: 1200px;
-		box-shadow: 0 0 10px #ddd;
-		border-radius: 12px;
-		background-color: #FFF;
-		margin: 0 auto;
-	}
-	div.mptbm_transport_search_area div.tabsContentNext {
-		padding:15px;
-		background: #fff;
-    	border-radius: 12px; 
-	}
-	/* div.mptbm_transport_search_area div.mptbm_distance_time { margin: var(--dmp) 0 0 0; } */
-	div.mptbm_distance_time h6 {font-size: var(--fs);color: var(--d_color);}
-	div.mptbm_distance_time strong {font-size: var(--fs);}
-	#mptbm_map_area { width: 100%; height: 100%; min-height: 200px;border-radius: 15px; }
-	div.mptbm_form_details_area #mptbm_map_area{min-height: 300px;}
-	div.mptbm_transport_summary,
-	div.mptbm_extra_service {display: none;}
-	div.mptbm_transport_search_area div[data-extra-service] {display: none;}
-	div.get_details_next_link {
+/* ===== Main Container ===== */
+div.mptbm_transport_search_area {
+	width: 100%;
+	max-width: 1200px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
+	border-radius: 16px;
+	background-color: #fff;
+	margin: 0 auto;
+	border: 1px solid rgba(0, 0, 0, 0.04);
+	overflow: visible;
+}
+
+div.mptbm_transport_search_area div.tabsContentNext {
+	padding: 15px;
+	background: #f4f5f8;
+	border-radius: 0 0 16px 16px;
+}
+
+div.mptbm_distance_time h6 {
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #64748b;
+	font-weight: 600;
+}
+
+div.mptbm_distance_time strong {
+	font-size: 15px;
+	color: #0f172a;
+	font-weight: 600;
+}
+
+#mptbm_map_area {
+	width: 100%;
+	height: 100%;
+	min-height: 200px;
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+div.mptbm_form_details_area #mptbm_map_area {
+	min-height: 300px;
+}
+
+div.mptbm_transport_summary,
+div.mptbm_extra_service {
+	display: none;
+}
+
+div.mptbm_transport_search_area div[data-extra-service] {
+	display: none;
+}
+
+div.get_details_next_link {
 	display: none;
 	position: relative;
 	clear: both;
-	margin-top: 20px;
-}
-	div.mptbm_transport_search_area .woocommerce-page span.woocommerce-input-wrapper,
-	div.mptbm_transport_search_area .woocommerce-page table span {display: initial;}
-	div.mptbm_transport_search_area .woocommerce-page label {margin: 0 0 var(--dmp_xs) 0;display:initial;}
-	div.mptbm_transport_search_area .woocommerce-page label img{width:inherit !important;}
-	div.mptbm_transport_search_area table th,
-	div.mptbm_transport_search_area table td {border: none;}
-	div.mptbm_transport_search_area .woocommerce form .form-row {margin-bottom: var(--dmp_xs);}
-}
-/******************************************************************** ************************************************/
-@media only screen and (min-width: 10px) {
-	div.mptbm_transport_search_area .mpTabsNext .tabItemNext {min-height: 70px;}
-	div.mptbm_transport_search_area .circleIcon {width: 40px;height: 40px;font-size: 18px;font-weight: 600;color: #666666;background-color: #EAECEE; }
-	
-	
-	.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]{
-		color: var(--color_theme);
-		border: 3px solid var(--color_theme);
-	}
-	.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]::after {
-		border-color: var(--color_theme);
-	}
-
-	.mptbm_transport_search_area .mpTabsNext .tabItemNext.active [class*="circleIcon"]{
-		background: var(--color_theme);
-		font-size: 24px;
-		font-weight: bold;
-	}
-
-	.mptbm_transport_search_area .tabItemNext.active [class*="circleIcon"] {
-		background-color: var(--color_theme_alter); 
-		color: var(--color_theme_alter);
-	}
-	
-
-	.mptbm_transport_search_area .mpTabsNext .tabItemNext.active [class*="circleIcon"]::after {
-		border-color: var(--color_theme);
-	}
-
-	div.mpTabsNext .tabItemNext.active .circleTitle.success { color: var(--color_theme); }
-	div.mptbm_transport_search_area .tabItemNext.active [class*="circleIcon"].success {background-color: var(--color_theme);}
-	div.mptbm_transport_search_area .tabItemNext .circleTitle {font-weight: 600;color:var(--color_theme);text-transform: capitalize;}
-	div.mptbm_transport_search_area .tabItemNext.active .circleTitle {font-weight: 600;color: var(--color_theme);}
-	div.mptbm_transport_search_area .tabItemNext [class*="circleIcon"]::after {top: 20px;border-color: #EAECEE;left: calc(50% + 20px);}
-	/*********************/
-	div.mptbm_transport_search_area .mptbm_search_area {padding: 15px;border-radius: var(--dbrl);}
-	div.mptbm_transport_search_area .mptbm_search_area.inputHorizontal {max-width:30%;margin-left: 0;}
-	div.mptbm_transport_search_area .mptbm_search_area h3 {text-transform: uppercase;color: #152C5B;}
-	div.mptbm_transport_search_area .mptbm_search_area label {font-weight: 400;color: #152C5B;}
-	div.mptbm_transport_search_area .mptbm_search_area label .formControl {
-		height: 47px;background-color: #F5F6F8;color: #222222;font-weight: 400;
-		padding: var(--dmp_xs) 35px var(--dmp_xs) var(--dmp_xs);border-color: #EBECEE;
-		background-image: url('../../mp_global/assets/images/arrow_down.png'); background-repeat: no-repeat; background-position: calc(100% - var(--dmp_xs)); background-size: auto;
-		-webkit-appearance: none;
-	}
-	div.mptbm_transport_search_area .mptbm_map_area {max-width: calc(71% - 30px);width: 71%;}
-	div.mptbm_form_details_area div.mptbm_map_area{
-		max-width: 100%;
-		width: 100%;
-		position: relative;
-		margin-bottom: 20px;
-		min-height: 300px;
-	}
-	
-	/* Ensure the map container has proper height */
-	div.mptbm_form_details_area div.mptbm_map_area #mptbm_map_area {
-		width: 100%;
-		height: 300px;
-		position: relative;
-	}
-	
-	/* Fix Next button positioning when map is visible */
-	div.mptbm_form_details_area .get_details_next_link {
-		position: relative;
-		clear: both;
-		margin-top: 20px;
-		z-index: 10;
-	}
-	div.mptbm_transport_search_area #mptbm_start_date.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area #mptbm_return_date.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area #mptbm_manual_start_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area #mptbm_manual_end_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area #mptbm_taxi_return.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area #mptbm_map_start_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area #mptbm_map_end_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area #mptbm_map_extra_stop_place.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	#mptbm_fixed_hours.formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area div.mp_input_select .formControl {padding: var(--dmp_xs) 35px var(--dmp_xs) 50px;}
-	div.mptbm_transport_search_area .mptbm_left_icon { position: absolute; left: 1px; bottom: 1px; width: 45px !important; font-size: 25px; color: var(--color_theme); background-color: transparent; border-radius: var(--dbr) 0 0 var(--dbr); height: 46px; margin: 0 !important;}
-	/*********************/
-	div.mptbm_transport_search_area .leftSidebar h3 {color: #152C5B; font-size: 24px;font-weight: 700;text-transform: uppercase;}
-	div.mptbm_transport_search_area .leftSidebar h6 {color: #152C5B;font-size: 17px;font-weight: 600;}
-	div.mptbm_transport_search_area .leftSidebar p {color: #2B1818;font-size: 16px;font-weight: 400;}
-	div.mptbm_booking_item h5 {color: #000;font-size: 24px;font-weight: 600}
-	div.mptbm_booking_item h4 {color: #000;font-size: 36px;font-weight: 600;margin: 0 0 var(--dmp_xs) 0;}
-	.mptbm_booking_item_hidden{display: none !important;}
-	div.mptbm_transport_search_area ul.list_inline_two{
-		align-items: center;
-	}
-	div.mptbm_transport_search_area ul.list_inline_two li {
-		border: none;
-		width: 50%;
-	}
-	div.mptbm_transport_search_area ul.list_inline_two li span{
-		font-size: 12px;
-	}
-
-	div.mptbm_transport_search_area button.mptbm_price_calculation
-	{background-color: #EAECEE;color: #666;border-radius: var(--dbr);}
-	div.mptbm_transport_search_area button.mptbm_price_calculation.active_select,
-	div.mptbm_transport_search_area button.mptbm_transport_select.active_select {
-		background-image: linear-gradient(to right, #0f9d58, #0cc46e);
-		color: var(--color_theme_alter);
-		border: 0;
-	}
-	div.mptbm_transport_search_area .mp_sticky_section .leftSidebar{
-		max-width: 100%;
-	}
-	div.mptbm_transport_search_area .mp_sticky_section .mainSection{
-		max-width: 100%;
-	}
-	@media (min-width:768px) {
-
-		div.mptbm_transport_search_area .mp_sticky_section .leftSidebar{
-			max-width: 28%;
-		}
-		div.mptbm_transport_search_area .mp_sticky_section .mainSection{
-			max-width: 70%;
-		}
-	}
-	
-	div.mptbm_transport_search_area div.mp_sticky_on_scroll.summary-box{
-		min-height: 400px;
-		overflow: auto;
-		background: #f5f6f8;
-		padding:15px;
-		border-radius: 20px;
-		height: fit-content;
-		position: sticky;
-		top: 20px;
-		border: 1px solid rgba(0, 0, 0, 0.05);
-	}
-	div.mp_sticky_on_scroll.summary-box h6{
-		margin-bottom: 2px;
-	}
-	div.mp_sticky_on_scroll.summary-box .divider{
-		margin-bottom: 2px;
-		background: none;
-	}	
-	.mptbm_transport_search_area .mp_sticky_on_scroll h3{
-		margin: 0;
-	}
-	.mptbm_transport_search_area .mp_sticky_on_scroll .devider{
-		margin: 5px 0;
-	}
-	.mptbm_transport_search_area .mptbm_booking_item{
-		margin-bottom: 10px;
-		border-radius: 12px;
-		border: 2px solid transparent;
-		box-shadow: 0 0 5px #ddd;
-		transition: all .5s;
-		padding:5px;
-		background-color: var(--color_white);
-	}
-	.mptbm_transport_search_area .mptbm_booking_item:hover{
-		transform: translateY(-4px);
-		box-shadow: 0 0px 10px rgba(0, 0, 0, 0.15);
-	}
-	.mptbm_transport_search_area .mptbm_booking_item.selected{
-		box-shadow: 0 0px 10px rgba(0, 0, 0, 0.15);
-	}
-
-}
-/******************************************************************** Responsive ************************************************/
-@media only screen and (max-width: 1000px) {
-	div.mptbm_transport_search_area .mptbm_search_area {padding: 30px;}
-}
-@media only screen and (max-width: 800px) {
-	div.mptbm_transport_search_area .mptbm_map_area{width:100%;max-width:100%;}
-	div.mptbm_transport_search_area div.mptbm_booking_item,
-	div.mptbm_pick_up_details > .justifyBetween {-webkit-flex-direction: column;flex-direction: column;}
-	div.mptbm_transport_search_area .mptbm_search_area.inputHorizontal,
-	div.mptbm_transport_search_area .mptbm_map_area,
-	div.mptbm_transport_search_area .leftSidebar,
-	div.mptbm_transport_search_area .leftSidebar .mp_sticky_area,
-	div.mptbm_transport_search_area .mainSection {width: 100%;max-width: 100%;}
-	div.mptbm_transport_search_area #mptbm_map_area {margin: var(--dmp) 0;min-height: 400px;}
-	div.mptbm_transport_search_area .mainSection {margin: var(--dmp) 0 0 0;}
-	div.mptbm_transport_search_area ul.list_inline_two li {width: 100%;}
-	div.mptbm_transport_search_area div.mptbm_list_details [class*="_min_150"],
-	div.mptbm_transport_search_area button.mptbm_transport_select {width: auto;min-width: 100px;}
-}
-@media only screen and (max-width: 600px) {
-	div.mptbm_transport_search_area .mptbm_search_area {padding: 20px;}
-	div.mptbm_transport_search_area .mpTabsNext .tabItemNext { min-height: 60px; }
-	div.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"] {width: 30px;height: 30px;min-width: 30px;font-size: var(--fs);}
-	div.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"]::after {top: 15px;left: calc(50% + 15px);}
-	div.mptbm_transport_search_area .mpTabsNext .tabItemNext .circleTitle {font-size: 12px;top: 35px;}
-}
-.mptbm_transport_search_area{
-	margin: 0 auto;
+	margin-top: 24px;
 }
 
-#ui-datepicker-div {
-	width:auto;
-}
-.mpTabsNext .tabItemNext.active [class*="circleIcon"]::after{
-	border-width:3px;
-}
-.mpTabsNext .tabItemNext [class*="circleIcon"]::after{
-	border-width: 3px;
-}
-.mptb-tab-container {
-    width: 100%;
-    margin: 50px auto;
+/* WooCommerce compat */
+div.mptbm_transport_search_area .woocommerce-page span.woocommerce-input-wrapper,
+div.mptbm_transport_search_area .woocommerce-page table span {
+	display: initial;
 }
 
-.mptb-tabs {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    cursor: pointer;
-	background: #f0f0f0;
-	max-width: 800px;
-	margin: 10px auto !important;
-	border-radius: 50px;
-
+div.mptbm_transport_search_area .woocommerce-page label {
+	margin: 0 0 var(--dmp_xs) 0;
+	display: initial;
 }
 
-.mptb-tabs li {
-    /*background: #f0f0f0;*/
-    /*border: 1px solid #ddd;*/
-    width: 100%;
-    text-align: center;
+div.mptbm_transport_search_area .woocommerce-page label img {
+	width: inherit !important;
 }
 
-.mptb-tabs .current {
-    background: var(--color_theme);
-    color: white;
-	border-radius: 50px;
+div.mptbm_transport_search_area table th,
+div.mptbm_transport_search_area table td {
+	border: none;
 }
 
-.mptb-tab-content {
-    display: none;
-	width: 100%;
-	padding-top: 1%;
+div.mptbm_transport_search_area .woocommerce form .form-row {
+	margin-bottom: var(--dmp_xs);
 }
 
-.mptb-tab-content.current {
-    display: block;
-}
-.tab-link{
-	padding: 2.3% 2.5%  !important;
+/* ===== Step Tabs (Progress Bar) =====
+   Circle + label stack in normal flex flow (not the old position:absolute
+   "top: 40px" trick) so the label can never end up overlapping the circle
+   regardless of padding/font-size/justify-content changes. */
+.mptbm_transport_search_area .tabListsNext {
+	display: flex;
+	padding: 24px 32px;
+	background: #fafbfc;
+	border-radius: 16px 16px 0 0;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+	overflow: hidden;
 }
 
-
-.mptbm-gif{
-	padding-top: 10%;
-	width: 128px;
-	margin: 0 auto;
-
+div.mptbm_transport_search_area .mpTabsNext .tabItemNext {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 8px;
+	flex: 1;
+	min-height: 0;
+	position: relative;
 }
-.mptb-tabs-loader{
-	width: 200px !important;
+
+div.mptbm_transport_search_area .circleIcon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 38px;
+	height: 38px;
+	font-size: 15px;
+	font-weight: 600;
+	color: #94a3b8;
+	background-color: #f1f5f9;
+	border-radius: 50%;
+	z-index: 1;
+	transition: all 0.3s ease;
 }
-.mptbm-hide-gif{
+
+.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"] {
+	color: var(--color_theme);
+	border: 2px solid #e2e8f0;
+}
+
+.mptbm_transport_search_area .mpTabsNext .tabItemNext.active [class*="circleIcon"] {
+	background: var(--color_theme);
+	font-size: 16px;
+	font-weight: 700;
+	color: #fff;
+	border-color: var(--color_theme);
+	box-shadow: 0 2px 8px var(--color_theme_88);
+}
+
+.mptbm_transport_search_area .tabItemNext.active [class*="circleIcon"] {
+	background-color: var(--color_theme);
+	color: var(--color_theme_alter);
+}
+
+.mptbm_transport_search_area .mpTabsNext .tabItemNext.active [class*="circleIcon"]::after {
+	border-color: var(--color_theme);
+}
+
+/* Connector line: positioned relative to the tab item (not a fixed pixel
+   width), so it scales with however wide the flex:1 column actually is
+   instead of falling short on wide layouts or overshooting on narrow ones.
+   The circle sits flush at the top of the item (justify-content: flex-start
+   above), so its vertical center is always exactly half its own height. */
+.mptbm_transport_search_area .tabItemNext [class*="circleIcon"]::after {
+	content: "";
+	position: absolute;
+	top: 19px;
+	left: calc(50% + 20px);
+	width: calc(100% - 5px);
+	border-top: 2px solid #e2e8f0;
+	z-index: -1;
+}
+
+.mptbm_transport_search_area .tabItemNext:last-child [class*="circleIcon"]::after {
 	display: none;
 }
 
-/* Custom select dropdown styles */
-.mptbm-custom-select-wrapper {
+div.mpTabsNext .tabItemNext.active .circleTitle.success {
+	color: var(--color_theme);
+}
+
+div.mptbm_transport_search_area .tabItemNext.active [class*="circleIcon"].success {
+	background-color: var(--color_theme);
+}
+
+div.mptbm_transport_search_area .tabItemNext .circleTitle {
+	position: static;
+	top: auto;
+	left: auto;
+	width: auto;
+	margin: 0;
+	font-weight: 500;
+	color: #94a3b8;
+	text-transform: capitalize;
+	font-size: 13px;
+	text-align: center;
+	transition: color 0.3s ease;
+}
+
+div.mptbm_transport_search_area .tabItemNext.active .circleTitle {
+	font-weight: 600;
+	color: var(--color_theme);
+}
+
+/* ===== Ride Type Tabs (Hourly / Distance / Flat Rate) ===== */
+.mptb-tab-container {
+	width: 100%;
+	margin: 0 auto;
+	position: relative;
+}
+
+/* .mptb-tabs (the Hourly/Distance/Flat rate pills) and .mptb-tab-content are
+   siblings inside .mptb-tab-container - anchoring the overlay to the whole
+   container (rather than this wrapper around just the content divs) covered
+   the pill row too, washing it out behind the same semi-transparent white
+   background as the loading form area below it. */
+.mptb-tabs-content-wrap {
+	position: relative;
+}
+
+/* Tab-switch loading overlay: centered over the tab content area, not the whole viewport.
+   inset:0 stretches it to match the wrapper's *current* height at all times -- both
+   the brief moment right after the old content is cleared, and the (usually longer)
+   window after the new content has rendered but before the minimum-display timeout
+   removes the overlay -- so the spinner is always centered on what's actually visible,
+   not a guessed fixed height. */
+.mptb-tabs-content-wrap .mptbm-loading-overlay {
 	position: absolute;
-	background: white;
-	border: 1px solid #ddd;
-	border-radius: 4px;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-	z-index: 1000;
+	inset: 0;
+	min-height: 160px;
+	/* Higher than any dropdown/date-picker popup in the form beneath it
+	   (mp_input_select_list: 111, flatpickr/custom-select: 99999) - otherwise
+	   a field opened during the loading window (still-loading content is not
+	   actually blocked from receiving clicks, just visually dimmed) renders
+	   its dropdown list on top of this overlay instead of staying hidden
+	   under it, looking broken (crisp dropdown floating over a hazy page). */
+	z-index: 999999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.7);
+	border-radius: 16px;
+}
+
+.mptb-tabs {
+	list-style: none;
+	padding: 5px;
+	display: flex;
+	cursor: pointer;
+	background: #eef0f5;
+	max-width: 420px;
+	margin: 0 auto !important;
+	border-radius: 999px;
+	gap: 2px;
+	border: none;
+}
+
+.mptb-tabs li {
+	width: 100%;
+	text-align: center;
+	transition: all 0.25s ease;
+}
+
+.mptb-tabs .current {
+	background: var(--color_theme);
+	color: #fff;
+	border-radius: 999px;
+	font-weight: 700;
+	box-shadow: 0 4px 10px -2px var(--color_theme_88);
+}
+
+.tab-link {
+	padding: 10px 16px !important;
+	font-size: 14px;
+	font-weight: 600;
+	color: #64748b;
+	border-radius: 999px;
+	transition: color 0.2s ease;
+}
+
+.tab-link:hover:not(.current) {
+	color: #334155;
+}
+
+.mptb-tab-content {
+	display: none;
+	width: 100%;
+	padding-top: 8px;
+}
+
+.mptb-tab-content.current {
+	display: block;
+}
+
+/* ===== Search Form Area ===== */
+div.mptbm_transport_search_area .mptbm_search_area {
+	padding: 28px;
+	border-radius: 20px;
+	background: #fff;
+	border: none;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+div.mptbm_transport_search_area .mptbm_search_area.inputHorizontal {
+	max-width: 30%;
+	margin-left: 0;
+}
+
+/* ----- Card header: icon + "Route Planning" title ----- */
+div.mptbm_transport_search_area .mptbm_search_area_header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 20px;
+}
+
+div.mptbm_transport_search_area .mptbm_search_area_header_icon {
+	color: var(--color_theme);
+	font-size: 17px;
+	line-height: 1;
+}
+
+div.mptbm_transport_search_area .mptbm_search_area h3 {
+	margin: 0;
+	text-transform: none;
+	color: #0f172a;
+	font-size: 18px;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+div.mptbm_transport_search_area .mptbm_search_area label {
+	font-weight: 700;
+	color: #94a3b8;
+	font-size: 10px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+/* Error text injected inside the label (showLocationError() appends it as a
+   sibling of the input) must not inherit the label's uppercase styling. */
+div.mptbm_transport_search_area .mptbm_search_area label .mptbm-location-error {
+	text-transform: none;
+	font-weight: 600;
+	letter-spacing: normal;
+}
+
+div.mptbm_transport_search_area .mptbm_search_area label .formControl {
+	height: 48px;
+	background-color: #f1f4f9;
+	color: #0f172a;
+	font-weight: 600;
+	font-size: 14px;
+	padding: var(--dmp_xs) 35px var(--dmp_xs) var(--dmp_xs);
+	border-color: transparent;
+	border-radius: 14px;
+	border-width: 1px;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+	background-repeat: no-repeat;
+	background-position: calc(100% - var(--dmp_xs));
+	background-size: 16px;
+	-webkit-appearance: none;
+}
+
+div.mptbm_transport_search_area .mptbm_search_area label .formControl:focus {
+	border-color: var(--color_theme);
+	box-shadow: none;
+	background-color: #fff;
+	outline: none;
+}
+
+/* Plain location text inputs: no dropdown chevron */
+div.mptbm_transport_search_area #mptbm_map_start_place.formControl,
+div.mptbm_transport_search_area #mptbm_map_end_place.formControl,
+div.mptbm_transport_search_area #mptbm_map_extra_stop_place.formControl,
+div.mptbm_transport_search_area .mptbm_extra_stop_place_input.formControl {
+	background-image: none;
+	padding-right: var(--dmp_xs);
+}
+
+/* Form input padding for icons */
+div.mptbm_transport_search_area #mptbm_start_date.formControl,
+div.mptbm_transport_search_area #mptbm_return_date.formControl,
+div.mptbm_transport_search_area #mptbm_manual_start_place.formControl,
+div.mptbm_transport_search_area #mptbm_manual_end_place.formControl,
+div.mptbm_transport_search_area #mptbm_taxi_return.formControl,
+div.mptbm_transport_search_area #mptbm_map_start_place.formControl,
+div.mptbm_transport_search_area #mptbm_map_end_place.formControl,
+div.mptbm_transport_search_area #mptbm_map_extra_stop_place.formControl,
+#mptbm_fixed_hours.formControl {
+	padding-left: 44px;
+}
+
+div.mptbm_transport_search_area div.mp_input_select .formControl {
+	padding: var(--dmp_xs) 35px var(--dmp_xs) 44px;
+}
+
+div.mptbm_transport_search_area .mptbm_left_icon {
+	position: absolute;
+	left: 0;
+	top: 8px;
+	width: 42px !important;
+	font-size: 15px;
+	color: var(--color_theme) !important;
+	background-color: transparent;
+	border-radius: 14px 0 0 14px;
+	height: 48px;
+	margin: 0 !important;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: color 0.2s ease;
+}
+
+div.mptbm_transport_search_area label:focus-within .mptbm_left_icon {
+	color: var(--color_theme);
+}
+
+/* ----- Pickup/return time dropdown list ----- */
+div.mptbm_transport_search_area ul.mp_input_select_list {
+	border: 1px solid #e7eaf0;
+	border-radius: 14px !important;
+	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06);
+	padding: 6px;
+	margin-top: 6px !important;
+	max-height: 240px;
+}
+
+div.mptbm_transport_search_area ul.mp_input_select_list li {
+	padding: 9px 12px;
+	margin: 2px 0;
+	border-bottom: none;
+	border-radius: 10px;
+	color: #0f172a;
+	font-size: 13.5px;
+	font-weight: 500;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+div.mptbm_transport_search_area ul.mp_input_select_list li:hover {
+	background-color: var(--color_theme);
+	color: #fff;
+}
+
+/* ----- Transfer Type / Extra Waiting Hours (custom-styled proxy over a real <select>) ----- */
+div.mptbm_transport_search_area .mptbm_proxy_native_select {
+	display: none !important;
+}
+
+div.mptbm_transport_search_area .mptbm_select_proxy {
+	position: relative;
+}
+
+div.mptbm_transport_search_area .mptbm_select_proxy label .formControl {
+	padding: var(--dmp_xs) 35px var(--dmp_xs) 44px !important;
+}
+
+/* ----- "Select Hours" minimum-time warning ----- */
+div.mptbm_transport_search_area .mptbm_fixed_hours_warning {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin-top: 10px;
+	padding: 10px 12px;
+	background: #fffbeb;
+	border: 1px solid #fde68a;
+	border-radius: 12px;
+	color: #92400e;
+	font-size: 12.5px;
+	font-weight: 600;
+	line-height: 1.45;
+}
+
+div.mptbm_transport_search_area .mptbm_fixed_hours_warning i {
+	flex: 0 0 auto;
+	margin-top: 1px;
+	font-size: 13px;
+	color: #d97706;
+}
+
+/* ----- "Search" button ----- */
+div.mptbm_transport_search_area .mptbm_search_area .inputList.justifyBetween {
+	margin-top: 4px;
+}
+
+div.mptbm_transport_search_area .mptbm_search_area button#mptbm_get_vehicle {
+	height: 52px;
+	border-radius: 14px;
+	border: none;
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: 0.01em;
+	box-shadow: 0 8px 20px -6px var(--color_theme_88, rgba(5, 150, 105, 0.5));
+	transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+div.mptbm_transport_search_area .mptbm_search_area button#mptbm_get_vehicle:hover {
+	transform: translateY(-1px);
+	filter: brightness(1.05);
+	box-shadow: 0 10px 24px -6px var(--color_theme_88, rgba(5, 150, 105, 0.6));
+}
+
+/* ===== Map Area ===== */
+div.mptbm_transport_search_area .mptbm_map_area {
+	max-width: calc(71% - 24px);
+	width: 71%;
+}
+
+div.mptbm_form_details_area div.mptbm_map_area {
+	max-width: 100%;
+	width: 100%;
+	position: relative;
+	margin-bottom: 20px;
+	min-height: 300px;
+}
+/* Flat-rate/"manual" pricing has no real map at all (no geocoding, just named
+   location dropdowns) - mptbm_reveal_inline_results() still reveals this
+   column since the results live nested inside it, but this mode never had a
+   map/distance-time bar to fill the height the rules above reserve for one.
+   Zero that reservation and hide the map-specific chrome so only the results
+   themselves show, instead of a blank box sized for a map that never loads. */
+div.mptbm_transport_search_area .mptbm_map_area.mptbm_map_area_no_map,
+div.mptbm_form_details_area div.mptbm_map_area.mptbm_map_area_no_map {
+	min-height: 0;
+	margin-bottom: 0;
+}
+/* !important needed here - div.mptbm_transport_search_area .mptbm_map_area
+   .mptbm_map_collapsible_body (a few rules up) forces display:flex on it at
+   higher specificity (extra div/class), so a plain override would lose. */
+.mptbm_map_area.mptbm_map_area_no_map .mptbm_map_area_header,
+.mptbm_map_area.mptbm_map_area_no_map .mptbm_map_collapsible_body {
+	display: none !important;
+}
+
+div.mptbm_form_details_area div.mptbm_map_area #mptbm_map_area {
+	width: 100%;
+	height: 300px;
+	position: relative;
+}
+
+div.mptbm_form_details_area .get_details_next_link {
+	position: relative;
+	clear: both;
+	margin-top: 20px;
+	z-index: 10;
+}
+
+#mptbm_map_area {
+	height: 100%;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	/* border-radius alone doesn't clip anything - Leaflet's own tile panes
+	   are absolutely positioned and paint straight over rounded corners
+	   unless the container itself clips them. */
+	overflow: hidden;
+}
+
+/* .mptbm_map_area is a flex column (.fdColumn) that already stretches to
+   match .mptbm_search_area's height - but .mptbm_map_collapsible_body (its
+   only visible child pre-search) was never told to grow into that stretched
+   space, so it just sat at its own content height, leaving the rest of the
+   column as dead gray space below the distance/time bar. flex:1 lets it
+   claim all the height its parent actually has. */
+div.mptbm_transport_search_area .mptbm_map_area .mptbm_map_collapsible_body {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+/* Reserve room below the map for the standalone distance/time bar so it
+   doesn't get pushed past the bottom of the (height-stretched) map column
+   and clipped by the container's overflow:hidden. */
+div.mptbm_transport_search_area .mptbm_map_area .mptbm_map_collapsible_body > .fullHeight {
+	height: calc(100% - 93px);
+	flex: 1 1 auto;
+	transition: height .3s ease;
+}
+
+/* ===== Map header + collapse toggle ===== */
+/* This bar only ever exists to hold the collapse-toggle button before it
+   relocates into the trip-summary card's action group once there are
+   results to make room for (see mptbm_reveal_inline_results) - before a
+   search there's nothing to collapse the map for, so it stays hidden and
+   the map keeps its original, undiminished height. */
+.mptbm_map_area_header {
+	display: none;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+.mptbm_map_area_header h6 {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 700;
+	color: #475569;
+	display: flex;
+	align-items: center;
+}
+.mptbm_map_collapse_toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: #fff;
+	border: 1.5px solid #e2e8f0;
+	border-radius: 999px;
+	padding: 6px 14px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #475569;
+	cursor: pointer;
+	transition: background .2s ease, border-color .2s ease;
+}
+.mptbm_map_collapse_toggle:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+}
+.mptbm_map_collapse_toggle i {
+	font-size: 11px;
+	transition: transform .2s ease;
+}
+/* "Collapsed" is a peek, not a full hide - shrink the map itself to about
+   half height (distance/time bar stays fully visible below it) so there's
+   still a visual sense of the route while results take most of the room. */
+.mptbm_map_area.mptbm_map_collapsed .mptbm_map_collapsible_body > .fullHeight {
+	height: 110px;
+	flex: 0 0 110px;
+	min-height: 0;
+}
+.mptbm_map_area.mptbm_map_collapsed .mptbm_map_collapse_toggle i {
+	transform: rotate(180deg);
+}
+/* Once results arrive, the toggle relocates into the trip-summary card's own
+   .mptbm_results_actions group (see mptbm_reveal_inline_results) - restyle
+   to match its new neighbor, button.mptbm_results_edit, so the pair reads
+   as one action group rather than two buttons from different design passes. */
+.mptbm_results_actions .mptbm_map_collapse_toggle_merged {
+	order: -1;
+	border: 1px solid rgba(15, 23, 42, 0.12);
+	border-radius: 10px;
+	padding: 7px 14px;
+	font-size: 12.5px;
+	font-weight: 700;
+	color: #0f172a;
+	transition: border-color .15s ease, background-color .15s ease, color .15s ease;
+}
+.mptbm_results_actions .mptbm_map_collapse_toggle_merged:hover {
+	border-color: var(--color_theme);
+	background: rgba(5, 150, 105, .06);
+	color: var(--color_theme);
+}
+/* mp_style.css's generic ".mpStyle button:hover span" (written for solid-fill
+   CTA buttons that turn white-on-green on hover) targets the <span> label
+   directly, not through inheritance - our own :hover color above never
+   reaches it, leaving the label white on this button's pale-tint hover
+   background and making the text disappear. The <i> icon escapes that rule
+   (it only matches span) which is why only the label looked broken. */
+.mptbm_results_actions .mptbm_map_collapse_toggle_merged:hover span {
+	color: var(--color_theme);
+}
+/* Redundant here - the real Route Planning panel is already visible and
+   editable on the left, so there's no separate "step" to jump back to. */
+.mptbm_inline_search_results button.mptbm_results_edit {
+	display: none;
+}
+/* No longer needed as a manual control - the map already auto-collapses to
+   a "peek" height on search and re-fits its own zoom to the full route. */
+.mptbm_results_actions .mptbm_map_collapse_toggle_merged {
+	display: none;
+}
+
+/* ===== Inline search results - lives INSIDE .mptbm_map_area (a sibling of
+   .mptbm_map_collapsible_body), so it naturally takes over the map's own
+   column/spot once results arrive, without adding a 3rd flex child next to
+   .mptbm_search_area + .mptbm_map_area (which - both already sized to fill
+   the row under flex-nowrap - would overflow/squeeze everything given a
+   3rd sibling at a competing width). Collapsing the map only hides
+   .mptbm_map_collapsible_body, leaving results visible in the same spot. */
+.mptbm_inline_search_results {
+	display: none;
+}
+.mptbm_inline_search_results.mptbm_inline_results_active {
+	display: block;
+	/* Pulled up to overlap the bottom edge of the (collapsed, "peek") map
+	   above it - reads as one raised card floating over the map rather than
+	   sitting flat below it. Leaflet's own controls/attribution sit around
+	   z-index:1000, so this needs to clear that too, not just the map tiles.
+	   The trip info, results count/sort/view row, and vehicle list all live
+	   inside this one white card now instead of the trip card floating
+	   separately above a plain-background list. */
+	position: relative;
+	z-index: 1001;
+	margin-top: -28px;
+	background: #ffffff;
+	border-radius: 18px;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 8px 20px rgba(15, 23, 42, 0.05);
+	padding: 18px;
+}
+/* Reset control - reloads the page rather than hand-resetting every field,
+   since Route Planning's inputs vary a lot by pricing mode (plain text,
+   hidden+proxy custom dropdowns, native selects) and a reload is the only
+   way to guarantee all of them - plus the map and results - land back at
+   a genuine default state instead of missing some edge case.
+   mp_style.css's ".mpStyle button { position: relative }" (class+type) is
+   more specific than a class-only selector here, so position:absolute was
+   silently losing and the button just sat in normal flow instead of
+   pinned to the corner - matching that specificity with the button type. */
+button.mptbm_inline_results_reset {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	z-index: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 1px solid rgba(15, 23, 42, 0.1);
+	background: #fff;
+	color: #94a3b8;
+	font-size: 12px;
+	cursor: pointer;
+	transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.mptbm_inline_results_reset:hover {
+	background: #fef2f2;
+	border-color: #fecaca;
+	color: #ef4444;
+}
+/* The trip-summary strip no longer needs its own card chrome (background/
+   border/shadow/radius) now that it's the top section of the bigger card
+   above - just a divider to separate it from the results list below. */
+.mptbm_inline_search_results .mptbm_results_toolbar {
+	background: none;
+	border: none;
+	box-shadow: none;
+	border-radius: 0;
+	padding: 0;
+	margin-bottom: 16px;
+	border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+	/* Total Distance/Total Time joining Duration/Pickup Date/Pickup Time in
+	   the same row (see mptbm_reveal_inline_results) is more than the base
+	   nowrap+overflow-x:auto layout can fit on one line at this column's
+	   narrower width - wrap onto additional lines instead of requiring a
+	   horizontal scroll to see the map toggle/edit action. */
+	flex-wrap: wrap;
+	overflow-x: visible;
+	row-gap: 10px;
+}
+/* Standard title size, matching Route Planning's own h3 (18px/700) above it -
+   the base stylesheet's 13.5px reads as body text, not this card's heading. */
+.mptbm_inline_search_results .mptbm_results_trip_place {
+	font-size: 18px;
+}
+/* Base stylesheet fixes .mptbm_results_toolbar_middle at flex:0 0 auto (its
+   natural content width) since it never needed to shrink on the standalone
+   results page. With Transfer Type/Waiting Hours/Total Distance/Total Time
+   all joining Pickup Date/Pickup Time here, that natural width can exceed
+   the narrower inline card - let it shrink/wrap instead of overflowing. */
+.mptbm_inline_search_results .mptbm_results_toolbar_middle {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding-bottom: 12px;
+}
+.mptbm_inline_search_results .mptbm_results_toolbar_middle .mptbm_summary_top_row {
+	flex-wrap: wrap;
+	row-gap: 8px;
+}
+/* The shared .mptbm_results_toolbar_middle h6 rule uppercases every label in
+   this row - the JS already title-cases Total Distance/Total Time's actual
+   text (mptbm_title_case in mptbm_reveal_inline_results), so stop that rule
+   from re-uppercasing it back. */
+.mptbm_summary_col_distance h6,
+.mptbm_summary_col_time_total h6 {
+	text-transform: none;
+}
+.mptbm_inline_search_results .mptbm_results_actions {
+	margin-left: auto;
+}
+/* Its own 10px padding, meant for when it sits directly on the page
+   background, would otherwise misalign its content against the toolbar
+   above (which now relies purely on the outer card's padding). */
+.mptbm_inline_search_results .mptbm_results_controls_row {
+	padding: 0;
+	margin-bottom: 10px;
+}
+/* Fixed-hourly bookings render summary.php's .leftSidebar - a sticky column
+   meant to sit beside .mainSection on a full-width standalone results page.
+   Squeezed into this narrow inline column it just breaks (see history) and
+   duplicates the still-visible Route Planning panel - keep it hidden here.
+   .mptbm_results_toolbar (the horizontal trip-recap/"Edit Search" bar used
+   for other pricing modes) stays visible - unlike the sidebar, it's meant to
+   sit at the top of the results themselves. */
+.mptbm_inline_search_results .leftSidebar {
+	display: none;
+}
+.mptbm_inline_search_results .mainSection {
+	width: 100% !important;
+	max-width: 100% !important;
+	/* .mainSection normally carries margin-left:var(--dmp) to space itself
+	   away from .leftSidebar sitting beside it - with that sidebar hidden
+	   here, the margin was left dangling, indenting the results/cards away
+	   from the "Route Map" header above them. */
+	margin-left: 0 !important;
+}
+
+/* ===== Distance/Time Bar - kept simple: small icon, label, value, no
+   heavy dividers/large badges competing with the map above it. ===== */
+._dLayout.mptbm_distance_time {
+	margin-top: 12px;
+	border: none;
+	border-radius: 14px;
+	background: #fff;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 8px 20px rgba(15, 23, 42, 0.05);
+	padding: 14px 18px;
+}
+/* Its own values get folded into the trip-summary card's meta row once
+   results arrive (see mptbm_reveal_inline_results) - hidden rather than
+   removed so the live .mptbm_total_distance/.mptbm_total_time nodes inside
+   keep working normally for whatever the user searches next. */
+._dLayout.mptbm_distance_time.mptbm_distance_time_merged {
+	display: none;
+}
+
+.mptbm_distance_time h1 {
+	width: 30px;
+	height: 30px;
+	min-width: 30px;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	/* var(--color_theme_ee) resolves to the theme color at ~93% opacity
+	   (":ee" is an 8-digit-hex alpha suffix appended in MP_Global_Style.php),
+	   not the pale ~10% tint this fallback assumed - with the icon glyph
+	   also drawn in the solid theme color, that made the icon invisible
+	   against a background that was nearly the same color. An explicit
+	   pale tint keeps the icon visibly contrasted regardless of that
+	   variable's actual value. */
+	background: rgba(5, 150, 105, 0.12);
+}
+
+.mptbm_distance_time h1 .mi {
+	font-size: 14px;
+	color: var(--color_theme);
+}
+
+.mptbm_distance_time ._dFlex_pR_xs,
+.mptbm_distance_time .dFlex {
+	align-items: center;
+	gap: 10px;
+}
+
+.mptbm-map-warning {
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #f1f5f9;
+	border-radius: 12px;
+	color: #64748b;
+}
+
+/* ===== Map Warning ===== */
+.mptbm_transport_search_area .mptbm_map_warning_content {
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	border-radius: 10px;
+	padding: 16px 20px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+/* ===== Sidebar & Booking Items ===== */
+div.mptbm_transport_search_area .leftSidebar h3 {
+	color: #0f172a;
+	font-size: 22px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: -0.02em;
+}
+
+div.mptbm_transport_search_area .leftSidebar h6 {
+	color: #334155;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+div.mptbm_transport_search_area .leftSidebar p {
+	color: #475569;
+	font-size: 15px;
+	font-weight: 400;
+	line-height: 1.6;
+}
+
+div.mptbm_booking_item h5 {
+	color: #0f172a;
+	font-size: 22px;
+	font-weight: 600;
+}
+
+div.mptbm_booking_item h4 {
+	color: #0f172a;
+	font-size: 32px;
+	font-weight: 700;
+	margin: 0 0 var(--dmp_xs) 0;
+	letter-spacing: -0.02em;
+}
+
+.mptbm_booking_item_hidden {
+	display: none !important;
+}
+
+div.mptbm_transport_search_area ul.list_inline_two {
+	align-items: center;
+}
+
+div.mptbm_transport_search_area ul.list_inline_two li {
+	border: none;
+	width: 50%;
+}
+
+div.mptbm_transport_search_area ul.list_inline_two li span {
+	font-size: 12px;
+}
+
+/* ===== Vehicle Select Buttons ===== */
+div.mptbm_transport_search_area button.mptbm_price_calculation {
+	background-color: #f1f5f9;
+	color: #475569;
+	border-radius: 8px;
+	border: 1px solid #e2e8f0;
+	font-weight: 500;
+	transition: all 0.2s ease;
+}
+
+div.mptbm_transport_search_area button.mptbm_price_calculation:hover {
+	background-color: #e2e8f0;
+}
+
+div.mptbm_transport_search_area button.mptbm_price_calculation.active_select {
+	background: var(--color_theme);
+	color: #fff;
+	border: 0;
+	box-shadow: none;
+}
+
+/* .mptbm_transport_select's own styling (padding/background/hover/etc.) now
+   lives solely in mptbm_style.css (button._mpBtn_xs.mptbm_transport_select) -
+   that selector's extra ._mpBtn_xs class makes it more specific than this
+   file's plain button.mptbm_transport_select, so every property this block
+   used to set here was already fully overridden dead weight duplicating (and
+   drifting out of sync with) the real rule. */
+
+/* ===== Sticky Section & Summary ===== */
+div.mptbm_transport_search_area .mp_sticky_section .leftSidebar {
+	max-width: 100%;
+}
+
+div.mptbm_transport_search_area .mp_sticky_section .mainSection {
+	max-width: 100%;
+}
+
+@media (min-width: 768px) {
+	div.mptbm_transport_search_area .mp_sticky_section .leftSidebar {
+		max-width: 28%;
+	}
+
+	div.mptbm_transport_search_area .mp_sticky_section .mainSection {
+		max-width: 70%;
+	}
+}
+
+div.mptbm_transport_search_area div.mp_sticky_on_scroll.summary-box {
+	min-height: 400px;
+	overflow: auto;
+	background: #fafbfc;
+	padding: 20px;
+	border-radius: 14px;
+	height: fit-content;
+	position: sticky;
+	top: 20px;
+	border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+div.mp_sticky_on_scroll.summary-box h6 {
+	margin-bottom: 2px;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #64748b;
+	font-weight: 600;
+}
+
+div.mp_sticky_on_scroll.summary-box .divider {
+	margin-bottom: 2px;
+	background: none;
+}
+
+.mptbm_transport_search_area .mp_sticky_on_scroll h3 {
+	margin: 0;
+}
+
+.mptbm_transport_search_area .mp_sticky_on_scroll .devider {
+	margin: 5px 0;
+}
+
+/* ===== MP Form Label Spacing ===== */
+.mpStyle .inputInline .inputList {
+	margin: 16px var(--dmp_xs) 0 0;
+}
+
+.mpStyle .mpForm label span {
+	margin: 0 0 8px 0;
+	font-size: 13px;
+	font-weight: 500;
+	color: #475569;
+	letter-spacing: 0.01em;
+}
+
+div.bg_image_area {
+	height: 100%;
+	max-height: 200px;
+	border-radius: 10px;
+}
+
+.mpStyle ul.list_inline_two li i {
+	color: var(--color_theme);
+}
+
+.mpStyle ul.list_inline_two li span {
+	color: #475569;
+}
+
+.mpStyle button:hover span {
+	color: var(--color_theme_alter);
+}
+
+.mpStyle button:focus span {
+	color: var(--color_theme_alter);
+}
+
+/* ===== AJAX loading overlay (search / dependent dropdowns) ===== */
+div.mptbm_transport_search_area div[class*="dLoader"] {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	font-size: 26px !important;
+	color: var(--color_theme) !important;
+	border-radius: inherit;
+}
+
+/* ===== Loading GIF ===== */
+.mptbm-gif {
+	padding-top: 10%;
+	width: 128px;
+	margin: 0 auto;
+}
+
+.mptb-tabs-loader {
+	width: 200px !important;
+}
+
+.mptbm-hide-gif {
+	display: none;
+}
+
+/* ===== Custom Select Dropdown (pickup/drop-off location, "manual"/"fixed_zone" price types) ===== */
+.mptbm-custom-select-wrapper {
+	position: fixed;
+	background: #fff;
+	border: 1px solid #e7eaf0;
+	border-radius: 14px;
+	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06);
+	z-index: 99999;
+	padding: 6px;
+	overflow: hidden;
 }
 
 .mptbm-custom-search-input {
 	width: 100%;
-	padding: 8px;
+	margin-bottom: 4px;
+	padding: 10px 12px;
 	border: none;
-	border-bottom: 1px solid #eee;
-	border-radius: 4px 4px 0 0;
-	font-size: 14px;
+	border-radius: 10px;
+	font-size: 13.5px;
 	box-sizing: border-box;
-	background: #F5F6F8;
-	color: #222222;
-	font-weight: 400;
+	background: #f1f4f9;
+	color: #0f172a;
+	font-weight: 500;
 	outline: none;
 }
 
 .mptbm-custom-search-input:focus {
-	border-bottom-color: var(--color_theme);
-	background: white;
+	background: #eef2ff;
 }
 
 .mptbm-custom-search-input::placeholder {
-	color: #999;
-	font-style: italic;
+	color: #94a3b8;
+	font-weight: 400;
 }
 
 .mptbm-custom-options {
 	max-height: 200px;
 	overflow-y: auto;
-	background: white;
+	background: transparent;
 }
 
 .mptbm-custom-option {
-	padding: 8px;
+	padding: 9px 12px;
+	margin: 2px 0;
 	cursor: pointer;
-	border-bottom: 1px solid #f5f5f5;
-	font-size: 14px;
-	color: #222222;
-	transition: background-color 0.2s ease;
+	border-radius: 10px;
+	font-size: 13.5px;
+	font-weight: 500;
+	color: #0f172a;
+	transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .mptbm-custom-option:hover {
-	background-color: #f8f9fa;
+	background-color: var(--color_theme);
+	color: #fff;
 }
 
 .mptbm-custom-option.mptbm-option-selected {
-	background-color: var(--color_theme);
-	color: white;
+	background-color: #eef2ff;
+	color: var(--color_theme);
+	font-weight: 700;
 }
 
 .mptbm-custom-option.mptbm-option-selected:hover {
 	background-color: var(--color_theme);
-	opacity: 0.9;
-}
-
-.mpStyle .inputInline .inputList{
-	margin: 20px var(--dmp_xs) 0 0;
-}
-
-.mpStyle .mpForm label span{
-	margin: 0 0 15px 0;
-}
-div.bg_image_area{
-	height:100%;
-	max-height: 200px;
-	border-radius: 7px;
-}
-
-.mpStyle ul.list_inline_two li i{
-	color: var(--color_theme);
-}
-
-.mpStyle ul.list_inline_two li span{
-	color:#333;
-}
-
-.mpStyle button:hover span{
-    color: var(--color_theme_alter);
-}
-.mpStyle button:focus span {
-    color: var(--color_theme_alter);
-}
-.mptbm_transport_search_area .tabListsNext{
-	padding: 20px;
-	background:#f5f6f8;
-	border-radius: 12px 12px 0 0;
-}
-
-div.mptbm_transport_search_area button.mptbm_transport_select{
-	border: none;
-	padding: 10px;
-	background-image: linear-gradient(to right,var(--color_theme), var(--color_theme_aa));
-	color:var(--color_theme_alter);
-	border-radius: 50px;
-	transition: all .5s;
-}
-div.mptbm_transport_search_area button.mptbm_transport_select:hover{
-	background-color: var(--color_theme);
-}
-div.mptbm_transport_search_area button.mptbm_transport_select:hover span{
 	color: #fff;
 }
 
-.mptbm-map-warning{
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: #ddd;
-	border-radius: 10px;
-  }
-
-#mptbm_map_area{
-	height: 86%;
-}
-
-._dLayout.mptbm_distance_time{
-	margin-top: -11.3%;
-	border-bottom-left-radius: var(--dbrl);
-	border-bottom-right-radius: var(--dbrl);
-}
-
+/* ===== Quantity Selector ===== */
 .mp_quantity_selector {
 	display: inline-flex;
 	align-items: center;
-	border: 1px solid #ddd;
-	border-radius: 4px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
 	overflow: hidden;
 	background: #fff;
-	height: 30px; /* Reduced height */
-  }
+	height: 32px;
+}
 
-  .mp_quantity_minus,
-  .mp_quantity_plus {
-	background: #f8f8f8;
+.mp_quantity_minus,
+.mp_quantity_plus {
+	background: #f8fafc;
 	border: none;
-	padding: 6px 10px; /* Reduced padding */
+	padding: 6px 10px;
 	cursor: pointer;
-	color: #333;
-	transition: all 0.3s;
-	font-size: 12px; /* Reduced font size */
-  }
+	color: #475569;
+	transition: all 0.2s ease;
+	font-size: 12px;
+}
 
 .mp_quantity_minus:hover,
 .mp_quantity_plus:hover {
-    background: #e8e8e8;
+	background: #e2e8f0;
+	color: #1e293b;
 }
 
 .mp_quantity_input {
-	width: 35px; /* Reduced width */
+	width: 36px;
 	text-align: center;
 	border: none;
-	border-left: 1px solid #ddd;
-	border-right: 1px solid #ddd;
-	padding: 6px 0; /* Reduced padding */
-	font-size: 12px; /* Reduced font size */
+	border-left: 1px solid #e2e8f0;
+	border-right: 1px solid #e2e8f0;
+	padding: 6px 0;
+	font-size: 13px;
+	font-weight: 500;
+	color: #1e293b;
 	-moz-appearance: textfield;
-  }
+}
 
-  .mp_quantity_input::-webkit-outer-spin-button,
-  .mp_quantity_input::-webkit-inner-spin-button {
+.mp_quantity_input::-webkit-outer-spin-button,
+.mp_quantity_input::-webkit-inner-spin-button {
 	-webkit-appearance: none;
 	margin: 0;
-  }
-  
-  .mp_quantity_input:focus {
+}
+
+.mp_quantity_input:focus {
 	outline: none;
-  }
+}
+
+/* ===== Flatpickr Calendar Theme ===== */
+.flatpickr-calendar {
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+	font-family: inherit;
+	overflow: hidden;
+	width: auto;
+	min-width: 310px;
+}
+
+.flatpickr-wrapper {
+	z-index: 99999 !important;
+}
+
+.flatpickr-months {
+	background: var(--color_theme);
+	border-radius: 12px 12px 0 0;
+	position: relative;
+	padding: 0 36px;
+	height: 44px;
+	overflow: visible;
+}
+
+.flatpickr-months .flatpickr-month {
+	background: transparent;
+	height: 44px;
+}
+
+span.flatpickr-prev-month,
+span.flatpickr-next-month {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	width: 36px;
+	height: 100%;
+	background: transparent;
+	border-radius: 0;
+	border: none;
+	color: var(--color_theme_alter);
+}
+
+span.flatpickr-prev-month {
+	left: 0;
+	border-radius: 12px 0 0 0;
+}
+
+span.flatpickr-next-month {
+	right: 0;
+	border-radius: 0 12px 0 0;
+}
+
+span.flatpickr-prev-month:hover,
+span.flatpickr-next-month:hover {
+	background: rgba(255, 255, 255, 0.15);
+}
+
+span.flatpickr-prev-month svg,
+span.flatpickr-next-month svg {
+	fill: var(--color_theme_alter);
+	stroke: none;
+	width: 14px;
+	height: 14px;
+}
+
+.flatpickr-current-month {
+	color: var(--color_theme_alter);
+	font-weight: 600;
+	font-size: 15px;
+	padding: 10px 0 0;
+	text-align: center;
+	left: 0;
+	width: 100%;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+	background: transparent;
+	color: var(--color_theme_alter);
+	font-weight: 600;
+	font-size: 15px;
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	border: none;
+	cursor: pointer;
+	padding: 2px 20px 2px 4px;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 0 center;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months option {
+	background: #fff;
+	color: #1e293b;
+}
+
+.flatpickr-current-month input.cur-year {
+	color: var(--color_theme_alter);
+	font-weight: 600;
+	background: transparent;
+	border: none;
+	padding: 0;
+}
+
+.flatpickr-weekdays {
+	background: #f8fafc;
+	padding: 8px 0;
+}
+
+span.flatpickr-weekday {
+	color: #64748b;
+	font-weight: 600;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	background: transparent;
+	border: none;
+	padding: 0;
+}
+
+.flatpickr-day {
+	border-radius: 8px;
+	font-weight: 500;
+	font-size: 14px;
+	color: #334155;
+	transition: all 0.15s ease;
+	border: 1px solid transparent;
+	line-height: 38px;
+	height: 38px;
+	max-width: 42px;
+	margin: 0;
+	padding: 0;
+}
+
+.flatpickr-day:hover {
+	background: #f1f5f9;
+	border-color: #e2e8f0;
+	color: var(--color_theme);
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover {
+	background: var(--color_theme);
+	border-color: var(--color_theme);
+	color: var(--color_theme_alter);
+	box-shadow: 0 2px 6px var(--color_theme_88);
+}
+
+.flatpickr-day.today {
+	border-color: var(--color_theme_ee);
+}
+
+.flatpickr-day.today:hover {
+	background: var(--color_theme);
+	color: var(--color_theme_alter);
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover {
+	color: #cbd5e1;
+	background: transparent;
+	cursor: not-allowed;
+}
+
+.flatpickr-day.flatpickr-disabled.prevMonthDay,
+.flatpickr-day.flatpickr-disabled.nextMonthDay {
+	color: #e2e8f0;
+}
+
+.flatpickr-days {
+	padding: 4px;
+}
+
+.flatpickr-innerContainer {
+	overflow: visible;
+}
+
+.flatpickr-rContainer {
+	overflow: visible;
+}
+
+/* Month/Year selection panels */
+.flatpickr-monthSelection {
+	background: var(--color_theme);
+	padding: 8px;
+	border-radius: 0 0 12px 12px;
+}
+
+.flatpickr-monthSelection .flatpickr-month {
+	background: transparent;
+	border-radius: 8px;
+	padding: 8px 0;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	width: calc(33.33% - 6px);
+	margin: 2px;
+	display: inline-block;
+	text-align: center;
+	height: auto;
+}
+
+.flatpickr-monthSelection .flatpickr-month:hover {
+	background: rgba(255, 255, 255, 0.2);
+}
+
+.flatpickr-monthSelection .flatpickr-month.selected {
+	background: #fff;
+	color: var(--color_theme);
+	font-weight: 700;
+}
+
+.flatpickr-yearSelection {
+	background: var(--color_theme);
+	padding: 8px;
+	border-radius: 0 0 12px 12px;
+}
+
+.flatpickr-yearSelection .flatpickr-year {
+	background: transparent;
+	border-radius: 8px;
+	padding: 8px 0;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	width: calc(33.33% - 6px);
+	margin: 2px;
+	display: inline-block;
+	text-align: center;
+	color: var(--color_theme_alter);
+	font-weight: 500;
+	border: none;
+	height: auto;
+}
+
+.flatpickr-yearSelection .flatpickr-year:hover {
+	background: rgba(255, 255, 255, 0.2);
+}
+
+.flatpickr-yearSelection .flatpickr-year.selected {
+	background: #fff;
+	color: var(--color_theme);
+	font-weight: 700;
+}
+
+/* ===== Responsive ===== */
+@media only screen and (max-width: 1000px) {
+	div.mptbm_transport_search_area .mptbm_search_area {
+		padding: 24px;
+	}
+}
+
+@media only screen and (max-width: 800px) {
+	div.mptbm_transport_search_area .mptbm_map_area {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	div.mptbm_transport_search_area div.mptbm_booking_item,
+	div.mptbm_pick_up_details > .justifyBetween {
+		-webkit-flex-direction: column;
+		flex-direction: column;
+	}
+
+	div.mptbm_transport_search_area .mptbm_search_area.inputHorizontal,
+	div.mptbm_transport_search_area .mptbm_map_area,
+	div.mptbm_transport_search_area .mptbm_inline_search_results,
+	div.mptbm_transport_search_area .leftSidebar,
+	div.mptbm_transport_search_area .leftSidebar .mp_sticky_area,
+	div.mptbm_transport_search_area .mainSection {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	div.mptbm_transport_search_area #mptbm_map_area {
+		margin: var(--dmp) 0;
+		min-height: 350px;
+	}
+
+	div.mptbm_transport_search_area .mainSection {
+		margin: var(--dmp) 0 0 0;
+	}
+
+	div.mptbm_transport_search_area ul.list_inline_two li {
+		width: 100%;
+	}
+
+	div.mptbm_transport_search_area div.mptbm_list_details [class*="mptbm_vehicle_cta"],
+	div.mptbm_transport_search_area button.mptbm_transport_select {
+		width: auto;
+	}
+
+	div.mptbm_transport_search_area div.tabsContentNext {
+		padding: 5px;
+	}
+
+	.mptbm_transport_search_area .tabListsNext {
+		padding: 20px;
+	}
+}
+
+@media only screen and (max-width: 600px) {
+	div.mptbm_transport_search_area .mptbm_search_area {
+		padding: 16px;
+	}
+
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext {
+		min-height: 0;
+	}
+
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext [class*="circleIcon"] {
+		width: 30px;
+		height: 30px;
+		min-width: 30px;
+		font-size: 13px;
+	}
+
+	/* Connector line re-anchored to the smaller 30px circle (15px radius)
+	   used at this breakpoint -- the desktop values (19px radius) would
+	   leave a gap before the line and misalign its vertical position. */
+	div.mptbm_transport_search_area .tabItemNext [class*="circleIcon"]::after {
+		top: 15px;
+		left: calc(50% + 15px);
+		width: calc(100% - 5px);
+	}
+
+	div.mptbm_transport_search_area .mpTabsNext .tabItemNext .circleTitle {
+		font-size: 11px;
+	}
+
+	.mptbm_transport_search_area .tabListsNext {
+		padding: 16px;
+	}
+
+	.mptb-tabs {
+		max-width: 100%;
+	}
+
+	.tab-link {
+		padding: 8px 10px !important;
+		font-size: 12px;
+	}
+}
+
+.mptbm_transport_search_area {
+	margin: 0 auto;
+}

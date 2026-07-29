@@ -13,28 +13,28 @@
 				add_action( 'admin_head', array( $this, 'add_global_style' ), 100 );
 			}
 			public function add_global_style() {
-				$default_color   = MP_Global_Function::get_style_settings( 'default_text_color', '#303030' );
-				$theme_color     = MP_Global_Function::get_style_settings( 'theme_color', '#F12971' );
+				$theme_color     = MP_Global_Function::get_style_settings( 'theme_color', '#059669' );
 				$alternate_color = MP_Global_Function::get_style_settings( 'theme_alternate_color', '#fff' );
-				$warning_color   = MP_Global_Function::get_style_settings( 'warning_color', '#E67C30' );
-				$no_transport_bg = MP_Global_Function::get_style_settings( 'no_transport_bg_color', '#fff5f5' );
-				$no_transport_text = MP_Global_Function::get_style_settings( 'no_transport_text_color', '#333333' );
-				$no_transport_icon = MP_Global_Function::get_style_settings( 'no_transport_icon_color', '#ff4d4d' );
-				$no_transport_link = MP_Global_Function::get_style_settings( 'no_transport_link_color', '#007bff' );
-				$no_transport_contact_bg = MP_Global_Function::get_style_settings( 'no_transport_contact_bg', '#f8f9fa' );
-				$no_transport_contact_icon = MP_Global_Function::get_style_settings( 'no_transport_contact_icon', '#28a745' );
-				$default_fs      = MP_Global_Function::get_style_settings( 'default_font_size', '14' ) . 'px';
-				$fs_h1           = MP_Global_Function::get_style_settings( 'font_size_h1', '35' ) . 'px';
-				$fs_h2           = MP_Global_Function::get_style_settings( 'font_size_h2', '30' ) . 'px';
-				$fs_h3           = MP_Global_Function::get_style_settings( 'font_size_h3', '25' ) . 'px';
-				$fs_h4           = MP_Global_Function::get_style_settings( 'font_size_h4', '22' ) . 'px';
-				$fs_h5           = MP_Global_Function::get_style_settings( 'font_size_h5', '18' ) . 'px';
-				$fs_h6           = MP_Global_Function::get_style_settings( 'font_size_h6', '16' ) . 'px';
-				$fs_label        = MP_Global_Function::get_style_settings( 'font_size_label', '16' ) . 'px';
-				$button_fs       = MP_Global_Function::get_style_settings( 'button_font_size', '16' ) . 'px';
-				$button_color    = MP_Global_Function::get_style_settings( 'button_color', $alternate_color );
-				$button_bg       = MP_Global_Function::get_style_settings( 'button_bg', '#ea8125' );
-				$section_bg      = MP_Global_Function::get_style_settings( 'section_bg', '#FAFCFE' );
+				$default_color   = '#303030';
+				$warning_color   = '#E67C30';
+				$no_transport_bg = '#fff5f5';
+				$no_transport_text = '#333333';
+				$no_transport_icon = '#ff4d4d';
+				$no_transport_link = '#007bff';
+				$no_transport_contact_bg = '#f8f9fa';
+				$no_transport_contact_icon = '#28a745';
+				$default_fs      = '14px';
+				$fs_h1           = '35px';
+				$fs_h2           = '30px';
+				$fs_h3           = '25px';
+				$fs_h4           = '22px';
+				$fs_h5           = '18px';
+				$fs_h6           = '16px';
+				$fs_label        = '16px';
+				$button_fs       = '16px';
+				$button_color    = $alternate_color;
+				$button_bg       = $theme_color;
+				$section_bg      = '#FAFCFE';
 				?>
 				<style>
 					:root {

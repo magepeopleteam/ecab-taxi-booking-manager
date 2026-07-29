@@ -92,7 +92,7 @@ jQuery(function ($) {
 		parent.find('#mptbm_map_return_time').val(selectedValue).trigger('change');
 	});
 
-	$(document).on('change', '#mptbm_map_start_date', function () {
+	$(document).on('change', '#mptbm_map_start_date', function (e, meta) {
 		var parent = $(this).closest('.mptbm_transport_search_area');
 
 		parent.find('#mptbm_map_start_time').siblings('.start_time_list').empty();
@@ -103,7 +103,7 @@ jQuery(function ($) {
 		var firstCalendarDate = parent.find('[name="mptbm_first_calendar_date"]').val();
 
 		var selectedDate = parent.find('#mptbm_map_start_date').val();
-		var formattedDate = $.datepicker.parseDate('yy-mm-dd', selectedDate);
+		var formattedDate = flatpickr.parseDate(selectedDate, 'Y-m-d');
 		var today = currentDateStr();
 
 		function appendAllowedTimes(isAllowed) {
@@ -137,15 +137,23 @@ jQuery(function ($) {
 
 		if (enableReturnDiffDate == 'yes') {
 			var returnDate = parent.find('#mptbm_return_date');
-			if (returnDate.length && returnDate.data('datepicker')) {
-				returnDate.datepicker('option', 'minDate', formattedDate);
+			if (returnDate.length && returnDate[0]._flatpickr) {
+				returnDate[0]._flatpickr.set('minDate', formattedDate);
 			}
 		}
 
 		if (typeof mptbm_content_refresh === 'function') {
 			mptbm_content_refresh(parent);
 		}
-		parent.find('#mptbm_map_start_time').closest('.mp_input_select').find('input.formControl').trigger('click');
+		// Auto-opening the time dropdown is a "guide the user to the next
+		// field" convenience for when they've just picked a date themselves -
+		// this same "change" event also fires once on every tab load/init
+		// (flatpickr's onReady syncing its defaultDate into this hidden field,
+		// see MP_Global_Function::date_picker_js) with meta.initial set, which
+		// should rebuild the time list above but not pop its dropdown open.
+		if (!(meta && meta.initial)) {
+			parent.find('#mptbm_map_start_time').closest('.mp_input_select').find('input.formControl').trigger('click');
+		}
 	});
 
 	$(document).on('change', '#mptbm_map_return_date', function () {
@@ -209,9 +217,9 @@ jQuery(function ($) {
 			return;
 		}
 
-		var $customWrapper = $('<div class="mptbm-custom-select-wrapper" style="position: fixed !important; z-index: 9999 !important; background: white !important; border: 1px solid #ddd !important; border-radius: 4px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;"></div>');
-		var $searchInput = $('<input type="text" class="mptbm-custom-search-input" placeholder="Search locations..." style="width: 100% !important; padding: 8px !important; border: none !important; border-bottom: 1px solid #eee !important; border-radius: 4px 4px 0 0 !important; font-size: 14px !important; box-sizing: border-box !important; background: #F5F6F8 !important; color: #222222 !important; font-weight: 400 !important; outline: none !important;" />');
-		var $optionsContainer = $('<div class="mptbm-custom-options" style="max-height: 200px !important; overflow-y: auto !important; background: white !important;"></div>');
+		var $customWrapper = $('<div class="mptbm-custom-select-wrapper"></div>');
+		var $searchInput = $('<input type="text" class="mptbm-custom-search-input" placeholder="Search locations..." />');
+		var $optionsContainer = $('<div class="mptbm-custom-options"></div>');
 
 		function updateDropdownPosition() {
 			var currentOffset = $select.offset();
@@ -254,7 +262,7 @@ jQuery(function ($) {
 			var isSelected = $(this).is(':selected');
 
 			var selectedClass = isSelected ? 'mptbm-option-selected' : '';
-			optionsHtml += '<div class="mptbm-custom-option ' + selectedClass + '" data-value="' + optionValue + '" style="padding: 8px !important; cursor: pointer !important; border-bottom: 1px solid #f5f5f5 !important; font-size: 14px !important; color: #222222 !important;">' + optionText + '</div>';
+			optionsHtml += '<div class="mptbm-custom-option ' + selectedClass + '" data-value="' + optionValue + '">' + optionText + '</div>';
 		});
 
 		$optionsContainer.html(optionsHtml);
