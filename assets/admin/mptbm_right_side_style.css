@@ -194,16 +194,25 @@
     margin-bottom: 24px;
 }
 
-/* LIST */
+/* LIST
+   padding-left/list-style are !important because this card is relocated
+   by mptbm-shell.js (plain DOM append, no ancestor comes with it) into the
+   "Modern" editor's persistent sidebar, and also gets loaded standalone in
+   WP's native "side" metabox column — mp_global's mp_style.css ships a
+   blanket ".mpStyle ul li { padding:0 }" (specificity 0,1,2, beats our
+   plain ".mptbm_quick_tips_list li" at 0,1,1) that's enqueued unconditionally
+   on every admin screen, so depending on which ancestor happens to be
+   present at runtime this padding can get zeroed out — collapsing the
+   bullet dot's left offset straight onto the tip text. */
 .mptbm_quick_tips_list{
     margin: 0;
     padding: 0;
-    list-style: none;
+    list-style: none !important;
 }
 
 .mptbm_quick_tips_list li{
     position: relative;
-    padding-left: 24px;
+    padding-left: 28px !important;
     margin-bottom: 14px;
     font-size: 14px;
     font-weight: 500;
@@ -215,7 +224,7 @@
     content: '';
     position: absolute;
     left: 0;
-    top: 8px;
+    top: 6px;
     width: 10px;
     height: 10px;
     border-radius: 50%;
@@ -272,6 +281,7 @@
 }
 
 .mptbm_taxi_category_card {
+    display: flex;
     background: var(--mp-white);
     border: 1px solid var(--mp-border);
     border-radius: var(--mp-r-lg);
@@ -329,28 +339,28 @@
     line-height: 1.4;
 }
 
-/* "All Categories" -> pill button */
+/* "View all categories" -> icon button, sized to match the add-category
+   button and placed in the dropdown row instead of the card header, where
+   it used to compete for space with the title/subtitle and wrap awkwardly
+   in WordPress's narrow native sidebar metabox column. */
 .mptbm_taxi_all_category_label {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+    width: 42px;
+    height: 42px;
     flex-shrink: 0;
-    padding: 5px 11px;
-    font-size: 11.5px;
-    font-weight: 600;
-    color: var(--mp-primary);
-    background: var(--mp-primary-light);
-    border: 1px solid var(--mp-primary-border);
-    border-radius: var(--mp-r-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--mp-text-500);
+    background: var(--mp-bg-muted);
+    border: 1px solid var(--mp-border-dark);
+    border-radius: var(--mp-r-md);
     cursor: pointer;
-    line-height: 1;
     transition: var(--mp-transition);
 }
 .mptbm_taxi_all_category_label:hover {
-    background: var(--mp-primary);
-    color: #fff;
-    border-color: var(--mp-primary);
-    text-decoration: none;
+    background: var(--mp-primary-light);
+    color: var(--mp-primary);
+    border-color: var(--mp-primary-border);
 }
 .mptbm_taxi_all_category_label svg { display: block; }
 
@@ -404,6 +414,9 @@
     appearance: none;
     padding-right: 36px;
     cursor: pointer;
+}
+select#mptbm_taxi_category_dropdown {
+    border-radius: 10px;
 }
 .mptbm_taxi_category_select:hover { border-color: var(--mp-primary-border); }
 .mptbm_taxi_category_select:focus,
@@ -460,7 +473,7 @@
     color: var(--mp-text-400);
     pointer-events: none;
 }
-.mptbm_taxi_category_tag_input_wrapper .mptbm_taxi_category_input { padding-left: 38px; }
+.mptbm_taxi_category_tag_input_wrapper .mptbm_taxi_category_input { padding-left: 38px; border-radius: 10px; }
 
 /* Tag chips */
 .mptbm_taxi_category_tags_container {

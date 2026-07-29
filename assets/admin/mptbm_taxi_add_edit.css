@@ -1786,6 +1786,7 @@ input.mptbm_taxi_ex_service_input {
     height: 40px;
     padding: 0 12px;
     font-size: 13px;
+    border-radius: 10px;
 }
 .mptbm_taxi_ex_service_input:hover,
 .mptbm_taxi_ex_service_select:hover {
@@ -1819,7 +1820,7 @@ select.mptbm_taxi_ex_service_select {
     padding-right: 28px;
     cursor: pointer;
 }
-select.mptbm_taxi_ex_service_select.mideum { max-width: 160px; }
+select.mptbm_taxi_ex_service_select.mideum { max-width: 160px; border-radius: 10px; }
 
 /* Table Action Buttons */
 .mptbm_taxi_ex_service_actions {
@@ -2634,7 +2635,12 @@ input.mptbm_taxi_feature_input:focus {
     box-shadow: 0 8px 20px rgba(249,115,22,0.45);
 }
 
-/* PRO locked overlay on free sections */
+/* PRO locked overlay on free sections — a real glass-card overlay (icon +
+   badge + title + desc + CTA) instead of a plain ::after text banner, so it
+   can hold proper markup. Sits as the first child of #mptbm_taxi_pricing_field_free
+   and stays the only interactive part while the rest of that section keeps
+   pointer-events:none, so clicks still bubble up to the existing delegated
+   handler on #mptbm_taxi_pricing_field_free (see mptbm_taxi_add_edit.js). */
 #mptbm_taxi_pricing_field_free {
     position: relative;
 }
@@ -2642,35 +2648,87 @@ input.mptbm_taxi_feature_input:focus {
     pointer-events: none;
     margin-top: 10px;
 }
-#mptbm_taxi_pricing_field_free.pro-locked::before {
-    background: rgba(30,41,59,0.55);
-    content: '';
+.mptbm_pro_feature_lock_overlay {
+    position: absolute;
+    top: 0; left: 0;
     width: 100%;
     height: 100%;
-    position: absolute;
-    border-radius: var(--mp-r-lg);
-    top: 0; left: 0;
     z-index: 5;
-    backdrop-filter: blur(1px);
-}
-#mptbm_taxi_pricing_field_free.pro-locked::after {
-    content: "🔒  PRO FEATURE — CLICK TO UPGRADE";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(15,23,42,0.9);
-    color: var(--mp-white);
-    padding: 16px 28px;
-    border-radius: var(--mp-r-md);
-    font-weight: 700;
-    font-size: 14px;
-    z-index: 10;
-    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(3px);
+    border-radius: var(--mp-r-lg);
     pointer-events: auto;
-    white-space: nowrap;
-    box-shadow: var(--mp-shadow-lg);
-    letter-spacing: 0.02em;
+    cursor: pointer;
+}
+.mptbm_pro_feature_lock_card {
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    background: var(--mp-white);
+    border-radius: var(--mp-r-lg);
+    padding: 28px 24px;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+}
+.mptbm_pro_feature_lock_icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: var(--mp-white);
+    font-size: 19px;
+    margin-bottom: 14px;
+    box-shadow: 0 6px 16px rgba(249,115,22,0.35);
+}
+.mptbm_pro_feature_lock_badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: var(--mp-r-full);
+    background: var(--mp-danger-light);
+    color: var(--mp-danger);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+}
+.mptbm_pro_feature_lock_title {
+    margin: 0 0 8px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--mp-text-800);
+}
+.mptbm_pro_feature_lock_desc {
+    margin: 0 0 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--mp-text-500);
+}
+.mptbm_pro_feature_lock_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border: none;
+    border-radius: var(--mp-r-md);
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: var(--mp-white) !important;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(249,115,22,0.35);
+    transition: var(--mp-transition);
+}
+.mptbm_pro_feature_lock_btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(249,115,22,0.4);
 }
 
 .mptbm_pro_badge_wrapper .mptbm_rent_editor_header {

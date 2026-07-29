@@ -2329,6 +2329,16 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                  id="mptbm_taxi_pricing_field_free"
                  style="display: block">
 
+                <div class="mptbm_pro_feature_lock_overlay">
+                    <div class="mptbm_pro_feature_lock_card">
+                        <span class="mptbm_pro_feature_lock_icon"><i class="fas fa-lock"></i></span>
+                        <div class="mptbm_pro_feature_lock_badge"><?php esc_html_e('Pro Feature', 'ecab-taxi-booking-manager'); ?></div>
+                        <h4 class="mptbm_pro_feature_lock_title"><?php esc_html_e('Operation Area Pricing', 'ecab-taxi-booking-manager'); ?></h4>
+                        <p class="mptbm_pro_feature_lock_desc"><?php esc_html_e('Price by zone, draw custom service areas, and set fixed rates between zones or locations — unlock this with Pro.', 'ecab-taxi-booking-manager'); ?></p>
+                        <button type="button" class="mptbm_pro_feature_lock_btn"><i class="fas fa-unlock-alt"></i> <?php esc_html_e('Upgrade to Pro', 'ecab-taxi-booking-manager'); ?></button>
+                    </div>
+                </div>
+
                 <div class="mptbm_operation_area_type_holder">
                     <div class="mptbm_taxi_operation_area_title">
                         <h3 class="mptbm_taxi_pricing_label"><i class="fas fa-pencil-alt"></i> <?php esc_html_e('Operation Area', 'ecab-taxi-booking-manager'); ?></h3>

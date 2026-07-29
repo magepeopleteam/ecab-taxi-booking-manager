@@ -84,10 +84,6 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                             <label class="mptbm_taxi_category_label"><?php esc_html_e( 'Categories', 'ecab-taxi-booking-manager' ); ?></label>
                             <span class="mptbm_taxi_category_subtext"><?php esc_html_e( 'Select vehicle category', 'ecab-taxi-booking-manager' ); ?></span>
                         </div>
-                        <button type="button" class="mptbm_taxi_all_category_label">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                            <?php esc_html_e( 'All Categories', 'ecab-taxi-booking-manager' ); ?>
-                        </button>
                     </div>
 
                     <div class="mptbm_taxi_category_flex_group" id="mptbm_taxi_category_flex_group">
@@ -112,6 +108,13 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                             </select>
                             <svg class="mptbm_taxi_select_chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                         </div>
+
+                        <button type="button"
+                                class="mptbm_taxi_all_category_label"
+                                title="<?php esc_attr_e( 'View all categories', 'ecab-taxi-booking-manager' ); ?>"
+                                aria-label="<?php esc_attr_e( 'View all categories', 'ecab-taxi-booking-manager' ); ?>">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                        </button>
 
                         <button type="button"
                                 id="mptbm_taxi_category_open_popup"
