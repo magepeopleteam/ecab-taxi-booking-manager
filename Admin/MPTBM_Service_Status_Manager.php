@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 
 if (!class_exists('MPTBM_Service_Status_Manager')) {
     class MPTBM_Service_Status_Manager {
-        private const TAXONOMY = 'mptbm_service_status';
+        const TAXONOMY = 'mptbm_service_status';
 
         public function __construct() {
             add_filter('admin_body_class', [ $this, 'add_body_class' ]);
@@ -66,6 +66,7 @@ if (!class_exists('MPTBM_Service_Status_Manager')) {
                     'nonce' => wp_create_nonce('mptbm_service_status_nonce'),
                     'action' => 'mptbm_add_service_status',
                     'genericError' => esc_html__('The status could not be added. Please try again.', 'ecab-taxi-booking-manager'),
+                    'requiredName' => esc_html__('Enter a service status name.', 'ecab-taxi-booking-manager'),
                     'addingLabel' => esc_html__('Adding status…', 'ecab-taxi-booking-manager'),
                     'addLabel' => esc_html__('Add service status', 'ecab-taxi-booking-manager'),
                 ]
@@ -174,13 +175,14 @@ if (!class_exists('MPTBM_Service_Status_Manager')) {
 
         private function get_status_card(WP_Term $term): string {
             $initial = function_exists('mb_substr') ? mb_substr($term->name, 0, 1) : substr($term->name, 0, 1);
+            $initial = function_exists('mb_strtoupper') ? mb_strtoupper($initial) : strtoupper($initial);
             $tone = ((int) $term->term_id % 6) + 1;
 
             ob_start();
             ?>
             <article class="mptbm-service-status-card is-tone-<?php echo esc_attr($tone); ?>" data-term-id="<?php echo esc_attr($term->term_id); ?>">
                 <div class="mptbm-service-status-card-top">
-                    <span class="mptbm-service-status-avatar" aria-hidden="true"><?php echo esc_html(strtoupper($initial)); ?></span>
+                    <span class="mptbm-service-status-avatar" aria-hidden="true"><?php echo esc_html($initial); ?></span>
                     <span class="mptbm-service-status-live">
                         <i aria-hidden="true"></i>
                         <?php esc_html_e('Active', 'ecab-taxi-booking-manager'); ?>

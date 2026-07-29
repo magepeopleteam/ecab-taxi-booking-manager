@@ -63,7 +63,7 @@
 
         const name = $.trim($name.val());
         if (!name) {
-            $message.addClass('is-error').removeClass('is-success').text('Enter a service status name.');
+            $message.addClass('is-error').removeClass('is-success').text(mptbmServiceStatus.requiredName);
             $name.trigger('focus');
             return;
         }
