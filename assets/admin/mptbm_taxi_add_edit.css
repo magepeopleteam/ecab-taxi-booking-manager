@@ -876,6 +876,86 @@ select.formControl:focus,
     display: block;
 }
 
+/* Date & Advanced tab overrides — these reuse mp_global's generic
+   ".roundSwitch"/"[class*=_themeButton]"/etc. components, which key off
+   "--color_theme" (the site's own accent color, undefined in this
+   context) instead of this app's own "--mp-primary" design tokens. That
+   left the 24-Hours toggle a washed-out color and the "Add New
+   Particular Date" button with a plain black background (an undefined
+   CSS custom property resolves to nothing, so the browser falls back to
+   its own defaults) instead of matching the purple buttons/toggles used
+   everywhere else in this redesign. */
+/* Scoped under #mptbm_rent_settings_panel's own ID: mp_global's competing
+   rules for these same elements tie on plain class-specificity, and on a
+   tie the later-loaded framework file (mp_style.css) wins by source
+   order alone regardless of where in this file the override sits — the
+   ID is what actually guarantees these win, same as the card-title fixes
+   earlier. */
+#mptbm_rent_settings_panel .mptbm_taxi_advanced_card .roundSwitchLabel input:checked + .roundSwitch {
+    background-color: var(--mp-primary) !important;
+}
+#mptbm_rent_settings_panel .mptbm_taxi_advanced_card .mp_add_item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--mp-primary) !important;
+    color: var(--mp-white) !important;
+    border: none;
+    padding: 9px 18px;
+    border-radius: var(--mp-r-md);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--mp-transition);
+    box-shadow: 0 2px 6px rgba(var(--mp-primary-rgb), 0.25);
+}
+#mptbm_rent_settings_panel .mptbm_taxi_advanced_card .mp_add_item span { color: inherit !important; }
+#mptbm_rent_settings_panel .mptbm_taxi_advanced_card .mp_add_item:hover {
+    background: var(--mp-primary-dark) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(var(--mp-primary-rgb), 0.3);
+}
+/* Per-row remove/drag buttons for each particular date — "_whiteButton_xs"
+   and "_mpBtn_themeButton_xs" have no CSS definitions anywhere in this
+   plugin at all, so they were rendering as bare unstyled buttons. */
+.mptbm_taxi_advanced_card .mp_remove_area .buttonGroup > * {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--mp-r-md, 10px);
+    background: var(--mp-bg-muted);
+    border: 1px solid var(--mp-border-light);
+    color: var(--mp-text-500);
+    cursor: pointer;
+    transition: var(--mp-transition);
+}
+.mptbm_taxi_advanced_card .mp_remove_area .mp_sortable_button { cursor: grab; }
+.mptbm_taxi_advanced_card .mp_remove_area .mp_sortable_button:hover {
+    background: var(--mp-primary-light);
+    border-color: var(--mp-primary-border);
+    color: var(--mp-primary);
+}
+.mptbm_taxi_advanced_card .mp_remove_area .mp_item_remove:hover {
+    background: var(--mp-danger-light);
+    border-color: var(--mp-danger-border);
+    color: var(--mp-danger);
+}
+/* mp_global's "[class*=whiteButton] span" explicitly colors this icon's
+   own <span> green (var(--color_theme)), which beats simply setting
+   color on the button — inheritance always loses to an explicit rule on
+   the element itself, regardless of the inherited rule's specificity. */
+.mptbm_taxi_advanced_card .mp_remove_area .buttonGroup > * span {
+    color: inherit !important;
+}
+.mptbm_taxi_advanced_card .mp_remove_area {
+    background: var(--mp-white) !important;
+    border: 1px solid var(--mp-border-light);
+    border-radius: var(--mp-r-md, 10px);
+    padding: 10px !important;
+}
+
 /* ================================================================
    SECTION 10: TOGGLE SWITCHES
    ================================================================ */
