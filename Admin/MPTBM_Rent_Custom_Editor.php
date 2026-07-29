@@ -95,10 +95,10 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 <div class="mpTabs leftTabs">
                     <ul class="tabLists">
                         <li data-tabs-target="#mptbm_general_info">
-                            <i class="fas fa-tools"></i> <span class="menu-text"><?php esc_html_e('General Info', 'ecab-taxi-booking-manager'); ?></span>
+                            <i class="fas fa-info-circle"></i> <span class="menu-text"><?php esc_html_e('General Info', 'ecab-taxi-booking-manager'); ?></span>
                         </li>
                         <li data-tabs-target="#mptbm_settings_pricing">
-                            <i class="fas fa-hand-holding-usd"></i><span class="menu-text"><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?></span>
+                            <i class="fas fa-tags"></i><span class="menu-text"><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?></span>
                         </li>
                         <li data-tabs-target="#mptbm_settings_fees">
                             <i class="fas fa-money-bill-wave"></i><span class="menu-text"><?php esc_html_e('Fees', 'ecab-taxi-booking-manager'); ?></span>
@@ -110,7 +110,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             <i class="fas fa-calendar-alt"></i><span class="menu-text"><?php esc_html_e('Date & Advanced', 'ecab-taxi-booking-manager'); ?></span>
                         </li>
                         <li data-tabs-target="#wbtm_settings_tax">
-                            <i class="fas fa-hand-holding-usd"></i><span class="menu-text"><?php esc_html_e('Tax Configure', 'ecab-taxi-booking-manager'); ?></span>
+                            <i class="fas fa-percent"></i><span class="menu-text"><?php esc_html_e('Tax Configure', 'ecab-taxi-booking-manager'); ?></span>
                         </li>
                     </ul>
                     <div class="mptbm-panel-row">
@@ -358,11 +358,14 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                 <!-- Header -->
                 <div class="mptbm_rent_editor_header">
-                    <div>
-                        <h2 class="mptbm_rent_editor_title"><?php esc_html_e( 'Basic Information', 'ecab-taxi-booking-manager' ); ?></h2>
-                        <p class="mptbm_rent_editor_subtitle">
-                            <?php esc_html_e( 'Give your rental a clear, descriptive name, and set its passenger/luggage capacity.', 'ecab-taxi-booking-manager' ); ?>
-                        </p>
+                    <div class="mptbm_rent_editor_title_group">
+                        <span class="mptbm_rent_editor_icon"><i class="fas fa-id-card"></i></span>
+                        <div>
+                            <h2 class="mptbm_rent_editor_title"><?php esc_html_e( 'Basic Information', 'ecab-taxi-booking-manager' ); ?></h2>
+                            <p class="mptbm_rent_editor_subtitle">
+                                <?php esc_html_e( 'Give your rental a clear, descriptive name, and set its passenger/luggage capacity.', 'ecab-taxi-booking-manager' ); ?>
+                            </p>
+                        </div>
                     </div>
                 </div>
 

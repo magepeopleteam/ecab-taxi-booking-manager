@@ -217,7 +217,7 @@
 	div.mpStyle [class*="_fs_label"] {
 		color: var(--mpl-secondary);
 		/* font-weight: var(--fw-medium); */
-		line-height: 0;
+		line-height: 1.25;
 	}
 	div.mpStyle .fs_50,
 	div.mpStyle [class*="_fs_50"] {

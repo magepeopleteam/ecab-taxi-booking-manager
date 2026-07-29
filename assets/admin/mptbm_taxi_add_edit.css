@@ -624,6 +624,35 @@
     line-height: 1.35;
 }
 
+/* Icon set apart from the title/subtitle text column, so both the title
+   and the subtitle start flush at the same left edge instead of the
+   subtitle sitting a full icon-width to the left of the title above it. */
+.mptbm_rent_editor_title_group {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.mptbm_rent_editor_title_group span{display: flex !important; }
+.mptbm_rent_editor_icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    margin-top: 1px;
+    border-radius: var(--mp-r-md, 10px);
+    background: var(--mp-primary, #4f46e5);
+    font-size: 14px;
+}
+/* ".mptbm_rent_editor_header i" (further up this file) colors any bare
+   icon inside the header purple, for icons that sit directly on the
+   card's light background — it also matches this icon, which needs to
+   be white against its own solid-purple badge fill instead. */
+.mptbm_rent_editor_header .mptbm_rent_editor_icon i {
+    color: #fff;
+}
+
 .mptbm_rent_editor_subtitle,
 p.mptbm_rent_editor_subtitle,
 p.mptbm_taxi_ex_service_subtitle {
@@ -670,7 +699,7 @@ p.mptbm_taxi_ex_service_subtitle {
 p.mptbm_taxi_help {
     font-size: 12px;
     color: var(--mp-text-500);
-    margin: 2px 0 8px;
+    margin: 6px 0 8px;
     line-height: 1.5;
     font-weight: 400;
     display: block;
