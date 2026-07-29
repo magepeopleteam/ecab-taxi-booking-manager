@@ -616,6 +616,22 @@
     color: var(--mp-text-800);
 }
 
+/* Current-selection badge on the right of a header — e.g. the active
+   pricing model, updated live by JS as the tab selection changes. */
+.mptbm_pricing_model_badge {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: 12px;
+    padding: 5px 14px;
+    border-radius: var(--mp-r-full);
+    background: var(--mp-primary-light);
+    color: var(--mp-primary);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .mptbm_rent_editor_title {
     margin: 0 0 3px;
     font-size: 16px;
@@ -1322,11 +1338,6 @@ input:checked + .mptbm_taxi_slider::before { transform: translateX(22px); }
 .mptbm_taxi_pricing_field1 {
     padding: 4px 0;
     border-radius: var(--mp-r-md);
-}
-.mptbm_taxi_pricing_field_free {
-    padding: 16px;
-    border: 1.5px solid var(--mp-border);
-    border-radius: var(--mp-r-lg);
 }
 
 /* Info Alert */
@@ -2635,102 +2646,6 @@ input.mptbm_taxi_feature_input:focus {
     box-shadow: 0 8px 20px rgba(249,115,22,0.45);
 }
 
-/* PRO locked overlay on free sections — a real glass-card overlay (icon +
-   badge + title + desc + CTA) instead of a plain ::after text banner, so it
-   can hold proper markup. Sits as the first child of #mptbm_taxi_pricing_field_free
-   and stays the only interactive part while the rest of that section keeps
-   pointer-events:none, so clicks still bubble up to the existing delegated
-   handler on #mptbm_taxi_pricing_field_free (see mptbm_taxi_add_edit.js). */
-#mptbm_taxi_pricing_field_free {
-    position: relative;
-}
-#mptbm_taxi_pricing_field_free.pro-locked {
-    pointer-events: none;
-    margin-top: 10px;
-}
-.mptbm_pro_feature_lock_overlay {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(3px);
-    border-radius: var(--mp-r-lg);
-    pointer-events: auto;
-    cursor: pointer;
-}
-.mptbm_pro_feature_lock_card {
-    width: 100%;
-    max-width: 360px;
-    text-align: center;
-    background: var(--mp-white);
-    border-radius: var(--mp-r-lg);
-    padding: 28px 24px;
-    box-shadow: 0 20px 45px rgba(0,0,0,0.35);
-}
-.mptbm_pro_feature_lock_icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #f59e0b, #f97316);
-    color: var(--mp-white);
-    font-size: 19px;
-    margin-bottom: 14px;
-    box-shadow: 0 6px 16px rgba(249,115,22,0.35);
-}
-.mptbm_pro_feature_lock_badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 12px;
-    border-radius: var(--mp-r-full);
-    background: var(--mp-danger-light);
-    color: var(--mp-danger);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    margin: 0 0 10px;
-}
-.mptbm_pro_feature_lock_title {
-    margin: 0 0 8px;
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--mp-text-800);
-}
-.mptbm_pro_feature_lock_desc {
-    margin: 0 0 18px;
-    font-size: 13px;
-    line-height: 1.6;
-    color: var(--mp-text-500);
-}
-.mptbm_pro_feature_lock_btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 22px;
-    border: none;
-    border-radius: var(--mp-r-md);
-    background: linear-gradient(135deg, #f59e0b, #f97316);
-    color: var(--mp-white) !important;
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(249,115,22,0.35);
-    transition: var(--mp-transition);
-}
-.mptbm_pro_feature_lock_btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(249,115,22,0.4);
-}
-
 .mptbm_pro_badge_wrapper .mptbm_rent_editor_header {
     position: relative;
 }
@@ -3363,7 +3278,6 @@ select.formControl,
     height: 100%;
 }
 
-/* Full-height flex column; padding-top reserves space for info icon */
 .mptbm-oa-card-inner {
     height: 100%;
     box-sizing: border-box;
@@ -3372,77 +3286,6 @@ select.formControl,
     gap: 0;
     position: relative;
     padding: 14px;
-    padding-top: 36px;
-}
-
-/* ── Info icon — top-right corner ────────────────────────────────
-   Hover reveals a dark overlay with extended description.
-   pointer-events on tooltip stays none so label click still works.
-   ---------------------------------------------------------------- */
-.mptbm-oa-info {
-    position: absolute;
-    top: 8px;
-    right: 9px;
-    z-index: 5;
-    line-height: 1;
-}
-.mptbm-oa-info > .dashicons {
-    font-size: 15px !important;
-    width: 15px !important;
-    height: 15px !important;
-    color: var(--mp-text-300);
-    cursor: help;
-    display: block;
-    transition: color 0.2s ease, transform 0.15s ease;
-}
-.mptbm-oa-info:hover > .dashicons {
-    color: var(--mp-primary);
-    transform: scale(1.15);
-}
-
-/* Tooltip overlay — fills the card, stays within overflow:hidden ancestors */
-.mptbm-oa-tooltip {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    background: rgba(15, 23, 42, 0.96);
-    border-radius: calc(var(--mp-r-md) - 1px);
-    padding: 12px 14px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.22s ease, visibility 0.22s;
-    pointer-events: none;
-    z-index: 4;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    overflow: hidden;
-}
-.mptbm-oa-info:hover ~ .mptbm-oa-tooltip {
-    opacity: 1;
-    visibility: visible;
-}
-.mptbm-oa-tt-head {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: #ffffff;
-    margin: 0 0 5px;
-}
-.mptbm-oa-tt-section {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: #475569;
-    margin: 9px 0 3px;
-}
-.mptbm-oa-tooltip p {
-    margin: 0;
-    font-size: 11px;
-    color: #94a3b8;
-    line-height: 1.55;
 }
 
 /* ── Icon + name on the same horizontal line ─────────────────────

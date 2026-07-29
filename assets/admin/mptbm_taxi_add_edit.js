@@ -443,6 +443,23 @@
             updatePricingContainer();
         });
 
+        // Keeps the "Configure Pricing Rules" header badge in sync with
+        // whichever pricing-model tab is active — mirrors
+        // MPTBM_Rent_Custom_Editor::price_based_label() on the PHP side.
+        function mptbm_pricing_model_label(price_based){
+            var labels = {
+                inclusive: 'Combined Pricing',
+                distance: 'Distance',
+                duration: 'Duration',
+                distance_duration: 'Distance + Duration',
+                fixed_hourly: 'Fixed Hourly',
+                manual: 'Manual Routes',
+                fixed_distance: 'Fixed with Map',
+                fixed_zone: 'Fixed Zone'
+            };
+            return labels[price_based] || 'Combined Pricing';
+        }
+
         function mptbm_hide_all_pricing_content(){
             $("#mptbm_distance_price").fadeOut();
             $("#mptbm_fixed_pricing").fadeOut();
@@ -542,6 +559,7 @@
 
 
             $("#mptbm_pricing_rules_grid").html(rules);
+            $("#mptbm_selected_pricing_model_label").text(mptbm_pricing_model_label(price_based));
         });
 
          $('.mptbm_taxi_ex_service_toggle_wrapper').on('click', '.mptbm_pro_feature_notice', function () {
@@ -834,6 +852,7 @@
 
 
             $("#mptbm_pricing_rules_grid").html(rules);
+            $("#mptbm_selected_pricing_model_label").text(mptbm_pricing_model_label(price_based));
             // alert(clicked_tab_id );
         });
 
@@ -1572,13 +1591,6 @@
 
 
 
-    $(document).on('click', '#mptbm_taxi_pricing_field_free',function( e ){
-        e.preventDefault();
-        if( $(this).hasClass('pro-locked') ){
-            $('.mptbm_pro_popup').fadeIn();
-        }
-    });
-
     $(document).on('click', '.pro-feature-popup', function(e){
         if($(e.target).is('.pro-feature-popup') || $(e.target).is('.close-pro-popup')){
             $('.pro-feature-popup').fadeOut();
@@ -1590,13 +1602,6 @@
             $('.pro-feature-popup').fadeOut();
         }
     });
-
-    function mptbm_disable_pro_feature_in_free(){
-        $('#mptbm_taxi_pricing_field_free')
-            .find('input, textarea, button')
-            .prop('disabled', true);
-    }
-    mptbm_disable_pro_feature_in_free();
 
 
 

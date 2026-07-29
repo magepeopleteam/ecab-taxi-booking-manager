@@ -58,7 +58,6 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
         public function render_side_metabox( $post ) {
             self::mptbm_right_pro_features_card();
             self::mptbm_right_quick_tipcs( $post->ID );
-            self::category_tag_add( $post->ID );
         }
 
         public static function category_tag_add( $post_id ){
