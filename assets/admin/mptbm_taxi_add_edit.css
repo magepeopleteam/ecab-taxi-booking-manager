@@ -1791,54 +1791,94 @@ select.mptbm_taxi_ex_service_select.mideum { max-width: 160px; }
 
 .mptbm_taxi_feature_labels {
     display: grid;
-    grid-template-columns: 80px 1fr 100px;
+    grid-template-columns: 64px 1fr 84px;
     gap: 16px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     font-size: 11px;
     font-weight: 700;
     color: var(--mp-text-400);
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    padding: 0 6px;
+    padding: 0 4px 10px;
+    border-bottom: 1px solid var(--mp-border-light);
     text-align: left;
 }
 
 .mptbm_taxi_feature_row {
     display: grid;
-    grid-template-columns: 80px 1fr 100px;
+    grid-template-columns: 64px 1fr 84px;
     gap: 16px;
     align-items: center;
     margin-bottom: 10px;
-    padding: 8px;
-    background: var(--mp-bg-muted);
-    border-radius: var(--mp-r-md);
+    padding: 10px;
+    background: var(--mp-white);
+    border-radius: var(--mp-r-lg, 14px);
     border: 1px solid var(--mp-border-light);
     transition: var(--mp-transition);
 }
 .mptbm_taxi_feature_row:hover {
-    border-color: var(--mp-border-dark);
-    background: var(--mp-white);
-    box-shadow: var(--mp-shadow-xs);
+    border-color: var(--mp-primary-border, var(--mp-border-dark));
+    box-shadow: 0 4px 12px rgba(15, 23, 42, .06);
 }
-.mptbm_taxi_feature_row .mp_add_icon_image_area { border-color: var(--mp-border); max-width: 80px; }
+
+/* Icon thumbnail: a soft tinted square instead of a plain gray/bordered
+   box, and the always-visible remove badge (opacity:1 forced by
+   admin_style.css, further up the cascade) restyled from a bare solid-red
+   circle into a small white badge with a soft shadow, turning red only
+   on its own hover. */
+.mptbm_taxi_feature_row .mp_add_icon_image_area {
+    max-width: 64px;
+    border: none;
+    border-radius: var(--mp-r-md, 10px);
+    background: var(--mp-primary-light, #eef1ff);
+}
+.mptbm_taxi_feature_row .mp_icon_item {
+    border-radius: var(--mp-r-md, 10px);
+    background: transparent;
+}
+.mptbm_taxi_feature_row .mp_icon_item .allCenter {
+    color: var(--mp-primary, #4f46e5);
+    font-size: 18px;
+}
 .mptbm_taxi_feature_row .mp_image_item,
 .mptbm_taxi_feature_row .mp_image_add { display: none !important; }
+/* Extra ".mp_add_icon_image_area" qualifier (not just ".mptbm_taxi_feature_row
+   .mp_remove_icon") to outrank mp_global/mp_style.css's own same-specificity
+   ".mpStyle .mp_remove_icon" rule — that file is enqueued after this one, so
+   on a specificity tie its background-color: var(--color_danger) (solid red)
+   would otherwise win by source order alone. */
+.mptbm_taxi_feature_row .mp_add_icon_image_area .mp_remove_icon {
+    background: var(--mp-white);
+    color: var(--mp-text-400, #94a3b8);
+    box-shadow: 0 1px 4px rgba(15, 23, 42, .18);
+    border: 1px solid var(--mp-border-light);
+    transition: var(--mp-transition);
+}
+.mptbm_taxi_feature_row .mp_add_icon_image_area .mp_remove_icon:hover {
+    background: var(--mp-danger-light);
+    color: var(--mp-danger);
+    border-color: var(--mp-danger-border);
+}
 
 input.mptbm_taxi_feature_input {
     width: 100%;
-    height: 38px;
-    padding: 0 12px;
-    border: 1.5px solid var(--mp-border);
-    border-radius: var(--mp-r-sm);
-    font-size: 13px;
+    height: 40px;
+    padding: 0 14px;
+    border: 1.5px solid var(--mp-border-light);
+    border-radius: var(--mp-r-md, 10px);
+    font-size: 13.5px;
     font-family: var(--mp-font);
     box-sizing: border-box;
     color: var(--mp-text-800);
-    background: var(--mp-white);
+    background: var(--mp-bg-muted);
     outline: none;
     transition: var(--mp-transition);
 }
+input.mptbm_taxi_feature_input:hover {
+    border-color: var(--mp-border);
+}
 input.mptbm_taxi_feature_input:focus {
+    background: var(--mp-white);
     border-color: var(--mp-primary);
     box-shadow: var(--mp-shadow-focus);
 }
@@ -1846,11 +1886,11 @@ input.mptbm_taxi_feature_input:focus {
 .mptbm_taxi_feature_actions { display: flex; gap: 6px; }
 
 .mptbm_taxi_feature_btn_icon {
-    width: 32px;
-    height: 32px;
-    border: 1px solid var(--mp-border);
-    border-radius: var(--mp-r-sm);
-    background: var(--mp-white);
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--mp-border-light);
+    border-radius: var(--mp-r-md, 10px);
+    background: var(--mp-bg-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1867,11 +1907,10 @@ input.mptbm_taxi_feature_input:focus {
 .mptbm_taxi_feature_btn_move:hover { background: var(--mp-primary-light); border-color: var(--mp-primary-border); }
 
 .mptbm_taxi_feature_footer {
-    padding: 10px 0 4px;
+    padding: 12px 0 4px;
     display: flex;
     justify-content: flex-end;
-    border-top: 1px solid var(--mp-border-light);
-    margin-top: 8px;
+    margin-top: 4px;
 }
 
 .mptbm_taxi_feature_add_btn {
