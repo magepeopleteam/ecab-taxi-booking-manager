@@ -1,0 +1,483 @@
+body.mptbm-service-status-screen #wpbody-content > .wrap {
+    display: none;
+}
+
+body.mptbm-service-status-screen #wpbody-content {
+    box-sizing: border-box;
+}
+
+.mptbm-service-status-page {
+    width: 98%;
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 28px 0 48px;
+    box-sizing: border-box;
+}
+
+.mptbm-service-status-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px 26px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 12px 32px -26px rgba(15, 23, 42, .55);
+}
+
+.mptbm-service-status-heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.mptbm-service-status-heading-icon {
+    display: inline-flex;
+    flex: 0 0 52px;
+    width: 52px;
+    height: 52px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    color: #fff;
+    background: linear-gradient(145deg, #6c5ce7, #5145cd);
+    box-shadow: 0 10px 22px -12px rgba(81, 69, 205, .8);
+    font-size: 20px;
+}
+
+.mptbm-service-status-eyebrow {
+    margin: 0 0 4px !important;
+    color: #6c5ce7 !important;
+    font-size: 11px !important;
+    font-weight: 800;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+}
+
+.mptbm-service-status-heading h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 24px;
+    line-height: 1.25;
+    font-weight: 750;
+}
+
+.mptbm-service-status-heading p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.mptbm-service-status-add.button.button-primary,
+.mptbm-service-status-empty .button.button-primary,
+.mptbm-service-status-modal-actions .button-primary {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-color: #6254df;
+    border-radius: 10px;
+    background: #6254df;
+    box-shadow: none;
+    font-weight: 700;
+}
+
+.mptbm-service-status-add.button.button-primary:hover,
+.mptbm-service-status-empty .button.button-primary:hover,
+.mptbm-service-status-modal-actions .button-primary:hover {
+    border-color: #5145cd;
+    background: #5145cd;
+}
+
+.mptbm-service-status-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin: 18px 0;
+    padding: 14px 18px;
+    border: 1px solid #e8eaf2;
+    border-radius: 14px;
+    background: #f8fafc;
+}
+
+.mptbm-service-status-summary > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.mptbm-service-status-summary strong {
+    display: inline-flex;
+    min-width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    color: #5145cd;
+    background: #ebe9ff;
+    font-size: 13px;
+}
+
+.mptbm-service-status-summary p {
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.mptbm-service-status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.mptbm-service-status-card {
+    --status-tone: #6254df;
+    --status-soft: #eeecff;
+    display: flex;
+    min-height: 190px;
+    flex-direction: column;
+    padding: 20px;
+    border: 1px solid #e5e7ef;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 10px 28px -26px rgba(15, 23, 42, .75);
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.mptbm-service-status-card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--status-tone) 34%, #e5e7ef);
+    box-shadow: 0 18px 32px -26px rgba(15, 23, 42, .75);
+}
+
+.mptbm-service-status-card.is-tone-2 { --status-tone: #0f9f8f; --status-soft: #e5f8f4; }
+.mptbm-service-status-card.is-tone-3 { --status-tone: #e58b25; --status-soft: #fff4df; }
+.mptbm-service-status-card.is-tone-4 { --status-tone: #3b82f6; --status-soft: #e9f2ff; }
+.mptbm-service-status-card.is-tone-5 { --status-tone: #db5279; --status-soft: #ffebf1; }
+.mptbm-service-status-card.is-tone-6 { --status-tone: #7c6ee6; --status-soft: #eeecff; }
+
+.mptbm-service-status-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mptbm-service-status-avatar {
+    display: inline-flex;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: var(--status-tone);
+    background: var(--status-soft);
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.mptbm-service-status-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #15803d;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.mptbm-service-status-live i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 3px #dcfce7;
+}
+
+.mptbm-service-status-card h2 {
+    margin: 18px 0 7px;
+    color: #1e293b;
+    font-size: 16px;
+    line-height: 1.35;
+}
+
+.mptbm-service-status-card > p {
+    flex: 1;
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.mptbm-service-status-card footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #eef0f5;
+}
+
+.mptbm-service-status-card footer span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.mptbm-service-status-card footer code {
+    padding: 3px 7px;
+    border-radius: 6px;
+    color: #64748b;
+    background: #f1f5f9;
+    font-size: 10px;
+}
+
+.mptbm-service-status-empty {
+    padding: 64px 24px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 18px;
+    background: #fff;
+    text-align: center;
+}
+
+.mptbm-service-status-empty.is-hidden {
+    display: none;
+}
+
+.mptbm-service-status-empty > span {
+    display: inline-flex;
+    width: 54px;
+    height: 54px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    color: #6254df;
+    background: #eeecff;
+    font-size: 20px;
+}
+
+.mptbm-service-status-empty h2 {
+    margin: 16px 0 6px;
+    color: #1e293b;
+    font-size: 18px;
+}
+
+.mptbm-service-status-empty p {
+    margin: 0 0 18px;
+    color: #64748b;
+}
+
+.mptbm-service-status-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100100;
+    display: flex;
+    visibility: hidden;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity .18s ease, visibility .18s ease;
+}
+
+.mptbm-service-status-modal.is-visible {
+    visibility: visible;
+    opacity: 1;
+}
+
+.mptbm-service-status-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, .48);
+    backdrop-filter: blur(3px);
+}
+
+.mptbm-service-status-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 480px);
+    padding: 28px;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 30px 80px -25px rgba(15, 23, 42, .55);
+    transform: translateY(10px) scale(.98);
+    transition: transform .18s ease;
+}
+
+.mptbm-service-status-modal.is-visible .mptbm-service-status-dialog {
+    transform: translateY(0) scale(1);
+}
+
+.mptbm-service-status-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 9px;
+    color: #64748b;
+    background: #f1f5f9;
+    cursor: pointer;
+}
+
+.mptbm-service-status-dialog-icon {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    color: #6254df;
+    background: #eeecff;
+}
+
+.mptbm-service-status-dialog h2 {
+    margin: 16px 0 5px;
+    color: #111827;
+    font-size: 21px;
+}
+
+.mptbm-service-status-dialog > p {
+    margin: 0 0 22px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.mptbm-service-status-field {
+    margin-bottom: 17px;
+}
+
+.mptbm-service-status-field label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 7px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mptbm-service-status-field label > span:not(.is-optional) {
+    color: #dc2626;
+}
+
+.mptbm-service-status-field .is-optional {
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.mptbm-service-status-field input,
+.mptbm-service-status-field textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #d8dee9;
+    border-radius: 10px;
+    color: #1e293b;
+    background: #fff;
+    box-shadow: none;
+}
+
+.mptbm-service-status-field textarea {
+    resize: vertical;
+}
+
+.mptbm-service-status-field input:focus,
+.mptbm-service-status-field textarea:focus {
+    border-color: #7467e8;
+    box-shadow: 0 0 0 3px rgba(98, 84, 223, .12);
+    outline: none;
+}
+
+.mptbm-service-status-field small {
+    display: block;
+    margin-top: 6px;
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+.mptbm-service-status-message {
+    min-height: 18px;
+    margin-top: -4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.mptbm-service-status-message.is-error {
+    color: #dc2626;
+}
+
+.mptbm-service-status-message.is-success {
+    color: #15803d;
+}
+
+.mptbm-service-status-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #eef0f5;
+}
+
+.mptbm-service-status-modal-actions .button {
+    min-height: 40px;
+    padding: 6px 15px;
+    border-radius: 9px;
+}
+
+body.mptbm-modal-open {
+    overflow: hidden;
+}
+
+@media (max-width: 1100px) {
+    .mptbm-service-status-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .mptbm-service-status-page {
+        width: 100%;
+        padding-top: 18px;
+    }
+
+    .mptbm-service-status-hero,
+    .mptbm-service-status-summary {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .mptbm-service-status-add {
+        width: 100%;
+    }
+
+    .mptbm-service-status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mptbm-service-status-summary p {
+        display: none;
+    }
+
+    .mptbm-service-status-dialog {
+        padding: 24px 20px;
+    }
+}

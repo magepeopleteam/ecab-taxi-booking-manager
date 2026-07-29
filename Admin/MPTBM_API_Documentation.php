@@ -58,7 +58,7 @@ if (!class_exists('MPTBM_API_Documentation')) {
             $base_url = site_url('wp-json/ecab-taxi/v1/');
             MPTBM_Admin_Shell::render_shell_open();
             ?>
-            <div class="wrap mptbm-api-documentation">
+            <div class="wrap mptbm-api-documentation is-modernized">
                 <h1><?php esc_html_e('E-Cab Taxi Booking REST API Documentation', 'ecab-taxi-booking-manager'); ?></h1>
                 
                 <?php if ($api_enabled !== 'yes'): ?>

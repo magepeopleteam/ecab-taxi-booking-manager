@@ -4,6 +4,10 @@
     margin: 20px 0;
 }
 
+.wrap.mptbm-api-documentation.is-modernized {
+    max-width: 98%;
+}
+
 .api-docs-container {
     background: #fff;
     padding: 20px;
