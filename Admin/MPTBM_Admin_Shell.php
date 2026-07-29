@@ -114,12 +114,17 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                     'link' => $base_url . '&page=mptbm_bookings',
                 ];
             }
-            $items[] = [
-                'slug' => 'mptbm_wc_checkout_fields',
-                'label' => esc_html__('Checkout Fields', 'ecab-taxi-booking-manager'),
-                'icon' => 'fas fa-credit-card',
-                'link' => $base_url . '&page=mptbm_wc_checkout_fields',
-            ];
+            // Only registered (see MPTBM_Admin.php) when WooCommerce is active —
+            // link to it here only when it actually exists, same self-guard
+            // pattern as the "Bookings" item above.
+            if (MP_Global_Function::check_woocommerce() == 1) {
+                $items[] = [
+                    'slug' => 'mptbm_wc_checkout_fields',
+                    'label' => esc_html__('Checkout Fields', 'ecab-taxi-booking-manager'),
+                    'icon' => 'fas fa-credit-card',
+                    'link' => $base_url . '&page=mptbm_wc_checkout_fields',
+                ];
+            }
             $items[] = [
                 'slug' => 'mptbm_api_docs',
                 'label' => esc_html__('API Documentation', 'ecab-taxi-booking-manager'),
@@ -288,7 +293,13 @@ if (!class_exists('MPTBM_Admin_Shell')) {
         // toolbar — this field is admin-notes-only, not shown on the
         // frontend, so a full kitchen-sink editor is unnecessary.
         public function simplify_content_editor_toolbar($settings, $editor_id) {
-            if ('content' !== $editor_id || !self::is_metabox_screen()) {
+            // 'content' would be the native editor's id, but the Basic
+            // Information card actually renders this field as its own
+            // wp_editor() instance ('mptbm_extra_info_editor'); the
+            // never-shown duplicate ('mptbm_rent_description') is included
+            // too so both stay consistent if it's ever unhidden.
+            $targets = [ 'content', 'mptbm_rent_description', 'mptbm_extra_info_editor' ];
+            if (!in_array($editor_id, $targets, true) || !self::is_metabox_screen()) {
                 return $settings;
             }
 

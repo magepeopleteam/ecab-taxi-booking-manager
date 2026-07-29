@@ -28,8 +28,12 @@ body.mptbm-admin #wpfooter {
 body.mptbm-admin #wpbody-content {
     padding-bottom: 0;
 }
-body.mptbm-admin.wp-toolbar {
-    margin-top: 0;
+/* WP core clears the (hidden) admin bar via `padding-top: 32px` on
+   <html class="wp-toolbar">, not on <body> — so overriding body's margin
+   here did nothing; the 32px gap stayed. This file only ever loads on our
+   own plugin screens, so it's safe to zero it unconditionally. */
+html.wp-toolbar {
+    padding-top: 0;
 }
 body.mptbm-admin-shell #wpbody-content > #screen-meta,
 body.mptbm-admin-shell #wpbody-content > #screen-meta-links,
@@ -50,6 +54,15 @@ body.mptbm-admin.post-php.post-type-mptbm_rent #wpcontent,
 body.mptbm-admin.post-new-php.post-type-mptbm_rent #wpcontent {
     margin-left: var(--mp-shell-sidebar-width);
     padding-top: var(--mp-shell-topbar-height);
+}
+/* .wrap's top margin and #poststuff's top padding exist to clear the
+   native h1/hr.wp-header-end area — both hidden below, so this reserved
+   space is otherwise just dead gray gap under the fixed topbar. */
+body.mptbm-admin.post-type-mptbm_rent .wrap {
+    margin-top: 0;
+}
+body.mptbm-admin.post-type-mptbm_rent #poststuff {
+    padding-top: 0;
 }
 body.mptbm-admin.post-php.post-type-mptbm_rent .wrap > h1.wp-heading-inline,
 body.mptbm-admin.post-new-php.post-type-mptbm_rent .wrap > h1.wp-heading-inline,
@@ -460,26 +473,16 @@ body.mptbm-admin.post-type-mptbm_rent #mptbm_service_statusdiv {
 }
 .mptbm-split-publish__item:hover { background: var(--mp-bg-muted, #f1f5f9); }
 
-/* ---- Relocated Basic Information card (native title + content editor) ---- */
-.mptbm-basic-info-card .mptbm-basic-info-body { padding-top: 4px; }
-.mptbm-content-editor-label {
-    display: block;
-    margin: 14px 0 6px;
+/* ---- Native Title field + content editor: left in their default DOM
+   position (no longer relocated by mptbm-shell.js) and hidden here, since
+   the "General Info" tab's own "Basic Information" card already covers
+   Title/Description and showing both was a duplicate. Must stay in the DOM
+   (not be deregistered), since name="post_title"/"content" still need to
+   submit as part of the normal post form. ---- */
+body.mptbm-admin.post-type-mptbm_rent #titlediv,
+body.mptbm-admin.post-type-mptbm_rent #postdivrich {
+    display: none;
 }
-.mptbm-basic-info-body #titlediv #title {
-    width: 100%;
-    padding: 10px 12px;
-    font-size: 14px;
-    border: 1px solid var(--mp-border-dark, #cbd5e1);
-    border-radius: var(--mp-r-md, 10px);
-    box-shadow: none;
-}
-.mptbm-basic-info-body #titlediv #title:focus {
-    border-color: var(--mp-primary, #4f46e5);
-    box-shadow: var(--mp-shadow-focus, 0 0 0 3px rgba(79,70,229,0.18));
-}
-.mptbm-basic-info-body #postdivrich { border: none; }
-.mptbm-basic-info-body #postdivrich .wp-editor-tabs { display: none; }
 
 /* ================================================================
    Information Settings panel — horizontal pill tab bar + 2-column

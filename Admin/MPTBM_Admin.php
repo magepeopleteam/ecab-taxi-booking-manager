@@ -64,7 +64,6 @@
 				// the Payments tab renders in both WC and standalone (no-WC) modes.
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_WC_Payment_Manager.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Payment_Settings.php';
-				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Payment_Notice.php';
 				// Standalone, dismissible Pro upsell (free build only).
 				require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Pro_Features_Notice.php';
 				//****************Woocommerce Checkout*********************** */

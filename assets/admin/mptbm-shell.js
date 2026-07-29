@@ -48,40 +48,22 @@
 	'use strict';
 
 	// Add/Edit Transportation screen only — DOM relocation, run SYNCHRONOUSLY
-	// (not inside jQuery(document).ready()). WordPress's own TinyMCE bootstrap
-	// for the content editor is an inline <script> near the end of the page
-	// that calls tinymce.init() immediately if the document is already
-	// 'interactive' — it does not wait for DOMContentLoaded. Since this file is
-	// enqueued as a plain <script src>, it runs in document order, before that
-	// inline bootstrap. Running the relocation here, synchronously, ensures
-	// #postdivrich is already in its final position before TinyMCE ever
-	// touches the textarea — moving it afterwards would force the browser to
-	// reload the iframe as a side effect, silently wiping the editor.
+	// (not inside jQuery(document).ready()), so the featured-image/categories/
+	// quick-tips sidebar below is already in place before the rest of the
+	// page (including WordPress's own inline TinyMCE bootstrap) finishes
+	// loading.
 
 	// Force WordPress's single-column post-edit layout instead of the default
 	// 2-column one, since the sidebar postboxes are being relocated elsewhere.
 	$('#post-body.metabox-holder').removeClass('columns-2').addClass('columns-1');
 
-	// Move the native Title field + content editor into the "General Info"
-	// tab of the Information Settings metabox, wrapped in a "Basic
-	// Information" card. Only the DOM position changes — name="post_title"/
-	// name="content" stay inside the same <form id="post">, so saving is
-	// unaffected.
-	var $generalInfoTab = $('[data-tabs="#mptbm_general_info"]');
-	var $titlediv = $('#titlediv');
-	if ($generalInfoTab.length && $titlediv.length) {
-		var $basicInfoCard = $(
-			'<div class="mptbm_rent_editor_wrapper mptbm-basic-info-card">' +
-				'<div class="mptbm_rent_editor_header"><h2 class="mptbm_rent_editor_title"><i class="fas fa-file-lines"></i> Basic Information</h2></div>' +
-				'<div class="mptbm_rent_editor_body mptbm-basic-info-body"></div>' +
-			'</div>'
-		);
-		var $titleLabel = $('<label class="mptbm_rent_label mptbm-content-editor-label" for="title">Rent Title <span class="mptbm_rent_required">*</span></label>');
-		var $descriptionLabel = $('<label class="mptbm_rent_label mptbm-content-editor-label">Description</label>');
-		$titlediv.find('#title').prop('required', true);
-		$basicInfoCard.find('.mptbm-basic-info-body').append($titleLabel, $titlediv, $descriptionLabel, $('#postdivrich'));
-		$generalInfoTab.prepend($basicInfoCard);
-	}
+	// The native Title field + content editor are NOT relocated here — the
+	// "General Info" tab already has its own "Basic Information" card
+	// (MPTBM_Rent_Custom_Editor::taxi_title_description_set(), rendered
+	// server-side) covering the same Title/Description inputs. Relocating
+	// #titlediv/#postdivrich here as well used to produce a second, duplicate
+	// "Basic Information" card. #titlediv/#postdivrich stay in their default
+	// DOM position and are hidden via CSS instead (see mptbm-shell.css).
 
 	// Relabels #postimagediv .inside's contents — called once at page load
 	// AND every time WP's media modal rewrites that same markup afterward

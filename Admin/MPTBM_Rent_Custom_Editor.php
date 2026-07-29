@@ -100,6 +100,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <li data-tabs-target="#mptbm_settings_pricing">
                             <i class="fas fa-hand-holding-usd"></i><span class="menu-text"><?php esc_html_e('Pricing', 'ecab-taxi-booking-manager'); ?></span>
                         </li>
+                        <li data-tabs-target="#mptbm_settings_fees">
+                            <i class="fas fa-money-bill-wave"></i><span class="menu-text"><?php esc_html_e('Fees', 'ecab-taxi-booking-manager'); ?></span>
+                        </li>
                         <li data-tabs-target="#mptbm_settings_ex_service">
                             <i class="fas fa-puzzle-piece"></i><span class="menu-text"><?php esc_html_e('Extra Service', 'ecab-taxi-booking-manager'); ?></span>
                         </li>
@@ -117,6 +120,12 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </div>
                         <div class="tabsItem" data-tabs="#mptbm_settings_pricing">
                             <?php self::pricing_settings( $post_id, $pro_active ); ?>
+                        </div>
+                        <div class="tabsItem" data-tabs="#mptbm_settings_fees">
+                            <?php
+                            self::initial_base_pricing( $post_id );
+                            self::enable_base_location_charges( $post_id, $pro_active );
+                            ?>
                         </div>
                         <div class="tabsItem" data-tabs="#mptbm_settings_ex_service">
                             <?php
@@ -1461,13 +1470,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             <div class="mptbm_taxi_container mptbm_taxi_pricing_wrapper">
                 <?php wp_nonce_field('mptbm_price_settings_action', 'mptbm_price_settings_nonce'); ?>
                 <input type="hidden" name="mptbm_selected_operation_areas" id="mptbm_selected_operation_areas" value="<?php echo esc_html( $operation_area_str );?>">
-                <?php
-                self::initial_base_pricing( $post_id );
-
-//                if( $pro_active ) {
-                    self::enable_base_location_charges( $post_id, $pro_active );
-//                }
-                ?>
 
                 <div class="mptbm_rent_editor_wrapper" style="display: block">
                     <div class="mptbm_rent_editor_header">
