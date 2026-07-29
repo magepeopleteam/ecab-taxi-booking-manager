@@ -40,8 +40,11 @@ if (!class_exists('MPTBM_API_Documentation')) {
                 return;
             }
             
-            wp_enqueue_style('mptbm-api-docs', MPTBM_PLUGIN_URL . '/assets/admin/css/api-documentation.css', array(), MPTBM_PLUGIN_VERSION);
-            wp_enqueue_script('mptbm-api-docs', MPTBM_PLUGIN_URL . '/assets/admin/js/api-documentation.js', array('jquery'), MPTBM_PLUGIN_VERSION, true);
+            $css_path = MPTBM_PLUGIN_DIR . '/assets/admin/css/api-documentation.css';
+            $js_path = MPTBM_PLUGIN_DIR . '/assets/admin/js/api-documentation.js';
+
+            wp_enqueue_style('mptbm-api-docs', MPTBM_PLUGIN_URL . '/assets/admin/css/api-documentation.css', array('mptbm-shell'), file_exists($css_path) ? filemtime($css_path) : MPTBM_PLUGIN_VERSION);
+            wp_enqueue_script('mptbm-api-docs', MPTBM_PLUGIN_URL . '/assets/admin/js/api-documentation.js', array('jquery'), file_exists($js_path) ? filemtime($js_path) : MPTBM_PLUGIN_VERSION, true);
             
             wp_localize_script('mptbm-api-docs', 'mptbm_api', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
@@ -53,140 +56,169 @@ if (!class_exists('MPTBM_API_Documentation')) {
         public function documentation_page() {
             // Ensure API tables exist when accessing the documentation page
             $this->ensure_api_tables_exist();
-            
+
             $api_enabled = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'enable_rest_api', 'no');
             $base_url = site_url('wp-json/ecab-taxi/v1/');
             MPTBM_Admin_Shell::render_shell_open();
             ?>
             <div class="wrap mptbm-api-documentation is-modernized">
-                <h1><?php esc_html_e('E-Cab Taxi Booking REST API Documentation', 'ecab-taxi-booking-manager'); ?></h1>
-                
-                <?php if ($api_enabled !== 'yes'): ?>
-                    <div class="notice notice-warning">
-                        <p>
-                            <?php esc_html_e('REST API is currently disabled.', 'ecab-taxi-booking-manager'); ?>
-                            <a href="<?php echo admin_url('edit.php?post_type=mptbm_rent&page=mptbm_settings_page'); ?>">
-                                <?php esc_html_e('Enable it in settings', 'ecab-taxi-booking-manager'); ?>
-                            </a>
-                        </p>
-                    </div>
-                <?php endif; ?>
-                
-                <div class="api-docs-container">
-                    <!-- API Keys Management -->
-                    <div class="api-section">
-                        <h2><span class="dashicons dashicons-admin-network"></span> <?php esc_html_e('API Key Management', 'ecab-taxi-booking-manager'); ?></h2>
-                        <div class="api-keys-manager">
-                            <div class="generate-key-form">
-                                <h3><?php esc_html_e('Generate New API Key', 'ecab-taxi-booking-manager'); ?></h3>
-                                <form id="generate-api-key-form" action="javascript:void(0);">
-                                    <table class="form-table">
-                                        <tr>
-                                            <th><label for="api-key-name"><?php esc_html_e('Key Name', 'ecab-taxi-booking-manager'); ?></label></th>
-                                            <td><input type="text" id="api-key-name" name="name" class="regular-text" placeholder="<?php esc_attr_e('My Mobile App', 'ecab-taxi-booking-manager'); ?>" required></td>
-                                        </tr>
-                                        <tr>
-                                            <th><label><?php esc_html_e('Permissions', 'ecab-taxi-booking-manager'); ?></label></th>
-                                            <td>
-                                                <label><input type="checkbox" name="permissions[]" value="read" checked> <?php esc_html_e('Read', 'ecab-taxi-booking-manager'); ?></label><br>
-                                                <label><input type="checkbox" name="permissions[]" value="write" checked> <?php esc_html_e('Write', 'ecab-taxi-booking-manager'); ?></label>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                    <p class="submit">
-                                        <button type="submit" class="button button-primary"><?php esc_html_e('Generate API Key', 'ecab-taxi-booking-manager'); ?></button>
-                                    </p>
-                                </form>
-                            </div>
-                            
-                            <div class="api-keys-list">
-                                <h3><?php esc_html_e('Existing API Keys', 'ecab-taxi-booking-manager'); ?></h3>
-                                <div id="api-keys-container">
-                                    <!-- API keys will be loaded here via AJAX -->
-                                </div>
-                            </div>
+                <header class="mptbm-apidocs-hero">
+                    <div class="mptbm-apidocs-heading">
+                        <span class="mptbm-apidocs-heading-icon" aria-hidden="true"><i class="fas fa-plug"></i></span>
+                        <div>
+                            <p class="mptbm-apidocs-eyebrow"><?php esc_html_e('Developer resources', 'ecab-taxi-booking-manager'); ?></p>
+                            <h1><?php esc_html_e('REST API Documentation', 'ecab-taxi-booking-manager'); ?></h1>
+                            <p><?php esc_html_e('Authenticate, manage taxis, bookings, and locations from your own app or integration.', 'ecab-taxi-booking-manager'); ?></p>
                         </div>
                     </div>
-                    
-                    
-                    <!-- Taxi Management Endpoints -->
-                    <?php $this->render_endpoint_section('Taxi Management', $this->get_taxi_endpoints()); ?>
-                    
-                    <!-- Booking Management Endpoints -->
-                    <?php $this->render_endpoint_section('Booking Management', $this->get_booking_endpoints()); ?>
-                    
-                    <!-- Location Services Endpoints -->
-                    <?php $this->render_endpoint_section('Location Services', $this->get_location_endpoints()); ?>
-                    
-                    <!-- Settings Endpoints -->
-                    <?php $this->render_endpoint_section('Settings', $this->get_settings_endpoints()); ?>
+                    <div class="mptbm-apidocs-base-url">
+                        <span><?php esc_html_e('Base URL', 'ecab-taxi-booking-manager'); ?></span>
+                        <code id="mptbm-apidocs-base-url"><?php echo esc_html($base_url); ?></code>
+                        <button type="button" class="mptbm-apidocs-copy" data-copy-target="mptbm-apidocs-base-url" title="<?php esc_attr_e('Copy', 'ecab-taxi-booking-manager'); ?>">
+                            <i class="fas fa-copy" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </header>
+
+                <?php if ($api_enabled !== 'yes') : ?>
+                    <div class="mptbm-apidocs-notice">
+                        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                        <span>
+                            <?php esc_html_e('REST API is currently disabled.', 'ecab-taxi-booking-manager'); ?>
+                            <a href="<?php echo esc_url(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_settings_page')); ?>">
+                                <?php esc_html_e('Enable it in settings', 'ecab-taxi-booking-manager'); ?>
+                            </a>
+                        </span>
+                    </div>
+                <?php endif; ?>
+
+                <div class="mptbm-apidocs-layout">
+                    <nav class="mptbm-apidocs-nav" aria-label="<?php esc_attr_e('API sections', 'ecab-taxi-booking-manager'); ?>">
+                        <div class="mptbm-apidocs-search">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <input type="search" id="mptbm-apidocs-search-input" placeholder="<?php esc_attr_e('Search endpoints…', 'ecab-taxi-booking-manager'); ?>">
+                        </div>
+                        <a href="#section-api-keys" class="mptbm-apidocs-nav-link"><i class="fas fa-key" aria-hidden="true"></i><?php esc_html_e('API Keys', 'ecab-taxi-booking-manager'); ?></a>
+                        <a href="#section-authentication" class="mptbm-apidocs-nav-link"><i class="fas fa-lock" aria-hidden="true"></i><?php esc_html_e('Authentication', 'ecab-taxi-booking-manager'); ?></a>
+                        <a href="#section-taxi-management" class="mptbm-apidocs-nav-link"><i class="fas fa-car" aria-hidden="true"></i><?php esc_html_e('Taxi Management', 'ecab-taxi-booking-manager'); ?></a>
+                        <a href="#section-booking-management" class="mptbm-apidocs-nav-link"><i class="fas fa-calendar-check" aria-hidden="true"></i><?php esc_html_e('Booking Management', 'ecab-taxi-booking-manager'); ?></a>
+                        <a href="#section-location-services" class="mptbm-apidocs-nav-link"><i class="fas fa-map-marker-alt" aria-hidden="true"></i><?php esc_html_e('Location Services', 'ecab-taxi-booking-manager'); ?></a>
+                        <a href="#section-settings" class="mptbm-apidocs-nav-link"><i class="fas fa-sliders-h" aria-hidden="true"></i><?php esc_html_e('Settings', 'ecab-taxi-booking-manager'); ?></a>
+                    </nav>
+
+                    <div class="mptbm-apidocs-content">
+                        <section id="section-api-keys" class="mptbm-apidocs-section">
+                            <h2><i class="fas fa-key" aria-hidden="true"></i> <?php esc_html_e('API Key Management', 'ecab-taxi-booking-manager'); ?></h2>
+                            <p class="mptbm-apidocs-section-intro"><?php esc_html_e('Generate a key/secret pair to authenticate requests from your app. Keys are scoped to your WordPress user account.', 'ecab-taxi-booking-manager'); ?></p>
+                            <div class="mptbm-apidocs-keys-grid">
+                                <div class="mptbm-apidocs-card mptbm-apidocs-generate-key">
+                                    <h3><?php esc_html_e('Generate New API Key', 'ecab-taxi-booking-manager'); ?></h3>
+                                    <form id="generate-api-key-form" action="javascript:void(0);">
+                                        <div class="mptbm-apidocs-field">
+                                            <label for="api-key-name"><?php esc_html_e('Key Name', 'ecab-taxi-booking-manager'); ?></label>
+                                            <input type="text" id="api-key-name" name="name" placeholder="<?php esc_attr_e('My Mobile App', 'ecab-taxi-booking-manager'); ?>" required>
+                                        </div>
+                                        <div class="mptbm-apidocs-field">
+                                            <label><?php esc_html_e('Permissions', 'ecab-taxi-booking-manager'); ?></label>
+                                            <div class="mptbm-apidocs-checkbox-row">
+                                                <label><input type="checkbox" name="permissions[]" value="read" checked> <?php esc_html_e('Read', 'ecab-taxi-booking-manager'); ?></label>
+                                                <label><input type="checkbox" name="permissions[]" value="write" checked> <?php esc_html_e('Write', 'ecab-taxi-booking-manager'); ?></label>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="button button-primary"><i class="fas fa-plus" aria-hidden="true"></i> <?php esc_html_e('Generate API Key', 'ecab-taxi-booking-manager'); ?></button>
+                                    </form>
+                                </div>
+
+                                <div class="mptbm-apidocs-card mptbm-apidocs-keys-list">
+                                    <h3><?php esc_html_e('Existing API Keys', 'ecab-taxi-booking-manager'); ?></h3>
+                                    <div id="api-keys-container">
+                                        <div class="mptbm-apidocs-keys-loading"><?php esc_html_e('Loading API keys…', 'ecab-taxi-booking-manager'); ?></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <?php
+                        $this->render_endpoint_section('authentication', __('Authentication', 'ecab-taxi-booking-manager'), 'fas fa-lock', $this->get_auth_endpoints());
+                        $this->render_endpoint_section('taxi-management', __('Taxi Management', 'ecab-taxi-booking-manager'), 'fas fa-car', $this->get_taxi_endpoints());
+                        $this->render_endpoint_section('booking-management', __('Booking Management', 'ecab-taxi-booking-manager'), 'fas fa-calendar-check', $this->get_booking_endpoints());
+                        $this->render_endpoint_section('location-services', __('Location Services', 'ecab-taxi-booking-manager'), 'fas fa-map-marker-alt', $this->get_location_endpoints());
+                        $this->render_endpoint_section('settings', __('Settings', 'ecab-taxi-booking-manager'), 'fas fa-sliders-h', $this->get_settings_endpoints());
+                        ?>
+                    </div>
                 </div>
             </div>
             <?php
             MPTBM_Admin_Shell::render_shell_close();
         }
 
-        private function render_endpoint_section($title, $endpoints) {
+        private function render_endpoint_section($slug, $title, $icon, $endpoints) {
             ?>
-            <div class="api-section">
-                <h2><span class="dashicons dashicons-admin-generic"></span> <?php echo esc_html($title); ?></h2>
-                <div class="endpoints-container">
+            <section id="section-<?php echo esc_attr($slug); ?>" class="mptbm-apidocs-section">
+                <h2><i class="<?php echo esc_attr($icon); ?>" aria-hidden="true"></i> <?php echo esc_html($title); ?></h2>
+                <div class="mptbm-apidocs-endpoints" data-apidocs-endpoints>
                     <?php foreach ($endpoints as $endpoint): ?>
-                        <div class="endpoint-card">
-                            <div class="endpoint-header">
-                                <span class="method method-<?php echo esc_attr(strtolower($endpoint['method'])); ?>">
+                        <div class="mptbm-apidocs-card mptbm-apidocs-endpoint" data-apidocs-endpoint>
+                            <div class="mptbm-apidocs-endpoint-header">
+                                <span class="mptbm-apidocs-method mptbm-apidocs-method-<?php echo esc_attr(strtolower($endpoint['method'])); ?>">
                                     <?php echo esc_html($endpoint['method']); ?>
                                 </span>
-                                <code class="endpoint-url"><?php echo esc_html($endpoint['url']); ?></code>
+                                <code class="mptbm-apidocs-endpoint-url"><?php echo esc_html($endpoint['url']); ?></code>
                             </div>
-                            
-                            <div class="endpoint-description">
-                                <p><?php echo esc_html($endpoint['description']); ?></p>
-                            </div>
-                            
+
+                            <p class="mptbm-apidocs-endpoint-description"><?php echo esc_html($endpoint['description']); ?></p>
+
                             <?php if (!empty($endpoint['parameters'])): ?>
-                                <div class="endpoint-parameters">
+                                <div class="mptbm-apidocs-endpoint-block">
                                     <h4><?php esc_html_e('Parameters', 'ecab-taxi-booking-manager'); ?></h4>
-                                    <table class="parameters-table">
-                                        <thead>
-                                            <tr>
-                                                <th><?php esc_html_e('Parameter', 'ecab-taxi-booking-manager'); ?></th>
-                                                <th><?php esc_html_e('Type', 'ecab-taxi-booking-manager'); ?></th>
-                                                <th><?php esc_html_e('Required', 'ecab-taxi-booking-manager'); ?></th>
-                                                <th><?php esc_html_e('Description', 'ecab-taxi-booking-manager'); ?></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($endpoint['parameters'] as $param): ?>
+                                    <div class="mptbm-apidocs-table-scroll">
+                                        <table class="mptbm-apidocs-params-table">
+                                            <thead>
                                                 <tr>
-                                                    <td><code><?php echo esc_html($param['name']); ?></code></td>
-                                                    <td><?php echo esc_html($param['type']); ?></td>
-                                                    <td><?php echo $param['required'] ? '<span class="required">Yes</span>' : 'No'; ?></td>
-                                                    <td><?php echo esc_html($param['description']); ?></td>
+                                                    <th><?php esc_html_e('Parameter', 'ecab-taxi-booking-manager'); ?></th>
+                                                    <th><?php esc_html_e('Type', 'ecab-taxi-booking-manager'); ?></th>
+                                                    <th><?php esc_html_e('Required', 'ecab-taxi-booking-manager'); ?></th>
+                                                    <th><?php esc_html_e('Description', 'ecab-taxi-booking-manager'); ?></th>
                                                 </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($endpoint['parameters'] as $param): ?>
+                                                    <tr>
+                                                        <td><code><?php echo esc_html($param['name']); ?></code></td>
+                                                        <td><?php echo esc_html($param['type']); ?></td>
+                                                        <td><?php echo !empty($param['required']) ? '<span class="mptbm-apidocs-required">' . esc_html__('Required', 'ecab-taxi-booking-manager') . '</span>' : esc_html__('Optional', 'ecab-taxi-booking-manager'); ?></td>
+                                                        <td><?php echo esc_html($param['description']); ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             <?php endif; ?>
-                            
+
                             <?php if (!empty($endpoint['example_request'])): ?>
-                                <div class="endpoint-example">
+                                <div class="mptbm-apidocs-endpoint-block">
                                     <h4><?php esc_html_e('Example Request', 'ecab-taxi-booking-manager'); ?></h4>
-                                    <pre class="code-example"><?php echo esc_html($endpoint['example_request']); ?></pre>
+                                    <div class="mptbm-apidocs-code-block">
+                                        <button type="button" class="mptbm-apidocs-copy-code" title="<?php esc_attr_e('Copy', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-copy" aria-hidden="true"></i></button>
+                                        <pre><?php echo esc_html($endpoint['example_request']); ?></pre>
+                                    </div>
                                 </div>
                             <?php endif; ?>
-                            
+
                             <?php if (!empty($endpoint['example_response'])): ?>
-                                <div class="endpoint-example">
+                                <div class="mptbm-apidocs-endpoint-block">
                                     <h4><?php esc_html_e('Example Response', 'ecab-taxi-booking-manager'); ?></h4>
-                                    <pre class="code-example"><?php echo esc_html($endpoint['example_response']); ?></pre>
+                                    <div class="mptbm-apidocs-code-block">
+                                        <button type="button" class="mptbm-apidocs-copy-code" title="<?php esc_attr_e('Copy', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-copy" aria-hidden="true"></i></button>
+                                        <pre><?php echo esc_html($endpoint['example_response']); ?></pre>
+                                    </div>
                                 </div>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
-            </div>
+            </section>
             <?php
         }
         

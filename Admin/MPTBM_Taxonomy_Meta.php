@@ -11,16 +11,21 @@ if (!class_exists('MPTBM_Taxonomy_Meta')) {
 	class MPTBM_Taxonomy_Meta {
 		public function __construct() {
 			// Add fields to taxonomy
-			add_action('locations_add_form_fields', array($this, 'add_location_geo_field'), 10, 2);
+			// Note: the "Add Location" native form field is intentionally not wired up
+			// here (no locations_add_form_fields hook) — MPTBM_Locations_Manager's
+			// card-grid page replaced the native add-term form with its own modal
+			// (which includes its own map picker), so this is no longer reachable
+			// through the UI. edit_location_geo_field()/save_location_geo_field() are
+			// kept: created_locations/edited_locations still fire (and this class still
+			// saves mptbm_geo_location/mptbm_geo_location_name) whenever the new
+			// manager calls wp_insert_term()/wp_update_term(), and the direct
+			// single-term edit screen (action=edit) still renders correctly as a
+			// fallback.
 			add_action('locations_edit_form_fields', array($this, 'edit_location_geo_field'), 10, 2);
 
 			// Save taxonomy fields
 			add_action('created_locations', array($this, 'save_location_geo_field'), 10, 2);
 			add_action('edited_locations', array($this, 'save_location_geo_field'), 10, 2);
-		}
-
-		public function add_location_geo_field($taxonomy) {
-			$this->render_geo_field('', '');
 		}
 
 		public function edit_location_geo_field($term, $taxonomy) {

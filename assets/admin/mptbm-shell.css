@@ -129,6 +129,10 @@ body.mptbm-admin.post-type-mptbm_rent #mptbm_service_statusdiv {
     display: none;
 }
 
+div#mptbm_rent_settings_panel {
+    border-radius: 15px;
+}
+
 /* The "Transportation Details" side metabox itself is left empty once
    mptbm-shell.js relocates its Categories/Tags and Quick Tips cards into
    the persistent sidebar (and its Pro-upsell card renders nothing when
