@@ -15,6 +15,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             add_action('wp_ajax_mptbm_ajax_save_rent', [$this, 'ajax_save_rent']);
             add_action('admin_init', [$this, 'redirect_default_editor']);
             add_action('admin_init', [$this, 'redirect_add_new']);
+            add_action('admin_init', [$this, 'create_new_rent_and_redirect']);
 
 
 //            add_action('wp_ajax_save_mptbm_rent', [$this, 'save_mptbm_rent_callback']);
@@ -150,6 +151,28 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             );
         }
 
+        public function create_new_rent_and_redirect() {
+
+            if (
+                isset($_GET['page']) &&
+                $_GET['page'] === 'mptbm-rent-edit' &&
+                empty($_GET['post_id'])
+            ) {
+
+                $post_id = wp_insert_post([
+                    'post_type'   => 'mptbm_rent',
+                    'post_status' => 'auto-draft',
+                    'post_title'  => '',
+                ]);
+
+                wp_redirect(
+                    admin_url('admin.php?page=mptbm-rent-edit&post_id=' . $post_id)
+                );
+
+                exit;
+            }
+        }
+
         public function redirect_add_new() {
 
             global $pagenow;
@@ -252,17 +275,11 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
             $post_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
             if (!$post_id) {
-                $post_id = wp_insert_post([
-                    'post_type'   => 'mptbm_rent',
-                    'post_status' => 'auto-draft',
-                    'post_title'  => '',
-                ]);
-
-                // redirect to same page with post_id
-                wp_redirect(
-                    admin_url('admin.php?page=mptbm-rent-edit&post_id=' . $post_id)
-                );
-                exit;
+                // admin_init (create_new_rent_and_redirect) handles creating the
+                // auto-draft and redirecting before any output is sent; if we get
+                // here without a post_id, just bail out rather than trying to
+                // redirect this late (headers would already be sent).
+                wp_die(esc_html__('No transportation was found to edit.', 'ecab-taxi-booking-manager'));
             }
 
             $title   = $post_id ? get_the_title($post_id) : 'New Rent';
