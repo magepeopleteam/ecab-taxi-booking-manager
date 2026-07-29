@@ -73,20 +73,31 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
         public function analytics_dashboard_page() {
             MPTBM_Admin_Shell::render_shell_open();
             ?>
-            <div class="wrap">
-                <h1><?php esc_html_e('E-Cab Taxi Booking Analytics Dashboard', 'ecab-taxi-booking-manager'); ?></h1>
+            <div class="wrap mptbm-analytics-wrap">
+                <header class="mptbm-analytics-hero">
+                    <div class="mptbm-analytics-heading">
+                        <span class="mptbm-analytics-heading-icon" aria-hidden="true">
+                            <i class="fas fa-chart-line"></i>
+                        </span>
+                        <div>
+                            <p class="mptbm-analytics-eyebrow"><?php esc_html_e('Insights', 'ecab-taxi-booking-manager'); ?></p>
+                            <h1><?php esc_html_e('Analytics Dashboard', 'ecab-taxi-booking-manager'); ?></h1>
+                            <p><?php esc_html_e('Track bookings, revenue, and cancellations across any date range.', 'ecab-taxi-booking-manager'); ?></p>
+                        </div>
+                    </div>
+                </header>
 
                 <div class="mptbm-analytics-container">
                     <!-- Date Range Filter -->
                     <div class="mptbm-analytics-filters">
                         <div class="mptbm-date-range-filter">
-                            <label for="mptbm-date-range"><?php esc_html_e('Date Range:', 'ecab-taxi-booking-manager'); ?></label>
+                            <label for="mptbm-date-range"><i class="fas fa-calendar" aria-hidden="true"></i> <?php esc_html_e('Date Range', 'ecab-taxi-booking-manager'); ?></label>
                             <input type="text" id="mptbm-date-range" name="mptbm-date-range" class="mptbm-date-range-input" />
                         </div>
 
                         <div class="mptbm-filter-buttons">
                             <button type="button" class="button button-primary mptbm-refresh-data">
-                                <span class="dashicons dashicons-update"></span> <?php esc_html_e('Refresh Data', 'ecab-taxi-booking-manager'); ?>
+                                <i class="fas fa-sync-alt" aria-hidden="true"></i> <?php esc_html_e('Refresh Data', 'ecab-taxi-booking-manager'); ?>
                             </button>
                         </div>
                     </div>
@@ -95,7 +106,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
                     <div class="mptbm-summary-cards">
                         <div class="mptbm-card mptbm-total-bookings">
                             <div class="mptbm-card-icon">
-                                <span class="dashicons dashicons-calendar-alt"></span>
+                                <i class="fas fa-calendar-check" aria-hidden="true"></i>
                             </div>
                             <div class="mptbm-card-content">
                                 <h3><?php esc_html_e('Total Bookings', 'ecab-taxi-booking-manager'); ?></h3>
@@ -106,7 +117,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
 
                         <div class="mptbm-card mptbm-total-revenue">
                             <div class="mptbm-card-icon">
-                                <span class="dashicons dashicons-money-alt"></span>
+                                <i class="fas fa-sack-dollar" aria-hidden="true"></i>
                             </div>
                             <div class="mptbm-card-content">
                                 <h3><?php esc_html_e('Total Revenue', 'ecab-taxi-booking-manager'); ?></h3>
@@ -117,7 +128,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
 
                         <div class="mptbm-card mptbm-avg-booking-value">
                             <div class="mptbm-card-icon">
-                                <span class="dashicons dashicons-chart-line"></span>
+                                <i class="fas fa-chart-line" aria-hidden="true"></i>
                             </div>
                             <div class="mptbm-card-content">
                                 <h3><?php esc_html_e('Avg. Booking Value', 'ecab-taxi-booking-manager'); ?></h3>
@@ -128,7 +139,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
 
                         <div class="mptbm-card mptbm-completion-rate">
                             <div class="mptbm-card-icon">
-                                <span class="dashicons dashicons-yes-alt"></span>
+                                <i class="fas fa-check-circle" aria-hidden="true"></i>
                             </div>
                             <div class="mptbm-card-content">
                                 <h3><?php esc_html_e('Completion Rate', 'ecab-taxi-booking-manager'); ?></h3>
@@ -144,7 +155,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
                         <div class="mptbm-summary-cards">
                             <div class="mptbm-card mptbm-cancelled-bookings">
                                 <div class="mptbm-card-icon">
-                                    <span class="dashicons dashicons-dismiss"></span>
+                                    <i class="fas fa-ban" aria-hidden="true"></i>
                                 </div>
                                 <div class="mptbm-card-content">
                                     <h3><?php esc_html_e('Cancelled Bookings', 'ecab-taxi-booking-manager'); ?></h3>
@@ -154,7 +165,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
 
                             <div class="mptbm-card mptbm-failed-bookings">
                                 <div class="mptbm-card-icon">
-                                    <span class="dashicons dashicons-warning"></span>
+                                    <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
                                 </div>
                                 <div class="mptbm-card-content">
                                     <h3><?php esc_html_e('Failed Bookings', 'ecab-taxi-booking-manager'); ?></h3>
@@ -164,7 +175,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
 
                             <div class="mptbm-card mptbm-lost-revenue">
                                 <div class="mptbm-card-icon">
-                                    <span class="dashicons dashicons-money-alt"></span>
+                                    <i class="fas fa-money-bill-wave" aria-hidden="true"></i>
                                 </div>
                                 <div class="mptbm-card-content">
                                     <h3><?php esc_html_e('Lost Revenue', 'ecab-taxi-booking-manager'); ?></h3>
@@ -174,7 +185,7 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
 
                             <div class="mptbm-card mptbm-cancellation-rate">
                                 <div class="mptbm-card-icon">
-                                    <span class="dashicons dashicons-chart-pie"></span>
+                                    <i class="fas fa-chart-pie" aria-hidden="true"></i>
                                 </div>
                                 <div class="mptbm-card-content">
                                     <h3><?php esc_html_e('Cancellation Rate', 'ecab-taxi-booking-manager'); ?></h3>

@@ -383,6 +383,11 @@
      */
     function updateCharts(data) {
 
+        // Clear any "no data" message left over from a previous (empty) date
+        // range before deciding whether this one needs it too — otherwise it
+        // lingers on screen forever once a single empty range has shown it.
+        $('.mptbm-no-data-message').remove();
+
         // Check if we have any bookings data
         if (data.total_bookings === 0) {
             // Display "No data available" message in each chart
@@ -417,6 +422,14 @@
     function displayNoDataMessage() {
         // Hide loading indicators
         hideLoadingIndicators();
+
+        // Clear any stale chart data from a previous (non-empty) date range so
+        // nothing is left visible underneath the "no data" overlay below.
+        [bookingsChart, revenueChart, popularRoutesChart, bookingStatusChart].forEach(function (chart) {
+            chart.data.labels = [];
+            chart.data.datasets[0].data = [];
+            chart.update();
+        });
 
         // Add "No data" message to each chart container
         $('.mptbm-chart-wrapper').each(function() {
