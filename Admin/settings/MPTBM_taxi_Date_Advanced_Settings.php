@@ -13,6 +13,8 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
     //        add_action('mptbm_date_and_advanced_settings', [ $this, 'mptbm_date_and_advanced_settings'], 10, 1 );
             add_action('mptbm_date_and_advanced_settings', [$this, 'date_settings'], 10, 1);
             add_action('wp_ajax_mptbm_get_driver_info', [$this, 'ajax_get_driver_info']);
+            add_action('wp_ajax_mptbm_create_driver', [$this, 'ajax_create_driver']);
+            add_action('save_post', [$this, 'save_driver_settings'], 99, 1);
         }
 
         public function ajax_get_driver_info()
@@ -39,7 +41,107 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                 'name'     => $user->display_name,
                 'username' => $user->user_login,
                 'email'    => $user->user_email,
+                'phone'    => get_user_meta($user->ID, 'user_phone', true),
             ));
+        }
+
+        public function ajax_create_driver()
+        {
+            check_ajax_referer('mptbm_create_driver', 'nonce');
+
+            if (!current_user_can('create_users')) {
+                wp_send_json_error(
+                    array('message' => esc_html__('You do not have permission to add drivers.', 'ecab-taxi-booking-manager')),
+                    403
+                );
+            }
+
+            $first_name = isset($_POST['first_name']) ? sanitize_text_field(wp_unslash($_POST['first_name'])) : '';
+            $last_name = isset($_POST['last_name']) ? sanitize_text_field(wp_unslash($_POST['last_name'])) : '';
+            $username = isset($_POST['username']) ? sanitize_user(wp_unslash($_POST['username']), true) : '';
+            $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
+            $phone = isset($_POST['phone']) ? sanitize_text_field(wp_unslash($_POST['phone'])) : '';
+            $password = isset($_POST['password']) ? (string) wp_unslash($_POST['password']) : '';
+            $send_notification = !empty($_POST['send_notification']);
+
+            if ($first_name === '' || $username === '' || $email === '') {
+                wp_send_json_error(array('message' => esc_html__('First name, username, and email are required.', 'ecab-taxi-booking-manager')));
+            }
+
+            if (!is_email($email)) {
+                wp_send_json_error(array('message' => esc_html__('Enter a valid email address.', 'ecab-taxi-booking-manager')));
+            }
+
+            if (username_exists($username)) {
+                wp_send_json_error(array('message' => esc_html__('This username is already in use.', 'ecab-taxi-booking-manager')));
+            }
+
+            if (email_exists($email)) {
+                wp_send_json_error(array('message' => esc_html__('This email address is already registered.', 'ecab-taxi-booking-manager')));
+            }
+
+            if ($password !== '' && strlen($password) < 8) {
+                wp_send_json_error(array('message' => esc_html__('The password must contain at least 8 characters.', 'ecab-taxi-booking-manager')));
+            }
+
+            $display_name = trim($first_name . ' ' . $last_name);
+            $user_id = wp_insert_user(array(
+                'user_login'   => $username,
+                'user_email'   => $email,
+                'user_pass'    => $password !== '' ? $password : wp_generate_password(20, true, true),
+                'first_name'   => $first_name,
+                'last_name'    => $last_name,
+                'display_name' => $display_name,
+                'role'         => 'mptbm_driver_role',
+            ));
+
+            if (is_wp_error($user_id)) {
+                wp_send_json_error(array('message' => $user_id->get_error_message()));
+            }
+
+            if ($phone !== '') {
+                update_user_meta($user_id, 'user_phone', $phone);
+            }
+
+            if ($send_notification && function_exists('wp_send_new_user_notifications')) {
+                wp_send_new_user_notifications($user_id, 'user');
+            }
+
+            wp_send_json_success(array(
+                'id'       => $user_id,
+                'name'     => $display_name,
+                'username' => $username,
+                'email'    => $email,
+                'phone'    => $phone,
+                'message'  => esc_html__('Driver added successfully.', 'ecab-taxi-booking-manager'),
+            ));
+        }
+
+        public function save_driver_settings($post_id)
+        {
+            if (get_post_type($post_id) !== MPTBM_Function::get_cpt()
+                || (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
+                || wp_is_post_revision($post_id)
+                || !current_user_can('edit_post', $post_id)
+                || !isset($_POST['mptbm_transportation_type_nonce'])
+                || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['mptbm_transportation_type_nonce'])), 'mptbm_transportation_type_nonce')
+                || !isset($_POST['mptbm_driver_settings_field_present'])) {
+                return;
+            }
+
+            $driver_id = isset($_POST['mptbm_selected_driver']) ? absint(wp_unslash($_POST['mptbm_selected_driver'])) : 0;
+
+            if (!$driver_id) {
+                delete_post_meta($post_id, 'mptbm_selected_driver');
+                return;
+            }
+
+            $driver = get_user_by('ID', $driver_id);
+            if (!$driver || !in_array('mptbm_driver_role', (array) $driver->roles, true)) {
+                return;
+            }
+
+            update_post_meta($post_id, 'mptbm_selected_driver', $driver_id);
         }
 
 
@@ -227,14 +329,32 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                         <table class="mptbm_schedule_table">
                             <thead>
                             <tr>
-                                <th scope="col"><?php esc_html_e('Day', 'ecab-taxi-booking-manager'); ?></th>
                                 <th scope="col">
-                                    <i class="far fa-clock" aria-hidden="true"></i>
-                                    <?php esc_html_e('Start Time', 'ecab-taxi-booking-manager'); ?>
+                                    <span class="mptbm_schedule_column_heading">
+                                        <span class="mptbm_schedule_column_icon is-day" aria-hidden="true"><i class="far fa-calendar-alt"></i></span>
+                                        <span class="mptbm_schedule_column_copy">
+                                            <strong><?php esc_html_e('Day', 'ecab-taxi-booking-manager'); ?></strong>
+                                            <small><?php esc_html_e('Operating schedule', 'ecab-taxi-booking-manager'); ?></small>
+                                        </span>
+                                    </span>
                                 </th>
                                 <th scope="col">
-                                    <i class="fas fa-flag-checkered" aria-hidden="true"></i>
-                                    <?php esc_html_e('End Time', 'ecab-taxi-booking-manager'); ?>
+                                    <span class="mptbm_schedule_column_heading">
+                                        <span class="mptbm_schedule_column_icon is-start" aria-hidden="true"><i class="far fa-clock"></i></span>
+                                        <span class="mptbm_schedule_column_copy">
+                                            <strong><?php esc_html_e('Start Time', 'ecab-taxi-booking-manager'); ?></strong>
+                                            <small><?php esc_html_e('Service opens', 'ecab-taxi-booking-manager'); ?></small>
+                                        </span>
+                                    </span>
+                                </th>
+                                <th scope="col">
+                                    <span class="mptbm_schedule_column_heading">
+                                        <span class="mptbm_schedule_column_icon is-end" aria-hidden="true"><i class="fas fa-flag-checkered"></i></span>
+                                        <span class="mptbm_schedule_column_copy">
+                                            <strong><?php esc_html_e('End Time', 'ecab-taxi-booking-manager'); ?></strong>
+                                            <small><?php esc_html_e('Service closes', 'ecab-taxi-booking-manager'); ?></small>
+                                        </span>
+                                    </span>
                                 </th>
                             </tr>
                             </thead>
@@ -354,10 +474,12 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                         <span><?php esc_html_e('Specific off dates override the regular weekly schedule for the selected date.', 'ecab-taxi-booking-manager'); ?></span>
                     </div>
                 </div>
+            </div>
+
+            <div class="tabsItem mpStyle" data-tabs="#wbtm_settings_tax">
 
                 <?php
 
-                $pro_active = class_exists('MPTBM_Dependencies_Pro');
                 $drivers = $this->get_driver_list();
                 $selected_driver = get_post_meta($post_id,'mptbm_selected_driver',true);
                 $selected_driver = $selected_driver ? $selected_driver:'';
@@ -367,7 +489,7 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
 
                 wp_nonce_field( 'mptbm_transportation_type_nonce', 'mptbm_transportation_type_nonce' );
                 ?>
-                <div class="mptbm_rent_editor_wrapper<?php echo !$pro_active ? ' mptbm_pro_badge_wrapper' : ''; ?>">
+                <div class="mptbm_rent_editor_wrapper">
                     <div class="mptbm_rent_editor_header">
                         <h4 class="mptbm_rent_editor_title"><?php esc_html_e('Driver Settings', 'ecab-taxi-booking-manager'); ?></h4>
                         <p class="mptbm_rent_editor_subtitle"><?php esc_html_e("Here you can set a driver who's role is driver in registration.", 'ecab-taxi-booking-manager'); ?></p>
@@ -375,16 +497,16 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
 
                     <div class="mptbm_taxi_advanced_card_body">
 
-                        <?php if ( $pro_active ): ?>
+                            <input type="hidden" name="mptbm_driver_settings_field_present" value="1">
 
                             <div class="mptbm_taxi_advanced_card_header">
                                 <div class="mptbm_taxi_advanced_title_block">
-                                    <h6><?php esc_html_e('Select Driver', 'mptbm_plugin_pro'); ?></h6>
-                                    <span class="desc"><?php esc_html_e('Select a driver from this list.', 'mptbm_plugin_pro'); ?></span>
+                                    <h6><?php esc_html_e('Select Driver', 'ecab-taxi-booking-manager'); ?></h6>
+                                    <span class="desc"><?php esc_html_e('Assign a registered driver to this transportation.', 'ecab-taxi-booking-manager'); ?></span>
                                 </div>
-                                <?php if (!empty($drivers)) : ?>
+                                <div class="mptbm_driver_selector_actions">
                                     <select class="formControl max_300" name="mptbm_selected_driver" id="mptbm_selected_driver">
-                                        <option value=""><?php esc_html_e('Select driver', 'mptbm_plugin_pro'); ?></option>
+                                        <option value=""><?php esc_html_e('Select driver', 'ecab-taxi-booking-manager'); ?></option>
                                         <?php foreach ($drivers as $driver): ?>
                                             <option value="<?php echo esc_attr($driver->ID); ?>"
                                                 <?php selected($selected_driver, $driver->ID); ?>>
@@ -392,126 +514,114 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                                <?php else: ?>
-                                    <div class="mptbm_no_driver_box">
-                                        <p><?php esc_html_e('No driver found.', 'mptbm_plugin_pro'); ?></p>
-                                        <a class="button button-primary"
-                                           href="<?php echo esc_url(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_driver_list')); ?>">
-                                            + <?php esc_html_e( 'Create Driver', 'ecab-taxi-booking-manager' ); ?>
-                                        </a>
-                                    </div>
-                                <?php endif; ?>
+                                    <?php if (current_user_can('create_users')) : ?>
+                                        <button type="button" class="button button-primary mptbm_open_driver_modal">
+                                            <span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>
+                                            <?php esc_html_e('Add Driver', 'ecab-taxi-booking-manager'); ?>
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
                             </div>
+
+                            <div class="mptbm_driver_ajax_notice" role="status" aria-live="polite"></div>
 
                             <?php $driver_user = !empty($selected_driver) ? get_user_by('ID', $selected_driver) : false; ?>
                             <div class="mptbm_taxi_advanced_driver_info_box" style="<?php echo esc_attr($driver_user ? '' : 'display:none;'); ?>">
                                 <div class="mptbm_taxi_advanced_info_col">
-                                    <label><?php esc_html_e("DRIVER'S NAME", 'mptbm_plugin_pro'); ?></label>
+                                    <label><?php esc_html_e("DRIVER'S NAME", 'ecab-taxi-booking-manager'); ?></label>
                                     <p><?php echo esc_html($driver_user ? $driver_user->display_name : ''); ?></p>
                                 </div>
                                 <div class="mptbm_taxi_advanced_info_col">
-                                    <label><?php esc_html_e('USERNAME', 'mptbm_plugin_pro'); ?></label>
+                                    <label><?php esc_html_e('USERNAME', 'ecab-taxi-booking-manager'); ?></label>
                                     <p><?php echo esc_html($driver_user ? $driver_user->user_login : ''); ?></p>
                                 </div>
                                 <div class="mptbm_taxi_advanced_info_col">
-                                    <label><?php esc_html_e('EMAIL', 'mptbm_plugin_pro'); ?></label>
+                                    <label><?php esc_html_e('EMAIL', 'ecab-taxi-booking-manager'); ?></label>
                                     <p><?php echo esc_html($driver_user ? $driver_user->user_email : ''); ?></p>
                                 </div>
-                            </div>
-
-                        <?php else: ?>
-
-                            <div class="mptbm_pro_locked_box">
-                                <div class="mptbm_pro_locked_icon">
-                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                                <div class="mptbm_taxi_advanced_info_col">
+                                    <label><?php esc_html_e('PHONE', 'ecab-taxi-booking-manager'); ?></label>
+                                    <p><?php echo esc_html($driver_user ? get_user_meta($driver_user->ID, 'user_phone', true) : ''); ?></p>
                                 </div>
-                                <label><?php esc_html_e('Select Driver', 'mptbm_plugin_pro'); ?></label>
-                                <select id="mptbm_pro_locked_select">
-                                    <option>🔒 <?php esc_html_e('Pro Feature Only', 'mptbm_plugin_pro'); ?></option>
-                                </select>
-                                <p class="mptbm_pro_notice">
-                                    <?php esc_html_e('This feature is available in Pro version only.', 'mptbm_plugin_pro'); ?>
-                                </p>
                             </div>
 
-                        <?php endif; ?>
                     </div>
                 </div>
 
+                <?php if (current_user_can('create_users')) : ?>
+                    <?php wp_nonce_field('mptbm_create_driver', 'mptbm_create_driver_nonce'); ?>
+                    <div class="mptbm_driver_modal" id="mptbm_driver_modal" aria-hidden="true">
+                        <div class="mptbm_driver_modal_backdrop" data-driver-modal-close></div>
+                        <div class="mptbm_driver_modal_dialog" role="dialog" aria-modal="true" aria-labelledby="mptbm_driver_modal_title">
+                            <div class="mptbm_driver_modal_header">
+                                <div class="mptbm_driver_modal_heading">
+                                    <span class="mptbm_driver_modal_icon" aria-hidden="true">
+                                        <i class="fas fa-id-card"></i>
+                                    </span>
+                                    <div>
+                                        <h3 id="mptbm_driver_modal_title"><?php esc_html_e('Add a new driver', 'ecab-taxi-booking-manager'); ?></h3>
+                                        <p><?php esc_html_e('Create the driver account without leaving this transportation.', 'ecab-taxi-booking-manager'); ?></p>
+                                    </div>
+                                </div>
+                                <button type="button" class="mptbm_driver_modal_close" data-driver-modal-close aria-label="<?php esc_attr_e('Close modal', 'ecab-taxi-booking-manager'); ?>">
+                                    <span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+                                </button>
+                            </div>
 
-                 <div class="mptbm_rent_editor_wrapper" >
-                    <?php
-                    $tax_status = MP_Global_Function::get_post_info($post_id, '_tax_status');
-                    $tax_class = MP_Global_Function::get_post_info($post_id, '_tax_class');
-                    $all_tax_class = MP_Global_Function::all_tax_list();
-                    $enable_tax = MP_Global_Function::get_post_info($post_id, 'mptbm_taxi_enable_tax', 'on');
-                    $checked  = ($enable_tax !== 'off') ? 'checked' : '';
-                    $name  = 'mptbm_taxi_enable_tax';
-                    ?>
-                   <div class="mptbm_rent_editor_header" style="display: flex; justify-content: space-between;">
-                        <div class="mptbm_taxi_advanced_title_block">
-                            <h4 class="mptbm_rent_editor_title"><?php esc_html_e( 'Tax Settings Information', 'ecab-taxi-booking-manager' ); ?></h4>
-                            <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Configure and manage tax settings', 'ecab-taxi-booking-manager' ); ?></p>
-                        </div>
-                        <div class="mptbm_taxi_ex_service_toggle_wrapper">
-                            <label class="mptbm_taxi_ex_service_switch">
-                                <input type="checkbox" name="mptbm_taxi_enable_tax" class="mptbm_taxi_toggle_trigger" <?php echo esc_attr($checked); ?>>
-                                <span class="mptbm_taxi_slider" data-collapse-target="#<?php echo esc_attr($name); ?>"></span>
-                            </label>
-                            <span class="mptbm_taxi_ex_service_toggle_label"><?php echo $checked ? 'ON' : 'OFF'; ?></span>
+                            <div class="mptbm_driver_modal_body">
+                                <div class="mptbm_driver_modal_error" role="alert" aria-live="assertive"></div>
+                                <div class="mptbm_driver_form_grid">
+                                    <label class="mptbm_driver_form_field">
+                                        <span><?php esc_html_e('First name', 'ecab-taxi-booking-manager'); ?> <em>*</em></span>
+                                        <input type="text" id="mptbm_driver_first_name" autocomplete="given-name" required>
+                                    </label>
+                                    <label class="mptbm_driver_form_field">
+                                        <span><?php esc_html_e('Last name', 'ecab-taxi-booking-manager'); ?></span>
+                                        <input type="text" id="mptbm_driver_last_name" autocomplete="family-name">
+                                    </label>
+                                    <label class="mptbm_driver_form_field">
+                                        <span><?php esc_html_e('Username', 'ecab-taxi-booking-manager'); ?> <em>*</em></span>
+                                        <input type="text" id="mptbm_driver_username" autocomplete="username" required>
+                                    </label>
+                                    <label class="mptbm_driver_form_field">
+                                        <span><?php esc_html_e('Email address', 'ecab-taxi-booking-manager'); ?> <em>*</em></span>
+                                        <input type="email" id="mptbm_driver_email" autocomplete="email" required>
+                                    </label>
+                                    <label class="mptbm_driver_form_field">
+                                        <span><?php esc_html_e('Phone number', 'ecab-taxi-booking-manager'); ?></span>
+                                        <input type="tel" id="mptbm_driver_phone" autocomplete="tel">
+                                    </label>
+                                    <label class="mptbm_driver_form_field">
+                                        <span><?php esc_html_e('Password', 'ecab-taxi-booking-manager'); ?></span>
+                                        <input type="password" id="mptbm_driver_password" autocomplete="new-password" minlength="8">
+                                        <small><?php esc_html_e('Leave blank to generate a secure password.', 'ecab-taxi-booking-manager'); ?></small>
+                                    </label>
+                                </div>
+                                <label class="mptbm_driver_notification_option">
+                                    <input type="checkbox" id="mptbm_driver_send_notification" value="1" checked>
+                                    <span>
+                                        <strong><?php esc_html_e('Email account details to the driver', 'ecab-taxi-booking-manager'); ?></strong>
+                                        <small><?php esc_html_e('The driver will receive an email to set or reset their password.', 'ecab-taxi-booking-manager'); ?></small>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div class="mptbm_driver_modal_footer">
+                                <button type="button" class="button mptbm_driver_modal_cancel" data-driver-modal-close>
+                                    <?php esc_html_e('Cancel', 'ecab-taxi-booking-manager'); ?>
+                                </button>
+                                <button type="button" class="button button-primary mptbm_create_driver_button">
+                                    <span class="mptbm_create_driver_button_text"><?php esc_html_e('Add Driver', 'ecab-taxi-booking-manager'); ?></span>
+                                    <span class="spinner" aria-hidden="true"></span>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <div class="mptbm_taxi_advanced_tax_body <?php echo $checked ? 'mActive' : ''; ?>" data-collapse="mptbm_taxi_enable_tax" style="<?php echo $checked ? '' : 'display: none;'; ?>">
-                    <?php if (get_option('woocommerce_calc_taxes') == 'yes') { ?>
-                        <div class="mptbm_taxi_advanced_card_header">
-                            <div class="mptbm_taxi_advanced_title_block">
-                                <h6><?php esc_html_e('Tax status', 'ecab-taxi-booking-manager'); ?></h6>
-                                <span class="desc"><?php esc_html_e('Select tax status type.', 'ecab-taxi-booking-manager'); ?></span>
-                            </div>
-                            <select class="formControl max_300" name="_tax_status">
-                                <option disabled <?php echo esc_attr(!$tax_status ? 'selected' : ''); ?>><?php esc_html_e('Please Select', 'ecab-taxi-booking-manager');  ?></option>
-                                <option value="taxable" <?php echo esc_attr($tax_status == 'taxable' ? 'selected' : ''); ?>>
-                                    <?php esc_html_e('Taxable', 'ecab-taxi-booking-manager'); ?>
-                                </option>
-                                <option value="shipping" <?php echo esc_attr($tax_status == 'shipping' ? 'selected' : ''); ?>>
-                                    <?php esc_html_e('Shipping only', 'ecab-taxi-booking-manager'); ?>
-                                </option>
-                                <option value="none" <?php echo esc_attr($tax_status == 'none' ? 'selected' : ''); ?>>
-                                    <?php esc_html_e('None', 'ecab-taxi-booking-manager'); ?>
-                                </option>
-                            </select>
-                        </div>
+                <?php endif; ?>
 
-                        <div class="mptbm_taxi_advanced_card_header">
-                            <div class="mptbm_taxi_advanced_title_block">
-                                <h6><?php esc_html_e('Tax class', 'ecab-taxi-booking-manager'); ?></h6>
-                                <span class="desc"><?php esc_html_e('Select tax class.', 'ecab-taxi-booking-manager'); ?></span>
-                            </div>
-                            <select class="formControl max_300" name="_tax_class">
-                                <option disabled <?php echo esc_attr(!$tax_class ? 'selected' : ''); ?>><?php esc_html_e('Please Select', 'ecab-taxi-booking-manager');  ?></option>
-                                <option value="standard" <?php echo esc_attr($tax_class == 'standard' ? 'selected' : ''); ?>>
-                                    <?php esc_html_e('Standard', 'ecab-taxi-booking-manager'); ?>
-                                </option>
-                                <?php if (sizeof($all_tax_class) > 0) { ?>
-                                    <?php foreach ($all_tax_class as $key => $class) { ?>
-                                        <option value="<?php echo esc_attr($key); ?>" <?php echo esc_attr($tax_class == $key ? 'selected' : ''); ?>>
-                                            <?php echo esc_html($class); ?>
-                                        </option>
-                                    <?php } ?>
-                                <?php } ?>
-                            </select>
-                        </div>
-                    <?php }else{ ?>
-                        <div class="mptbm_taxi_advanced_tax_alert">
-                            <span class="mptbm_taxi_advanced_alert_icon">i</span>
-                            <p><?php MPTBM_Layout::msg(esc_html__('Tax not active. Please add Tax settings from woocommerce.', 'ecab-taxi-booking-manager')); ?></p>
-                        </div>
-                    <?php } ?>
-                    </div>
+                <?php MPTBM_Tax_Settings::tab_content($post_id, false); ?>
 
-                </div>
-
-                <!-- End Off days and date config -->
+                <!-- End Advanced settings -->
             </div>
             <?php
         }
@@ -609,7 +719,7 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                             </small>
                         </span>
                         <?php if ($is_default) { ?>
-                            <span class="mptbm_schedule_status is-primary"><?php esc_html_e('Default', 'ecab-taxi-booking-manager'); ?></span>
+                            <span class="mptbm_schedule_status is-primary"><i class="fas fa-check" aria-hidden="true"></i><?php esc_html_e('Default', 'ecab-taxi-booking-manager'); ?></span>
                         <?php } else { ?>
                             <span class="mptbm_schedule_status<?php echo esc_attr($is_inherited ? ' is-hidden' : ''); ?>"><?php esc_html_e('Custom', 'ecab-taxi-booking-manager'); ?></span>
                         <?php } ?>

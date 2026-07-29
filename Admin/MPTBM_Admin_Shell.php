@@ -28,6 +28,7 @@ if (!class_exists('MPTBM_Admin_Shell')) {
         public function __construct() {
             add_action('admin_enqueue_scripts', [ $this, 'enqueue_shell_assets' ]);
             add_action('in_admin_header', [ $this, 'render_edit_screen_chrome' ]);
+            add_action('in_admin_header', [ $this, 'render_native_screen_chrome' ]);
             add_filter('wp_editor_settings', [ $this, 'simplify_content_editor_toolbar' ], 10, 2);
             add_action('admin_head', [ $this, 'print_metabox_reveal_style' ]);
             add_filter('admin_body_class', [ $this, 'add_body_class' ]);
@@ -62,9 +63,70 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                 $classes .= ' mptbm-admin mptbm-admin-shell';
             } elseif (self::is_metabox_screen()) {
                 $classes .= ' mptbm-admin';
+            } elseif (self::is_native_management_screen()) {
+                $classes .= ' mptbm-admin mptbm-admin-native';
             }
 
             return $classes;
+        }
+
+        public static function get_native_screen_config(): array {
+            if (!is_admin() || !function_exists('get_current_screen')) {
+                return [];
+            }
+
+            $screen = get_current_screen();
+            if (!$screen) {
+                return [];
+            }
+
+            $cpt = MPTBM_Function::get_cpt();
+            $base_url = admin_url('edit.php?post_type=' . $cpt);
+            $configs = [
+                'mptbm_service_status' => [
+                    'label' => esc_html__('Service Status', 'ecab-taxi-booking-manager'),
+                    'icon' => 'fas fa-tasks',
+                    'link' => admin_url('edit-tags.php?taxonomy=mptbm_service_status&post_type=' . $cpt),
+                ],
+                'locations' => [
+                    'label' => esc_html__('Locations', 'ecab-taxi-booking-manager'),
+                    'icon' => 'fas fa-map-marker-alt',
+                    'link' => admin_url('edit-tags.php?taxonomy=locations&post_type=' . $cpt),
+                ],
+                'mptbm_extra_services' => [
+                    'label' => esc_html__('Extra Services', 'ecab-taxi-booking-manager'),
+                    'icon' => 'fas fa-concierge-bell',
+                    'link' => admin_url('edit.php?post_type=mptbm_extra_services'),
+                ],
+                'mptbm_operate_areas' => [
+                    'label' => esc_html__('Operation Areas', 'ecab-taxi-booking-manager'),
+                    'icon' => 'fas fa-draw-polygon',
+                    'link' => admin_url('edit.php?post_type=mptbm_operate_areas'),
+                ],
+            ];
+
+            $key = '';
+            if (!empty($screen->taxonomy) && isset($configs[$screen->taxonomy])) {
+                $key = $screen->taxonomy;
+            } elseif (!empty($screen->post_type) && isset($configs[$screen->post_type])) {
+                $key = $screen->post_type;
+            }
+
+            if ($key === '') {
+                return [];
+            }
+
+            return array_merge(
+                [
+                    'slug' => $key,
+                    'back_link' => $base_url . '&page=mptbm_transportation_lists',
+                ],
+                $configs[$key]
+            );
+        }
+
+        public static function is_native_management_screen(): bool {
+            return !empty(self::get_native_screen_config());
         }
 
         // The Transportation sidebar item's own sub-views — mirrors the
@@ -99,6 +161,30 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                 'icon' => 'fas fa-taxi',
                 'link' => $base_url . '&page=mptbm_transportation_lists',
                 'has_submenu' => true,
+            ];
+            $items[] = [
+                'slug' => 'mptbm_service_status',
+                'label' => esc_html__('Service Status', 'ecab-taxi-booking-manager'),
+                'icon' => 'fas fa-tasks',
+                'link' => admin_url('edit-tags.php?taxonomy=mptbm_service_status&post_type=' . $cpt),
+            ];
+            $items[] = [
+                'slug' => 'locations',
+                'label' => esc_html__('Locations', 'ecab-taxi-booking-manager'),
+                'icon' => 'fas fa-map-marker-alt',
+                'link' => admin_url('edit-tags.php?taxonomy=locations&post_type=' . $cpt),
+            ];
+            $items[] = [
+                'slug' => 'mptbm_extra_services',
+                'label' => esc_html__('Extra Services', 'ecab-taxi-booking-manager'),
+                'icon' => 'fas fa-concierge-bell',
+                'link' => admin_url('edit.php?post_type=mptbm_extra_services'),
+            ];
+            $items[] = [
+                'slug' => 'mptbm_operate_areas',
+                'label' => esc_html__('Operation Areas', 'ecab-taxi-booking-manager'),
+                'icon' => 'fas fa-draw-polygon',
+                'link' => admin_url('edit.php?post_type=mptbm_operate_areas'),
             ];
             $items[] = [
                 'slug' => 'mptbm_analytics_dashboard',
@@ -374,8 +460,34 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             <?php
         }
 
+        public function render_native_screen_chrome(): void {
+            $config = self::get_native_screen_config();
+            if (empty($config)) {
+                return;
+            }
+            ?>
+            <?php self::render_sidebar_markup(true, $config['slug']); ?>
+            <div class="mptbm-edit-topbar mptbm-native-topbar">
+                <a href="#" class="mptbm-shell-mobile-trigger" title="<?php esc_attr_e('Menu', 'ecab-taxi-booking-manager'); ?>">
+                    <i class="fas fa-bars"></i>
+                </a>
+                <a href="<?php echo esc_url($config['back_link']); ?>" class="mptbm-edit-topbar-back">
+                    <i class="fas fa-arrow-left"></i>
+                    <span><?php esc_html_e('Back to Transportation', 'ecab-taxi-booking-manager'); ?></span>
+                </a>
+                <div class="mptbm-edit-topbar-title"><?php echo esc_html($config['label']); ?></div>
+                <div class="mptbm-edit-topbar-actions">
+                    <a href="<?php echo esc_url(home_url('/')); ?>" target="_blank" rel="noopener" class="mptbm-shell-topbar-link" title="<?php esc_attr_e('View Site', 'ecab-taxi-booking-manager'); ?>">
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                    <div class="mptbm-shell-user-avatar" style="background-image:url('<?php echo esc_url(get_avatar_url(get_current_user_id())); ?>')"></div>
+                </div>
+            </div>
+            <?php
+        }
+
         public function enqueue_shell_assets() {
-            if (!self::is_plugin_screen() && !self::is_metabox_screen()) {
+            if (!self::is_plugin_screen() && !self::is_metabox_screen() && !self::is_native_management_screen()) {
                 return;
             }
 

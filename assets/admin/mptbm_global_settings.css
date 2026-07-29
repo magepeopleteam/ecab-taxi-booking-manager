@@ -1,0 +1,820 @@
+:root {
+    --mptbm-settings-primary: #635bff;
+    --mptbm-settings-primary-dark: #4f46e5;
+    --mptbm-settings-primary-soft: #eeecff;
+    --mptbm-settings-text: #0f172a;
+    --mptbm-settings-muted: #64748b;
+    --mptbm-settings-border: #e2e8f0;
+    --mptbm-settings-surface: #ffffff;
+    --mptbm-settings-canvas: #f6f7fb;
+}
+
+.mptbm-pro-guide {
+    max-width: 98%;
+}
+
+body.mptbm-admin-shell .mptbm-shell-main {
+    background: var(--mptbm-settings-canvas);
+}
+
+div.mp_global_settings.mptbm-modern-global-settings {
+    width: auto;
+    max-width: 98%;
+    margin: 0;
+    padding: 28px 30px 44px;
+}
+
+.mptbm-global-settings-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    overflow: hidden;
+    margin-bottom: 18px;
+    padding: 26px 28px;
+    color: #fff;
+    background:
+        radial-gradient(circle at 86% 10%, rgba(255, 255, 255, 0.17), transparent 28%),
+        linear-gradient(135deg, #1e1b4b 0%, #4338ca 55%, #635bff 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 18px;
+    box-shadow: 0 18px 50px -24px rgba(49, 46, 129, 0.65);
+}
+
+.mptbm-global-settings-hero::after {
+    position: absolute;
+    right: -70px;
+    bottom: -95px;
+    width: 240px;
+    height: 240px;
+    content: "";
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 28px rgba(255, 255, 255, 0.04),
+        0 0 0 62px rgba(255, 255, 255, 0.025);
+}
+
+.mptbm-global-settings-hero-copy,
+.mptbm-global-settings-hero-actions {
+    position: relative;
+    z-index: 1;
+}
+
+.mptbm-global-settings-hero-copy {
+    display: flex;
+    align-items: center;
+    gap: 17px;
+    min-width: 0;
+}
+
+.mptbm-global-settings-hero-icon {
+    display: inline-flex;
+    flex: 0 0 52px;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    color: #312e81;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.22);
+}
+
+.mptbm-global-settings-hero-icon i {
+    font-size: 20px;
+}
+
+.mptbm-global-settings-eyebrow {
+    display: block;
+    margin-bottom: 4px;
+    color: #c7d2fe;
+    font-size: 10px;
+    line-height: 1.4;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.mptbm-global-settings-hero h1 {
+    margin: 0 0 5px;
+    color: #fff;
+    font-size: 25px;
+    line-height: 1.2;
+    font-weight: 750;
+}
+
+.mptbm-global-settings-hero p {
+    max-width: 720px;
+    margin: 0;
+    color: #e0e7ff;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.mptbm-global-settings-hero-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 9px;
+}
+
+.mptbm-global-settings-section-pill,
+.mptbm-global-settings-help {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 7px 12px;
+    color: #eef2ff;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    font-size: 11px;
+    line-height: 1.3;
+    font-weight: 700;
+    text-decoration: none;
+    backdrop-filter: blur(6px);
+}
+
+.mptbm-global-settings-help:hover,
+.mptbm-global-settings-help:focus {
+    color: #312e81;
+    background: #fff;
+    border-color: #fff;
+}
+
+.mptbm-global-settings-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid var(--mptbm-settings-border);
+    border-radius: 12px;
+    box-shadow: 0 4px 18px -14px rgba(15, 23, 42, 0.35);
+}
+
+.mptbm-global-settings-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: min(460px, 100%);
+    margin: 0;
+}
+
+.mptbm-global-settings-search > i {
+    position: absolute;
+    left: 13px;
+    z-index: 1;
+    color: #94a3b8;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+#mptbm-global-settings-search {
+    width: 100%;
+    min-height: 38px;
+    margin: 0;
+    padding: 7px 40px 7px 36px;
+    color: var(--mptbm-settings-text);
+    background: #f8fafc;
+    border: 1px solid #dbe2ea;
+    border-radius: 9px;
+    box-shadow: none;
+    font-size: 12px;
+}
+
+#mptbm-global-settings-search:focus {
+    background: #fff;
+    border-color: var(--mptbm-settings-primary);
+    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.11);
+    outline: none;
+}
+
+.mptbm-global-settings-search-clear {
+    position: absolute;
+    right: 7px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 27px;
+    height: 27px;
+    padding: 0;
+    color: #64748b;
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.mptbm-global-settings-search-clear.is-visible {
+    display: inline-flex;
+}
+
+.mptbm-global-settings-search-clear:hover {
+    color: #0f172a;
+    background: #e2e8f0;
+}
+
+.mptbm-global-settings-search-clear .dashicons {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    line-height: 18px;
+}
+
+.mptbm-global-settings-toolbar-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mptbm-global-settings-current-section {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mptbm-global-settings-current-section::before {
+    width: 7px;
+    height: 7px;
+    content: "";
+    background: var(--mptbm-settings-primary);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px var(--mptbm-settings-primary-soft);
+}
+
+.mptbm-global-settings-current-section[data-count]::after {
+    padding: 2px 7px;
+    color: #64748b;
+    content: attr(data-count);
+    background: #f1f5f9;
+    border-radius: 999px;
+    font-size: 10px;
+}
+
+.mptbm-global-settings-change-status {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px;
+    color: #92400e;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.mptbm-global-settings-change-status.is-visible {
+    display: inline-flex;
+}
+
+.mptbm-global-settings-change-status i {
+    font-size: 6px;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings > .mpPanel {
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .mpPanelBody {
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    background: transparent;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .mpTabs.leftTabs {
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+}
+
+.mptbm-global-settings-nav {
+    position: sticky;
+    top: calc(var(--mp-shell-topbar-height, 64px) + 18px);
+    align-self: start;
+    overflow: hidden;
+    margin: 0;
+    background: #fff;
+    border: 1px solid var(--mptbm-settings-border);
+    border-radius: 14px;
+    box-shadow: 0 10px 34px -26px rgba(15, 23, 42, 0.55);
+}
+
+.mptbm-global-settings-nav-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 17px 17px 13px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+.mptbm-global-settings-nav-heading span {
+    color: var(--mptbm-settings-text);
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.mptbm-global-settings-nav-heading small {
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .mpPanel .mpPanelBody .mpTabs .tabLists {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 9px;
+    background: #fff;
+    border: 0;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .tabLists [data-tabs-target] {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 43px;
+    margin: 0;
+    padding: 9px 11px;
+    color: #526174;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font-size: 11px;
+    line-height: 1.35;
+    font-weight: 650;
+    text-align: left;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .tabLists [data-tabs-target] > span {
+    display: inline-flex;
+    flex: 0 0 28px;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin: 0;
+    color: #7c8ba1;
+    background: #f1f5f9;
+    border-radius: 8px;
+    font-size: 11px;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .tabLists [data-tabs-target]::after {
+    position: absolute;
+    right: 10px;
+    width: 6px;
+    height: 6px;
+    content: "";
+    border-top: 1.5px solid currentColor;
+    border-right: 1.5px solid currentColor;
+    opacity: 0;
+    transform: rotate(45deg);
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .tabLists [data-tabs-target]:hover {
+    color: #312e81;
+    background: #f8fafc;
+    border-color: #eef2f7;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .tabLists [data-tabs-target].active {
+    color: #4338ca;
+    background: var(--mptbm-settings-primary-soft);
+    border-color: #ddd8ff;
+    box-shadow: none;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .tabLists [data-tabs-target].active > span {
+    color: #fff;
+    background: var(--mptbm-settings-primary);
+    box-shadow: 0 5px 12px rgba(99, 91, 255, 0.25);
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .tabLists [data-tabs-target].active::after {
+    opacity: 1;
+}
+
+.mptbm-global-settings-nav-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 2px 10px 11px;
+    padding: 11px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    border-radius: 9px;
+    font-size: 9.5px;
+    line-height: 1.5;
+}
+
+.mptbm-global-settings-nav-note i {
+    margin-top: 2px;
+    color: #16a34a;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .tabsContent {
+    width: 100%;
+    min-width: 0;
+    padding: 0 !important;
+    background: transparent;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .tabsContent > .tabsItem {
+    width: 100%;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .tabsContent > .tabsItem > form {
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--mptbm-settings-border);
+    border-radius: 14px;
+    box-shadow: 0 10px 34px -28px rgba(15, 23, 42, 0.55);
+}
+
+div.mp_global_settings.mptbm-modern-global-settings form > .mptbm-global-settings-section-header {
+    padding: 20px 22px;
+    background: linear-gradient(180deg, #fff, #fbfcfe);
+    border-bottom: 1px solid var(--mptbm-settings-border);
+}
+
+div.mp_global_settings.mptbm-modern-global-settings form > .mptbm-global-settings-section-header h2 {
+    display: block;
+    margin: 0 0 4px;
+    color: var(--mptbm-settings-text);
+    font-size: 17px;
+    line-height: 1.3;
+    font-weight: 750;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings form > .mptbm-global-settings-section-header p {
+    margin: 0;
+    color: var(--mptbm-settings-muted);
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table {
+    display: block;
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-collapse: separate;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody {
+    display: block;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr {
+    display: grid;
+    grid-template-columns: minmax(240px, 0.95fr) minmax(280px, 1.05fr);
+    align-items: center;
+    width: 100%;
+    min-height: 78px;
+    margin: 0;
+    padding: 17px 22px;
+    background: #fff;
+    border: 0;
+    border-bottom: 1px solid #edf0f5;
+    transition: background-color 150ms ease;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr:nth-child(even),
+div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr:nth-child(odd) {
+    background: #fff;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr:hover {
+    background: #fbfcff;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr.mptbm-setting-filtered-out {
+    display: none !important;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table th,
+div.mp_global_settings.mptbm-modern-global-settings table.form-table td {
+    display: block;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    color: #334155;
+    background: transparent;
+    border: 0;
+    vertical-align: middle;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table th {
+    padding-right: 30px;
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 700;
+    text-align: left;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table th > label {
+    display: block;
+    margin: 0;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings label .info_text {
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    width: auto;
+    margin: 5px 0 0;
+    color: #7c8ba1;
+    font-size: 9.5px;
+    line-height: 1.5;
+    font-style: normal;
+    font-weight: 450;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings label .info_text > span {
+    flex: 0 0 auto;
+    margin: 2px 0 0;
+    color: #a5b4fc;
+    font-size: 9px;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table td > label,
+div.mp_global_settings.mptbm-modern-global-settings table.form-table td > fieldset {
+    display: block;
+    width: 100%;
+    margin: 0;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .formControl,
+div.mp_global_settings.mptbm-modern-global-settings table.form-table select,
+div.mp_global_settings.mptbm-modern-global-settings table.form-table input[type="text"],
+div.mp_global_settings.mptbm-modern-global-settings table.form-table input[type="number"],
+div.mp_global_settings.mptbm-modern-global-settings table.form-table input[type="password"],
+div.mp_global_settings.mptbm-modern-global-settings table.form-table input[type="url"],
+div.mp_global_settings.mptbm-modern-global-settings table.form-table input[type="email"],
+div.mp_global_settings.mptbm-modern-global-settings table.form-table textarea {
+    width: min(100%, 520px);
+    min-height: 39px;
+    margin: 0;
+    padding: 7px 11px;
+    color: #0f172a;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: none;
+    font-size: 11px;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .formControl:focus,
+div.mp_global_settings.mptbm-modern-global-settings table.form-table select:focus,
+div.mp_global_settings.mptbm-modern-global-settings table.form-table input:focus,
+div.mp_global_settings.mptbm-modern-global-settings table.form-table textarea:focus {
+    border-color: var(--mptbm-settings-primary);
+    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.1);
+    outline: none;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table fieldset {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px 18px;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table fieldset > label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    margin: 0;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings input[type="checkbox"],
+div.mp_global_settings.mptbm-modern-global-settings input[type="radio"] {
+    border-color: #b9c3d1;
+    box-shadow: none;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings input[type="checkbox"]:checked,
+div.mp_global_settings.mptbm-modern-global-settings input[type="radio"]:checked {
+    border-color: var(--mptbm-settings-primary);
+    background-color: var(--mptbm-settings-primary);
+}
+
+div.mp_global_settings.mptbm-modern-global-settings tr.mptbm-fullrow,
+div.mp_global_settings.mptbm-modern-global-settings tr[class*="mptbm-"][class*="-row"] {
+    grid-template-columns: 1fr;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings tr.mptbm-fullrow > th,
+div.mp_global_settings.mptbm-modern-global-settings tr.mptbm-fullrow > td {
+    width: 100%;
+    padding-right: 0;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings form > .justifyBetween._mT {
+    position: sticky;
+    z-index: 5;
+    bottom: 0;
+    min-height: 68px;
+    margin: 0;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.96);
+    border-top: 1px solid var(--mptbm-settings-border);
+    box-shadow: 0 -10px 28px -24px rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(8px);
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .mptbm-settings-save-hint {
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings form > .justifyBetween._mT > div:first-child {
+    display: none;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings p.submit {
+    margin: 0;
+    padding: 0;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .button-primary {
+    min-width: 145px;
+    min-height: 39px;
+    padding: 7px 18px;
+    color: #fff;
+    background: var(--mptbm-settings-primary);
+    border-color: var(--mptbm-settings-primary);
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(99, 91, 255, 0.23);
+    font-size: 11px;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings .button-primary:hover,
+div.mp_global_settings.mptbm-modern-global-settings .button-primary:focus {
+    color: #fff;
+    background: var(--mptbm-settings-primary-dark);
+    border-color: var(--mptbm-settings-primary-dark);
+}
+
+.mptbm-global-settings-empty {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-height: 260px;
+    flex-direction: column;
+    padding: 35px;
+    color: #64748b;
+    background: #fff;
+    border: 1px solid var(--mptbm-settings-border);
+    border-radius: 14px;
+    text-align: center;
+}
+
+.mptbm-global-settings-empty.is-visible {
+    display: flex;
+}
+
+.mptbm-global-settings-empty .dashicons {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 12px;
+    color: #a5b4fc;
+    font-size: 36px;
+    line-height: 36px;
+}
+
+.mptbm-global-settings-empty strong {
+    margin-bottom: 4px;
+    color: #334155;
+    font-size: 13px;
+}
+
+.mptbm-global-settings-empty p {
+    margin: 0;
+    font-size: 11px;
+}
+
+.mptbm-modern-global-settings.has-empty-search .tabsContent > .tabsItem.active {
+    display: none;
+}
+
+@media (max-width: 1180px) {
+    .mptbm-global-settings-hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    div.mp_global_settings.mptbm-modern-global-settings .mpTabs.leftTabs {
+        grid-template-columns: 210px minmax(0, 1fr);
+    }
+
+    div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr {
+        grid-template-columns: minmax(210px, 0.85fr) minmax(240px, 1.15fr);
+    }
+}
+
+@media (max-width: 900px) {
+    div.mp_global_settings.mptbm-modern-global-settings {
+        padding: 20px;
+    }
+
+    div.mp_global_settings.mptbm-modern-global-settings .mpTabs.leftTabs {
+        grid-template-columns: 1fr;
+    }
+
+    .mptbm-global-settings-nav {
+        position: static;
+    }
+
+    div.mp_global_settings.mptbm-modern-global-settings .mpPanel .mpPanelBody .mpTabs .tabLists {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mptbm-global-settings-nav-note {
+        display: none;
+    }
+}
+
+@media (max-width: 680px) {
+    .mptbm-global-settings-hero,
+    .mptbm-global-settings-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .mptbm-global-settings-hero-actions,
+    .mptbm-global-settings-toolbar-meta {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .mptbm-global-settings-section-pill,
+    .mptbm-global-settings-help {
+        justify-content: center;
+    }
+
+    div.mp_global_settings.mptbm-modern-global-settings .mpPanel .mpPanelBody .mpTabs .tabLists {
+        grid-template-columns: 1fr;
+    }
+
+    div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    div.mp_global_settings.mptbm-modern-global-settings table.form-table th {
+        padding-right: 0;
+    }
+
+    div.mp_global_settings.mptbm-modern-global-settings form > .justifyBetween._mT {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    div.mp_global_settings.mptbm-modern-global-settings .mptbm-settings-save-hint {
+        text-align: center;
+    }
+
+    div.mp_global_settings.mptbm-modern-global-settings .button-primary {
+        width: 100%;
+    }
+}

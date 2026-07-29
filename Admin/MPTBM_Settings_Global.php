@@ -16,9 +16,41 @@ if (!class_exists('MPTBM_Settings_Global')) {
 			$this->settings_api = new MAGE_Setting_API;
 			add_action('admin_menu', array($this, 'global_settings_menu'));
 			add_action('admin_init', array($this, 'admin_init'));
+			add_action('admin_enqueue_scripts', array($this, 'enqueue_settings_assets'));
 			add_filter('mp_settings_sec_reg', array($this, 'settings_sec_reg'), 10);
 			add_filter('mp_settings_sec_fields', array($this, 'settings_sec_fields'), 10);
 			add_filter('filter_mp_global_settings', array($this, 'global_taxi'), 10);
+		}
+		public function enqueue_settings_assets($hook_suffix)
+		{
+			if (strpos((string) $hook_suffix, 'mptbm_settings_page') === false) {
+				return;
+			}
+
+			$css_relative = 'assets/admin/mptbm_global_settings.css';
+			$js_relative = 'assets/admin/mptbm_global_settings.js';
+			$css_path = MPTBM_PLUGIN_DIR . '/' . $css_relative;
+			$js_path = MPTBM_PLUGIN_DIR . '/' . $js_relative;
+
+			wp_enqueue_style(
+				'mptbm-global-settings',
+				MPTBM_PLUGIN_URL . '/' . $css_relative,
+				array('mptbm-shell'),
+				file_exists($css_path) ? filemtime($css_path) : MPTBM_PLUGIN_VERSION
+			);
+			wp_enqueue_script(
+				'mptbm-global-settings',
+				MPTBM_PLUGIN_URL . '/' . $js_relative,
+				array('jquery'),
+				file_exists($js_path) ? filemtime($js_path) : MPTBM_PLUGIN_VERSION,
+				true
+			);
+			wp_localize_script('mptbm-global-settings', 'mptbmGlobalSettings', array(
+				'sectionDescription' => esc_html__('Review and update the options in this configuration area.', 'ecab-taxi-booking-manager'),
+				'saveHint'           => esc_html__('Review your changes before saving.', 'ecab-taxi-booking-manager'),
+				'unsaved'            => esc_html__('Unsaved changes', 'ecab-taxi-booking-manager'),
+				'saving'             => esc_html__('Saving settings…', 'ecab-taxi-booking-manager'),
+			));
 		}
 		public function global_settings_menu()
 		{
@@ -27,16 +59,82 @@ if (!class_exists('MPTBM_Settings_Global')) {
 		}
 		public function settings_page()
 		{
+			$sections = $this->get_settings_sections();
+			$section_count = count($sections);
+			$guideline_url = admin_url('edit.php?post_type=' . MPTBM_Function::get_cpt() . '&page=mptbm_guideline_page');
 			MPTBM_Admin_Shell::render_shell_open();
 ?>
-			<div class="mpStyle mp_global_settings">
+			<div class="mpStyle mp_global_settings mptbm-modern-global-settings">
+				<header class="mptbm-global-settings-hero">
+					<div class="mptbm-global-settings-hero-copy">
+						<span class="mptbm-global-settings-hero-icon" aria-hidden="true">
+							<i class="fas fa-sliders-h"></i>
+						</span>
+						<div>
+							<span class="mptbm-global-settings-eyebrow"><?php esc_html_e('System configuration', 'ecab-taxi-booking-manager'); ?></span>
+							<h1><?php esc_html_e('Settings', 'ecab-taxi-booking-manager'); ?></h1>
+							<p><?php esc_html_e('Manage booking behavior, maps, payments, currency, and integrations from one organized workspace.', 'ecab-taxi-booking-manager'); ?></p>
+						</div>
+					</div>
+					<div class="mptbm-global-settings-hero-actions">
+						<span class="mptbm-global-settings-section-pill">
+							<i class="fas fa-layer-group" aria-hidden="true"></i>
+							<?php
+							echo esc_html(
+								sprintf(
+									_n('%d configuration area', '%d configuration areas', $section_count, 'ecab-taxi-booking-manager'),
+									$section_count
+								)
+							);
+							?>
+						</span>
+						<a class="mptbm-global-settings-help" href="<?php echo esc_url($guideline_url); ?>">
+							<i class="far fa-life-ring" aria-hidden="true"></i>
+							<?php esc_html_e('View guideline', 'ecab-taxi-booking-manager'); ?>
+						</a>
+					</div>
+				</header>
+
+				<div class="mptbm-global-settings-toolbar">
+					<label class="mptbm-global-settings-search" for="mptbm-global-settings-search">
+						<i class="fas fa-search" aria-hidden="true"></i>
+						<input
+							type="search"
+							id="mptbm-global-settings-search"
+							placeholder="<?php esc_attr_e('Search settings in this section…', 'ecab-taxi-booking-manager'); ?>"
+							autocomplete="off"
+						>
+						<button type="button" class="mptbm-global-settings-search-clear" aria-label="<?php esc_attr_e('Clear search', 'ecab-taxi-booking-manager'); ?>">
+							<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+						</button>
+					</label>
+					<div class="mptbm-global-settings-toolbar-meta">
+						<span class="mptbm-global-settings-current-section"></span>
+						<span class="mptbm-global-settings-change-status" aria-live="polite"></span>
+					</div>
+				</div>
+
 				<div class="mpPanel">
-					<div class="mpPanelHeader"><?php echo esc_html__('Settings', 'ecab-taxi-booking-manager'); ?></div>
 					<div class="mpPanelBody mp_zero">
 						<div class="mpTabs leftTabs">
-							<?php $this->settings_api->show_navigation(); ?>
-							<div class="tabsContent " style= "padding: 1% !important;" >
+							<aside class="mptbm-global-settings-nav">
+								<div class="mptbm-global-settings-nav-heading">
+									<span><?php esc_html_e('Configuration', 'ecab-taxi-booking-manager'); ?></span>
+									<small><?php esc_html_e('Choose an area to manage', 'ecab-taxi-booking-manager'); ?></small>
+								</div>
+								<?php $this->settings_api->show_navigation(); ?>
+								<div class="mptbm-global-settings-nav-note">
+									<i class="fas fa-shield-alt" aria-hidden="true"></i>
+									<span><?php esc_html_e('Settings are protected by WordPress permissions and validation.', 'ecab-taxi-booking-manager'); ?></span>
+								</div>
+							</aside>
+							<div class="tabsContent">
 								<?php $this->settings_api->show_forms(); ?>
+								<div class="mptbm-global-settings-empty" aria-live="polite">
+									<span class="dashicons dashicons-search" aria-hidden="true"></span>
+									<strong><?php esc_html_e('No matching settings', 'ecab-taxi-booking-manager'); ?></strong>
+									<p><?php esc_html_e('Try a different keyword or clear the search.', 'ecab-taxi-booking-manager'); ?></p>
+								</div>
 							</div>
 						</div>
 					</div>

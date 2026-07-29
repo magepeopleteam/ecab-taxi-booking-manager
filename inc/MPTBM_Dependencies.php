@@ -111,6 +111,11 @@ if (!class_exists('MPTBM_Dependencies')) {
             wp_enqueue_style('mptbm_date_and_advanced', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_date_and_advanced.css', array(), $this->asset_ver('assets/admin/mptbm_date_and_advanced.css'));
             // Ensure jQuery UI Sortable is loaded before the add/edit script so drag handles work
             wp_enqueue_script('mptbm_taxi_add_edit', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_taxi_add_edit.js', array('jquery', 'jquery-ui-sortable'), $this->asset_ver('assets/admin/mptbm_taxi_add_edit.js'), true);
+            wp_localize_script('mptbm_taxi_add_edit', 'mptbm_editor_l10n', array(
+                'ajax_url'       => admin_url('admin-ajax.php'),
+                'required_error' => esc_html__('Complete all required driver fields.', 'ecab-taxi-booking-manager'),
+                'request_error'  => esc_html__('The driver could not be added. Please try again.', 'ecab-taxi-booking-manager'),
+            ));
 			wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_admin.js'), true);
 			wp_localize_script('mptbm_admin', 'mptbm_admin_security', array(
 				'extra_service_nonce' => wp_create_nonce('mptbm_get_extra_service'),

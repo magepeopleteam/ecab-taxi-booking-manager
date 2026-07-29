@@ -233,6 +233,358 @@ input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px)
 
 .mptbm_taxi_advanced_info_col p { margin: 0; font-size: 13px; font-weight: 500; }
 
+/* Driver selector and AJAX creation modal */
+.mptbm_driver_selector_actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex: 1 1 420px;
+}
+
+.mptbm_driver_selector_actions #mptbm_selected_driver {
+    width: min(300px, 100%);
+}
+
+.mptbm_driver_selector_actions .mptbm_open_driver_modal {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 6px 14px;
+    border-color: #635bff;
+    background: #635bff;
+    box-shadow: 0 4px 12px rgba(99, 91, 255, 0.18);
+}
+
+.mptbm_driver_selector_actions .mptbm_open_driver_modal:hover,
+.mptbm_driver_selector_actions .mptbm_open_driver_modal:focus {
+    border-color: #5148e5;
+    background: #5148e5;
+}
+
+.mptbm_driver_selector_actions .mptbm_open_driver_modal .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    line-height: 16px;
+}
+
+.mptbm_driver_ajax_notice {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 12px;
+    color: #166534;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.mptbm_driver_ajax_notice.is-visible {
+    display: block;
+}
+
+body.mptbm_driver_modal_open {
+    overflow: hidden;
+}
+
+.mptbm_driver_modal {
+    position: fixed;
+    z-index: 100100;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.mptbm_driver_modal.is-open {
+    display: flex;
+}
+
+.mptbm_driver_modal_backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(3px);
+}
+
+.mptbm_driver_modal_dialog {
+    position: relative;
+    display: flex;
+    width: min(680px, 100%);
+    max-height: calc(100vh - 48px);
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 18px;
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.3);
+    animation: mptbmDriverModalIn 180ms ease-out;
+}
+
+@keyframes mptbmDriverModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.mptbm_driver_modal_header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 24px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.mptbm_driver_modal_heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.mptbm_driver_modal_icon {
+    display: inline-flex;
+    flex: 0 0 42px;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    color: #635bff;
+    background: #eeecff;
+    border-radius: 12px;
+}
+
+.mptbm_driver_modal_icon i {
+    font-size: 17px;
+}
+
+.mptbm_driver_modal_heading h3 {
+    margin: 0 0 3px;
+    color: #0f172a;
+    font-size: 18px;
+    line-height: 1.3;
+}
+
+.mptbm_driver_modal_heading p {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.mptbm_driver_modal_close {
+    display: inline-flex;
+    flex: 0 0 34px;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    color: #64748b;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: 150ms ease;
+}
+
+.mptbm_driver_modal_close:hover,
+.mptbm_driver_modal_close:focus {
+    color: #0f172a;
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.mptbm_driver_modal_close .dashicons {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    line-height: 20px;
+}
+
+.mptbm_driver_modal_body {
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.mptbm_driver_modal_error {
+    display: none;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    color: #991b1b;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.mptbm_driver_modal_error.is-visible {
+    display: block;
+}
+
+.mptbm_driver_form_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.mptbm_driver_form_field {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 7px;
+}
+
+#mptbm_rent_settings_panel .mptbm_driver_form_field > span {
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mptbm_driver_form_field em {
+    color: #dc2626;
+    font-style: normal;
+}
+
+#mptbm_rent_settings_panel .mptbm_driver_form_field input {
+    width: 100%;
+    min-height: 40px;
+    margin: 0;
+    padding: 7px 11px;
+    color: #0f172a;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    box-shadow: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_driver_form_field input:focus {
+    border-color: #635bff;
+    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.12);
+    outline: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_driver_form_field input.is-invalid {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
+}
+
+.mptbm_driver_form_field small {
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.mptbm_driver_notification_option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 18px;
+    padding: 13px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+#mptbm_rent_settings_panel .mptbm_driver_notification_option input {
+    margin: 3px 0 0;
+}
+
+.mptbm_driver_notification_option > span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mptbm_driver_notification_option strong {
+    color: #334155;
+    font-size: 12px;
+}
+
+.mptbm_driver_notification_option small {
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.mptbm_driver_modal_footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+}
+
+.mptbm_driver_modal_footer .button {
+    min-height: 38px;
+    padding: 5px 16px;
+    border-radius: 9px;
+}
+
+.mptbm_create_driver_button {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-width: 112px;
+}
+
+.mptbm_create_driver_button .spinner {
+    display: none;
+    float: none;
+    margin: 0;
+}
+
+.mptbm_create_driver_button.is-loading .spinner {
+    display: inline-block;
+    visibility: visible;
+}
+
+@media (max-width: 782px) {
+    .mptbm_driver_selector_actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .mptbm_driver_selector_actions #mptbm_selected_driver {
+        width: 100%;
+        max-width: none;
+    }
+
+    .mptbm_driver_modal {
+        padding: 12px;
+    }
+
+    .mptbm_driver_modal_dialog {
+        max-height: calc(100vh - 24px);
+    }
+
+    .mptbm_driver_form_grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mptbm_driver_modal_header,
+    .mptbm_driver_modal_body,
+    .mptbm_driver_modal_footer {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+}
+
 /* Tax Alert */
 .mptbm_taxi_advanced_tax_alert {
     margin: 20px;
@@ -290,7 +642,7 @@ input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px)
     flex-direction: column;
     gap: 14px;
     padding: 20px 22px 22px;
-    background: #f8fafc;
+    background: #fff;
 }
 
 #mptbm_rent_settings_panel .mptbm_date_type_card,
@@ -832,6 +1184,9 @@ input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px)
 #mptbm_rent_settings_panel .mptbm_schedule_table_wrap {
     width: 100%;
     overflow-x: auto;
+    padding: 0 14px 12px;
+    background: #f8fafc;
+    box-sizing: border-box;
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_table {
@@ -840,67 +1195,125 @@ input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px)
     margin: 0;
     border: 0;
     border-collapse: separate;
-    border-spacing: 0;
+    border-spacing: 0 8px;
     table-layout: fixed;
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_table thead th {
-    padding: 11px 18px;
-    color: var(--mp-text-500);
-    background: var(--mp-bg-muted);
-    border: 0;
-    border-bottom: 1px solid var(--mp-border);
-    font-size: 11px;
+    padding: 12px 18px;
+    color: var(--mp-text-700);
+    background: #eae7ff;
+    border-top: 1px solid #ddd8ff;
+    border-bottom: 1px solid #ddd8ff;
+    font-size: 12px;
     line-height: 1.4;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: normal;
     text-align: left;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_table thead th:first-child {
     width: 38%;
     padding-left: 22px;
+    border-left: 1px solid #ddd8ff;
+    border-radius: 10px 0 0 10px;
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_table thead th:not(:first-child) {
     width: 31%;
 }
 
-#mptbm_rent_settings_panel .mptbm_schedule_table thead th i {
-    margin-right: 6px;
-    color: var(--mp-text-400);
+#mptbm_rent_settings_panel .mptbm_schedule_table thead th:last-child {
+    border-right: 1px solid #ddd8ff;
+    border-radius: 0 10px 10px 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_column_heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_column_icon {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 30px;
+    border: 1px solid rgba(79, 70, 229, 0.16);
+    border-radius: 8px;
+    color: var(--mp-primary);
+    background: rgba(255, 255, 255, 0.72);
+    font-size: 12px;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_column_copy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_column_copy strong {
+    color: var(--mp-text-700);
+    font-size: 11px;
+    line-height: 1.35;
+    font-weight: 800;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_column_copy small {
+    color: #7773a3;
+    font-size: 10px;
+    line-height: 1.3;
+    font-weight: 500;
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_table tbody th,
 #mptbm_rent_settings_panel .mptbm_schedule_table tbody td {
-    padding: 12px 18px;
+    padding: 13px 18px;
     background: var(--mp-white);
-    border: 0;
-    border-bottom: 1px solid var(--mp-border-light);
+    border-top: 1px solid #e8edf3;
+    border-bottom: 1px solid #e8edf3;
     vertical-align: middle;
-    transition: background-color 0.18s ease;
+    transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_table tbody th {
     padding-left: 22px;
+    border-left: 1px solid #e8edf3;
+    border-radius: 10px 0 0 10px;
     text-align: left;
 }
 
-#mptbm_rent_settings_panel .mptbm_schedule_table tbody tr:last-child th,
-#mptbm_rent_settings_panel .mptbm_schedule_table tbody tr:last-child td {
-    border-bottom: 0;
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody td:last-child {
+    border-right: 1px solid #e8edf3;
+    border-radius: 0 10px 10px 0;
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_table tbody tr:hover th,
 #mptbm_rent_settings_panel .mptbm_schedule_table tbody tr:hover td {
-    background: #fafbff;
+    border-color: #dbe2eb;
+    background: #fcfdff;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.035);
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_table tbody .mptbm_schedule_default_row th,
 #mptbm_rent_settings_panel .mptbm_schedule_table tbody .mptbm_schedule_default_row td {
-    background: linear-gradient(90deg, var(--mp-primary-light), #fafaff);
-    border-bottom-color: var(--mp-primary-border);
+    border-top-color: #dcd8ff;
+    border-bottom-color: #dcd8ff;
+    background: #fbfaff;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody .mptbm_schedule_default_row th {
+    border-left: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_table tbody .mptbm_schedule_default_row td:last-child {
+    border-right-color: #dcd8ff;
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_day {
@@ -927,10 +1340,10 @@ input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px)
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_day_badge.is-default {
-    color: var(--mp-primary);
-    background: var(--mp-white);
-    border-color: var(--mp-primary-border);
-    box-shadow: var(--mp-shadow-xs);
+    color: var(--mp-white);
+    background: var(--mp-primary);
+    border-color: var(--mp-primary);
+    box-shadow: 0 5px 12px rgba(79, 70, 229, 0.2);
     font-size: 14px;
 }
 
@@ -974,12 +1387,17 @@ input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px)
     font-size: 10px;
     line-height: 1;
     font-weight: 700;
+    gap: 4px;
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_status.is-primary {
     color: var(--mp-primary);
-    background: var(--mp-white);
+    background: #f5f3ff;
     border-color: var(--mp-primary-border);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_status.is-primary i {
+    font-size: 8px;
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_status.is-hidden {
@@ -1007,15 +1425,16 @@ input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px)
 
 #mptbm_rent_settings_panel .mptbm_schedule_time_field select.formControl {
     width: 100%;
-    height: 40px;
+    height: 44px;
     margin: 0;
     padding-left: 38px;
-    border-color: var(--mp-border);
+    border-color: #dde3eb;
     border-radius: var(--mp-r-md);
     color: var(--mp-text-700);
     background-color: var(--mp-white);
     font-size: 13px;
     font-weight: 600;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_time_field select.formControl:hover {
@@ -1026,6 +1445,10 @@ input:checked + .mptbm_taxi_advanced_slider:before { transform: translateX(22px)
 #mptbm_rent_settings_panel .mptbm_schedule_time_field select.formControl:focus {
     border-color: var(--mp-primary);
     box-shadow: var(--mp-shadow-focus);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_default_row .mptbm_schedule_time_field select.formControl {
+    border-color: #ddd8ff;
 }
 
 #mptbm_rent_settings_panel .mptbm_schedule_hint {

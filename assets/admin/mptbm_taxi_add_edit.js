@@ -1090,11 +1090,11 @@
             const label = $(this).closest('.mptbm_taxi_ex_service_toggle_wrapper').find('.mptbm_taxi_ex_service_toggle_label');
 
             if(isChecked) {
-                label.text('ON');
+                label.text('ON').removeClass('mptbm_taxi_off');
                 $('.mptbm_taxi_ex_service_body').removeClass('mptbm_disabled');
                 $('#mptbm_taxi_ex_service_body').fadeIn();
             } else {
-                label.text('OFF');
+                label.text('OFF').addClass('mptbm_taxi_off');
                 $('.mptbm_taxi_ex_service_body').addClass('mptbm_disabled');
                 $('#mptbm_taxi_ex_service_body').fadeOut();
             }
@@ -1108,11 +1108,11 @@
             const label = $(this).closest('#mptbm_taxi_base_fare_toggle_container').find('.mptbm_display_taxi_base_fare_pricing_level');
 
             if(isChecked) {
-                label.text('ON');
+                label.text('ON').removeClass('mptbm_taxi_off');
                 $('.mptbm_taxi_base_price_body').removeClass('mptbm_disabled');
                 $('#mptbm_taxi_base_price_body').fadeIn();
             } else {
-                label.text('OFF');
+                label.text('OFF').addClass('mptbm_taxi_off');
                 $('.mptbm_taxi_base_price_body').addClass('mptbm_disabled');
                 $('#mptbm_taxi_base_price_body').fadeOut();
             }
@@ -1125,11 +1125,11 @@
             const label = $(this).closest('#mptbm_taxi_base_fare_toggle_container').find('#mptbm_display_operation_area_pricing_on_text');
 
             if(isChecked) {
-                label.text('ON');
+                label.text('ON').removeClass('mptbm_taxi_off');
                 $('.mptbm_taxi_base_price_body').removeClass('mptbm_disabled');
                 $('#mptbm_taxi_operation_araea_pricing_group').fadeIn();
             } else {
-                label.text('OFF');
+                label.text('OFF').addClass('mptbm_taxi_off');
                 $('.mptbm_taxi_base_price_body').addClass('mptbm_disabled');
                 $('#mptbm_taxi_operation_araea_pricing_group').fadeOut();
             }
@@ -1142,15 +1142,48 @@
             const label = $(this).closest('#mptbm_taxi_base_location_toggle_container').find('.mptbm_display_taxi_base_location_pricing_level');
 
             if(isChecked) {
-                label.text('ON');
+                label.text('ON').removeClass('mptbm_taxi_off');
                 $('.mptbm_taxi_base_location_price_body').removeClass('mptbm_disabled');
                 $('#mptbm_taxi_base_location_price_body').fadeIn();
             } else {
-                label.text('OFF');
+                label.text('OFF').addClass('mptbm_taxi_off');
                 $('.mptbm_taxi_base_location_price_body').addClass('mptbm_disabled');
                 $('#mptbm_taxi_base_location_price_body').fadeOut();
             }
         });
+
+        function mptbmRefreshExtraServiceCatalogue() {
+            const $tbody = $('#mptbm_taxi_ex_service_tbody');
+            if (!$tbody.length) {
+                return;
+            }
+
+            const serviceCount = $tbody.children('.mptbm_taxi_ex_service_row').filter(function() {
+                return $(this).attr('data-mptbm-deleted') !== '1';
+            }).length;
+
+            $('#mptbm_taxi_ex_service_count_value').text(serviceCount);
+            $tbody.closest('.mptbm_taxi_ex_service_table_shell').toggleClass('is-empty', serviceCount === 0);
+        }
+
+        function mptbmInitExtraServiceSorting() {
+            const $tbody = $('#mptbm_taxi_ex_service_tbody');
+            if (!$tbody.length || typeof $.fn.sortable !== 'function' || $tbody.hasClass('ui-sortable')) {
+                return;
+            }
+
+            $tbody.sortable({
+                items: '> .mptbm_taxi_ex_service_row:not(.mptbm-row-deleted)',
+                handle: '.mptbm_taxi_ex_service_btn_drag',
+                axis: 'y',
+                opacity: 0.88,
+                placeholder: 'mptbm_taxi_ex_service_sort_placeholder',
+                forcePlaceholderSize: true
+            });
+        }
+
+        mptbmRefreshExtraServiceCatalogue();
+        mptbmInitExtraServiceSorting();
 
         // 2. Extra Service dropdown change (predefined vs custom)
         $(document).on('change', '#mptbm_extra_services_id', function(e) {
@@ -1164,6 +1197,8 @@
             // instead of hitting the server (which would reject it as invalid).
             if (!service_id || service_id === post_id) {
                 $("#mptbm_taxi_ex_service_tbody").html($('#mptbm_taxi_ex_service_custom_template').html());
+                mptbmRefreshExtraServiceCatalogue();
+                mptbmInitExtraServiceSorting();
                 return;
             }
 
@@ -1179,6 +1214,8 @@
                 success: function (response) {
                     if (response && response.success) {
                         $("#mptbm_taxi_ex_service_tbody").html(response.data.service_date);
+                        mptbmRefreshExtraServiceCatalogue();
+                        mptbmInitExtraServiceSorting();
                     } else {
                         console.error('mptbm: failed to load extra service data', response);
                     }
@@ -1199,9 +1236,15 @@
                     $row.find('input, select, textarea').prop('disabled', true);
                     // hide the row to avoid triggering plugin teardown
                     $row.css('display', 'none').attr('data-mptbm-deleted', '1').addClass('mptbm-row-deleted');
+                    mptbmRefreshExtraServiceCatalogue();
                 } catch (err) {
                     console.error('mptbm: error hiding ex-service row', err);
-                    try { if ($row && $row.length) { $row.css('display', 'none').attr('data-mptbm-deleted', '1'); } } catch (e) { /* ignore */ }
+                    try {
+                        if ($row && $row.length) {
+                            $row.css('display', 'none').attr('data-mptbm-deleted', '1');
+                            mptbmRefreshExtraServiceCatalogue();
+                        }
+                    } catch (e) { /* ignore */ }
                 }
             }
         });
@@ -1211,7 +1254,7 @@
             e.preventDefault();
             const newRow = `
                 <tr class="mptbm_taxi_ex_service_row">
-                    <td>
+                    <td class="mptbm_taxi_ex_service_icon_cell" data-label="Icon">
                         <div class="mp_add_icon_image_area fdColumn">
                             <input type="hidden" name="mptbm_extra_service_icon[]" value=""/>
                             <div class="mp_icon_item dNone">
@@ -1236,23 +1279,27 @@
                             </div>
                         </div>
                     </td>
-                    <td><input type="text" name="service_name[]" placeholder="Service Name" class="mptbm_taxi_ex_service_input" value=""></td>
-                    <td>
-                        <textarea class="mptbm_taxi_ex_service_select" name="extra_service_description[]" placeholder="Desc.."></textarea>
+                    <td data-label="Service name">
+                        <input type="text" name="service_name[]" placeholder="e.g. Child seat" class="mptbm_taxi_ex_service_input" value="">
+                        <input type="hidden" name="service_qty_type[]" value="inputbox">
                     </td>
-                    <td><input type="number" class="mptbm_taxi_ex_service_input mptbm_center" value="0"></td>
-                    <td>
-                        <select class="mptbm_taxi_ex_service_select">
-                             <option value="inputbox">Input Box</option>
-                            <option value="dropdown">Dropdown List</option>
-                        </select>
+                    <td data-label="Customer description">
+                        <textarea class="mptbm_taxi_ex_service_select" name="extra_service_description[]" rows="2" placeholder="Briefly explain what is included."></textarea>
                     </td>
-                    <td class="mptbm_taxi_ex_service_actions">
-                        <button class="mptbm_taxi_ex_service_btn_del">🗑️</button>
-                        <button class="mptbm_taxi_ex_service_btn_drag">✥</button>
+                    <td data-label="Price">
+                        <div class="mptbm_taxi_ex_service_price_field">
+                            <span aria-hidden="true">$</span>
+                            <input type="number" name="service_price[]" class="mptbm_taxi_ex_service_input mptbm_center" step="0.01" min="0" placeholder="0.00" value="0">
+                        </div>
+                    </td>
+                    <td class="mptbm_taxi_ex_service_actions" data-label="Actions">
+                        <button type="button" class="mptbm_taxi_ex_service_btn_drag" title="Drag to reorder" aria-label="Drag to reorder service"><span class="dashicons dashicons-move"></span></button>
+                        <button type="button" class="mptbm_taxi_ex_service_btn_del" title="Delete service" aria-label="Delete service"><span class="dashicons dashicons-trash"></span></button>
                     </td>
                 </tr>`;
             $('#mptbm_taxi_ex_service_tbody').append(newRow);
+            mptbmRefreshExtraServiceCatalogue();
+            mptbmInitExtraServiceSorting();
         });
 
         // Function to remove a row (using delegation for dynamic elements)
@@ -1384,6 +1431,7 @@
                 $infoBox.find('.mptbm_taxi_advanced_info_col:eq(0) p').text('');
                 $infoBox.find('.mptbm_taxi_advanced_info_col:eq(1) p').text('');
                 $infoBox.find('.mptbm_taxi_advanced_info_col:eq(2) p').text('');
+                $infoBox.find('.mptbm_taxi_advanced_info_col:eq(3) p').text('');
                 return;
             }
 
@@ -1400,6 +1448,7 @@
                     $infoBox.find('.mptbm_taxi_advanced_info_col:eq(0) p').text(response.data.name);
                     $infoBox.find('.mptbm_taxi_advanced_info_col:eq(1) p').text(response.data.username);
                     $infoBox.find('.mptbm_taxi_advanced_info_col:eq(2) p').text(response.data.email);
+                    $infoBox.find('.mptbm_taxi_advanced_info_col:eq(3) p').text(response.data.phone || '');
                     $infoBox.show();
                 } else {
                     $infoBox.hide();
@@ -1410,6 +1459,187 @@
                 $select.prop('disabled', false);
             });
         });
+
+        /**
+         * Driver creation modal.
+         * Creates a Driver user through WordPress AJAX and selects it immediately.
+         */
+        (function initDriverModal() {
+            const $modal = $('#mptbm_driver_modal');
+
+            if (!$modal.length) {
+                return;
+            }
+
+            const $dialog = $modal.find('.mptbm_driver_modal_dialog');
+            const $createButton = $modal.find('.mptbm_create_driver_button');
+            const $error = $modal.find('.mptbm_driver_modal_error');
+            const $notice = $('.mptbm_driver_ajax_notice');
+            let $lastFocusedElement = $();
+
+            function resetDriverForm() {
+                $modal.find('input[type="text"], input[type="email"], input[type="tel"], input[type="password"]').val('').removeClass('is-invalid');
+                $('#mptbm_driver_send_notification').prop('checked', true);
+                $error.removeClass('is-visible').text('');
+            }
+
+            function openDriverModal() {
+                $lastFocusedElement = $(document.activeElement);
+                resetDriverForm();
+                $modal.addClass('is-open').attr('aria-hidden', 'false');
+                $('body').addClass('mptbm_driver_modal_open');
+                window.setTimeout(function() {
+                    $('#mptbm_driver_first_name').trigger('focus');
+                }, 50);
+            }
+
+            function closeDriverModal() {
+                if ($createButton.prop('disabled')) {
+                    return;
+                }
+
+                $modal.removeClass('is-open').attr('aria-hidden', 'true');
+                $('body').removeClass('mptbm_driver_modal_open');
+
+                if ($lastFocusedElement.length) {
+                    $lastFocusedElement.trigger('focus');
+                }
+            }
+
+            function showDriverError(message) {
+                $error.text(message || mptbm_editor_l10n.request_error).addClass('is-visible');
+            }
+
+            function validateDriverFields() {
+                let isValid = true;
+                const requiredFields = [
+                    '#mptbm_driver_first_name',
+                    '#mptbm_driver_username',
+                    '#mptbm_driver_email'
+                ];
+
+                $modal.find('input').removeClass('is-invalid');
+
+                requiredFields.forEach(function(selector) {
+                    const $field = $(selector);
+                    if (!$.trim($field.val()) || !$field.get(0).checkValidity()) {
+                        $field.addClass('is-invalid');
+                        isValid = false;
+                    }
+                });
+
+                const $password = $('#mptbm_driver_password');
+                if ($password.val() && !$password.get(0).checkValidity()) {
+                    $password.addClass('is-invalid');
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
+            $(document).on('click', '.mptbm_open_driver_modal', function(e) {
+                e.preventDefault();
+                openDriverModal();
+            });
+
+            $modal.on('click', '[data-driver-modal-close]', function(e) {
+                e.preventDefault();
+                closeDriverModal();
+            });
+
+            $dialog.on('click', function(e) {
+                e.stopPropagation();
+            });
+
+            $(document).on('keydown', function(e) {
+                if (!$modal.hasClass('is-open')) {
+                    return;
+                }
+
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeDriverModal();
+                }
+            });
+
+            $modal.on('keydown', 'input', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    $createButton.trigger('click');
+                }
+            });
+
+            $modal.on('input', 'input', function() {
+                $(this).removeClass('is-invalid');
+                $error.removeClass('is-visible').text('');
+            });
+
+            $createButton.on('click', function(e) {
+                e.preventDefault();
+
+                if (!validateDriverFields()) {
+                    showDriverError(mptbm_editor_l10n.required_error);
+                    $modal.find('.is-invalid').first().trigger('focus');
+                    return;
+                }
+
+                const nonce = $('#mptbm_create_driver_nonce').val();
+                const requestData = {
+                    action: 'mptbm_create_driver',
+                    nonce: nonce,
+                    first_name: $.trim($('#mptbm_driver_first_name').val()),
+                    last_name: $.trim($('#mptbm_driver_last_name').val()),
+                    username: $.trim($('#mptbm_driver_username').val()),
+                    email: $.trim($('#mptbm_driver_email').val()),
+                    phone: $.trim($('#mptbm_driver_phone').val()),
+                    password: $('#mptbm_driver_password').val(),
+                    send_notification: $('#mptbm_driver_send_notification').is(':checked') ? 1 : 0
+                };
+
+                $createButton.prop('disabled', true).addClass('is-loading');
+                $error.removeClass('is-visible').text('');
+
+                $.post(mptbm_editor_l10n.ajax_url, requestData)
+                    .done(function(response) {
+                        if (!response || !response.success) {
+                            const message = response && response.data && response.data.message
+                                ? response.data.message
+                                : mptbm_editor_l10n.request_error;
+                            showDriverError(message);
+                            return;
+                        }
+
+                        const $select = $('#mptbm_selected_driver');
+                        const driverId = String(response.data.id);
+
+                        $select.find('option[value="' + driverId + '"]').remove();
+                        $select.append(new Option(response.data.name, driverId, true, true));
+                        $select.trigger('change');
+
+                        $notice
+                            .removeClass('is-error')
+                            .addClass('is-visible is-success')
+                            .text(response.data.message);
+
+                        $createButton.prop('disabled', false).removeClass('is-loading');
+                        closeDriverModal();
+
+                        window.setTimeout(function() {
+                            $notice.removeClass('is-visible is-success').text('');
+                        }, 5000);
+                    })
+                    .fail(function(xhr) {
+                        const response = xhr.responseJSON;
+                        const message = response && response.data && response.data.message
+                            ? response.data.message
+                            : mptbm_editor_l10n.request_error;
+                        showDriverError(message);
+                    })
+                    .always(function() {
+                        $createButton.prop('disabled', false).removeClass('is-loading');
+                    });
+            });
+        })();
 
         /**
          * 4. Navigation Button Actions

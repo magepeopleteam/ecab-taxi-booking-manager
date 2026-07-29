@@ -26,6 +26,7 @@ if (!class_exists('MPTBM_Plugin')) {
             add_action('admin_init', array($this, 'wptbm_assign_template_to_page'));
 			add_action('init', array(__CLASS__, 'maybe_upgrade_security_capabilities'), 1);
 			add_action('init', array(__CLASS__, 'maybe_upgrade_api_schema'), 2);
+			add_action('init', array(__CLASS__, 'register_driver_role'), 3);
             add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
             
             // Hook to automatically assign template when settings are saved
@@ -193,6 +194,19 @@ if (!class_exists('MPTBM_Plugin')) {
 			}
 		}
 
+		public static function register_driver_role(): void
+		{
+			if (!get_role('mptbm_driver_role')) {
+				add_role(
+					'mptbm_driver_role',
+					__('Driver', 'ecab-taxi-booking-manager'),
+					array(
+						'read' => true,
+					)
+				);
+			}
+		}
+
 		public static function maybe_upgrade_api_schema(): void
 		{
 			if ('2' !== get_option('mptbm_api_schema_version')) {
@@ -261,6 +275,9 @@ if (!class_exists('MPTBM_Plugin')) {
 
 			// Restrict transportation configuration to trusted store managers.
 			self::grant_management_capabilities();
+
+			// Drivers can be assigned to transportation units in the free plugin.
+			self::register_driver_role();
             
             // Flush rewrite rules
             flush_rewrite_rules();

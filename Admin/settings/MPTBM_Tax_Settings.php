@@ -12,9 +12,11 @@
 				add_action('add_mptbm_settings_tab_content', [$this, 'tab_content']);
 				add_action('save_post', [$this, 'settings_save']);
 			}
-			public static function tab_content($post_id) {
+			public static function tab_content($post_id, $include_tab_wrapper = true) {
 				?>
-				<div class="tabsItem" data-tabs="#wbtm_settings_tax">
+				<?php if ($include_tab_wrapper) : ?>
+					<div class="tabsItem" data-tabs="#wbtm_settings_tax">
+				<?php endif; ?>
 					<?php
 						$tax_status = MP_Global_Function::get_post_info($post_id, '_tax_status');
 						$tax_class = MP_Global_Function::get_post_info($post_id, '_tax_class');
@@ -81,7 +83,9 @@
 							<?php } ?>
 						</div>
 					</div>
-				</div>
+				<?php if ($include_tab_wrapper) : ?>
+					</div>
+				<?php endif; ?>
 				<?php
 			}
 			public function settings_save($post_id) {

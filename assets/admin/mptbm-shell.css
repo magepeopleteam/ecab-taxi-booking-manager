@@ -55,6 +55,44 @@ body.mptbm-admin.post-new-php.post-type-mptbm_rent #wpcontent {
     margin-left: var(--mp-shell-sidebar-width);
     padding-top: var(--mp-shell-topbar-height);
 }
+
+/* Native management screens: Service Status, Locations, Extra Services
+   and Operation Areas use WordPress's own list/edit content inside the
+   same fixed ECAB sidebar and topbar chrome. */
+body.mptbm-admin-native #wpcontent {
+    margin-left: var(--mp-shell-sidebar-width);
+    padding-top: var(--mp-shell-topbar-height);
+}
+body.mptbm-admin-native #wpbody-content {
+    min-height: calc(100vh - var(--mp-shell-topbar-height));
+    padding: 0 24px 36px;
+    background: var(--mp-bg-page, #f6f7fb);
+}
+body.mptbm-admin-native #wpbody-content > .wrap {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding-top: 24px;
+}
+body.mptbm-admin-native #screen-meta,
+body.mptbm-admin-native #screen-meta-links {
+    display: none !important;
+}
+body.mptbm-admin-native .wrap > h1,
+body.mptbm-admin-native .wrap > .wp-heading-inline {
+    color: var(--mp-text-900, #0f172a);
+    font-weight: 700;
+}
+body.mptbm-admin-native .wp-list-table,
+body.mptbm-admin-native #col-left .col-wrap,
+body.mptbm-admin-native #col-right .col-wrap,
+body.mptbm-admin-native #poststuff .postbox {
+    border-color: var(--mp-border, #e2e8f0);
+    border-radius: var(--mp-r-lg, 14px);
+    box-shadow: 0 8px 28px -24px rgba(15, 23, 42, 0.45);
+}
+body.mptbm-admin-native .wp-list-table {
+    overflow: hidden;
+}
 /* .wrap's top margin and #poststuff's top padding exist to clear the
    native h1/hr.wp-header-end area — both hidden below, so this reserved
    space is otherwise just dead gray gap under the fixed topbar. */
@@ -680,16 +718,16 @@ body.mptbm-admin.post-type-mptbm_rent #postdivrich {
     order: 3;
     flex: 1 1 100%;
     position: sticky;
-    bottom: 20px;
+    bottom: 0px;
     margin-top: 8px;
     display: flex;
     align-items: center;
     gap: 16px;
     background: var(--mp-white, #fff);
     border: 1px solid var(--mp-border, #e2e8f0);
-    border-radius: var(--mp-r-lg, 14px);
+    border-radius: 0;
     box-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.08);
-    padding: 12px 18px;
+    padding: 18px 18px;
     z-index: 5;
 }
 .mptbm-panel-row-nav__step {
@@ -878,6 +916,9 @@ body.mptbm-admin.post-type-mptbm_rent #postdivrich {
     .mptbm-edit-topbar { left: 0; }
     body.mptbm-admin.post-php.post-type-mptbm_rent #wpcontent,
     body.mptbm-admin.post-new-php.post-type-mptbm_rent #wpcontent {
+        margin-left: 0;
+    }
+    body.mptbm-admin-native #wpcontent {
         margin-left: 0;
     }
 }

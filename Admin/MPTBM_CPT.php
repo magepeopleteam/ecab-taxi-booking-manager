@@ -325,22 +325,22 @@ if (!class_exists('MPTBM_CPT')) {
 			);
 
 			$service_status_labels = array(
-				'name'                       => _x('Service Status', 'taxonomy general name', 'mptbm_plugin_pro'),
-				'singular_name'              => _x('Service Status', 'taxonomy singular name', 'mptbm_plugin_pro'),
-				'search_items'               => __('Search Service Status', 'mptbm_plugin_pro'),
-				'popular_items'              => __('Popular Service Status', 'mptbm_plugin_pro'),
-				'all_items'                  => __('All Service Status', 'mptbm_plugin_pro'),
-				'parent_item'                => __('Parent Service Status', 'mptbm_plugin_pro'),
-				'parent_item_colon'          => __('Parent Service Status:', 'mptbm_plugin_pro'),
-				'edit_item'                  => __('Edit Service Status', 'mptbm_plugin_pro'),
-				'update_item'                => __('Update Service Status', 'mptbm_plugin_pro'),
-				'add_new_item'               => __('Add New Service Status', 'mptbm_plugin_pro'),
-				'new_item_name'              => __('New Service Status Name', 'mptbm_plugin_pro'),
-				'separate_items_with_commas' => __('Separate service Status with commas', 'mptbm_plugin_pro'),
-				'add_or_remove_items'        => __('Add or remove service Status', 'mptbm_plugin_pro'),
-				'choose_from_most_used'      => __('Choose from the most used service Status', 'mptbm_plugin_pro'),
-				'not_found'                  => __('No service Status found.', 'mptbm_plugin_pro'),
-				'menu_name'                  => __('Service Status', 'mptbm_plugin_pro'),
+				'name'                       => _x('Service Status', 'taxonomy general name', 'ecab-taxi-booking-manager'),
+				'singular_name'              => _x('Service Status', 'taxonomy singular name', 'ecab-taxi-booking-manager'),
+				'search_items'               => __('Search Service Status', 'ecab-taxi-booking-manager'),
+				'popular_items'              => __('Popular Service Status', 'ecab-taxi-booking-manager'),
+				'all_items'                  => __('All Service Status', 'ecab-taxi-booking-manager'),
+				'parent_item'                => __('Parent Service Status', 'ecab-taxi-booking-manager'),
+				'parent_item_colon'          => __('Parent Service Status:', 'ecab-taxi-booking-manager'),
+				'edit_item'                  => __('Edit Service Status', 'ecab-taxi-booking-manager'),
+				'update_item'                => __('Update Service Status', 'ecab-taxi-booking-manager'),
+				'add_new_item'               => __('Add New Service Status', 'ecab-taxi-booking-manager'),
+				'new_item_name'              => __('New Service Status Name', 'ecab-taxi-booking-manager'),
+				'separate_items_with_commas' => __('Separate service statuses with commas', 'ecab-taxi-booking-manager'),
+				'add_or_remove_items'        => __('Add or remove service statuses', 'ecab-taxi-booking-manager'),
+				'choose_from_most_used'      => __('Choose from the most used service statuses', 'ecab-taxi-booking-manager'),
+				'not_found'                  => __('No service status found.', 'ecab-taxi-booking-manager'),
+				'menu_name'                  => __('Service Status', 'ecab-taxi-booking-manager'),
 			);
 
 			$service_status_args = array(
@@ -352,10 +352,18 @@ if (!class_exists('MPTBM_CPT')) {
 				'rewrite'               => array('slug' => 'service-status'),
 				'show_in_rest'          => false, // Set to false to hide from the block editor (Gutenberg)
 				'show_in_nav_menus'     => false, // Set to false to hide from navigation menus
-				'meta_box_cb' => false,
+				'meta_box_cb'           => false,
+				'capabilities'          => array(
+					'manage_terms' => 'manage_mptbm_transportation',
+					'edit_terms'   => 'manage_mptbm_transportation',
+					'delete_terms' => 'manage_mptbm_transportation',
+					'assign_terms' => 'manage_mptbm_transportation',
+				),
 			);
 
-//			register_taxonomy('mptbm_service_status', $cpt, $service_status_args);
+			if (!taxonomy_exists('mptbm_service_status')) {
+				register_taxonomy('mptbm_service_status', $cpt, $service_status_args);
+			}
 			register_taxonomy('locations', $cpt, $taxonomy_args);
 			register_post_type('mptbm_extra_services', $ex_args);
 			register_post_type('mptbm_operate_areas', $dx_args);
