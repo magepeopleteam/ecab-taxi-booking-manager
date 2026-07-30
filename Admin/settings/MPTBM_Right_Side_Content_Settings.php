@@ -555,7 +555,7 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                                id="mptbm_taxi_category_new_name"
                                class="mptbm_taxi_category_input"
                                value=" <?php echo esc_attr( $name ); ?>"
-                               placeholder="<?php esc_html_e( 'e.g., Electric Van', 'ecab-taxi-booking-manager' ); ?>">
+                               placeholder="<?php esc_html_e( 'Electric Van', 'ecab-taxi-booking-manager' ); ?>">
                     </div>
 
                     <div class="mptbm_taxi_category_form_group">

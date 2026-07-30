@@ -1280,7 +1280,7 @@
                         </div>
                     </td>
                     <td data-label="Service name">
-                        <input type="text" name="service_name[]" placeholder="e.g. Child seat" class="mptbm_taxi_ex_service_input" value="">
+                        <input type="text" name="service_name[]" placeholder="Child seat" class="mptbm_taxi_ex_service_input" value="">
                         <input type="hidden" name="service_qty_type[]" value="inputbox">
                     </td>
                     <td data-label="Customer description">

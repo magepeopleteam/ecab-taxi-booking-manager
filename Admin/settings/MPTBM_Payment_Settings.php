@@ -914,7 +914,7 @@
 							<hr class="mptbm-gw-divider">
 							<div class="mptbm-gw-field">
 								<label class="mptbm-gw-label"><?php esc_html_e( 'Payment Label', 'ecab-taxi-booking-manager' ); ?></label>
-								<input type="text" data-field="mptbm_offline_label" value="<?php echo $off_label; ?>" placeholder="<?php esc_attr_e( 'e.g. Pay on Pickup / Bank Transfer', 'ecab-taxi-booking-manager' ); ?>">
+								<input type="text" data-field="mptbm_offline_label" value="<?php echo $off_label; ?>" placeholder="<?php esc_attr_e( 'Pay on Pickup / Bank Transfer', 'ecab-taxi-booking-manager' ); ?>">
 								<p style="margin:8px 0 0;font-size:12px;color:#6b7280;"><?php esc_html_e( 'This label is shown to customers on the frontend payment step.', 'ecab-taxi-booking-manager' ); ?></p>
 							</div>
 						</div>
