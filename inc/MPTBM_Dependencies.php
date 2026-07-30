@@ -125,15 +125,18 @@ if (!class_exists('MPTBM_Dependencies')) {
             wp_enqueue_script('mptbm_right_side_js', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_right_side_js.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_right_side_js.js'), true);
             wp_enqueue_style('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.css', array(), $this->asset_ver('assets/admin/mptbm_transportation_lists.css'));
 
-            if ( class_exists('Distance_Tier_Pricing_Addon') || function_exists('distance_tier_pricing_addon_init')) {
-                wp_enqueue_style('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css', array(), $this->asset_ver('assets/admin/distance_tier_pricing/css/admin-distance-tier-pricing.css'));
-                wp_enqueue_script('admin-distance-tier-pricing', MPTBM_PLUGIN_URL . '/assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js', array('jquery'), $this->asset_ver('assets/admin/distance_tier_pricing/js/admin-distance-tier-pricing.js'), true);
-            }
-
-            if (class_exists('Taxi_Peak_Hour_Pricing_Addon') || function_exists('taxi_peak_hour_pricing_addon_init')) {
-                wp_enqueue_style('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css', array(), $this->asset_ver('assets/admin/peak_hour_pricing_addon/css/admin-peak-hour-pricing.css'));
-                wp_enqueue_script('admin-peak-hour-pricing', MPTBM_PLUGIN_URL . '/assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js', array('jquery'), $this->asset_ver('assets/admin/peak_hour_pricing_addon/js/admin-peak-hour-pricing.js'), true);
-            }
+            // NOTE: Distance Tier Pricing and Peak Hour Pricing are separate addon
+            // plugins (distance-base-tier-pricing-addon-for-taxi-booking,
+            // taxi-peak-hour-pricing-addon) that ALREADY enqueue their own
+            // admin-*-pricing.css/.js from their own admin_enqueue_scripts hook,
+            // correctly scoped to the mptbm_rent post.php/post-new.php screen.
+            // This block used to ALSO enqueue bundled duplicate copies of those
+            // same files (under different handles, so WordPress had no way to
+            // dedupe them) whenever the addon was active — meaning every click
+            // handler in either addon's JS was bound twice and fired twice per
+            // click, which is what made toggles like "Show Advanced Conditions"
+            // appear to switch on and immediately back off again. Removed rather
+            // than fixed-in-place since the addons' own enqueue already covers it.
 
             // No transport templates
             wp_enqueue_script('mptbm-no-transport-templates', MPTBM_PLUGIN_URL . '/assets/admin/js/no-transport-templates.js', array('jquery'), $this->asset_ver('assets/admin/js/no-transport-templates.js'), true);

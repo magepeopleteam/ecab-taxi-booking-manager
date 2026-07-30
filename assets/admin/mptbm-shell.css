@@ -645,6 +645,7 @@ body.mptbm-admin.post-type-mptbm_rent #postdivrich {
     order: 2;
     flex: 0 0 300px;
     margin-top: 0;
+    margin-bottom: 70px;
     position: sticky;
     top: calc(var(--mp-shell-topbar-height) + 20px);
 }
