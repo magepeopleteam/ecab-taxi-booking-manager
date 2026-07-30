@@ -518,7 +518,12 @@
     --step-w: 176px;
     --step-gap: 40px;
     counter-reset: mptbm-step;
-    position: relative;
+    /* Sticks below the WP admin toolbar (32px desktop / 46px <=782px, see
+       the media query further down) as the page scrolls, so the wizard nav
+       stays reachable instead of scrolling away with the rest of the tab. */
+    position: sticky;
+    top: 32px;
+    z-index: 100;
     flex-flow: row wrap;
     justify-content: center;
     align-items: flex-start;
@@ -529,6 +534,7 @@
     padding: 32px 32px 24px;
     background: var(--mp-white);
     border-bottom: 1px solid var(--mp-border);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 #mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target] {
@@ -672,6 +678,7 @@
     #mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists {
         --step-gap: 24px;
         --step-w: 100px;
+        top: 46px; /* WP admin toolbar grows to 46px at this breakpoint */
         flex-wrap: nowrap;
         justify-content: flex-start;
         overflow-x: auto;
