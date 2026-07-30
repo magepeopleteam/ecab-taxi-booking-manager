@@ -1144,11 +1144,11 @@
             if(isChecked) {
                 label.text('ON').removeClass('mptbm_taxi_off');
                 $('.mptbm_taxi_base_location_price_body').removeClass('mptbm_disabled');
-                $('#mptbm_taxi_base_location_price_body').fadeIn();
+                $('#mptbm_taxi_base_location_price_lock').fadeIn();
             } else {
                 label.text('OFF').addClass('mptbm_taxi_off');
                 $('.mptbm_taxi_base_location_price_body').addClass('mptbm_disabled');
-                $('#mptbm_taxi_base_location_price_body').fadeOut();
+                $('#mptbm_taxi_base_location_price_lock').fadeOut();
             }
         });
 
@@ -1686,6 +1686,10 @@
         });
 
         $(document).on('click', '.mptbm_taxi_pricing_tab_item_pro', function(){
+            $('#mptbm_pro_popup').fadeIn();
+        });
+
+        $(document).on('click', '.mptbm_pro_lock.is-locked', function(){
             $('#mptbm_pro_popup').fadeIn();
         });
 

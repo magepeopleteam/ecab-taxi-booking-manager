@@ -289,13 +289,15 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <!-- Optional Parameters -->
                     <div class="mptbm_shortcode_section">
                         <h4 class="mptbm_shortcode_sub_title">
-                            <svg class="mptbm_shortcode_inline_icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            <span class="mptbm_shortcode_icon_badge mptbm_shortcode_icon_badge--info">
+                                <svg class="mptbm_shortcode_inline_icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            </span>
                             <?php esc_html_e( 'Optional Parameters:', 'ecab-taxi-booking-manager' ); ?>
                         </h4>
                         <div class="mptbm_shortcode_grid">
-                            <div class="mptbm_shortcode_param_item"><code>form='horizontal'</code> or <code>form='inline'</code></div>
-                            <div class="mptbm_shortcode_param_item"><code>progressbar='yes'</code> or <code>progressbar='no'</code></div>
-                            <div class="mptbm_shortcode_param_item"><code>map='yes'</code> or <code>map='no'</code></div>
+                            <div class="mptbm_shortcode_param_item"><code>form='horizontal'</code> <span class="mptbm_shortcode_or"><?php esc_html_e( 'or', 'ecab-taxi-booking-manager' ); ?></span> <code>form='inline'</code></div>
+                            <div class="mptbm_shortcode_param_item"><code>progressbar='yes'</code> <span class="mptbm_shortcode_or"><?php esc_html_e( 'or', 'ecab-taxi-booking-manager' ); ?></span> <code>progressbar='no'</code></div>
+                            <div class="mptbm_shortcode_param_item"><code>map='yes'</code> <span class="mptbm_shortcode_or"><?php esc_html_e( 'or', 'ecab-taxi-booking-manager' ); ?></span> <code>map='no'</code></div>
                             <div class="mptbm_shortcode_param_item"><code>tabs='hourly,distance,manual'</code></div>
                         </div>
                     </div>
@@ -304,7 +306,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <div class="mptbm_shortcode_section">
                         <div class="mptbm_shortcode_example_wrapper">
                             <h4 class="mptbm_shortcode_sub_title">
-                                <svg class="mptbm_shortcode_inline_icon" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2"><path d="M9 18h6m-6-4h6m-7.5 4a6 6 0 1 1 9 0"></path></svg>
+                                <span class="mptbm_shortcode_icon_badge mptbm_shortcode_icon_badge--warning">
+                                    <svg class="mptbm_shortcode_inline_icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6m-6-4h6m-7.5 4a6 6 0 1 1 9 0"></path></svg>
+                                </span>
                                 <?php esc_html_e( 'Example Usage:', 'ecab-taxi-booking-manager' ); ?>
                             </h4>
                             <div class="mptbm_shortcode_code_box mptbm_shortcode_example_code" id="mptbm_shortcode_example_code">
@@ -327,7 +331,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     <h2><span class="dashicons dashicons-lock"></span> PRO FEATURE</h2>
                     <p>This feature is available in PRO version only.</p>
 
-                    <a href="https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce" target="_blank" class="buy-pro-btn">
+                    <a href="https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce/" target="_blank" class="buy-pro-btn">
                         Buy PRO Now
                     </a>
                 </div>
@@ -634,8 +638,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     </div>
                     <div class="mptbm_taxi_ex_service_toggle_wrapper">
 
-                        <?php if ( $pro_active ): ?>
-
                             <label class="mptbm_taxi_ex_service_switch">
                                 <input type="checkbox"
                                        id="mptbm_display_taxi_base_location_pricing"
@@ -647,28 +649,24 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             <span class="mptbm_taxi_ex_service_toggle_label mptbm_display_taxi_base_location_pricing_level<?php echo esc_attr($display === 'off' ? ' mptbm_taxi_off' : ''); ?>">
                                 <?php echo esc_html($display === 'off' ? __('OFF', 'ecab-taxi-booking-manager') : __('ON', 'ecab-taxi-booking-manager')); ?>
                             </span>
-                        <?php else: ?>
-
-                            <label class="mptbm_taxi_ex_service_switch mptbm_locked_switch">
-                                <input type="checkbox" disabled>
-                                <span class="mptbm_taxi_slider mptbm_locked"></span>
-                            </label>
-
-                            <span class="mptbm_taxi_ex_service_toggle_label mptbm_pro_locked_text">
-                                🔒 Pro Feature
-                            </span>
-                        <?php endif; ?>
                     </div>
 
                 </div>
 
-                <?php if( $pro_active ){?>
-                <div class="mptbm_taxi_ex_service_body" id="mptbm_taxi_base_location_price_body" style="display: <?php echo esc_attr( $active );?>">
+                <div class="mptbm_pro_lock<?php echo $pro_active ? '' : ' is-locked'; ?>" id="mptbm_taxi_base_location_price_lock" style="display: <?php echo esc_attr( $active );?>">
+                <?php if ( ! $pro_active ) : ?>
+                    <div class="mptbm_pro_lock_overlay">
+                        <span class="mptbm_pro_lock_badge"><span class="dashicons dashicons-lock"></span> <?php esc_html_e( 'PRO feature', 'ecab-taxi-booking-manager' ); ?></span>
+                        <p><?php esc_html_e( 'Base location pricing (per-KM / per-hour charges from a fixed base) is available in the PRO version.', 'ecab-taxi-booking-manager' ); ?></p>
+                    </div>
+                <?php endif; ?>
+                <div class="mptbm_pro_lock_content">
+                <div class="mptbm_taxi_ex_service_body" id="mptbm_taxi_base_location_price_body">
                     <div class="mptbm_taxi_base_price_row">
                         <div class="mptbm_taxi_field">
                             <label><?php esc_html_e( 'Base Price Location', 'ecab-taxi-booking-manager' ); ?></label>
                             <p class="mptbm_taxi_help"><?php esc_html_e( 'Select the base location for price calculation', 'ecab-taxi-booking-manager' ); ?></p>
-                            <select class="formControl" name="mptbm_base_price_location">
+                            <select class="formControl" name="mptbm_base_price_location" <?php disabled( ! $pro_active ); ?>>
                                 <option value=""><?php esc_html_e('Select Location', 'ecab-taxi-booking-manager'); ?></option>
                                 <?php if (!empty($locations) && !is_wp_error($locations)) : ?>
                                     <?php foreach ($locations as $location) :
@@ -696,17 +694,18 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     step="0.1"
                                     value="<?php echo esc_attr( $base_price_km ?: '0' ); ?>"
                                     placeholder="1.5"
+                                    <?php disabled( ! $pro_active ); ?>
                             >
                         </div>
                         <div class="mptbm_taxi_field">
                             <label><?php esc_html_e( 'Price per Hour', 'ecab-taxi-booking-manager' ); ?></label>
                             <p class="mptbm_taxi_help"><?php esc_html_e( 'Enter the price per hour from base location', 'ecab-taxi-booking-manager' ); ?></p>
-                            <input name="mptbm_base_price_hour" type="number" value="<?php echo esc_attr( $base_price_hour );?>" placeholder="10 ">
+                            <input name="mptbm_base_price_hour" type="number" value="<?php echo esc_attr( $base_price_hour );?>" placeholder="10 " <?php disabled( ! $pro_active ); ?>>
                         </div>
                         <div class="mptbm_taxi_field">
                             <label><?php esc_html_e( 'Minimum Threshold (Distance)', 'ecab-taxi-booking-manager' ); ?></label>
                             <p class="mptbm_taxi_help"><?php esc_html_e( 'Distance free of charge from base price location', 'ecab-taxi-booking-manager' ); ?></p>
-                            <input name="mptbm_base_min_threshold" type="number" value="<?php echo esc_attr( $base_min_threshold );?>" placeholder="1">
+                            <input name="mptbm_base_min_threshold" type="number" value="<?php echo esc_attr( $base_min_threshold );?>" placeholder="1" <?php disabled( ! $pro_active ); ?>>
                         </div>
                     </div>
 
@@ -721,7 +720,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                             <div class="mptbm_taxi_ex_service_toggle_wrapper">
                                 <label class="mptbm_taxi_ex_service_switch">
-                                    <input name="mptbm_charge_base_pickup" type="checkbox" class="mptbm_taxi_toggle_trigger" <?php echo ($charge_base_pickup == 'yes') ? 'checked' : ''; ?>>
+                                    <input name="mptbm_charge_base_pickup" type="checkbox" class="mptbm_taxi_toggle_trigger" <?php echo ($charge_base_pickup == 'yes') ? 'checked' : ''; ?> <?php disabled( ! $pro_active ); ?>>
                                     <span class="mptbm_taxi_slider"></span>
                                 </label>
                                 <?php if( $charge_base_pickup == 'yes' ){?>
@@ -745,7 +744,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             </div>
                             <div class="mptbm_taxi_ex_service_toggle_wrapper">
                                 <label class="mptbm_taxi_ex_service_switch">
-                                <input name="mptbm_charge_base_dropoff" type="checkbox" class="mptbm_taxi_toggle_trigger" <?php echo ($charge_base_dropoff == 'yes') ? 'checked' : ''; ?>>
+                                <input name="mptbm_charge_base_dropoff" type="checkbox" class="mptbm_taxi_toggle_trigger" <?php echo ($charge_base_dropoff == 'yes') ? 'checked' : ''; ?> <?php disabled( ! $pro_active ); ?>>
                                     <span class="mptbm_taxi_slider"></span>
                                 </label>
                             <?php if( $charge_base_dropoff == 'yes' ){?>
@@ -758,7 +757,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                     </div>
 
                 </div>
-                <?php }?>
+                </div><!-- .mptbm_pro_lock_content -->
+                </div><!-- .mptbm_pro_lock -->
             </div>
         <?php }
         public static function features_item($features = array()) {
@@ -1252,13 +1252,6 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             $all_ex_services_id = MPTBM_Query::query_post_id( 'mptbm_extra_services' );
             ?>
             <div class="mptbm_taxi_ex_service_container">
-                <div class="mptbm_taxi_ex_service_header mptbm_rent_editor_header">
-                    <div class="mptbm_taxi_ex_service_title_group">
-                        <h2 class="mptbm_rent_editor_title"><i class="fas fa-concierge-bell"></i> <?php esc_html_e( 'Extra Services', 'ecab-taxi-booking-manager' ); ?></h2>
-                        <p class="mptbm_rent_editor_subtitle"><?php esc_html_e( 'Offer optional add-ons customers can choose at booking (e.g. child seat, meet &amp; greet, pet carrier).', 'ecab-taxi-booking-manager' ); ?></p>
-                    </div>
-                </div>
-
                 <div class="mptbm_taxi_ex_service_body" id="mptbm_taxi_ex_service_body" style="display: <?php echo esc_attr( $active );?>">
                     <div class="mptbm_taxi_ex_service_filter_row">
                         <label><?php esc_html_e( 'Select extra option:', 'ecab-taxi-booking-manager' ); ?></label>
@@ -1803,7 +1796,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 if( $price_based === 'inclusive' ){
                     ?>
                     <div class="mptbm_pricing_rules_card">
-                        <h4><?php esc_html_e( 'Combined (Distance + Duration) Based Pricing', 'ecab-taxi-booking-manager' ); ?></h4>
+                        <h4><?php esc_html_e( 'Combined Pricing Model', 'ecab-taxi-booking-manager' ); ?></h4>
                         <p><?php esc_html_e( 'Price is calculated using both time and distance.', 'ecab-taxi-booking-manager' ); ?></p>
                         <div class="mptbm_pricing_rules_formula">
                             <?php esc_html_e( '(Hourly Rate × Duration) + (KM Rate × Distance)', 'ecab-taxi-booking-manager' ); ?>
@@ -1895,6 +1888,11 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
         <?php }
 
         public static function manage_operation_area_pricing( $post_id, $price_based, $selected_operation_type, $all_operation_area_infos, $selected_operation_areas, $operation_area, $fixed_map_route_prices, $fixed_map_area_to_area_route_price_info, $merged_location_area, $location_zones, $fixed_zone_prices, $operation_zones ){
+            // Operation Area pricing is a PRO feature — when Pro isn't active, the
+            // type/area picker below is rendered disabled + blurred with a lock overlay
+            // instead of being left fully interactive (matches the tab-level lock already
+            // used for the "Operation Area" pricing tab via mptbm_taxi_pricing_tab_item_pro).
+            $is_pro = class_exists( 'MPTBM_Dependencies_Pro' );
             $is_operation_areas = 0;
             if( is_array( $selected_operation_areas ) && !empty( $selected_operation_areas ) ){
                 $is_operation_areas = 1;
@@ -1927,6 +1925,14 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             >
 
                 <input type="hidden" id="mptbm_is_selected_operation_area" name="mptbm_is_selected_operation_area" value="<?php echo esc_attr( $is_operation_areas );?>">
+                <div class="mptbm_pro_lock<?php echo $is_pro ? '' : ' is-locked'; ?>">
+                <?php if ( ! $is_pro ) : ?>
+                    <div class="mptbm_pro_lock_overlay">
+                        <span class="mptbm_pro_lock_badge"><span class="dashicons dashicons-lock"></span> <?php esc_html_e( 'PRO feature', 'ecab-taxi-booking-manager' ); ?></span>
+                        <p><?php esc_html_e( 'Operation area based pricing (fixed zone / fixed map) is available in the PRO version.', 'ecab-taxi-booking-manager' ); ?></p>
+                    </div>
+                <?php endif; ?>
+                <div class="mptbm_pro_lock_content">
                 <div class="mptbm_operation_area_type_holder">
                     <div class="mptbm_settings_area " id="mptbm_operation_area_settings" >
 
@@ -1939,7 +1945,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                                 <label class="mptbm-oa-card">
                                     <input type="radio" name="mptbm_operation_area_type" value=""
-                                        <?php checked( $selected_operation_type, '' ); ?>>
+                                        <?php checked( $selected_operation_type, '' ); disabled( ! $is_pro ); ?>>
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-location mptbm-oa-icon"></span>
@@ -1956,7 +1962,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                                 <label class="mptbm-oa-card">
                                     <input type="radio" name="mptbm_operation_area_type" value="fixed-operation-area-type"
-                                        <?php checked( $selected_operation_type, 'fixed-operation-area-type' ); ?>>
+                                        <?php checked( $selected_operation_type, 'fixed-operation-area-type' ); disabled( ! $is_pro ); ?>>
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-location mptbm-oa-icon"></span>
@@ -1973,7 +1979,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                                 <label class="mptbm-oa-card">
                                     <input type="radio" name="mptbm_operation_area_type" value="fixed-map-operation-area-type"
-                                        <?php checked( $selected_operation_type, 'fixed-map-operation-area-type' ); ?>>
+                                        <?php checked( $selected_operation_type, 'fixed-map-operation-area-type' ); disabled( ! $is_pro ); ?>>
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-marker mptbm-oa-icon"></span>
@@ -1990,7 +1996,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                                 <label class="mptbm-oa-card">
                                     <input type="radio" name="mptbm_operation_area_type" value="geo-fence-operation-area-type"
-                                        <?php checked( $selected_operation_type, 'geo-fence-operation-area-type' ); ?>>
+                                        <?php checked( $selected_operation_type, 'geo-fence-operation-area-type' ); disabled( ! $is_pro ); ?>>
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-admin-site-alt3 mptbm-oa-icon"></span>
@@ -2007,7 +2013,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                                 <label class="mptbm-oa-card">
                                     <input type="radio" name="mptbm_operation_area_type" value="geo-matched-operation-area-type"
-                                        <?php checked( $selected_operation_type, 'geo-matched-operation-area-type' ); ?>>
+                                        <?php checked( $selected_operation_type, 'geo-matched-operation-area-type' ); disabled( ! $is_pro ); ?>>
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-networking mptbm-oa-icon"></span>
@@ -2097,6 +2103,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         </div>
                     </div>
                 </div>
+                </div><!-- .mptbm_pro_lock_content -->
+                </div><!-- .mptbm_pro_lock -->
 
                 <div class="mptbm_operation_area_based"
                      id="mptbm_operation_area_based"

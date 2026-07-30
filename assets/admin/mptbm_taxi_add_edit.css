@@ -1550,6 +1550,66 @@ input:checked + .mptbm_taxi_slider::before { transform: translateX(22px); }
     border-radius: var(--mp-r-md);
 }
 
+/* Generic PRO lock — blurred + disabled content behind an overlay when the
+   Pro plugin isn't active. Reused by the Operation Area picker and the Base
+   Location Charges body; inputs inside should also get the real `disabled`
+   attribute server-side so they can never post a value. */
+.mptbm_pro_lock {
+    position: relative;
+}
+.mptbm_pro_lock.is-locked {
+    cursor: pointer;
+}
+.mptbm_pro_lock.is-locked .mptbm_pro_lock_content {
+    filter: blur(2.5px);
+    opacity: .55;
+    pointer-events: none;
+    user-select: none;
+}
+.mptbm_pro_lock_overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    text-align: center;
+}
+.mptbm_pro_lock_badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: var(--mp-r-full);
+    background: var(--mp-primary);
+    color: var(--mp-white);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    box-shadow: var(--mp-shadow-md);
+}
+.mptbm_pro_lock_badge .dashicons {
+    width: 13px;
+    height: 13px;
+    font-size: 13px;
+}
+.mptbm_pro_lock_overlay p {
+    max-width: 380px;
+    margin: 0;
+    color: var(--mp-text-700);
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.5;
+    background: var(--mp-white);
+    padding: 6px 12px;
+    border-radius: var(--mp-r-md);
+    border: 1px solid var(--mp-border);
+}
+
 /* Info Alert */
 .mptbm_taxi_pricing_info_alert {
     background: var(--mp-success-light);
@@ -1854,17 +1914,14 @@ input:checked + .mptbm_taxi_slider::before { transform: translateX(22px); }
 .mptbm_pricing_rules_grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 0;
+    gap: 12px;
 }
 .mptbm_pricing_rules_card {
     background: var(--mp-white);
-    border-bottom: 1px solid var(--mp-border-light);
-    padding: 20px;
-    transition: 0.2s ease;
-    position: relative;
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-r-lg);
+    padding: 18px 20px;
 }
-.mptbm_pricing_rules_card:last-child { border-bottom: none; }
-.mptbm_pricing_rules_card:hover { background: var(--mp-bg-muted); }
 .mptbm_pricing_rules_card h4 {
     margin: 0 0 6px;
     font-size: 14px;
@@ -1876,20 +1933,20 @@ input:checked + .mptbm_taxi_slider::before { transform: translateX(22px); }
     flex-wrap: wrap;
 }
 .mptbm_pricing_rules_card h4::after {
-    content: "✓ ACTIVE";
+    content: "Active";
     display: inline-flex;
     align-items: center;
-    padding: 2px 10px;
+    padding: 2px 9px;
     border-radius: var(--mp-r-full);
-    background: var(--mp-success);
-    color: var(--mp-white);
+    background: var(--mp-success-light);
+    color: var(--mp-success);
     font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     flex-shrink: 0;
 }
 .mptbm_pricing_rules_card p {
-    margin: 0 0 10px;
+    margin: 0 0 12px;
     font-size: 13px;
     color: var(--mp-text-500);
     line-height: 1.5;
@@ -1897,13 +1954,14 @@ input:checked + .mptbm_taxi_slider::before { transform: translateX(22px); }
 .mptbm_pricing_rules_formula {
     background: var(--mp-bg-muted);
     padding: 10px 14px;
-    border-radius: var(--mp-r-sm);
-    font-size: 13px;
-    font-weight: 600;
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-r-md);
+    font-family: var(--mp-mono);
+    font-size: 12.5px;
+    font-weight: 500;
     color: var(--mp-text-700);
-    border-left: 3px solid var(--mp-primary);
-    line-height: 1.6;
-    white-space: pre-wrap;
+    line-height: 1.2;
+    white-space: normal;
 }
 
 /* ================================================================
@@ -2743,15 +2801,17 @@ input.mptbm_taxi_feature_input:focus {
 }
 .mptbm_shortcode_header_left { display: flex; align-items: center; }
 .mptbm_shortcode_header_text h3 {
-    margin: 0;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--mp-text-800);
+    margin: 0 !important;
+    font-family: var(--mp-font) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+    color: var(--mp-text-800) !important;
 }
 .mptbm_shortcode_header_text p {
-    margin: 2px 0 0;
-    font-size: 12px;
-    color: var(--mp-text-500);
+    margin: 2px 0 0 !important;
+    font-size: 12px !important;
+    color: var(--mp-text-500) !important;
 }
 .mptbm_shortcode_toggle { color: var(--mp-text-400); font-size: 12px; }
 .mptbm_shortcode_toggle div { transition: transform 0.2s ease; }
@@ -2760,39 +2820,64 @@ input.mptbm_taxi_feature_input:focus {
 /* Flat, minimal body — no card shadow, one neutral palette throughout
    instead of the previous blue-tinted boxes (#e6f1fe/#d1e5ff/#2563eb). */
 .mptbm_shortcode_body {
+    box-sizing: border-box;
+    max-width: 100%;
     background: var(--mp-white);
     border: 1px solid var(--mp-border);
     border-radius: var(--mp-r-md);
-    padding: 20px;
+    padding: 22px 20px;
     margin: 0 16px 16px;
+    overflow: hidden;
 }
 
-.mptbm_shortcode_section { margin-bottom: 18px; }
+.mptbm_shortcode_section { margin-bottom: 22px; }
 .mptbm_shortcode_section:last-child { margin-bottom: 0; }
 
 .mptbm_shortcode_sub_title {
-    display: flex;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-family: var(--mp-font) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    color: var(--mp-text-700) !important;
+    margin: 0 0 12px !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+}
+.mptbm_shortcode_icon_badge {
+    display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--mp-text-500);
-    margin: 0 0 10px;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
+.mptbm_shortcode_icon_badge--info {
+    color: var(--mp-primary);
+    background: var(--mp-primary-light);
+}
+.mptbm_shortcode_icon_badge--warning {
+    color: var(--mp-warning);
+    background: var(--mp-warning-light);
 }
 .mptbm_shortcode_inline_icon {
-    width: 13px;
-    height: 13px;
-    color: var(--mp-text-400);
+    width: 11px;
+    height: 11px;
+    color: currentColor;
     stroke: currentColor;
 }
 
 .mptbm_shortcode_code_box {
+    box-sizing: border-box;
+    max-width: 100%;
     background: var(--mp-bg-muted);
     border: 1px solid var(--mp-border);
     border-radius: var(--mp-r-sm);
-    padding: 10px 12px;
+    padding: 12px 14px;
     text-align: left;
     overflow-x: auto;
 }
@@ -2801,30 +2886,48 @@ input.mptbm_taxi_feature_input:focus {
     font-size: 12.5px;
     color: var(--mp-text-800);
     word-break: break-all;
+    white-space: pre-wrap;
+    line-height: 1.6;
 }
-/* Was a separate hidden divider line — spacing between sections already
-   comes from .mptbm_shortcode_section's own margin, so it's just noise. */
-.mptbm_shortcode_divider { display: none; }
+/* One thin rule between the primary shortcode and the rest — spacing for
+   every other gap already comes from .mptbm_shortcode_section's margin. */
+.mptbm_shortcode_divider {
+    height: 1px;
+    margin: 22px 0;
+    background: var(--mp-border-light);
+}
 
 .mptbm_shortcode_grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 24px;
 }
 .mptbm_shortcode_param_item {
-    padding: 7px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
     font-size: 12px;
     color: var(--mp-text-600);
-    border-bottom: 1px solid var(--mp-border-light);
+    overflow-wrap: break-word;
 }
-.mptbm_shortcode_param_item:nth-last-child(-n+2) { border-bottom: none; }
+.mptbm_shortcode_or {
+    color: var(--mp-text-400);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
 .mptbm_shortcode_param_item code {
     font-family: var(--mp-mono);
-    font-size: 11.5px;
-    color: var(--mp-text-800);
+    font-size: 11px;
+    color: var(--mp-text-700);
     background: var(--mp-bg-muted);
-    padding: 1px 5px;
-    border-radius: 4px;
+    border: 1px solid var(--mp-border-light);
+    padding: 3px 8px;
+    border-radius: var(--mp-r-sm);
+    word-break: break-word;
 }
 
 .mptbm_shortcode_example_wrapper { }
@@ -3480,15 +3583,6 @@ input.mptbm_taxi_feature_input:focus {
     vertical-align: middle;
     margin-right: 6px;
     color: #f59e0b;
-}
-
-/* ── Pricing rules formula: monospace + pre-wrap ─────────────────
-   Code-like blocks should use a mono font.
-   ---------------------------------------------------------------- */
-.mptbm_pricing_rules_formula {
-    font-family: var(--mp-mono);
-    font-size: 12px;
-    white-space: pre-line;
 }
 
 /* ── Section spacing: between sibling wrappers inside a step ──────

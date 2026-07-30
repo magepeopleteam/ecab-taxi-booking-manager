@@ -53,7 +53,7 @@
 
 			/** Filterable upgrade destination shown on every "PRO" lock. */
 			private function upgrade_url() {
-				return apply_filters( 'mptbm_pro_upgrade_url', 'https://www.magepeople.com/downloads/taxi-booking-manager-for-woocommerce/' );
+				return apply_filters( 'mptbm_pro_upgrade_url', 'https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce/' );
 			}
 
 			public function add_menu() {

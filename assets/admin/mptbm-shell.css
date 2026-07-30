@@ -496,6 +496,7 @@ div#mptbm_rent_settings_panel {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: center;
     font-size: 15px;
     font-weight: 700;
     color: var(--mp-text-900, #0f172a);

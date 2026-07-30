@@ -206,7 +206,7 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
                     <li><?php esc_html_e( 'Priority Email And PDF Support', 'ecab-taxi-booking-manager' ); ?></li>
                 </ul>
 
-                <a href="https://mage-people.com/" class="mptbm_pro_card_btn" target="_blank" rel="noopener noreferrer">
+                <a href="https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce/" class="mptbm_pro_card_btn" target="_blank" rel="noopener noreferrer">
                     <?php esc_html_e( 'Upgrade to Pro', 'ecab-taxi-booking-manager' ); ?>
                 </a>
 
