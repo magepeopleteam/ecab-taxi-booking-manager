@@ -479,12 +479,79 @@ function mp_sticky_management() {
 		let targetTab = target.children('[data-tabs-target-next]:nth-child(' + num_of_tab + ')').data('tabs-target-next');
 		active_next_tab(parent, targetTab);
 	});
+	function mp_tabs_storage_key(tabsIndex) {
+		return 'mptbm_active_tab::' + location.pathname + location.search + '::' + tabsIndex;
+	}
+	function mp_hide_tab_skeletons() {
+		// Always add this, even if no .mptbm-tab-skeleton exists on this
+		// page — it's also what reveals #postimagediv/etc. on the
+		// Transportation edit screen (see the CSS rule in mp_style.css),
+		// which doesn't depend on a skeleton having been injected anywhere.
+		document.body.classList.add('mptbm-page-ready');
+
+		let $skeletons = $('.mptbm-tab-skeleton');
+		if (!$skeletons.length) {
+			return;
+		}
+		$skeletons.addClass('is-hiding');
+		setTimeout(function () {
+			$skeletons.remove();
+		}, 350);
+	}
+	// Skeleton placeholder per tab panel, shown until the full page (images,
+	// TinyMCE iframes, external fonts/scripts) finishes loading. Run
+	// SYNCHRONOUSLY here (not inside $(document).ready() below), same
+	// reasoning as mptbm-shell.js's sidebar relocation: this script is
+	// enqueued in_footer, so by the time it executes the tab markup above it
+	// already exists — waiting for $(document).ready (fires only once the
+	// ENTIRE rest of this often-large admin page has finished parsing) was
+	// leaving these visibly appearing a beat after mptbm-shell.js's sidebar
+	// skeleton, which runs synchronously and so shows up immediately.
+	$('.mpStyle .mpTabs .tabsContent > [data-tabs]').each(function () {
+		let $panel = $(this);
+		if ($panel.children('.mptbm-tab-skeleton').length) {
+			return;
+		}
+		$panel.prepend(
+			'<div class="mptbm-tab-skeleton" aria-hidden="true">' +
+				'<div class="mptbm-tab-skeleton-bar h-lg"></div>' +
+				'<div class="mptbm-tab-skeleton-bar h-row"></div>' +
+				'<div class="mptbm-tab-skeleton-bar h-row w-80"></div>' +
+				'<div class="mptbm-tab-skeleton-bar h-row w-60"></div>' +
+				'<div class="mptbm-tab-skeleton-bar h-row"></div>' +
+			'</div>'
+		);
+	});
 	$(document).ready(function () {
-		$('.mpStyle .mpTabs').each(function () {
+		$('.mpStyle .mpTabs').each(function (tabsIndex) {
 			let tabLists = $(this).find('.tabLists:first');
 			let activeTab = tabLists.find('[data-tabs-target].active');
 			let targetTab = activeTab.length > 0 ? activeTab : tabLists.find('[data-tabs-target]').first();
-			targetTab.trigger('click');
+
+			// Restore whichever tab was active before the last page refresh
+			// (saved by the click handler below), if it still exists.
+			let savedTarget = null;
+			try {
+				savedTarget = window.sessionStorage.getItem(mp_tabs_storage_key(tabsIndex));
+			} catch (e) {}
+			if (savedTarget) {
+				let savedTabItem = tabLists.find('[data-tabs-target="' + savedTarget + '"]');
+				if (savedTabItem.length) {
+					targetTab = savedTabItem;
+				}
+			}
+
+			if (targetTab.hasClass('active')) {
+				targetTab.trigger('click');
+			} else {
+				// Apply the restored tab instantly instead of via the click
+				// handler's slide animation, so the server-rendered default
+				// tab's content doesn't flash before sliding away.
+				let fxOff = $.fx.off;
+				$.fx.off = true;
+				targetTab.trigger('click');
+				$.fx.off = fxOff;
+			}
 		});
 		$('.mpStyle .mpTabsNext').each(function () {
 			let parent = $(this);
@@ -495,7 +562,12 @@ function mp_sticky_management() {
 				active_next_tab(parent, targetTab);
 			}
 		});
+		// Safety net: if some resource (external CDN script/font/image) never
+		// fires the window 'load' event below, don't leave the skeletons up
+		// forever.
+		setTimeout(mp_hide_tab_skeletons, 4000);
 	});
+	$(window).on('load', mp_hide_tab_skeletons);
 	$(document).on('click', '.mpStyle [data-tabs-target]', function () {
 		if (!$(this).hasClass('active')) {
 			let tabsTarget = $(this).data('tabs-target');
@@ -503,6 +575,14 @@ function mp_sticky_management() {
 			parent.height(parent.height());
 			let tabLists = $(this).closest('.tabLists');
 			let tabsContent = parent.find('.tabsContent:first');
+
+			try {
+				let tabsIndex = $('.mpStyle .mpTabs').index(parent);
+				if (tabsIndex > -1) {
+					window.sessionStorage.setItem(mp_tabs_storage_key(tabsIndex), tabsTarget);
+				}
+			} catch (e) {}
+
 			tabLists.find('[data-tabs-target].active').each(function () {
 				$(this).removeClass('active').promise().done(function () {
 					mp_all_content_change($(this))

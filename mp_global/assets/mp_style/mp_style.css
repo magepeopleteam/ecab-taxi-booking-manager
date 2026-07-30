@@ -2469,6 +2469,68 @@
 	}
 	.tabsContent [data-tabs] {
 		display: none;
+		position: relative;
+	}
+
+	/* These boxes render as part of the INITIAL server HTML in WP's native
+	   side-postbox column — mptbm-shell.js only relocates them into the
+	   persistent sidebar (and adds the skeleton overlay there) once it runs,
+	   which is after the browser has already parsed/painted them. Hiding
+	   them here, by plain CSS with no JS dependency, means nothing ever
+	   flashes in its native position before that relocation happens. This
+	   rule lives in a <head>-enqueued stylesheet, so it's active from the
+	   very first paint — .mptbm-page-ready is added to <body> by
+	   mp_hide_tab_skeletons() in mp_script.js once window fully loads.
+	   Scoped to body.post-type-mptbm_rent (WP's automatic admin body class
+	   for this post type's edit screen) — #postimagediv exists on every
+	   post-edit screen across the whole install, and mp_style.css loads
+	   admin-wide, so without this scope every OTHER post type's featured
+	   image would also stay invisible until window.load for no reason. */
+	body.post-type-mptbm_rent:not(.mptbm-page-ready) #postimagediv,
+	body.post-type-mptbm_rent:not(.mptbm-page-ready) .mptbm_payment_method_card,
+	body.post-type-mptbm_rent:not(.mptbm-page-ready) .mptbm_taxi_category_container,
+	body.post-type-mptbm_rent:not(.mptbm-page-ready) .mptbm_quick_tips_card,
+	body.post-type-mptbm_rent:not(.mptbm-page-ready) .mptbm_pricing_rules_wrapper {
+		visibility: hidden;
+	}
+
+	/* Skeleton placeholder shown over a tab panel while the rest of the page
+	   (images, TinyMCE iframes, external fonts/scripts, etc.) is still
+	   loading; injected/removed by mp_script.js on $(document).ready /
+	   $(window).on('load'). Each panel gets its own so switching tabs during
+	   the loading window still shows a placeholder instead of raw content. */
+	.mptbm-tab-skeleton {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 5;
+		background: #fff;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		padding: 6px 0;
+		opacity: 1;
+		transition: opacity .3s ease;
+	}
+	.mptbm-tab-skeleton.is-hiding {
+		opacity: 0;
+		pointer-events: none;
+	}
+	.mptbm-tab-skeleton-bar {
+		border-radius: 6px;
+		background: linear-gradient(90deg, #eef0f3 25%, #e2e5ea 37%, #eef0f3 63%);
+		background-size: 400% 100%;
+		animation: mptbm-tab-skeleton-shimmer 1.4s ease infinite;
+	}
+	.mptbm-tab-skeleton-bar.h-lg { height: 24px; width: 35%; }
+	.mptbm-tab-skeleton-bar.h-row { height: 42px; width: 100%; }
+	.mptbm-tab-skeleton-bar.w-80 { width: 80%; }
+	.mptbm-tab-skeleton-bar.w-60 { width: 60%; }
+	@keyframes mptbm-tab-skeleton-shimmer {
+		0% { background-position: 100% 50%; }
+		100% { background-position: 0 50%; }
 	}
 	/**************/
 	.mpTabs.tabBorder {

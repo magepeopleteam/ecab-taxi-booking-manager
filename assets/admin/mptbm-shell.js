@@ -198,6 +198,19 @@
 		if ($quickTipsBox.length) {
 			$sidebar.append($quickTipsBox);
 		}
+
+		// Loading placeholder over the whole sidebar, matching the per-tab
+		// skeletons mp_script.js adds to .tabsContent panels — same classes,
+		// so that script's existing $(window).on('load') / fallback timeout
+		// removes this one too without any extra wiring here.
+		$sidebar.append(
+			'<div class="mptbm-tab-skeleton" aria-hidden="true">' +
+				'<div class="mptbm-tab-skeleton-bar h-lg"></div>' +
+				'<div class="mptbm-tab-skeleton-bar h-row"></div>' +
+				'<div class="mptbm-tab-skeleton-bar h-row w-80"></div>' +
+				'<div class="mptbm-tab-skeleton-bar h-row w-60"></div>' +
+			'</div>'
+		);
 	}
 
 	// Floating Previous/Next bar (bottom of .mptbm-panel-row) — steps
