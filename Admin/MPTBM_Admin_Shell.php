@@ -132,17 +132,12 @@ if (!class_exists('MPTBM_Admin_Shell')) {
         // The Transportation sidebar item's own sub-views — mirrors the
         // reference's "Car Rental" taxonomy sub-tabs, using ecab's actual
         // equivalent (the status-filter pills the Transportation Lists page
-        // already has). Deep-linked via ?mptbm_filter=<value> (read by the
-        // inline script Transportation Lists prints), except Trash which
-        // already has its own real query-arg link (?mptbm_status=trash).
+        // already has).
         public static function get_transportation_submenu_tabs(): array {
             $list_url = admin_url('edit.php?post_type=mptbm_rent&page=mptbm_transportation_lists');
 
             return [
                 [ 'label' => esc_html__('All Transport', 'ecab-taxi-booking-manager'), 'icon' => 'fas fa-list', 'link' => $list_url ],
-                [ 'label' => esc_html__('Published', 'ecab-taxi-booking-manager'), 'icon' => 'fas fa-check-circle', 'link' => add_query_arg('mptbm_filter', 'publish', $list_url) ],
-                [ 'label' => esc_html__('Draft', 'ecab-taxi-booking-manager'), 'icon' => 'far fa-edit', 'link' => add_query_arg('mptbm_filter', 'draft', $list_url) ],
-                [ 'label' => esc_html__('Trash', 'ecab-taxi-booking-manager'), 'icon' => 'fas fa-trash', 'link' => add_query_arg('mptbm_status', 'trash', $list_url) ],
             ];
         }
 

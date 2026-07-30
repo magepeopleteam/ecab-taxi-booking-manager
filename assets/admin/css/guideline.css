@@ -3,11 +3,18 @@
 /* Main Documentation Container */
 .mptbm-documentation {
     max-width: 98%;
-    margin: 20px auto;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
     color: #1e293b;
     font-size: 14px;
     line-height: 1.6;
+}
+
+/* mp_style.css has `div.mpStyle { margin: 0; padding: 0; }` (element+class,
+   higher specificity than the plain .mptbm-documentation class alone), which
+   would silently zero out the margin above — same bug already fixed on the
+   Status page. Restore it here with matching (two-class) specificity. */
+.mpStyle.mptbm-documentation {
+    margin: 20px auto;
 }
 
 /* Documentation Header */

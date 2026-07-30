@@ -22,7 +22,7 @@
 						$tax_class = MP_Global_Function::get_post_info($post_id, '_tax_class');
 						$all_tax_class = MP_Global_Function::all_tax_list();
 					?>
-					<div class="mptbm_rent_editor_wrapper">
+					<div class="mptbm_rent_editor_wrapper tax-configuration">
 						<div class="mptbm_rent_editor_header">
 							<div class="mptbm_rent_editor_title_group">
 								<span class="mptbm_rent_editor_icon"><i class="fas fa-percentage"></i></span>

@@ -120,7 +120,7 @@ if (!class_exists('MPTBM_Dependencies')) {
 			wp_localize_script('mptbm_admin', 'mptbm_admin_security', array(
 				'extra_service_nonce' => wp_create_nonce('mptbm_get_extra_service'),
 			));
-            wp_enqueue_script('mptbm_tooltip', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_tooltip.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_tooltip.js'), true);
+            wp_enqueue_script('mptbm_tooltip', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_tooltip.js', array('jquery', 'jquery-ui-tooltip'), $this->asset_ver('assets/admin/mptbm_tooltip.js'), true);
             wp_enqueue_script('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_transportation_lists.js'), true);
             wp_enqueue_script('mptbm_right_side_js', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_right_side_js.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_right_side_js.js'), true);
             wp_enqueue_style('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.css', array(), $this->asset_ver('assets/admin/mptbm_transportation_lists.css'));

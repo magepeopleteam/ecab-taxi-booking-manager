@@ -591,7 +591,7 @@
                 $("#mptbm_shortcode_primary_code").html(primary_shortcode);
 
                 rules = `<div class="mptbm_pricing_rules_card">
-                                    <h4>Inclusive (Distance + Duration) Based Pricing</h4>
+                                    <h4>Combined Pricing Model</h4>
                                     <p>Price is calculated using both time and distance.</p>
                                     <div class="mptbm_pricing_rules_formula">
                                         (Hourly Rate × Duration) + (KM Rate × Distance)
@@ -838,7 +838,7 @@
                 $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeIn();
 
                 rules = `<div class="mptbm_pricing_rules_card">
-                                <h4>Inclusive (Distance + Duration) Based Pricing</h4>
+                                <h4>Combined Pricing Model</h4>
                                 <p>Price is calculated using both time and distance.</p>
                                 <div class="mptbm_pricing_rules_formula">
                                     (Hourly Rate × Duration) + (KM Rate × Distance)

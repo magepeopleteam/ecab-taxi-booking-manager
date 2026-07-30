@@ -160,8 +160,6 @@
 /* VIEW SWITCHING (class-driven; keeps responsive table intact) */
 .mptbm-view-list .mptbm-grid{display:none;}
 .mptbm-view-list .mptbm-table{display:table;}
-a.mptbm-table-edit{border: 1px solid green;}
-a.mptbm-table-del { border: 1px solid red; }
 /* COMPACT VEHICLE CELL (image + name + meta) */
 .mptbm-cell-vehicle{display:flex;align-items:center;gap:13px;}
 .mptbm-cell-thumb{width:100px;height:100px;border-radius:11px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#312e81,#4f46e5);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.7);box-shadow:0 2px 8px rgba(79,70,229,.18);}
@@ -196,7 +194,9 @@ a.mptbm-table-del { border: 1px solid red; }
 .mptbm-table td:first-child a{color:var(--mp-ink) !important;text-decoration:none;}
 .mptbm-table td:first-child a:hover{color:var(--mp-indigo) !important;}
 .mptbm-table td:last-child{border-right:1px solid var(--mp-border);border-radius:0 12px 12px 0;}
-.mptbm-table-edit,.mptbm-table-del,.mptbm-table-dup{padding:4px 12px;border-radius:6px;border:1px solid var(--mp-border);background:var(--mp-white);font-size:11px;font-weight:600;cursor:pointer;text-decoration:none;color:var(--mp-ink2) !important;display:inline-block;}
+/* Icon-only action buttons — the visible label moved to a native title=""
+   tooltip (plus aria-label for screen readers) instead of on-button text. */
+.mptbm-table-edit,.mptbm-table-del,.mptbm-table-dup{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border-radius:6px;border:1px solid var(--mp-border);background:var(--mp-white);font-size:12px;cursor:pointer;text-decoration:none;color:var(--mp-ink2) !important;transition:all .15s;}
 .mptbm-table-edit:hover{border-color:var(--mp-indigo);color:var(--mp-indigo) !important;}
 .mptbm-table-dup{margin-left:4px;border-color:#c7d2fe;}
 .mptbm-table-dup:hover{border-color:var(--mp-indigo);color:var(--mp-indigo) !important;background:var(--mp-indigo-soft);}

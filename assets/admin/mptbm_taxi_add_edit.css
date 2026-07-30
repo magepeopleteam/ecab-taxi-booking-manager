@@ -155,6 +155,12 @@
     font-weight: 400;
 }
 
+#mptbm_rent_settings_panel {
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    margin-left: 20px;
+}
+
 /* ================================================================
    SECTION 4: FIXED HEADER
    ================================================================ */
@@ -487,6 +493,202 @@
 }
 
 /* ================================================================
+   SECTION 5b: EDITOR TAB LIST -> CENTERED STEPPER
+   The .mptbm_taxi_stepper markup above isn't rendered anywhere; the
+   editor's real tab nav is .mpTabs.leftTabs > .tabLists > [data-tabs-target]
+   (see MPTBM_Rent_Custom_Editor.php). Re-skin those actual elements to
+   match a checkout-style progress stepper: solid-fill circle, thick
+   per-segment connector line, "STEP N" eyebrow (CSS counter, no markup
+   change) over a bold label — with 3 states (done / current / upcoming)
+   colored like a real wizard. These tabs can actually be opened in any
+   order (unlike a linear checkout), so "done" here just means "earlier
+   in the list than the open tab" — a cosmetic stand-in, not real
+   completion tracking; detected with :has() (no JS/PHP change).
+   Items are a FIXED equal width (unlike the earlier shrink-to-fit
+   version) so each connector segment's math lines up exactly icon-center
+   to icon-center regardless of label length — labels wrap instead of
+   overflowing a fixed box.
+   ================================================================ */
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs {
+    flex-direction: column;
+}
+
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists {
+    --step-icon: 44px;
+    --step-w: 176px;
+    --step-gap: 40px;
+    counter-reset: mptbm-step;
+    position: relative;
+    flex-flow: row wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 18px var(--step-gap);
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+    padding: 32px 32px 24px;
+    background: var(--mp-white);
+    border-bottom: 1px solid var(--mp-border);
+}
+
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target] {
+    counter-increment: mptbm-step;
+    /* position:relative (no z-index here) so this item's ::before connector
+       and > i icon are stacked within .tabLists's own context instead of
+       each item getting its OWN isolated stacking context — otherwise a
+       later step's connector (which reaches backward into the previous
+       step's space) paints on top of that earlier step's icon, since later
+       DOM siblings win ties between same-z-index stacking contexts. */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    flex: 0 0 var(--step-w);
+    width: var(--step-w);
+    padding: 0;
+    text-align: center;
+    border-left: none;
+    color: var(--mp-text-500);
+    transition: var(--mp-transition);
+}
+
+/* Connector: spans from the PREVIOUS icon's center to THIS icon's center
+   (half of this item's width + the gap + half of the previous item's
+   width — reliable now that every item is the same fixed --step-w). */
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target]:not(:first-child)::before {
+    content: '';
+    position: absolute;
+    top: calc(var(--step-icon) / 2 - 1px);
+    left: calc(-1 * (var(--step-gap) + var(--step-w) / 2));
+    right: 50%;
+    height: 2px;
+    background: var(--mp-border);
+    z-index: 0;
+    transition: background 0.3s ease;
+}
+
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target]::after {
+    content: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target] > i {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--step-icon);
+    height: var(--step-icon);
+    min-width: var(--step-icon);
+    border-radius: 50%;
+    background: var(--mp-bg-muted);
+    color: var(--mp-text-400);
+    font-size: 16px;
+    border: none;
+    box-shadow: none;
+    transition: var(--mp-transition);
+}
+
+/* "STEP N" eyebrow, generated from the counter above — sits above the label */
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target] .menu-text::before {
+    content: 'STEP ' counter(mptbm-step);
+    display: block;
+    margin-bottom: 2px;
+    color: var(--mp-text-400);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target] .menu-text {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: inherit;
+    white-space: normal;
+    transition: color 0.2s ease;
+}
+
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target]:hover {
+    background: transparent;
+    border-left: none;
+    color: var(--mp-text-800);
+}
+
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target]:hover > i {
+    color: var(--mp-primary);
+}
+
+/* --- State: DONE (any step before the one that's open) --- */
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target]:has(~ [data-tabs-target].active) {
+    color: var(--mp-text-900);
+}
+
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target]:has(~ [data-tabs-target].active) > i {
+    background: var(--mp-success);
+    color: var(--mp-white);
+}
+
+/* Swap the section icon for a checkmark once a step is done — same trick
+   FA itself uses (glyph via ::before); \f00c is FA5 solid's check glyph,
+   stable across FA versions. */
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target]:has(~ [data-tabs-target].active) > i.fas::before {
+    content: '\f00c';
+}
+
+/* The connector INTO a done step is green; a step is only "reached" by
+   a green line if the step it leads FROM is itself done or current —
+   i.e. skip coloring the segment between an upcoming step and the next
+   (still-upcoming) one. */
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target]:has(~ [data-tabs-target].active)::before {
+    background: var(--mp-success);
+}
+
+/* --- State: CURRENT (the open tab) --- */
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target].active {
+    background: transparent;
+    border-left: none;
+    color: var(--mp-text-900);
+}
+
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target].active > i {
+    background: var(--mp-primary);
+    color: var(--mp-white);
+}
+
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target].active .menu-text::before {
+    color: var(--mp-primary);
+}
+
+#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target].active::before {
+    background: var(--mp-primary);
+}
+
+@media screen and (max-width: 782px) {
+    #mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists {
+        --step-gap: 24px;
+        --step-w: 100px;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding: 20px 20px 16px;
+    }
+
+    #mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target] {
+        flex: 0 0 auto;
+        width: var(--step-w);
+    }
+
+    #mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target] .menu-text {
+        white-space: normal;
+    }
+}
+
+/* ================================================================
    SECTION 6: SCROLLABLE CONTENT AREA
    ================================================================ */
 .mptbm_scroll_content {
@@ -577,12 +779,12 @@
     border: 1px solid var(--mp-border);
     border-radius: var(--mp-r-lg);
     overflow: hidden;
-    margin-top: 16px;
-    box-shadow: var(--mp-shadow-sm);
+    margin-top: 0px;
+    box-shadow: none;
     transition: box-shadow 0.2s ease;
 }
 .mptbm_rent_editor_wrapper:hover {
-    box-shadow: var(--mp-shadow-md);
+    box-shadow: none;
 }
 
 .mptbm_rent_editor_wrapper:first-child { margin-top: 0; }
@@ -594,8 +796,16 @@
    icon/image picker widget), it silently zeroed out margin-top, leaving that
    section flush against the one above it with no gap. Restore it here with
    matching specificity. */
-.mptbm_rent_editor_wrapper.mpStyle { margin-top: 16px; }
+.mptbm_rent_editor_wrapper.mpStyle { margin-top: 0px; }
 .mptbm_rent_editor_wrapper.mpStyle:first-child { margin-top: 0; }
+
+.mptbm_rent_editor_wrapper.mpStyle.vehicle-feature {
+    margin-top: 15px;
+}
+
+.mptbm_rent_editor_wrapper.tax-configuration {
+    margin-top: 10px;
+}
 
 /* Card Header */
 .mptbm_rent_editor_header {
@@ -2529,13 +2739,12 @@ input.mptbm_taxi_feature_input:focus {
     margin: 16px;
 }
 .mptbm_shortcode_header:hover {
-    background: var(--mp-primary-light);
-    border-color: var(--mp-primary-border);
+    border-color: var(--mp-border-dark);
 }
 .mptbm_shortcode_header_left { display: flex; align-items: center; }
 .mptbm_shortcode_header_text h3 {
     margin: 0;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--mp-text-800);
 }
@@ -2544,70 +2753,81 @@ input.mptbm_taxi_feature_input:focus {
     font-size: 12px;
     color: var(--mp-text-500);
 }
-.mptbm_shortcode_toggle { color: var(--mp-text-400); }
-.mptbm_shortcode_toggle div { transition: transform 0.3s ease; }
+.mptbm_shortcode_toggle { color: var(--mp-text-400); font-size: 12px; }
+.mptbm_shortcode_toggle div { transition: transform 0.2s ease; }
 .mptbm_shortcode_toggle div.mptbm_rotate { transform: rotate(180deg); }
 
+/* Flat, minimal body — no card shadow, one neutral palette throughout
+   instead of the previous blue-tinted boxes (#e6f1fe/#d1e5ff/#2563eb). */
 .mptbm_shortcode_body {
     background: var(--mp-white);
     border: 1px solid var(--mp-border);
     border-radius: var(--mp-r-md);
     padding: 20px;
-    margin: 16px;
-    box-shadow: var(--mp-shadow-sm);
+    margin: 0 16px 16px;
 }
+
+.mptbm_shortcode_section { margin-bottom: 18px; }
+.mptbm_shortcode_section:last-child { margin-bottom: 0; }
+
 .mptbm_shortcode_sub_title {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
+    gap: 6px;
+    font-size: 11px;
     font-weight: 700;
-    color: #002b5e;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mp-text-500);
     margin: 0 0 10px;
 }
-.mptbm_shortcode_inline_icon { width: 16px; height: 16px; }
+.mptbm_shortcode_inline_icon {
+    width: 13px;
+    height: 13px;
+    color: var(--mp-text-400);
+    stroke: currentColor;
+}
 
 .mptbm_shortcode_code_box {
-    background: var(--mp-white);
-    border: 1px solid #d1e5ff;
+    background: var(--mp-bg-muted);
+    border: 1px solid var(--mp-border);
     border-radius: var(--mp-r-sm);
-    padding: 12px;
-    text-align: center;
+    padding: 10px 12px;
+    text-align: left;
     overflow-x: auto;
 }
 .mptbm_shortcode_code_box code {
     font-family: var(--mp-mono);
-    font-size: 13px;
-    color: #2563eb;
+    font-size: 12.5px;
+    color: var(--mp-text-800);
     word-break: break-all;
 }
-.mptbm_shortcode_primary_code { background: #e6f1fe; }
-.mptbm_shortcode_divider { height: 1px; background: #d1e5ff; margin: 14px 0; opacity: 0.6; }
+/* Was a separate hidden divider line — spacing between sections already
+   comes from .mptbm_shortcode_section's own margin, so it's just noise. */
+.mptbm_shortcode_divider { display: none; }
 
 .mptbm_shortcode_grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 6px;
-    margin-bottom: 14px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
 }
 .mptbm_shortcode_param_item {
-    background: var(--mp-white);
-    border: 1px solid #d1e5ff;
-    border-radius: var(--mp-r-sm);
-    padding: 9px 12px;
+    padding: 7px 0;
     font-size: 12px;
+    color: var(--mp-text-600);
+    border-bottom: 1px solid var(--mp-border-light);
 }
-.mptbm_shortcode_param_item code { font-family: var(--mp-mono); color: #1e40af; }
-
-.mptbm_shortcode_example_wrapper {
-    background: rgba(255,255,255,0.5);
-    border: 1px solid #d1e5ff;
-    padding: 12px;
-    border-radius: var(--mp-r-sm);
+.mptbm_shortcode_param_item:nth-last-child(-n+2) { border-bottom: none; }
+.mptbm_shortcode_param_item code {
+    font-family: var(--mp-mono);
+    font-size: 11.5px;
+    color: var(--mp-text-800);
+    background: var(--mp-bg-muted);
+    padding: 1px 5px;
+    border-radius: 4px;
 }
-.mptbm_shortcode_example_code { background: #e6f1fe; text-align: left; padding: 12px; }
 
-.mptbm_shortcode_section { margin-bottom: 14px; }
+.mptbm_shortcode_example_wrapper { }
 
 /* ================================================================
    SECTION 22: PRO POPUP & OVERLAY
@@ -3094,6 +3314,7 @@ input.mptbm_taxi_feature_input:focus {
 /* Base-fare / base-location toggles */
 .mptbm_rent_editor_wrapper[id="mptbm_taxi_base_fare_toggle_container"],
 .mptbm_taxi_toggle_container[id="mptbm_taxi_base_location_toggle_container"] {
+    border: 1px solid #ddd;
     border-left: none;
 }
 /* Extra services container */
@@ -3850,6 +4071,16 @@ textarea.mptbm_field_error {
     font-size: 10px;
     line-height: 1;
     font-weight: 700;
+}
+
+/* Groups the tag + master toggle as one flex child on the right, so
+   .mptbm_fees_services_group_header's justify-content:space-between still
+   only splits into 2 columns (title-group | this), not 3 spread evenly. */
+#mptbm_rent_settings_panel .mptbm_fees_services_group_header_actions {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 12px;
 }
 
 #mptbm_rent_settings_panel .mptbm_fees_services_group_body {

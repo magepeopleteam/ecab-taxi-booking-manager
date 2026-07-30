@@ -67,6 +67,9 @@
 				// admin setting global
 				wp_enqueue_script('mp_admin_settings', MP_GLOBAL_PLUGIN_URL . '/assets/admin/mp_admin_settings.js', array('jquery'), time(), true);
 				wp_enqueue_style('mp_admin_settings', MP_GLOBAL_PLUGIN_URL . '/assets/admin/mp_admin_settings.css', array(), time());
+				// Theme for the jquery-ui-tooltip widget (mptbm_tooltip.js) - was
+				// sitting in assets/ unused since nothing ever enqueued it.
+				wp_enqueue_style('mp_jquery_ui', MP_GLOBAL_PLUGIN_URL . '/assets/jquery-ui.min.css', array(), time());
 				do_action('add_mp_admin_enqueue');
 			}
 			public function frontend_enqueue() {

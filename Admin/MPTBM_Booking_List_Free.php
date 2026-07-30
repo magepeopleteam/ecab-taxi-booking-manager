@@ -221,15 +221,19 @@
 				MPTBM_Admin_Shell::render_shell_open();
 				?>
 				<div class="mptbm-orders-wrap mptbm-free-wrap">
-					<div class="mptbm-orders-header">
-						<div class="mptbm-orders-title-group">
-							<h1 class="mptbm-orders-title"><span class="dashicons dashicons-clipboard"></span><?php esc_html_e( 'Bookings', 'ecab-taxi-booking-manager' ); ?></h1>
-							<p class="mptbm-orders-subtitle"><?php esc_html_e( 'A read-only overview of your bookings. Unlock filters, stats, details and status management with Pro.', 'ecab-taxi-booking-manager' ); ?></p>
+					<header class="mptbm-orders-hero">
+						<div class="mptbm-orders-heading">
+							<span class="mptbm-orders-heading-icon" aria-hidden="true"><span class="dashicons dashicons-clipboard"></span></span>
+							<div>
+								<p class="mptbm-orders-eyebrow"><?php esc_html_e( 'Booking management', 'ecab-taxi-booking-manager' ); ?></p>
+								<h1 class="mptbm-orders-title"><?php esc_html_e( 'Bookings', 'ecab-taxi-booking-manager' ); ?></h1>
+								<p class="mptbm-orders-subtitle"><?php esc_html_e( 'A read-only overview of your bookings. Unlock filters, stats, details and status management with Pro.', 'ecab-taxi-booking-manager' ); ?></p>
+							</div>
 						</div>
 						<div class="mptbm-orders-header-actions">
 							<a href="<?php echo esc_url( $upgrade ); ?>" target="_blank" rel="noopener" class="mptbm-btn mptbm-btn-primary"><span class="dashicons dashicons-star-filled"></span><?php esc_html_e( 'Upgrade to Pro', 'ecab-taxi-booking-manager' ); ?></a>
 						</div>
-					</div>
+					</header>
 
 					<?php /* Statistics — locked. Blurred placeholders behind a PRO overlay. */ ?>
 					<div class="mptbm-pro-lock mptbm-stats-lock">
@@ -367,16 +371,19 @@
 			private function render_styles() {
 				?>
 				<style>
-				.mptbm-orders-wrap{--mptbm-accent:#F12971;--mptbm-accent-soft:#fde7f1;width:100%;max-width:100%;box-sizing:border-box;padding:0 20px 40px;color:#1e293b;}
-				.mptbm-orders-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:18px 0 20px;}
-				.mptbm-orders-title{display:flex;align-items:center;gap:10px;font-size:22px!important;font-weight:700!important;color:#0f172a!important;margin:0!important;padding:0!important;}
-				.mptbm-orders-title .dashicons{font-size:22px;width:22px;height:22px;color:var(--mptbm-accent);}
-				.mptbm-orders-subtitle{color:#64748b;font-size:13px;margin:4px 0 0;max-width:640px;}
+				.mptbm-orders-wrap{--mptbm-accent:#6254df;--mptbm-accent-soft:#eeecff;width:100%;max-width:100%;box-sizing:border-box;padding:0 20px 40px;color:#1e293b;}
+				.mptbm-orders-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:18px 0 20px;padding:24px 26px;border:1px solid #e2e8f0;border-radius:18px;background:#fff;box-shadow:0 12px 32px -26px rgba(15,23,42,.55);}
+				.mptbm-orders-heading{display:flex;align-items:center;gap:16px;}
+				.mptbm-orders-heading-icon{display:inline-flex;flex:0 0 52px;width:52px;height:52px;align-items:center;justify-content:center;border-radius:15px;color:#fff;background:linear-gradient(145deg,#6c5ce7,#5145cd);box-shadow:0 10px 22px -12px rgba(81,69,205,.8);}
+				.mptbm-orders-heading-icon .dashicons{font-size:22px;width:22px;height:22px;}
+				.mptbm-orders-eyebrow{margin:0 0 4px!important;color:var(--mptbm-accent)!important;font-size:11px!important;font-weight:800;letter-spacing:.09em;text-transform:uppercase;}
+				.mptbm-orders-title{font-size:22px!important;font-weight:700!important;color:#0f172a!important;margin:0!important;padding:0!important;}
+				.mptbm-orders-subtitle{color:#64748b;font-size:13px;margin:5px 0 0;max-width:640px;}
 				.mptbm-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;border:none;transition:all .15s ease;line-height:1.4;}
 				.mptbm-btn .dashicons{font-size:15px;width:15px;height:15px;margin-top:1px;}
 				.mptbm-btn-sm{padding:5px 12px;font-size:12px;}
 				.mptbm-btn-primary{background:var(--mptbm-accent);color:#fff;}
-				.mptbm-btn-primary:hover{background:#d61f63;color:#fff;}
+				.mptbm-btn-primary:hover{background:#5145cd;color:#fff;}
 				.mptbm-btn-outline{background:#fff;border:1.5px solid #cbd5e1;color:#475569;}
 				.mptbm-btn-outline:hover{border-color:var(--mptbm-accent);color:var(--mptbm-accent);}
 				.mptbm-btn-disabled{opacity:.4;pointer-events:none;}

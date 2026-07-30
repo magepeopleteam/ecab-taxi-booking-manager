@@ -597,86 +597,20 @@ body.mptbm-admin.post-type-mptbm_rent #postdivrich {
 }
 
 /* ================================================================
-   Information Settings panel — horizontal pill tab bar + 2-column
-   body (cards left, persistent feature-image sidebar right), matching
-   the reference layout instead of the framework's default vertical
-   left-tabs sidebar (mp_global's .leftTabs > .tabLists is flex-column
-   by default — overridden here, scoped to this metabox only).
+   Information Settings panel — the tab bar itself (pill-row layout,
+   active-tab background/icon treatment, etc.) is now owned entirely by
+   Section 5b in mptbm_taxi_add_edit.css (the centered numbered stepper).
+   This block used to duplicate that styling here at #id-level specificity
+   — which unconditionally beat every class-based rule in Section 5b
+   regardless of how specific those got, so the two designs were fighting
+   each other: the stepper's circular icons/connector line/3-state colors
+   were being silently overridden back to this pill-tab look (white
+   active-pill background, 26px rounded-square icon, lavender bar). Only
+   .mpTabs.leftTabs's column direction is still needed here (Section 5b
+   doesn't re-set it under this ID), so that one rule stays.
    ================================================================ */
 #mptbm_rent_settings_panel .mpTabs.leftTabs {
     flex-direction: column;
-}
-#mptbm_rent_settings_panel .leftTabs > .tabLists {
-    flex-flow: row wrap;
-    align-items: center;
-    min-width: 0;
-    max-width: none;
-    width: 100%;
-    background: linear-gradient(180deg, #eef1f8, #e8ebf6);
-    border: 1px solid rgba(79,70,229,.08);
-    border-radius: var(--mp-r-lg, 14px);
-    padding: 6px;
-    gap: 4px;
-    margin-bottom: 22px;
-    box-shadow: inset 0 1px 2px rgba(15,23,42,.05);
-    /* Stays pinned right below the fixed topbar while the (often long)
-       tab content scrolls underneath it. */
-    position: sticky;
-    top: var(--mp-shell-topbar-height);
-    z-index: 500;
-}
-#mptbm_rent_settings_panel .mpStyle [data-tabs-target] {
-    display: flex;
-    align-items: center;
-    flex: 0 0 auto;
-    border-left: none !important;
-    border-radius: var(--mp-r-md, 10px);
-    padding: 7px 16px 7px 7px;
-    gap: 9px;
-    font-weight: 600;
-    font-size: 13.5px;
-    color: var(--mp-text-600, #64748b);
-    cursor: pointer;
-    transition: background-color .16s ease, color .16s ease, box-shadow .16s ease;
-}
-/* mp_global's shared ".mpStyle .tabLists span" rule generically colors any
-   span inside a tab bar with the site's theme accent color — it matches
-   this tab's label span too, overriding the gray/active-primary color
-   above (a direct match always wins over inheritance, regardless of the
-   inherited rule's own specificity). Re-scope it back to inherit here. */
-#mptbm_rent_settings_panel .mpStyle .tabLists .menu-text {
-    color: inherit;
-}
-/* Icon badge: a small rounded square behind each tab's icon. Muted by
-   default, inverts to a solid primary-color fill on the active tab —
-   mirrors the icon treatment already used on the card headers below. */
-#mptbm_rent_settings_panel .mpStyle [data-tabs-target] i {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    border-radius: var(--mp-r-sm, 8px);
-    background: rgba(100,116,139,.10);
-    color: inherit;
-    font-size: 12px;
-    transition: background-color .16s ease, color .16s ease;
-}
-#mptbm_rent_settings_panel .leftTabs [data-tabs-target]::after {
-    display: none;
-}
-#mptbm_rent_settings_panel .mpStyle [data-tabs-target]:hover {
-    background: rgba(255,255,255,.65);
-    color: var(--mp-text-800, #1e293b);
-}
-#mptbm_rent_settings_panel .mpStyle [data-tabs-target].active {
-    background: var(--mp-white, #fff);
-    color: var(--mp-primary, #4f46e5);
-    box-shadow: 0 2px 6px rgba(15,23,42,.10), 0 0 0 1px rgba(79,70,229,.06);
-}
-#mptbm_rent_settings_panel .mpStyle [data-tabs-target].active i {
-    background: var(--mp-primary, #4f46e5);
-    color: #fff;
 }
 
 /* ---- Two-column body: cards left, persistent sidebar (featured
@@ -696,6 +630,7 @@ body.mptbm-admin.post-type-mptbm_rent #postdivrich {
     display: flex;
     align-items: flex-start;
     gap: 24px;
+    margin-top: 10px;
     flex-wrap: wrap;
 }
 #mptbm_rent_settings_panel .mptbm-panel-row > .tabsContent {
@@ -766,17 +701,17 @@ body.mptbm-admin.post-type-mptbm_rent #postdivrich {
     background: var(--mp-primary-hover, #3730a3);
     border-color: var(--mp-primary-hover, #3730a3);
 }
-/* Same visual weight as .mptbm-btn-primary (solid fill, not a thin
-   outline) so Previous doesn't read as an afterthought next to Next —
-   just a neutral dark tone instead of the primary brand color. */
+/* Same outline treatment already used for Prev/Next elsewhere on this
+   site (the edit topbar's Preview button, the Booking List pagination) —
+   reusing that existing pattern instead of inventing a new color here. */
 .mptbm-btn-secondary {
-    background: var(--mp-text-700, #334155);
-    border: 1px solid var(--mp-text-700, #334155);
-    color: #fff;
+    background: var(--mp-white, #fff);
+    border: 1px solid var(--mp-border-dark, #cbd5e1);
+    color: var(--mp-text-600, #475569);
 }
 .mptbm-btn-secondary:hover {
-    background: var(--mp-text-800, #1e293b);
-    border-color: var(--mp-text-800, #1e293b);
+    border-color: var(--mp-primary-border, #c4b5fd);
+    color: var(--mp-primary, #4f46e5);
 }
 .mptbm-panel-row-nav__prev.is-disabled,
 .mptbm-panel-row-nav__next.is-disabled {
