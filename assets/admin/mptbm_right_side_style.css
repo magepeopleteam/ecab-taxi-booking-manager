@@ -269,6 +269,68 @@
 }
 
 /* ==================================
+   PAYMENT METHOD SIDEBAR CARD
+================================== */
+.mptbm_payment_method_card {
+    background: var(--mp-white);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-r-lg);
+    padding: 18px;
+    box-shadow: var(--mp-shadow-sm);
+    box-sizing: border-box;
+    transition: var(--mp-transition);
+}
+.mptbm_payment_method_card:hover {
+    border-color: var(--mp-primary-border);
+    box-shadow: var(--mp-shadow-md);
+}
+
+.mptbm_payment_info_row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 13px;
+    padding: 7px 0;
+}
+.mptbm_payment_info_row + .mptbm_payment_info_row {
+    border-top: 1px solid var(--mp-border);
+}
+.mptbm_payment_info_row span {
+    color: var(--mp-text-500);
+    font-weight: 500;
+}
+.mptbm_payment_info_row strong {
+    color: var(--mp-text-800);
+    font-weight: 700;
+    text-align: right;
+}
+
+.mptbm_payment_link,
+.mptbm_payment_warning {
+    margin: 8px 0 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--mp-border);
+    font-size: 12.5px;
+}
+.mptbm_payment_link a {
+    color: var(--mp-primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+.mptbm_payment_link a:hover {
+    text-decoration: underline;
+}
+.mptbm_payment_warning a {
+    color: #e7105e;
+    font-weight: 600;
+    text-decoration: none;
+}
+.mptbm_payment_warning a:hover {
+    text-decoration: underline;
+}
+
+/* ==================================
    CATEGORY & TAGS CARDS (modern)
 ================================== */
 .mptbm_taxi_category_container {

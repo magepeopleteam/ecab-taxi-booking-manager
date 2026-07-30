@@ -1,5 +1,26 @@
 (function ($) {
 	"use strict";
+
+	// Bottom-right confirmation toast (same .mptbm_toast CSS/markup used for the
+	// WooCommerce gateway toggle elsewhere in this plugin's admin) — the
+	// enable/disable switch below previously saved silently with no visible
+	// confirmation at all.
+	var mptbmCheckoutToastIcons = {
+		success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+		error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+	};
+	function mptbmCheckoutShowToast(type, message) {
+		var $toast = $('<div/>', { 'class': 'mptbm_toast mptbm_toast_' + type });
+		$('<span/>', { 'class': 'mptbm_toast_icon' }).html(mptbmCheckoutToastIcons[type] || '').appendTo($toast);
+		$('<span/>', { 'class': 'mptbm_toast_msg', text: message }).appendTo($toast);
+		$('body').append($toast);
+		window.requestAnimationFrame(function () { $toast.addClass('is-show'); });
+		setTimeout(function () {
+			$toast.removeClass('is-show');
+			setTimeout(function () { $toast.remove(); }, 300);
+		}, 2600);
+	}
+
 	function init()
 	{
 		const tabItems = document.querySelectorAll('.mpStyles .checkout .tab-item');
@@ -317,26 +338,29 @@
 				var key = $(this).data('key');
 				var name = $(this).data('name');
 				var isChecked = this.checked;
-				
+				var fieldLabel = $.trim(element.closest('tr').find('td').eq(1).text()) || name;
+
 				$.ajax({
 					type: 'POST',
 					url: mp_ajax_url,
-					data: { 
+					data: {
 						action: "mptbm_disable_field",
 						key: key,
 						name: name,
 						isChecked: isChecked,
-						nonce: mptbm_checkout_object.nonce 
+						nonce: mptbm_checkout_object.nonce
 					},
 					success: function(response) {
 						var jsonResponse = response;
-						if (jsonResponse == 'success') 
+						if (jsonResponse == 'success')
 						{
 							element.prop('checked', isChecked);
+							mptbmCheckoutShowToast('success', fieldLabel + ' ' + (isChecked ? 'enabled' : 'disabled') + '.');
 						}
 						else
 						{
 							element.prop('checked', !isChecked);
+							mptbmCheckoutShowToast('error', 'Could not update this field. Please try again.');
 						}
 
 						if(isChecked)
@@ -347,9 +371,13 @@
 						{
 							element.closest('tr').find('td .checkout-disabled').addClass("dashicons dashicons-yes tips");
 						}
+					},
+					error: function() {
+						element.prop('checked', !isChecked);
+						mptbmCheckoutShowToast('error', 'A network error occurred. Please try again.');
 					}
 				});
-				
+
 			});
 
 			// Handle form submission

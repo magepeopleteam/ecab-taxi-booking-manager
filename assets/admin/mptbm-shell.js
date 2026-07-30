@@ -125,6 +125,16 @@
 	var $featuredImageBox = $('#postimagediv');
 	if ($panelRow.length && $tabsContent.length && $featuredImageBox.length) {
 		var $sidebar = $('<div class="mptbm-tabs-sidebar"></div>');
+
+		// Payment Method status card — lives in the "Transportation Details"
+		// side metabox like Categories/Tags and Quick Tips below, but appended
+		// FIRST so it sits at the very top of the sidebar, above the Featured
+		// Image (see MPTBM_Payment_Settings::render_payment_sidebar_card()).
+		var $paymentCard = $('.mptbm_payment_method_card');
+		if ($paymentCard.length) {
+			$sidebar.append($paymentCard);
+		}
+
 		$sidebar.append($featuredImageBox);
 		$panelRow.append($sidebar);
 

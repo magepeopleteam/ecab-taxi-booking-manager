@@ -45,6 +45,20 @@
 				add_action( 'wp_ajax_mptbm_install_activate_wc', array( $this, 'ajax_install_activate_wc' ) );
 				add_action( 'wp_ajax_mptbm_save_booking_mode', array( $this, 'ajax_save_booking_mode' ) );
 
+				// "Payment Method" status card on the transportation add/edit screen
+				// sidebar (ported from the Tour plugin's TTBM_Payment_Settings
+				// render_payment_sidebar_card()). Hooked into the same side metabox
+				// MPTBM_Right_Side_Content_Settings already renders Pro Features /
+				// Quick Tips into, so it's relocated by mptbm-shell.js the same way.
+				add_action( 'mptbm_rent_sidebar_top', array( $this, 'render_payment_sidebar_card' ) );
+
+				// Popup opened by that card's "Payment Settings" / "Configure payment
+				// method" links — lets the admin change and save gateway settings
+				// directly from the transportation edit screen (mirrors the Tour
+				// plugin's TTBM_Payment_Settings edit-screen modal).
+				add_action( 'edit_form_top', array( $this, 'render_payment_config_modal' ) );
+				add_action( 'admin_enqueue_scripts', array( $this, 'maybe_enqueue_edit_payment_assets' ) );
+
 				// Gateway keys are managed by their own AJAX modals and never travel with
 				// the settings form, so preserve them when the Settings API saves the rest.
 				add_filter( 'pre_update_option_' . self::OPTION, array( $this, 'preserve_gateway_keys' ), 10, 2 );
@@ -54,6 +68,23 @@
 			private function is_settings_screen() {
 				$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 				return $screen && strpos( $screen->id, 'mptbm_settings_page' ) !== false;
+			}
+
+			/** Is this the transportation (mptbm_rent) add/edit screen? */
+			private function is_rent_edit_screen() {
+				$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+				return $screen && 'post' === $screen->base
+					&& class_exists( 'MPTBM_Function' ) && $screen->post_type === MPTBM_Function::get_cpt();
+			}
+
+			/**
+			 * The gateway "Configure" modals (render_gateway_modals()) and their
+			 * `.gateway-card` styling (payment_tabs_script()) are also needed by the
+			 * Payment Method sidebar card's popup on the transportation edit screen,
+			 * not just the real Payments settings tab.
+			 */
+			private function is_settings_or_rent_edit_screen() {
+				return $this->is_settings_screen() || $this->is_rent_edit_screen();
 			}
 
 			private function has_woo() {
@@ -67,6 +98,292 @@
 			private function opt( $key, $default = '' ) {
 				$o = get_option( self::OPTION, array() );
 				return isset( $o[ $key ] ) ? $o[ $key ] : $default;
+			}
+
+			/** Human-readable label for the currently active booking mode. */
+			private function get_booking_mode_label() {
+				if ( ! class_exists( 'MPTBM_Booking_Mode' ) ) {
+					return __( 'Not set', 'ecab-taxi-booking-manager' );
+				}
+				$mode = MPTBM_Booking_Mode::get_mode();
+				if ( MPTBM_Booking_Mode::WOOCOMMERCE === $mode ) {
+					return __( 'WooCommerce', 'ecab-taxi-booking-manager' );
+				}
+				if ( MPTBM_Booking_Mode::CUSTOM === $mode ) {
+					return __( 'Custom Payment', 'ecab-taxi-booking-manager' );
+				}
+				return __( 'Not set', 'ecab-taxi-booking-manager' );
+			}
+
+			/**
+			 * Names of the gateway(s) currently enabled for the active booking mode.
+			 *
+			 * @return string[]
+			 */
+			private function get_active_gateway_names() {
+				if ( ! class_exists( 'MPTBM_Booking_Mode' ) ) {
+					return array();
+				}
+				$mode  = MPTBM_Booking_Mode::get_mode();
+				$names = array();
+
+				if ( MPTBM_Booking_Mode::WOOCOMMERCE === $mode ) {
+					if ( class_exists( 'MPTBM_WC_Payment_Manager' ) && function_exists( 'WC' ) ) {
+						$names = MPTBM_WC_Payment_Manager::instance()->get_enabled_gateway_titles();
+					}
+					return $names;
+				}
+
+				if ( MPTBM_Booking_Mode::CUSTOM === $mode ) {
+					$map = array(
+						'mptbm_paypal_enable' => __( 'PayPal', 'ecab-taxi-booking-manager' ),
+						'mptbm_stripe_enable' => __( 'Stripe', 'ecab-taxi-booking-manager' ),
+					);
+					foreach ( $map as $key => $label ) {
+						if ( $this->opt( $key ) === 'on' ) {
+							$names[] = $label;
+						}
+					}
+					if ( class_exists( 'MPTBM_Function' ) && MPTBM_Function::offline_payment_enabled() ) {
+						$names[] = __( 'Offline Payment', 'ecab-taxi-booking-manager' );
+					}
+				}
+
+				return $names;
+			}
+
+			/**
+			 * Compact "Payment Method" card for the transportation add/edit screen
+			 * sidebar — shows the live booking mode + enabled gateway(s) and links
+			 * out to the real Payments settings tab to configure them.
+			 */
+			public function render_payment_sidebar_card( $post_id = 0 ) {
+				unset( $post_id );
+				$mode_label    = $this->get_booking_mode_label();
+				$gateway_names = $this->get_active_gateway_names();
+				$has_gateway   = class_exists( 'MPTBM_Booking_Mode' ) ? MPTBM_Booking_Mode::has_gateway_for_active_mode() : false;
+				?>
+				<div class="mptbm_payment_method_card">
+					<div class="mptbm_taxi_card_head">
+						<span class="mptbm_taxi_card_icon" aria-hidden="true">
+							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+						</span>
+						<div class="mptbm_taxi_card_head_text">
+							<label class="mptbm_taxi_category_label"><?php esc_html_e( 'Payment Method', 'ecab-taxi-booking-manager' ); ?></label>
+							<span class="mptbm_taxi_category_subtext"><?php esc_html_e( 'Active checkout & gateway', 'ecab-taxi-booking-manager' ); ?></span>
+						</div>
+					</div>
+
+					<div class="mptbm_payment_info_row">
+						<span><?php esc_html_e( 'Active Method', 'ecab-taxi-booking-manager' ); ?></span>
+						<strong><?php echo esc_html( $mode_label ); ?></strong>
+					</div>
+					<div class="mptbm_payment_info_row">
+						<span><?php esc_html_e( 'Active Gateway', 'ecab-taxi-booking-manager' ); ?></span>
+						<strong><?php echo esc_html( $gateway_names ? implode( ', ', $gateway_names ) : __( 'None', 'ecab-taxi-booking-manager' ) ); ?></strong>
+					</div>
+
+					<?php if ( $gateway_names ) : ?>
+						<p class="mptbm_payment_link">
+							<a href="#" data-mptbm-payment-modal-open><?php esc_html_e( 'Payment Settings', 'ecab-taxi-booking-manager' ); ?></a>
+						</p>
+					<?php endif; ?>
+
+					<?php if ( ! $has_gateway ) : ?>
+						<p class="mptbm_payment_warning">
+							<a href="#" data-mptbm-payment-modal-open><?php esc_html_e( 'Configure payment method', 'ecab-taxi-booking-manager' ); ?></a>
+						</p>
+					<?php endif; ?>
+				</div>
+				<?php
+			}
+
+			/**
+			 * Popup opened by the sidebar card's "Payment Settings" / "Configure
+			 * payment method" links — lets the admin flip the Booking Mode and
+			 * enable/configure a gateway without leaving the transportation edit
+			 * screen. Reuses the exact same self-contained, AJAX-saving pieces the
+			 * real Payments settings tab uses (Booking Mode selector, WooCommerce
+			 * Payment Methods manager, Custom Payment gateway cards + their
+			 * Configure modals) — nothing here is re-implemented.
+			 *
+			 * Deliberately leaves out the classic Settings-API-only controls
+			 * (Booking Confirmation Page, Require Customer Login, WooCommerce
+			 * Additional Settings, Currency tab) since those only save via the
+			 * real settings form's submit — the popup links out to the full
+			 * Payments tab for those instead.
+			 */
+			public function render_payment_config_modal() {
+				if ( ! $this->is_rent_edit_screen() ) {
+					return;
+				}
+				$mode           = class_exists( 'MPTBM_Booking_Mode' ) ? MPTBM_Booking_Mode::get_mode() : '';
+				$is_wc          = ( class_exists( 'MPTBM_Booking_Mode' ) && MPTBM_Booking_Mode::WOOCOMMERCE === $mode );
+				$wc_downloaded  = file_exists( WP_PLUGIN_DIR . '/woocommerce/woocommerce.php' );
+				$wc_cta_label   = $wc_downloaded
+					? __( 'Activate WooCommerce', 'ecab-taxi-booking-manager' )
+					: __( 'Install & Activate WooCommerce', 'ecab-taxi-booking-manager' );
+				$settings_url   = admin_url( 'edit.php?post_type=' . MPTBM_Function::get_cpt() . '&page=mptbm_settings_page&mptbm_tab=payments' );
+				$needs_notice   = class_exists( 'MPTBM_Booking_Mode' ) ? ! MPTBM_Booking_Mode::has_gateway_for_active_mode() : false;
+				?>
+				<?php if ( $needs_notice ) : ?>
+					<div class="mptbm-edit-payment-notice" id="mptbm-edit-payment-notice">
+						<?php esc_html_e( 'No payment method is currently configured.', 'ecab-taxi-booking-manager' ); ?>
+						<a href="#" class="mptbm-edit-payment-notice-link" data-mptbm-payment-modal-open>
+							<?php esc_html_e( 'Please configure a payment method to accept bookings.', 'ecab-taxi-booking-manager' ); ?>
+						</a>
+					</div>
+				<?php endif; ?>
+				<div class="mptbm-payment-modal" id="mptbm-payment-modal" style="display:none;">
+					<div class="mptbm-payment-modal-box">
+						<div class="mptbm-payment-modal-head">
+							<h2><?php esc_html_e( 'Payment Method', 'ecab-taxi-booking-manager' ); ?></h2>
+							<button type="button" class="mptbm-payment-modal-close" aria-label="<?php esc_attr_e( 'Close', 'ecab-taxi-booking-manager' ); ?>">&times;</button>
+						</div>
+						<div class="mptbm-payment-modal-body">
+							<?php $this->render_booking_mode_selector(); ?>
+
+							<div class="mptbm-payment-modal-section" data-mode-section="woocommerce"<?php echo $is_wc ? '' : ' style="display:none;"'; ?>>
+								<?php if ( ! $this->has_woo() ) : ?>
+									<div class="mptbm-payment-modal-wc-cta">
+										<div id="mptbm-payment-wc-info">
+											<button type="button" id="mptbm-payment-wc-install-btn" class="button button-primary">
+												<?php echo esc_html( $wc_cta_label ); ?>
+											</button>
+										</div>
+										<div id="mptbm-payment-wc-progress" style="display:none;">
+											<div class="mptbm-payment-wc-progress-track">
+												<div id="mptbm-payment-wc-progress-fill" class="mptbm-payment-wc-progress-fill"></div>
+											</div>
+											<p id="mptbm-payment-wc-progress-status" class="mptbm-payment-wc-progress-status"></p>
+										</div>
+									</div>
+									<?php
+									$this->wc_install_progress_script(
+										'mptbm-payment-wc-install-btn',
+										'mptbm-payment-wc-info',
+										'mptbm-payment-wc-progress',
+										'mptbm-payment-wc-progress-fill',
+										'mptbm-payment-wc-progress-status',
+										$wc_downloaded,
+										true
+									);
+									?>
+								<?php endif; ?>
+								<?php $this->render_wc_payment_manager(); ?>
+							</div>
+							<div class="mptbm-payment-modal-section" data-mode-section="custom"<?php echo $is_wc ? ' style="display:none;"' : ''; ?>>
+								<?php $this->render_gateway_cards_list(); ?>
+							</div>
+
+							<p class="mptbm-payment-modal-more">
+								<a href="<?php echo esc_url( $settings_url ); ?>" target="_blank" rel="noopener noreferrer">
+									<?php esc_html_e( 'More payment settings (confirmation page, checkout options, currency)', 'ecab-taxi-booking-manager' ); ?>
+								</a>
+							</p>
+						</div>
+					</div>
+				</div>
+				<style>
+				.mptbm-edit-payment-notice{width:100%;box-sizing:border-box;text-align:center;background:#F0EFFF;color:#403c39;font-size:13px;font-weight:600;padding:10px 26px;margin:0;}
+				.mptbm-edit-payment-notice-link{color:#e7105e;text-decoration:underline;margin-left:4px;cursor:pointer;}
+				.mptbm-edit-payment-notice-link:hover{color:#92400e;}
+				.mptbm-payment-modal{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100001;align-items:center;justify-content:center;padding:20px;}
+				.mptbm-payment-modal-box{background:#fff;border-radius:12px;max-width:820px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(15,23,42,.35);}
+				.mptbm-payment-modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #e5e7eb;position:sticky;top:0;background:#fff;z-index:1;}
+				.mptbm-payment-modal-head h2{margin:0;font-size:17px;font-weight:700;color:#111827;}
+				.mptbm-payment-modal-close{border:none;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:#6b7280;padding:4px 8px;}
+				.mptbm-payment-modal-close:hover{color:#111827;}
+				.mptbm-payment-modal-body{padding:20px 24px 28px;}
+				.mptbm-payment-modal-wc-cta{margin-bottom:16px;text-align:left;}
+				.mptbm-payment-modal-wc-cta #mptbm-payment-wc-install-btn.button.button-primary{border-radius:10px;}
+				.mptbm-payment-wc-progress-track{width:100%;height:8px;background:#f0f0f1;border-radius:100px;overflow:hidden;margin-bottom:10px;}
+				.mptbm-payment-wc-progress-fill{height:100%;width:0%;border-radius:100px;background:linear-gradient(90deg,#7b5ea7,#9b72cf);transition:width .5s cubic-bezier(.16,1,.3,1);}
+				.mptbm-payment-wc-progress-status{font-size:13px;color:#50575e;margin:0;min-height:20px;}
+				.mptbm-payment-modal-section{margin-top:16px;}
+				.mptbm-payment-modal-more{margin:18px 0 0;padding-top:14px;border-top:1px solid #e5e7eb;font-size:12.5px;}
+				.mptbm-payment-modal-more a{color:var(--mptbm-pay-accent,#F12971);font-weight:600;text-decoration:none;}
+				.mptbm-payment-modal-more a:hover{text-decoration:underline;}
+				</style>
+				<script>
+				jQuery(function($){
+					// Relocate the "No payment method is currently configured" notice
+					// (if present) to sit directly below the tab list bar, matching the
+					// Tour plugin's equivalent placement at the top of its edit screen.
+					var $notice = $('#mptbm-edit-payment-notice');
+					var $tabLists = $('#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists');
+					if ($notice.length && $tabLists.length) {
+						$notice.insertAfter($tabLists);
+					}
+
+					var $modal = $('#mptbm-payment-modal');
+					if (!$modal.length) { return; }
+					$modal.appendTo('body');
+
+					// The Booking Mode selector's own "WooCommerce is not active, so..."
+					// note is only relevant next to the WooCommerce section/CTA — hide it
+					// while Custom Payment is showing (kept in sync below on every mode
+					// switch, same as the two mode-section divs).
+					$modal.find('.mptbm-bm-auto-note').toggle(<?php echo $is_wc ? 'true' : 'false'; ?>);
+
+					$(document).on('click', '[data-mptbm-payment-modal-open]', function(e){
+						e.preventDefault();
+						$modal.css('display', 'flex');
+					});
+					$(document).on('click', '.mptbm-payment-modal-close', function(){
+						$modal.hide();
+					});
+					$modal.on('click', function(e){
+						if (e.target === this) { $modal.hide(); }
+					});
+					$(document).on('keydown', function(e){
+						if ((e.key === 'Escape' || e.keyCode === 27) && $modal.is(':visible')) {
+							$modal.hide();
+						}
+					});
+
+					// Keep the popup's WooCommerce/Custom Payment section in sync with
+					// the Booking Mode cards above it (that selector's own script
+					// triggers this event on every click, even when the mode can't be
+					// changed — see MPTBM_Payment_Settings::render_booking_mode_selector()).
+					$(document).on('mptbm:mode-changed', function(e, mode){
+						$modal.find('[data-mode-section="woocommerce"]').toggle(mode === 'woocommerce');
+						$modal.find('[data-mode-section="custom"]').toggle(mode === 'custom');
+						$modal.find('.mptbm-bm-auto-note').toggle(mode === 'woocommerce');
+					});
+
+					// Reopen on the WooCommerce section right after the reload that
+					// follows a successful install/activate (see wc_install_progress_script()) —
+					// picks up exactly where the admin left off instead of landing them
+					// back on a closed modal. Clicking the real card (rather than just
+					// firing the view-switch event) also persists WooCommerce as the
+					// Booking Mode now that it's actually available, which is the whole
+					// point of the flow the admin was just in the middle of.
+					try {
+						if (sessionStorage.getItem('mptbmReopenPaymentModal')) {
+							sessionStorage.removeItem('mptbmReopenPaymentModal');
+							$modal.css('display', 'flex');
+							$modal.find('.mptbm-bm-card[data-mode="woocommerce"]').trigger('click');
+						}
+					} catch (err) {}
+				});
+				</script>
+				<?php
+			}
+
+			/** WooCommerce admin assets the popup's native gateway forms benefit from (select2, tooltips). */
+			public function maybe_enqueue_edit_payment_assets( $hook ) {
+				if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+					return;
+				}
+				if ( ! $this->is_rent_edit_screen() ) {
+					return;
+				}
+				if ( $this->has_woo() ) {
+					wp_enqueue_style( 'woocommerce_admin_styles' );
+					wp_enqueue_script( 'wc-enhanced-select' );
+					wp_enqueue_script( 'wc-jquery-tiptip' );
+				}
 			}
 
 			/** Add the "Payments" + "Currency Settings" tabs to the settings navigation. */
@@ -512,11 +829,65 @@
 
 			/** PayPal / Stripe / Offline gateway cards + booking confirmation page. */
 			public function render_gateway_cards() {
+				$this->render_gateway_cards_list();
+
+				$is_pro      = $this->is_pro();
+				$conf_page   = absint( $this->opt( 'mptbm_confirmation_page_id', 0 ) );
+				$pro_badge   = '<span class="mptbm-gw-pro-badge" title="' . esc_attr__( 'Available in Pro version', 'ecab-taxi-booking-manager' ) . '">PRO</span>';
+				?>
+				<!-- Booking Confirmation Page -->
+				<div class="mptbm-conf-page">
+					<div class="mptbm-conf-page-label">
+						<label><?php esc_html_e( 'Booking Confirmation Page', 'ecab-taxi-booking-manager' ); ?></label>
+						<span><?php esc_html_e( 'In Standalone / Custom Payment mode, customers are shown a confirmation after booking. Optionally choose a dedicated page here.', 'ecab-taxi-booking-manager' ); ?></span>
+					</div>
+					<div class="mptbm-conf-page-field">
+						<?php
+							wp_dropdown_pages( array(
+								'name'              => self::OPTION . '[mptbm_confirmation_page_id]',
+								'id'                => 'mptbm_confirmation_page_id',
+								'selected'          => $conf_page,
+								'show_option_none'  => __( '— Default —', 'ecab-taxi-booking-manager' ),
+								'option_none_value' => '0',
+							) );
+						?>
+					</div>
+				</div>
+
+				<!-- Require customer login (Pro custom booking flow + portal) -->
+				<?php $require_login = $this->opt( 'mptbm_require_login', 'no' ); ?>
+				<div class="mptbm-conf-page">
+					<div class="mptbm-conf-page-label">
+						<label><?php esc_html_e( 'Require Customer Login', 'ecab-taxi-booking-manager' ); ?></label>
+						<span><?php esc_html_e( 'When enabled, customers must log in (or register) before they can complete a Custom Payment booking or view the My Bookings portal. When disabled, guests can book and track by email + reference.', 'ecab-taxi-booking-manager' ); ?></span>
+					</div>
+					<div class="mptbm-conf-page-field">
+						<?php if ( $is_pro ) : ?>
+							<select name="<?php echo esc_attr( self::OPTION ); ?>[mptbm_require_login]">
+								<option value="yes" <?php selected( $require_login, 'yes' ); ?>><?php esc_html_e( 'Yes — require login / registration', 'ecab-taxi-booking-manager' ); ?></option>
+								<option value="no" <?php selected( $require_login, 'no' ); ?>><?php esc_html_e( 'No — allow guest checkout', 'ecab-taxi-booking-manager' ); ?></option>
+							</select>
+						<?php else : ?>
+							<?php echo wp_kses_post( $pro_badge ); ?>
+						<?php endif; ?>
+					</div>
+				</div>
+				<?php
+			}
+
+			/**
+			 * The PayPal / Stripe / Offline gateway cards on their own, without the
+			 * Booking Confirmation Page / Require Customer Login controls below them
+			 * (those are classic Settings-API fields tied to the real Payments form
+			 * and don't save outside it). Shared by the real settings page
+			 * (render_gateway_cards() above) and the transportation edit screen's
+			 * "Configure payment method" popup (render_payment_config_modal()).
+			 */
+			public function render_gateway_cards_list() {
 				$is_pro      = $this->is_pro();
 				$pp_enabled  = $this->opt( 'mptbm_paypal_enable' ) === 'on';
 				$st_enabled  = $this->opt( 'mptbm_stripe_enable' ) === 'on';
 				$off_enabled = MPTBM_Function::offline_payment_enabled();
-				$conf_page   = absint( $this->opt( 'mptbm_confirmation_page_id', 0 ) );
 
 				$enabled_txt  = __( 'Enabled', 'ecab-taxi-booking-manager' );
 				$disabled_txt = __( 'Disabled', 'ecab-taxi-booking-manager' );
@@ -603,44 +974,6 @@
 						</div>
 					</div>
 				</div>
-
-				<!-- Booking Confirmation Page -->
-				<div class="mptbm-conf-page">
-					<div class="mptbm-conf-page-label">
-						<label><?php esc_html_e( 'Booking Confirmation Page', 'ecab-taxi-booking-manager' ); ?></label>
-						<span><?php esc_html_e( 'In Standalone / Custom Payment mode, customers are shown a confirmation after booking. Optionally choose a dedicated page here.', 'ecab-taxi-booking-manager' ); ?></span>
-					</div>
-					<div class="mptbm-conf-page-field">
-						<?php
-							wp_dropdown_pages( array(
-								'name'              => self::OPTION . '[mptbm_confirmation_page_id]',
-								'id'                => 'mptbm_confirmation_page_id',
-								'selected'          => $conf_page,
-								'show_option_none'  => __( '— Default —', 'ecab-taxi-booking-manager' ),
-								'option_none_value' => '0',
-							) );
-						?>
-					</div>
-				</div>
-
-				<!-- Require customer login (Pro custom booking flow + portal) -->
-				<?php $require_login = $this->opt( 'mptbm_require_login', 'no' ); ?>
-				<div class="mptbm-conf-page">
-					<div class="mptbm-conf-page-label">
-						<label><?php esc_html_e( 'Require Customer Login', 'ecab-taxi-booking-manager' ); ?></label>
-						<span><?php esc_html_e( 'When enabled, customers must log in (or register) before they can complete a Custom Payment booking or view the My Bookings portal. When disabled, guests can book and track by email + reference.', 'ecab-taxi-booking-manager' ); ?></span>
-					</div>
-					<div class="mptbm-conf-page-field">
-						<?php if ( $is_pro ) : ?>
-							<select name="<?php echo esc_attr( self::OPTION ); ?>[mptbm_require_login]">
-								<option value="yes" <?php selected( $require_login, 'yes' ); ?>><?php esc_html_e( 'Yes — require login / registration', 'ecab-taxi-booking-manager' ); ?></option>
-								<option value="no" <?php selected( $require_login, 'no' ); ?>><?php esc_html_e( 'No — allow guest checkout', 'ecab-taxi-booking-manager' ); ?></option>
-							</select>
-						<?php else : ?>
-							<?php echo wp_kses_post( $pro_badge ); ?>
-						<?php endif; ?>
-					</div>
-				</div>
 				<?php
 			}
 
@@ -651,7 +984,157 @@
 				}
 			}
 
-			/** WooCommerce install / activate modal (footer). */
+			/**
+			 * Self-contained "install → activate" progress-bar script, parameterized
+			 * by this instance's own info/progress/fill/status/button element ids so
+			 * it can be embedded in more than one place (the real settings page's
+			 * WooCommerce install modal AND the transportation edit screen's Payment
+			 * Method popup) without either depending on the other's script having
+			 * already run, and without the popup needing to open a second modal on
+			 * top of itself.
+			 *
+			 * @param bool $reopen_popup_on_reload Only true for the Payment Method
+			 *             popup's instance — sets a sessionStorage flag (consumed by
+			 *             render_payment_config_modal()'s own script) so the popup
+			 *             reopens on the WooCommerce section after the reload that
+			 *             follows a successful install/activate. Must stay false for
+			 *             the real settings page's instance: sessionStorage persists
+			 *             for the whole tab, not just this page, so setting it there
+			 *             too would leave a stale flag that wrongly reopens the popup
+			 *             the next time the admin visits the transportation edit
+			 *             screen in the same tab.
+			 */
+			private function wc_install_progress_script( $btn_id, $info_id, $progress_id, $fill_id, $status_id, $is_installed, $reopen_popup_on_reload = false ) {
+				?>
+				<script>
+				jQuery(function($){
+					var $btn = $('#<?php echo esc_js( $btn_id ); ?>');
+					if (!$btn.length) { return; }
+					var $info     = $('#<?php echo esc_js( $info_id ); ?>');
+					var $progress = $('#<?php echo esc_js( $progress_id ); ?>');
+					var $fill     = $('#<?php echo esc_js( $fill_id ); ?>');
+					var $status   = $('#<?php echo esc_js( $status_id ); ?>');
+					var isInstalled = <?php echo $is_installed ? 'true' : 'false'; ?>;
+					var nonce       = '<?php echo esc_js( wp_create_nonce( 'mptbm_install_wc' ) ); ?>';
+					var i18n = {
+						downloading: <?php echo wp_json_encode( __( 'Downloading & installing WooCommerce…', 'ecab-taxi-booking-manager' ) ); ?>,
+						activating:  <?php echo wp_json_encode( __( 'Activating WooCommerce…', 'ecab-taxi-booking-manager' ) ); ?>,
+						done:        <?php echo wp_json_encode( __( 'Successfully activated! 100%', 'ecab-taxi-booking-manager' ) ); ?>,
+						timeout:     <?php echo wp_json_encode( __( 'This is taking longer than expected — your connection or server may be slow. Please wait, or try again in a moment.', 'ecab-taxi-booking-manager' ) ); ?>,
+						networkErr:  <?php echo wp_json_encode( __( 'A network error occurred. Please try again.', 'ecab-taxi-booking-manager' ) ); ?>,
+						errorPrefix: <?php echo wp_json_encode( __( 'Error: ', 'ecab-taxi-booking-manager' ) ); ?>
+					};
+
+					// Fallback shown only once the automatic install/activate genuinely
+					// fails — a plain link to WordPress's own Add Plugins search screen,
+					// pre-filled for WooCommerce, so the admin can install it by hand
+					// without needing to know the plugin slug or where to look.
+					var manualInstallUrl = <?php echo wp_json_encode( admin_url( 'plugin-install.php?s=WooCommerce&tab=search&type=term' ) ); ?>;
+					var $manualBtn = $('<a/>', {
+						href: manualInstallUrl,
+						target: '_blank',
+						rel: 'noopener noreferrer',
+						text: <?php echo wp_json_encode( __( 'Install WooCommerce Manually', 'ecab-taxi-booking-manager' ) ); ?>
+					}).addClass('button').css({ display: 'none', 'margin-left': '10px' });
+					$info.append($manualBtn);
+
+					$btn.on('click', function(){
+						$manualBtn.hide();
+						$info.hide(); $fill.css('width','0%'); $progress.show();
+
+						// Two real, separately-timed requests when a full install is
+						// needed (download+unpack, then activate) instead of one long
+						// blocking call — each request is shorter (less likely to hit a
+						// host's max_execution_time on a slow connection) and the bar
+						// reflects genuine per-step completion rather than a guessed
+						// fixed-duration animation.
+						var stages = isInstalled
+							? [ { step: 'activate', label: i18n.activating, from: 10, to: 100 } ]
+							: [
+								{ step: 'install',  label: i18n.downloading, from: 5,  to: 55 },
+								{ step: 'activate', label: i18n.activating,  from: 55, to: 100 }
+							];
+						var stageIndex = 0, crawlId = null;
+
+						function stopCrawl(){
+							if (crawlId) { clearInterval(crawlId); crawlId = null; }
+						}
+
+						// Eases the bar from the stage's floor toward (but never
+						// reaching) its ceiling while the real request is still in
+						// flight — signals "still working" without ever claiming a
+						// step is done before its response actually arrives.
+						function crawlWithinStage(stage){
+							var start = Date.now();
+							$fill.css('width', stage.from + '%');
+							$status.text(stage.label + ' ' + stage.from + '%');
+							crawlId = setInterval(function(){
+								var elapsed = Date.now() - start;
+								var eased = stage.from + (stage.to - stage.from) * (1 - Math.exp(-elapsed / 4000));
+								var pct = Math.min(eased, stage.to - 2);
+								$fill.css('width', pct + '%');
+								$status.text(stage.label + ' ' + Math.round(pct) + '%');
+							}, 200);
+						}
+
+						function runStage(){
+							var stage = stages[stageIndex];
+							crawlWithinStage(stage);
+
+							$.ajax({
+								url: ajaxurl, type: 'POST', timeout: 120000,
+								data: { action: 'mptbm_install_activate_wc', nonce: nonce, step: stage.step }
+							}).done(function(response){
+								stopCrawl();
+								if (!response || !response.success) {
+									$fill.css('width','100%');
+									$status.css('color','#d92d20').text(i18n.errorPrefix + ((response && response.data) || 'Unknown error'));
+									$manualBtn.show();
+									setTimeout(function(){ $progress.hide(); $info.show(); }, 5000);
+									return;
+								}
+
+								$fill.css('width', stage.to + '%');
+								$status.css('color','').text(stage.label + ' ' + stage.to + '%');
+
+								stageIndex++;
+								if (stageIndex < stages.length) {
+									setTimeout(runStage, 200);
+									return;
+								}
+								$status.css('color','#039855').text(i18n.done);
+								<?php if ( $reopen_popup_on_reload ) : ?>
+								// Reopen the Payment Method popup (on the WooCommerce section)
+								// after the reload that follows — a plain reload would otherwise
+								// drop the admin right back on a closed modal with no obvious next
+								// step, right after they just finished setting WooCommerce up.
+								try { sessionStorage.setItem( 'mptbmReopenPaymentModal', '1' ); } catch ( err ) {}
+								<?php endif; ?>
+								setTimeout(function(){ location.reload(); }, 1000);
+							}).fail(function(jqXHR, textStatus){
+								stopCrawl();
+								$fill.css('width','100%');
+								$status.css('color','#d92d20').text(textStatus === 'timeout' ? i18n.timeout : i18n.networkErr);
+								$manualBtn.show();
+								setTimeout(function(){ $progress.hide(); $info.show(); }, 6000);
+							});
+						}
+
+						runStage();
+					});
+				});
+				</script>
+				<?php
+			}
+
+			/**
+			 * WooCommerce install/activate modal (footer) — used by the real
+			 * Payments settings page's WooCommerce callout only. The transportation
+			 * edit screen's Payment Method popup has its own inline install UI
+			 * (render_payment_config_modal()) using the same shared progress script
+			 * (wc_install_progress_script()) instead of opening this modal on top of
+			 * itself.
+			 */
 			public function render_wc_warning_modal() {
 				if ( ! $this->is_settings_screen() || $this->has_woo() ) {
 					return;
@@ -689,9 +1172,6 @@
 				</div>
 				<script>
 				jQuery(function($){
-					var mptbmWcIsInstalled = <?php echo $is_installed ? 'true' : 'false'; ?>;
-					var mptbmWcNonce       = '<?php echo esc_js( wp_create_nonce( 'mptbm_install_wc' ) ); ?>';
-
 					$(document).on('click', '.mptbm-install-wc-trigger', function(e){
 						e.preventDefault();
 						$('#mptbm-wc-install-modal').css('display','flex').hide().fadeIn(200);
@@ -700,66 +1180,26 @@
 					$(document).on('click', '#mptbm-wc-install-modal', function(e){
 						if ($(e.target).is('#mptbm-wc-install-modal')) { $(this).fadeOut(200); }
 					});
-
-					$('#mptbm-wc-modal-action-btn').on('click', function(){
-						var $info=$('#mptbm-wc-modal-info'), $progress=$('#mptbm-wc-modal-progress'),
-						    $fill=$('#mptbm-wc-modal-progress-fill'), $status=$('#mptbm-wc-modal-status-text');
-						$info.hide(); $fill.css('width','0%'); $progress.fadeIn(200);
-						var texts = mptbmWcIsInstalled
-							? [<?php echo implode( ',', array_map( 'wp_json_encode', array(
-								__( 'Activating WooCommerce...', 'ecab-taxi-booking-manager' ),
-								__( 'Configuring settings...', 'ecab-taxi-booking-manager' ),
-								__( 'Finalizing setup...', 'ecab-taxi-booking-manager' ),
-							) ) ); ?>]
-							: [<?php echo implode( ',', array_map( 'wp_json_encode', array(
-								__( 'Downloading WooCommerce...', 'ecab-taxi-booking-manager' ),
-								__( 'Installing WooCommerce...', 'ecab-taxi-booking-manager' ),
-								__( 'Activating WooCommerce...', 'ecab-taxi-booking-manager' ),
-								__( 'Configuring settings...', 'ecab-taxi-booking-manager' ),
-								__( 'Finalizing...', 'ecab-taxi-booking-manager' ),
-							) ) ); ?>];
-						var duration=mptbmWcIsInstalled?3000:15000, startTime=Date.now(), isDone=false, frameId;
-						$status.text(texts[0]);
-						function animateBar(){
-							if(isDone) return;
-							var raw=Math.min((Date.now()-startTime)/duration,1), pct=raw*(2-raw)*95;
-							$fill.css('width',pct+'%');
-							var idx=Math.min(Math.floor((pct/95)*texts.length),texts.length-1);
-							$status.text(texts[idx]+' '+Math.round(pct)+'%');
-							if(pct<95) frameId=requestAnimationFrame(animateBar);
-						}
-						frameId=requestAnimationFrame(animateBar);
-						$.ajax({
-							url: ajaxurl, type:'POST',
-							data:{ action:'mptbm_install_activate_wc', nonce:mptbmWcNonce },
-							success: function(response){
-								var minWait=mptbmWcIsInstalled?1500:3000, leftover=Math.max(0,minWait-(Date.now()-startTime));
-								setTimeout(function(){
-									isDone=true; cancelAnimationFrame(frameId); $fill.css('width','100%');
-									if(response.success){
-										$status.css('color','#039855').text(<?php echo wp_json_encode( __( 'Successfully Activated! 100%', 'ecab-taxi-booking-manager' ) ); ?>);
-										setTimeout(function(){ location.reload(); }, 1200);
-									} else {
-										$status.css('color','#d92d20').text(<?php echo wp_json_encode( __( 'Error: ', 'ecab-taxi-booking-manager' ) ); ?> + (response.data||'Unknown error'));
-										setTimeout(function(){ $progress.hide(); $info.show(); }, 5000);
-									}
-								}, leftover);
-							},
-							error: function(){
-								isDone=true; cancelAnimationFrame(frameId); $fill.css('width','100%');
-								$status.css('color','#d92d20').text(<?php echo wp_json_encode( __( 'A network error occurred. Please try again.', 'ecab-taxi-booking-manager' ) ); ?>);
-								setTimeout(function(){ $progress.hide(); $info.show(); }, 5000);
-							}
-						});
-					});
 				});
 				</script>
 				<?php
+				$this->wc_install_progress_script(
+					'mptbm-wc-modal-action-btn',
+					'mptbm-wc-modal-info',
+					'mptbm-wc-modal-progress',
+					'mptbm-wc-modal-progress-fill',
+					'mptbm-wc-modal-status-text',
+					$is_installed
+				);
 			}
 
 			/** PayPal / Stripe / Offline Configure modals (footer). Pro-only for PayPal/Stripe. */
 			public function render_gateway_modals() {
-				if ( ! $this->is_settings_screen() ) {
+				// Also needed on the transportation edit screen: the Payment Method
+				// sidebar card's "Configure payment method" popup embeds the same
+				// gateway cards (render_gateway_cards_list()), whose Configure
+				// buttons open these same modals.
+				if ( ! $this->is_settings_or_rent_edit_screen() ) {
 					return;
 				}
 				$pp_enabled  = $this->opt( 'mptbm_paypal_enable' ) === 'on';
@@ -978,7 +1418,12 @@
 
 			/** Sub-tab switching + gateway card styling (footer). */
 			public function payment_tabs_script() {
-				if ( ! $this->is_settings_screen() ) {
+				// Also needed on the transportation edit screen so the popup's
+				// gateway cards get the same `.gateway-card` etc. styling defined
+				// below — the accordion/tab-switch JS further down all early-return
+				// once they fail to find the settings page's own markup, so it's
+				// safe to print there too.
+				if ( ! $this->is_settings_or_rent_edit_screen() ) {
 					return;
 				}
 				$wc_active = $this->has_woo() ? 'true' : 'false';
@@ -1307,50 +1752,83 @@
 			}
 
 			/** AJAX: install &/or activate WooCommerce. */
+			/**
+			 * Installs (download + unpack) or activates WooCommerce, one step per
+			 * request instead of both in a single call — a slow connection or a
+			 * loaded server only has to survive one focused request at a time, and
+			 * the frontend (render_wc_warning_modal()) can show a progress bar with
+			 * real milestones (step completed) instead of a guessed fixed-duration
+			 * animation. $_POST['step'] is 'install' (default) or 'activate'.
+			 */
 			public function ajax_install_activate_wc() {
 				check_ajax_referer( 'mptbm_install_wc', 'nonce' );
 				if ( ! current_user_can( 'install_plugins' ) ) {
 					wp_send_json_error( __( 'Permission denied.', 'ecab-taxi-booking-manager' ) );
 				}
 
+				// The install step downloads and unpacks a real plugin zip, which can
+				// be slow on a poor connection or a tightly-limited host — raise both
+				// caps for this request rather than letting a slow download get killed
+				// mid-way by a typical shared-host default (30s execution time).
+				if ( function_exists( 'set_time_limit' ) ) {
+					@set_time_limit( 300 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				}
+				if ( function_exists( 'wp_raise_memory_limit' ) ) {
+					wp_raise_memory_limit( 'admin' );
+				}
+
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
-				require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-				require_once ABSPATH . 'wp-admin/includes/class-automatic-upgrader-skin.php';
-				require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 				require_once ABSPATH . 'wp-admin/includes/file.php';
 				require_once ABSPATH . 'wp-admin/includes/misc.php';
 
 				$plugin_file = 'woocommerce/woocommerce.php';
+				$step        = isset( $_POST['step'] ) ? sanitize_key( wp_unslash( $_POST['step'] ) ) : 'install';
 
-				if ( ! file_exists( WP_PLUGIN_DIR . '/' . $plugin_file ) ) {
-					$api = plugins_api( 'plugin_information', array(
-						'slug'   => 'woocommerce',
-						'fields' => array( 'sections' => false ),
-					) );
-					if ( is_wp_error( $api ) ) {
-						wp_send_json_error( $api->get_error_message() );
+				if ( 'activate' === $step ) {
+					if ( ! file_exists( WP_PLUGIN_DIR . '/' . $plugin_file ) ) {
+						wp_send_json_error( __( 'WooCommerce is not installed yet — please install it first.', 'ecab-taxi-booking-manager' ) );
 					}
-					$upgrader = new Plugin_Upgrader( new Automatic_Upgrader_Skin() );
-					$result   = $upgrader->install( $api->download_link );
-					if ( is_wp_error( $result ) ) {
-						wp_send_json_error( $result->get_error_message() );
-					} elseif ( ! $result ) {
-						wp_send_json_error( __( 'Installation failed. Please try manually.', 'ecab-taxi-booking-manager' ) );
+
+					// Activate via the options table to avoid loading woocommerce.php into
+					// this process (which would clash with the wc_price()/WC() fallback shims).
+					$active = get_option( 'active_plugins', array() );
+					if ( ! in_array( $plugin_file, $active, true ) ) {
+						$active[] = $plugin_file;
+						sort( $active );
+						update_option( 'active_plugins', $active );
 					}
+					do_action( 'activate_' . $plugin_file );
+					do_action( 'activated_plugin', $plugin_file, false );
+
+					wp_send_json_success( __( 'WooCommerce activated successfully!', 'ecab-taxi-booking-manager' ) );
 				}
 
-				// Activate via the options table to avoid loading woocommerce.php into this
-				// process (which would clash with the wc_price()/WC() fallback shims).
-				$active = get_option( 'active_plugins', array() );
-				if ( ! in_array( $plugin_file, $active, true ) ) {
-					$active[] = $plugin_file;
-					sort( $active );
-					update_option( 'active_plugins', $active );
+				// step === 'install': download + unpack only. Activation is a separate
+				// request (above) so a slow download can't also delay/block it.
+				if ( file_exists( WP_PLUGIN_DIR . '/' . $plugin_file ) ) {
+					wp_send_json_success( __( 'WooCommerce is already installed.', 'ecab-taxi-booking-manager' ) );
 				}
-				do_action( 'activate_' . $plugin_file );
-				do_action( 'activated_plugin', $plugin_file, false );
 
-				wp_send_json_success( __( 'WooCommerce activated successfully!', 'ecab-taxi-booking-manager' ) );
+				require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+				require_once ABSPATH . 'wp-admin/includes/class-automatic-upgrader-skin.php';
+				require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+
+				$api = plugins_api( 'plugin_information', array(
+					'slug'   => 'woocommerce',
+					'fields' => array( 'sections' => false ),
+				) );
+				if ( is_wp_error( $api ) ) {
+					wp_send_json_error( $api->get_error_message() );
+				}
+				$upgrader = new Plugin_Upgrader( new Automatic_Upgrader_Skin() );
+				$result   = $upgrader->install( $api->download_link );
+				if ( is_wp_error( $result ) ) {
+					wp_send_json_error( $result->get_error_message() );
+				} elseif ( ! $result ) {
+					wp_send_json_error( __( 'Installation failed. Please try manually.', 'ecab-taxi-booking-manager' ) );
+				}
+
+				wp_send_json_success( __( 'WooCommerce installed successfully!', 'ecab-taxi-booking-manager' ) );
 			}
 
 			/**

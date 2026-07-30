@@ -1,0 +1,418 @@
+/*
+ * Modern visual skin for the Checkout Fields admin page
+ * (edit.php?post_type=mptbm_rent&page=mptbm_wc_checkout_fields), matching the
+ * Operation Areas page's design language (hero header, rounded cards, pill
+ * tab switcher, modern modal).
+ *
+ * Deliberately additive/override-only: every element the existing JS
+ * (mptbm-pro-checkout.js) and the Pro plugin's own hooks (mptbm_wc_checkout_add /
+ * mptbm_wc_checkout_action, which render the Add/Edit/Delete buttons and only
+ * exist when Pro is active) depend on — .tab-item, .tab-content, #field-modal,
+ * .open-modal, .checkoutSwitchButton, input[name="..."] etc. — keeps its exact
+ * class names, ids and structure. Only new wrapper classes/visual rules are
+ * added here; nothing structural changes underneath.
+ */
+
+.mptbm-checkout-fields-page {
+    width: 98%;
+    max-width: 98%;
+    margin: 0 auto;
+    padding: 28px 0 48px;
+    box-sizing: border-box;
+}
+
+.mptbm-checkout-fields-page * ,
+.mptbm-checkout-fields-page *::before,
+.mptbm-checkout-fields-page *::after {
+    box-sizing: border-box;
+}
+
+/* ── Hero header ───────────────────────────────────────────────── */
+.mptbm-checkout-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px 26px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 12px 32px -26px rgba(15, 23, 42, .55);
+    margin-bottom: 18px;
+}
+
+.mptbm-checkout-heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.mptbm-checkout-heading-icon {
+    display: inline-flex;
+    flex: 0 0 52px;
+    width: 52px;
+    height: 52px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    color: #fff;
+    background: linear-gradient(145deg, #6c5ce7, #5145cd);
+    box-shadow: 0 10px 22px -12px rgba(81, 69, 205, .8);
+    font-size: 20px;
+}
+
+.mptbm-checkout-eyebrow {
+    margin: 0 0 4px !important;
+    color: #6c5ce7 !important;
+    font-size: 11px !important;
+    font-weight: 800;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+}
+
+.mptbm-checkout-heading h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 24px;
+    line-height: 1.25;
+    font-weight: 750;
+}
+
+.mptbm-checkout-heading p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* ── Tab switcher: same .tab-container/.tab-menu/.tab-item structure and
+   click behaviour (mptbm-pro-checkout.js), restyled as a clean pill switcher
+   instead of the old dark sidebar strip. ─────────────────────────────── */
+.mpStyles .checkout .tab-container {
+    display: block;
+    padding: 0;
+}
+
+.mpStyles .checkout .tab-menu {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    margin: 0 0 18px;
+    list-style: none;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f1f5f9;
+}
+
+.mpStyles .checkout .tab-menu h3 {
+    display: none;
+}
+
+.mpStyles .checkout .tab-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 9px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    background: transparent;
+    transition: background .15s ease, color .15s ease;
+}
+
+.mpStyles .checkout .tab-item:hover {
+    color: #1e293b;
+    background: rgba(255, 255, 255, .7);
+}
+
+.mpStyles .checkout .tab-item.active {
+    color: #fff;
+    background: linear-gradient(135deg, #6c5ce7, #5145cd);
+    box-shadow: 0 4px 12px rgba(81, 69, 205, .28);
+}
+
+.mpStyles .checkout .tab-item .i {
+    display: none;
+}
+
+.mpStyles .checkout .tab-content-container {
+    flex-grow: 1;
+}
+
+.mpStyles .checkout .tab-content {
+    padding: 0;
+    background: transparent;
+}
+
+.mpStyles .checkout .tab-content.active {
+    background: transparent;
+}
+
+.mpStyles .checkout .tab-content > h2 {
+    margin: 0 0 16px;
+    color: #111827;
+    font-size: 17px;
+}
+
+/* ── Billing Fields table: same <table class="wc_gateways widefat striped">
+   markup, restyled as a rounded modern card. ─────────────────────────── */
+.mpStyles .checkout table.wc_gateways {
+    border: 1px solid #e5e7ef;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 10px 28px -26px rgba(15, 23, 42, .55);
+    border-spacing: 0;
+}
+
+.mpStyles .checkout table.wc_gateways thead th {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eef0f5;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.mpStyles .checkout table.wc_gateways tbody tr {
+    transition: background .12s ease;
+}
+
+.mpStyles .checkout table.wc_gateways.striped tbody tr:nth-child(odd) {
+    background: #fff;
+}
+
+.mpStyles .checkout table.wc_gateways tbody tr:hover {
+    background: #faf9ff;
+}
+
+.mpStyles .checkout table.wc_gateways td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.mpStyles .checkout table.wc_gateways tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+/* Required / Disabled indicator dots — same .dashicons.dashicons-yes span,
+   restyled as a small filled badge circle instead of a bare green tick. */
+.mpStyles .checkout table.wc_gateways td span.dashicons-yes {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: #15803d;
+    background: #ecfdf3;
+    font-size: 13px;
+}
+
+.mpStyles .checkout table.wc_gateways td span.checkout-disabled.dashicons-yes {
+    color: #b45309;
+    background: #fff7ed;
+}
+
+/* ── Switch — same .switch/.slider structure, recoloured to the brand accent. */
+.mpStyles .checkout .switch {
+    width: 42px;
+    height: 24px;
+}
+
+.mpStyles .checkout .slider {
+    background-color: #cbd5e1;
+}
+
+.mpStyles .checkout .slider:before {
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+}
+
+.mpStyles .checkout input:checked + .slider {
+    background-color: #6254df;
+}
+
+.mpStyles .checkout input:focus + .slider {
+    box-shadow: 0 0 0 3px rgba(98, 84, 223, .18);
+}
+
+.mpStyles .checkout input:checked + .slider:before {
+    transform: translateX(18px);
+}
+
+/* ── Checkout Settings tab: same table/switch_button markup, restyled as a
+   stack of modern "settings row" cards (icon + label/description + switch). */
+#mptbm_wc_checkout_settings table.wc_gateways {
+    box-shadow: none;
+    border: none;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#mptbm_wc_checkout_settings table.wc_gateways tbody,
+#mptbm_wc_checkout_settings table.wc_gateways tr {
+    display: block;
+}
+
+#mptbm_wc_checkout_settings table.wc_gateways tr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    border: 1px solid #e5e7ef;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 18px -18px rgba(15, 23, 42, .5);
+}
+
+#mptbm_wc_checkout_settings table.wc_gateways td {
+    padding: 0;
+    border: none;
+}
+
+#mptbm_wc_checkout_settings .span-checkout-setting {
+    color: #1e293b;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+#mptbm_wc_checkout_settings .action-button {
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+#mptbm_wc_checkout_settings .action-button .submit {
+    margin: 0;
+}
+
+#mptbm_wc_checkout_settings .action-button input[type="submit"] {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 7px 22px;
+    border: none;
+    border-radius: 10px;
+    background: #6254df;
+    box-shadow: none;
+    font-weight: 700;
+}
+
+#mptbm_wc_checkout_settings .action-button input[type="submit"]:hover {
+    background: #5145cd;
+}
+
+/* ── Modal — same #field-modal/.modal-content/.custom-form structure, given
+   the Operation Areas dialog treatment (centered card, soft backdrop). */
+.mpStyles .checkout .modal {
+    background-color: rgba(15, 23, 42, .48);
+}
+
+.mpStyles .checkout .modal-content {
+    margin: 6vh auto;
+    max-width: 480px;
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 30px 80px -25px rgba(15, 23, 42, .55);
+    padding: 0;
+    overflow: hidden;
+}
+
+.mpStyles .checkout .custom-form-container {
+    display: block;
+}
+
+.mpStyles .checkout .custom-form {
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+    padding: 28px;
+    background: #fff;
+    border: none;
+    border-radius: 0;
+}
+
+.mpStyles .checkout .custom-form h2 {
+    text-align: left;
+    margin: 0 0 18px;
+    color: #111827;
+    font-size: 19px;
+}
+
+.mpStyles .checkout .custom-form label {
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.mpStyles .checkout .custom-form input[type="text"],
+.mpStyles .checkout .custom-form input[type="email"],
+.mpStyles .checkout .custom-form select,
+.mpStyles .checkout .custom-form textarea {
+    border: 1px solid #d8dee9;
+    border-radius: 10px;
+    padding: 9px 12px;
+}
+
+.mpStyles .checkout .custom-form input[type="text"]:focus,
+.mpStyles .checkout .custom-form select:focus,
+.mpStyles .checkout .custom-form textarea:focus {
+    border-color: #7467e8;
+    box-shadow: 0 0 0 3px rgba(98, 84, 223, .12);
+    outline: none;
+}
+
+.mpStyles .checkout .custom-form button {
+    background: #6254df;
+    border-radius: 10px;
+    padding: 10px 22px;
+    font-weight: 700;
+}
+
+.mpStyles .checkout .custom-form button:hover {
+    background: #5145cd;
+}
+
+.mpStyles .checkout .close {
+    top: 14px;
+    right: 16px;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: #64748b;
+    background: #f1f5f9;
+    font-size: 18px;
+}
+
+@media (max-width: 700px) {
+    .mptbm-checkout-fields-page {
+        width: 100%;
+        padding-top: 18px;
+    }
+
+    .mptbm-checkout-hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    #mptbm_wc_checkout_settings table.wc_gateways tr {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+}

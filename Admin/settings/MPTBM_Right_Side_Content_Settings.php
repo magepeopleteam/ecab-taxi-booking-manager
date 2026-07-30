@@ -56,6 +56,12 @@ if ( ! class_exists('MPTBM_Right_Side_Content_Settings') ) {
         }
 
         public function render_side_metabox( $post ) {
+            // Lets other classes (MPTBM_Payment_Settings) inject a card into this
+            // same metabox without this class needing to know about them — the
+            // "Payment Method" card renders first so mptbm-shell.js can relocate
+            // it to the top of the persistent sidebar, above the Featured Image.
+            do_action( 'mptbm_rent_sidebar_top', $post->ID );
+
             self::mptbm_right_pro_features_card();
             self::mptbm_right_quick_tipcs( $post->ID );
         }

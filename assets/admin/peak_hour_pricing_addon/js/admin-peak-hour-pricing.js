@@ -113,8 +113,19 @@ jQuery(document).ready(function($) {
     }
 
     function handleDynamicRuleAddition() {
-        // Handle add new rule button (align with main plugin add class)
-        $(document).on('click', '.mp_add_new_button, .mp_add_item', function(e) {
+        // Handle add new rule button (align with main plugin add class).
+        // Scoped to this addon's own container — ".mp_add_new_button" is a
+        // generic class shared with the Distance Tier Pricing addon's own "Add
+        // New Distance Tier" button, and an unscoped document-level handler here
+        // would fire for that button too (and, depending on script load order,
+        // its stopImmediatePropagation() could block Distance Tier's own handler
+        // from ever running).
+        $(document).on('click', '.mptbm_peak_hour_pricing_settings .mp_add_new_button, .mptbm_peak_hour_pricing_settings .mp_add_item', function(e) {
+            var $scope = $(this).closest('.mptbm_peak_hour_pricing_settings');
+            if ($scope.length === 0) {
+                return;
+            }
+
             e.preventDefault();
             e.stopPropagation();
             if (typeof e.stopImmediatePropagation === 'function') { e.stopImmediatePropagation(); }

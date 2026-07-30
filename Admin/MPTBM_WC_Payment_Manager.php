@@ -43,7 +43,16 @@
 				unset( $hook );
 
 				$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-				if ( ! $screen || strpos( $screen->id, 'mptbm_settings_page' ) === false ) {
+				if ( ! $screen ) {
+					return;
+				}
+				$is_settings_page = strpos( $screen->id, 'mptbm_settings_page' ) !== false;
+				// Also needed on the transportation edit screen: the Payment Method
+				// sidebar card's "Configure payment method" popup embeds this same
+				// WooCommerce Payment Methods manager when Booking Mode is WooCommerce.
+				$is_rent_edit = 'post' === $screen->base
+					&& class_exists( 'MPTBM_Function' ) && $screen->post_type === MPTBM_Function::get_cpt();
+				if ( ! $is_settings_page && ! $is_rent_edit ) {
 					return;
 				}
 
@@ -156,6 +165,28 @@
 				}
 
 				return $count;
+			}
+
+			/**
+			 * Titles of the currently enabled WooCommerce gateways — used by the
+			 * transportation edit screen's "Payment Method" sidebar card to show
+			 * which gateway(s) are actually live.
+			 *
+			 * @return string[]
+			 */
+			public function get_enabled_gateway_titles() {
+				if ( ! class_exists( 'WooCommerce' ) || ! function_exists( 'WC' ) ) {
+					return array();
+				}
+
+				$titles = array();
+				foreach ( $this->get_all_gateways() as $gateway ) {
+					if ( 'yes' === $gateway->enabled ) {
+						$titles[] = $gateway->get_method_title() ? $gateway->get_method_title() : $gateway->get_title();
+					}
+				}
+
+				return $titles;
 			}
 
 			private function verify_request() {

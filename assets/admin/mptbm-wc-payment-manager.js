@@ -13,6 +13,26 @@
 		} );
 	}
 
+	// Bottom-right confirmation toast (CSS already ships in
+	// mptbm_taxi_add_edit.css for the transportation edit screen — reused here
+	// so an AJAX-saved setting always gets an unmissable confirmation instead
+	// of a silent badge change or a blocking window.alert().
+	var toastIcons = {
+		success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+		error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+	};
+	function showToast( type, message ) {
+		var $toast = $( '<div/>', { 'class': 'mptbm_toast mptbm_toast_' + type } );
+		$( '<span/>', { 'class': 'mptbm_toast_icon' } ).html( toastIcons[ type ] || '' ).appendTo( $toast );
+		$( '<span/>', { 'class': 'mptbm_toast_msg', text: message } ).appendTo( $toast );
+		$( 'body' ).append( $toast );
+		window.requestAnimationFrame( function () { $toast.addClass( 'is-show' ); } );
+		setTimeout( function () {
+			$toast.removeClass( 'is-show' );
+			setTimeout( function () { $toast.remove(); }, 300 );
+		}, 2600 );
+	}
+
 	$( function () {
 		var $manager = $( '.mptbm-wc-payment-manager' ).first();
 		if ( ! $manager.length ) {
@@ -50,6 +70,7 @@
 			var $input = $( this );
 			var $card = $input.closest( '.mptbm-gw-card' );
 			var gatewayId = $input.data( 'gateway-id' );
+			var gatewayTitle = $card.find( '.mptbm-gw-title' ).text();
 			var enabled = $input.is( ':checked' ) ? 'yes' : 'no';
 
 			$input.prop( 'disabled', true );
@@ -61,15 +82,17 @@
 			} )
 				.done( function ( res ) {
 					if ( res && res.success ) {
-						applyEnabledState( $card, res.data.enabled === 'yes' );
+						var isOn = res.data.enabled === 'yes';
+						applyEnabledState( $card, isOn );
+						showToast( 'success', gatewayTitle + ' ' + ( isOn ? ( i18n.enabled || 'Enabled' ) : ( i18n.disabled || 'Disabled' ) ) + '.' );
 					} else {
 						$input.prop( 'checked', ! $input.is( ':checked' ) );
-						window.alert( ( res && res.data ) || i18n.error );
+						showToast( 'error', ( res && res.data ) || i18n.error );
 					}
 				} )
 				.fail( function () {
 					$input.prop( 'checked', ! $input.is( ':checked' ) );
-					window.alert( i18n.error );
+					showToast( 'error', i18n.error );
 				} )
 				.always( function () {
 					$input.prop( 'disabled', false );

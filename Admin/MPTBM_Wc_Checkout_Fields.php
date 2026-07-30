@@ -75,6 +75,10 @@
 				//wp_enqueue_style('mptbm_checkout_common', MPTBM_PLUGIN_URL . '/assets/checkout/css/mptbm-pro-styles.css', array(), time());
 				//wp_enqueue_script('mptbm_checkout_common', MPTBM_PLUGIN_URL . '/assets/checkout/js/mptbm-pro-styles.js', array('jquery'), time(), true);
 				wp_enqueue_style('mptbm_checkout', MPTBM_PLUGIN_URL . '/assets/checkout/css/mptbm-pro-checkout.css', array(), time());
+				// Modern hero/pill-tabs/card skin, matching the Operation Areas page's
+				// design language — loaded after the base stylesheet above so its rules
+				// take precedence without needing !important everywhere.
+				wp_enqueue_style('mptbm_checkout_modern', MPTBM_PLUGIN_URL . '/assets/checkout/css/mptbm-checkout-fields-modern.css', array('mptbm_checkout'), time());
 				wp_enqueue_script('mptbm_checkout', MPTBM_PLUGIN_URL . '/assets/checkout/js/mptbm-pro-checkout.js', array('jquery'), time(), true);
 				wp_enqueue_script('mptbm_checkout_custom_script', 'https://code.jquery.com/ui/1.12.1/jquery-ui.js', array('jquery', 'jquery-ui-core', 'jquery-ui-sortable'), time(), true);
 				// Create a nonce
@@ -302,18 +306,32 @@
                         </div>
                     </div>
                 </div>
-                <div class="mpStyles">
-                    <div class="checkout">
-                        <div class="tab-container">
-                            <ul class="tab-menu">
-                                <h3>CHECKOUT FIELDS</h3>
-                                <li class="tab-item" data-tabs-target="#mptbm_wc_checkout_settings"><i class="dashicons dashicons-admin-generic text-primary"></i> Checkout Settings <i class="i i-chevron-right dashicons dashicons-arrow-right-alt2"></i></li>
-                                <li class="tab-item active" data-tabs-target="#mptbm_wc_billing_field_settings"><i class="dashicons dashicons-clipboard text-primary"></i> Billing Fields <i class="i i-chevron-right dashicons dashicons-arrow-right-alt2"></i></li>
-                                <!-- <li class="tab-item" data-tabs-target="#mptbm_wc_shipping_field_settings"><i class="dashicons dashicons-airplane text-primary"></i> Shipping Fields <i class="i i-chevron-right dashicons dashicons-arrow-right-alt2"></i></li>
-                                <li class="tab-item" data-tabs-target="#mptbm_wc_order_field_settings"><i class="dashicons dashicons-format-status text-primary"></i> Order Fields <i class="i i-chevron-right dashicons dashicons-arrow-right-alt2"></i></li> -->
-                            </ul>
-                            <div class="tab-content-container">
-								<?php do_action('mptbm_wc_checkout_tab_content', MPTBM_Wc_Checkout_Fields_Helper::get_checkout_fields_for_list()); ?>
+                <div class="mptbm-checkout-fields-page">
+                    <header class="mptbm-checkout-hero">
+                        <div class="mptbm-checkout-heading">
+                            <span class="mptbm-checkout-heading-icon" aria-hidden="true">
+                                <i class="fas fa-clipboard-list"></i>
+                            </span>
+                            <div>
+                                <p class="mptbm-checkout-eyebrow"><?php esc_html_e('WooCommerce checkout', 'ecab-taxi-booking-manager'); ?></p>
+                                <h1><?php esc_html_e('Checkout Fields', 'ecab-taxi-booking-manager'); ?></h1>
+                                <p><?php esc_html_e('Manage which billing fields customers see at checkout, and general checkout behavior.', 'ecab-taxi-booking-manager'); ?></p>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="mpStyles">
+                        <div class="checkout">
+                            <div class="tab-container">
+                                <ul class="tab-menu">
+                                    <h3>CHECKOUT FIELDS</h3>
+                                    <li class="tab-item" data-tabs-target="#mptbm_wc_checkout_settings"><i class="dashicons dashicons-admin-generic text-primary"></i> Checkout Settings <i class="i i-chevron-right dashicons dashicons-arrow-right-alt2"></i></li>
+                                    <li class="tab-item active" data-tabs-target="#mptbm_wc_billing_field_settings"><i class="dashicons dashicons-clipboard text-primary"></i> Billing Fields <i class="i i-chevron-right dashicons dashicons-arrow-right-alt2"></i></li>
+                                    <!-- <li class="tab-item" data-tabs-target="#mptbm_wc_shipping_field_settings"><i class="dashicons dashicons-airplane text-primary"></i> Shipping Fields <i class="i i-chevron-right dashicons dashicons-arrow-right-alt2"></i></li>
+                                    <li class="tab-item" data-tabs-target="#mptbm_wc_order_field_settings"><i class="dashicons dashicons-format-status text-primary"></i> Order Fields <i class="i i-chevron-right dashicons dashicons-arrow-right-alt2"></i></li> -->
+                                </ul>
+                                <div class="tab-content-container">
+									<?php do_action('mptbm_wc_checkout_tab_content', MPTBM_Wc_Checkout_Fields_Helper::get_checkout_fields_for_list()); ?>
+                                </div>
                             </div>
                         </div>
                     </div>

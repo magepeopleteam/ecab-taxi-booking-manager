@@ -3168,16 +3168,21 @@ input.mptbm_taxi_feature_input:focus {
    ================================================================ */
 .mptbm_distance_tier_pricing_settings_holder,
 .mptbm_taxi_peak_hour_pricing_addon {
-    border: 1.5px solid var(--mp-border);
     border-radius: var(--mp-r-lg);
     overflow: hidden;
-    margin-top: 15px !important;
+    margin-top: 0px !important;
     background: var(--mp-white);
-    box-shadow: var(--mp-shadow-sm);
-    padding: 15px !important;
-    width: calc(100% - 30px) !important;
-
 }
+
+/* Both addons used to render their own .tabsItem[data-tabs] wrapper (built for
+   the left-tab wizard's top-level tabs) despite living nested inside the Pricing
+   tab's own tabsItem, not as a direct child of .tabsContent — mp_style.css's
+   blanket ".tabsContent [data-tabs] { display: none; }" permanently hid them
+   with no way to ever reveal it. Distance_Tier_Settings::distance_tier_pricing_settings()
+   and Taxi_Peak_Hour_Settings::peak_hour_pricing_settings() no longer emit that
+   class/attribute at all (matching how Operation Area pricing already works: a
+   section displayed directly inside the Pricing tab, not dependent on the
+   tab-switcher), so nothing here needs to fight that hiding rule anymore. */
 
 /* Advanced toggle for date type */
 .mptbm_taxi_advanced_toggle select[name="mptbm_date_type"] { width: 250px; }

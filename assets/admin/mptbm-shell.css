@@ -773,6 +773,9 @@ body.mptbm-admin.post-type-mptbm_rent #postdivrich {
 .mptbm-tabs-sidebar .mptbm_quick_tips_card {
     margin-top: 16px;
 }
+.mptbm-tabs-sidebar .mptbm_payment_method_card {
+    margin-bottom: 16px;
+}
 .mptbm-featured-image-actions {
     display: flex;
     align-items: center;
