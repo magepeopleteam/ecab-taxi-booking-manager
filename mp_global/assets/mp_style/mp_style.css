@@ -769,10 +769,7 @@
 		display: block;
 	}
 	.mpStyle .dInlineBlock,
-	.mpStyle [class*="_dInlineBlock"],
-	.mpStyle small,
-	.mpStyle span,
-	.mpStyle strong {
+	.mpStyle [class*="_dInlineBlock"] {
 		display: inline-block;
 	}
 	/**************/

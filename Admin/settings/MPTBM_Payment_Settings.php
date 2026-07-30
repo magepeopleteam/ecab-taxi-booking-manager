@@ -1049,7 +1049,7 @@
 				/* Gateway cards (Custom Payment) - light, modern palette */
 				.payment-gateways-container th{display:none;}
 				.payment-gateways-container td{padding:0 !important;}
-				.gateway-card{position:relative;background:#fff;border:1px solid #eceef2;border-left:4px solid #cbd5e1;border-radius:14px;margin-bottom:13px;box-shadow:0 1px 2px rgba(16,24,40,0.04);width:100%;box-sizing:border-box;color:#1d2327;overflow:hidden;transition:transform 0.18s ease,box-shadow 0.18s ease,border-color 0.18s ease;}
+				.gateway-card{position:relative;background:#fff;border:1px solid #eceef2;border-radius:14px;margin-bottom:13px;box-shadow:0 1px 2px rgba(16,24,40,0.04);width:100%;box-sizing:border-box;color:#1d2327;overflow:hidden;transition:transform 0.18s ease,box-shadow 0.18s ease,border-color 0.18s ease;}
 				.gateway-card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(16,24,40,0.10);}
 				.gateway-card .gateway-header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 20px;}
 				.gateway-card .gateway-id{display:flex;align-items:center;gap:14px;min-width:0;flex:1 1 0;}
@@ -1061,11 +1061,11 @@
 				.gateway-card .gateway-status{display:inline-block;min-width:74px;text-align:center;font-size:10.5px;text-transform:uppercase;letter-spacing:0.4px;padding:4px 11px;border-radius:20px;background:#f1f5f9;color:#64748b;border:1px solid #e5e9f0;font-weight:700;}
 				.gateway-card .gateway-status.active{background:#dcfce7;color:#15803d;border-color:#bbf7d0;}
 				/* Per-brand: soft tinted card + accent stripe + vibrant icon badge */
-				.gateway-card.paypal-card{background:#f4f9fe;border-left-color:#0070ba;}
+				.gateway-card.paypal-card{background:#f4f9fe;}
 				.gateway-card.paypal-card .gateway-icon{background:linear-gradient(135deg,#0079C1,#003087);}
-				.gateway-card.stripe-card{background:#f6f5ff;border-left-color:#635bff;}
+				.gateway-card.stripe-card{background:#f6f5ff;}
 				.gateway-card.stripe-card .gateway-icon{background:linear-gradient(135deg,#7a73ff,#4f46e5);}
-				.gateway-card.offline-card{background:#f0faf8;border-left-color:#14b8a6;}
+				.gateway-card.offline-card{background:#f0faf8;}
 				.gateway-card.offline-card .gateway-icon{background:linear-gradient(135deg,#14b8a6,#0f766e);}
 				.gateway-card .gateway-configure-btn{cursor:pointer;color:#fff !important;border:none !important;font-weight:600 !important;font-size:13px !important;border-radius:8px !important;padding:7px 16px !important;line-height:1.4 !important;box-shadow:0 2px 6px rgba(16,24,40,0.14) !important;transition:transform 0.15s ease,opacity 0.15s ease;}
 				.gateway-card.paypal-card .gateway-configure-btn{background:#0070ba !important;}

@@ -6,7 +6,7 @@
 
 .mptbm-analytics-wrap {
     width: 98%;
-    max-width: 1500px;
+    max-width: 98%;
     margin: 0 auto;
     padding: 28px 0 48px;
     box-sizing: border-box;
@@ -112,8 +112,8 @@
     min-height: 38px;
     min-width: 220px;
     padding: 8px 12px;
-    border: 1px solid #d8dee9;
-    border-radius: 9px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
     color: #1e293b;
     background: #fff;
 }

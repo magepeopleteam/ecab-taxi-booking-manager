@@ -26,7 +26,9 @@ if (!class_exists('MPTBM_Guideline')) {
 ?>
 			<div class="mpStyle mptbm-documentation">
 				<div class="mptbm-doc-header">
+					<span class="mptbm-doc-header-icon" aria-hidden="true"><i class="fas fa-book"></i></span>
 					<div class="mptbm-doc-header-content">
+						<p class="mptbm-doc-eyebrow"><?php esc_html_e('Getting started', 'ecab-taxi-booking-manager'); ?></p>
 						<h1><?php echo esc_html($label) . ' ' . esc_html__('Documentation', 'ecab-taxi-booking-manager'); ?></h1>
 						<p><?php esc_html_e('Everything you need to know to get started with the Taxi Booking Manager', 'ecab-taxi-booking-manager'); ?></p>
 					</div>

@@ -164,6 +164,7 @@ div.mp_global_settings.mptbm-modern-global-settings {
     align-items: center;
     width: min(460px, 100%);
     margin: 0;
+    order: 2;
 }
 
 .mptbm-global-settings-search > i {
@@ -231,6 +232,7 @@ div.mp_global_settings.mptbm-modern-global-settings {
     display: flex;
     align-items: center;
     gap: 10px;
+    order: 1;
 }
 
 .mptbm-global-settings-current-section {
@@ -380,18 +382,6 @@ div.mp_global_settings.mptbm-modern-global-settings .tabLists [data-tabs-target]
     background: #f1f5f9;
     border-radius: 8px;
     font-size: 11px;
-}
-
-div.mp_global_settings.mptbm-modern-global-settings .tabLists [data-tabs-target]::after {
-    position: absolute;
-    right: 10px;
-    width: 6px;
-    height: 6px;
-    content: "";
-    border-top: 1.5px solid currentColor;
-    border-right: 1.5px solid currentColor;
-    opacity: 0;
-    transform: rotate(45deg);
 }
 
 div.mp_global_settings.mptbm-modern-global-settings .tabLists [data-tabs-target]:hover {

@@ -1,0 +1,215 @@
+/* System Status Page Styles — matches the mptbm_operate_areas admin screen palette */
+
+.mptbm-status-page {
+    max-width: 98%;
+    margin: 20px auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    color: #1e293b;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* mp_style.css has `div.mpStyle { margin: 0; padding: 0; }` (element+class,
+   higher specificity than the plain .mptbm-status-page class alone), which
+   silently zeroed out the padding above. Restore it here with matching
+   (two-class) specificity — same pattern used in mptbm_taxi_add_edit.css
+   for .mptbm_rent_editor_wrapper.mpStyle. */
+.mpStyle.mptbm-status-page {
+    padding: 20px;
+}
+
+/* Header */
+.mptbm-status-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px 26px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 12px 32px -26px rgba(15, 23, 42, 0.55);
+    margin-bottom: 20px;
+}
+
+.mptbm-status-heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.mptbm-status-header-icon {
+    display: inline-flex;
+    flex: 0 0 52px;
+    width: 52px;
+    height: 52px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    color: #fff;
+    background: linear-gradient(145deg, #6c5ce7, #5145cd);
+    box-shadow: 0 10px 22px -12px rgba(81, 69, 205, 0.8);
+    font-size: 20px;
+}
+
+.mptbm-status-eyebrow {
+    margin: 0 0 4px;
+    color: #6c5ce7;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.mptbm-status-header-content h1,
+.mptbm-status-heading h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 24px;
+    line-height: 1.25;
+    font-weight: 750;
+}
+
+.mptbm-status-heading p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* Card */
+.mptbm-status-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 12px 32px -26px rgba(15, 23, 42, 0.55);
+    overflow: hidden;
+}
+
+.mptbm-status-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 24px;
+    border-bottom: 1px solid #e8eaf2;
+    background: #f8fafc;
+}
+
+.mptbm-status-card-header i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    color: #5145cd;
+    background: #ebe9ff;
+    font-size: 13px;
+}
+
+.mptbm-status-card-header h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+/* Table -> flexible list rows (keeps existing <tr><th> markup, including
+   rows injected by the Pro plugin via mp_status_table_item_sec) */
+.mptbm-status-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mptbm-status-table tbody {
+    display: block;
+}
+
+.mptbm-status-table tr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e8eaf2;
+    transition: background 0.2s ease;
+}
+
+.mptbm-status-table tr:last-child {
+    border-bottom: none;
+}
+
+.mptbm-status-table tr:hover {
+    background-color: #f8fafc;
+}
+
+.mptbm-status-table th {
+    display: block;
+    padding: 0;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 400;
+    color: #334155;
+}
+
+.mptbm-status-table th:first-child {
+    font-weight: 600;
+    color: #111827;
+    flex: 1;
+}
+
+.mptbm-status-table th:last-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.mptbm-status-table th:last-child.textSuccess {
+    background-color: #ecfdf3;
+    color: #15803d;
+}
+
+.mptbm-status-table th:last-child.textWarning {
+    background-color: #fff7ed;
+    color: #b45309;
+}
+
+.mptbm-status-card table th,
+.mptbm-status-card table td {
+    border-radius: 10px;
+}
+
+.mptbm-status-table th .far,
+.mptbm-status-table th .fas {
+    font-size: 13px;
+}
+
+.mptbm-status-table th a.page-title-action {
+    margin-left: 8px;
+    color: #5145cd;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .mptbm-status-header {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        padding: 20px;
+    }
+
+    .mptbm-status-table tr {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 16px 20px;
+    }
+
+    .mptbm-status-table th:last-child {
+        align-self: flex-start;
+    }
+}

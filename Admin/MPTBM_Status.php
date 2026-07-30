@@ -23,14 +23,27 @@
 				$wc_v = ($wc_i == 1 && function_exists('WC')) ? WC()->version : esc_html__('Not installed', 'ecab-taxi-booking-manager');
 				$from_name = get_option('woocommerce_email_from_name');
 				$from_email = get_option('woocommerce_email_from_address');
+				wp_enqueue_style('mptbm-status-style', MPTBM_PLUGIN_URL . '/assets/admin/css/status.css', array(), time());
 				MPTBM_Admin_Shell::render_shell_open();
 				?>
-				<div class="mpStyle">
+				<div class="mpStyle mptbm-status-page">
 					<?php do_action('mp_status_notice_sec'); ?>
-					<div class=_dShadow_6_adminLayout">
-						<h2 class="textCenter"><?php echo esc_html($label) . '  ' . esc_html__('For Woocommerce Environment Status', 'ecab-taxi-booking-manager'); ?></h2>
-						<div class="divider"></div>
-						<table>
+					<div class="mptbm-status-header">
+						<div class="mptbm-status-heading">
+							<span class="mptbm-status-header-icon" aria-hidden="true"><i class="fas fa-heartbeat"></i></span>
+							<div>
+								<p class="mptbm-status-eyebrow"><?php esc_html_e('System diagnostics', 'ecab-taxi-booking-manager'); ?></p>
+								<h1><?php echo esc_html($label) . ' ' . esc_html__('For Woocommerce Environment Status', 'ecab-taxi-booking-manager'); ?></h1>
+								<p><?php esc_html_e('A quick health check of your WooCommerce environment and plugin requirements.', 'ecab-taxi-booking-manager'); ?></p>
+							</div>
+						</div>
+					</div>
+					<div class="mptbm-status-card">
+						<div class="mptbm-status-card-header">
+							<i class="fas fa-server" aria-hidden="true"></i>
+							<h2><?php esc_html_e('Environment Checks', 'ecab-taxi-booking-manager'); ?></h2>
+						</div>
+						<table class="mptbm-status-table">
 							<tbody>
 							<tr>
 								<th data-export-label="WC Version"><?php esc_html_e('WordPress Version : ', 'ecab-taxi-booking-manager'); ?></th>

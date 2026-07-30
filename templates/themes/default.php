@@ -10,4 +10,4 @@
 			<?php do_action( 'mptbm_transport_search_form',$post_id ); ?>
 		</div>
 	</div>
-<?php do_action( 'mptbm_after_details_page' ); ?>
+<?php do_action( 'mptbm_after_details_page', $post_id ); ?>
