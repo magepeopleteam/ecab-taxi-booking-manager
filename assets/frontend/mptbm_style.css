@@ -1872,3 +1872,130 @@ button.mptbm_results_edit:hover i {
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================================
+   MPTBM single vehicle page (templates/themes/default.php)
+   ============================================ */
+.mptbm-vpage-hero {
+    display: flex;
+    gap: 28px;
+    margin-bottom: 30px;
+}
+.mptbm-vpage-hero-image {
+    flex: 0 0 42%;
+    max-width: 42%;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #f1f5f9;
+}
+.mptbm-vpage-hero-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    aspect-ratio: 4 / 3;
+}
+.mptbm-vpage-hero-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+}
+.mptbm-vpage-eyebrow {
+    color: var(--color_theme);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.mptbm-vpage-title {
+    margin: 0 !important;
+    font-size: 30px !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    line-height: 1.2 !important;
+}
+.mptbm-vpage-quickfacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 4px;
+    font-size: 13.5px;
+    color: #475569;
+}
+.mptbm-vpage-quickfacts span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.mptbm-vpage-quickfacts i {
+    color: var(--color_theme);
+}
+.mptbm-vpage-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+    margin-top: 12px;
+    padding: 12px 26px;
+    border-radius: 8px;
+    background: var(--color_theme);
+    color: #fff !important;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none !important;
+}
+.mptbm-vpage-layout {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 32px;
+    align-items: start;
+}
+.mptbm-vpage-col-main,
+.mptbm-vpage-col-side {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    min-width: 0;
+}
+.mptbm-vpage-content {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #334155;
+}
+.mptbm-vpage-addon-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.mptbm-vpage-addon-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #e5e7eb;
+    font-size: 13.5px;
+    color: #1e293b;
+}
+.mptbm-vpage-addon-list li:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+@media (max-width: 782px) {
+    .mptbm-vpage-hero {
+        flex-direction: column;
+    }
+    .mptbm-vpage-hero-image {
+        max-width: 100%;
+    }
+    .mptbm-vpage-layout {
+        grid-template-columns: 1fr;
+    }
+}

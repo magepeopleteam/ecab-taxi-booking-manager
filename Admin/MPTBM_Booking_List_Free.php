@@ -235,21 +235,14 @@
 						</div>
 					</header>
 
-					<?php /* Statistics — locked. Blurred placeholders behind a PRO overlay. */ ?>
-					<div class="mptbm-pro-lock mptbm-stats-lock">
+					<?php /* Statistics + Filter — locked together behind a single PRO overlay. */ ?>
+					<div class="mptbm-pro-lock mptbm-stats-lock mptbm-filter-lock">
 						<div class="mptbm-pro-lock-inner" aria-hidden="true">
 							<div class="mptbm-stats-bar">
 								<div class="mptbm-stat-card"><span class="mptbm-stat-icon dashicons dashicons-cart"></span><div class="mptbm-stat-info"><span class="mptbm-stat-value">1,248</span><span class="mptbm-stat-label"><?php esc_html_e( 'Total Bookings', 'ecab-taxi-booking-manager' ); ?></span></div></div>
 								<div class="mptbm-stat-card"><span class="mptbm-stat-icon dashicons dashicons-money-alt"></span><div class="mptbm-stat-info"><span class="mptbm-stat-value">$48,920</span><span class="mptbm-stat-label"><?php esc_html_e( 'Total Revenue', 'ecab-taxi-booking-manager' ); ?></span></div></div>
 								<div class="mptbm-stat-card"><span class="mptbm-stat-icon dashicons dashicons-clock"></span><div class="mptbm-stat-info"><span class="mptbm-stat-value">36</span><span class="mptbm-stat-label"><?php esc_html_e( 'Pending', 'ecab-taxi-booking-manager' ); ?></span></div></div>
 							</div>
-						</div>
-						<?php $this->pro_overlay( $upgrade, __( 'Live statistics are a Pro feature', 'ecab-taxi-booking-manager' ) ); ?>
-					</div>
-
-					<?php /* Filter — locked. Blurred, disabled inputs behind a PRO overlay. */ ?>
-					<div class="mptbm-pro-lock mptbm-filter-lock">
-						<div class="mptbm-pro-lock-inner" aria-hidden="true">
 							<div class="mptbm-filter-panel">
 								<div class="mptbm-filter-panel-header"><span class="dashicons dashicons-filter"></span><strong><?php esc_html_e( 'Filter Bookings', 'ecab-taxi-booking-manager' ); ?></strong></div>
 								<div class="mptbm-filter-body">
@@ -262,7 +255,7 @@
 								</div>
 							</div>
 						</div>
-						<?php $this->pro_overlay( $upgrade, __( 'Filtering & search are a Pro feature', 'ecab-taxi-booking-manager' ) ); ?>
+						<?php $this->pro_overlay( $upgrade, __( 'Live statistics, filtering & search are Pro features', 'ecab-taxi-booking-manager' ) ); ?>
 					</div>
 
 					<div class="mptbm-table-wrap">
@@ -395,9 +388,9 @@
 				.mptbm-stat-label{font-size:11.5px;color:#64748b;margin-top:2px;text-transform:uppercase;letter-spacing:.04em;}
 				/* Pro lock */
 				.mptbm-pro-lock{position:relative;margin-bottom:20px;border-radius:12px;overflow:hidden;}
-				.mptbm-pro-lock-inner{filter:blur(4px);pointer-events:none;user-select:none;opacity:.9;}
+				.mptbm-pro-lock-inner{filter:blur(4px);pointer-events:none;user-select:none;opacity:.9;display:flex;flex-direction:column;gap:16px;}
 				.mptbm-pro-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-decoration:none;background:rgba(248,250,252,.55);backdrop-filter:saturate(115%);}
-				.mptbm-pro-overlay-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#F12971,#c81e5b);color:#fff;font-size:12px;font-weight:800;letter-spacing:.08em;padding:6px 16px;border-radius:20px;box-shadow:0 6px 16px rgba(241,41,113,.35);}
+				.mptbm-pro-overlay-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#6c5ce7,#5145cd);color:#fff;font-size:12px;font-weight:800;letter-spacing:.08em;padding:6px 16px;border-radius:20px;box-shadow:0 6px 16px rgba(81,69,205,.35);}
 				.mptbm-pro-overlay-badge .dashicons{font-size:14px;width:14px;height:14px;}
 				.mptbm-pro-overlay-text{font-size:12.5px;font-weight:600;color:#334155;background:#fff;padding:4px 12px;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
 				.mptbm-table-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
