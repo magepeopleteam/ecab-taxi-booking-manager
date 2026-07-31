@@ -1289,10 +1289,14 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
-/* ----- Left column: route, pickup ••• drop-off on a single line ----- */
+/* ----- Left column: route, pickup ••• drop-off on a single line -----
+   space-between pins pickup to the row's left edge and drop-off to its
+   right edge, with the dotted connector filling whatever's left between
+   them, instead of the two sitting packed together off to one side. */
 .mptbm_results_trip {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
     flex: 0 0 auto;
     min-width: 0;
@@ -1337,12 +1341,71 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
 .mptbm_results_pin_end {
     color: #ef4444;
 }
+/* Route connector: a start bullet (pickup-colored, left edge), a dashed
+   line, and a right-pointing arrowhead (drop-off-colored, right edge) -
+   reads as "from → to" at a glance instead of 3 static, purely decorative
+   dots. Purely visual (the place names already carry the real info), so
+   the element itself is aria-hidden in the template. */
 .mptbm_results_trip_dots {
-    color: #cbd5e1;
-    font-size: 8px;
-    letter-spacing: 2px;
-    line-height: 1;
+    position: relative;
+    width: 20%;
+    min-width: 32px;
     flex: 0 0 auto;
+    align-self: stretch;
+    color: transparent;
+    font-size: 0;
+    letter-spacing: 0;
+    line-height: 1;
+}
+.mptbm_results_trip_dots::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 6px;
+    right: 9px;
+    border-top: 2px dotted #cbd5e1;
+    transform: translateY(-50%);
+}
+/* Start bullet - solid, pickup-pin colored, marks the "from" end. */
+.mptbm_results_trip_dots::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color_theme);
+    transform: translateY(-50%);
+}
+/* End arrowhead - a CSS-drawn triangle, drop-off-pin colored, pointing at
+   the destination pin to make the travel direction explicit. */
+.mptbm_results_trip_dots_pulse {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 4px 0 4px 6px;
+    border-color: transparent transparent transparent #ef4444;
+    transform: translateY(-50%);
+    animation: mptbm_trip_travel 1.8s ease-in-out infinite;
+}
+@keyframes mptbm_trip_travel {
+    0%, 100% {
+        transform: translate(0, -50%);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(3px, -50%);
+        opacity: .55;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mptbm_results_trip_dots_pulse {
+        animation: none;
+    }
 }
 .mptbm_results_trip_divider {
     display: block !important;
@@ -1480,23 +1543,29 @@ button.mptbm_results_edit {
     align-items: center;
     justify-content: center;
     gap: 7px;
-    background: var(--color_theme);
-    color: #ffffff;
-    border: 1px solid var(--color_theme);
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid rgba(15, 23, 42, 0.12);
     border-radius: 10px;
     padding: 8px 14px;
     font-size: 12.5px;
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
-    transition: filter .15s ease;
+    transition: border-color .15s ease, background-color .15s ease, color .15s ease;
 }
 button.mptbm_results_edit i {
     font-size: 11px;
-    color: #ffffff;
+    color: #94a3b8;
+    transition: color .15s ease;
 }
 button.mptbm_results_edit:hover {
-    filter: brightness(1.08);
+    border-color: var(--color_theme);
+    background: rgba(5, 150, 105, .06);
+    color: var(--color_theme);
+}
+button.mptbm_results_edit:hover i {
+    color: var(--color_theme);
 }
 
 @media (max-width: 640px) {

@@ -783,10 +783,9 @@ button.mptbm_inline_results_reset {
 .mptbm_inline_search_results .mptbm_results_trip_place {
 	font-size: 18px;
 	/* Pickup and drop-off now sit on one line together (see
-	   .mptbm_results_trip) - a narrower cap per place than the 320px this
-	   used when they were stacked, so two long names still fit side by side
-	   without overflowing this card's width; long ones ellipsize instead. */
-	max-width: 190px;
+	   .mptbm_results_trip) - a percentage cap instead of a fixed px one, so
+	   each place scales with however wide this card actually ends up. */
+	max-width: 40%;
 }
 .mptbm_inline_search_results .mptbm_results_toolbar_middle {
 	/* Base stylesheet's flex:1 1 auto is meant to grow *horizontally* in the

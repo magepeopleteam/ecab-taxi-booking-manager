@@ -1065,7 +1065,7 @@ if (empty($duration)) {
 								<span class="mptbm_results_trip_place_text"><?php echo esc_html($toolbar_start_display); ?></span>
 							</span>
 							<?php if ($toolbar_show_dropoff && $toolbar_end_display) : ?>
-							<span class="mptbm_results_trip_dots">&bull;&bull;&bull;</span>
+							<span class="mptbm_results_trip_dots" aria-hidden="true"><span class="mptbm_results_trip_dots_pulse"></span></span>
 							<span class="mptbm_results_trip_place">
 								<i class="fas fa-map-marker-alt mptbm_results_pin_end"></i>
 								<span class="mptbm_results_trip_place_text"><?php echo esc_html($toolbar_end_display); ?></span>
