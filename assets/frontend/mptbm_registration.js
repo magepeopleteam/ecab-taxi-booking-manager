@@ -3230,48 +3230,47 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     mptbm_price_calculation(parent);
                 });
 
-                // Fetch extra services
-                $.ajax({
+                // Fetch extra services + their summary in parallel instead of
+                // one after another - each request only needs post_id and
+                // renders its own independent template server-side (see
+                // get_mptbm_extra_service/_summary in MPTBM_Transport_Search.php),
+                // so chaining them was just doubling the wait for no reason.
+                dLoader(parent.find('.tabsContentNext'));
+                var extraServiceReq = $.ajax({
                     type: 'POST',
                     url: mp_ajax_url,
-                    data: { "action": "get_mptbm_extra_service", "nonce": mptbm_ajax.search_nonce, "post_id": post_id },
-                    beforeSend: function () { dLoader(parent.find('.tabsContentNext')); },
-                    success: function (data) {
-                        target_extra_service.html(data);
-                        checkAndToggleBookNowButton(parent);
-                        if (mptbm_is_ios()) {
-                            target_extra_service[0].style.display = 'none';
-                            void target_extra_service[0].offsetHeight;
-                            target_extra_service[0].style.display = '';
-                        }
+                    data: { "action": "get_mptbm_extra_service", "nonce": mptbm_ajax.search_nonce, "post_id": post_id }
+                });
+                var extraServiceSummaryReq = $.ajax({
+                    type: 'POST',
+                    url: mp_ajax_url,
+                    data: { "action": "get_mptbm_extra_service_summary", "nonce": mptbm_ajax.search_nonce, "post_id": post_id }
+                });
+                $.when(extraServiceReq, extraServiceSummaryReq).done(function (serviceResp, summaryResp) {
+                    target_extra_service.html(serviceResp[0]);
+                    checkAndToggleBookNowButton(parent);
+                    if (mptbm_is_ios()) {
+                        target_extra_service[0].style.display = 'none';
+                        void target_extra_service[0].offsetHeight;
+                        target_extra_service[0].style.display = '';
                     }
-                }).promise().done(function () {
-                    $.ajax({
-                        type: 'POST',
-                        url: mp_ajax_url,
-                        data: { "action": "get_mptbm_extra_service_summary", "nonce": mptbm_ajax.search_nonce, "post_id": post_id },
-                        success: function (data) {
-                            if (!data || data.length < 100) {
-                            }
-                            target_extra_service_summary.html(data).promise().done(function () {
-                                if (target_extra_service.find('[name="mptbm_extra_service[]"]').length > 0) {
-                                    target_summary.slideDown(400);
-                                    target_extra_service.slideDown(400);
-                                    target_extra_service_summary.slideDown(400);
-                                    pageScrollTo(target_extra_service);
-                                }
-                                dLoaderRemove(parent.find('.tabsContentNext'));
-                                if (!target_extra_service.find('[name="mptbm_extra_service[]"]').length) {
-                                    parent.find('.mptbm_book_now[type="button"]').trigger('click');
-                                } else {
-                                    checkAndToggleBookNowButton(parent);
-                                }
-                                if (mptbm_is_ios()) {
-                                    target_extra_service_summary[0].style.display = 'none';
-                                    void target_extra_service_summary[0].offsetHeight;
-                                    target_extra_service_summary[0].style.display = '';
-                                }
-                            });
+                    target_extra_service_summary.html(summaryResp[0]).promise().done(function () {
+                        if (target_extra_service.find('[name="mptbm_extra_service[]"]').length > 0) {
+                            target_summary.slideDown(400);
+                            target_extra_service.slideDown(400);
+                            target_extra_service_summary.slideDown(400);
+                            pageScrollTo(target_extra_service);
+                        }
+                        dLoaderRemove(parent.find('.tabsContentNext'));
+                        if (!target_extra_service.find('[name="mptbm_extra_service[]"]').length) {
+                            parent.find('.mptbm_book_now[type="button"]').trigger('click');
+                        } else {
+                            checkAndToggleBookNowButton(parent);
+                        }
+                        if (mptbm_is_ios()) {
+                            target_extra_service_summary[0].style.display = 'none';
+                            void target_extra_service_summary[0].offsetHeight;
+                            target_extra_service_summary[0].style.display = '';
                         }
                     });
                 });
