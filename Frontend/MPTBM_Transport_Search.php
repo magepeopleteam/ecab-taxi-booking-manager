@@ -47,6 +47,12 @@
 			 * of its own.
 			 */
 			public function refresh_search_nonce(): void {
+				// Belt-and-suspenders: admin-ajax.php isn't touched by typical
+				// page-cache plugins, but a "cache everything" CDN/edge rule
+				// could still catch it -- and caching the one endpoint that
+				// exists specifically to hand out a fresh nonce would defeat
+				// its entire purpose.
+				nocache_headers();
 				wp_send_json_success(array(
 					'search_nonce'      => wp_create_nonce('mptbm_transport_search'),
 					'add_to_cart_nonce' => wp_create_nonce('mptbm_add_to_cart'),
@@ -108,6 +114,13 @@
 				wp_die(); // End AJAX call
 			}
 			public function get_mptbm_map_search_result() {
+				// This response embeds a freshly-generated mptbm_add_to_cart
+				// nonce (see choose_vehicles.php) -- if a CDN/reverse-proxy or an
+				// overly broad caching rule caches it, every visitor who then
+				// gets served that cached copy inherits the same nonce, which
+				// stops working once it ages past WordPress's ~24h nonce
+				// lifetime. That's the "Book Now sometimes doesn't work" pattern.
+				nocache_headers();
 				$this->verify_search_request(true);
 				// Debug logging for search initiation
 				
@@ -209,6 +222,9 @@
 			die(); // Ensure further execution stops after outputting the JavaScript
 			}
 			public function get_mptbm_map_search_result_redirect(){
+				// Same caching hazard as get_mptbm_map_search_result() above --
+				// this also renders choose_vehicles.php with a fresh nonce.
+				nocache_headers();
 				$this->verify_search_request(true);
 				// Debug logging for redirect search initiation
 				

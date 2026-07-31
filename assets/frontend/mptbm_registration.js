@@ -1,3 +1,20 @@
+// The browser's back/forward cache (bfcache) can restore this page exactly
+// as it was in memory -- DOM, JS variables, everything -- without re-running
+// a request. That includes whatever search results/checkout markup were
+// injected via AJAX, with the mptbm_add_to_cart_nonce that was valid *then*.
+// Clicking Book Now on that restored page resubmits stale state (the earlier
+// Book Now click already emptied/rebuilt the cart), which can fail with no
+// visible error. event.persisted is true only when the page came from
+// bfcache, not a normal load -- this file is enqueued on every frontend page
+// (not just the booking one), so the reload is gated on the injected search-
+// result/checkout markup actually being present, rather than firing site-wide
+// on every back-navigation.
+window.addEventListener('pageshow', function (event) {
+    if (event.persisted && document.querySelector('.mptbm_map_search_result, .mptbm_order_summary')) {
+        window.location.reload();
+    }
+});
+
 let mptbm_map;
 let mptbm_map_window;
 var mptbm_start_marker = null;
@@ -1131,9 +1148,14 @@ function mptbm_handle_osm_address_selection(address, type) {
         if (type === 'start') {
             mptbm_osm_start_marker = marker;
             window.mptbm_fixed_zone_start_coords = { latitude: lat, longitude: lng };
+            // Remembers exactly which address text these coordinates belong
+            // to, so the Search button can reuse them instead of re-geocoding
+            // the same text again -- see getCachedOrFreshCoordinates().
+            window.mptbm_osm_start_coords_address = address.display_name;
         } else if (type === 'end') {
             mptbm_osm_end_marker = marker;
             window.mptbm_fixed_zone_end_coords = { latitude: lat, longitude: lng };
+            window.mptbm_osm_end_coords_address = address.display_name;
         } else if (type === 'extra') {
             mptbm_osm_extra_marker = marker;
         }
@@ -2129,6 +2151,23 @@ function mptbm_init_google_map() {
                 });
                 return deferred.promise();
             }
+
+            // In OSM mode, picking a suggestion from the pickup/drop-off
+            // autocomplete already geocoded this exact text once
+            // (mptbm_handle_osm_address_selection stores the result +
+            // the matched text). Re-geocoding the same address again here
+            // was pure waste -- an extra round trip through the slower
+            // server-side lookup, on every single Search click, for
+            // something already known. Reuse it when the field's current
+            // value still matches exactly what was picked; otherwise the
+            // visitor edited the text since then, so fall back to a fresh
+            // lookup rather than trust stale coordinates.
+            function getCachedOrFreshCoordinates(address, cachedCoords, cachedAddress) {
+                if (cachedCoords && cachedAddress === address) {
+                    return $.Deferred().resolve(cachedCoords).promise();
+                }
+                return getCoordinatesAsync(address);
+            }
             if (price_based !== 'manual') {
 
                 // For fixed_zone, pickup is from dropdown (term_XX), so we use pre-stored coords
@@ -2143,7 +2182,7 @@ function mptbm_init_google_map() {
                         dropdownCoords = window.mptbm_fixed_zone_start_coords || null;
 
                         let searchInputValue = getElementValue(searchInput);
-                        getCoordinatesAsync(searchInputValue).done(function (searchCoordinates) {
+                        getCachedOrFreshCoordinates(searchInputValue, window.mptbm_fixed_zone_end_coords, window.mptbm_osm_end_coords_address).done(function (searchCoordinates) {
                             if (!searchCoordinates || searchCoordinates === null) {
                                 mptbm_search_loading(parent, false);
                                 showLocationError(end_place, 'Invalid dropoff location. Please select a valid address.');
@@ -2169,7 +2208,7 @@ function mptbm_init_google_map() {
                         }
 
                         let searchInputValue = getElementValue(searchInput);
-                        getCoordinatesAsync(searchInputValue).done(function (searchCoordinates) {
+                        getCachedOrFreshCoordinates(searchInputValue, window.mptbm_fixed_zone_start_coords, window.mptbm_osm_start_coords_address).done(function (searchCoordinates) {
                             if (!searchCoordinates || searchCoordinates === null) {
                                 mptbm_search_loading(parent, false);
                                 showLocationError(start_place, 'Invalid pickup location. Please select a valid address.');
@@ -2300,8 +2339,8 @@ function mptbm_init_google_map() {
                 }
 
                 $.when(
-                    getCoordinatesAsync(start_place.value),
-                    getCoordinatesAsync(end_place.value)
+                    getCachedOrFreshCoordinates(start_place.value, window.mptbm_fixed_zone_start_coords, window.mptbm_osm_start_coords_address),
+                    getCachedOrFreshCoordinates(end_place.value, window.mptbm_fixed_zone_end_coords, window.mptbm_osm_end_coords_address)
                 ).done(function (startCoordinates, endCoordinates) {
                     // Validate that geocoding was successful
                     if (!startCoordinates || startCoordinates === null) {

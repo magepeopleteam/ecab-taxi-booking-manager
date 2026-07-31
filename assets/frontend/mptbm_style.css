@@ -190,7 +190,7 @@ div.mptbm_transport_search_area div.mp_sticky_on_scroll.summary-box:hover {
     font-weight: 700 !important;
     letter-spacing: .14em;
     text-transform: uppercase;
-    color: #6366f1;
+    color: var(--color_theme);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -200,8 +200,8 @@ div.mptbm_transport_search_area div.mp_sticky_on_scroll.summary-box:hover {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #10b981);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
+    background: var(--color_theme);
+    box-shadow: 0 0 0 3px var(--color_theme_77);
 }
 
 /* ----- Section heading (h6) ----- */
@@ -265,17 +265,17 @@ div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary {
     margin-top: 14px;
     padding: 14px 14px 12px;
     background: linear-gradient(180deg, #f8fafc, #ffffff);
-    border: 1px dashed rgba(99, 102, 241, .25);
+    border: 1px dashed var(--color_theme_77);
     border-radius: 12px;
 }
 div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .divider {
     margin: 8px 0 !important;
 }
 div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h6 {
-    color: #6366f1 !important;
+    color: var(--color_theme) !important;
 }
 div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h6::before {
-    background: #6366f1;
+    background: var(--color_theme);
 }
 div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary ._textColor_4 {
     color: #0f172a !important;
@@ -287,7 +287,7 @@ div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_name
     color: #0f172a;
 }
 div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_price {
-    color: #10b981 !important;
+    color: var(--color_theme) !important;
     font-weight: 700;
 }
 div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .justifyBetween {
@@ -305,13 +305,13 @@ div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h4 {
 div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_total_price {
     font-size: 20px !important;
     font-weight: 800 !important;
-    color: #10b981 !important;
+    color: var(--color_theme) !important;
     letter-spacing: -.01em;
 }
 
 /* ----- Icon styling for the check-square in transport row ----- */
 div.mp_sticky_on_scroll.summary-box ._textColor_4 .fas.fa-check-square {
-    color: #10b981;
+    color: var(--color_theme);
     font-size: 14px;
 }
 
@@ -348,7 +348,7 @@ div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary ._dFlex_alignCe
 }
 div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary .fas.fa-check-square {
     flex: 0 0 auto;
-    color: #10b981;
+    color: var(--color_theme);
     font-size: 12px;
 }
 div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary p {
@@ -879,7 +879,7 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     width: 6px;
     height: 22px;
     border-radius: 3px;
-    background: linear-gradient(180deg, #6366f1, #818cf8);
+    background: var(--color_theme);
     flex-shrink: 0;
 }
 
@@ -924,14 +924,20 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     height: 72px;
     flex-shrink: 0;
     border-radius: 12px;
-    background: linear-gradient(135deg, #ede9fe, #e0e7ff);
+    /* Neutral chip instead of a theme-tinted one -- tinting off
+       --color_theme depends on that color already being reasonably dark;
+       sites with a pale/light theme color (e.g. near-white) turned the chip
+       almost invisible against the white card. A fixed light-gray backdrop
+       stays visible regardless of the configured theme color, while the
+       icon glyph below still carries the brand color. */
+    background: #f1f5f9;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .mptbm_exsvc_icon span {
     font-size: 26px;
-    color: #6366f1;
+    color: var(--color_theme);
 }
 
 /* Info + Meta Layout */
@@ -967,7 +973,7 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
 }
 .mptbm_exsvc_info h4 .mi {
     font-size: 16px;
-    color: #6366f1;
+    color: var(--color_theme);
     flex-shrink: 0;
 }
 
@@ -999,18 +1005,18 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
 }
 .mptbm_exsvc_desc .mp_load_more_text_area div[data-read],
 .mp_load_more_text_area div[data-read] {
-    color: #6366f1;
+    color: var(--color_theme);
     font-weight: 600;
     cursor: pointer;
     display: inline-block;
     margin-top: 4px;
     font-size: 12px;
     letter-spacing: .01em;
-    transition: color .15s ease;
+    transition: text-decoration-color .15s ease;
 }
 .mptbm_exsvc_desc .mp_load_more_text_area div[data-read]:hover,
 .mp_load_more_text_area div[data-read]:hover {
-    color: #4f46e5;
+    text-decoration: underline;
 }
 
 /* Actions Row (qty + select) */
@@ -1086,8 +1092,8 @@ button.mptbm_price_calculation.mptbm_exsvc_select {
     height: 38px;
     padding: 0 16px;
     min-width: 0;
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-    color: #ffffff !important;
+    background: linear-gradient(135deg, var(--color_theme) 0%, var(--color_theme_cc) 100%) !important;
+    color: var(--color_theme_alter) !important;
     border: 0 !important;
     border-radius: 10px !important;
     font-size: 13px !important;
@@ -1097,7 +1103,7 @@ button.mptbm_price_calculation.mptbm_exsvc_select {
     cursor: pointer;
     white-space: nowrap;
     position: relative;
-    box-shadow: 0 4px 12px -4px rgba(79, 70, 229, 0.5);
+    box-shadow: 0 4px 12px -4px var(--color_theme_88);
     transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
 }
 .mptbm_exsvc_select span[data-text] {
@@ -1106,28 +1112,32 @@ button.mptbm_price_calculation.mptbm_exsvc_select {
 }
 .mptbm_exsvc_select:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.6);
+    box-shadow: 0 8px 20px -6px var(--color_theme_aa);
     filter: brightness(1.05);
 }
 .mptbm_exsvc_select:active {
     transform: translateY(0);
 }
+/* Selected state keeps the same brand color (no separate accent hue) --
+   distinguished from the default "Select" state by the darker fill plus the
+   text/icon swap to "Selected" that mptbm_registration.js already does. */
 .mptbm_exsvc_select.mActive {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-    box-shadow: 0 4px 12px -4px rgba(16, 185, 129, 0.5);
+    background: var(--color_theme) !important;
+    filter: brightness(0.88);
+    box-shadow: 0 4px 12px -4px var(--color_theme_aa);
 }
 .mptbm_exsvc_select.mActive:hover {
-    box-shadow: 0 8px 20px -6px rgba(16, 185, 129, 0.6);
-    filter: brightness(1.05);
+    box-shadow: 0 8px 20px -6px var(--color_theme_aa);
+    filter: brightness(0.95);
 }
 
 /* Active / Selected Card State */
 .mptbm_extra_service_item.mActive {
-    background: #f0fdf4;
-    border-left-color: #10b981;
+    background: var(--color_theme_77);
+    border-left-color: var(--color_theme);
 }
 .mptbm_extra_service_item.mActive:hover {
-    background: #ecfdf5;
+    background: var(--color_theme_88);
 }
 
 /* Divider between cards */
@@ -1152,8 +1162,8 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
     padding: 12px 28px;
     border: none;
     border-radius: 10px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #fff;
+    background: linear-gradient(135deg, var(--color_theme), var(--color_theme_cc));
+    color: var(--color_theme_alter);
     font-size: 15px;
     font-weight: 700;
     letter-spacing: .01em;
@@ -1163,7 +1173,7 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
 }
 .mptbm_exsvc_booknow:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(5,150,105,.35);
+    box-shadow: 0 6px 20px var(--color_theme_aa);
 }
 .mptbm_exsvc_booknow:active {
     transform: translateY(0);
@@ -1302,10 +1312,10 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
 /* mp_style.css:571 — .mpStyle [class*="_themeButton"] on Book Now button */
 .mptbm_extra_service .mptbm_exsvc_booknow,
 .mptbm_extra_service button.mptbm_exsvc_booknow.mptbm_book_now {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-    color: #fff !important;
+    background: linear-gradient(135deg, var(--color_theme), var(--color_theme_cc)) !important;
+    color: var(--color_theme_alter) !important;
     border: 0 !important;
-    box-shadow: 0 4px 12px rgba(5,150,105,.25) !important;
+    box-shadow: 0 4px 12px var(--color_theme_77) !important;
 }
 
 /* mp_style.css:2820 — ._fullWidth max-width constraint */

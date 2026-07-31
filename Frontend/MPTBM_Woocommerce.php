@@ -1251,6 +1251,12 @@ if (!class_exists('MPTBM_Woocommerce')) {
 		/****************************/
 		public function mptbm_add_to_cart()
 			{
+				// This response carries a freshly-verified nonce and mutates the
+				// cart -- a CDN/reverse-proxy or an overly broad caching plugin
+				// rule caching it would serve a stale nonce (Book Now failing for
+				// everyone after the one visitor who first triggered it) or, worse,
+				// replay someone else's cart action.
+				nocache_headers();
 				if (!MPTBM_Function::verify_add_to_cart_nonce()) {
 					wp_send_json_error(
 						array('message' => __('Your booking session expired. Please search again.', 'ecab-taxi-booking-manager')),
