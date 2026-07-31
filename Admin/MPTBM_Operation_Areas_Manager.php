@@ -471,6 +471,7 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                 [
                     'ID' => $post_id,
                     'post_title' => $title,
+                    'post_status' => 'publish',
                 ],
                 true
             );
