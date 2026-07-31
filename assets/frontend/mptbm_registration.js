@@ -4346,6 +4346,15 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
         })
             .then(function (response) { return response.json(); })
             .then(function (response) {
+                // A slower-to-resolve older search (e.g. from a stop row the
+                // customer has since edited or moved on from) must not pop
+                // this dropdown back open with stale results out from under
+                // whatever they're doing now - bail if the field no longer
+                // holds the text this response was for.
+                if (input.value.trim() !== query) {
+                    return;
+                }
+
                 container.innerHTML = '';
 
                 if (!response.success || !response.data || !response.data.length) {
@@ -4397,6 +4406,9 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
                 });
             })
             .catch(function () {
+                if (input.value.trim() !== query) {
+                    return;
+                }
                 container.innerHTML = '<div style="padding: 9px 12px; color:#dc2626; font-size:13px;">Search failed</div>';
             });
     }
@@ -4437,6 +4449,10 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
         resultsContainer.className = 'mptbm-osm-autocomplete';
         resultsContainer.style.cssText = 'position: fixed; box-sizing: border-box; font-size:14px; background: #fff; border: 1px solid #e7eaf0; border-radius: 14px; max-height: 240px; overflow-y: auto; z-index: 99999 !important; display: none; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06); padding: 6px;';
         document.body.appendChild(resultsContainer);
+        // Appended to body (so it can float over everything), not to the row
+        // itself - stash a reference so removing the row can clean this up
+        // too, instead of leaving an orphaned dropdown behind forever.
+        input._mptbmStopResultsContainer = resultsContainer;
 
         function positionDropdown() {
             var rect = input.getBoundingClientRect();
@@ -4494,6 +4510,9 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
         var hadCoords = !!$row.find('.mptbm_extra_stop_coords').val();
         if (input && input._mptbmStopMarker && typeof mptbm_osm_map !== 'undefined' && mptbm_osm_map) {
             mptbm_osm_map.removeLayer(input._mptbmStopMarker);
+        }
+        if (input && input._mptbmStopResultsContainer && input._mptbmStopResultsContainer.parentNode) {
+            input._mptbmStopResultsContainer.parentNode.removeChild(input._mptbmStopResultsContainer);
         }
         $row.remove();
         mptbmExtraStopToggleAddLink($wrapper);
