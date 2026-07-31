@@ -41,6 +41,11 @@ var mptbm_osm_start_marker = null;
 var mptbm_osm_end_marker = null;
 var mptbm_osm_extra_marker = null;
 
+// Per-pageload cache of address-search results, keyed by lowercased query
+// text -- re-typing something already searched (or the other field
+// matching the same text) resolves instantly with no network round trip.
+var mptbm_osm_search_cache = {};
+
 // Base Price global variables
 var mptbm_base_to_pickup_data = { distance: 0, duration: 0 };
 var mptbm_dropoff_to_base_data = { distance: 0, duration: 0 };
@@ -700,11 +705,7 @@ function mptbm_map_area_init() {
 
     // Initialize based on map type
     if (mapType.value === 'openstreetmap') {
-        // Show a key-free Google Maps preview until the visitor actually
-        // picks a pickup/drop-off address. The interactive Leaflet/OSRM map
-        // (markers + route) only gets built at that point, in
-        // mptbm_ensure_osm_map_ready(), same as it always has.
-        return mptbm_show_osm_idle_preview();
+        return mptbm_init_osm_map();
     } else if (mapType.value === 'enable') {
         return mptbm_init_google_map();
     } else {
@@ -712,30 +713,10 @@ function mptbm_map_area_init() {
     }
 }
 
-// Key-free Google Maps embed (no JS API, no billing) shown before the
-// visitor has chosen a route. It's view-only -- panning/zooming works but it
-// can't take markers or draw a route, so address selection swaps it out for
-// the real Leaflet map via mptbm_ensure_osm_map_ready().
-function mptbm_show_osm_idle_preview() {
-    var mapContainer = mptbm_get_current_map_area();
-    if (!mapContainer) {
-        return false;
-    }
-
-    var defaultLat = (typeof mptbm_default_lat !== 'undefined') ? mptbm_default_lat : 40.7128;
-    var defaultLng = (typeof mptbm_default_lng !== 'undefined') ? mptbm_default_lng : -74.0060;
-
-    mapContainer.innerHTML = '<iframe src="https://maps.google.com/maps?q=' + defaultLat + ',' + defaultLng + '&z=11&output=embed" width="100%" height="100%" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
-
-    // Address search doesn't depend on the map instance, so it keeps working
-    // while the preview is showing.
-    mptbm_init_osm_address_search();
-
-    return true;
-}
-
-// Called right before the first marker is placed. Replaces the idle preview
-// with the real Leaflet map if it isn't up yet; a no-op once it is.
+// Safety net called right before the first marker is placed: if the map
+// somehow isn't up yet (e.g. its container was hidden when
+// mptbm_map_area_init() ran), build it lazily now instead of silently
+// dropping the marker. A no-op once the map already exists.
 function mptbm_ensure_osm_map_ready() {
     if (mptbm_osm_map) {
         return true;
@@ -933,17 +914,140 @@ function mptbm_setup_osm_autocomplete(input, type) {
     };
 }
 
+// Bangladesh-specific fallback matching, ported from the old server-side
+// proxy (MPTBM_Dependencies::osm_search_proxy) -- Photon's country field is
+// sometimes empty for BD results, so city/state name also counts as a match.
+var MPTBM_BD_CITIES = ['DHAKA', 'CHITTAGONG', 'SYLHET', 'RAJSHAHI', 'KHULNA', 'BARISAL', 'RANGPUR', 'COMILLA', 'NARAYANGANJ', 'GAZIPUR'];
+var MPTBM_BD_STATES = ['DHAKA', 'CHITTAGONG', 'SYLHET', 'RAJSHAHI', 'KHULNA', 'BARISAL', 'RANGPUR', 'DIVISION'];
+
+// Same GeoJSON -> {display_name, lat, lon} shape and country filtering the
+// PHP proxy used to do server-side, ported 1:1 so behavior is unchanged now
+// that the call happens directly from the browser.
+function mptbm_transform_photon_results(geojson, restrictToCountry, countryCode) {
+    var results = [];
+    if (!geojson || !Array.isArray(geojson.features)) {
+        return results;
+    }
+
+    geojson.features.forEach(function (feature) {
+        var props = feature.properties || {};
+        var coords = (feature.geometry && feature.geometry.coordinates) || [];
+
+        if (restrictToCountry && countryCode) {
+            var featureCountry = (props.countrycode || '').toUpperCase();
+            var featureCountryName = (props.country || '').toUpperCase();
+            var featureState = (props.state || '').toUpperCase();
+            var featureCity = (props.city || '').toUpperCase();
+            var matches = false;
+
+            if (featureCountry && featureCountry === countryCode) {
+                matches = true;
+            }
+
+            if (!matches && countryCode === 'BD') {
+                if (featureCountryName === 'BANGLADESH' || featureCountryName === 'BD') {
+                    matches = true;
+                }
+                if (!matches && MPTBM_BD_CITIES.indexOf(featureCity) !== -1) {
+                    matches = true;
+                } else if (!matches && MPTBM_BD_STATES.indexOf(featureState) !== -1) {
+                    matches = true;
+                }
+            }
+
+            // No country info at all on this result -- allow it through
+            // rather than silently dropping it.
+            if (!featureCountry && !featureCountryName && !featureCity && !featureState) {
+                matches = true;
+            }
+
+            if (!matches) {
+                return;
+            }
+        }
+
+        var nameParts = [props.name, props.city, props.state, props.country].filter(Boolean);
+
+        results.push({
+            display_name: nameParts.length ? nameParts.join(', ') : 'Unknown Location',
+            lat: coords.length > 1 ? coords[1] : 0,
+            lon: coords.length > 0 ? coords[0] : 0
+        });
+    });
+
+    return results;
+}
+
+function mptbm_render_osm_search_results(results, container, input, type) {
+    container.innerHTML = '';
+
+    if (!results || results.length === 0) {
+        container.innerHTML = '<div style="padding: 9px 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600;">No results found</div>';
+        container.style.display = 'block';
+        return;
+    }
+
+    results.forEach(function (result) {
+        var item = document.createElement('div');
+        item.style.cssText = 'display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; margin: 2px 0; cursor: pointer; border-radius: 10px; color: #0f172a; font-size: 13.5px; font-weight: 500; line-height: 1.4; transition: background-color .15s ease;';
+
+        var icon = document.createElement('i');
+        icon.className = 'fas fa-map-marker-alt';
+        icon.style.cssText = 'flex: 0 0 auto; width: 14px; margin-top: 2px; color: #94a3b8; font-size: 13px;';
+
+        var text = document.createElement('span');
+        text.textContent = result.display_name;
+        text.style.cssText = 'flex: 1 1 auto; min-width: 0;';
+
+        item.appendChild(icon);
+        item.appendChild(text);
+
+        item.addEventListener('click', function () {
+            input.value = result.display_name;
+            container.style.display = 'none';
+            mptbm_handle_osm_address_selection(result, type);
+        });
+
+        item.addEventListener('mouseenter', function () {
+            this.style.backgroundColor = '#f1f4f9';
+        });
+
+        item.addEventListener('mouseleave', function () {
+            this.style.backgroundColor = 'transparent';
+        });
+
+        container.appendChild(item);
+    });
+
+    container.style.display = 'block';
+}
+
+// Calls Photon directly from the browser instead of proxying through
+// admin-ajax.php. The proxy added a full WordPress bootstrap plus an
+// outbound request from the server itself on every keystroke search --
+// on hosts where the server's own outbound connection is slow (the same
+// class of issue as a cURL timeout to any other external API), that hop
+// alone could make autocomplete take several seconds per query. Calling
+// Photon straight from the visitor's browser removes that hop entirely;
+// Photon's public API already supports CORS for exactly this use.
 function mptbm_search_osm_address(query, container, input, type, expectedQuery, autocompleteState) {
+    var cacheKey = query.toLowerCase();
+    var cached = mptbm_osm_search_cache[cacheKey];
+    if (cached) {
+        mptbm_render_osm_search_results(cached, container, input, type);
+        return;
+    }
+
     container.innerHTML = '<div style="padding: 9px 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600;">Searching&hellip;</div>';
     container.style.display = 'block';
 
-    // Use WordPress AJAX proxy
-    var body = new URLSearchParams();
-    body.append('action', 'mptbm_osm_search');
-    body.append('nonce', mptbm_ajax.osm_nonce);
-    body.append('q', query);
+    var restrictEl = document.getElementById('mptbm_restrict_search_country');
+    var countryEl = document.getElementById('mptbm_country');
+    var restrictToCountry = !!restrictEl && restrictEl.value === 'yes';
+    var countryCode = (countryEl && countryEl.value ? countryEl.value : '').toUpperCase();
 
     var abortController = null;
+    var timeoutId = null;
     if (autocompleteState && typeof AbortController !== 'undefined') {
         if (autocompleteState.abortController) {
             autocompleteState.abortController.abort();
@@ -951,22 +1055,25 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery, 
 
         abortController = new AbortController();
         autocompleteState.abortController = abortController;
+        // Photon is a shared public instance -- bound the wait instead of
+        // leaving "Searching..." on screen indefinitely if it stalls.
+        timeoutId = setTimeout(function () {
+            abortController.abort();
+        }, 8000);
     }
 
-    fetch(mptbm_ajax.ajax_url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: body,
-        credentials: 'same-origin',
+    var url = 'https://photon.komoot.io/api/?q=' + encodeURIComponent(query) + '&limit=5&lang=en';
+
+    fetch(url, {
         signal: abortController ? abortController.signal : undefined
     })
-        .then(response => {
+        .then(function (response) {
             return response.json();
         })
-        .then(response => {
+        .then(function (geojson) {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
             if (autocompleteState && autocompleteState.abortController === abortController) {
                 autocompleteState.abortController = null;
             }
@@ -977,58 +1084,14 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery, 
                 return;
             }
 
-            container.innerHTML = '';
-
-            if (!response.success) {
-                container.innerHTML = '<div style="padding: 9px 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; color: #dc2626; font-size: 13px; font-weight: 600;">Error: ' + response.data + '</div>';
-                container.style.display = 'block';
-                return;
-            }
-
-            if (!response.data || response.data.length === 0) {
-                container.innerHTML = '<div style="padding: 9px 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600;">No results found</div>';
-                container.style.display = 'block';
-                return;
-            }
-
-            var data = response.data;
-
-            data.forEach(function (result) {
-                var item = document.createElement('div');
-                item.style.cssText = 'display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; margin: 2px 0; cursor: pointer; border-radius: 10px; color: #0f172a; font-size: 13.5px; font-weight: 500; line-height: 1.4; transition: background-color .15s ease;';
-
-                var icon = document.createElement('i');
-                icon.className = 'fas fa-map-marker-alt';
-                icon.style.cssText = 'flex: 0 0 auto; width: 14px; margin-top: 2px; color: #94a3b8; font-size: 13px;';
-
-                var text = document.createElement('span');
-                text.textContent = result.display_name;
-                text.style.cssText = 'flex: 1 1 auto; min-width: 0;';
-
-                item.appendChild(icon);
-                item.appendChild(text);
-
-                item.addEventListener('click', function () {
-                    input.value = result.display_name;
-                    container.style.display = 'none';
-                    mptbm_handle_osm_address_selection(result, type);
-                });
-
-                item.addEventListener('mouseenter', function () {
-                    this.style.backgroundColor = '#f1f4f9';
-                });
-
-                item.addEventListener('mouseleave', function () {
-                    this.style.backgroundColor = 'transparent';
-                });
-
-                container.appendChild(item);
-            });
-
-            // Ensure container is visible and positioned
-            container.style.display = 'block';
+            var results = mptbm_transform_photon_results(geojson, restrictToCountry, countryCode);
+            mptbm_osm_search_cache[cacheKey] = results;
+            mptbm_render_osm_search_results(results, container, input, type);
         })
-        .catch(error => {
+        .catch(function (error) {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
             if (autocompleteState && autocompleteState.abortController === abortController) {
                 autocompleteState.abortController = null;
             }

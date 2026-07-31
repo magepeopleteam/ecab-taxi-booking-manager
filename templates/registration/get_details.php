@@ -808,9 +808,42 @@ document.addEventListener('DOMContentLoaded', function() {
 	<script>
 	// Day-specific time ranges
 	var dayTimeRanges = <?php echo wp_json_encode(isset($day_specific_times) ? $day_specific_times : []); ?>;
-	
-	
-	
+
+	// WordPress's configured time format (Settings > General > Time Format,
+	// e.g. "g:i a" for 12-hour or "H:i" for 24-hour) -- the pickup/return
+	// time list is rebuilt client-side whenever the date changes, so it
+	// needs its own formatter matching what MP_Global_Function::date_format()
+	// already renders server-side for the initial page load.
+	var mptbmTimeFormat = <?php echo wp_json_encode(get_option('time_format', 'g:i a')); ?>;
+
+	function mptbmFormatTime(hours24, minutes) {
+		var h24 = hours24 % 24;
+		var h12 = h24 % 12;
+		if (h12 === 0) h12 = 12;
+		var isPM = h24 >= 12;
+		var out = '';
+		for (var idx = 0; idx < mptbmTimeFormat.length; idx++) {
+			var ch = mptbmTimeFormat.charAt(idx);
+			switch (ch) {
+				case 'g': out += h12; break;
+				case 'G': out += h24; break;
+				case 'h': out += String(h12).padStart(2, '0'); break;
+				case 'H': out += String(h24).padStart(2, '0'); break;
+				case 'i': out += String(minutes).padStart(2, '0'); break;
+				case 'a': out += isPM ? 'pm' : 'am'; break;
+				case 'A': out += isPM ? 'PM' : 'AM'; break;
+				case '\\':
+					idx++;
+					if (idx < mptbmTimeFormat.length) out += mptbmTimeFormat.charAt(idx);
+					break;
+				default: out += ch;
+			}
+		}
+		return out;
+	}
+
+
+
 	function updateTimeRangeForDay(selectedDate) {
 		if (!selectedDate) return;
 		
@@ -855,7 +888,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			var hours = Math.floor(i / 60);
 			var minutes = i % 60;
 			var dataValue = hours + (minutes / 100);
-			var timeFormatted = String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0');
+			var timeFormatted = mptbmFormatTime(hours, minutes);
 			var dataTime = String(hours).padStart(2, '0') + '.' + String(minutes).padStart(2, '0');
 			
 			// Add to start time list
