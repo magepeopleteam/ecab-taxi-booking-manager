@@ -769,6 +769,12 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				}
 							
 
+							// Keyed by the specific order item, not just the vehicle: an order
+							// can legitimately contain the same vehicle more than once (e.g. a
+							// recurring series - the same vehicle booked on several different
+							// dates within one order). Keying on (order, vehicle) alone treated
+							// every item after the first as a duplicate of it and skipped
+							// creating its booking entirely, losing that occurrence's own date/price.
 							$existing_booking = get_posts(array(
 								'post_type'      => 'mptbm_booking',
 								'post_status'    => 'any',
@@ -776,7 +782,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 								'fields'         => 'ids',
 								'meta_query'     => array(
 									array('key' => 'mptbm_order_id', 'value' => $order_id),
-									array('key' => 'mptbm_id', 'value' => $post_id),
+									array('key' => 'mptbm_order_item_id', 'value' => $item_id),
 								),
 							));
 							if ($existing_booking) {

@@ -983,7 +983,18 @@ function mptbm_transform_photon_results(geojson, restrictToCountry, countryCode)
             }
         }
 
-        var nameParts = [props.name, props.city, props.state, props.country].filter(Boolean);
+        // Place name + city is enough to identify a pickup/drop-off for a
+        // service operating in one city/country - state and country were
+        // repeated on every single result (e.g. "..., Dhaka Division,
+        // Bangladesh") and made addresses needlessly long throughout the
+        // booking flow (summary, admin bookings list, order emails, ...).
+        // Only fall back to the broader state/country if neither a specific
+        // name nor a city came back at all, so a legitimately resolvable
+        // rural result still shows something instead of "Unknown Location".
+        var nameParts = [props.name, props.city].filter(Boolean);
+        if (!nameParts.length) {
+            nameParts = [props.state, props.country].filter(Boolean);
+        }
 
         results.push({
             display_name: nameParts.length ? nameParts.join(', ') : 'Unknown Location',

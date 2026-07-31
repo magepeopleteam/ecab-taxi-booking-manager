@@ -395,13 +395,22 @@ if (!class_exists('MPTBM_Dependencies')) {
 						}
 					}
 					
-					// Build display name from properties
+					// Build display name from properties. Name + city is enough to
+					// identify a pickup/drop-off for a service operating in one
+					// city/country - state and country repeated on every result
+					// made addresses needlessly long everywhere they're shown
+					// (summary, admin bookings list, order emails, ...). Only
+					// fall back to the broader state/country if neither a name
+					// nor a city came back, so a legitimately resolvable rural
+					// result still shows something instead of "Unknown Location".
 					$name_parts = array();
 					if (!empty($properties['name'])) $name_parts[] = $properties['name'];
 					if (!empty($properties['city'])) $name_parts[] = $properties['city'];
-					if (!empty($properties['state'])) $name_parts[] = $properties['state'];
-					if (!empty($properties['country'])) $name_parts[] = $properties['country'];
-					
+					if (empty($name_parts)) {
+						if (!empty($properties['state'])) $name_parts[] = $properties['state'];
+						if (!empty($properties['country'])) $name_parts[] = $properties['country'];
+					}
+
 					$display_name = !empty($name_parts) ? implode(', ', $name_parts) : 'Unknown Location';
 					
 					// Photon uses [lon, lat] format, we need to convert to lat/lon
