@@ -3238,6 +3238,22 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     beforeSend: function () { dLoader(parent.find('.tabsContentNext')); },
                     success: function (data) {
                         target_extra_service.html(data);
+                        // The footer copy of .mptbm_transport_summary just arrived with
+                        // this markup - CSS hides every .mptbm_transport_summary by
+                        // default (shown only via the sidebar's own slideDown, which
+                        // already ran before this element existed), so reveal this one
+                        // explicitly rather than waiting on the next price recalculation.
+                        target_extra_service.find('.mptbm_transport_summary').show();
+                        // Fill in its price/total immediately - otherwise it stays blank
+                        // until the customer's first extra-service click, since the vehicle
+                        // price line and base price calculation both already ran before
+                        // this copy existed. Copy the sidebar's already-computed price line
+                        // rather than re-deriving it (quantity/tax/custom-message logic
+                        // lives in the click handler above, not worth duplicating here).
+                        target_extra_service.find('.mptbm_product_price').html(
+                            target_summary.find('.mptbm_product_price').first().html()
+                        );
+                        mptbm_price_calculation(parent);
                         checkAndToggleBookNowButton(parent);
                         if (mptbm_is_ios()) {
                             target_extra_service[0].style.display = 'none';
@@ -3253,11 +3269,16 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                         success: function (data) {
                             if (!data || data.length < 100) {
                             }
-                            target_extra_service_summary.html(data).promise().done(function () {
+                            // Re-query instead of using the stale target_extra_service_summary
+                            // captured before this vehicle's markup existed: that snapshot only
+                            // ever matched the sidebar copy, so the footer copy (added after
+                            // Book Now) never received the itemized breakdown otherwise.
+                            let all_extra_service_summary = parent.find('.mptbm_extra_service_summary');
+                            all_extra_service_summary.html(data).promise().done(function () {
                                 if (target_extra_service.find('[name="mptbm_extra_service[]"]').length > 0) {
                                     target_summary.slideDown(400);
                                     target_extra_service.slideDown(400);
-                                    target_extra_service_summary.slideDown(400);
+                                    all_extra_service_summary.slideDown(400);
                                     pageScrollTo(target_extra_service);
                                 }
                                 dLoaderRemove(parent.find('.tabsContentNext'));
@@ -3267,9 +3288,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                                     checkAndToggleBookNowButton(parent);
                                 }
                                 if (mptbm_is_ios()) {
-                                    target_extra_service_summary[0].style.display = 'none';
-                                    void target_extra_service_summary[0].offsetHeight;
-                                    target_extra_service_summary[0].style.display = '';
+                                    all_extra_service_summary.hide().show(0);
                                 }
                             });
                         }

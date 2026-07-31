@@ -99,6 +99,37 @@
 			do_action('mptbm_custom_checkout_form', $post_id);
 		?>
 		<?php $booking_available = class_exists('MPTBM_Function') && MPTBM_Function::is_booking_available(); ?>
+
+		<?php
+			// Mirrors the .mptbm_transport_summary block in summary.php (the sticky
+			// left sidebar) so mobile/scrolled users see the running total again right
+			// before the Book Now button. Same classes on purpose: mptbm_registration.js
+			// updates every ".mptbm_transport_summary" it finds inside this
+			// .mptbm_transport_search_area, so this copy is kept in sync for free -
+			// no JS changes needed. Vehicle name is pre-filled server-side since this
+			// markup only reaches the DOM after the vehicle is already selected (the
+			// JS event that first sets .mptbm_product_name already fired by then).
+		?>
+		<div class="mptbm_transport_summary mptbm_exsvc_summary_footer">
+			<div class="divider"></div>
+			<h6 class="_mB_xs"><?php echo esc_html(MPTBM_Function::get_name()) . ' ' . esc_html__(' Details', 'ecab-taxi-booking-manager'); ?></h6>
+			<div class="_textColor_4 justifyBetween">
+				<div class="_dFlex_alignCenter">
+					<span class="fas fa-check-square _textTheme_mR_xs"></span>
+					<span class="mptbm_product_name"><?php echo esc_html(get_the_title($post_id)); ?></span>
+				</div>
+				<span class="mptbm_product_price _textTheme"></span>
+			</div>
+			<div class="mptbm_base_price_detail"></div>
+			<div class="mptbm_stop_price_detail"></div>
+			<div class="mptbm_extra_service_summary"></div>
+			<div class="divider"></div>
+			<div class="justifyBetween">
+				<h4><?php esc_html_e('Total : ', 'ecab-taxi-booking-manager'); ?></h4>
+				<h6 class="mptbm_product_total_price"></h6>
+			</div>
+		</div>
+
 		<div class="mptbm_exsvc_footer">
 			<?php if ($booking_available) { ?>
 				<button class="mptbm_exsvc_booknow mptbm_book_now" style="display:none;" type="button" data-wc_link_id="<?php echo esc_attr($link_wc_product); ?>">
