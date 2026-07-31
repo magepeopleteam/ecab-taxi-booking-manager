@@ -1189,7 +1189,7 @@
         $(document).on('change', '#mptbm_extra_services_id', function(e) {
             let $select = $(this);
             let service_id = $select.val();
-            let post_id = $('input[name="post_id"]').val();
+            let post_id = $('#post_ID').val();
             let nonce = $('#mptbm_extra_service_nonce').val();
 
             // "Custom" option's value is the vehicle's own post ID, not a
