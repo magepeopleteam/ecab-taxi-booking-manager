@@ -1047,7 +1047,8 @@ function mptbm_render_osm_search_results(results, container, input, type) {
 // alone could make autocomplete take several seconds per query. Calling
 // Photon straight from the visitor's browser removes that hop entirely;
 // Photon's public API already supports CORS for exactly this use.
-function mptbm_search_osm_address(query, container, input, type, expectedQuery, autocompleteState) {
+function mptbm_search_osm_address(query, container, input, type, expectedQuery, autocompleteState, retryCount) {
+    retryCount = retryCount || 0;
     var cacheKey = query.toLowerCase();
     var cached = mptbm_osm_search_cache[cacheKey];
     if (cached) {
@@ -1117,7 +1118,23 @@ function mptbm_search_osm_address(query, container, input, type, expectedQuery, 
                 return;
             }
 
+            // fetch() collapses every network-layer failure (DNS hiccup, a
+            // VPN/Wi-Fi adapter flapping mid-request -- ERR_NETWORK_CHANGED,
+            // a dropped connection, ...) into this same generic "Failed to
+            // fetch" TypeError with no way to tell them apart. Most of those
+            // are transient and gone a moment later, so retry once
+            // automatically before bothering the visitor with an error --
+            // only if they haven't since typed something else.
             console.error('[OSM Search] Fetch error:', error);
+            if (retryCount < 1 && input.value.trim() === expectedQuery) {
+                setTimeout(function () {
+                    if (input.value.trim() === expectedQuery) {
+                        mptbm_search_osm_address(query, container, input, type, expectedQuery, autocompleteState, retryCount + 1);
+                    }
+                }, 700);
+                return;
+            }
+
             container.innerHTML = '<div style="padding: 9px 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: center; color: #dc2626; font-size: 13px; font-weight: 600;">Search failed. Please try again.</div>';
             container.style.display = 'block';
         });
@@ -3928,6 +3945,19 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 }
 
                 settleHeight();
+
+                // The cached HTML is still there, but its map isn't necessarily:
+                // there's only one shared mptbm_osm_map/mptbm_map instance, and
+                // switching to ANY other tab in between tore it down and built a
+                // new one against that other tab's #mptbm_map_area div. Coming
+                // back to this tab left its own map area empty ever since, so it
+                // needs the same re-init the AJAX-loaded path already does below.
+                if (tab_id !== 'flat-rate' && map === 'yes') {
+                    setTimeout(function () {
+                        mptbm_map_area_init();
+                    }, 100);
+                }
+
                 return; // Exit the click handler early
             }
 
