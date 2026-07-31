@@ -220,6 +220,7 @@ div.mptbm_transport_search_area .tabItemNext.active .circleTitle {
    background as the loading form area below it. */
 .mptb-tabs-content-wrap {
 	position: relative;
+	transition: min-height 0.25s ease;
 }
 
 /* Tab-switch loading overlay: centered over the tab content area, not the whole viewport.
@@ -253,10 +254,10 @@ div.mptbm_transport_search_area .tabItemNext.active .circleTitle {
 	cursor: pointer;
 	background: #eef0f5;
 	max-width: 420px;
-	margin: 0 auto !important;
+	margin: 0 0 16px 0 !important;
 	border-radius: 999px;
 	gap: 2px;
-	border: none;
+	border: 1px solid #e2e8f0;
 }
 
 .mptb-tabs li {
@@ -294,6 +295,12 @@ div.mptbm_transport_search_area .tabItemNext.active .circleTitle {
 
 .mptb-tab-content.current {
 	display: block;
+	animation: mptbmTabFadeIn 0.2s ease;
+}
+
+@keyframes mptbmTabFadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
 }
 
 /* ===== Search Form Area ===== */

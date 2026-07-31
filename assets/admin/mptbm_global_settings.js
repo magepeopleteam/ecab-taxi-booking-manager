@@ -8,11 +8,26 @@
             return;
         }
 
-        var $search = $('#mptbm-global-settings-search');
-        var $clear = $('.mptbm-global-settings-search-clear');
+        // Fade the "Settings saved" banner out on its own after a few
+        // seconds, and drop settings-updated from the URL so a page refresh
+        // doesn't bring it back.
+        var $savedBanner = $('.mptbm-settings-saved-banner');
+        if ($savedBanner.length) {
+            setTimeout(function () {
+                $savedBanner.fadeOut(400, function () {
+                    $(this).remove();
+                });
+            }, 4000);
+
+            if (window.history && window.history.replaceState) {
+                var url = new URL(window.location.href);
+                url.searchParams.delete('settings-updated');
+                window.history.replaceState({}, '', url.toString());
+            }
+        }
+
         var $currentSection = $('.mptbm-global-settings-current-section');
         var $changeStatus = $('.mptbm-global-settings-change-status');
-        var $emptyState = $('.mptbm-global-settings-empty');
 
         function activeTabItem() {
             var $active = $page.find('.tabsContent > .tabsItem.active');
@@ -38,37 +53,6 @@
             $currentSection.attr('data-count', String(count));
         }
 
-        function filterActiveSection() {
-            var query = $.trim($search.val()).toLowerCase();
-            var $tab = activeTabItem();
-            var $rows = $tab.find('table.form-table > tbody > tr');
-            var visibleCount = 0;
-
-            $rows.each(function () {
-                var $row = $(this);
-                var matches = !query || $row.text().toLowerCase().indexOf(query) !== -1;
-                $row.toggleClass('mptbm-setting-filtered-out', !matches);
-
-                if (matches) {
-                    visibleCount += 1;
-                }
-            });
-
-            $clear.toggleClass('is-visible', query.length > 0);
-            $emptyState.toggleClass('is-visible', query.length > 0 && visibleCount === 0);
-            $page.toggleClass('has-empty-search', query.length > 0 && visibleCount === 0);
-            updateFieldCount(visibleCount);
-        }
-
-        function resetSearch() {
-            $search.val('');
-            $clear.removeClass('is-visible');
-            $page.find('.mptbm-setting-filtered-out').removeClass('mptbm-setting-filtered-out');
-            $emptyState.removeClass('is-visible');
-            $page.removeClass('has-empty-search');
-            updateFieldCount(activeTabItem().find('table.form-table > tbody > tr').length);
-        }
-
         $page.find('.tabsContent > .tabsItem form').each(function () {
             var $form = $(this);
             var $heading = $form.children('h2').first();
@@ -86,17 +70,10 @@
         updateSectionLabel();
         updateFieldCount(activeTabItem().find('table.form-table > tbody > tr').length);
 
-        $search.on('input', filterActiveSection);
-
-        $clear.on('click', function () {
-            resetSearch();
-            $search.trigger('focus');
-        });
-
         $page.on('click', '.tabLists [data-tabs-target]', function () {
             window.setTimeout(function () {
-                resetSearch();
                 updateSectionLabel();
+                updateFieldCount(activeTabItem().find('table.form-table > tbody > tr').length);
             }, 380);
         });
 

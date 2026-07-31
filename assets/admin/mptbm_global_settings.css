@@ -45,6 +45,31 @@ div.mp_global_settings.mptbm-modern-global-settings {
     z-index: 1;
 }
 
+.mptbm-settings-saved-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 13px 18px;
+    color: #067a55;
+    font-size: 13.5px;
+    font-weight: 600;
+    background: #ecfdf5;
+    border: 1px solid #6ee7b7;
+    border-radius: 12px;
+    animation: mptbm-settings-saved-in .25s ease;
+}
+
+.mptbm-settings-saved-banner i {
+    color: #10b981;
+    font-size: 16px;
+}
+
+@keyframes mptbm-settings-saved-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .mptbm-global-settings-hero-copy {
     display: flex;
     align-items: center;
@@ -140,81 +165,10 @@ div.mp_global_settings.mptbm-modern-global-settings {
     box-shadow: 0 4px 18px -14px rgba(15, 23, 42, 0.35);
 }
 
-.mptbm-global-settings-search {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: min(460px, 100%);
-    margin: 0;
-    order: 2;
-}
-
-.mptbm-global-settings-search > i {
-    position: absolute;
-    left: 13px;
-    z-index: 1;
-    color: #94a3b8;
-    font-size: 12px;
-    pointer-events: none;
-}
-
-#mptbm-global-settings-search {
-    width: 100%;
-    min-height: 38px;
-    margin: 0;
-    padding: 7px 40px 7px 36px;
-    color: var(--mptbm-settings-text);
-    background: #f8fafc;
-    border: 1px solid #dbe2ea;
-    border-radius: 9px;
-    box-shadow: none;
-    font-size: 12px;
-}
-
-#mptbm-global-settings-search:focus {
-    background: #fff;
-    border-color: var(--mptbm-settings-primary);
-    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.11);
-    outline: none;
-}
-
-.mptbm-global-settings-search-clear {
-    position: absolute;
-    right: 7px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    width: 27px;
-    height: 27px;
-    padding: 0;
-    color: #64748b;
-    background: transparent;
-    border: 0;
-    border-radius: 7px;
-    cursor: pointer;
-}
-
-.mptbm-global-settings-search-clear.is-visible {
-    display: inline-flex;
-}
-
-.mptbm-global-settings-search-clear:hover {
-    color: #0f172a;
-    background: #e2e8f0;
-}
-
-.mptbm-global-settings-search-clear .dashicons {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-    line-height: 18px;
-}
-
 .mptbm-global-settings-toolbar-meta {
     display: flex;
     align-items: center;
     gap: 10px;
-    order: 1;
 }
 
 .mptbm-global-settings-current-section {
@@ -484,10 +438,6 @@ div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > t
     background: #fbfcff;
 }
 
-div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr.mptbm-setting-filtered-out {
-    display: none !important;
-}
-
 div.mp_global_settings.mptbm-modern-global-settings table.form-table th,
 div.mp_global_settings.mptbm-modern-global-settings table.form-table td {
     display: block;
@@ -662,48 +612,6 @@ div.mp_global_settings.mptbm-modern-global-settings .button-primary:focus {
     color: #fff;
     background: var(--mptbm-settings-primary-dark);
     border-color: var(--mptbm-settings-primary-dark);
-}
-
-.mptbm-global-settings-empty {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    min-height: 260px;
-    flex-direction: column;
-    padding: 35px;
-    color: #64748b;
-    background: #fff;
-    border: 1px solid var(--mptbm-settings-border);
-    border-radius: 14px;
-    text-align: center;
-}
-
-.mptbm-global-settings-empty.is-visible {
-    display: flex;
-}
-
-.mptbm-global-settings-empty .dashicons {
-    width: 36px;
-    height: 36px;
-    margin-bottom: 12px;
-    color: #a5b4fc;
-    font-size: 36px;
-    line-height: 36px;
-}
-
-.mptbm-global-settings-empty strong {
-    margin-bottom: 4px;
-    color: #334155;
-    font-size: 13px;
-}
-
-.mptbm-global-settings-empty p {
-    margin: 0;
-    font-size: 11px;
-}
-
-.mptbm-modern-global-settings.has-empty-search .tabsContent > .tabsItem.active {
-    display: none;
 }
 
 @media (max-width: 1180px) {

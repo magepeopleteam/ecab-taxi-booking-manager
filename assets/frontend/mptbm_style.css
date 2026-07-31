@@ -315,6 +315,75 @@ div.mp_sticky_on_scroll.summary-box ._textColor_4 .fas.fa-check-square {
     font-size: 14px;
 }
 
+/* ----- Extra service line items (Child Seat, Bouquet of Flowers, etc.) ----- */
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2px;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary [data-extra-service] {
+    padding: 7px 0;
+    border-bottom: 1px dashed rgba(15, 23, 42, .08);
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary [data-extra-service]:last-of-type {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary [class*="_dFlex_flexWrap_justifyBetween"] {
+    align-items: center;
+    gap: 10px;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary ._dFlex_alignCenter {
+    gap: 7px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary ._dFlex_alignCenter > span:last-child {
+    overflow: hidden;
+    color: #334155 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary .fas.fa-check-square {
+    flex: 0 0 auto;
+    color: #10b981;
+    font-size: 12px;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary p {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 9px;
+    margin: 0 !important;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary .ex_service_qty {
+    padding: 1px 7px !important;
+    color: #64748b !important;
+    background: #f1f5f9;
+    border-radius: 999px;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary p > span.textTheme:last-child {
+    position: relative;
+    padding-left: 9px;
+    color: #0f172a !important;
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary p > span.textTheme:last-child::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 1px;
+    height: 11px;
+    background: rgba(15, 23, 42, .15);
+    transform: translateY(-50%);
+}
+
 /* ----- "Previous" button ----- */
 div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_prev {
     margin-top: 16px;

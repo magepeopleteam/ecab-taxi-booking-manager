@@ -39,7 +39,7 @@
 							<span><?php echo esc_html($service_name); ?></span>
 						</div>
 						<p>
-							<span class="textTheme ex_service_qty">x1</span>&nbsp;|&nbsp;
+							<span class="textTheme ex_service_qty">x1</span>
 							<span class="textTheme"><?php echo wp_kses_post(MP_Global_Function::format_price($service_price)); ?></span>
 						</p>
 					</div>

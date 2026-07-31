@@ -95,19 +95,14 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					</div>
 				</header>
 
+				<?php if (isset($_GET['settings-updated']) && $_GET['settings-updated'] === 'true') : ?>
+					<div class="mptbm-settings-saved-banner" role="status">
+						<i class="fas fa-check-circle" aria-hidden="true"></i>
+						<span><?php esc_html_e('Settings saved successfully.', 'ecab-taxi-booking-manager'); ?></span>
+					</div>
+				<?php endif; ?>
+
 				<div class="mptbm-global-settings-toolbar">
-					<label class="mptbm-global-settings-search" for="mptbm-global-settings-search">
-						<i class="fas fa-search" aria-hidden="true"></i>
-						<input
-							type="search"
-							id="mptbm-global-settings-search"
-							placeholder="<?php esc_attr_e('Search settings in this section…', 'ecab-taxi-booking-manager'); ?>"
-							autocomplete="off"
-						>
-						<button type="button" class="mptbm-global-settings-search-clear" aria-label="<?php esc_attr_e('Clear search', 'ecab-taxi-booking-manager'); ?>">
-							<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
-						</button>
-					</label>
 					<div class="mptbm-global-settings-toolbar-meta">
 						<span class="mptbm-global-settings-current-section"></span>
 						<span class="mptbm-global-settings-change-status" aria-live="polite"></span>
@@ -130,11 +125,6 @@ if (!class_exists('MPTBM_Settings_Global')) {
 							</aside>
 							<div class="tabsContent">
 								<?php $this->settings_api->show_forms(); ?>
-								<div class="mptbm-global-settings-empty" aria-live="polite">
-									<span class="dashicons dashicons-search" aria-hidden="true"></span>
-									<strong><?php esc_html_e('No matching settings', 'ecab-taxi-booking-manager'); ?></strong>
-									<p><?php esc_html_e('Try a different keyword or clear the search.', 'ecab-taxi-booking-manager'); ?></p>
-								</div>
 							</div>
 						</div>
 					</div>

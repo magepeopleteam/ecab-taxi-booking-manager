@@ -596,17 +596,34 @@ function mptbmCreateMarker(place) {
         }
     });
 }
+// Every tab's template (Hourly, Distance, ...) renders its own
+// id="mptbm_map_area" div. Once a second tab has been loaded via AJAX, the
+// DOM holds more than one element sharing that id, so a bare
+// getElementById/querySelector always resolves to whichever one appears
+// first in the DOM -- typically the original (now hidden) tab, not the one
+// actually on screen. Scope the lookup to the visible tab when tabs exist,
+// and fall back to a bare lookup for the tabless [mptbm_booking] shortcode.
+function mptbm_get_current_map_area() {
+    var scoped = document.querySelector('.mptb-tab-content.current #mptbm_map_area');
+    return scoped || document.getElementById('mptbm_map_area');
+}
+
+function mptbm_get_current_map_wrap() {
+    var scoped = document.querySelector('.mptb-tab-content.current .mptbm_map_area');
+    return scoped || document.querySelector('.mptbm_map_area');
+}
+
 function mptbm_map_area_init() {
 
     // Check if map container exists and is visible before initializing
-    var mapContainer = document.getElementById("mptbm_map_area");
+    var mapContainer = mptbm_get_current_map_area();
     if (!mapContainer) {
         console.warn("[Map Init] Map container #mptbm_map_area not found. Skipping map initialization.");
         return false;
     }
 
     // Check if the map container is visible (not hidden by CSS)
-    var mapArea = document.querySelector('.mptbm_map_area');
+    var mapArea = mptbm_get_current_map_wrap();
     if (mapArea && mapArea.style.display === 'none') {
         // If map is hidden, we still want to initialize address search for OSM
         var mapType = document.getElementById('mptbm_map_type');
@@ -627,12 +644,52 @@ function mptbm_map_area_init() {
 
     // Initialize based on map type
     if (mapType.value === 'openstreetmap') {
-        return mptbm_init_osm_map();
+        // Show a key-free Google Maps preview until the visitor actually
+        // picks a pickup/drop-off address. The interactive Leaflet/OSRM map
+        // (markers + route) only gets built at that point, in
+        // mptbm_ensure_osm_map_ready(), same as it always has.
+        return mptbm_show_osm_idle_preview();
     } else if (mapType.value === 'enable') {
         return mptbm_init_google_map();
     } else {
         return false;
     }
+}
+
+// Key-free Google Maps embed (no JS API, no billing) shown before the
+// visitor has chosen a route. It's view-only -- panning/zooming works but it
+// can't take markers or draw a route, so address selection swaps it out for
+// the real Leaflet map via mptbm_ensure_osm_map_ready().
+function mptbm_show_osm_idle_preview() {
+    var mapContainer = mptbm_get_current_map_area();
+    if (!mapContainer) {
+        return false;
+    }
+
+    var defaultLat = (typeof mptbm_default_lat !== 'undefined') ? mptbm_default_lat : 40.7128;
+    var defaultLng = (typeof mptbm_default_lng !== 'undefined') ? mptbm_default_lng : -74.0060;
+
+    mapContainer.innerHTML = '<iframe src="https://maps.google.com/maps?q=' + defaultLat + ',' + defaultLng + '&z=11&output=embed" width="100%" height="100%" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+
+    // Address search doesn't depend on the map instance, so it keeps working
+    // while the preview is showing.
+    mptbm_init_osm_address_search();
+
+    return true;
+}
+
+// Called right before the first marker is placed. Replaces the idle preview
+// with the real Leaflet map if it isn't up yet; a no-op once it is.
+function mptbm_ensure_osm_map_ready() {
+    if (mptbm_osm_map) {
+        return true;
+    }
+    var mapContainer = mptbm_get_current_map_area();
+    if (!mapContainer) {
+        return false;
+    }
+    mapContainer.innerHTML = '';
+    return mptbm_init_osm_map();
 }
 
 function mptbm_init_osm_map() {
@@ -642,7 +699,7 @@ function mptbm_init_osm_map() {
     }
 
     // Check if map container exists
-    var mapContainer = document.getElementById("mptbm_map_area");
+    var mapContainer = mptbm_get_current_map_area();
     if (!mapContainer) {
         return false;
     }
@@ -667,8 +724,11 @@ function mptbm_init_osm_map() {
     var defaultLat = (typeof mptbm_default_lat !== 'undefined') ? mptbm_default_lat : 40.7128;
     var defaultLng = (typeof mptbm_default_lng !== 'undefined') ? mptbm_default_lng : -74.0060;
 
-    // Initialize OpenStreetMap with configured coordinates
-    mptbm_osm_map = L.map('mptbm_map_area').setView([defaultLat, defaultLng], 10);
+    // Initialize OpenStreetMap with configured coordinates. Passed as the
+    // resolved element (not the 'mptbm_map_area' id string) since that id is
+    // duplicated across tabs -- Leaflet would otherwise resolve it via its
+    // own getElementById and land on the wrong tab's div.
+    mptbm_osm_map = L.map(mapContainer).setView([defaultLat, defaultLng], 10);
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -931,6 +991,9 @@ function mptbm_handle_osm_address_selection(address, type) {
     var lat = parseFloat(address.lat);
     var lng = parseFloat(address.lon);
     var price_based = jQuery('[name="mptbm_price_based"]').val();
+
+    // First address picked: swap the idle Google preview for the real map.
+    mptbm_ensure_osm_map_ready();
 
     // Remove existing marker for this type
     if (type === 'start' && mptbm_osm_start_marker) {
@@ -3610,6 +3673,30 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
             var targetTabContainer = $("#" + tab_id);
             var hasExistingContent = targetTabContainer.length > 0 && targetTabContainer.html().trim() !== '';
 
+            // Freeze the content wrapper at whatever height it currently is
+            // before touching anything else, so the outgoing tab (or the
+            // loading overlay covering it) stays put at a stable size --
+            // nothing collapses out from under it while new content loads.
+            // .mptb-tabs-content-wrap has a CSS transition on min-height, so
+            // easing it to the new content's natural height in settleHeight()
+            // below animates smoothly instead of snapping.
+            var $tabContentWrap = $(this).closest('.mptb-tab-container').find('.mptb-tabs-content-wrap');
+            var lockedHeight = $tabContentWrap.outerHeight();
+            if (lockedHeight) {
+                $tabContentWrap.css('min-height', lockedHeight + 'px');
+            }
+
+            function settleHeight() {
+                if (!$tabContentWrap.length) {
+                    return;
+                }
+                var naturalHeight = $tabContentWrap.outerHeight();
+                $tabContentWrap.css('min-height', naturalHeight + 'px');
+                setTimeout(function () {
+                    $tabContentWrap.css('min-height', '');
+                }, 260);
+            }
+
             // Only show loading overlay if the tab doesn't have content or needs to be refreshed
             if (!hasExistingContent) {
                 // Remove any existing loading overlay
@@ -3622,7 +3709,6 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 // semi-transparent white background used for the loading form area below
                 // them; not the whole viewport either, since a fixed/body-centered overlay
                 // ends up wherever the page happens to scroll to).
-                var $tabContentWrap = $(this).closest('.mptb-tab-container').find('.mptb-tabs-content-wrap');
                 var loadingOverlay = $('<div class="mptbm-loading-overlay"><div class="mptbm-spinner"></div></div>');
 
                 ($tabContentWrap.length ? $tabContentWrap : $('body')).append(loadingOverlay);
@@ -3643,11 +3729,15 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     targetTabContainer.css('display', 'block');
                 }
 
+                settleHeight();
                 return; // Exit the click handler early
             }
 
-            // Remove existing template before inserting the new one
-            $('.mptb-tab-content').empty().removeClass('current');
+            // The outgoing tab is intentionally left in place (still
+            // .current, dimmed by the loading overlay above it) -- it only
+            // gets swapped out once the new content has actually arrived,
+            // in the success handler below, so there's never a moment where
+            // the content area is empty/collapsed.
 
             // Small delay to ensure loading GIF is rendered before AJAX starts (only when loading new content)
             setTimeout(function () {
@@ -3661,23 +3751,6 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                         tab_id: tab_id,
                         form_style: form_style,
                         map: map
-                    },
-                    beforeSend: function () {
-                        // Check if the tab container exists before trying to insert loading message
-                        var tabContainer = $("#" + tab_id);
-                        if (tabContainer.length === 0) {
-                            // Create the container if it doesn't exist
-                            var tabContainerParent = $('.mptb-tab-container');
-                            if (tabContainerParent.length > 0) {
-                                var newTabContainer = $('<div id="' + tab_id + '" class="mptb-tab-content"></div>');
-                                tabContainerParent.append(newTabContainer);
-                                tabContainer = newTabContainer;
-                            }
-                        }
-
-                        if (tabContainer.length > 0) {
-                            tabContainer.html('<div style="text-align: center; padding: 20px;"><p>Loading...</p><div style="margin-top: 10px;">Please wait while we load the booking form...</div></div>');
-                        }
                     },
                     success: function (data) {
 
@@ -3709,6 +3782,8 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                         if (!tabContainer.is(':visible')) {
                             tabContainer.css('display', 'block');
                         }
+
+                        settleHeight();
 
                         // Hide loading GIF after content is loaded with a minimum display time
 
@@ -3746,10 +3821,13 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                             // Remove the loading overlay
                             $('.mptbm-loading-overlay').remove();
                         }, 1000);
+                        $tabContentWrap.css('min-height', '');
                         // Show error message
                         var tabContainer = $("#" + tab_id);
                         if (tabContainer.length > 0) {
                             tabContainer.html('<div style="text-align: center; padding: 20px; color: red;"><p>Error loading content. Please try again.</p></div>');
+                            $('.mptb-tab-content').removeClass('current');
+                            tabContainer.addClass('current');
                         }
                     },
                 });
