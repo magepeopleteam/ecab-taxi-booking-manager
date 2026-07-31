@@ -260,18 +260,10 @@ if (!class_exists('MPTBM_Dependencies')) {
 				return;
 			}
 
-			$client_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
-			$rate_key = 'mptbm_osm_rate_' . md5($client_ip);
-			$rate = (int) get_transient($rate_key);
-			if ($rate >= 30) {
-				wp_send_json_error('Too many searches. Please wait and try again.', 429);
-			}
-			set_transient($rate_key, $rate + 1, 5 * MINUTE_IN_SECONDS);
-			
 			// Get country restriction settings
 			$restrict_to_country = MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country_restriction', 'no');
 			$country_code = MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'BD');
-			
+
 			// Build search parameters
 			$search_params = array(
 				'q' => $query,
@@ -283,7 +275,19 @@ if (!class_exists('MPTBM_Dependencies')) {
 			if (is_array($cached_results)) {
 				wp_send_json_success($cached_results);
 			}
-			
+
+			// Rate-limit only actual outbound Photon requests (cache hits above
+			// never leave the server, so they shouldn't spend this budget) -
+			// otherwise re-typing/correcting a query, or another visitor having
+			// already searched the same place, silently burns through it.
+			$client_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
+			$rate_key = 'mptbm_osm_rate_' . md5($client_ip);
+			$rate = (int) get_transient($rate_key);
+			if ($rate >= 60) {
+				wp_send_json_error('Too many searches. Please wait and try again.', 429);
+			}
+			set_transient($rate_key, $rate + 1, 5 * MINUTE_IN_SECONDS);
+
 			// Add country restriction if enabled
 			if ($restrict_to_country === 'yes' && !empty($country_code)) {
 				// For Bangladesh, we'll rely on server-side filtering since osm_tag might be too restrictive

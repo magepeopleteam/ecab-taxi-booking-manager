@@ -1277,27 +1277,28 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
    ============================================ */
 .mptbm_results_toolbar {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
-    gap: 10px;
-    flex-wrap: nowrap;
+    gap: 20px;
+    flex-wrap: wrap;
     background: #ffffff;
     border: 1px solid rgba(15, 23, 42, 0.06);
     border-radius: 14px;
-    padding: 12px 16px;
+    padding: 14px 18px;
     margin-bottom: 14px;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-    overflow-x: auto;
 }
 
-/* ----- Left: route / date / passengers ----- */
+/* ----- Left column: route, pickup ••• drop-off on a single line ----- */
 .mptbm_results_trip {
     display: flex;
     align-items: center;
-    flex-wrap: nowrap;
     gap: 8px;
     flex: 0 0 auto;
     min-width: 0;
+    max-width: 100%;
+    padding-right: 20px;
+    border-right: 1px solid rgba(15, 23, 42, 0.08);
 }
 .mptbm_results_trip_place {
     /* mp_style.css:.mpStyle span sets inline-block at equal specificity (both
@@ -1309,13 +1310,22 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
     font-size: 13.5px;
     font-weight: 700;
     color: #0f172a;
-    max-width: 160px;
-    white-space: nowrap;
+    max-width: 150px;
+    /* overflow/text-overflow used to live here, but text-overflow:ellipsis
+       doesn't reliably fire on a flex container split into multiple flex
+       items (the icon + the name) - it needs the overflowing text to be the
+       sole content of a block-level box, so long names just got hard-clipped
+       with no "…" at all. Moved onto .mptbm_results_trip_place_text below,
+       which wraps only the name text itself. */
+    flex: 0 1 auto;
+    min-width: 0;
+}
+.mptbm_results_trip_place_text {
+    display: block;
     overflow: hidden;
     text-overflow: ellipsis;
-    /* overflow:hidden makes the flex auto-min-width resolve to 0, so without
-       flex-shrink:0 this collapses to nothing instead of just truncating. */
-    flex: 0 0 auto;
+    white-space: nowrap;
+    min-width: 0;
 }
 .mptbm_results_trip_place > i {
     font-size: 12px;
@@ -1332,10 +1342,9 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
     font-size: 8px;
     letter-spacing: 2px;
     line-height: 1;
+    flex: 0 0 auto;
 }
 .mptbm_results_trip_divider {
-    /* mp_style.css: [class*="_divider"] matches this class name by substring
-       and sets width:100%/display:block/margin - must force our own values. */
     display: block !important;
     width: 1px !important;
     height: 16px !important;
@@ -1358,28 +1367,43 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
     font-size: 12px;
 }
 
-/* ----- Middle: Service Times + Pickup Date and Time ----- */
+/* ----- Middle column: Service Times + Pickup Date/Time etc, as a
+   self-wrapping label/value grid instead of one baseline-aligned line -
+   each fact keeps its own column width, so values line up instead of the
+   row overflowing once Transfer Type/Waiting/Distance/Duration all join
+   Pickup Date/Time (see mptbm_reveal_inline_results in the JS). ----- */
 .mptbm_results_toolbar_middle {
     display: flex;
     align-items: center;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0 20px;
 }
+/* A CSS Grid here (repeat(auto-fill, minmax(96px, 1fr))) looks equivalent
+   but isn't: browsers size a grid's *intrinsic* (auto) height off a
+   worst-case single-column stacking of its items, independent of the real
+   width-based layout - since this row is itself sized by its flex-item
+   parent's auto height, that pessimistic intrinsic height leaks out as a
+   tall, mostly-empty box even though the grid itself renders as one tidy
+   row. A wrapping flex row doesn't have that mismatch - its auto/hypothetical
+   height reflects the actual line-wrapping at the real available width. */
 .mptbm_results_toolbar_middle .mptbm_summary_top_row {
     display: flex;
-    align-items: center;
-    gap: 18px;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    width: 100%;
 }
 .mptbm_results_toolbar_middle .mptbm_summary_top_col {
     display: flex;
-    flex-direction: row;
-    align-items: baseline;
-    gap: 6px;
-    white-space: nowrap;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    flex: 1 1 96px;
 }
 .mptbm_results_toolbar_middle h6 {
     margin: 0 !important;
-    font-size: 10.5px !important;
-    font-weight: 400 !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
     text-transform: uppercase;
     letter-spacing: .06em;
     color: #94a3b8 !important;
@@ -1387,19 +1411,24 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
 }
 .mptbm_results_toolbar_middle p {
     margin: 0 !important;
-    font-size: 12.5px !important;
+    font-size: 13px !important;
     font-weight: 700 !important;
     color: #0f172a !important;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
-/* ----- Right: availability, sort, edit ----- */
+/* ----- Right column: edit/map actions ----- */
 .mptbm_results_actions {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 8px;
     flex-wrap: nowrap;
     flex: 0 0 auto;
+    padding-left: 20px;
+    border-left: 1px solid rgba(15, 23, 42, 0.08);
 }
 .mptbm_results_count_number {
     color: var(--color_theme);
@@ -1449,30 +1478,25 @@ button.mptbm_exsvc_booknow.mptbm_book_now {
 button.mptbm_results_edit {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 7px;
-    background: #ffffff;
-    color: #0f172a;
-    border: 1px solid rgba(15, 23, 42, 0.12);
+    background: var(--color_theme);
+    color: #ffffff;
+    border: 1px solid var(--color_theme);
     border-radius: 10px;
-    padding: 7px 14px;
+    padding: 8px 14px;
     font-size: 12.5px;
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
-    transition: border-color .15s ease, background-color .15s ease, color .15s ease;
+    transition: filter .15s ease;
 }
 button.mptbm_results_edit i {
     font-size: 11px;
-    color: #94a3b8;
-    transition: color .15s ease;
+    color: #ffffff;
 }
 button.mptbm_results_edit:hover {
-    border-color: var(--color_theme);
-    background: rgba(5, 150, 105, .06);
-    color: var(--color_theme);
-}
-button.mptbm_results_edit:hover i {
-    color: var(--color_theme);
+    filter: brightness(1.08);
 }
 
 @media (max-width: 640px) {
@@ -1484,38 +1508,38 @@ button.mptbm_results_edit:hover i {
         gap: 10px;
     }
     /* Stacked mobile order: route/location on top, then date, then
-       duration + pickup time together, then the edit action. */
+       duration + pickup time together, then the edit action. The three
+       columns' side borders/padding (built for sitting shoulder to
+       shoulder) become a top border/padding once they stack instead. */
     .mptbm_results_trip {
         order: 1;
         width: 100%;
-        flex-wrap: wrap;
+        padding-right: 0;
+        border-right: none;
     }
     .mptbm_results_toolbar_middle {
         order: 2;
         width: 100%;
+        padding: 10px 0 0;
+        border-top: 1px solid rgba(15, 23, 42, 0.08);
     }
     .mptbm_results_actions {
         order: 3;
         width: 100%;
+        flex-direction: row;
         flex-wrap: wrap;
+        padding: 10px 0 0;
+        border-left: none;
+        border-top: 1px solid rgba(15, 23, 42, 0.08);
+    }
+    .mptbm_results_actions > * {
+        flex: 1 1 auto;
     }
     .mptbm_results_trip_place {
-        max-width: 46%;
+        max-width: 100%;
     }
-    .mptbm_results_toolbar_middle .mptbm_summary_top_row {
-        flex-wrap: wrap;
-        row-gap: 4px;
-        column-gap: 18px;
-    }
-    .mptbm_results_toolbar_middle .mptbm_summary_col_date {
-        order: 1;
-        flex-basis: 100%;
-    }
-    .mptbm_results_toolbar_middle .mptbm_summary_col_duration {
-        order: 2;
-    }
-    .mptbm_results_toolbar_middle .mptbm_summary_col_time {
-        order: 3;
+    .mptbm_results_toolbar_middle .mptbm_summary_top_col.mptbm_summary_col_date {
+        grid-column: 1 / -1;
     }
 }
 @media (max-width: 480px) {

@@ -2859,7 +2859,12 @@ function mptbm_reveal_inline_results(target) {
     mptbm_set_step_active($searchAreaRoot, '#mptbm_search_result');
     if ($mapArea.length) {
         if (hasMap) {
-            $mapArea.css('display', 'flex').addClass('mptbm_map_collapsed');
+            // mptbm_map_collapsed toggles on/off as the user opens/closes the
+            // map peek - mptbm_results_shown never comes back off, marking
+            // "results are now sharing this column with the map" for CSS
+            // that needs to tell that apart from the pre-search state (see
+            // the .fullHeight height override below).
+            $mapArea.css('display', 'flex').addClass('mptbm_map_collapsed mptbm_results_shown');
             var $toggle = $mapArea.find('.mptbm_map_collapse_toggle');
             $toggle.attr('aria-expanded', 'false');
             $toggle.find('[data-label]').text($toggle.data('expand-text'));

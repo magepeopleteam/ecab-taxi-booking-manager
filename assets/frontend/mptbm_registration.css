@@ -334,6 +334,7 @@ div.mptbm_transport_search_area .mptbm_search_area h3 {
 }
 
 div.mptbm_transport_search_area .mptbm_search_area label {
+	position: relative;
 	font-weight: 700;
 	color: #94a3b8;
 	font-size: 10px;
@@ -403,7 +404,7 @@ div.mptbm_transport_search_area div.mp_input_select .formControl {
 div.mptbm_transport_search_area .mptbm_left_icon {
 	position: absolute;
 	left: 0;
-	top: 8px;
+	bottom: 0;
 	width: 42px !important;
 	font-size: 15px;
 	color: var(--color_theme) !important;
@@ -580,6 +581,20 @@ div.mptbm_transport_search_area .mptbm_map_area .mptbm_map_collapsible_body > .f
 	flex: 1 1 auto;
 	transition: height .3s ease;
 }
+/* Once results are showing, .mptbm_inline_search_results (the trip-summary
+   card plus the full vehicle list) joins the map as a sibling in this same
+   column - its own content easily dominates the column's total height, so
+   .mptbm_map_area no longer has a definite height "left over" for the rule
+   above's calc(100% - ...) to resolve against (percentages need a definite
+   containing-block height; against an auto/content-driven one they're
+   effectively ignored). That's why toggling Show Map/Hide Map stopped doing
+   anything visible - both states silently fell back to #mptbm_map_area's own
+   min-height:200px floor. A plain fixed height sidesteps the percentage
+   entirely, the same way the collapsed state below already does. Excluded
+   while collapsed (:not()) so that smaller peek height still wins. */
+div.mptbm_transport_search_area .mptbm_map_area.mptbm_results_shown:not(.mptbm_map_collapsed) .mptbm_map_collapsible_body > .fullHeight {
+	height: 420px;
+}
 
 /* ===== Map header + collapse toggle ===== */
 /* This bar only ever exists to hold the collapse-toggle button before it
@@ -640,6 +655,8 @@ div.mptbm_transport_search_area .mptbm_map_area .mptbm_map_collapsible_body > .f
    as one action group rather than two buttons from different design passes. */
 .mptbm_results_actions .mptbm_map_collapse_toggle_merged {
 	order: -1;
+	justify-content: center;
+	width: 100%;
 	border: 1px solid rgba(15, 23, 42, 0.12);
 	border-radius: 10px;
 	padding: 7px 14px;
@@ -665,11 +682,6 @@ div.mptbm_transport_search_area .mptbm_map_area .mptbm_map_collapsible_body > .f
 /* Redundant here - the real Route Planning panel is already visible and
    editable on the left, so there's no separate "step" to jump back to. */
 .mptbm_inline_search_results button.mptbm_results_edit {
-	display: none;
-}
-/* No longer needed as a manual control - the map already auto-collapses to
-   a "peek" height on search and re-fits its own zoom to the full route. */
-.mptbm_results_actions .mptbm_map_collapse_toggle_merged {
 	display: none;
 }
 
@@ -743,33 +755,47 @@ button.mptbm_inline_results_reset {
 	padding: 0;
 	margin-bottom: 16px;
 	border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-	/* Total Distance/Total Time joining Duration/Pickup Date/Pickup Time in
-	   the same row (see mptbm_reveal_inline_results) is more than the base
-	   nowrap+overflow-x:auto layout can fit on one line at this column's
-	   narrower width - wrap onto additional lines instead of requiring a
-	   horizontal scroll to see the map toggle/edit action. */
-	flex-wrap: wrap;
-	overflow-x: visible;
-	row-gap: 10px;
+	/* This card's own column is narrower than the standalone results page
+	   the 3-column route/facts/actions layout was built for - always stack
+	   them (like the page's own <640px breakpoint) rather than trying to
+	   fit 3 side-by-side columns, complete with side borders, into it. */
+	flex-direction: column;
+	align-items: stretch;
+	/* Base rule's justify-content:space-between spreads the 3 columns apart
+	   *horizontally* in the desktop row layout - left untouched here, it still
+	   applies on the now-vertical main axis instead, spreading route/stats/
+	   actions apart to fill this card's full height rather than sitting
+	   packed together with just the gap below between them. */
+	justify-content: flex-start;
+	gap: 12px;
+}
+.mptbm_inline_search_results .mptbm_results_trip {
+	/* Route now sits on a single line (see .mptbm_results_trip) that can run
+	   the full card width - reserve room so long place names truncate with
+	   their ellipsis still visible, instead of running under the circular
+	   reset "x" button (position:absolute, top:14px/right:14px on the card)
+	   and just disappearing behind its opaque background. */
+	padding-right: 44px;
+	border-right: none;
 }
 /* Standard title size, matching Route Planning's own h3 (18px/700) above it -
    the base stylesheet's 13.5px reads as body text, not this card's heading. */
 .mptbm_inline_search_results .mptbm_results_trip_place {
 	font-size: 18px;
+	/* Pickup and drop-off now sit on one line together (see
+	   .mptbm_results_trip) - a narrower cap per place than the 320px this
+	   used when they were stacked, so two long names still fit side by side
+	   without overflowing this card's width; long ones ellipsize instead. */
+	max-width: 190px;
 }
-/* Base stylesheet fixes .mptbm_results_toolbar_middle at flex:0 0 auto (its
-   natural content width) since it never needed to shrink on the standalone
-   results page. With Transfer Type/Waiting Hours/Total Distance/Total Time
-   all joining Pickup Date/Pickup Time here, that natural width can exceed
-   the narrower inline card - let it shrink/wrap instead of overflowing. */
 .mptbm_inline_search_results .mptbm_results_toolbar_middle {
-	flex: 1 1 auto;
-	min-width: 0;
-	padding-bottom: 12px;
-}
-.mptbm_inline_search_results .mptbm_results_toolbar_middle .mptbm_summary_top_row {
-	flex-wrap: wrap;
-	row-gap: 8px;
+	/* Base stylesheet's flex:1 1 auto is meant to grow *horizontally* in the
+	   3-column row layout - stacked into a column here instead, that same
+	   value grows this box *vertically* to fill all leftover space, centering
+	   the stats row inside it and reading as two big dead gaps above/below. */
+	flex: 0 0 auto;
+	padding: 12px 0 0;
+	border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 /* The shared .mptbm_results_toolbar_middle h6 rule uppercases every label in
    this row - the JS already title-cases Total Distance/Total Time's actual
@@ -780,7 +806,13 @@ button.mptbm_inline_results_reset {
 	text-transform: none;
 }
 .mptbm_inline_search_results .mptbm_results_actions {
-	margin-left: auto;
+	flex-direction: row;
+	flex-wrap: wrap;
+	padding-left: 0;
+	border-left: none;
+}
+.mptbm_inline_search_results .mptbm_results_actions > * {
+	flex: 1 1 auto;
 }
 /* Its own 10px padding, meant for when it sits directly on the page
    background, would otherwise misalign its content against the toolbar

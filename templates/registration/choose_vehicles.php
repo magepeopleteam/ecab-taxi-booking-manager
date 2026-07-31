@@ -1062,13 +1062,13 @@ if (empty($duration)) {
 						<div class="mptbm_results_trip">
 							<span class="mptbm_results_trip_place">
 								<i class="fas fa-map-marker-alt mptbm_results_pin_start"></i>
-								<?php echo esc_html($toolbar_start_display); ?>
+								<span class="mptbm_results_trip_place_text"><?php echo esc_html($toolbar_start_display); ?></span>
 							</span>
 							<?php if ($toolbar_show_dropoff && $toolbar_end_display) : ?>
 							<span class="mptbm_results_trip_dots">&bull;&bull;&bull;</span>
 							<span class="mptbm_results_trip_place">
 								<i class="fas fa-map-marker-alt mptbm_results_pin_end"></i>
-								<?php echo esc_html($toolbar_end_display); ?>
+								<span class="mptbm_results_trip_place_text"><?php echo esc_html($toolbar_end_display); ?></span>
 							</span>
 							<?php endif; ?>
 							<?php if ($toolbar_show_passengers) : ?>

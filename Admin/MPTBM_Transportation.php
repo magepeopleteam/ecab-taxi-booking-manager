@@ -238,7 +238,12 @@ class MPTBM_Transportation
                 'hourly'      => get_post_meta($pid, 'mptbm_hour_price', true),
                 'model'       => $model,
                 'status'      => $post->post_status,
-                'image'       => get_post_meta($pid, 'feature_image', true) ?: get_the_post_thumbnail_url($pid, 'medium_large'),
+                // The real featured image always wins - 'feature_image' postmeta is a
+                // legacy leftover the dummy-data importer used to write alongside the
+                // real thumbnail (see MPTBM_Dummy_Import.php), never updated again
+                // after that, so preferring it here made the list show the original
+                // demo image forever even after an admin changed the featured image.
+                'image'       => get_the_post_thumbnail_url($pid, 'medium_large') ?: get_post_meta($pid, 'feature_image', true),
                 'price_based' => get_post_meta($pid, 'mptbm_price_based', true),
                 'date_type'   => get_post_meta($pid, 'mptbm_date_type', true) ?: 'repeated',
                 'all_time'    => get_post_meta($pid, 'mptbm_available_for_all_time', true) === 'on',
@@ -343,6 +348,19 @@ class MPTBM_Transportation
             if (!empty($f[$key])) {
                 echo '<span class="mptbm-chip">' . $svg . ' ' . esc_html($f[$key]) . '</span>';
             }
+        }
+        // mptbm_features labels are free text an admin can rename or add to per
+        // vehicle - anything that isn't one of the 4 exact strings above (or
+        // name/model, already shown elsewhere in this row) was silently
+        // dropped instead of getting a chip. Show it anyway with a generic
+        // icon, so a vehicle's real custom features never just vanish here.
+        $generic_svg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 1.5"/></svg>';
+        $known_keys  = array_merge(array_keys($specs), array('name', 'model'));
+        foreach ($f as $label => $value) {
+            if ($value === '' || in_array($label, $known_keys, true)) {
+                continue;
+            }
+            echo '<span class="mptbm-chip">' . $generic_svg . ' ' . esc_html($value) . '</span>';
         }
         $tags = isset($it['tags']) && is_array($it['tags']) ? array_slice($it['tags'], 0, 5) : array();
         foreach ($tags as $tag) {

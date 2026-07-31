@@ -202,11 +202,17 @@ if (!class_exists('MPTBM_Dummy_Import')) {
 							if (array_key_exists('post_data', $dummy_data)) {
 								foreach ($dummy_data['post_data'] as $meta_key => $data) {
 									if ($meta_key == 'feature_image') {
+										// This was falling through to the generic
+										// update_post_meta() below too (separate if,
+										// not elseif), leaving the raw demo image URL
+										// permanently stored as literal 'feature_image'
+										// postmeta - which the transportation list then
+										// preferred over the real, current featured
+										// image forever after (see MPTBM_Transportation.php).
 										$url = $data;
 										$image = media_sideload_image($url, $post_id, null, 'id');
 										set_post_thumbnail($post_id, $image);
-									}
-									if ($meta_key == 'mptbm_extra_services_id') {
+									} elseif ($meta_key == 'mptbm_extra_services_id') {
 										update_post_meta($post_id, $meta_key, $pre_extra_service_id);
 									} else {
 										update_post_meta($post_id, $meta_key, $data);
