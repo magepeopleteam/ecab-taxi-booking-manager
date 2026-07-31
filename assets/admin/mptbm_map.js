@@ -1056,7 +1056,7 @@ function setupOSMLocationSearch(inputId, map, callback) {
     var debounceTimer;
     var resultsContainer = document.createElement('div');
     resultsContainer.className = 'osm-location-autocomplete';
-    resultsContainer.style.cssText = 'position: absolute; background: white; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 99999; display: none; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);';
+    resultsContainer.style.cssText = 'position: absolute; background: white; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 999999; display: none; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);';
     
     // Append to body to avoid parent overflow issues
     document.body.appendChild(resultsContainer);
