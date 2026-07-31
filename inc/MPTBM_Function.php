@@ -742,7 +742,25 @@ if (!class_exists('MPTBM_Function')) {
                                 $pickup_coords = ['lat' => $pickup_lat, 'lng' => $pickup_lng];
                                 $dropoff_coords = ['lat' => $dropoff_lat, 'lng' => $dropoff_lng];
 
+                                // Exact Location-to-Location rows take priority over rows
+                                // involving a broader Operation Area: a location's 1km radius
+                                // sits inside its own operation area's polygon, so an
+                                // area-based row earlier in the (arbitrarily ordered) saved
+                                // list would otherwise win the match before the more specific
+                                // location row is ever reached.
+                                $location_rows = [];
+                                $area_rows = [];
                                 foreach ($fixed_zone_prices as $fixed_zone_price) {
+                                    $start_location = $fixed_zone_price['start_location'] ?? '';
+                                    $end_location = $fixed_zone_price['end_location'] ?? '';
+                                    if (strpos($start_location, 'term_') === 0 && strpos($end_location, 'term_') === 0) {
+                                        $location_rows[] = $fixed_zone_price;
+                                    } else {
+                                        $area_rows[] = $fixed_zone_price;
+                                    }
+                                }
+
+                                foreach (array_merge($location_rows, $area_rows) as $fixed_zone_price) {
                                     $start_location = $fixed_zone_price['start_location'] ?? '';
                                     $end_location = $fixed_zone_price['end_location'] ?? '';
 
@@ -1238,7 +1256,7 @@ if (!class_exists('MPTBM_Function')) {
 				
 				// Calculate distance between points (in km)
 				$distance = self::haversine_distance($lat, $lng, $term_lat, $term_lng);
-				
+
 				// Consider within 1km radius as "within zone" for location terms
 				$radius_km = 1;
 				return $distance <= $radius_km;
