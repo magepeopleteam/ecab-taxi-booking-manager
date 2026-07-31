@@ -4,6 +4,35 @@ var mptbm_start_marker = null;
 var mptbm_end_marker = null;
 var mptbm_extra_marker = null;
 
+// Collects the multi-row "Add Extra Stop" values (get_details.php's
+// .mptbm_extra_stops_wrapper) for the search-submit AJAX payloads below.
+// The legacy single #mptbm_map_extra_stop_place input no longer exists in
+// the markup (removed in favor of these rows), so this is the only working
+// source of extra-stop data - without it, jQuery's parent.find('#mptbm_map_extra_stop_place')
+// always resolves to an empty jQuery object and every request silently
+// submitted zero stops regardless of what the customer added.
+function mptbm_collect_extra_stop_places($scope) {
+    var places = [];
+    ($scope || jQuery(document)).find('.mptbm_extra_stop_place_input').each(function () {
+        var val = jQuery(this).val();
+        if (val) {
+            places.push(val);
+        }
+    });
+    return places;
+}
+
+function mptbm_collect_extra_stop_coordinates($scope) {
+    var coords = [];
+    ($scope || jQuery(document)).find('.mptbm_extra_stop_coords').each(function () {
+        var val = jQuery(this).val();
+        if (val) {
+            coords.push(val);
+        }
+    });
+    return coords;
+}
+
 // OpenStreetMap variables
 var mptbm_osm_map = null;
 var mptbm_osm_markers = [];
@@ -349,15 +378,31 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
     // We need at least start_place and either end_place OR extra_stop
     var extra_stop = jQuery('#mptbm_map_extra_stop_place').val();
 
-    if (start_place && (end_place || extra_stop)) {
+    // Multi-row "Add Extra Stop" inputs (get_details.php's
+    // .mptbm_extra_stops_wrapper) - read fresh each call, in DOM order, so
+    // added/edited/removed rows are always reflected without needing every
+    // caller of this function to be updated. Google's Directions API
+    // geocodes plain address text itself, so the input's value is enough -
+    // no need to touch the paired coordinate field here.
+    var multi_stop_addresses = [];
+    jQuery('.mptbm_extra_stop_place_input').each(function () {
+        var val = jQuery(this).val();
+        if (val) {
+            multi_stop_addresses.push(val);
+        }
+    });
+
+    if (start_place && (end_place || extra_stop || multi_stop_addresses.length)) {
         var directionsService = new google.maps.DirectionsService();
         var directionsRenderer = new google.maps.DirectionsRenderer();
         directionsRenderer.setMap(mptbm_map);
 
-        // If dropoff is not set but extra stop is, use extra stop as temporary destination
-        var actualDestination = end_place || extra_stop;
-        var useExtraAsWaypoint = end_place && extra_stop; // Only use as waypoint if we have both
-
+        // If dropoff isn't set yet, fall back to the last known stop (a
+        // multi-row stop if any exist, otherwise the legacy single extra
+        // stop) as a temporary destination so a route still draws.
+        var lastMultiStop = multi_stop_addresses.length ? multi_stop_addresses[multi_stop_addresses.length - 1] : '';
+        var actualDestination = end_place || lastMultiStop || extra_stop;
+        var useExtraAsWaypoint = (end_place || multi_stop_addresses.length) && extra_stop; // Only use legacy extra as waypoint if it's not the destination
 
         var waypoints = [];
         if (useExtraAsWaypoint) {
@@ -366,6 +411,17 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
                 stopover: true
             });
         }
+        multi_stop_addresses.forEach(function (address, index) {
+            // The last multi-stop is being used as the temporary destination
+            // above when dropoff isn't set yet - don't also list it as a waypoint.
+            if (!end_place && index === multi_stop_addresses.length - 1) {
+                return;
+            }
+            waypoints.push({
+                location: address,
+                stopover: true
+            });
+        });
 
 
         var request = {
@@ -1048,17 +1104,47 @@ jQuery(document).on('mp_change change', '#mptbm_fixed_hours', function () {
 })(jQuery);
 
 function mptbm_calculate_osm_distance() {
-    // We need at least start marker and either end marker OR extra marker
-    if (!mptbm_osm_start_marker || (!mptbm_osm_end_marker && !mptbm_osm_extra_marker)) return;
+    // Multi-row "Add Extra Stop" coordinates (get_details.php's
+    // .mptbm_extra_stops_wrapper), read fresh in DOM order so added/edited/
+    // removed rows are always reflected. OSRM needs actual coordinates
+    // (unlike Google's Directions API, which can geocode address text
+    // itself), which is exactly what the paired .mptbm_extra_stop_coords
+    // hidden field stores ("lat,lng") once a suggestion is picked.
+    var multiStopCoords = [];
+    jQuery('.mptbm_extra_stop_coords').each(function () {
+        var val = jQuery(this).val();
+        if (!val) return;
+        var parts = val.split(',');
+        if (parts.length === 2) {
+            var lat = parseFloat(parts[0]);
+            var lng = parseFloat(parts[1]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                multiStopCoords.push({ lat: lat, lng: lng });
+            }
+        }
+    });
+
+    // We need at least start marker and either end marker, extra marker, or a multi-stop
+    if (!mptbm_osm_start_marker || (!mptbm_osm_end_marker && !mptbm_osm_extra_marker && !multiStopCoords.length)) return;
 
     var startLatLng = mptbm_osm_start_marker.getLatLng();
 
-    // Use end marker if available, otherwise use extra marker as destination
-    var actualEndMarker = mptbm_osm_end_marker || mptbm_osm_extra_marker;
-    var endLatLng = actualEndMarker.getLatLng();
+    // Use end marker if available; otherwise fall back to the last known
+    // stop (a multi-row stop if any exist, else the legacy single extra
+    // marker) as a temporary destination so a route still draws.
+    var endLatLng;
+    if (mptbm_osm_end_marker) {
+        endLatLng = mptbm_osm_end_marker.getLatLng();
+    } else if (multiStopCoords.length) {
+        var lastStop = multiStopCoords.pop();
+        endLatLng = L.latLng(lastStop.lat, lastStop.lng);
+    } else {
+        endLatLng = mptbm_osm_extra_marker.getLatLng();
+    }
 
-    // Determine if we should use extra as waypoint (only if we have both end and extra)
-    var useExtraAsWaypoint = mptbm_osm_end_marker && mptbm_osm_extra_marker;
+    // Determine if we should use the legacy single extra marker as a
+    // waypoint (only if it isn't itself being used as the destination above)
+    var useExtraAsWaypoint = (mptbm_osm_end_marker || multiStopCoords.length) && mptbm_osm_extra_marker;
 
     var urlCoords = startLatLng.lng + ',' + startLatLng.lat;
 
@@ -1066,6 +1152,10 @@ function mptbm_calculate_osm_distance() {
         var extraLatLng = mptbm_osm_extra_marker.getLatLng();
         urlCoords += ';' + extraLatLng.lng + ',' + extraLatLng.lat;
     }
+
+    multiStopCoords.forEach(function (coord) {
+        urlCoords += ';' + coord.lng + ',' + coord.lat;
+    });
 
     urlCoords += ';' + endLatLng.lng + ',' + endLatLng.lat;
 
@@ -2000,7 +2090,8 @@ function mptbm_init_google_map() {
                                         mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                         mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                         mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                        mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                        mptbm_extra_stop_place: mptbm_collect_extra_stop_places(parent),
+                                        mptbm_extra_stop_place_coordinates: mptbm_collect_extra_stop_coordinates(parent),
                                         mptbm_original_price_base: mptbm_original_price_base,
                                         mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                         mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -2049,7 +2140,8 @@ function mptbm_init_google_map() {
                                         mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                         mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                         mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                        mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                        mptbm_extra_stop_place: mptbm_collect_extra_stop_places(parent),
+                                        mptbm_extra_stop_place_coordinates: mptbm_collect_extra_stop_coordinates(parent),
                                         mptbm_original_price_base: mptbm_original_price_base,
                                         mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                         mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -2129,7 +2221,8 @@ function mptbm_init_google_map() {
                                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                     mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                    mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                    mptbm_extra_stop_place: mptbm_collect_extra_stop_places(parent),
+                                    mptbm_extra_stop_place_coordinates: mptbm_collect_extra_stop_coordinates(parent),
                                     mptbm_original_price_base: mptbm_original_price_base,
                                     mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                     mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -2188,7 +2281,8 @@ function mptbm_init_google_map() {
                                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                     mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                    mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                    mptbm_extra_stop_place: mptbm_collect_extra_stop_places(parent),
+                                    mptbm_extra_stop_place_coordinates: mptbm_collect_extra_stop_coordinates(parent),
                                     mptbm_original_price_base: mptbm_original_price_base,
                                     mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                     mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -2250,7 +2344,8 @@ function mptbm_init_google_map() {
                                 mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                mptbm_extra_stop_place: mptbm_collect_extra_stop_places(parent),
+                                mptbm_extra_stop_place_coordinates: mptbm_collect_extra_stop_coordinates(parent),
                                 mptbm_original_price_base: mptbm_original_price_base,
                                 mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                 mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -2309,7 +2404,8 @@ function mptbm_init_google_map() {
                                 mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                                 mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                                 mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
-                                mptbm_extra_stop_place: parent.find('#mptbm_map_extra_stop_place').val(),
+                                mptbm_extra_stop_place: mptbm_collect_extra_stop_places(parent),
+                                mptbm_extra_stop_place_coordinates: mptbm_collect_extra_stop_coordinates(parent),
                                 mptbm_original_price_base: mptbm_original_price_base,
                                 mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
                                 mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
@@ -4186,5 +4282,223 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
         $btn.addClass('is-active');
         area.toggleClass('mptbm_view_grid', view === 'grid');
         area.toggleClass('mptbm_view_list', view === 'list');
+    });
+})(jQuery);
+
+// Multi-row "Add Extra Stop" (.mptbm_extra_stops_wrapper in get_details.php).
+// This markup had no JS behind it at all - clicking "Add Extra Stop" did
+// nothing. Kept self-contained (own OSM search, not the shared
+// mptbm_setup_osm_autocomplete/mptbm_handle_osm_address_selection pair) since
+// those are hard-wired to the single start/end/legacy-extra marker slots and
+// reworking them for an arbitrary number of rows risked regressing the
+// pickup/dropoff autocomplete that already works.
+(function ($) {
+    "use strict";
+
+    // Both mptbm_set_cookie_distance_duration (Google) and
+    // mptbm_calculate_osm_distance (OSM) now read every current
+    // .mptbm_extra_stop_place_input / .mptbm_extra_stop_coords fresh from the
+    // DOM on each call - this just needs to trigger the right one whenever a
+    // stop is picked or removed, same as the existing start/end change handlers do.
+    function mptbmExtraStopTriggerRecalculation() {
+        var mapTypeEl = document.getElementById('mptbm_map_type');
+        if (mapTypeEl && mapTypeEl.value === 'openstreetmap') {
+            if (typeof mptbm_calculate_osm_distance === 'function') {
+                mptbm_calculate_osm_distance();
+            }
+            return;
+        }
+        var startInput = document.getElementById('mptbm_map_start_place') || document.getElementById('mptbm_manual_start_place');
+        var endInput = document.getElementById('mptbm_map_end_place') || document.getElementById('mptbm_manual_end_place');
+        if (typeof mptbm_set_cookie_distance_duration === 'function') {
+            mptbm_set_cookie_distance_duration(startInput ? startInput.value : '', endInput ? endInput.value : '');
+        }
+    }
+
+    function mptbmExtraStopMaxRows($wrapper) {
+        var max = parseInt($wrapper.attr('data-max-stops'), 10);
+        return max > 0 ? max : 3;
+    }
+
+    function mptbmExtraStopToggleAddLink($wrapper) {
+        var max = mptbmExtraStopMaxRows($wrapper);
+        var count = $wrapper.find('.mptbm_extra_stops_list').children('.mptbm_extra_stop_row').length;
+        $wrapper.find('.mptbm_add_extra_stop_row').toggle(count < max);
+    }
+
+    function mptbmExtraStopSearch(query, container, input, coordsInput) {
+        container.innerHTML = '<div style="padding: 9px 12px; color:#94a3b8; font-size:13px;">Searching&hellip;</div>';
+        container.style.display = 'block';
+
+        var body = new URLSearchParams();
+        body.append('action', 'mptbm_osm_search');
+        body.append('nonce', mptbm_ajax.osm_nonce);
+        body.append('q', query);
+
+        fetch(mptbm_ajax.ajax_url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: body,
+            credentials: 'same-origin'
+        })
+            .then(function (response) { return response.json(); })
+            .then(function (response) {
+                container.innerHTML = '';
+
+                if (!response.success || !response.data || !response.data.length) {
+                    container.innerHTML = '<div style="padding: 9px 12px; color:#94a3b8; font-size:13px;">No results found</div>';
+                    container.style.display = 'block';
+                    return;
+                }
+
+                response.data.forEach(function (result) {
+                    var item = document.createElement('div');
+                    item.style.cssText = 'display:flex; align-items:flex-start; gap:10px; padding:10px 12px; margin:2px 0; cursor:pointer; border-radius:10px; color:#0f172a; font-size:13.5px; font-weight:500; line-height:1.4;';
+
+                    var icon = document.createElement('i');
+                    icon.className = 'fas fa-map-marker-alt';
+                    icon.style.cssText = 'flex:0 0 auto; width:14px; margin-top:2px; color:#94a3b8; font-size:13px;';
+
+                    var text = document.createElement('span');
+                    text.textContent = result.display_name;
+                    text.style.cssText = 'flex:1 1 auto; min-width:0;';
+
+                    item.appendChild(icon);
+                    item.appendChild(text);
+
+                    item.addEventListener('click', function () {
+                        input.value = result.display_name;
+                        // Matches the "lat,lng" string format
+                        // get_server_distance_with_stops() parses from
+                        // mptbm_extra_stop_place_coordinates[].
+                        coordsInput.value = parseFloat(result.lat) + ',' + parseFloat(result.lon);
+                        container.style.display = 'none';
+
+                        // Drop/replace a pin for this specific row so the map
+                        // shows the stop, not just the bent route line.
+                        if (typeof mptbm_osm_map !== 'undefined' && mptbm_osm_map && typeof L !== 'undefined') {
+                            if (input._mptbmStopMarker) {
+                                mptbm_osm_map.removeLayer(input._mptbmStopMarker);
+                            }
+                            input._mptbmStopMarker = L.marker([parseFloat(result.lat), parseFloat(result.lon)], {
+                                title: result.display_name
+                            }).addTo(mptbm_osm_map).bindPopup(result.display_name);
+                        }
+
+                        mptbmExtraStopTriggerRecalculation();
+                    });
+                    item.addEventListener('mouseenter', function () { this.style.backgroundColor = '#f1f4f9'; });
+                    item.addEventListener('mouseleave', function () { this.style.backgroundColor = ''; });
+
+                    container.appendChild(item);
+                });
+            })
+            .catch(function () {
+                container.innerHTML = '<div style="padding: 9px 12px; color:#dc2626; font-size:13px;">Search failed</div>';
+            });
+    }
+
+    function mptbmExtraStopSetupAutocomplete($row) {
+        var input = $row.find('.mptbm_extra_stop_place_input')[0];
+        var coordsInput = $row.find('.mptbm_extra_stop_coords')[0];
+        if (!input || !coordsInput) {
+            return;
+        }
+
+        var mapTypeEl = document.getElementById('mptbm_map_type');
+        var isOSM = !mapTypeEl || mapTypeEl.value === 'openstreetmap';
+
+        if (!isOSM) {
+            if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
+                return;
+            }
+            var autocomplete = new google.maps.places.Autocomplete(input);
+            var restrict = $('[name="mptbm_restrict_search_country"]').val();
+            var country = $('[name="mptbm_country"]').val();
+            if (restrict === 'yes' && country) {
+                autocomplete.setComponentRestrictions({ country: [country] });
+            }
+            google.maps.event.addListener(autocomplete, 'place_changed', function () {
+                var place = autocomplete.getPlace();
+                if (place && place.geometry && place.geometry.location) {
+                    coordsInput.value = place.geometry.location.lat() + ',' + place.geometry.location.lng();
+                } else {
+                    coordsInput.value = '';
+                }
+                mptbmExtraStopTriggerRecalculation();
+            });
+            return;
+        }
+
+        var resultsContainer = document.createElement('div');
+        resultsContainer.className = 'mptbm-osm-autocomplete';
+        resultsContainer.style.cssText = 'position: fixed; box-sizing: border-box; font-size:14px; background: #fff; border: 1px solid #e7eaf0; border-radius: 14px; max-height: 240px; overflow-y: auto; z-index: 99999 !important; display: none; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06); padding: 6px;';
+        document.body.appendChild(resultsContainer);
+
+        function positionDropdown() {
+            var rect = input.getBoundingClientRect();
+            resultsContainer.style.top = (rect.bottom + 2) + 'px';
+            resultsContainer.style.left = rect.left + 'px';
+            resultsContainer.style.width = rect.width + 'px';
+        }
+
+        var debounceTimer = null;
+        input.addEventListener('input', function (e) {
+            clearTimeout(debounceTimer);
+            var query = e.target.value.trim();
+            coordsInput.value = '';
+            if (query.length < 3) {
+                resultsContainer.style.display = 'none';
+                return;
+            }
+            debounceTimer = setTimeout(function () {
+                positionDropdown();
+                mptbmExtraStopSearch(query, resultsContainer, input, coordsInput);
+            }, 300);
+        });
+
+        window.addEventListener('scroll', positionDropdown);
+        window.addEventListener('resize', positionDropdown);
+        document.addEventListener('click', function (e) {
+            if (e.target !== input && !resultsContainer.contains(e.target)) {
+                resultsContainer.style.display = 'none';
+            }
+        });
+    }
+
+    $(document).on('click', '.mptbm_add_extra_stop_row', function () {
+        var $wrapper = $(this).closest('.mptbm_extra_stops_wrapper');
+        var $list = $wrapper.find('.mptbm_extra_stops_list');
+
+        if ($list.children('.mptbm_extra_stop_row').length >= mptbmExtraStopMaxRows($wrapper)) {
+            return;
+        }
+
+        var template = $wrapper.find('#mptbm_extra_stop_row_template')[0];
+        if (!template || !template.content) {
+            return;
+        }
+
+        $list.append(template.content.cloneNode(true));
+        mptbmExtraStopSetupAutocomplete($list.children('.mptbm_extra_stop_row').last());
+        mptbmExtraStopToggleAddLink($wrapper);
+    });
+
+    $(document).on('click', '.mptbm_remove_extra_stop_row', function () {
+        var $wrapper = $(this).closest('.mptbm_extra_stops_wrapper');
+        var $row = $(this).closest('.mptbm_extra_stop_row');
+        var input = $row.find('.mptbm_extra_stop_place_input')[0];
+        var hadCoords = !!$row.find('.mptbm_extra_stop_coords').val();
+        if (input && input._mptbmStopMarker && typeof mptbm_osm_map !== 'undefined' && mptbm_osm_map) {
+            mptbm_osm_map.removeLayer(input._mptbmStopMarker);
+        }
+        $row.remove();
+        mptbmExtraStopToggleAddLink($wrapper);
+        if (hadCoords) {
+            mptbmExtraStopTriggerRecalculation();
+        }
     });
 })(jQuery);
