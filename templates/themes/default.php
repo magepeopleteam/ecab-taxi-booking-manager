@@ -52,22 +52,217 @@
 
 	$rating_enabled = class_exists( 'MPTBM_Reviews' ) && MPTBM_Reviews::reviews_enabled( $post_id );
 
-	// "Check Availability" points at the site's search/results page (Settings >
-	// General > View Search Result Page), the same page the disabled inline
-	// search form on this template would otherwise have submitted to.
+	// "Browse All Vehicles" points at the site's search/results page (Settings >
+	// General > View Search Result Page).
 	$results_slug = MP_Global_Function::get_settings( 'mptbm_general_settings', 'enable_view_search_result_page' );
 	$results_slug = $results_slug ?: 'transport-result';
 	$results_page = get_page_by_path( $results_slug );
 	$results_url  = $results_page ? get_permalink( $results_page ) : home_url( '/' );
+
+	// ---- Pricing summary, derived from the same admin-filled meta the Price
+	// Settings tab (Admin > Price) saves for this vehicle - see
+	// Admin/settings/MPTBM_Price_Settings.php. Only fields that are actually set
+	// are shown, so a vehicle with an unconfigured price model simply shows no
+	// price card rather than a fabricated number. The real fare shown to the
+	// customer is always recalculated server-side by the booking form below.
+	$price_based          = MP_Global_Function::get_post_info( $post_id, 'mptbm_price_based', 'distance' );
+	$price_display_type   = MP_Global_Function::get_post_info( $post_id, 'mptbm_price_display_type', 'normal' );
+	$custom_price_message = trim( (string) MP_Global_Function::get_post_info( $post_id, 'mptbm_custom_price_message', '' ) );
+
+	$km_price        = MP_Global_Function::get_post_info( $post_id, 'mptbm_km_price', '' );
+	$hour_price       = MP_Global_Function::get_post_info( $post_id, 'mptbm_hour_price', '' );
+	$initial_price    = MP_Global_Function::get_post_info( $post_id, 'mptbm_initial_price', '' );
+	$min_price        = MP_Global_Function::get_post_info( $post_id, 'mptbm_min_price', '' );
+	$waiting_price    = MP_Global_Function::get_post_info( $post_id, 'mptbm_waiting_price', '' );
+	$fixed_map_price  = MP_Global_Function::get_post_info( $post_id, 'mptbm_fixed_map_price', '' );
+
+	$manual_prices          = MP_Global_Function::get_post_info( $post_id, 'mptbm_manual_price_info', array() );
+	$terms_prices           = MP_Global_Function::get_post_info( $post_id, 'mptbm_terms_price_info', array() );
+	$fixed_zone_prices      = MP_Global_Function::get_post_info( $post_id, 'mptbm_fixed_zone_price_info', array() );
+	$fixed_map_route_prices = MP_Global_Function::get_post_info( $post_id, 'mptbm_fixed_map_route_price_info', array() );
+	$manual_prices          = is_array( $manual_prices ) ? $manual_prices : array();
+	$terms_prices           = is_array( $terms_prices ) ? $terms_prices : array();
+	$fixed_zone_prices      = is_array( $fixed_zone_prices ) ? $fixed_zone_prices : array();
+	$fixed_map_route_prices = is_array( $fixed_map_route_prices ) ? $fixed_map_route_prices : array();
+
+	// "Fixed Zone" rows store start/end as term_{id} (Location taxonomy) or
+	// post_{id} (Operation Area) - resolve to a human-readable name for display.
+	$zone_name = function ( $key ) {
+		if ( strpos( $key, 'term_' ) === 0 ) {
+			$term = get_term( (int) substr( $key, 5 ), 'locations' );
+			return ( $term && ! is_wp_error( $term ) ) ? $term->name : $key;
+		}
+		if ( strpos( $key, 'post_' ) === 0 ) {
+			$title = get_the_title( (int) substr( $key, 5 ) );
+			return $title !== '' ? $title : $key;
+		}
+		return $key;
+	};
+
+	// Only read the route table(s) that belong to this vehicle's *currently
+	// active* pricing model - a vehicle that was previously switched away from
+	// manual/fixed zone/fixed map can still have old rows sitting in that meta,
+	// and showing those alongside a different active model would be misleading.
+	$route_rows = array();
+	if ( 'manual' === $price_based ) {
+		foreach ( $manual_prices as $row ) {
+			if ( empty( $row['start_location'] ) || empty( $row['end_location'] ) || '' === $row['price'] ) {
+				continue;
+			}
+			$route_rows[] = array( $row['start_location'], $row['end_location'], (float) $row['price'] );
+		}
+		foreach ( $terms_prices as $row ) {
+			if ( empty( $row['start_location'] ) || empty( $row['end_location'] ) || '' === $row['price'] ) {
+				continue;
+			}
+			$start_term   = get_term_by( 'slug', $row['start_location'], 'locations' );
+			$end_term     = get_term_by( 'slug', $row['end_location'], 'locations' );
+			$route_rows[] = array( $start_term ? $start_term->name : $row['start_location'], $end_term ? $end_term->name : $row['end_location'], (float) $row['price'] );
+		}
+	} elseif ( 'fixed_zone' === $price_based ) {
+		foreach ( $fixed_zone_prices as $row ) {
+			if ( empty( $row['start_location'] ) || empty( $row['end_location'] ) || '' === $row['price'] ) {
+				continue;
+			}
+			$route_rows[] = array( $zone_name( $row['start_location'] ), $zone_name( $row['end_location'] ), (float) $row['price'] );
+		}
+	} elseif ( 'fixed_distance' === $price_based ) {
+		// "Fixed with Map" area/location route overrides (Admin > Price >
+		// Fixed Map Route Overrides) - same post_{id}/term_{id} shape as fixed zone.
+		foreach ( $fixed_map_route_prices as $row ) {
+			if ( empty( $row['start_location'] ) || empty( $row['end_location'] ) || '' === $row['price'] ) {
+				continue;
+			}
+			$route_rows[] = array( $zone_name( $row['start_location'] ), $zone_name( $row['end_location'] ), (float) $row['price'] );
+		}
+	}
+	$route_visible_count = 8;
+	$route_total          = count( $route_rows );
+
+	$price_headline = '';
+	$price_unit     = '';
+	$price_note     = '';
+	$price_rows     = array();
+	$price_icon     = 'fas fa-tags';
+
+	switch ( $price_based ) {
+		case 'distance':
+			$price_icon = 'fas fa-route';
+			if ( '' !== $km_price ) {
+				$price_headline = MP_Global_Function::format_price( $km_price );
+				$price_unit     = esc_html__( 'per km', 'ecab-taxi-booking-manager' );
+			}
+			break;
+		case 'duration':
+			$price_icon = 'fas fa-clock';
+			if ( '' !== $hour_price ) {
+				$price_headline = MP_Global_Function::format_price( $hour_price );
+				$price_unit     = esc_html__( 'per hour', 'ecab-taxi-booking-manager' );
+			}
+			break;
+		case 'distance_duration':
+			$price_icon = 'fas fa-route';
+			if ( '' !== $km_price ) {
+				$price_headline = MP_Global_Function::format_price( $km_price );
+				$price_unit     = esc_html__( 'per km', 'ecab-taxi-booking-manager' );
+			}
+			if ( '' !== $hour_price ) {
+				$price_rows[] = array( esc_html__( 'Per Hour', 'ecab-taxi-booking-manager' ), MP_Global_Function::format_price( $hour_price ) );
+			}
+			break;
+		case 'inclusive':
+			$price_icon = 'fas fa-tags';
+			if ( '' !== $km_price ) {
+				$price_headline = MP_Global_Function::format_price( $km_price );
+				$price_unit     = esc_html__( 'per km', 'ecab-taxi-booking-manager' );
+			} elseif ( '' !== $hour_price ) {
+				$price_headline = MP_Global_Function::format_price( $hour_price );
+				$price_unit     = esc_html__( 'per hour', 'ecab-taxi-booking-manager' );
+			}
+			break;
+		case 'fixed_hourly':
+			$price_icon = 'fas fa-clock';
+			if ( '' !== $hour_price ) {
+				$price_headline = MP_Global_Function::format_price( $hour_price );
+				$price_unit     = esc_html__( 'per hour package', 'ecab-taxi-booking-manager' );
+			}
+			break;
+		case 'fixed_distance':
+			$price_icon = 'fas fa-map-marked-alt';
+			if ( '' !== $fixed_map_price ) {
+				$price_headline = MP_Global_Function::format_price( $fixed_map_price );
+				$price_unit     = esc_html__( 'fixed fare', 'ecab-taxi-booking-manager' );
+			}
+			if ( $route_total > 0 ) {
+				$price_note = esc_html__( 'See the fixed area/location fares below.', 'ecab-taxi-booking-manager' );
+			}
+			break;
+		case 'manual':
+		case 'fixed_zone':
+			$price_icon = 'fas fa-map-marker-alt';
+			if ( $route_total > 0 ) {
+				$lowest         = min( wp_list_pluck( $route_rows, 2 ) );
+				$price_headline = MP_Global_Function::format_price( $lowest );
+				$price_unit     = esc_html__( 'starting fare', 'ecab-taxi-booking-manager' );
+				$price_note     = esc_html__( 'Final fare depends on your pickup & drop-off - see routes below.', 'ecab-taxi-booking-manager' );
+			}
+			break;
+	}
+
+	if ( '' !== $initial_price && (float) $initial_price > 0 && in_array( $price_based, array( 'distance', 'duration', 'distance_duration', 'inclusive' ), true ) ) {
+		$price_rows[] = array( esc_html__( 'Initial / Base Price', 'ecab-taxi-booking-manager' ), MP_Global_Function::format_price( $initial_price ) );
+	}
+	if ( '' !== $min_price && (float) $min_price > 0 ) {
+		$price_rows[] = array( esc_html__( 'Minimum Fare', 'ecab-taxi-booking-manager' ), MP_Global_Function::format_price( $min_price ) );
+	}
+	if ( '' !== $waiting_price && (float) $waiting_price > 0 ) {
+		$price_rows[] = array( esc_html__( 'Waiting Price / Hour', 'ecab-taxi-booking-manager' ), MP_Global_Function::format_price( $waiting_price ) );
+	}
+
+	if ( 'zero' === $price_display_type ) {
+		$price_headline = MP_Global_Function::format_price( 0 );
+		$price_unit     = '';
+		$price_rows     = array();
+		$price_note     = '';
+	} elseif ( 'custom_message' === $price_display_type && '' !== $custom_price_message ) {
+		$price_headline = '';
+		$price_unit     = '';
+	}
+
+	$show_price_card = ( '' !== $price_headline ) || ( 'custom_message' === $price_display_type && '' !== $custom_price_message ) || $route_total > 0;
+
+	// Booking widget must match this vehicle's own pricing model, otherwise the
+	// shortcode defaults to 'dynamic' (distance/duration) and shows the wrong
+	// fields for a manual/fixed-hourly/fixed-distance vehicle.
+	// 'manual' uses the single-tab "Flat rate" widget (tab=yes, tabs=manual) so
+	// pickup/drop-off render as the Location dropdowns, matching the same
+	// Route Planning card already used elsewhere on the site - not the generic
+	// map/address autocomplete the plain price_based='manual' attribute gives.
+	$booking_shortcode_map = array(
+		'fixed_distance' => 'fixed_map',
+		'fixed_hourly'   => 'fixed_hourly',
+	);
+	if ( 'manual' === $price_based ) {
+		$booking_shortcode = "[mptbm_booking tab='yes' tabs='manual']";
+	} elseif ( isset( $booking_shortcode_map[ $price_based ] ) ) {
+		$booking_shortcode = "[mptbm_booking price_based='" . $booking_shortcode_map[ $price_based ] . "']";
+	} else {
+		$booking_shortcode = '[mptbm_booking]';
+	}
 ?>
 	<div class="mpStyle mptbm_default_theme">
 		<div class="mpContainer">
 
-			<div class="mptbm-vpage-hero">
+			<div class="mptbm-vpage-hero <?php echo $thumbnail ? 'mptbm-vpage-hero--photo' : 'mptbm-vpage-hero--flat'; ?>">
 				<?php if ( $thumbnail ) : ?>
-					<div class="mptbm-vpage-hero-image">
-						<img src="<?php echo esc_url( $thumbnail ); ?>" alt="<?php echo esc_attr( get_the_title( $post_id ) ); ?>">
-					</div>
+					<img class="mptbm-vpage-hero-bg" src="<?php echo esc_url( $thumbnail ); ?>" alt="<?php echo esc_attr( get_the_title( $post_id ) ); ?>">
+					<div class="mptbm-vpage-hero-scrim"></div>
+					<?php if ( $show_price_card && '' !== $price_headline ) : ?>
+						<span class="mptbm-vpage-price-tag">
+							<strong><?php echo wp_kses_post( $price_headline ); ?></strong>
+							<?php if ( '' !== $price_unit ) : ?><small><?php echo esc_html( $price_unit ); ?></small><?php endif; ?>
+						</span>
+					<?php endif; ?>
 				<?php endif; ?>
 				<div class="mptbm-vpage-hero-body">
 					<span class="mptbm-vpage-eyebrow"><?php echo esc_html( $label ); ?></span>
@@ -85,14 +280,68 @@
 							<?php endif; ?>
 						</div>
 					<?php endif; ?>
-					<a class="mptbm-vpage-cta" href="<?php echo esc_url( $results_url ); ?>">
-						<?php esc_html_e( 'Check Availability', 'ecab-taxi-booking-manager' ); ?>
-					</a>
+					<div class="mptbm-vpage-cta-row">
+						<a class="mptbm-vpage-cta" href="#mptbm-vpage-book">
+							<?php esc_html_e( 'Book Now', 'ecab-taxi-booking-manager' ); ?>
+							<i class="fas fa-arrow-right" aria-hidden="true"></i>
+						</a>
+						<a class="mptbm-vpage-cta-secondary" href="<?php echo esc_url( $results_url ); ?>">
+							<?php esc_html_e( 'Browse All Vehicles', 'ecab-taxi-booking-manager' ); ?>
+						</a>
+					</div>
 				</div>
 			</div>
 
 			<div class="mptbm-vpage-layout">
 				<div class="mptbm-vpage-col-main">
+
+					<?php if ( $show_price_card ) : ?>
+						<div class="mptbm_details_block mptbm-vpage-price-card">
+							<h4><?php esc_html_e( 'Pricing', 'ecab-taxi-booking-manager' ); ?></h4>
+							<?php if ( 'custom_message' === $price_display_type && '' !== $custom_price_message ) : ?>
+								<p class="mptbm-vpage-price-message"><?php echo esc_html( $custom_price_message ); ?></p>
+							<?php else : ?>
+								<?php if ( '' !== $price_headline ) : ?>
+									<div class="mptbm-vpage-price-headline">
+										<i class="<?php echo esc_attr( $price_icon ); ?>" aria-hidden="true"></i>
+										<span class="mptbm-vpage-price-amount"><?php echo wp_kses_post( $price_headline ); ?></span>
+										<?php if ( '' !== $price_unit ) : ?><span class="mptbm-vpage-price-unit"><?php echo esc_html( $price_unit ); ?></span><?php endif; ?>
+									</div>
+								<?php endif; ?>
+								<?php if ( '' !== $price_note ) : ?>
+									<p class="mptbm-vpage-price-note"><?php echo esc_html( $price_note ); ?></p>
+								<?php endif; ?>
+								<?php if ( count( $price_rows ) > 0 ) : ?>
+									<div class="mptbm-vpage-price-grid">
+										<?php foreach ( $price_rows as $p_row ) : ?>
+											<div class="mptbm-vpage-price-row">
+												<span><?php echo esc_html( $p_row[0] ); ?></span>
+												<strong><?php echo wp_kses_post( $p_row[1] ); ?></strong>
+											</div>
+										<?php endforeach; ?>
+									</div>
+								<?php endif; ?>
+								<?php if ( $route_total > 0 ) : ?>
+									<details class="mptbm-vpage-route-table">
+										<summary><?php echo esc_html( sprintf( _n( '%d Fixed Route', '%d Fixed Routes', $route_total, 'ecab-taxi-booking-manager' ), $route_total ) ); ?></summary>
+										<div class="mptbm-vpage-route-list">
+											<?php foreach ( $route_rows as $r_index => $r_row ) : ?>
+												<div class="mptbm-vpage-route-row"<?php echo $r_index >= $route_visible_count ? ' hidden' : ''; ?>>
+													<span><?php echo esc_html( $r_row[0] ); ?> <i class="fas fa-arrow-right" aria-hidden="true"></i> <?php echo esc_html( $r_row[1] ); ?></span>
+													<strong><?php echo wp_kses_post( MP_Global_Function::format_price( $r_row[2] ) ); ?></strong>
+												</div>
+											<?php endforeach; ?>
+										</div>
+										<?php if ( $route_total > $route_visible_count ) : ?>
+											<button type="button" class="mptbm-vpage-route-loadmore" data-step="<?php echo esc_attr( $route_visible_count ); ?>">
+												<?php echo esc_html( sprintf( esc_html__( 'Load More (%d)', 'ecab-taxi-booking-manager' ), $route_total - $route_visible_count ) ); ?>
+											</button>
+										<?php endif; ?>
+									</details>
+								<?php endif; ?>
+							<?php endif; ?>
+						</div>
+					<?php endif; ?>
 
 					<?php if ( get_the_content( null, false, $post_id ) ) : ?>
 						<div class="mptbm_details_block">
@@ -125,7 +374,7 @@
 					<?php if ( count( $clean_features ) > 0 ) : ?>
 						<div class="mptbm_details_block">
 							<h4><?php esc_html_e( 'Features', 'ecab-taxi-booking-manager' ); ?></h4>
-							<ul class="mptbm_details_spec_list">
+							<ul class="mptbm_details_spec_list mptbm-vpage-feature-list">
 								<?php foreach ( $clean_features as $feature ) :
 									$f_label = isset( $feature['label'] ) ? trim( $feature['label'] ) : '';
 									$f_text  = isset( $feature['text'] ) ? trim( $feature['text'] ) : '';
@@ -133,9 +382,11 @@
 									$show_label = ( $f_label !== '' && strcasecmp( $f_label, $f_text ) !== 0 );
 								?>
 									<li>
-										<?php if ( $f_icon ) : ?><i class="<?php echo esc_attr( $f_icon ); ?>" aria-hidden="true"></i><?php endif; ?>
-										<?php if ( $show_label ) : ?><span class="mptbm_details_spec_label"><?php echo esc_html( $f_label ); ?>:</span><?php endif; ?>
-										<span class="mptbm_details_spec_value"><?php echo esc_html( $f_text ); ?></span>
+										<?php if ( $f_icon ) : ?><span class="mptbm-vpage-feature-icon"><i class="<?php echo esc_attr( $f_icon ); ?>" aria-hidden="true"></i></span><?php endif; ?>
+										<span class="mptbm-vpage-feature-text">
+											<?php if ( $show_label ) : ?><span class="mptbm_details_spec_label"><?php echo esc_html( $f_label ); ?>:</span><?php endif; ?>
+											<span class="mptbm_details_spec_value"><?php echo esc_html( $f_text ); ?></span>
+										</span>
 									</li>
 								<?php endforeach; ?>
 							</ul>
@@ -158,18 +409,61 @@
 									$wc_price = MP_Global_Function::wc_price( $post_id, $service_price );
 								?>
 									<li>
-										<span><?php echo esc_html( $service_name ); ?></span>
-										<strong><?php echo wp_kses_post( MP_Global_Function::price_convert_raw( $wc_price ) ); ?></strong>
+										<span class="mptbm-vpage-addon-icon"><i class="fas fa-plus" aria-hidden="true"></i></span>
+										<span class="mptbm-vpage-addon-name"><?php echo esc_html( $service_name ); ?></span>
+										<strong class="mptbm-vpage-addon-price"><?php echo wp_kses_post( MP_Global_Function::price_convert_raw( $wc_price ) ); ?></strong>
 									</li>
 								<?php endforeach; ?>
 							</ul>
 						</div>
 					<?php endif; ?>
 
-					<?php do_action( 'mptbm_transport_search_form', $post_id ); ?>
+					<div class="mptbm_details_block mptbm-vpage-trust">
+						<ul class="mptbm-vpage-trust-list">
+							<li><i class="fas fa-bolt" aria-hidden="true"></i> <?php esc_html_e( 'Instant Fare & Confirmation', 'ecab-taxi-booking-manager' ); ?></li>
+							<li><i class="fas fa-lock" aria-hidden="true"></i> <?php esc_html_e( 'Secure Online Checkout', 'ecab-taxi-booking-manager' ); ?></li>
+							<li><i class="fas fa-headset" aria-hidden="true"></i> <?php esc_html_e( 'Support Before & During Your Ride', 'ecab-taxi-booking-manager' ); ?></li>
+						</ul>
+					</div>
+
 				</div>
+			</div>
+
+			<div class="mptbm-vpage-book" id="mptbm-vpage-book">
+				<div class="mptbm-vpage-book-head">
+					<h2><?php esc_html_e( 'Book This Vehicle', 'ecab-taxi-booking-manager' ); ?></h2>
+					<p><?php esc_html_e( 'Enter your trip details to get an instant fare and reserve this vehicle.', 'ecab-taxi-booking-manager' ); ?></p>
+				</div>
+				<?php
+				echo do_shortcode( $booking_shortcode );
+				// Left in place for pro add-ons / child-theme extensions that may
+				// want to append supplementary fields after the booking form.
+				do_action( 'mptbm_transport_search_form', $post_id );
+				?>
 			</div>
 
 		</div>
 	</div>
+	<?php if ( $route_total > $route_visible_count ) : ?>
+	<script>
+	document.addEventListener( 'click', function ( e ) {
+		var btn = e.target.closest( '.mptbm-vpage-route-loadmore' );
+		if ( ! btn ) {
+			return;
+		}
+		var list = btn.closest( '.mptbm-vpage-route-table' ).querySelector( '.mptbm-vpage-route-list' );
+		var hidden = list.querySelectorAll( '.mptbm-vpage-route-row[hidden]' );
+		var step = parseInt( btn.getAttribute( 'data-step' ), 10 ) || 8;
+		for ( var i = 0; i < hidden.length && i < step; i++ ) {
+			hidden[ i ].removeAttribute( 'hidden' );
+		}
+		var remaining = list.querySelectorAll( '.mptbm-vpage-route-row[hidden]' ).length;
+		if ( remaining > 0 ) {
+			btn.textContent = btn.textContent.replace( /\(\d+\)/, '(' + remaining + ')' );
+		} else {
+			btn.remove();
+		}
+	} );
+	</script>
+	<?php endif; ?>
 <?php do_action( 'mptbm_after_details_page', $post_id ); ?>

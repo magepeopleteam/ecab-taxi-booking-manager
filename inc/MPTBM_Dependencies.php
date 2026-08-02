@@ -183,6 +183,13 @@ if (!class_exists('MPTBM_Dependencies')) {
             wp_enqueue_script('wc-checkout');
             //
             wp_enqueue_style('mptbm_style', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_style.css', array(), time());
+
+            // Single vehicle page (templates/themes/default.php) has its own,
+            // fairly large stylesheet - only load it there rather than on every
+            // frontend page.
+            if (is_singular(MPTBM_Function::get_cpt())) {
+                wp_enqueue_style('mptbm_vehicle_page', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_vehicle_page.css', array('mptbm_style'), time());
+            }
             wp_enqueue_script('mptbm_script', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_script.js', array('jquery'), time(), true);
             wp_enqueue_script('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.js', array('jquery', 'flatpickr'), time(), true);
             wp_enqueue_style('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.css', array(), time());
