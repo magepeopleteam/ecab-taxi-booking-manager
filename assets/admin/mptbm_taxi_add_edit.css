@@ -2164,25 +2164,26 @@ select.mptbm_taxi_ex_service_select.mideum { max-width: 160px; border-radius: 10
 }
 
 .mptbm_taxi_ex_service_add_btn {
-    background: var(--mp-primary);
-    color: var(--mp-white);
-    border: none;
-    padding: 9px 18px;
-    border-radius: var(--mp-r-md);
+    background: transparent;
+    color: var(--mp-text-700);
+    border: 1px solid var(--mp-border);
+    padding: 7px 12px;
+    border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    transition: var(--mp-transition);
-    box-shadow: 0 2px 6px rgba(var(--mp-primary-rgb), 0.25);
+    gap: 4px;
+    font-size: 12px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    box-shadow: none;
 }
 .mptbm_taxi_ex_service_add_btn:hover {
-    background: var(--mp-primary-dark);
-    color: var(--mp-white);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(var(--mp-primary-rgb), 0.3);
+    background: #f8fafc;
+    color: var(--mp-text-800);
+    border-color: var(--mp-border-dark);
+    transform: none;
+    box-shadow: none;
 }
 
 /* ================================================================
@@ -4288,22 +4289,23 @@ textarea.mptbm_field_error {
 }
 
 #mptbm_rent_settings_panel .mptbm_fees_services_group.is-services .mptbm_taxi_ex_service_filter_row {
-    justify-content: space-between;
-    margin: 0 0 16px;
-    padding: 13px 14px;
-    border: 1px solid var(--mp-border);
-    border-radius: var(--mp-r-md);
-    background: #f8fafc;
+    justify-content: flex-start;
+    margin: 0 0 14px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    gap: 10px;
 }
 
 #mptbm_rent_settings_panel .mptbm_fees_services_group.is-services .mptbm_taxi_ex_service_filter_row label {
-    color: var(--mp-text-700);
+    color: var(--mp-text-500);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 #mptbm_rent_settings_panel .mptbm_fees_services_group.is-services #mptbm_extra_services_id {
-    width: min(100%, 360px);
+    width: min(100%, 280px);
 }
 
 #mptbm_rent_settings_panel .mptbm_fees_services_group.is-services .mptbm_taxi_ex_service_body > .mpStyle {
@@ -4312,17 +4314,17 @@ textarea.mptbm_field_error {
 }
 
 #mptbm_rent_settings_panel .mptbm_fees_services_group.is-services .mptbm_taxi_ex_service_table {
-    min-width: 820px;
+    min-width: 720px;
 }
 
 #mptbm_rent_settings_panel .mptbm_fees_services_group.is-services .mptbm_taxi_ex_service_footer {
-    padding-top: 14px;
+    padding-top: 12px;
     border-top: 1px solid var(--mp-border-light);
 }
 
 #mptbm_rent_settings_panel .mptbm_fees_services_group.is-services .mptbm_taxi_ex_service_add_btn {
-    border-radius: var(--mp-r-md);
-    box-shadow: 0 2px 6px rgba(var(--mp-primary-rgb), 0.22);
+    border-radius: 6px;
+    box-shadow: none;
 }
 
 @media (max-width: 680px) {
@@ -4363,14 +4365,59 @@ textarea.mptbm_field_error {
 }
 
 /* ================================================================
-   EXTRA SERVICE CATALOGUE REDESIGN
+   CUSTOMER ADD-ONS — MINIMAL
    ================================================================ */
+#mptbm_rent_settings_panel .mptbm_fees_services_group.is-services.is-minimal {
+    background: #fff;
+    box-shadow: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_fees_services_group.is-services.is-minimal .mptbm_fees_services_group_header {
+    padding: 14px 16px;
+    background: #fff !important;
+}
+
+#mptbm_rent_settings_panel .mptbm_fees_services_group.is-services.is-minimal .mptbm_fees_services_group_title h3 {
+    margin: 0 0 2px;
+    font-size: 14px;
+    font-weight: 650;
+}
+
+#mptbm_rent_settings_panel .mptbm_fees_services_group.is-services.is-minimal .mptbm_fees_services_group_title p {
+    font-size: 12px;
+    color: var(--mp-text-500);
+}
+
+#mptbm_rent_settings_panel .mptbm_fees_services_group.is-services.is-minimal .mptbm_fees_services_group_body {
+    padding: 14px 16px 16px;
+    gap: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_fees_services_group.is-services.is-minimal .mptbm_fees_services_group_body > .mptbm_taxi_ex_service_container {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_fees_services_group.is-services.is-minimal .mptbm_taxi_ex_service_body {
+    padding: 0;
+}
+
+#mptbm_rent_settings_panel .mptbm_fees_services_group.is-services.is-minimal .mptbm_taxi_ex_service_toggle_wrapper {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    gap: 8px;
+}
+
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue {
     width: 100%;
     overflow: hidden;
-    border: 1px solid #edf1f6;
-    border-radius: 10px;
-    background: #fbfcfe;
+    border: 1px solid var(--mp-border);
+    border-radius: 8px;
+    background: #fff;
     box-sizing: border-box;
 }
 
@@ -4379,14 +4426,14 @@ textarea.mptbm_field_error {
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table_toolbar {
-    min-height: 62px;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 18px;
-    padding: 12px 15px;
-    border-bottom: 1px solid #edf1f6;
-    background: var(--mp-white);
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--mp-border);
+    background: #fff;
     box-sizing: border-box;
 }
 
@@ -4394,54 +4441,26 @@ textarea.mptbm_field_error {
     min-width: 0;
     display: flex;
     align-items: center;
-    gap: 12px;
-}
-
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table_icon {
-    width: 34px;
-    height: 34px;
-    flex: 0 0 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #e7e9ff;
-    border-radius: 9px;
-    background: #f7f7ff;
-    color: var(--mp-primary);
-    font-size: 14px;
-}
-
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table_heading > span:last-child {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
+    gap: 8px;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table_heading strong {
     color: var(--mp-text-800);
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 600;
     line-height: 1.3;
 }
 
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table_heading small {
-    color: var(--mp-text-500);
-    font-size: 11px;
-    font-weight: 400;
-    line-height: 1.45;
-}
-
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_count {
-    min-width: 76px;
+    min-width: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    padding: 7px 11px;
-    border: 1px solid #e7e9ff;
-    border-radius: var(--mp-r-full);
-    background: #f8f8ff;
-    color: var(--mp-primary-dark);
+    padding: 2px 8px;
+    border: 1px solid var(--mp-border);
+    border-radius: 999px;
+    background: #f8fafc;
+    color: var(--mp-text-600);
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
@@ -4449,13 +4468,14 @@ textarea.mptbm_field_error {
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_count strong {
-    font-size: 13px;
-    font-weight: 800;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--mp-text-700);
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table_shell {
     position: relative;
-    padding: 5px 10px 2px;
+    padding: 0;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table_scroll {
@@ -4467,102 +4487,124 @@ textarea.mptbm_field_error {
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table {
     width: 100%;
-    min-width: 760px;
+    min-width: 720px;
     table-layout: fixed;
-    border-collapse: separate;
-    border-spacing: 0 5px;
-    background: transparent;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background: #fff;
     font-size: 13px;
 }
 
 #mptbm_rent_settings_panel .mptbm_fees_services_group.is-services .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table {
-    min-width: 760px;
+    min-width: 720px;
 }
 
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table th:nth-child(1) { width: 66px; }
+#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table th:nth-child(1) { width: 56px; }
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table th:nth-child(2) { width: 22%; }
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table th:nth-child(3) { width: auto; }
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table th:nth-child(4) { width: 112px; }
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table th:nth-child(5) { width: 82px; }
+#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table th:nth-child(4) { width: 100px; }
+#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table th:nth-child(5) { width: 72px; }
 
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table th {
-    padding: 5px 10px 3px;
+#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table thead th {
+    height: 34px;
+    padding: 6px 10px;
     border: 0;
-    background: transparent;
-    color: var(--mp-text-400);
-    font-size: 9px;
-    font-weight: 700;
-    text-align: left;
-    text-transform: uppercase;
-    letter-spacing: 0.055em;
-    white-space: nowrap;
+    border-bottom: 1px solid var(--mp-border);
+    background: #fafbfc !important;
+    color: var(--mp-text-500);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0;
+    text-transform: none;
+    vertical-align: middle;
+    box-sizing: border-box;
 }
 
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table th .dashicons {
-    width: 14px;
-    height: 14px;
-    margin-right: 5px;
-    color: var(--mp-text-400);
-    font-size: 13px;
-    line-height: 14px;
-    vertical-align: -2px;
+#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table thead th:first-child,
+#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table thead th:last-child {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+    text-align: center;
+}
+
+#mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table th {
+    padding: 6px 10px;
+    border: 0;
+    border-bottom: 1px solid var(--mp-border);
+    background: #fafbfc;
+    color: var(--mp-text-500);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: left;
+    text-transform: none;
+    letter-spacing: 0;
+    white-space: nowrap;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table th.is-actions {
     text-align: center;
 }
 
+#mptbm_rent_settings_panel .mptbm_taxi_ex_service_head_label {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table td {
-    height: 72px;
-    padding: 9px 10px;
+    height: auto;
+    padding: 8px 10px;
     vertical-align: middle;
-    background: var(--mp-white);
-    border-top: 1px solid #edf1f6;
-    border-bottom: 1px solid #edf1f6;
-    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    background: #fff;
+    border: 0;
+    border-bottom: 1px solid var(--mp-border-light);
+    border-radius: 0;
+    box-shadow: none;
+    transition: background 0.15s ease;
     box-sizing: border-box;
 }
 
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table td:first-child {
-    border-left: 1px solid #edf1f6;
-    border-radius: 9px 0 0 9px;
-}
-
+#mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table td:first-child,
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table td:last-child {
-    border-right: 1px solid #edf1f6;
-    border-radius: 0 9px 9px 0;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table tr:hover td {
-    border-color: #dfe6ef;
-    box-shadow: 0 2px 7px rgba(15, 23, 42, 0.035);
+    background: #fafbfc;
+    border-color: var(--mp-border-light);
+    box-shadow: none;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table tr.ui-sortable-helper td {
-    border-color: var(--mp-primary-border);
-    box-shadow: var(--mp-shadow-lg);
+    background: #fff;
+    border-color: var(--mp-border);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_sort_placeholder {
-    height: 72px;
-    border: 1px dashed #d8deea;
-    border-radius: 9px;
+    height: 52px;
+    border: 1px dashed var(--mp-border);
+    border-radius: 0;
     background: #f8fafc;
     visibility: visible !important;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table_shell.is-empty .mptbm_taxi_ex_service_table_scroll::after {
-    content: "No services added yet. Add your first optional service below.";
-    min-height: 112px;
+    content: "No services yet.";
+    min-height: 72px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 10px 0 12px;
-    padding: 18px;
-    border: 1px dashed var(--mp-border-dark);
-    border-radius: 13px;
-    background: var(--mp-white);
-    color: var(--mp-text-500);
+    margin: 0;
+    padding: 20px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--mp-text-400);
     font-size: 12px;
     text-align: center;
     box-sizing: border-box;
@@ -4576,34 +4618,35 @@ textarea.mptbm_field_error {
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_input,
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_select {
     width: 100%;
-    height: 44px;
-    padding: 0 11px;
-    border: 1px solid #e7ebf1;
-    border-radius: 7px;
-    background: #fbfcfe;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--mp-border);
+    border-radius: 6px;
+    background: #fff;
     color: var(--mp-text-800);
-    font-size: 12px;
+    font-size: 13px;
     font-family: var(--mp-font);
     box-sizing: border-box;
     outline: none;
-    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    transition: border-color 0.15s ease;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_input:focus,
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_select:focus {
     border-color: var(--mp-primary);
-    background: var(--mp-white);
-    box-shadow: var(--mp-shadow-focus);
+    background: #fff;
+    box-shadow: none;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue textarea.mptbm_taxi_ex_service_select {
-    min-height: 52px;
-    height: 52px;
-    padding: 8px 10px;
+    min-height: 36px;
+    height: 36px;
+    padding: 7px 10px;
     resize: vertical;
-    overflow: auto;
-    white-space: normal;
-    line-height: 1.45;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1.35;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_price_field {
@@ -4613,17 +4656,17 @@ textarea.mptbm_field_error {
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_price_field > span {
     position: absolute;
     top: 50%;
-    left: 11px;
+    left: 10px;
     z-index: 1;
     transform: translateY(-50%);
-    color: var(--mp-text-500);
+    color: var(--mp-text-400);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 600;
     pointer-events: none;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_price_field .mptbm_taxi_ex_service_input {
-    padding-left: 25px;
+    padding-left: 22px;
     font-variant-numeric: tabular-nums;
 }
 
@@ -4631,26 +4674,26 @@ textarea.mptbm_field_error {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 2px;
     white-space: nowrap;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_btn_del,
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_btn_drag {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-    border: 1px solid #e7ebf1;
-    border-radius: 7px;
-    background: #fbfcfe;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
     cursor: pointer;
+    color: var(--mp-text-400);
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_btn_drag {
-    color: var(--mp-text-500);
     cursor: grab;
 }
 
@@ -4659,79 +4702,92 @@ textarea.mptbm_field_error {
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_btn_drag:hover {
-    border-color: var(--mp-primary-border);
-    background: var(--mp-primary-light);
-    color: var(--mp-primary);
+    background: #f1f5f9;
+    color: var(--mp-text-700);
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_btn_del:hover {
-    border-color: var(--mp-danger-border);
-    background: var(--mp-danger-light);
+    background: #fef2f2;
     color: var(--mp-danger);
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mp_add_icon_image_area {
-    width: 42px;
-    max-width: 42px;
-    min-height: 42px;
+    width: 36px;
+    max-width: 36px;
+    min-height: 36px;
     margin: 0 auto;
-    border: 1px solid #e7e9ff;
-    border-radius: 9px;
-    background: #f7f7ff;
+    border: 1px solid var(--mp-border);
+    border-radius: 6px;
+    background: #f8fafc;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mp_icon_item {
-    min-height: 42px;
-    border-radius: 9px;
+    min-height: 36px;
+    border-radius: 6px;
     background: transparent;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mp_icon_item .allCenter {
-    color: var(--mp-primary);
-    font-size: 18px;
+    color: var(--mp-text-600);
+    font-size: 16px;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_footer {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    justify-content: flex-end;
+    gap: 12px;
     margin: 0;
-    padding: 10px 13px 12px;
-    border-top: 1px solid #edf1f6;
-    background: var(--mp-white);
+    padding: 10px 12px;
+    border-top: 1px solid var(--mp-border);
+    background: #fff;
+}
+
+#mptbm_rent_settings_panel .mptbm_taxi_ex_service_add_btn {
+    background: transparent;
+    color: var(--mp-text-700);
+    border: 1px solid var(--mp-border);
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    box-shadow: none;
+}
+
+#mptbm_rent_settings_panel .mptbm_taxi_ex_service_add_btn:hover {
+    background: #f8fafc;
+    color: var(--mp-text-800);
+    border-color: var(--mp-border-dark);
+    transform: none;
+    box-shadow: none;
 }
 
 #mptbm_rent_settings_panel .mptbm_taxi_ex_service_footer_hint {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    color: var(--mp-text-500);
-    font-size: 11px;
+    display: none;
 }
 
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_footer_hint i {
-    color: var(--mp-text-400);
+.mptbm_fees_services_group .mptbm_rent_editor_header {
+    background: #fff !important;
 }
 
 @media (max-width: 720px) {
     #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table_toolbar,
     #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_footer {
-        align-items: flex-start;
-        flex-direction: column;
+        align-items: center;
+        flex-direction: row;
     }
 
     #mptbm_rent_settings_panel .mptbm_taxi_ex_service_count {
-        margin-left: 50px;
-    }
-
-    #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table_shell {
-        padding: 10px;
+        margin-left: 0;
     }
 
     #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table {
         min-width: 0;
-        border-spacing: 0;
     }
 
     #mptbm_rent_settings_panel .mptbm_fees_services_group.is-services .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table {
@@ -4752,13 +4808,14 @@ textarea.mptbm_field_error {
 
     #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table tr {
         display: grid;
-        grid-template-columns: 72px minmax(0, 1fr);
-        gap: 13px 12px;
-        margin-bottom: 12px;
-        padding: 14px;
-        border: 1px solid var(--mp-border);
-        border-radius: 13px;
-        background: var(--mp-white);
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin: 0;
+        padding: 12px;
+        border: 0;
+        border-bottom: 1px solid var(--mp-border);
+        border-radius: 0;
+        background: #fff;
     }
 
     #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_table td,
@@ -4772,23 +4829,20 @@ textarea.mptbm_field_error {
         box-shadow: none;
     }
 
-    #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table td:not(.mptbm_taxi_ex_service_icon_cell) {
-        grid-column: 1 / -1;
-    }
-
     #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table td::before {
         content: attr(data-label);
         display: block;
-        margin: 0 0 6px;
+        margin: 0 0 4px;
         color: var(--mp-text-500);
-        font-size: 9px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.055em;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: none;
+        letter-spacing: 0;
     }
 
-    #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table .mptbm_taxi_ex_service_icon_cell {
-        grid-column: 1 / -1;
+    #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table .mptbm_taxi_ex_service_icon_cell::before,
+    #mptbm_rent_settings_panel .mptbm_taxi_ex_service_table .mptbm_taxi_ex_service_actions::before {
+        display: none;
     }
 
     #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mp_add_icon_image_area {
@@ -4800,52 +4854,6 @@ textarea.mptbm_field_error {
     }
 
     #mptbm_rent_settings_panel .mptbm_taxi_ex_service_catalogue .mptbm_taxi_ex_service_add_btn {
-        width: 100%;
-        justify-content: center;
+        width: auto;
     }
-}
-
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table th,
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table td {
-    border: none;
-    border-right: 1px solid #ddd;
-}
-
-.mptbm_fees_services_group .mptbm_rent_editor_header {
-    background: #fff !important;
-}
-
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table thead th {
-    height: 38px;
-    padding: 8px 12px;
-    border: 0;
-    border-bottom: 1px solid #e2e7ed;
-    border-right: 1px solid #e8ecf1;
-    background: #f6f7f9 !important;
-    color: #475569;
-    font-size: 10px;
-    font-weight: 800;
-    line-height: 1.2;
-    letter-spacing: 0.055em;
-    text-transform: uppercase;
-    vertical-align: middle;
-    box-sizing: border-box;
-}
-
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table thead th:first-child {
-    border-left: 1px solid #e8ecf1;
-    border-radius: 6px 0 0 6px;
-    text-align: center;
-}
-
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_table thead th:last-child {
-    border-right: 0;
-    border-radius: 0 6px 6px 0;
-    text-align: center;
-}
-
-#mptbm_rent_settings_panel .mptbm_taxi_ex_service_head_label {
-    display: inline-flex;
-    align-items: center;
-    white-space: nowrap;
 }
