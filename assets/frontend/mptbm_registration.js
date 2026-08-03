@@ -3895,9 +3895,22 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
             // Clean up existing map instance before switching tabs
             mptbm_cleanup_map();
 
-            // Check if the target tab already has content
             var targetTabContainer = $("#" + tab_id);
-            var hasExistingContent = targetTabContainer.length > 0 && targetTabContainer.html().trim() !== '';
+
+            // Every tab (hourly/distance/flat-rate) renders the same get_details.php
+            // template, so they all share the same field IDs (#mptbm_start_date,
+            // #mptbm_map_area, ...). This used to cache each tab's rendered HTML and
+            // just toggle visibility on tab switch, which left every previously
+            // visited tab's copy of those IDs sitting in the DOM (hidden) at the same
+            // time. A bare "#id" jQuery selector always resolves to the *first* match
+            // in the document regardless of which tab is actually visible, so the
+            // date picker / autocomplete / search-result init in get_details.php and
+            // mptbm_registration.js silently wired themselves to a hidden tab instead
+            // of the visible one. Emptying every other tab's container here and always
+            // re-fetching the clicked tab fresh below guarantees at most one copy of
+            // each ID exists at a time, so those selectors can never be ambiguous, and
+            // any search results shown in the previous tab are cleared along with it.
+            $('.mptb-tab-content').not(targetTabContainer).empty();
 
             // Freeze the content wrapper at whatever height it currently is
             // before touching anything else, so the outgoing tab (or the
@@ -3923,62 +3936,25 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 }, 260);
             }
 
-            // Only show loading overlay if the tab doesn't have content or needs to be refreshed
-            if (!hasExistingContent) {
-                // Remove any existing loading overlay
-                $('.mptbm-loading-overlay').remove();
+            // Remove any existing loading overlay
+            $('.mptbm-loading-overlay').remove();
 
-                // Create a new loading overlay with CSS spinner animation, centered over
-                // the tab *content* wrapper specifically (not .mptb-tab-container, which
-                // also wraps the Hourly/Distance/Flat rate pill row as a sibling of that
-                // wrapper -- anchoring there covered the pills themselves with the same
-                // semi-transparent white background used for the loading form area below
-                // them; not the whole viewport either, since a fixed/body-centered overlay
-                // ends up wherever the page happens to scroll to).
-                var loadingOverlay = $('<div class="mptbm-loading-overlay"><div class="mptbm-spinner"></div></div>');
+            // Create a new loading overlay with CSS spinner animation, centered over
+            // the tab *content* wrapper specifically (not .mptb-tab-container, which
+            // also wraps the Hourly/Distance/Flat rate pill row as a sibling of that
+            // wrapper -- anchoring there covered the pills themselves with the same
+            // semi-transparent white background used for the loading form area below
+            // them; not the whole viewport either, since a fixed/body-centered overlay
+            // ends up wherever the page happens to scroll to).
+            var loadingOverlay = $('<div class="mptbm-loading-overlay"><div class="mptbm-spinner"></div></div>');
 
-                ($tabContentWrap.length ? $tabContentWrap : $('body')).append(loadingOverlay);
-            }
+            ($tabContentWrap.length ? $tabContentWrap : $('body')).append(loadingOverlay);
 
             // Mark the clicked tab as active
             $('.mptb-tabs li').removeClass('current');
             $(this).addClass('current');
 
-            // Handle content loading based on whether tab already has content
-            if (hasExistingContent) {
-                // Tab already has content, just show it without AJAX call
-                $('.mptb-tab-content').removeClass('current');
-                targetTabContainer.addClass('current');
-
-                // Force display block if CSS class doesn't work
-                if (!targetTabContainer.is(':visible')) {
-                    targetTabContainer.css('display', 'block');
-                }
-
-                settleHeight();
-
-                // The cached HTML is still there, but its map isn't necessarily:
-                // there's only one shared mptbm_osm_map/mptbm_map instance, and
-                // switching to ANY other tab in between tore it down and built a
-                // new one against that other tab's #mptbm_map_area div. Coming
-                // back to this tab left its own map area empty ever since, so it
-                // needs the same re-init the AJAX-loaded path already does below.
-                if (tab_id !== 'flat-rate' && map === 'yes') {
-                    setTimeout(function () {
-                        mptbm_map_area_init();
-                    }, 100);
-                }
-
-                return; // Exit the click handler early
-            }
-
-            // The outgoing tab is intentionally left in place (still
-            // .current, dimmed by the loading overlay above it) -- it only
-            // gets swapped out once the new content has actually arrived,
-            // in the success handler below, so there's never a moment where
-            // the content area is empty/collapsed.
-
-            // Small delay to ensure loading GIF is rendered before AJAX starts (only when loading new content)
+            // Small delay to ensure loading GIF is rendered before AJAX starts
             setTimeout(function () {
                 // AJAX call to load the template
                 $.ajax({
