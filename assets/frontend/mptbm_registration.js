@@ -3158,16 +3158,6 @@ function mptbm_reveal_inline_results(target) {
             $toggle.attr('aria-expanded', 'false');
             $toggle.find('[data-label]').text($toggle.data('expand-text'));
             mptbm_refit_osm_map();
-            // The appended trip-summary card already has its own "Edit Search"
-            // action - fold the map toggle into that same group instead of
-            // leaving it stranded in its own header bar above (which otherwise
-            // reads as a disconnected strip once results are showing). Falls
-            // back to leaving it in place for pricing modes without that card
-            // (e.g. summary.php's .leftSidebar, which we hide entirely).
-            var $actions = target.find('.mptbm_results_actions');
-            if ($actions.length) {
-                $toggle.addClass('mptbm_map_collapse_toggle_merged').prependTo($actions);
-            }
         } else {
             $mapArea.css('display', 'flex').addClass('mptbm_map_area_no_map');
         }
@@ -3891,37 +3881,21 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
             var tab_id = $(this).attr('mptbm-data-tab');
             var form_style = $(this).attr('mptbm-data-form-style');
             var map = $(this).attr('mptbm-data-map');
+            var $tabContentWrap = $(this).closest('.mptb-tab-container').find('.mptb-tabs-content-wrap');
+
+            // Ignore re-clicks on the active tab or while a switch is already loading
+            if ($(this).hasClass('current') || $tabContentWrap.hasClass('mptbm-tab-loading')) {
+                return;
+            }
 
             // Clean up existing map instance before switching tabs
             mptbm_cleanup_map();
 
-            var targetTabContainer = $("#" + tab_id);
-
-            // Every tab (hourly/distance/flat-rate) renders the same get_details.php
-            // template, so they all share the same field IDs (#mptbm_start_date,
-            // #mptbm_map_area, ...). This used to cache each tab's rendered HTML and
-            // just toggle visibility on tab switch, which left every previously
-            // visited tab's copy of those IDs sitting in the DOM (hidden) at the same
-            // time. A bare "#id" jQuery selector always resolves to the *first* match
-            // in the document regardless of which tab is actually visible, so the
-            // date picker / autocomplete / search-result init in get_details.php and
-            // mptbm_registration.js silently wired themselves to a hidden tab instead
-            // of the visible one. Emptying every other tab's container here and always
-            // re-fetching the clicked tab fresh below guarantees at most one copy of
-            // each ID exists at a time, so those selectors can never be ambiguous, and
-            // any search results shown in the previous tab are cleared along with it.
-            $('.mptb-tab-content').not(targetTabContainer).empty();
-
-            // Freeze the content wrapper at whatever height it currently is
-            // before touching anything else, so the outgoing tab (or the
-            // loading overlay covering it) stays put at a stable size --
-            // nothing collapses out from under it while new content loads.
-            // .mptb-tabs-content-wrap has a CSS transition on min-height, so
-            // easing it to the new content's natural height in settleHeight()
-            // below animates smoothly instead of snapping.
-            var $tabContentWrap = $(this).closest('.mptb-tab-container').find('.mptb-tabs-content-wrap');
-            var lockedHeight = $tabContentWrap.outerHeight();
-            if (lockedHeight) {
+            // Freeze height so the wrap does not collapse while content stays
+            // visible (faded) under the spinner. After load, settleHeight()
+            // eases to the new content size, then clears the lock (height: auto).
+            var lockedHeight = $tabContentWrap.outerHeight() || 0;
+            if (lockedHeight > 0) {
                 $tabContentWrap.css('min-height', lockedHeight + 'px');
             }
 
@@ -3929,124 +3903,100 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 if (!$tabContentWrap.length) {
                     return;
                 }
-                var naturalHeight = $tabContentWrap.outerHeight();
-                $tabContentWrap.css('min-height', naturalHeight + 'px');
+                var $currentTab = $tabContentWrap.find('.mptb-tab-content.current');
+                var contentHeight = $currentTab.length ? $currentTab.outerHeight(true) : 0;
+                if (contentHeight > 0) {
+                    $tabContentWrap.css('min-height', contentHeight + 'px');
+                }
                 setTimeout(function () {
                     $tabContentWrap.css('min-height', '');
                 }, 260);
             }
 
-            // Remove any existing loading overlay
-            $('.mptbm-loading-overlay').remove();
+            function clearTabLoader() {
+                $tabContentWrap.removeClass('mptbm-tab-loading');
+                $tabContentWrap.find('.mptbm-tab-loader, .mptbm-loading-overlay').remove();
+            }
 
-            // Create a new loading overlay with CSS spinner animation, centered over
-            // the tab *content* wrapper specifically (not .mptb-tab-container, which
-            // also wraps the Hourly/Distance/Flat rate pill row as a sibling of that
-            // wrapper -- anchoring there covered the pills themselves with the same
-            // semi-transparent white background used for the loading form area below
-            // them; not the whole viewport either, since a fixed/body-centered overlay
-            // ends up wherever the page happens to scroll to).
-            var loadingOverlay = $('<div class="mptbm-loading-overlay"><div class="mptbm-spinner"></div></div>');
+            // Keep the active tab content on screen (opacity via CSS) and show
+            // a spinner with no overlay background while the next tab loads.
+            clearTabLoader();
+            $tabContentWrap.addClass('mptbm-tab-loading');
+            $tabContentWrap.append('<div class="mptbm-tab-loader"><div class="mptbm-spinner"></div></div>');
 
-            ($tabContentWrap.length ? $tabContentWrap : $('body')).append(loadingOverlay);
-
-            // Mark the clicked tab as active
+            // Mark the clicked tab pill as active
             $('.mptb-tabs li').removeClass('current');
             $(this).addClass('current');
 
-            // Small delay to ensure loading GIF is rendered before AJAX starts
-            setTimeout(function () {
-                // AJAX call to load the template
-                $.ajax({
-                    type: "POST",
-                    url: mp_ajax_url, // WordPress AJAX URL
-                    data: {
-                        action: "load_get_details_page",
-                        nonce: mptbm_ajax.search_nonce,
-                        tab_id: tab_id,
-                        form_style: form_style,
-                        map: map
-                    },
-                    success: function (data) {
+            $.ajax({
+                type: "POST",
+                url: mp_ajax_url,
+                data: {
+                    action: "load_get_details_page",
+                    nonce: mptbm_ajax.search_nonce,
+                    tab_id: tab_id,
+                    form_style: form_style,
+                    map: map
+                },
+                success: function (data) {
+                    var tabContainer = $("#" + tab_id);
+                    if (tabContainer.length === 0) {
+                        var tabContainerParent = $tabContentWrap.length ? $tabContentWrap : $('.mptb-tab-container');
+                        if (tabContainerParent.length > 0) {
+                            var newTabContainer = $('<div id="' + tab_id + '" class="mptb-tab-content"></div>');
+                            tabContainerParent.append(newTabContainer);
+                            tabContainer = newTabContainer;
+                        } else {
+                            console.error('Tab container parent not found');
+                            clearTabLoader();
+                            return;
+                        }
+                    }
 
+                    // Empty other tabs only now — keeps previous content visible
+                    // under the faded loader until replacement is ready, and
+                    // avoids duplicate field IDs once the new markup is inserted.
+                    $('.mptb-tab-content').not(tabContainer).empty();
+                    tabContainer.html(data);
 
-                        // Check if the tab container exists
-                        var tabContainer = $("#" + tab_id);
-                        if (tabContainer.length === 0) {
+                    $('.mptb-tab-content').removeClass('current');
+                    tabContainer.addClass('current');
 
-                            // Try to create the tab container if it doesn't exist
-                            var tabContainerParent = $('.mptb-tab-container');
-                            if (tabContainerParent.length > 0) {
-                                var newTabContainer = $('<div id="' + tab_id + '" class="mptb-tab-content"></div>');
-                                tabContainerParent.append(newTabContainer);
-                                tabContainer = newTabContainer;
-                            } else {
-                                console.error('Tab container parent not found');
-                                return;
-                            }
+                    if (!tabContainer.is(':visible')) {
+                        tabContainer.css('display', 'block');
+                    }
+
+                    clearTabLoader();
+                    settleHeight();
+
+                    setTimeout(function () {
+                        var currentTab = $('.mptb-tabs li.current').attr('mptbm-data-tab');
+                        var mapEnabled = $('.mptb-tabs li.current').attr('mptbm-data-map');
+
+                        if (currentTab !== 'flat-rate' && mapEnabled === 'yes') {
+                            mptbm_map_area_init();
                         }
 
-                        // Insert the content into the correct tab container
-                        tabContainer.html(data);
-
-                        // Ensure the tab content is visible using CSS classes
-                        $('.mptb-tab-content').removeClass('current');
-                        tabContainer.addClass('current');
-
-                        // Force display block if CSS class doesn't work
-                        if (!tabContainer.is(':visible')) {
-                            tabContainer.css('display', 'block');
+                        var mapType = document.getElementById('mptbm_map_type');
+                        if (!(mapType && mapType.value === 'openstreetmap')) {
+                            initializeGooglePlacesAutocomplete();
                         }
 
                         settleHeight();
-
-                        // Hide loading GIF after content is loaded with a minimum display time
-
-                        // Add a minimum display time of 1000ms to ensure the loading GIF is visible
-                        // This gives more time for the user to see the loading state
-                        setTimeout(function () {
-                            // Remove the loading overlay
-                            $('.mptbm-loading-overlay').remove();
-                        }, 1000);
-
-                        // Add a small delay to ensure DOM is fully updated before initializing map
-                        setTimeout(function () {
-                            // Only initialize map if the current tab should have a map
-                            var currentTab = $('.mptb-tabs li.current').attr('mptbm-data-tab');
-                            var mapEnabled = $('.mptb-tabs li.current').attr('mptbm-data-map');
-
-                            // Don't initialize map for manual/flat-rate tab or if map is disabled
-                            if (currentTab !== 'flat-rate' && mapEnabled === 'yes') {
-                                // **Reinitialize the map-related elements after template loads**
-                                mptbm_map_area_init();
-                            }
-
-                            // Reinitialize autocomplete based on map type
-                            var mapType = document.getElementById('mptbm_map_type');
-
-                            if (mapType && mapType.value === 'openstreetmap') {
-                            } else {
-                                initializeGooglePlacesAutocomplete();
-                            }
-                        }, 100);
-                    },
-                    error: function (response) {
-                        // Hide loading GIF on error with minimum display time
-                        setTimeout(function () {
-                            // Remove the loading overlay
-                            $('.mptbm-loading-overlay').remove();
-                        }, 1000);
-                        $tabContentWrap.css('min-height', '');
-                        // Show error message
-                        var tabContainer = $("#" + tab_id);
-                        if (tabContainer.length > 0) {
-                            tabContainer.html('<div style="text-align: center; padding: 20px; color: red;"><p>Error loading content. Please try again.</p></div>');
-                            $('.mptb-tab-content').removeClass('current');
-                            tabContainer.addClass('current');
-                        }
-                    },
-                });
-            }, 100); // Close the setTimeout for AJAX delay
+                    }, 100);
+                },
+                error: function () {
+                    clearTabLoader();
+                    var tabContainer = $("#" + tab_id);
+                    if (tabContainer.length > 0) {
+                        $('.mptb-tab-content').not(tabContainer).empty();
+                        tabContainer.html('<div style="text-align: center; padding: 20px; color: red;"><p>Error loading content. Please try again.</p></div>');
+                        $('.mptb-tab-content').removeClass('current');
+                        tabContainer.addClass('current');
+                    }
+                    settleHeight();
+                },
+            });
         });
     });
 

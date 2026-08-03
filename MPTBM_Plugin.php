@@ -28,6 +28,7 @@ if (!class_exists('MPTBM_Plugin')) {
 			add_action('init', array(__CLASS__, 'maybe_upgrade_api_schema'), 2);
 			add_action('init', array(__CLASS__, 'register_driver_role'), 3);
             add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
+            add_filter('body_class', array($this, 'add_body_class'));
             
             // Hook to automatically assign template when settings are saved
             add_action('update_option_mp_global_settings', array($this, 'auto_assign_template_on_settings_save'), 10, 3);
@@ -104,6 +105,12 @@ if (!class_exists('MPTBM_Plugin')) {
             if ($plugin == plugin_basename(__FILE__) && ! isset($_GET['activate-multi'])) {
                 exit(wp_redirect(admin_url('edit.php?post_type=mptbm_rent&page=mptbm_transportation_lists')));
             }
+        }
+
+        public function add_body_class($classes)
+        {
+            $classes[] = 'ecab-taxi';
+            return $classes;
         }
 
         public static function on_activation_page_create(): void

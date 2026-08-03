@@ -1108,13 +1108,8 @@ if (empty($duration)) {
 							</div>
 						</div>
 						<?php endif; ?>
-						<div class="mptbm_results_actions">
-							<button type="button" class="mptbm_results_edit mptbm_get_vehicle_prev" aria-label="<?php esc_attr_e('Edit Search', 'ecab-taxi-booking-manager'); ?>">
-								<i class="fas fa-pen"></i>
-								<span class="mptbm_results_edit_label"><?php esc_html_e('Edit Search', 'ecab-taxi-booking-manager'); ?></span>
-							</button>
-						</div>
 					</div>
+					<div class="mptbm_results_separator" aria-hidden="true"></div>
 					<div class="mptbm_results_controls_row">
 						<h3 class="mptbm_results_summary_title">
 							<strong class="mptbm_results_count_number">0</strong> <?php esc_html_e('available', 'ecab-taxi-booking-manager'); ?>
