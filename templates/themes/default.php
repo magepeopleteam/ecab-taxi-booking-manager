@@ -231,6 +231,38 @@
 
 	$show_price_card = ( '' !== $price_headline ) || ( 'custom_message' === $price_display_type && '' !== $custom_price_message ) || $route_total > 0;
 
+	// ---- Service areas (Admin > Operation Area tab) - real per-vehicle zone
+	// assignment. Shown so customers know where this vehicle actually operates
+	// before they search, since a pickup outside these areas will silently
+	// return no results for it (see choose_vehicles.php's geo-fence matching).
+	$operation_area_type = MP_Global_Function::get_post_info( $post_id, 'mptbm_operation_area_type', '' );
+	$selected_area_ids    = MP_Global_Function::get_post_info( $post_id, 'mptbm_selected_operation_areas', array() );
+	$selected_area_ids    = is_array( $selected_area_ids ) ? array_map( 'absint', $selected_area_ids ) : array();
+	$service_area_names   = array();
+	foreach ( $selected_area_ids as $area_id ) {
+		if ( $area_id && get_post_status( $area_id ) === 'publish' ) {
+			$area_title = get_the_title( $area_id );
+			if ( '' !== $area_title ) {
+				$service_area_names[] = $area_title;
+			}
+		}
+	}
+	$service_area_note = '';
+	switch ( $operation_area_type ) {
+		case 'fixed-operation-area-type':
+			$service_area_note = esc_html__( 'Both pickup and drop-off must be within these areas.', 'ecab-taxi-booking-manager' );
+			break;
+		case 'fixed-map-operation-area-type':
+			$service_area_note = esc_html__( 'Pickup must be within one of these areas.', 'ecab-taxi-booking-manager' );
+			break;
+		case 'geo-fence-operation-area-type':
+			$service_area_note = esc_html__( 'Available for trips between these regions.', 'ecab-taxi-booking-manager' );
+			break;
+		case 'geo-matched-operation-area-type':
+			$service_area_note = esc_html__( 'Operates within this area.', 'ecab-taxi-booking-manager' );
+			break;
+	}
+
 	// Booking widget must match this vehicle's own pricing model, otherwise the
 	// shortcode defaults to 'dynamic' (distance/duration) and shows the wrong
 	// fields for a manual/fixed-hourly/fixed-distance vehicle.
@@ -343,10 +375,32 @@
 						</div>
 					<?php endif; ?>
 
+					<?php if ( count( $service_area_names ) > 0 ) : ?>
+						<div class="mptbm_details_block">
+							<h4><?php esc_html_e( 'Service Areas', 'ecab-taxi-booking-manager' ); ?></h4>
+							<ul class="mptbm-vpage-feature-list">
+								<?php foreach ( $service_area_names as $area_name ) : ?>
+									<li>
+										<span class="mptbm-vpage-feature-icon"><i class="fas fa-map-marker-alt" aria-hidden="true"></i></span>
+										<span class="mptbm-vpage-feature-text"><?php echo esc_html( $area_name ); ?></span>
+									</li>
+								<?php endforeach; ?>
+							</ul>
+							<?php if ( '' !== $service_area_note ) : ?>
+								<p class="mptbm-vpage-price-note"><?php echo esc_html( $service_area_note ); ?></p>
+							<?php endif; ?>
+						</div>
+					<?php endif; ?>
+
 					<?php if ( get_the_content( null, false, $post_id ) ) : ?>
 						<div class="mptbm_details_block">
 							<h4><?php esc_html_e( 'About This Vehicle', 'ecab-taxi-booking-manager' ); ?></h4>
-							<div class="mptbm-vpage-content"><?php echo apply_filters( 'the_content', get_the_content( null, false, $post_id ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+							<div class="mptbm-vpage-content mptbm-vpage-clamp" id="mptbm-vpage-about-content"><?php echo apply_filters( 'the_content', get_the_content( null, false, $post_id ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+							<button type="button" class="mptbm-vpage-seemore" data-target="mptbm-vpage-about-content" hidden>
+								<span class="mptbm-vpage-seemore-more"><?php esc_html_e( 'See More', 'ecab-taxi-booking-manager' ); ?></span>
+								<span class="mptbm-vpage-seemore-less"><?php esc_html_e( 'See Less', 'ecab-taxi-booking-manager' ); ?></span>
+								<i class="fas fa-chevron-down" aria-hidden="true"></i>
+							</button>
 						</div>
 					<?php endif; ?>
 
@@ -444,26 +498,44 @@
 
 		</div>
 	</div>
-	<?php if ( $route_total > $route_visible_count ) : ?>
 	<script>
 	document.addEventListener( 'click', function ( e ) {
-		var btn = e.target.closest( '.mptbm-vpage-route-loadmore' );
-		if ( ! btn ) {
+		var loadMoreBtn = e.target.closest( '.mptbm-vpage-route-loadmore' );
+		if ( loadMoreBtn ) {
+			var list = loadMoreBtn.closest( '.mptbm-vpage-route-table' ).querySelector( '.mptbm-vpage-route-list' );
+			var hiddenRows = list.querySelectorAll( '.mptbm-vpage-route-row[hidden]' );
+			var step = parseInt( loadMoreBtn.getAttribute( 'data-step' ), 10 ) || 8;
+			for ( var i = 0; i < hiddenRows.length && i < step; i++ ) {
+				hiddenRows[ i ].removeAttribute( 'hidden' );
+			}
+			var remaining = list.querySelectorAll( '.mptbm-vpage-route-row[hidden]' ).length;
+			if ( remaining > 0 ) {
+				loadMoreBtn.textContent = loadMoreBtn.textContent.replace( /\(\d+\)/, '(' + remaining + ')' );
+			} else {
+				loadMoreBtn.remove();
+			}
 			return;
 		}
-		var list = btn.closest( '.mptbm-vpage-route-table' ).querySelector( '.mptbm-vpage-route-list' );
-		var hidden = list.querySelectorAll( '.mptbm-vpage-route-row[hidden]' );
-		var step = parseInt( btn.getAttribute( 'data-step' ), 10 ) || 8;
-		for ( var i = 0; i < hidden.length && i < step; i++ ) {
-			hidden[ i ].removeAttribute( 'hidden' );
+
+		var seeMoreBtn = e.target.closest( '.mptbm-vpage-seemore' );
+		if ( seeMoreBtn ) {
+			var target = document.getElementById( seeMoreBtn.getAttribute( 'data-target' ) );
+			if ( target ) {
+				var expanded = target.classList.toggle( 'mptbm-vpage-clamp--expanded' );
+				seeMoreBtn.classList.toggle( 'is-expanded', expanded );
+			}
 		}
-		var remaining = list.querySelectorAll( '.mptbm-vpage-route-row[hidden]' ).length;
-		if ( remaining > 0 ) {
-			btn.textContent = btn.textContent.replace( /\(\d+\)/, '(' + remaining + ')' );
-		} else {
-			btn.remove();
+	} );
+
+	// Only reveal "See More" when the description is actually cut off by the
+	// 4-line clamp - a short description that already fits needs no button.
+	document.querySelectorAll( '.mptbm-vpage-clamp' ).forEach( function ( el ) {
+		if ( el.scrollHeight > el.clientHeight + 2 ) {
+			var seeMoreBtn = document.querySelector( '.mptbm-vpage-seemore[data-target="' + el.id + '"]' );
+			if ( seeMoreBtn ) {
+				seeMoreBtn.hidden = false;
+			}
 		}
 	} );
 	</script>
-	<?php endif; ?>
 <?php do_action( 'mptbm_after_details_page', $post_id ); ?>
