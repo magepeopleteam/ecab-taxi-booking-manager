@@ -1,3 +1,8 @@
+.ecab-taxi h1 {
+    max-width: 1200px;
+    margin-bottom: 20px;
+}
+
 .mptbm-filter-feature{
     display: flex !important;
     flex-direction: row !important;
