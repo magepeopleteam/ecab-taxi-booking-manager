@@ -517,7 +517,6 @@
     --step-icon: 44px;
     --step-w: 176px;
     --step-gap: 40px;
-    counter-reset: mptbm-step;
     /* Sticks below the WP admin toolbar (32px desktop / 46px <=782px, see
        the media query further down) as the page scrolls, so the wizard nav
        stays reachable instead of scrolling away with the rest of the tab. */
@@ -538,7 +537,6 @@
 }
 
 #mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target] {
-    counter-increment: mptbm-step;
     /* position:relative (no z-index here) so this item's ::before connector
        and > i icon are stacked within .tabLists's own context instead of
        each item getting its OWN isolated stacking context — otherwise a
@@ -597,18 +595,6 @@
     transition: var(--mp-transition);
 }
 
-/* "STEP N" eyebrow, generated from the counter above — sits above the label */
-#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target] .menu-text::before {
-    content: 'STEP ' counter(mptbm-step);
-    display: block;
-    margin-bottom: 2px;
-    color: var(--mp-text-400);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
 #mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target] .menu-text {
     margin: 0;
     font-size: 13px;
@@ -664,10 +650,6 @@
 #mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target].active > i {
     background: var(--mp-primary);
     color: var(--mp-white);
-}
-
-#mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target].active .menu-text::before {
-    color: var(--mp-primary);
 }
 
 #mptbm_rent_settings_panel .mptbm_settings .mpTabs.leftTabs > .tabLists [data-tabs-target].active::before {
