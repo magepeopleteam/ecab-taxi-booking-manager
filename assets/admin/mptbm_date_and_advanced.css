@@ -1107,6 +1107,7 @@ body.mptbm_driver_modal_open {
 /* Schedule Date Configuration
    ------------------------------------------------------------------ */
 #mptbm_rent_settings_panel .mptbm_schedule_section {
+    margin: 20px 0;
     border: 1px solid var(--mp-border);
     border-radius: var(--mp-r-lg);
     background: var(--mp-white);
