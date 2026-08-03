@@ -913,18 +913,9 @@ $summary_bag = $selected_max_bag ?: '';
 $summary_hand_luggage = $selected_max_hand_luggage ?: '';
 
 
-// Prefer the server-verified distance/duration already calculated by the caller
-// (Frontend/MPTBM_Transport_Search.php::get_mptbm_map_search_result(), which sets
-// $distance/$duration from get_server_distance_with_stops() before including this
-// template). Only fall back to the client-side POST/cookie estimate when the
-// server-side value isn't available, so the price shown here always matches what
-// add_cart_item_data() charges at checkout (same session distance, same number).
-if (empty($distance)) {
-    $distance = isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '');
-}
-if (empty($duration)) {
-    $duration = isset($_POST['mptbm_duration']) && !empty($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '');
-}
+// Get distance and duration from POST (if sent via AJAX fallback) or cookies
+$distance = isset($_POST['mptbm_distance']) && !empty($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '');
+$duration = isset($_POST['mptbm_duration']) && !empty($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '');
 
 
 // Fallback values for object caching compatibility
