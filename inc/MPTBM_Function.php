@@ -1820,7 +1820,11 @@ if (!class_exists('MPTBM_Function')) {
 			}
 			
 			// Try Google Maps Distance Matrix API first if Key exists
-			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'map_api_key');
+			// (settings field is 'gmap_api_key' - see Admin/MPTBM_Settings_Global.php and
+			// MPTBM_Rest_Api.php/MPTBM_Dependencies.php, which all read the same name;
+			// this used to read 'map_api_key', a name nothing ever saves, so the option
+			// lookup was always empty and this branch could never run.)
+			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
 			if ($api_key) {
 				$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={$start_lat},{$start_lng}&destinations={$end_lat},{$end_lng}&mode=driving&key={$api_key}";
 				$response = wp_remote_get($url);
@@ -1872,7 +1876,7 @@ if (!class_exists('MPTBM_Function')) {
 			}
 
 			// Google Directions API supports intermediate waypoints in one call.
-			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'map_api_key');
+			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
 			if ($api_key) {
 				$origin = $waypoints[0]['lat'] . ',' . $waypoints[0]['lng'];
 				$destination = end($waypoints)['lat'] . ',' . end($waypoints)['lng'];
