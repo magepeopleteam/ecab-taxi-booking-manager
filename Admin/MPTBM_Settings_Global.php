@@ -488,6 +488,17 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					),
 					array(
+						'name' => 'show_map_on_search_result',
+						'label' => esc_html__('Show Map on Search Result Page', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Show or hide the route map on the vehicle search result page. This is a master switch - selecting No hides the map everywhere regardless of the booking form/shortcode\'s own map option.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'yes',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no' => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
 						'name' => 'gmap_api_key',
 						'label' => esc_html__('Google MAP API', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('Please enter your Google Maps API key in this Options.', 'ecab-taxi-booking-manager') . '<a class="" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',

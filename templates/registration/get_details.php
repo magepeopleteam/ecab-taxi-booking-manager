@@ -24,6 +24,12 @@ $map_type = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_
 
 $map = $map ?? 'yes';
 $map = strtolower($map); // Normalize the value to lowercase
+// Separate from $map above (which is the shortcode/block's own "map" option
+// and still only governs the pre-search form state): this is the global
+// admin switch (Map API Settings > Show Map on Search Result Page) that
+// controls the map specifically on the post-search results view, independent
+// of whatever the shortcode's map option was set to.
+$show_map_on_result = strtolower(MP_Global_Function::get_settings('mptbm_map_api_settings', 'show_map_on_search_result', 'yes'));
 
 $all_dates = MPTBM_Function::get_all_dates($price_based);
 $form_style = $form_style ?? 'horizontal';
@@ -732,7 +738,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		</style>
 		<?php endif; ?>
 		<span class="mptbm-map-warning" style="display:none"><?php _e('Map Authentication Failed! Please contact site admin.','ecab-taxi-booking-manager'); ?></span>
-		<div class="mptbm_map_area fdColumn" style="display: <?php echo (($price_based != 'manual') && $map === 'yes' && !($hide_dropoff && $price_based === 'fixed_hourly')) ? 'flex' : 'none'; ?>;">
+		<div class="mptbm_map_area fdColumn" data-map="<?php echo esc_attr($map); ?>" data-show-map-result="<?php echo esc_attr($show_map_on_result); ?>" style="display: <?php echo (($price_based != 'manual') && $map === 'yes' && !($hide_dropoff && $price_based === 'fixed_hourly')) ? 'flex' : 'none'; ?>;">
 			<div class="mptbm_map_area_header">
 				<h6><span class="fas fa-map-marked-alt mR_xs"></span><?php echo mptbm_get_translation('route_map_label', __('Route Map', 'ecab-taxi-booking-manager')); ?></h6>
 				<button type="button" class="mptbm_map_collapse_toggle" aria-expanded="true" data-expand-text="<?php esc_attr_e('Show Map', 'ecab-taxi-booking-manager'); ?>" data-collapse-text="<?php esc_attr_e('Hide Map', 'ecab-taxi-booking-manager'); ?>">

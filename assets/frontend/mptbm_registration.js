@@ -3140,7 +3140,15 @@ function mptbm_reveal_inline_results(target) {
     // - the same field the PHP template itself keys the map's display on.
     var $searchAreaRoot = $mapArea.closest('.mptbm_transport_search_area');
     var priceBased = $searchAreaRoot.find('input[name="mptbm_price_based"]').val();
-    var hasMap = priceBased !== 'manual';
+    // Deliberately NOT reading data-map here - that's the shortcode/block's
+    // own "map" option and only governs the pre-search form state. Once
+    // results are revealed, visibility is instead driven by the separate
+    // global admin switch (Map API Settings > Show Map on Search Result
+    // Page), rendered into data-show-map-result in get_details.php. Without
+    // this check, that setting was being silently ignored here and the map
+    // always forced back to visible once results were shown.
+    var showMapResult = ($mapArea.attr('data-show-map-result') || 'yes').toLowerCase();
+    var hasMap = priceBased !== 'manual' && showMapResult !== 'no';
     // Results now show inline on step 1's own panel instead of switching to a
     // separate step-2 panel, but the step indicator above it should still
     // read as "Choose a vehicle" being current now that there's something to
