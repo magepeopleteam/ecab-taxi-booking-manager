@@ -1344,7 +1344,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             ?>
             <tr class="mptbm_taxi_ex_service_row">
                 <td class="mptbm_taxi_ex_service_icon_cell" data-label="<?php esc_attr_e( 'Icon', 'ecab-taxi-booking-manager' ); ?>">
-                    <?php do_action('mp_add_icon_image', 'mptbm_extra_service_icon[]', $icon, $image); ?>
+                    <?php do_action('mp_add_icon_image', 'service_icon[]', $icon, $image); ?>
                 </td>
                 <td data-label="<?php esc_attr_e( 'Service name', 'ecab-taxi-booking-manager' ); ?>">
                     <input type="text" name="service_name[]" class="mptbm_taxi_ex_service_input" placeholder="<?php esc_attr_e( 'Child seat', 'ecab-taxi-booking-manager' ); ?>" value="<?php echo esc_attr( $service_name ); ?>">

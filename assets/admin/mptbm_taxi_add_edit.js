@@ -1256,7 +1256,7 @@
                 <tr class="mptbm_taxi_ex_service_row">
                     <td class="mptbm_taxi_ex_service_icon_cell" data-label="Icon">
                         <div class="mp_add_icon_image_area fdColumn">
-                            <input type="hidden" name="mptbm_extra_service_icon[]" value=""/>
+                            <input type="hidden" name="service_icon[]" value=""/>
                             <div class="mp_icon_item dNone">
                                 <div class="allCenter">
                                     <span class="" data-add-icon></span>
