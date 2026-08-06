@@ -478,6 +478,18 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     padding: 0;
     gap: 18px;
     position: relative;
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity .22s ease, transform .22s ease;
+}
+/* Fade/shrink first, then mptbm_booking_item_hidden (below) actually pulls it
+   out of layout .22s later once the fade has finished - display can't be
+   transitioned, so jumping straight to display:none skipped the animation
+   entirely. See the change handler in mptbm_script.js. */
+.mptbm_transport_search_area .mptbm_booking_item.mptbm_booking_item_fading {
+    opacity: 0;
+    transform: scale(.97);
+    pointer-events: none;
 }
 .mptbm_transport_search_area .mptbm_booking_item.mptbm_booking_item_hidden {
     display: none !important;

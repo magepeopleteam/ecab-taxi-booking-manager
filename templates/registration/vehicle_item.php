@@ -11,16 +11,11 @@ $post_id = $post_id ?? '';
 $original_price_based = $price_based ?? '';
 $mptbm_unavailable = $mptbm_unavailable ?? false;
 $mptbm_unavailable_reason = $mptbm_unavailable_reason ?? '';
-$feature_class = ''; // Default empty value
-if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_filter_via_features') == 'yes') {
-    $max_passenger = MP_Global_Function::get_post_info($post_id, 'mptbm_maximum_passenger');
-    $max_bag = MP_Global_Function::get_post_info($post_id, 'mptbm_maximum_bag');
-    if ($max_passenger != '' && $max_bag != '') {
-        $feature_class = 'feature_passenger_'.$max_passenger.'_feature_bag_'.$max_bag.'_post_id_'.$post_id;
-    }else{
-        $feature_class = '';
-    }
-}
+// Passenger/bag capacity exposed as data attributes (read by mptbm_script.js's
+// #mptbm_passenger_number/#mptbm_shopping_number change handler) so the results
+// list can be filtered client-side without a page/AJAX round trip.
+$max_passenger = (int) MP_Global_Function::get_post_info($post_id, 'mptbm_maximum_passenger');
+$max_bag = (int) MP_Global_Function::get_post_info($post_id, 'mptbm_maximum_bag');
 
 // Get display features setting
 $display_features = MP_Global_Function::get_post_info($post_id, 'display_mptbm_features', 'on');
@@ -209,7 +204,7 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
             : 0;
 ?>
         <div class="mptbm-vehicle-wrapper">
-            <div class="_dFlex mptbm_booking_item <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?> <?php echo $feature_class; ?>" data-placeholder>
+            <div class="_dFlex mptbm_booking_item <?php echo 'mptbm_booking_item_' . $post_id; ?> <?php echo $hidden_class; ?>" data-mptbm-passanger="<?php echo esc_attr($max_passenger); ?>" data-mptbm-beg-count="<?php echo esc_attr($max_bag); ?>" data-placeholder>
                 <div class="_max_200_mR_xs mptbm_vehicle_image">
                     <div class="bg_image_area"  data-placeholder>
                         <div data-bg-image="<?php echo esc_attr($thumbnail); ?>"></div>

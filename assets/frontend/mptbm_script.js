@@ -6,38 +6,47 @@
       "change",
       "#mptbm_shopping_number, #mptbm_passenger_number",
       function () {
-        let shoppingNumber = parseInt($("#mptbm_shopping_number").val());
-        let passengerNumber = parseInt($("#mptbm_passenger_number").val());
+        // 0 (nothing selected) means "no filter" for that dropdown; any other
+        // value must match a vehicle's capacity exactly - not "at least".
+        let shoppingNumber = parseInt($("#mptbm_shopping_number").val()) || 0;
+        let passengerNumber = parseInt($("#mptbm_passenger_number").val()) || 0;
 
-        let elements = document.querySelectorAll(
-          "*[class*='feature_passenger_']"
-        );
+        let elements = document.querySelectorAll("[data-mptbm-passanger]");
 
         elements.forEach(function (element) {
-          let classList = element.classList;
-          let passengerComparisonNumber = 0;
-          let bagComparisonNumber = 0;
+          let passengerCapacity = parseInt(element.getAttribute("data-mptbm-passanger"), 10) || 0;
+          let bagCapacity = parseInt(element.getAttribute("data-mptbm-beg-count"), 10) || 0;
 
-          // Find the comparison numbers from the class name
-          classList.forEach(function (className) {
-            if (className.startsWith("feature_passenger_")) {
-              const parts = className.split("_");
+          let passengerMatches = passengerNumber === 0 || passengerNumber === passengerCapacity;
+          let bagMatches = shoppingNumber === 0 || shoppingNumber === bagCapacity;
 
-
-              passengerComparisonNumber = parseInt(parts[2], 10); // Index 2 for feature passenger number
-              bagComparisonNumber = parseInt(parts[5], 10); // Index 5 for feature bag number
-              post_id = parseInt(parts[8], 10); // Index 8 for ID
-            }
-          });
-
-          // Toggle display based on comparison
-          if (
-            shoppingNumber > bagComparisonNumber ||
-            passengerNumber > passengerComparisonNumber
-          ) {
-            $(element).hide(300); // Hide the element
+          // NOT $(element).hide()/.show() - .mptbm_transport_search_area
+          // .mptbm_booking_item has "display: flex !important" (mptbm_style.css),
+          // which beats the inline display:none jQuery's hide()/show() would set,
+          // so the card never actually disappeared. mptbm_booking_item_hidden is
+          // the class this codebase's CSS already wires up for exactly this (see
+          // the !important override two rules below it, and the .mptbm-vehicle-
+          // wrapper:has() rule that collapses the wrapper box too).
+          //
+          // display can't be transitioned though, so jumping straight to
+          // mptbm_booking_item_hidden (display:none) is instant/jarring -
+          // mptbm_booking_item_fading (opacity/transform, see CSS) plays the
+          // actual animation, then hidden is added .22s later once it's done,
+          // matching the CSS transition duration.
+          let shouldHide = !(passengerMatches && bagMatches);
+          if (shouldHide) {
+            element.classList.add("mptbm_booking_item_fading");
+            window.setTimeout(function () {
+              element.classList.add("mptbm_booking_item_hidden");
+            }, 220);
           } else {
-            $(element).show(300); // Show the element
+            element.classList.remove("mptbm_booking_item_hidden");
+            // Force a style recalc so the browser registers the still-faded
+            // starting point before fading-in is removed below - dropping
+            // both classes in the same frame would jump straight to the end
+            // state instead of animating (nothing to transition from).
+            void element.offsetWidth;
+            element.classList.remove("mptbm_booking_item_fading");
           }
         });
       }
