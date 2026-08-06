@@ -461,9 +461,24 @@
 										continue;
 									}
 									$wc_price = MP_Global_Function::wc_price( $post_id, $service_price );
+									// Same service_icon/service_image convention as
+									// templates/registration/extra_service.php - fall back to
+									// the generic "+" glyph only when neither was ever set.
+									$service_icon  = isset( $service['service_icon'] ) ? $service['service_icon'] : '';
+									$service_image = isset( $service['service_image'] ) ? $service['service_image'] : '';
 								?>
 									<li>
-										<span class="mptbm-vpage-addon-icon"><i class="fas fa-plus" aria-hidden="true"></i></span>
+										<span class="mptbm-vpage-addon-icon">
+											<?php if ( $service_image ) :
+												$addon_image_url = is_numeric( $service_image ) ? wp_get_attachment_image_url( $service_image, 'thumbnail' ) : MP_Global_Function::get_image_url( '', $service_image, 'thumbnail' );
+											?>
+												<img src="<?php echo esc_url( $addon_image_url ); ?>" alt="<?php echo esc_attr( $service_name ); ?>">
+											<?php elseif ( $service_icon ) : ?>
+												<span class="<?php echo esc_attr( $service_icon ); ?>" aria-hidden="true"></span>
+											<?php else : ?>
+												<i class="fas fa-plus" aria-hidden="true"></i>
+											<?php endif; ?>
+										</span>
 										<span class="mptbm-vpage-addon-name"><?php echo esc_html( $service_name ); ?></span>
 										<strong class="mptbm-vpage-addon-price"><?php echo wp_kses_post( MP_Global_Function::price_convert_raw( $wc_price ) ); ?></strong>
 									</li>
