@@ -777,12 +777,23 @@
 										
 										// Preserve important default values if custom field has empty values
 										foreach (['type', 'autocomplete'] as $important_key) {
-											if (isset($section_fields[$key][$important_key]) && 
+											if (isset($section_fields[$key][$important_key]) &&
 												(!isset($field[$important_key]) || $field[$important_key] === '')) {
 												$merged_field[$important_key] = $section_fields[$key][$important_key];
 											}
 										}
-										
+
+										// woocommerce_form_field() renders nothing at all for an empty/unknown
+										// type, so an empty saved type silently drops the field from the form
+										// while WC_Checkout still validates it as required - an unfixable
+										// checkout for the customer. The defaults above cannot always repair
+										// this: core fields such as billing_address_1/billing_address_2 have no
+										// explicit 'type' of their own and rely on WooCommerce's 'text' default,
+										// so there is nothing to restore from. Fall back to 'text'.
+										if (empty($merged_field['type'])) {
+											$merged_field['type'] = 'text';
+										}
+
 										// Handle required field properly - use custom setting when available
 										if (isset($field['required'])) {
 											// Custom setting exists, use it (could be '1', '', or '0')
@@ -806,6 +817,10 @@
 										// Handle required field for new custom fields
 										if (isset($field['required'])) {
 											$field['required'] = ($field['required'] === '1') ? true : false;
+										}
+										// See above - an empty type would render nothing.
+										if (empty($field['type'])) {
+											$field['type'] = 'text';
 										}
 										$section_fields[$key] = $field;
 									}
