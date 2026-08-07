@@ -816,6 +816,11 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							}
 
 							$data['mptbm_item_name'] = $this->ordered_item_name;
+							// The booking record this payload belongs to. Listeners (Google
+							// Calendar, Sheets) need a stable per-item identity to store sync
+							// state against - the order id alone is ambiguous because one order
+							// can hold several journeys.
+							$data['mptbm_booking_id'] = $booking_id;
 							$driver_id = get_post_meta($post_id, 'mptbm_selected_driver', true);
 							if ($driver_id) {
 								$driver_info = get_userdata($driver_id);
