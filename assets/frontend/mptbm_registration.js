@@ -15,6 +15,34 @@ window.addEventListener('pageshow', function (event) {
     }
 });
 
+// Admin/MPTBM_Settings_Global.php's 'use_shortest_route' Map API setting (read from
+// the #mptbm_use_shortest_route hidden field get_details.php renders, same pattern as
+// #mptbm_km_or_mile). Off by default: Google's own routes[0] pick balances time and
+// distance (generally what a driver actually navigates). When turned on, request
+// alternatives and price/display whichever route has the smallest distance instead -
+// see MPTBM_Function::get_server_distance() for the matching server-side behavior.
+function mptbm_use_shortest_route() {
+    var el = document.getElementById('mptbm_use_shortest_route');
+    return !!el && el.value === 'yes';
+}
+
+function mptbm_shortest_route_index(routes) {
+    var bestIndex = 0;
+    var bestDistance = null;
+    for (var i = 0; i < routes.length; i++) {
+        var legs = routes[i].legs || [];
+        var distance = 0;
+        for (var j = 0; j < legs.length; j++) {
+            distance += legs[j].distance.value;
+        }
+        if (bestDistance === null || distance < bestDistance) {
+            bestDistance = distance;
+            bestIndex = i;
+        }
+    }
+    return bestIndex;
+}
+
 let mptbm_map;
 let mptbm_map_window;
 var mptbm_start_marker = null;
@@ -446,6 +474,7 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
         });
 
 
+        var useShortestRoute = mptbm_use_shortest_route();
         var request = {
             origin: start_place,
             destination: actualDestination,
@@ -453,6 +482,9 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
             travelMode: google.maps.TravelMode.DRIVING,
             unitSystem: google.maps.UnitSystem.METRIC,
         };
+        if (useShortestRoute) {
+            request.provideRouteAlternatives = true;
+        }
 
 
         var now = new Date();
@@ -465,10 +497,15 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
 
             if (status === google.maps.DirectionsStatus.OK) {
                 try {
+                    // Same route the server will price when useShortestRoute is on -
+                    // see mptbm_shortest_route_index() above. Otherwise routes[0], same
+                    // as Google's own default pick.
+                    var routeIndex = useShortestRoute ? mptbm_shortest_route_index(result.routes) : 0;
+
                     // Sum all legs of the route (important when waypoints/extra stops are used)
                     var totalDistance = 0;
                     var totalDuration = 0;
-                    var legs = result.routes[0].legs;
+                    var legs = result.routes[routeIndex].legs;
 
 
                     for (var i = 0; i < legs.length; i++) {
@@ -548,6 +585,9 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
                     }
 
                     directionsRenderer.setDirections(result);
+                    if (useShortestRoute) {
+                        directionsRenderer.setRouteIndex(routeIndex);
+                    }
 
                     // Update UI elements
                     jQuery(".mptbm_total_distance").html(distance_text);
@@ -1479,22 +1519,29 @@ function mptbm_calculate_google_route_from_markers() {
     var directionsRenderer = new google.maps.DirectionsRenderer();
     directionsRenderer.setMap(mptbm_map);
 
+    var useShortestRoute = mptbm_use_shortest_route();
     var request = {
         origin: mptbm_start_marker.getPosition(),
         destination: mptbm_end_marker.getPosition(),
         travelMode: google.maps.TravelMode.DRIVING,
         unitSystem: google.maps.UnitSystem.METRIC,
     };
+    if (useShortestRoute) {
+        request.provideRouteAlternatives = true;
+    }
 
     directionsService.route(request, function (result, status) {
         if (status === google.maps.DirectionsStatus.OK) {
             try {
-                var distance = result.routes[0].legs[0].distance.value;
+                // Same route the server will price when useShortestRoute is on - see
+                // mptbm_shortest_route_index() above.
+                var routeIndex = useShortestRoute ? mptbm_shortest_route_index(result.routes) : 0;
+                var distance = result.routes[routeIndex].legs[0].distance.value;
                 var kmOrMileElement = document.getElementById("mptbm_km_or_mile");
                 var kmOrMile = kmOrMileElement ? kmOrMileElement.value : 'km';
-                var distance_text = result.routes[0].legs[0].distance.text;
-                var duration = result.routes[0].legs[0].duration.value;
-                var duration_text = result.routes[0].legs[0].duration.text;
+                var distance_text = result.routes[routeIndex].legs[0].distance.text;
+                var duration = result.routes[routeIndex].legs[0].duration.value;
+                var duration_text = result.routes[routeIndex].legs[0].duration.text;
 
                 if (kmOrMile == 'mile') {
                     var distanceInKilometers = distance / 1000;
@@ -1544,6 +1591,9 @@ function mptbm_calculate_google_route_from_markers() {
                 }
 
                 directionsRenderer.setDirections(result);
+                if (useShortestRoute) {
+                    directionsRenderer.setRouteIndex(routeIndex);
+                }
 
                 jQuery(".mptbm_total_distance").html(distance_text);
                 jQuery(".mptbm_total_time").html(duration_text);

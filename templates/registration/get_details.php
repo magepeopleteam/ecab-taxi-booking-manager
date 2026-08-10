@@ -203,6 +203,7 @@ if (sizeof($all_dates) > 0) {
 			</div>
 			<div class="mpForm">
 				<input type="hidden" id="mptbm_km_or_mile" name="mptbm_km_or_mile" value="<?php echo esc_attr($km_or_mile); ?>" />
+				<input type="hidden" id="mptbm_use_shortest_route" value="<?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings', 'use_shortest_route', 'no')); ?>" />
 				<input type="hidden" name="mptbm_price_based" value="<?php echo esc_attr($price_based); ?>" />
 				<input type="hidden" name="mptbm_post_id" value="" />
 				<input type='hidden' id="mptbm_enable_view_search_result_page" name="mptbm_enable_view_search_result_page" value="<?php echo MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_search_result_page') ?>" />

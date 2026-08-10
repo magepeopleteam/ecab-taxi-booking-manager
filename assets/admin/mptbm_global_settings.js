@@ -67,13 +67,49 @@
             );
         });
 
+        // "Use Shortest Distance Route" only makes sense with Google Maps active -
+        // OSRM's public routing endpoint rarely returns real alternatives to choose a
+        // shortest one from (see MPTBM_Function::get_server_distance()), so the field
+        // would just be confusing/inert there. Hide its row unless "Pricing system
+        // based on map" (display_map) is set to Google map.
+        var $displayMap = $page.find('select[name="mptbm_map_api_settings[display_map]"]');
+        var $shortestRouteRow = $page.find('select[name="mptbm_map_api_settings[use_shortest_route]"]').closest('tr');
+
+        function toggleShortestRouteField() {
+            if (!$displayMap.length || !$shortestRouteRow.length) {
+                return;
+            }
+            $shortestRouteRow.toggle($displayMap.val() === 'enable');
+            updateFieldCount(activeTabItem().find('table.form-table > tbody > tr:visible').length);
+        }
+
+        toggleShortestRouteField();
+        $page.on('change', 'select[name="mptbm_map_api_settings[display_map]"]', toggleShortestRouteField);
+
+        // The field's description has a "No" and a "Yes" variant baked into the markup
+        // (see the 'desc' sprintf in Admin/MPTBM_Settings_Global.php) - show only the
+        // one matching whatever's currently selected, so it always describes what
+        // picking that option actually does instead of listing both permanently.
+        var $shortestRouteSelect = $page.find('select[name="mptbm_map_api_settings[use_shortest_route]"]');
+
+        function toggleShortestRouteDesc() {
+            if (!$shortestRouteSelect.length) {
+                return;
+            }
+            $shortestRouteRow.find('[data-shortest-route-desc]').hide();
+            $shortestRouteRow.find('[data-shortest-route-desc="' + $shortestRouteSelect.val() + '"]').show();
+        }
+
+        toggleShortestRouteDesc();
+        $page.on('change', 'select[name="mptbm_map_api_settings[use_shortest_route]"]', toggleShortestRouteDesc);
+
         updateSectionLabel();
-        updateFieldCount(activeTabItem().find('table.form-table > tbody > tr').length);
+        updateFieldCount(activeTabItem().find('table.form-table > tbody > tr:visible').length);
 
         $page.on('click', '.tabLists [data-tabs-target]', function () {
             window.setTimeout(function () {
                 updateSectionLabel();
-                updateFieldCount(activeTabItem().find('table.form-table > tbody > tr').length);
+                updateFieldCount(activeTabItem().find('table.form-table > tbody > tr:visible').length);
             }, 380);
         });
 

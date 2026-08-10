@@ -1818,44 +1818,107 @@ if (!class_exists('MPTBM_Function')) {
 			if (!$start_lat || !$start_lng || !$end_lat || !$end_lng) {
 				return false;
 			}
-			
-			// Try Google Maps Distance Matrix API first if Key exists
+
+			// Off by default: Google/OSRM's own recommended route balances time and
+			// distance (and, for Google, live traffic) - generally the route a driver
+			// actually navigates. Switching this on instead compares every route
+			// alternative and always prices the smallest-distance one, which can quote
+			// a lower fare than what the driver ends up actually driving. See
+			// Admin/MPTBM_Settings_Global.php's 'use_shortest_route' field description.
+			$use_shortest = MP_Global_Function::get_settings('mptbm_map_api_settings', 'use_shortest_route', 'no') === 'yes';
+
+			// Try Google Maps first if Key exists
 			// (settings field is 'gmap_api_key' - see Admin/MPTBM_Settings_Global.php and
 			// MPTBM_Rest_Api.php/MPTBM_Dependencies.php, which all read the same name;
 			// this used to read 'map_api_key', a name nothing ever saves, so the option
 			// lookup was always empty and this branch could never run.)
 			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
 			if ($api_key) {
-				$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={$start_lat},{$start_lng}&destinations={$end_lat},{$end_lng}&mode=driving&key={$api_key}";
-				$response = wp_remote_get($url);
-				if (!is_wp_error($response)) {
-					$body = wp_remote_retrieve_body($response);
-					$data = json_decode($body, true);
-					if (isset($data['rows'][0]['elements'][0]['status']) && $data['rows'][0]['elements'][0]['status'] === 'OK') {
-						return [
-							'distance' => $data['rows'][0]['elements'][0]['distance']['value'], // meters
-							'duration' => $data['rows'][0]['elements'][0]['duration']['value']  // seconds
-						];
+				if ($use_shortest) {
+					// Directions API (not Distance Matrix) because it's the only one of
+					// the two that supports alternatives=true.
+					$url = "https://maps.googleapis.com/maps/api/directions/json?origin={$start_lat},{$start_lng}&destination={$end_lat},{$end_lng}&mode=driving&alternatives=true&key={$api_key}";
+					$response = wp_remote_get($url);
+					if (!is_wp_error($response)) {
+						$body = wp_remote_retrieve_body($response);
+						$data = json_decode($body, true);
+						if (isset($data['status']) && $data['status'] === 'OK' && !empty($data['routes'])) {
+							return self::shortest_route_leg($data['routes']);
+						}
+					}
+				} else {
+					$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={$start_lat},{$start_lng}&destinations={$end_lat},{$end_lng}&mode=driving&key={$api_key}";
+					$response = wp_remote_get($url);
+					if (!is_wp_error($response)) {
+						$body = wp_remote_retrieve_body($response);
+						$data = json_decode($body, true);
+						if (isset($data['rows'][0]['elements'][0]['status']) && $data['rows'][0]['elements'][0]['status'] === 'OK') {
+							return [
+								'distance' => $data['rows'][0]['elements'][0]['distance']['value'], // meters
+								'duration' => $data['rows'][0]['elements'][0]['duration']['value']  // seconds
+							];
+						}
 					}
 				}
 			}
 
 			// Fallback to OSRM (Open Source Routing Machine)
 			// Note: OSRM uses {lng},{lat} order
-			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$start_lng},{$start_lat};{$end_lng},{$end_lat}?overview=false";
+			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$start_lng},{$start_lat};{$end_lng},{$end_lat}?" . ($use_shortest ? 'alternatives=true&' : '') . "overview=false";
 			$response = wp_remote_get($osrm_url);
 			if (!is_wp_error($response)) {
 				$body = wp_remote_retrieve_body($response);
 				$data = json_decode($body, true);
-				if (isset($data['code']) && $data['code'] === 'Ok' && isset($data['routes'][0])) {
+				if (isset($data['code']) && $data['code'] === 'Ok' && !empty($data['routes'])) {
+					if ($use_shortest) {
+						return self::shortest_osrm_route($data['routes']);
+					}
 					return [
 						'distance' => $data['routes'][0]['distance'], // meters
 						'duration' => $data['routes'][0]['duration']  // seconds
 					];
 				}
 			}
-			
+
 			return false;
+		}
+
+		// Given Google Directions API routes (each with one leg, since this plugin only
+		// calls it point-to-point or via get_server_distance_multi's own waypoint
+		// handling), pick the one with the smallest total distance. Only used when the
+		// 'use_shortest_route' setting is enabled - see get_server_distance() above.
+		private static function shortest_route_leg($routes) {
+			$best = null;
+			foreach ($routes as $route) {
+				if (empty($route['legs'])) {
+					continue;
+				}
+				$distance = 0;
+				$duration = 0;
+				foreach ($route['legs'] as $leg) {
+					$distance += $leg['distance']['value'];
+					$duration += $leg['duration']['value'];
+				}
+				if ($best === null || $distance < $best['distance']) {
+					$best = ['distance' => $distance, 'duration' => $duration];
+				}
+			}
+			return $best;
+		}
+
+		// Same idea as shortest_route_leg() but for OSRM's flatter route shape
+		// (top-level distance/duration, no legs array to sum for a simple 2-point trip).
+		private static function shortest_osrm_route($routes) {
+			$best = null;
+			foreach ($routes as $route) {
+				if (!isset($route['distance'])) {
+					continue;
+				}
+				if ($best === null || $route['distance'] < $best['distance']) {
+					$best = ['distance' => $route['distance'], 'duration' => $route['duration']];
+				}
+			}
+			return $best;
 		}
 
 		// Multi-stop version of get_server_distance(): $waypoints is an ordered array of
@@ -1875,6 +1938,8 @@ if (!class_exists('MPTBM_Function')) {
 				return self::get_server_distance($waypoints[0]['lat'], $waypoints[0]['lng'], $waypoints[1]['lat'], $waypoints[1]['lng']);
 			}
 
+			$use_shortest = MP_Global_Function::get_settings('mptbm_map_api_settings', 'use_shortest_route', 'no') === 'yes';
+
 			// Google Directions API supports intermediate waypoints in one call.
 			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
 			if ($api_key) {
@@ -1889,18 +1954,26 @@ if (!class_exists('MPTBM_Function')) {
 				if ($waypoints_param) {
 					$url .= '&waypoints=' . rawurlencode($waypoints_param);
 				}
+				if ($use_shortest) {
+					$url .= '&alternatives=true';
+				}
 				$response = wp_remote_get($url);
 				if (!is_wp_error($response)) {
 					$body = wp_remote_retrieve_body($response);
 					$data = json_decode($body, true);
-					if (isset($data['status']) && $data['status'] === 'OK' && !empty($data['routes'][0]['legs'])) {
-						$distance = 0;
-						$duration = 0;
-						foreach ($data['routes'][0]['legs'] as $leg) {
-							$distance += $leg['distance']['value'];
-							$duration += $leg['duration']['value'];
+					if (isset($data['status']) && $data['status'] === 'OK' && !empty($data['routes'])) {
+						if ($use_shortest) {
+							return self::shortest_route_leg($data['routes']);
 						}
-						return ['distance' => $distance, 'duration' => $duration];
+						if (!empty($data['routes'][0]['legs'])) {
+							$distance = 0;
+							$duration = 0;
+							foreach ($data['routes'][0]['legs'] as $leg) {
+								$distance += $leg['distance']['value'];
+								$duration += $leg['duration']['value'];
+							}
+							return ['distance' => $distance, 'duration' => $duration];
+						}
 					}
 				}
 			}
@@ -1910,12 +1983,15 @@ if (!class_exists('MPTBM_Function')) {
 			$coords = implode(';', array_map(function ($p) {
 				return $p['lng'] . ',' . $p['lat']; // OSRM uses {lng},{lat} order
 			}, $waypoints));
-			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$coords}?overview=false";
+			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$coords}?" . ($use_shortest ? 'alternatives=true&' : '') . "overview=false";
 			$response = wp_remote_get($osrm_url);
 			if (!is_wp_error($response)) {
 				$body = wp_remote_retrieve_body($response);
 				$data = json_decode($body, true);
-				if (isset($data['code']) && $data['code'] === 'Ok' && isset($data['routes'][0])) {
+				if (isset($data['code']) && $data['code'] === 'Ok' && !empty($data['routes'])) {
+					if ($use_shortest) {
+						return self::shortest_osrm_route($data['routes']);
+					}
 					return [
 						'distance' => $data['routes'][0]['distance'],
 						'duration' => $data['routes'][0]['duration'],

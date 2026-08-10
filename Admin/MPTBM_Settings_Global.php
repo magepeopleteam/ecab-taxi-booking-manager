@@ -506,6 +506,25 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						'default' => ''
 					),
 					array(
+						'name' => 'use_shortest_route',
+						'label' => esc_html__('Use Shortest Distance Route', 'ecab-taxi-booking-manager'),
+						// Two variants, only one shown at a time - assets/admin/mptbm_global_settings.js
+						// toggles between them (by [data-shortest-route-desc]) as the select changes,
+						// so the description always reflects the currently-picked option instead of
+						// permanently listing both at once.
+						'desc' => sprintf(
+							'<span data-shortest-route-desc="no">%1$s</span><span data-shortest-route-desc="yes" style="display:none">%2$s</span>',
+							esc_html__('Price trips using the route Google/OSRM recommends as best (balances time and distance - generally the route a driver would actually navigate).', 'ecab-taxi-booking-manager'),
+							esc_html__('Compare all available route alternatives and always price the one with the smallest distance - this can lower quoted fares but may not match the route actually driven.', 'ecab-taxi-booking-manager')
+						),
+						'type' => 'select',
+						'default' => 'no',
+						'options' => array(
+							'no' => esc_html__('No (Recommended route)', 'ecab-taxi-booking-manager'),
+							'yes' => esc_html__('Yes (Always shortest distance)', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
 						'name' => 'mp_latitude',
 						'label' => esc_html__('Your Location Latitude', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('Please type Your Location Latitude.This are mandatory for google map show. To find latitude please ', 'ecab-taxi-booking-manager') . '<a href="https://www.latlong.net/" target="_blank">' . esc_html__('Click Here', 'ecab-taxi-booking-manager') . '</a>',
