@@ -192,40 +192,44 @@ if (!function_exists('mptbm_get_translation')) {
 						<div class="divider"></div>
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('total_distance_label', __('Total Distance', 'ecab-taxi-booking-manager')); ?></h6>
-						<?php 
-							// First try to get text from cookies/request
-							$distance_text = isset($_COOKIE['mptbm_distance_text']) ? $_COOKIE['mptbm_distance_text'] : (isset($_REQUEST['mptbm_distance_text']) ? $_REQUEST['mptbm_distance_text'] : '');
-							
-							// If text is missing but we have raw value, calculate it
-							if (empty($distance_text) && !empty($distance)) {
-								$distance_in_meters = floatval($distance);
-								if ($km_or_mile == 'mile') {
-									$dist_val = $distance_in_meters * 0.000621371;
-									$distance_text = round($dist_val, 1) . ' miles';
-								} else {
-									$dist_val = $distance_in_meters / 1000;
-									$distance_text = round($dist_val, 1) . ' km';
+						<?php
+							// The fare is always calculated from the distance the SERVER
+							// resolved - Frontend/MPTBM_Transport_Search.php looks it up and
+							// MPTBM_Function::get_price() prices with it - so whenever that
+							// value exists it is also the number that has to be printed here.
+							//
+							// Reading the browser's own mptbm_distance_text cookie first, as
+							// this did, let the panel advertise the distance the in-browser
+							// Google Directions call drew on the map while the price was built
+							// on whatever the server-side lookup returned. Those are two
+							// different providers the moment Google refuses the server-side
+							// request (e.g. a referrer-restricted API key) and the OSRM
+							// fallback answers instead - the customer then reads one distance
+							// and is charged for a different one.
+							$mptbm_summary_search_context = MPTBM_Function::get_search_context();
+							$distance_is_server_verified = !empty($mptbm_summary_search_context['distance_verified']) && !empty($distance);
+
+							$distance_text = $distance_is_server_verified ? MPTBM_Function::format_distance_text($distance) : '';
+							if ($distance_text === '') {
+								// No server-verified distance (map disabled, cached page, older
+								// flow): fall back to the client-side text exactly as before.
+								$distance_text = isset($_COOKIE['mptbm_distance_text']) ? sanitize_text_field(wp_unslash($_COOKIE['mptbm_distance_text'])) : (isset($_REQUEST['mptbm_distance_text']) ? sanitize_text_field(wp_unslash($_REQUEST['mptbm_distance_text'])) : '');
+								if (empty($distance_text) && !empty($distance)) {
+									$distance_text = MPTBM_Function::format_distance_text($distance);
 								}
 							}
 
-							$duration_text = isset($_COOKIE['mptbm_duration_text']) ? $_COOKIE['mptbm_duration_text'] : (isset($_REQUEST['mptbm_duration_text']) ? $_REQUEST['mptbm_duration_text'] : '');
-							
-							// If duration text is missing but we have raw value
-							if (empty($duration_text) && !empty($duration)) {
-								$duration_seconds = intval($duration);
-								$hours = floor($duration_seconds / 3600);
-								$minutes = round(($duration_seconds % 3600) / 60);
-								
-								if ($hours > 0) {
-									$duration_text = sprintf(__('%d Hour %d Min', 'ecab-taxi-booking-manager'), $hours, $minutes);
-								} else {
-									$duration_text = sprintf(__('%d Min', 'ecab-taxi-booking-manager'), $minutes);
+							$duration_text = $distance_is_server_verified ? MPTBM_Function::format_duration_text($duration) : '';
+							if ($duration_text === '') {
+								$duration_text = isset($_COOKIE['mptbm_duration_text']) ? sanitize_text_field(wp_unslash($_COOKIE['mptbm_duration_text'])) : (isset($_REQUEST['mptbm_duration_text']) ? sanitize_text_field(wp_unslash($_REQUEST['mptbm_duration_text'])) : '');
+								if (empty($duration_text) && !empty($duration)) {
+									$duration_text = MPTBM_Function::format_duration_text($duration);
 								}
 							}
 						?>
-						<?php if ($two_way > 1) { 
+						<?php if ($two_way > 1) {
 							// If we calculated it ourselves, we can just double the numeric part or re-calculate
-							if (!empty($distance) && empty($_COOKIE['mptbm_distance_text']) && empty($_REQUEST['mptbm_distance_text'])) {
+							if ($distance_is_server_verified || (!empty($distance) && empty($_COOKIE['mptbm_distance_text']) && empty($_REQUEST['mptbm_distance_text']))) {
 								// We have raw distance, so just double raw distance and format
 								$total_dist = floatval($distance) * 2;
 								if ($km_or_mile == 'mile') {

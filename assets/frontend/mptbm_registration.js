@@ -1453,6 +1453,17 @@ function mptbm_calculate_osm_distance() {
                 jQuery(".mptbm_distance_time").slideDown("fast");
                 mptbm_update_fixed_hours_warning();
 
+                // The numbers above came from OSRM, called straight from this browser.
+                // The fare, however, is measured on the server - which may be configured
+                // to use a different routing service entirely (Map API Settings > Routing
+                // Service), because OSRM can only route over roads present in
+                // OpenStreetMap and detours around the ones that are missing. Whenever
+                // the two disagree the customer would read one distance here and be
+                // charged for another, so ask the server what it measured and let that
+                // win. The polyline below still comes from OSRM: it is only the drawn
+                // shape, and the figures are what the fare is built on.
+                mptbm_sync_distance_from_server(startLatLng, endLatLng);
+
                 // Draw route on map
                 if (mptbm_osm_route) {
                     mptbm_osm_map.removeLayer(mptbm_osm_route);
@@ -1612,6 +1623,65 @@ function mptbm_calculate_google_route_from_markers() {
             }
         } else {
             console.error('[Google Maps Route] Status:', status);
+        }
+    });
+}
+
+/**
+ * Replace the displayed distance/time with the server's own measurement.
+ *
+ * Used by the OpenStreetMap path, where the browser routes via OSRM but the fare is
+ * measured server-side through whichever routing service is configured. Silently
+ * does nothing on failure, leaving the browser's figures in place - a route bar is
+ * not worth an error message, and the search itself re-measures server-side anyway.
+ */
+function mptbm_sync_distance_from_server(startLatLng, endLatLng) {
+    if (typeof mp_ajax_url === 'undefined' || typeof mptbm_ajax === 'undefined' || !mptbm_ajax.search_nonce) {
+        return;
+    }
+    jQuery.ajax({
+        type: 'POST',
+        url: mp_ajax_url,
+        data: {
+            action: 'get_mptbm_route_distance',
+            nonce: mptbm_ajax.search_nonce,
+            start_place_coordinates: JSON.stringify({ latitude: startLatLng.lat, longitude: startLatLng.lng }),
+            end_place_coordinates: JSON.stringify({ latitude: endLatLng.lat, longitude: endLatLng.lng })
+        },
+        success: function (response) {
+            if (!response || !response.success || !response.data || !response.data.distance) {
+                return;
+            }
+            var d = response.data;
+            jQuery('.mptbm_total_distance').text(d.distance_text);
+            jQuery('.mptbm_total_time').text(d.duration_text);
+
+            // Keep every carrier of the distance in step with what is now on screen -
+            // the cookies the summary panel reads, the hidden fields the search posts,
+            // and the explicit inputs the add-to-cart flow prefers. Leaving any of them
+            // holding OSRM's figure would just reintroduce the mismatch one layer down.
+            var expires = new Date();
+            expires.setTime(expires.getTime() + 12 * 3600 * 1000);
+            var cookieOptions = '; expires=' + expires.toUTCString() + '; path=/; SameSite=Lax';
+            document.cookie = 'mptbm_distance=' + encodeURIComponent(d.distance) + cookieOptions;
+            document.cookie = 'mptbm_distance_text=' + encodeURIComponent(d.distance_text) + cookieOptions;
+            document.cookie = 'mptbm_duration=' + encodeURIComponent(d.duration) + cookieOptions;
+            document.cookie = 'mptbm_duration_text=' + encodeURIComponent(d.duration_text) + cookieOptions;
+
+            var mapArea = jQuery('#mptbm_map_area').closest('.mptbm_transport_search_area');
+            mapArea.find('input[name="mptbm_hidden_distance"]').val(d.distance);
+            mapArea.find('input[name="mptbm_hidden_duration"]').val(d.duration);
+            mapArea.find('input[name="mptbm_hidden_distance_text"]').val(d.distance_text);
+            mapArea.find('input[name="mptbm_hidden_duration_text"]').val(d.duration_text);
+
+            var explicitDistance = document.getElementById('mptbm_calculated_distance');
+            if (explicitDistance) {
+                explicitDistance.value = d.distance;
+            }
+            var explicitDuration = document.getElementById('mptbm_calculated_duration');
+            if (explicitDuration) {
+                explicitDuration.value = d.duration;
+            }
         }
     });
 }
@@ -3218,6 +3288,26 @@ function mptbm_reveal_inline_results(target) {
             mptbm_refit_osm_map();
         } else {
             $mapArea.css('display', 'flex').addClass('mptbm_map_area_no_map');
+        }
+        // The Total Distance/Total Time bar above the map is written from the
+        // browser's own Directions result. The prices in these results were
+        // calculated from a separate server-side lookup, which is allowed to
+        // disagree with it - different provider (Google here, OSRM whenever the
+        // server-side Google request is refused), so a different road and a
+        // different number. Leaving the browser's figure on screen next to a
+        // fare derived from the other one is how a trip ends up displaying
+        // "11.9 km" while being quoted for 22.5 km. Once results exist, the
+        // priced numbers win. Only overwritten when the server actually
+        // verified a distance (choose_vehicles.php leaves these empty
+        // otherwise), so the client-side estimate still stands on its own when
+        // there was no server-side lookup to trust.
+        var pricedDistanceText = target.find('.mptbm_priced_distance_text').first().val();
+        var pricedDurationText = target.find('.mptbm_priced_duration_text').first().val();
+        if (pricedDistanceText) {
+            $mapArea.find('.mptbm_distance_time .mptbm_total_distance').text(pricedDistanceText);
+        }
+        if (pricedDurationText) {
+            $mapArea.find('.mptbm_distance_time .mptbm_total_time').text(pricedDurationText);
         }
         // Fold Total Distance/Total Time into the trip-summary card's own
         // meta row too, alongside Duration/Pickup Date/Pickup Time - reading

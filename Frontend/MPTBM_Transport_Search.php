@@ -31,6 +31,9 @@
 				/**************************/
 				add_action('wp_ajax_mptbm_refresh_search_nonce', [$this, 'refresh_search_nonce']);
 				add_action('wp_ajax_nopriv_mptbm_refresh_search_nonce', [$this, 'refresh_search_nonce']);
+				/**************************/
+				add_action('wp_ajax_get_mptbm_route_distance', [$this, 'get_mptbm_route_distance']);
+				add_action('wp_ajax_nopriv_get_mptbm_route_distance', [$this, 'get_mptbm_route_distance']);
 			}
 			/**
 			 * Issue a freshly generated booking nonce.
@@ -170,7 +173,7 @@
 					$s_lng = isset($start_coords['longitude']) ? $start_coords['longitude'] : '';
 					$e_lat = isset($end_coords['latitude']) ? $end_coords['latitude'] : '';
 					$e_lng = isset($end_coords['longitude']) ? $end_coords['longitude'] : '';
-					$server_data = $this->get_server_distance_with_stops($s_lat, $s_lng, $e_lat, $e_lng);
+					$server_data = $this->resolve_trip_distance($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 
 					if ($server_data) {
@@ -278,7 +281,7 @@
 					$e_lng = isset($end_coords['longitude']) ? $end_coords['longitude'] : '';
 
 
-					$server_data = $this->get_server_distance_with_stops($s_lat, $s_lng, $e_lat, $e_lng);
+					$server_data = $this->resolve_trip_distance($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 
 					if ($server_data) {
@@ -355,6 +358,18 @@
 			// resolves the total route distance/duration in one call. With no extra stops this
 			// behaves exactly like the old direct pickup->dropoff calculation.
 			private function get_server_distance_with_stops($start_lat, $start_lng, $end_lat, $end_lng) {
+				$waypoints = $this->trip_waypoints($start_lat, $start_lng, $end_lat, $end_lng);
+				if (!$waypoints) {
+					return false;
+				}
+
+				return MPTBM_Function::get_server_distance_multi($waypoints);
+			}
+
+			// The ordered waypoint list for this search, or false when pickup/drop-off
+			// coordinates are missing. Split out of get_server_distance_with_stops() so the
+			// same list can also be used to sanity-check a browser-reported distance.
+			private function trip_waypoints($start_lat, $start_lng, $end_lat, $end_lng) {
 				if (!$start_lat || !$start_lng || !$end_lat || !$end_lng) {
 					return false;
 				}
@@ -380,7 +395,83 @@
 
 				$waypoints[] = ['lat' => $end_lat, 'lng' => $end_lng];
 
-				return MPTBM_Function::get_server_distance_multi($waypoints);
+				return $waypoints;
+			}
+
+			/**
+			 * The distance and duration this search will be priced on.
+			 *
+			 * Default ('server') is unchanged: the server looks the route up itself, which
+			 * is the safest source because nothing the customer sends can influence it.
+			 *
+			 * 'browser' exists for sites whose Google key is restricted to their own domain
+			 * - a correct and common setup for the key that draws the map, but one Google
+			 * refuses for server-side requests. Those sites get no Google answer on the
+			 * server at all and silently price every trip off the OpenStreetMap fallback,
+			 * which can quote a long detour where OSM's road data is incomplete and
+			 * overcharge the customer. In that mode the accurate figure the browser already
+			 * has is used instead, but only after MPTBM_Function::validate_client_trip()
+			 * bounds it against the straight-line distance, and the server-side lookup still
+			 * takes over whenever the reported figure doesn't hold up.
+			 */
+			private function resolve_trip_distance($start_lat, $start_lng, $end_lat, $end_lng) {
+				$source = MP_Global_Function::get_settings('mptbm_map_api_settings', 'fare_distance_source', 'server');
+
+				if ($source === 'browser') {
+					$waypoints = $this->trip_waypoints($start_lat, $start_lng, $end_lat, $end_lng);
+					if ($waypoints) {
+						$claimed_distance = isset($_POST['mptbm_distance']) ? (float) $_POST['mptbm_distance'] : 0;
+						$claimed_duration = isset($_POST['mptbm_duration']) ? (float) $_POST['mptbm_duration'] : 0;
+						$verified = MPTBM_Function::validate_client_trip($claimed_distance, $claimed_duration, $waypoints);
+						if ($verified) {
+							return $verified;
+						}
+					}
+				}
+
+				return $this->get_server_distance_with_stops($start_lat, $start_lng, $end_lat, $end_lng);
+			}
+
+			/**
+			 * The route distance/duration as the SERVER measures it, for the map's own
+			 * "Total Distance / Total Time" bar.
+			 *
+			 * In OpenStreetMap mode the booking form used to call the public OSRM
+			 * endpoint straight from the browser while the fare was measured separately
+			 * on the server. Two independent lookups of the same trip means the number on
+			 * screen and the number charged can disagree - and once a routing service
+			 * other than OSRM is configured (Map API Settings > Routing Service) they
+			 * disagree by design, because the browser would still be asking OSRM.
+			 *
+			 * Answering from the server instead collapses that back to one measurement,
+			 * through the same resolver the price uses, so the bar and the fare can only
+			 * ever show the same distance.
+			 */
+			public function get_mptbm_route_distance() {
+				nocache_headers();
+				$this->verify_search_request(true);
+
+				$start = $this->posted_coordinates('start_place_coordinates');
+				$end   = $this->posted_coordinates('end_place_coordinates');
+				if (empty($start) || empty($end)) {
+					wp_send_json_error(array('message' => esc_html__('Pick-up and drop-off coordinates are required.', 'ecab-taxi-booking-manager')));
+				}
+
+				$data = $this->resolve_trip_distance(
+					$start['latitude'], $start['longitude'],
+					$end['latitude'], $end['longitude']
+				);
+				if (!$data) {
+					wp_send_json_error(array('message' => esc_html__('The route could not be calculated.', 'ecab-taxi-booking-manager')));
+				}
+
+				wp_send_json_success(array(
+					'distance'      => (float) $data['distance'],
+					'duration'      => (float) $data['duration'],
+					'distance_text' => MPTBM_Function::format_distance_text($data['distance']),
+					'duration_text' => MPTBM_Function::format_duration_text($data['duration']),
+					'provider'      => isset($data['provider']) ? $data['provider'] : '',
+				));
 			}
 
 			private function posted_coordinates($key): array {

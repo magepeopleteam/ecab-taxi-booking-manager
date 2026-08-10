@@ -477,11 +477,29 @@ div.mp_global_settings.mptbm-modern-global-settings label .info_text {
     font-weight: 450;
 }
 
-div.mp_global_settings.mptbm-modern-global-settings label .info_text > span {
+/* The leading info icon only. This used to be written as `.info_text > span`, which
+   also caught any description carrying its text in a span - fields whose wording
+   changes with another setting render one span per variant. Those inherited
+   `flex: 0 0 auto`, so they refused to shrink: a long description sized itself to a
+   single line and ran off the row, straight over the input beside it, instead of
+   wrapping - while also picking up the icon's pale tint and 9px size. */
+div.mp_global_settings.mptbm-modern-global-settings label .info_text > span.fas {
     flex: 0 0 auto;
     margin: 2px 0 0;
     color: #a5b4fc;
     font-size: 9px;
+}
+
+/* Description text held in a span then reads exactly like description text written
+   directly into the cell: it takes the remaining width and wraps. min-width:0 is the
+   part that actually permits wrapping - a flex item defaults to min-width:auto, which
+   refuses to shrink below its longest unbroken run of content. */
+div.mp_global_settings.mptbm-modern-global-settings label .info_text > span:not(.fas) {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    color: inherit;
+    font-size: inherit;
 }
 
 div.mp_global_settings.mptbm-modern-global-settings table.form-table td > label,

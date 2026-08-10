@@ -29,6 +29,13 @@ if (!class_exists('MPTBM_Plugin')) {
 			add_action('init', array(__CLASS__, 'register_driver_role'), 3);
             add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
             add_filter('body_class', array($this, 'add_body_class'));
+            // The booking form's HTML expires: it carries a nonce and a date list.
+            add_action('template_redirect', array($this, 'prevent_booking_page_cache'), 5);
+            // Saving the map settings invalidates whatever the last lookup reported -
+            // the point of saving is usually to fix exactly that - so drop the record and
+            // let the next real lookup decide, rather than showing a warning about a
+            // configuration that no longer exists.
+            add_action('update_option_mptbm_map_api_settings', array(__CLASS__, 'clear_map_api_failure_record'));
             
             // Hook to automatically assign template when settings are saved
             add_action('update_option_mp_global_settings', array($this, 'auto_assign_template_on_settings_save'), 10, 3);
@@ -38,6 +45,9 @@ if (!class_exists('MPTBM_Plugin')) {
             
             // Add admin notice about template assignment
             add_action('admin_notices', array($this, 'show_template_assignment_notice'));
+            // Warn when fares are being calculated from the OSRM fallback because
+            // Google refused the server-side lookup (see MPTBM_Function::map_server_api_key).
+            add_action('admin_notices', array($this, 'show_map_api_failure_notice'));
         }
 
         private function load_plugin(): void
@@ -463,6 +473,135 @@ if (!class_exists('MPTBM_Plugin')) {
                     }
                 }
             }
+        }
+
+        /**
+         * Stop the booking form's HTML being reused on a later day.
+         *
+         * The rendered form is not static: MPTBM_Function::get_date() bakes the list of
+         * selectable dates straight into it (mp_load_date_picker_js writes them out as
+         * availableDates/minDate/defaultDate), and wp_nonce_field() bakes in a token that
+         * WordPress expires after about a day. Both are computed at render time, so any
+         * copy of that HTML reused tomorrow offers yesterday's dates - the customer can
+         * no longer pick today, and today's bookings simply cannot be made.
+         *
+         * WordPress sends no cache directives of its own on a public page, which leaves
+         * the decision to whatever sits in front of it - a CDN, a proxy, a caching plugin
+         * added later, or the visitor's own browser applying heuristic freshness. None of
+         * them can know this page goes stale at midnight unless it says so. The nonce
+         * hazard is already documented against the AJAX endpoints in
+         * Frontend/MPTBM_Transport_Search.php, which call nocache_headers() for exactly
+         * this reason; the page that embeds the same nonce needs the same treatment.
+         *
+         * Scoped to pages that actually render the form, so the rest of the site stays
+         * as cacheable as it was.
+         */
+        public function prevent_booking_page_cache()
+        {
+            if (is_admin()) {
+                return;
+            }
+
+            // get_queried_object(), not is_singular()/get_post(). On this stack the main
+            // query's conditional flags are already cleared by the time template_redirect
+            // runs - measured on the live site: is_singular(), is_page(), is_404() and
+            // is_front_page() all false and post_count 0, while get_queried_object()
+            // still correctly returned the requested page. Something resets $wp_query
+            // ahead of this hook, so the flags cannot be relied on here; the queried
+            // object survives it and is what we actually need.
+            $post = get_queried_object();
+            if (!$post instanceof WP_Post) {
+                return;
+            }
+
+            // Deliberately a plain string match rather than has_shortcode(): that helper
+            // returns false for any tag not registered *yet*, which silently couples this
+            // check to plugin load order for no benefit. The tag appearing in the content
+            // is the fact we care about.
+            $content = (string) $post->post_content;
+            $renders_booking_form = false !== strpos($content, '[mptbm_booking')
+                || false !== strpos($content, '[mptbm_dual_booking')
+                || has_block('mptbm/booking', $post)
+                // The search-results page renders the same form and nonce from a
+                // template rather than page content, so match it by its template too.
+                || 'transport_result.php' === get_page_template_slug($post->ID);
+
+            // Elementor keeps its layout in post meta, not post_content, so a page built
+            // with the booking widget looks empty to every check above.
+            if (!$renders_booking_form) {
+                $elementor_data = get_post_meta($post->ID, '_elementor_data', true);
+                if (is_string($elementor_data) && $elementor_data !== '') {
+                    $renders_booking_form = false !== strpos($elementor_data, 'mptbm_booking');
+                }
+            }
+
+            /**
+             * Whether this request should be excluded from caching because it renders
+             * the booking form. Themes and page builders can render the form in ways
+             * the checks above cannot see (a widget dropped into a template, say).
+             *
+             * @param bool    $renders_booking_form Result of the built-in detection.
+             * @param WP_Post $post                 Post being rendered.
+             */
+            if (apply_filters('mptbm_prevent_booking_page_cache', $renders_booking_form, $post)) {
+                nocache_headers();
+            }
+        }
+
+        /** Forget the last recorded map-lookup failure (see the hook registration above). */
+        public static function clear_map_api_failure_record()
+        {
+            delete_transient('mptbm_map_api_failure');
+        }
+
+        /**
+         * Surface a failing server-side Google Maps lookup.
+         *
+         * Fares are calculated from a distance this site resolves itself. When that
+         * call is refused - most often because the configured key carries an HTTP
+         * referrer restriction, which Google does not accept on the Distance Matrix
+         * and Directions Web Service APIs - MPTBM_Function falls back to OSRM. The
+         * form keeps working, so nothing looks broken, but trips are then priced off
+         * OpenStreetMap's road network and can quote a materially different distance
+         * than the map the customer is looking at. That is a money bug, so it is
+         * raised on every admin screen rather than only on the plugin's own pages.
+         * MPTBM_Function clears the record as soon as a Google call succeeds again.
+         */
+        public function show_map_api_failure_notice()
+        {
+            if (!current_user_can('manage_options') || !class_exists('MPTBM_Function')) {
+                return;
+            }
+            $failure = MPTBM_Function::get_map_api_failure();
+            if (empty($failure['reason'])) {
+                return;
+            }
+
+            // Don't keep nagging once one of the two remedies below is actually in place.
+            // Either of them means the failing server-side Google lookup no longer decides
+            // what customers pay, so the warning would be describing a problem that has
+            // been dealt with. This matters more than it sounds: under "browser" the
+            // server-side lookup stops being attempted at all, so nothing would ever
+            // succeed to clear the record, and the notice would sit there permanently.
+            $server_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_server_api_key');
+            $fare_source = MP_Global_Function::get_settings('mptbm_map_api_settings', 'fare_distance_source', 'server');
+            if ($server_key || 'browser' === $fare_source) {
+                return;
+            }
+
+            $settings_url = admin_url('edit.php?post_type=mptbm_rent&page=mptbm_settings_page');
+            echo '<div class="notice notice-error">';
+            echo '<p><strong>' . esc_html__('E-Cab Taxi Booking Manager:', 'ecab-taxi-booking-manager') . '</strong> ';
+            echo esc_html__('The server-side Google Maps distance lookup is failing, so trip prices are currently being calculated from the OpenStreetMap fallback. That can quote a different distance than the map shows the customer.', 'ecab-taxi-booking-manager');
+            echo '</p>';
+            echo '<p><code>' . esc_html($failure['reason']) . '</code></p>';
+            echo '<p><strong>' . esc_html__('Two ways to fix this, both in', 'ecab-taxi-booking-manager') . ' ';
+            echo '<a href="' . esc_url($settings_url) . '">' . esc_html__('Map API Settings', 'ecab-taxi-booking-manager') . '</a>:</strong></p>';
+            echo '<ol>';
+            echo '<li>' . esc_html__('Best: paste an IP-restricted (or unrestricted) key with the Distance Matrix API and Directions API enabled into "Google MAP API Key (Server Side)". A key restricted by HTTP referrer works for the map in the browser but is always rejected for these server-side requests.', 'ecab-taxi-booking-manager') . '</li>';
+            echo '<li>' . esc_html__('No second key available: set "Fare Distance Source" to "Browser, verified server-side". Trips are then priced on the distance Google already calculated in the customer\'s browser, which the server checks against the straight-line distance before accepting.', 'ecab-taxi-booking-manager') . '</li>';
+            echo '</ol>';
+            echo '</div>';
         }
 
         /**

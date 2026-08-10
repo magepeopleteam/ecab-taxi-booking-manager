@@ -685,21 +685,16 @@ $start_date = isset($_POST["start_date"]) ? sanitize_text_field($_POST["start_da
 $start_time_schedule = isset($_POST["start_time"]) ? sanitize_text_field($_POST["start_time"]) : "";
 $start_time = isset($_POST["start_time"]) ? sanitize_text_field($_POST["start_time"]) : "";
 
-// Define unique keys for each transient
-$transient_key_schedule = 'start_time_schedule_transient';
-$transient_key_date = 'start_date_transient';
-// Check and set the transient for start_time_schedule
-if (get_transient($transient_key_schedule)) {
-    delete_transient($transient_key_schedule); // Delete existing transient if found
-}
-set_transient($transient_key_schedule, $start_time); // Set new transient
-
-
-// Check and set the transient for start_time
-if (get_transient($transient_key_date)) {
-    delete_transient($transient_key_date); // Delete existing transient if found
-}
-set_transient($transient_key_date, $start_date); // Set new transient
+// NOTE: this used to stash $start_time and $start_date into two site-wide
+// transients ('start_time_schedule_transient' / 'start_date_transient') on every
+// single search. Nothing in the plugin - free or pro - ever read them back, and
+// they were written with no expiry, so they persisted forever holding whichever
+// visitor searched last. That is one global slot shared by every concurrent
+// customer, rewritten on each request: a stale date long after the search that
+// set it, and a DB write per search for a value nobody consumes. The per-request
+// values live in $start_date / $start_time below (and, for anything that needs
+// them after the request, in the session search context set by
+// MPTBM_Function::set_search_context()), so the transients are simply removed.
 
 if ($start_time !== "") {
     if ($start_time !== "0") {
@@ -934,6 +929,19 @@ if (empty($distance)) {
 if (empty($duration)) {
     $duration = 3600; // Default 1 hour in seconds
 }
+
+// The distance/duration every price below was calculated from, pre-formatted for
+// display. The map's own Total Distance/Total Time bar is written by the browser's
+// Directions call, which is a different lookup than the server-side one used for
+// pricing and can legitimately disagree with it (different provider, different
+// route). Publishing the priced numbers here lets mptbm_reveal_inline_results()
+// put the same figures in the bar once results render, so the customer is never
+// shown one distance while being quoted a fare for another. Rendered as classes,
+// not names, so they stay out of the posted payload and can't collide with the
+// mptbm_hidden_* fields the map script maintains separately.
+$mptbm_search_context = MPTBM_Function::get_search_context();
+$mptbm_priced_distance_text = !empty($mptbm_search_context['distance_verified']) ? MPTBM_Function::format_distance_text($distance) : '';
+$mptbm_priced_duration_text = !empty($mptbm_search_context['distance_verified']) ? MPTBM_Function::format_duration_text($duration) : '';
 ?>
 <div data-tabs-next="#mptbm_search_result" class="mptbm_map_search_result">
 	<input type="hidden" name="mptbm_post_id" value="" data-price="" />
@@ -951,6 +959,8 @@ if (empty($duration)) {
     <input type="hidden" name="mptbm_hidden_distance" value="<?php echo esc_attr($distance); ?>" />
     <input type="hidden" name="mptbm_hidden_duration" value="<?php echo esc_attr($duration); ?>" />
     <input type="hidden" name="mptbm_hidden_duration_text" value="" />
+    <input type="hidden" class="mptbm_priced_distance_text" value="<?php echo esc_attr($mptbm_priced_distance_text); ?>" />
+    <input type="hidden" class="mptbm_priced_duration_text" value="<?php echo esc_attr($mptbm_priced_duration_text); ?>" />
 	<input type="hidden" name="mptbm_taxi_return" value="<?php echo esc_attr($two_way); ?>" />
 	<input type="hidden" name="mptbm_waiting_time" value="<?php echo esc_attr($waiting_time); ?>" />
 	<input type="hidden" name="mptbm_fixed_hours" value="<?php echo esc_attr($fixed_time); ?>" />

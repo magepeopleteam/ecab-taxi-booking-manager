@@ -1813,6 +1813,306 @@ if (!class_exists('MPTBM_Function')) {
 		}
 
 		
+		/**
+		 * The key used for SERVER-side Google calls (Distance Matrix / Directions).
+		 *
+		 * Those are Web Service APIs, a different product family from the Maps
+		 * JavaScript API the booking form loads in the browser, and Google refuses
+		 * any key carrying an HTTP-referrer restriction on them:
+		 *
+		 *     REQUEST_DENIED - "API keys with referer restrictions cannot be used
+		 *     with this API."
+		 *
+		 * A referrer-restricted key is exactly what most sites paste into
+		 * 'gmap_api_key', because that IS the correct restriction for a browser key.
+		 * Reusing it here meant every server-side lookup was denied, the code below
+		 * silently fell through to OSRM, and the customer got quoted a fare built on
+		 * OpenStreetMap's road graph while the map in front of them showed Google's
+		 * distance - two different numbers, with only the second one visible.
+		 *
+		 * Hence the separate optional 'gmap_server_api_key' field (Map API Settings)
+		 * for an IP-restricted/unrestricted key. It falls back to the browser key, so
+		 * sites already using a single unrestricted key keep working untouched.
+		 */
+		private static function map_server_api_key() {
+			$server_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_server_api_key');
+			if ($server_key) {
+				return $server_key;
+			}
+			return MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
+		}
+
+		/**
+		 * Remember why a server-side Google lookup failed.
+		 *
+		 * The OSRM fallback below keeps the booking form working when Google is
+		 * unreachable, but it prices trips off a different road network - so a
+		 * permanently failing Google key is a silent mispricing, not a cosmetic
+		 * problem. Recording the reason is what turns it back into something an
+		 * admin can see (MPTBM_Plugin::show_map_api_failure_notice()).
+		 */
+		private static function record_map_api_failure($reason) {
+			$reason = trim((string) $reason);
+			if ($reason === '') {
+				$reason = 'Unknown error';
+			}
+			set_transient('mptbm_map_api_failure', array(
+				'reason' => $reason,
+				'time'   => time(),
+			), DAY_IN_SECONDS);
+		}
+
+		public static function get_map_api_failure(): array {
+			$failure = get_transient('mptbm_map_api_failure');
+			return is_array($failure) ? $failure : array();
+		}
+
+		// Called on every successful Google lookup so the warning self-clears as
+		// soon as the key is fixed, instead of sticking around for its full TTL.
+		private static function clear_map_api_failure(): void {
+			if (get_transient('mptbm_map_api_failure') !== false) {
+				delete_transient('mptbm_map_api_failure');
+			}
+		}
+
+		/**
+		 * One Google Web Service GET with the failure surfaced instead of swallowed.
+		 *
+		 * @return array|false Decoded body when Google answered OK, false otherwise
+		 *                     (the reason is recorded before returning).
+		 */
+		private static function google_maps_request($url) {
+			$response = wp_remote_get($url, array('timeout' => 15));
+			if (is_wp_error($response)) {
+				self::record_map_api_failure($response->get_error_message());
+				return false;
+			}
+			$code = (int) wp_remote_retrieve_response_code($response);
+			if ($code !== 200) {
+				self::record_map_api_failure(sprintf('HTTP %d from Google Maps', $code));
+				return false;
+			}
+			$data = json_decode(wp_remote_retrieve_body($response), true);
+			if (!is_array($data)) {
+				self::record_map_api_failure('Unreadable response from Google Maps');
+				return false;
+			}
+			// Google reports its own errors in a 200 body: REQUEST_DENIED,
+			// OVER_QUERY_LIMIT, ZERO_RESULTS, ... error_message carries the detail
+			// (e.g. the referrer-restriction text quoted in map_server_api_key()).
+			$status = isset($data['status']) ? (string) $data['status'] : '';
+			if ($status !== 'OK') {
+				self::record_map_api_failure(trim($status . ' ' . (isset($data['error_message']) ? $data['error_message'] : '')));
+				return false;
+			}
+			return $data;
+		}
+
+		/**
+		 * Format a metre value the way the trip summary shows it, honouring the
+		 * global km/mile setting. Shared so the distance the fare was calculated
+		 * from and the distance printed next to it can never drift apart.
+		 */
+		public static function format_distance_text($meters): string {
+			$meters = (float) $meters;
+			if ($meters <= 0) {
+				return '';
+			}
+			$km_or_mile = MP_Global_Function::get_settings('mp_global_settings', 'km_or_mile', 'km');
+			if ($km_or_mile == 'mile') {
+				return round($meters * 0.000621371, 1) . ' miles';
+			}
+			return round($meters / 1000, 1) . ' km';
+		}
+
+		// Counterpart of format_distance_text() for the Total Time line.
+		public static function format_duration_text($seconds): string {
+			$seconds = (int) $seconds;
+			if ($seconds <= 0) {
+				return '';
+			}
+			$hours = (int) floor($seconds / 3600);
+			$minutes = (int) round(($seconds % 3600) / 60);
+			if ($hours > 0) {
+				return sprintf(__('%d Hour %d Min', 'ecab-taxi-booking-manager'), $hours, $minutes);
+			}
+			return sprintf(__('%d Min', 'ecab-taxi-booking-manager'), $minutes);
+		}
+
+		/**
+		 * Route an ordered waypoint list with TomTom's Routing API.
+		 *
+		 * Exists because the OSRM/OpenStreetMap fallback is only ever as good as OSM's
+		 * road data, and where that data is incomplete the detour it invents is charged
+		 * to the customer as real distance. TomTom runs its own road network rather than
+		 * OSM's, so it answers correctly on roads OSM has not mapped yet - and unlike
+		 * Google's web services, a TomTom key is issued without a billing account, which
+		 * is usually the actual obstacle to configuring a server-side key at all.
+		 *
+		 * Endpoint shape: /routing/1/calculateRoute/{lat},{lon}:{lat},{lon}[:...]/json
+		 * Waypoints are colon-separated in the path, so one call covers every stop.
+		 *
+		 * @param array $waypoints Ordered [['lat'=>..,'lng'=>..], ...].
+		 * @return array|false
+		 */
+		private static function tomtom_route(array $waypoints) {
+			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'tomtom_api_key');
+			if (!$api_key || count($waypoints) < 2) {
+				return false;
+			}
+
+			$path = implode(':', array_map(function ($p) {
+				return $p['lat'] . ',' . $p['lng'];
+			}, $waypoints));
+
+			// TomTom exposes shortest-distance routing as a first-class route type, so
+			// the 'use_shortest_route' setting maps straight onto it - no need to fetch
+			// alternatives and compare them the way the Google/OSRM paths have to.
+			$route_type = MP_Global_Function::get_settings('mptbm_map_api_settings', 'use_shortest_route', 'no') === 'yes' ? 'shortest' : 'fastest';
+
+			$url = add_query_arg(
+				array(
+					'key'        => rawurlencode($api_key),
+					'travelMode' => 'car',
+					'routeType'  => $route_type,
+				),
+				'https://api.tomtom.com/routing/1/calculateRoute/' . rawurlencode($path) . '/json'
+			);
+
+			$response = wp_remote_get($url, array('timeout' => 15));
+			if (is_wp_error($response)) {
+				self::record_map_api_failure('TomTom: ' . $response->get_error_message());
+				return false;
+			}
+			$code = (int) wp_remote_retrieve_response_code($response);
+			$data = json_decode(wp_remote_retrieve_body($response), true);
+			if ($code !== 200 || !is_array($data)) {
+				$detail = isset($data['error']['description']) ? $data['error']['description'] : ('HTTP ' . $code);
+				self::record_map_api_failure('TomTom: ' . $detail);
+				return false;
+			}
+			if (!isset($data['routes'][0]['summary']['lengthInMeters'])) {
+				self::record_map_api_failure('TomTom returned no route for this trip');
+				return false;
+			}
+
+			$summary = $data['routes'][0]['summary'];
+			return array(
+				'distance' => (float) $summary['lengthInMeters'],
+				'duration' => (float) ($summary['travelTimeInSeconds'] ?? 0),
+				'provider' => 'tomtom',
+			);
+		}
+
+		/**
+		 * The non-Google routing service to try before falling back to OSRM.
+		 * Returns false when none is configured, so the OSRM path runs unchanged.
+		 */
+		private static function fallback_route(array $waypoints) {
+			$provider = MP_Global_Function::get_settings('mptbm_map_api_settings', 'fallback_routing_provider', 'osrm');
+			if ($provider === 'tomtom') {
+				return self::tomtom_route($waypoints);
+			}
+			return false;
+		}
+
+		/**
+		 * Straight-line (great-circle) length of an ordered waypoint list, in metres.
+		 *
+		 * This is the one distance that needs no map provider at all, and it is a hard
+		 * physical floor: no road between two points can ever be shorter than the line
+		 * between them. That property is what makes it usable as a cheat-check on a
+		 * distance the browser reports - see validate_client_trip().
+		 *
+		 * @param array $waypoints Ordered [['lat'=>..,'lng'=>..], ...], pickup first.
+		 */
+		public static function great_circle_meters(array $waypoints): float {
+			$points = array_values(array_filter($waypoints, function ($p) {
+				return isset($p['lat'], $p['lng']) && is_numeric($p['lat']) && is_numeric($p['lng']);
+			}));
+			if (count($points) < 2) {
+				return 0.0;
+			}
+			$meters = 0.0;
+			for ($i = 1; $i < count($points); $i++) {
+				$meters += self::haversine_distance(
+					(float) $points[$i - 1]['lat'], (float) $points[$i - 1]['lng'],
+					(float) $points[$i]['lat'], (float) $points[$i]['lng']
+				) * 1000;
+			}
+			return $meters;
+		}
+
+		/**
+		 * Sanity-check a distance/duration the customer's browser calculated.
+		 *
+		 * Used only when 'fare_distance_source' is set to 'browser'. The point of that
+		 * mode is that the browser's Google Maps result is often the only *accurate*
+		 * road distance available: the browser key is allowed to call Google, while a
+		 * referrer-restricted key is refused server-side, leaving the server with the
+		 * OpenStreetMap fallback - which in areas where OSM is missing a road quotes a
+		 * long detour and overcharges the customer.
+		 *
+		 * Browser-supplied numbers can't simply be trusted, though, or a customer could
+		 * post distance=1 and pay the minimum fare for a long trip. So the value is
+		 * bounded here against the great-circle distance between the same coordinates:
+		 *
+		 *  - It can never be shorter than the straight line (minus a small tolerance for
+		 *    coordinate rounding and the way routers snap to the nearest road).
+		 *  - It can't be absurdly longer either, which catches a broken or garbage
+		 *    reading rather than an attack - inflating the distance only overcharges the
+		 *    person sending it.
+		 *
+		 * Anything outside those bounds is rejected and the caller falls back to the
+		 * ordinary server-side lookup, so a failed check is never a cheaper fare.
+		 *
+		 * Note this deliberately does not make the coordinates themselves trustworthy -
+		 * they are already browser-supplied today and the server-side lookup routes
+		 * between whatever it is given, so this mode adds no new exposure there.
+		 *
+		 * @return array|false Trip data on success, false when the reading is rejected.
+		 */
+		public static function validate_client_trip($distance, $duration, array $waypoints) {
+			$distance = (float) $distance;
+			$duration = (float) $duration;
+			if ($distance <= 0 || $duration <= 0 || $duration > DAY_IN_SECONDS) {
+				return false;
+			}
+
+			$straight_line = self::great_circle_meters($waypoints);
+			if ($straight_line <= 0) {
+				// No usable coordinates, so nothing to check the claim against.
+				return false;
+			}
+
+			// 5% under the straight line absorbs coordinate rounding and road snapping;
+			// anything below that is claiming a road shorter than the crow flies.
+			if ($distance < $straight_line * 0.95) {
+				return false;
+			}
+
+			// A real road route wanders, but not without limit. Whichever of the two is
+			// larger keeps short in-town trips (where a 10km allowance dominates) and
+			// long trips (where the multiple does) both sensible.
+			$ceiling = max($straight_line * 4, $straight_line + 10000);
+			if ($distance > $ceiling) {
+				return false;
+			}
+
+			// Implied average speed, as a cross-check that distance and duration came
+			// from the same journey rather than being edited independently.
+			$kmh = ($distance / 1000) / ($duration / 3600);
+			if ($kmh < 5 || $kmh > 130) {
+				return false;
+			}
+
+			return array(
+				'distance' => $distance,
+				'duration' => $duration,
+				'provider' => 'browser',
+			);
+		}
+
 		// Helper to calculate distance server-side
 		public static function get_server_distance($start_lat, $start_lng, $end_lat, $end_lng) {
 			if (!$start_lat || !$start_lng || !$end_lat || !$end_lng) {
@@ -1828,38 +2128,54 @@ if (!class_exists('MPTBM_Function')) {
 			$use_shortest = MP_Global_Function::get_settings('mptbm_map_api_settings', 'use_shortest_route', 'no') === 'yes';
 
 			// Try Google Maps first if Key exists
-			// (settings field is 'gmap_api_key' - see Admin/MPTBM_Settings_Global.php and
-			// MPTBM_Rest_Api.php/MPTBM_Dependencies.php, which all read the same name;
+			// (settings field is 'gmap_api_key', with an optional server-only override -
+			// see map_server_api_key(), Admin/MPTBM_Settings_Global.php and
+			// MPTBM_Rest_Api.php/MPTBM_Dependencies.php, which all read the same names;
 			// this used to read 'map_api_key', a name nothing ever saves, so the option
 			// lookup was always empty and this branch could never run.)
-			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
+			$api_key = self::map_server_api_key();
 			if ($api_key) {
 				if ($use_shortest) {
 					// Directions API (not Distance Matrix) because it's the only one of
 					// the two that supports alternatives=true.
 					$url = "https://maps.googleapis.com/maps/api/directions/json?origin={$start_lat},{$start_lng}&destination={$end_lat},{$end_lng}&mode=driving&alternatives=true&key={$api_key}";
-					$response = wp_remote_get($url);
-					if (!is_wp_error($response)) {
-						$body = wp_remote_retrieve_body($response);
-						$data = json_decode($body, true);
-						if (isset($data['status']) && $data['status'] === 'OK' && !empty($data['routes'])) {
-							return self::shortest_route_leg($data['routes']);
+					$data = self::google_maps_request($url);
+					if ($data && !empty($data['routes'])) {
+						$route = self::shortest_route_leg($data['routes']);
+						if ($route) {
+							self::clear_map_api_failure();
+							return $route;
 						}
 					}
 				} else {
 					$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={$start_lat},{$start_lng}&destinations={$end_lat},{$end_lng}&mode=driving&key={$api_key}";
-					$response = wp_remote_get($url);
-					if (!is_wp_error($response)) {
-						$body = wp_remote_retrieve_body($response);
-						$data = json_decode($body, true);
-						if (isset($data['rows'][0]['elements'][0]['status']) && $data['rows'][0]['elements'][0]['status'] === 'OK') {
+					$data = self::google_maps_request($url);
+					if ($data) {
+						// Distance Matrix answers OK at the top level and reports the
+						// per-pair outcome inside the element, so that has to be checked
+						// separately from google_maps_request()'s own status check.
+						$element_status = isset($data['rows'][0]['elements'][0]['status']) ? (string) $data['rows'][0]['elements'][0]['status'] : 'UNKNOWN';
+						if ($element_status === 'OK') {
+							self::clear_map_api_failure();
 							return [
 								'distance' => $data['rows'][0]['elements'][0]['distance']['value'], // meters
-								'duration' => $data['rows'][0]['elements'][0]['duration']['value']  // seconds
+								'duration' => $data['rows'][0]['elements'][0]['duration']['value'], // seconds
+								'provider' => 'google',
 							];
 						}
+						self::record_map_api_failure('Distance Matrix returned ' . $element_status . ' for this route');
 					}
 				}
+			}
+
+			// A configured non-Google provider (TomTom) is tried before OSRM, because it
+			// is the one that can answer correctly where OSM's road data has gaps.
+			$fallback = self::fallback_route(array(
+				array('lat' => $start_lat, 'lng' => $start_lng),
+				array('lat' => $end_lat, 'lng' => $end_lng),
+			));
+			if ($fallback) {
+				return $fallback;
 			}
 
 			// Fallback to OSRM (Open Source Routing Machine)
@@ -1875,7 +2191,8 @@ if (!class_exists('MPTBM_Function')) {
 					}
 					return [
 						'distance' => $data['routes'][0]['distance'], // meters
-						'duration' => $data['routes'][0]['duration']  // seconds
+						'duration' => $data['routes'][0]['duration'], // seconds
+						'provider' => 'osrm',
 					];
 				}
 			}
@@ -1900,7 +2217,7 @@ if (!class_exists('MPTBM_Function')) {
 					$duration += $leg['duration']['value'];
 				}
 				if ($best === null || $distance < $best['distance']) {
-					$best = ['distance' => $distance, 'duration' => $duration];
+					$best = ['distance' => $distance, 'duration' => $duration, 'provider' => 'google'];
 				}
 			}
 			return $best;
@@ -1915,7 +2232,7 @@ if (!class_exists('MPTBM_Function')) {
 					continue;
 				}
 				if ($best === null || $route['distance'] < $best['distance']) {
-					$best = ['distance' => $route['distance'], 'duration' => $route['duration']];
+					$best = ['distance' => $route['distance'], 'duration' => $route['duration'], 'provider' => 'osrm'];
 				}
 			}
 			return $best;
@@ -1941,7 +2258,7 @@ if (!class_exists('MPTBM_Function')) {
 			$use_shortest = MP_Global_Function::get_settings('mptbm_map_api_settings', 'use_shortest_route', 'no') === 'yes';
 
 			// Google Directions API supports intermediate waypoints in one call.
-			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
+			$api_key = self::map_server_api_key();
 			if ($api_key) {
 				$origin = $waypoints[0]['lat'] . ',' . $waypoints[0]['lng'];
 				$destination = end($waypoints)['lat'] . ',' . end($waypoints)['lng'];
@@ -1957,25 +2274,33 @@ if (!class_exists('MPTBM_Function')) {
 				if ($use_shortest) {
 					$url .= '&alternatives=true';
 				}
-				$response = wp_remote_get($url);
-				if (!is_wp_error($response)) {
-					$body = wp_remote_retrieve_body($response);
-					$data = json_decode($body, true);
-					if (isset($data['status']) && $data['status'] === 'OK' && !empty($data['routes'])) {
-						if ($use_shortest) {
-							return self::shortest_route_leg($data['routes']);
-						}
-						if (!empty($data['routes'][0]['legs'])) {
-							$distance = 0;
-							$duration = 0;
-							foreach ($data['routes'][0]['legs'] as $leg) {
-								$distance += $leg['distance']['value'];
-								$duration += $leg['duration']['value'];
-							}
-							return ['distance' => $distance, 'duration' => $duration];
+				$data = self::google_maps_request($url);
+				if ($data && !empty($data['routes'])) {
+					if ($use_shortest) {
+						$route = self::shortest_route_leg($data['routes']);
+						if ($route) {
+							self::clear_map_api_failure();
+							return $route;
 						}
 					}
+					if (!empty($data['routes'][0]['legs'])) {
+						$distance = 0;
+						$duration = 0;
+						foreach ($data['routes'][0]['legs'] as $leg) {
+							$distance += $leg['distance']['value'];
+							$duration += $leg['duration']['value'];
+						}
+						self::clear_map_api_failure();
+						return ['distance' => $distance, 'duration' => $duration, 'provider' => 'google'];
+					}
 				}
+			}
+
+			// As in get_server_distance(): a configured non-Google provider gets first
+			// refusal, since OSRM is only as accurate as OSM's road coverage.
+			$fallback = self::fallback_route($waypoints);
+			if ($fallback) {
+				return $fallback;
 			}
 
 			// Fallback to OSRM - its route endpoint natively accepts more than 2 coordinates
@@ -1995,6 +2320,7 @@ if (!class_exists('MPTBM_Function')) {
 					return [
 						'distance' => $data['routes'][0]['distance'],
 						'duration' => $data['routes'][0]['duration'],
+						'provider' => 'osrm',
 					];
 				}
 			}
