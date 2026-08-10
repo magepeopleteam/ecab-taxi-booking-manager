@@ -1003,17 +1003,60 @@ if (!class_exists('MPTBM_Price_Settings')) {
 
         }
 
+        /**
+         * Save the per-operation-area pricing rows for one transport.
+         *
+         * SECURITY: this writes a value that feeds straight into the fare customers are
+         * charged (MPTBM_Function::get_price() reads mptbm_operation_area_pricing), so
+         * every part of the request has to be established before the write:
+         *
+         *  - The nonce proves the request came from the editor screen. The browser has
+         *    always sent one; nothing verified it, so the endpoint was reachable with any
+         *    logged-in session and a plain HTTP client.
+         *  - Authorisation is against THIS post. The previous current_user_can('edit_posts')
+         *    is a generic capability the built-in Contributor role also holds, so it
+         *    established nothing about the target: a contributor could rewrite the pricing
+         *    of an administrator's transport just by passing its post_id.
+         *  - The post type is checked, so an arbitrary post ID cannot be given plugin
+         *    pricing meta.
+         *  - The decoded payload is rebuilt field by field instead of being trusted as
+         *    sent.
+         */
         function mptbm_operation_area_price_data_set() {
 
-            if (!current_user_can('edit_posts')) {
+            check_ajax_referer('mptbm_operation_area_price', 'nonce');
+
+            $post_id = isset( $_POST['post_id'] ) ? absint( wp_unslash( $_POST['post_id'] ) ) : 0;
+
+            if ( ! $post_id || get_post_type( $post_id ) !== MPTBM_Function::get_cpt() ) {
+                wp_send_json_error('Invalid data');
+            }
+
+            if ( ! current_user_can( 'edit_post', $post_id ) ) {
                 wp_send_json_error('Permission denied');
             }
 
-            $post_id = isset( $_POST['post_id'] ) ? intval( wp_unslash($_POST['post_id'] ) ) : '';
-            $pricing = json_decode( sanitize_text_field( wp_unslash( $_POST['area_price_data'] ) ), true );
+            $raw = isset( $_POST['area_price_data'] )
+                ? json_decode( wp_unslash( $_POST['area_price_data'] ), true )
+                : null;
 
-            if ( !$post_id ) {
+            if ( ! is_array( $raw ) ) {
                 wp_send_json_error('Invalid data');
+            }
+
+            // Rebuilt rather than stored as sent: only the three price fields the editor
+            // produces survive, keyed the way get_area_based_pricing() keys them.
+            $pricing = [];
+            foreach ( $raw as $area_key => $row ) {
+                $area_key = sanitize_key( $area_key );
+                if ( $area_key === '' || ! is_array( $row ) ) {
+                    continue;
+                }
+                $pricing[ $area_key ] = [
+                    'fixed'    => isset( $row['fixed'] ) ? sanitize_text_field( $row['fixed'] ) : '',
+                    'per_km'   => isset( $row['per_km'] ) ? sanitize_text_field( $row['per_km'] ) : '',
+                    'per_hour' => isset( $row['per_hour'] ) ? sanitize_text_field( $row['per_hour'] ) : '',
+                ];
             }
 
             // Save to meta

@@ -13,6 +13,8 @@ if (!class_exists('MPTBM_REST_API')) {
         private $namespace = 'ecab-taxi/v1';
         private $api_keys_table;
         private $api_logs_table;
+        /** Per-request memo for validate_api_key(): api key => row|false. */
+        private $validated_keys = array();
         
         public function __construct() {
             // Initialize table names first
@@ -540,12 +542,20 @@ if (!class_exists('MPTBM_REST_API')) {
         
         private function validate_api_key($api_key) {
             global $wpdb;
-            
+
+            // Authorisation is now established in more than one place per request (the
+            // rest_pre_dispatch gate and the route's own permission_callback), which is
+            // the point - but the lookup behind it should still happen once. Cached for
+            // the request only, so a key revoked mid-request is still rejected next time.
+            if (isset($this->validated_keys[$api_key])) {
+                return $this->validated_keys[$api_key];
+            }
+
             // Ensure table names are initialized
             if (empty($this->api_keys_table)) {
                 $this->init_table_names();
             }
-            
+
             $key_data = $wpdb->get_row($wpdb->prepare(
                 "SELECT * FROM {$this->api_keys_table} 
                  WHERE api_key = %s 
@@ -561,10 +571,12 @@ if (!class_exists('MPTBM_REST_API')) {
                     array('last_used' => current_time('mysql')),
                     array('id' => $key_data['id'])
                 );
-                
+
+                $this->validated_keys[$api_key] = $key_data;
                 return $key_data;
             }
-            
+
+            $this->validated_keys[$api_key] = false;
             return false;
         }
         
@@ -583,53 +595,101 @@ if (!class_exists('MPTBM_REST_API')) {
             );
         }
         
-        // Permission checking methods
-        public function check_api_permissions($result, $server, $request) {
-            // Only check for our API routes
-            if (strpos($request->get_route(), '/' . $this->namespace . '/') !== 0) {
-                return $result;
-            }
-            
-            // Skip auth routes
-            if (strpos($request->get_route(), '/' . $this->namespace . '/auth/') === 0) {
-                return $result;
-            }
-            
+        /**
+         * Does this route belong to our namespace?
+         *
+         * SECURITY: deliberately case-INSENSITIVE. WP_REST_Server::dispatch() matches
+         * registered routes with a case-insensitive pattern ('@^' . $route . '$@i'), so
+         * /Ecab-Taxi/v1/taxis reaches exactly the same handler as /ecab-taxi/v1/taxis.
+         * A case-sensitive test here therefore did not decide "is this our route" - it
+         * decided "did the caller spell it the way we expected", and any other spelling
+         * skipped the API-key gate entirely while still being dispatched. That was an
+         * unauthenticated read/write bypass of the whole API.
+         */
+        private function is_plugin_route($route, $suffix = '') {
+            return stripos((string) $route, '/' . $this->namespace . '/' . $suffix) === 0;
+        }
+
+        /**
+         * Establish that a request carries a valid API key holding $required_scope.
+         *
+         * Called from the per-route permission_callback rather than inferred from the
+         * route string: which endpoints are reads and which are writes is already
+         * declared at register_rest_route() time, and a declaration cannot be defeated by
+         * changing the spelling of the URL. The previous scope test compared the route
+         * against a hard-coded list with in_array(..., true), so /Ecab-Taxi/v1/Taxis fell
+         * through to 'read' and a read-only key could create records.
+         *
+         * @return true|WP_Error
+         */
+        private function authorize_api_request($request, $required_scope) {
             $api_key = $this->get_api_key_from_request($request);
-            
+
             if (!$api_key) {
                 return new WP_Error('missing_api_key', 'API key is required', array('status' => 401));
             }
-            
-			$key_data = $this->validate_api_key($api_key);
-            
-			if (!$key_data) {
-				return new WP_Error('invalid_api_key', 'Invalid or expired API key', array('status' => 401));
-			}
 
-			if (!$this->validate_api_secret($key_data, $this->get_api_secret_from_request($request))) {
-				return new WP_Error('invalid_api_credentials', 'Invalid API credentials', array('status' => 401));
-			}
+            $key_data = $this->validate_api_key($api_key);
 
-			$permissions = json_decode((string) $key_data['permissions'], true);
-			$permissions = is_array($permissions) ? $permissions : array();
-			$method      = strtoupper($request->get_method());
-			$route       = $request->get_route();
-			$write_post  = $method === 'POST' && in_array($route, array('/' . $this->namespace . '/taxis', '/' . $this->namespace . '/bookings'), true);
-			$required    = $write_post || in_array($method, array('PUT', 'PATCH', 'DELETE'), true) ? 'write' : 'read';
-			if (!in_array($required, $permissions, true)) {
-				return new WP_Error('insufficient_api_scope', sprintf('This API key does not have %s permission', $required), array('status' => 403));
-			}
-            
+            if (!$key_data) {
+                return new WP_Error('invalid_api_key', 'Invalid or expired API key', array('status' => 401));
+            }
+
+            if (!$this->validate_api_secret($key_data, $this->get_api_secret_from_request($request))) {
+                return new WP_Error('invalid_api_credentials', 'Invalid API credentials', array('status' => 401));
+            }
+
+            $permissions = json_decode((string) $key_data['permissions'], true);
+            $permissions = is_array($permissions) ? $permissions : array();
+
+            // A write key implies read: anything allowed to change a record is allowed to
+            // see it, and this keeps existing write-only keys working on read routes.
+            $granted = in_array($required_scope, $permissions, true)
+                || ('read' === $required_scope && in_array('write', $permissions, true));
+
+            if (!$granted) {
+                return new WP_Error('insufficient_api_scope', sprintf('This API key does not have %s permission', $required_scope), array('status' => 403));
+            }
+
+            return true;
+        }
+
+        // Permission checking methods
+        public function check_api_permissions($result, $server, $request) {
+            // Only check for our API routes
+            if (!$this->is_plugin_route($request->get_route())) {
+                return $result;
+            }
+
+            // Skip auth routes
+            if ($this->is_plugin_route($request->get_route(), 'auth/')) {
+                return $result;
+            }
+
+            // Credentials are re-established per route by the permission callbacks, which
+            // also enforce the read/write scope. This pass exists to reject unauthenticated
+            // callers early and to rate-limit and log by key.
+            $authorized = $this->authorize_api_request($request, 'read');
+            if (is_wp_error($authorized)) {
+                return $authorized;
+            }
+
+            $key_data = $this->validate_api_key($this->get_api_key_from_request($request));
+            if (!$key_data) {
+                return new WP_Error('invalid_api_key', 'Invalid or expired API key', array('status' => 401));
+            }
+
+            $method = strtoupper($request->get_method());
+
             // Check rate limiting with endpoint-specific limits
 			$endpoint = $request->get_route();
 			if ($this->is_rate_limited($key_data['id'], $endpoint, $method)) {
                 return new WP_Error('rate_limited', 'Rate limit exceeded for this endpoint', array('status' => 429));
             }
-            
+
             // Log the request
             $this->log_api_request($key_data['id'], $request);
-            
+
             return $result;
         }
         
@@ -852,12 +912,20 @@ if (!class_exists('MPTBM_REST_API')) {
             return current_user_can('manage_options');
         }
         
+        /**
+         * These used to return true unconditionally, delegating entirely to the single
+         * rest_pre_dispatch gate. That left one check standing between the internet and
+         * every endpoint, and when a case-flipped namespace slipped past it there was
+         * nothing behind it. A permission_callback is the check WordPress guarantees runs
+         * for the route it is registered on, whatever the URL looks like, so the scope
+         * each route needs is now enforced here.
+         */
         public function check_read_permissions($request) {
-            return true; // Will be handled by API key validation
+            return $this->authorize_api_request($request, 'read');
         }
-        
+
         public function check_write_permissions($request) {
-            return true; // Will be handled by API key validation
+            return $this->authorize_api_request($request, 'write');
         }
         
         public function add_cors_support() {
