@@ -264,44 +264,183 @@
 jQuery(function ($) {
 	'use strict';
 
-	// Topbar: Update/Preview proxy-click the real native controls (WP's
-	// #publish submit input and #post-preview link) rather than moving them —
-	// #publish lives inside <form id="post">, and the topbar is injected via
-	// in_admin_header, which runs before that form even opens in the DOM.
+	// Topbar: save the complete native form through WordPress's normal post
+	// pipeline, but return JSON so the custom editor never has to reload.
 	var $topbarUpdate = $('#mptbm-edit-topbar-update');
 	var $realPublish = $('#publish');
-	if ($topbarUpdate.length && $realPublish.length) {
+	var $postForm = $('form#post');
+	var $publishToggle = $('#mptbm-edit-topbar-publish-toggle');
+	var saveRequest = null;
+	var saveButtonTimer = null;
+	var savedFormState = '';
+
+	function syncEditors() {
+		if (window.tinymce) {
+			window.tinymce.triggerSave();
+		}
+	}
+
+	function getComparableFormState() {
+		syncEditors();
+		return $.param($postForm.serializeArray().filter(function (field) {
+			return field.name !== 'action' &&
+				field.name !== '_wp_http_referer' &&
+				field.name !== 'active_post_lock' &&
+				field.name.indexOf('nonce') === -1;
+		}));
+	}
+
+	function markEditorsClean() {
+		if (!window.tinymce) {
+			return;
+		}
+		var editors = window.tinymce.editors ||
+			(window.tinymce.EditorManager && window.tinymce.EditorManager.editors) || [];
+		$.each(editors, function (index, editor) {
+			if (editor && typeof editor.setDirty === 'function') {
+				editor.setDirty(false);
+			}
+		});
+	}
+
+	function showSaveNotice(message, type, savedAt) {
+		var $notice = $('#mptbm-ajax-save-notice');
+		if (!$notice.length) {
+			$notice = $('<div id="mptbm-ajax-save-notice" class="mptbm-ajax-save-notice" role="status" aria-live="polite"></div>').appendTo('body');
+		}
+		$notice.removeClass('is-success is-error').addClass(type === 'error' ? 'is-error' : 'is-success');
+		$notice.empty().append($('<i>', { 'class': type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle' }));
+		$notice.append($('<span>').text(message));
+		if (savedAt) {
+			$notice.append($('<small>').text(savedAt));
+		}
+		$notice.addClass('is-visible');
+		clearTimeout($notice.data('hide-timer'));
+		$notice.data('hide-timer', setTimeout(function () {
+			$notice.removeClass('is-visible');
+		}, type === 'error' ? 6000 : 3000));
+	}
+
+	function finishSaveButton(label) {
+		$topbarUpdate.prop('disabled', false).removeClass('is-saving').text(label || 'Update');
+		$publishToggle.prop('disabled', false);
+	}
+
+	function ajaxSaveTransport(desiredStatus) {
+		if (!$postForm.length || saveRequest) {
+			return;
+		}
+		if ($postForm[0].checkValidity && !$postForm[0].checkValidity()) {
+			$postForm[0].reportValidity();
+			return;
+		}
+
+		syncEditors();
+		var formData = new FormData($postForm[0]);
+		formData.set('action', 'mptbm_ajax_save_transport');
+		formData.set('nonce', mptbmShell.nonce);
+		formData.set('desired_status', desiredStatus);
+
+		if (window.wp && wp.autosave && wp.autosave.server) {
+			wp.autosave.server.suspend();
+		}
+		clearTimeout(saveButtonTimer);
+		$topbarUpdate.prop('disabled', true).addClass('is-saving').text(mptbmShell.saving || 'Saving…');
+		$publishToggle.prop('disabled', true);
+
+		saveRequest = $.ajax({
+			url: mptbmShell.ajaxUrl,
+			type: 'POST',
+			data: formData,
+			processData: false,
+			contentType: false,
+			dataType: 'json'
+		}).done(function (response) {
+			if (!response || !response.success) {
+				var failedMessage = response && response.data && response.data.message ? response.data.message : mptbmShell.saveError;
+				showSaveNotice(failedMessage, 'error');
+				finishSaveButton($realPublish.val() || 'Update');
+				return;
+			}
+
+			var data = response.data;
+			// Schedule recovery before touching optional editor/UI APIs. Even if
+			// another plugin breaks a success-side enhancement, the save button
+			// must never remain disabled or display a permanent loading state.
+			saveButtonTimer = setTimeout(function () {
+				finishSaveButton(data.buttonLabel);
+			}, 900);
+			$('#post_status, #hidden_post_status, #original_post_status').val(data.status);
+			$('#auto_draft').val('');
+			$('#_wpnonce').val(data.postNonce);
+			$('#mptbm-edit-topbar-title').text(data.title || $('#title').val());
+			$('#mptbm-edit-topbar-status')
+				.removeClass('is-publish is-draft is-pending is-private')
+				.addClass('is-' + data.status)
+				.text(data.statusLabel);
+			$realPublish.val(data.buttonLabel);
+			$topbarUpdate.removeClass('is-saving').text(mptbmShell.saved || 'Saved');
+			$('#mptbm-edit-topbar-preview').attr('data-preview-url', data.previewUrl).show();
+
+			if (data.editUrl && window.history && window.history.replaceState) {
+				window.history.replaceState({}, document.title, data.editUrl);
+				document.body.classList.remove('post-new-php');
+				document.body.classList.add('post-php');
+			}
+
+			markEditorsClean();
+			savedFormState = getComparableFormState();
+			showSaveNotice(data.message, 'success', data.savedAt);
+		}).fail(function (xhr) {
+			var message = xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message
+				? xhr.responseJSON.data.message
+				: (mptbmShell.saveError || 'The transportation could not be saved. Please try again.');
+			showSaveNotice(message, 'error');
+			finishSaveButton($realPublish.val() || 'Update');
+		}).always(function () {
+			saveRequest = null;
+			if (window.wp && wp.autosave && wp.autosave.server) {
+				wp.autosave.server.resume();
+			}
+		});
+	}
+
+	if ($topbarUpdate.length && $realPublish.length && $postForm.length) {
 		$topbarUpdate.text($realPublish.val());
+		savedFormState = getComparableFormState();
 		$topbarUpdate.on('click', function (e) {
 			e.preventDefault();
-			$realPublish[0].click();
+			var currentStatus = $('#post_status').val();
+			var desiredStatus = currentStatus === 'publish' || currentStatus === 'private' ? currentStatus : 'publish';
+			ajaxSaveTransport(desiredStatus);
+		});
+
+		// Replace WordPress's page-load-only warning with one whose baseline is
+		// refreshed after each successful AJAX save.
+		$(window).off('beforeunload.edit-post').on('beforeunload.mptbm-edit-post', function (event) {
+			if (getComparableFormState() !== savedFormState) {
+				event.preventDefault();
+				return mptbmShell.unsavedWarning || 'You have unsaved transportation changes.';
+			}
+		});
+
+		$(document).on('keydown.mptbm-ajax-save', function (e) {
+			if ((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 's') {
+				e.preventDefault();
+				$topbarUpdate.trigger('click');
+			}
 		});
 	}
 
 	// Split-button "Save Draft" — available both before and after first
 	// publish, so an already-published vehicle can be taken back to Draft too.
 	var $splitPublish = $('#mptbm-edit-topbar-publish');
-	var $publishToggle = $('#mptbm-edit-topbar-publish-toggle');
 	if ($splitPublish.length) {
 		$('#mptbm-edit-topbar-save-draft').on('click', function (e) {
 			e.preventDefault();
-			var $realSaveDraft = $('#save-post');
-			if ($realSaveDraft.length) {
-				// Post is already unpublished — WP's own "Save Draft" control
-				// already does the right thing.
-				$realSaveDraft[0].click();
-			} else {
-				// Post is currently published — WP has no native "Save
-				// Draft" control in this state. Set the real status <select>
-				// (hidden in #submitdiv but still functional) to "draft",
-				// then submit via the hidden "press Enter to save" button
-				// (id="save", always present). NOT via #publish:
-				// _wp_translate_postdata() forces post_status back to
-				// "publish" whenever $_POST['publish'] is set.
-				$('#post_status').val('draft');
-				$('#hidden_post_status').val('draft');
-				$('#save')[0].click();
-			}
+			$splitPublish.removeClass('is-open');
+			$publishToggle.attr('aria-expanded', 'false');
+			ajaxSaveTransport('draft');
 		});
 
 		$publishToggle.on('click', function (e) {
@@ -328,12 +467,18 @@ jQuery(function ($) {
 
 	var $topbarPreview = $('#mptbm-edit-topbar-preview');
 	var $realPreview = $('#post-preview');
-	if ($topbarPreview.length && $realPreview.length) {
+	if ($topbarPreview.length) {
 		$topbarPreview.on('click', function (e) {
 			e.preventDefault();
-			$realPreview[0].click();
+			var previewUrl = $(this).attr('data-preview-url');
+			if (previewUrl) {
+				window.open(previewUrl, 'wp-preview');
+			} else if ($realPreview.length) {
+				$realPreview[0].click();
+			}
 		});
-	} else if ($topbarPreview.length) {
+	}
+	if ($topbarPreview.length && !$realPreview.length) {
 		// No preview link exists (e.g. new unsaved auto-draft) — hide rather
 		// than show a dead button.
 		$topbarPreview.hide();

@@ -33,6 +33,7 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             add_action('admin_head', [ $this, 'print_metabox_reveal_style' ]);
             add_filter('admin_body_class', [ $this, 'add_body_class' ]);
             add_action('wp_ajax_mptbm_set_menu_layout_style', [ $this, 'ajax_set_menu_layout_style' ]);
+            add_action('wp_ajax_mptbm_ajax_save_transport', [ $this, 'ajax_save_transport' ]);
         }
 
         // SCREEN_IDS plus whatever add-on plugins register via this filter —
@@ -344,6 +345,89 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             return in_array($style, [ 'full', 'compact' ], true) ? $style : 'full';
         }
 
+        /**
+         * Save the complete native transportation edit form without reloading.
+         *
+         * WordPress's edit_post() remains the single save pipeline, so revisions,
+         * taxonomies and every existing save_post callback continue to behave the
+         * same as a normal Update/Publish request.
+         */
+        public function ajax_save_transport(): void {
+            if (!check_ajax_referer('mptbm_shell_nonce', 'nonce', false)) {
+                wp_send_json_error([ 'message' => esc_html__('The save session expired. Refresh the page and try again.', 'ecab-taxi-booking-manager') ], 403);
+            }
+
+            $post_id = isset($_POST['post_ID']) ? absint($_POST['post_ID']) : 0;
+            $post = $post_id ? get_post($post_id) : null;
+            if (!$post || $post->post_type !== MPTBM_Function::get_cpt()) {
+                wp_send_json_error([ 'message' => esc_html__('Invalid transportation.', 'ecab-taxi-booking-manager') ], 400);
+            }
+            if (!current_user_can('edit_post', $post_id)) {
+                wp_send_json_error([ 'message' => esc_html__('You are not allowed to edit this transportation.', 'ecab-taxi-booking-manager') ], 403);
+            }
+
+            $post_nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
+            $settings_nonce = isset($_POST['mptbm_transportation_type_nonce']) ? sanitize_text_field(wp_unslash($_POST['mptbm_transportation_type_nonce'])) : '';
+            if (!wp_verify_nonce($post_nonce, 'update-post_' . $post_id)
+                || !wp_verify_nonce($settings_nonce, 'mptbm_transportation_type_nonce')) {
+                wp_send_json_error([ 'message' => esc_html__('The save session expired. Refresh the page and try again.', 'ecab-taxi-booking-manager') ], 403);
+            }
+
+            $desired_status = isset($_POST['desired_status']) ? sanitize_key(wp_unslash($_POST['desired_status'])) : $post->post_status;
+            if (!in_array($desired_status, [ 'publish', 'draft', 'pending', 'private' ], true)) {
+                wp_send_json_error([ 'message' => esc_html__('Invalid transportation status.', 'ecab-taxi-booking-manager') ], 400);
+            }
+
+            // Remove the AJAX routing fields before handing the otherwise-native
+            // form payload to WordPress's standard post-edit pipeline.
+            unset($_POST['nonce'], $_POST['desired_status']);
+            $_POST['action'] = 'editpost';
+            $_POST['originalaction'] = 'editpost';
+            $_POST['post_status'] = $desired_status;
+            unset($_POST['publish'], $_POST['saveasdraft'], $_POST['saveasprivate'], $_POST['pending']);
+
+            if ($desired_status === 'publish') {
+                $_POST['publish'] = '1';
+            } elseif ($desired_status === 'draft') {
+                $_POST['saveasdraft'] = '1';
+            } elseif ($desired_status === 'private') {
+                $_POST['saveasprivate'] = '1';
+            } elseif ($desired_status === 'pending') {
+                $_POST['pending'] = '1';
+            }
+
+            require_once ABSPATH . 'wp-admin/includes/post.php';
+            $saved_id = edit_post($_POST);
+            if (!$saved_id) {
+                wp_send_json_error([ 'message' => esc_html__('The transportation could not be saved.', 'ecab-taxi-booking-manager') ], 500);
+            }
+
+            clean_post_cache($saved_id);
+            $saved_post = get_post($saved_id);
+            $is_published = $saved_post->post_status === 'publish';
+            $status_labels = [
+                'publish' => esc_html__('Published', 'ecab-taxi-booking-manager'),
+                'pending' => esc_html__('Pending', 'ecab-taxi-booking-manager'),
+                'private' => esc_html__('Private', 'ecab-taxi-booking-manager'),
+                'draft' => esc_html__('Draft', 'ecab-taxi-booking-manager'),
+            ];
+
+            wp_send_json_success([
+                'postId' => $saved_id,
+                'title' => get_the_title($saved_id),
+                'status' => $saved_post->post_status,
+                'statusLabel' => $status_labels[$saved_post->post_status] ?? ucfirst($saved_post->post_status),
+                'buttonLabel' => $is_published || $saved_post->post_status === 'private'
+                    ? esc_html__('Update', 'ecab-taxi-booking-manager')
+                    : esc_html__('Publish', 'ecab-taxi-booking-manager'),
+                'message' => esc_html__('Transportation saved successfully.', 'ecab-taxi-booking-manager'),
+                'editUrl' => get_edit_post_link($saved_id, 'raw'),
+                'previewUrl' => $is_published ? get_permalink($saved_id) : get_preview_post_link($saved_id),
+                'postNonce' => wp_create_nonce('update-post_' . $saved_id),
+                'savedAt' => current_time(get_option('time_format')),
+            ]);
+        }
+
         // The native Add/Edit Transportation screen (post.php/post-new.php for
         // mptbm_rent). WordPress renders this screen itself, so the topbar
         // chrome is injected via in_admin_header as a fixed overlay rather
@@ -495,6 +579,10 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             wp_localize_script('mptbm-shell', 'mptbmShell', [
                 'ajaxUrl' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('mptbm_shell_nonce'),
+                'saving' => esc_html__('Saving…', 'ecab-taxi-booking-manager'),
+                'saved' => esc_html__('Saved', 'ecab-taxi-booking-manager'),
+                'saveError' => esc_html__('The transportation could not be saved. Please try again.', 'ecab-taxi-booking-manager'),
+                'unsavedWarning' => esc_html__('You have unsaved transportation changes.', 'ecab-taxi-booking-manager'),
             ]);
         }
     }
