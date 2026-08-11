@@ -550,3 +550,1199 @@ body.mptbm-modal-open {
         padding: 24px 20px;
     }
 }
+
+/* ================================================================
+   Guided operation-area builder
+   ================================================================ */
+.mptbm-operation-areas-dialog {
+    display: flex;
+    width: min(1120px, calc(100vw - 40px));
+    max-height: calc(100vh - 32px);
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, .8);
+    border-radius: 20px;
+}
+
+.mptbm-operation-areas-dialog-header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e9edf4;
+    background: linear-gradient(135deg, #fff 0%, #fafaff 100%);
+}
+
+.mptbm-operation-areas-dialog-heading {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 14px;
+}
+
+.mptbm-operation-areas-dialog-heading > div:last-child {
+    min-width: 0;
+}
+
+.mptbm-operation-areas-dialog-icon {
+    flex: 0 0 46px;
+    width: 46px;
+    height: 46px;
+    border: 1px solid #ddd9ff;
+    box-shadow: 0 8px 20px -14px rgba(81, 69, 205, .7);
+}
+
+.mptbm-operation-areas-dialog .mptbm-operation-areas-dialog-eyebrow {
+    margin: 0 0 2px;
+    color: #635bff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .1em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.mptbm-operation-areas-dialog-header h2 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1.3;
+}
+
+.mptbm-operation-areas-dialog-header [data-operation-areas-subtitle] {
+    margin: 3px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.mptbm-operation-areas-modal-close {
+    position: static;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    transition: color .15s ease, background .15s ease, transform .15s ease;
+}
+
+.mptbm-operation-areas-modal-close:hover {
+    color: #dc2626;
+    background: #fef2f2;
+    transform: rotate(3deg);
+}
+
+.mptbm-operation-areas-dialog form {
+    padding: 0 26px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-color: #cbd5e1 transparent;
+    scrollbar-width: thin;
+}
+
+.mptbm-operation-areas-progress {
+    position: relative;
+    display: grid;
+    margin: 0 -26px 22px;
+    padding: 15px 32px;
+    grid-template-columns: repeat(3, 1fr);
+    list-style: none;
+    border-bottom: 1px solid #edf0f5;
+    background: #fbfcff;
+}
+
+.mptbm-operation-areas-progress::before {
+    position: absolute;
+    top: 31px;
+    right: calc(16.66% + 22px);
+    left: calc(16.66% + 22px);
+    height: 2px;
+    content: '';
+    background: #e4e8f0;
+}
+
+.mptbm-operation-areas-progress li {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+.mptbm-operation-areas-progress li > span {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #e4e8f0;
+    border-radius: 50%;
+    color: #64748b;
+    background: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    transition: all .2s ease;
+}
+
+.mptbm-operation-areas-progress li.is-active,
+.mptbm-operation-areas-progress li.is-complete {
+    color: #334155;
+}
+
+.mptbm-operation-areas-progress li.is-active > span {
+    border-color: #635bff;
+    color: #635bff;
+    box-shadow: 0 0 0 4px #efeeff;
+}
+
+.mptbm-operation-areas-progress li.is-complete > span {
+    border-color: #0f9f75;
+    color: #fff;
+    background: #0f9f75;
+}
+
+.mptbm-operation-areas-progress li.is-complete > span::before {
+    content: '\2713';
+}
+
+.mptbm-operation-areas-progress li.is-complete > span {
+    font-size: 0;
+}
+
+.mptbm-operation-areas-progress li.is-complete > span::before {
+    font-size: 13px;
+}
+
+.mptbm-operation-areas-panel {
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid #e3e8f0;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 8px 24px -24px rgba(15, 23, 42, .7);
+}
+
+.mptbm-operation-areas-panel-heading {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin-bottom: 17px;
+}
+
+.mptbm-operation-areas-panel-heading > span {
+    display: inline-flex;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    color: #635bff;
+    background: #efeeff;
+}
+
+.mptbm-operation-areas-panel-heading > span.is-amber {
+    color: #b45309;
+    background: #fff7ed;
+}
+
+.mptbm-operation-areas-panel-heading h3,
+.mptbm-operation-area-builder-header h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 14px;
+    font-weight: 750;
+    line-height: 1.35;
+}
+
+.mptbm-operation-areas-panel-heading p,
+.mptbm-operation-area-builder-header p {
+    margin: 2px 0 0;
+    color: #748197;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.mptbm-operation-areas-basics {
+    display: grid;
+    grid-template-columns: minmax(260px, .72fr) minmax(460px, 1.28fr);
+    column-gap: 24px;
+}
+
+.mptbm-operation-areas-basics .mptbm-operation-areas-panel-heading {
+    grid-column: 1 / -1;
+}
+
+.mptbm-operation-areas-field {
+    min-width: 0;
+}
+
+.mptbm-operation-areas-field > small {
+    display: block;
+    margin-top: 6px;
+    color: #8491a5;
+    font-size: 10.5px;
+    line-height: 1.4;
+}
+
+.mptbm-operation-areas-field-label {
+    display: block;
+    margin-bottom: 7px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mptbm-operation-areas-native-select {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.mptbm-operation-type-choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.mptbm-operation-type-choice {
+    position: relative;
+    display: flex;
+    min-height: 72px;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 34px 11px 11px;
+    border: 1px solid #dbe1ea;
+    border-radius: 11px;
+    color: #334155;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.mptbm-operation-type-choice:hover {
+    border-color: #bcb5ff;
+    background: #fcfbff;
+    transform: translateY(-1px);
+}
+
+.mptbm-operation-type-choice:focus-visible {
+    border-color: #635bff;
+    outline: 3px solid rgba(99, 91, 255, .14);
+}
+
+.mptbm-operation-type-choice.is-selected {
+    border-color: #8178ff;
+    background: #f7f6ff;
+    box-shadow: inset 0 0 0 1px #8178ff;
+}
+
+.mptbm-operation-type-choice > span:nth-child(2) {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mptbm-operation-type-choice strong {
+    font-size: 12px;
+}
+
+.mptbm-operation-type-choice small {
+    color: #7c899e;
+    font-size: 9.5px;
+    line-height: 1.35;
+}
+
+.mptbm-operation-type-choice-icon {
+    display: inline-flex;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    color: #635bff;
+    background: #ebe9ff;
+}
+
+.mptbm-operation-type-choice-icon.is-amber {
+    color: #b45309;
+    background: #fff1dc;
+}
+
+.mptbm-operation-type-choice-check {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    color: #635bff;
+    opacity: 0;
+    transform: scale(.7);
+    transition: opacity .16s ease, transform .16s ease;
+}
+
+.mptbm-operation-type-choice.is-selected .mptbm-operation-type-choice-check {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.mptbm-operation-areas-map-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.mptbm-operation-area-builder {
+    padding: 17px;
+    border: 1px solid #dfe5ee;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 10px 28px -27px rgba(15, 23, 42, .75);
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.mptbm-operation-area-builder.is-complete {
+    border-color: #9ddcc9;
+    box-shadow: 0 10px 28px -24px rgba(15, 159, 117, .45);
+}
+
+.mptbm-operation-area-builder.has-error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, .08);
+}
+
+.mptbm-operation-area-builder-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.mptbm-operation-area-builder-badge {
+    display: inline-block;
+    margin-bottom: 6px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    color: #635bff;
+    background: #efeeff;
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.mptbm-operation-area-builder-status {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    color: #8a5a13;
+    background: #fff7e8;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.mptbm-operation-area-builder-status i {
+    font-size: 6px;
+}
+
+.mptbm-operation-area-builder.is-boundary-ready .mptbm-operation-area-builder-status {
+    color: #08795a;
+    background: #eafaf5;
+}
+
+.mptbm-operation-area-location-field {
+    margin-bottom: 11px;
+}
+
+.mptbm-operation-area-search-wrap {
+    position: relative;
+}
+
+.mptbm-operation-area-search-wrap > i {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 13px;
+    color: #94a3b8;
+    font-size: 11px;
+    transform: translateY(-50%);
+}
+
+.mptbm-operation-area-search-wrap input.formControl {
+    padding-right: 38px;
+    padding-left: 34px;
+}
+
+.mptbm-operation-area-location-check {
+    position: absolute;
+    top: 50%;
+    right: 11px;
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #fff;
+    background: #0f9f75;
+    font-size: 8px;
+    opacity: 0;
+    transform: translateY(-50%) scale(.6);
+    transition: opacity .18s ease, transform .18s ease;
+}
+
+.mptbm-operation-area-builder.is-location-ready .mptbm-operation-area-location-check {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+}
+
+.mptbm-operation-area-drawing-guide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 9px;
+    padding: 7px 9px;
+    border: 1px dashed #d9deea;
+    border-radius: 9px;
+    color: #6f7c90;
+    background: #fafbfe;
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.mptbm-operation-area-drawing-guide span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mptbm-operation-area-drawing-guide b {
+    display: inline-flex;
+    width: 17px;
+    height: 17px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #635bff;
+    background: #ebe9ff;
+    font-size: 8px;
+}
+
+.mptbm-operation-area-drawing-guide > i {
+    color: #c3cad6;
+    font-size: 7px;
+}
+
+.mptbm-operation-area-map-shell {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #d9e0e9;
+    border-radius: 12px;
+    background: #eef2f6;
+}
+
+.mptbm-operation-areas-map {
+    height: 310px;
+    margin-top: 0;
+    border: 0;
+    border-radius: 0;
+}
+
+.mptbm-operation-areas-map-grid .mptbm-operation-areas-map {
+    height: 285px;
+}
+
+.mptbm-operation-area-map-actions {
+    position: absolute;
+    z-index: 500;
+    top: 10px;
+    left: 50%;
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid rgba(203, 213, 225, .9);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 8px 20px -12px rgba(15, 23, 42, .6);
+    transform: translateX(-50%);
+    backdrop-filter: blur(5px);
+}
+
+.mptbm-operation-area-map-actions button {
+    display: inline-flex;
+    min-height: 29px;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 6px;
+    color: #536176;
+    background: transparent;
+    font-size: 9px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.mptbm-operation-area-map-actions button:hover:not(:disabled),
+.mptbm-operation-area-map-actions button:focus-visible:not(:disabled) {
+    color: #5145cd;
+    background: #efeeff;
+    outline: none;
+}
+
+.mptbm-operation-area-map-actions button.is-danger:hover:not(:disabled) {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+.mptbm-operation-area-map-actions button:disabled {
+    opacity: .38;
+    cursor: not-allowed;
+}
+
+/* Make Leaflet's polygon closing point obvious while a boundary is drawn. */
+.mptbm-operation-area-map-shell.is-drawing-boundary .leaflet-marker-pane .mptbm-first-draw-point {
+    width: 18px !important;
+    height: 18px !important;
+    margin-top: -9px !important;
+    margin-left: -9px !important;
+    border: 3px solid #fff !important;
+    border-radius: 50% !important;
+    background: #f97316 !important;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, .3), 0 3px 10px rgba(124, 45, 18, .45) !important;
+    animation: mptbm-first-point-pulse 1.35s ease-in-out infinite;
+    cursor: pointer !important;
+    z-index: 10000 !important;
+}
+
+.mptbm-operation-area-map-shell.is-drawing-boundary .leaflet-marker-pane .mptbm-first-draw-point::after {
+    position: absolute;
+    top: 50%;
+    left: 24px;
+    padding: 5px 8px;
+    border: 1px solid rgba(194, 65, 12, .25);
+    border-radius: 7px;
+    color: #9a3412;
+    content: attr(data-finish-label);
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 6px 18px -10px rgba(67, 20, 7, .75);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .025em;
+    line-height: 1;
+    pointer-events: none;
+    text-transform: uppercase;
+    transform: translateY(-50%);
+    white-space: nowrap;
+}
+
+.mptbm-operation-area-map-shell.is-drawing-boundary .leaflet-marker-pane .mptbm-first-draw-point.is-label-left::after {
+    right: 24px;
+    left: auto;
+}
+
+@keyframes mptbm-first-point-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, .26), 0 3px 10px rgba(124, 45, 18, .4);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(249, 115, 22, .08), 0 3px 12px rgba(124, 45, 18, .5);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mptbm-operation-area-map-shell.is-drawing-boundary .leaflet-marker-pane .mptbm-first-draw-point {
+        animation: none;
+    }
+}
+
+.mptbm-operation-area-builder-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+    color: #718096;
+    font-size: 9.5px;
+    font-weight: 600;
+}
+
+.mptbm-operation-area-builder-footer span {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mptbm-operation-area-builder-footer i {
+    color: #8b83e8;
+}
+
+.mptbm-operation-area-builder.is-location-ready [data-location-status],
+.mptbm-operation-area-builder.is-boundary-ready [data-boundary-metric] {
+    color: #08795a;
+}
+
+.mptbm-operation-area-builder.is-location-ready [data-location-status] i,
+.mptbm-operation-area-builder.is-boundary-ready [data-boundary-metric] i {
+    color: #0f9f75;
+}
+
+.mptbm-operation-areas-pricing {
+    margin-bottom: 20px;
+}
+
+.mptbm-operation-areas-pricing-grid {
+    display: grid;
+    align-items: end;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.mptbm-operation-areas-pricing-grid .mptbm-operation-areas-field {
+    margin-bottom: 0;
+}
+
+.mptbm-operation-areas-review {
+    display: grid;
+    align-items: center;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    margin-bottom: 4px;
+    padding: 14px 16px;
+    border: 1px solid #dfe5ee;
+    border-radius: 13px;
+    color: #475569;
+    background: #f8fafc;
+    transition: border-color .18s ease, background .18s ease;
+}
+
+.mptbm-operation-areas-review.is-ready {
+    border-color: #9ddcc9;
+    background: #effcf7;
+}
+
+.mptbm-operation-areas-review-icon {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    color: #635bff;
+    background: #ebe9ff;
+}
+
+.mptbm-operation-areas-review.is-ready .mptbm-operation-areas-review-icon {
+    color: #08795a;
+    background: #d9f7ec;
+}
+
+.mptbm-operation-areas-review strong {
+    display: block;
+    margin-bottom: 2px;
+    color: #253147;
+    font-size: 11.5px;
+}
+
+.mptbm-operation-areas-review p {
+    margin: 0;
+    color: #718096;
+    font-size: 10px;
+}
+
+.mptbm-operation-areas-review-count {
+    display: inline-flex;
+    min-width: 44px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: #635bff;
+    background: #ebe9ff;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.mptbm-operation-areas-review.is-ready .mptbm-operation-areas-review-count {
+    color: #08795a;
+    background: #d9f7ec;
+}
+
+.mptbm-operation-areas-message {
+    min-height: 0;
+    margin: 10px 0 0;
+    padding: 0;
+    border-radius: 9px;
+}
+
+.mptbm-operation-areas-message:not(:empty) {
+    padding: 9px 12px;
+}
+
+.mptbm-operation-areas-message.is-error {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+}
+
+.mptbm-operation-areas-message.is-success {
+    border: 1px solid #a7f3d0;
+    background: #ecfdf5;
+}
+
+.mptbm-operation-areas-modal-actions {
+    position: sticky;
+    z-index: 600;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin: 14px -26px 0;
+    padding: 14px 26px;
+    border-top: 1px solid #e7ebf1;
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 -12px 24px -24px rgba(15, 23, 42, .6);
+    backdrop-filter: blur(7px);
+}
+
+.mptbm-operation-areas-action-buttons {
+    display: flex;
+    gap: 9px;
+}
+
+.mptbm-operation-areas-save-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #8a5a13;
+    font-size: 10.5px;
+    font-weight: 700;
+}
+
+.mptbm-operation-areas-save-state i {
+    font-size: 7px;
+}
+
+.mptbm-operation-areas-save-state.is-ready {
+    color: #08795a;
+}
+
+.mptbm-operation-areas-modal-actions .button-primary:disabled {
+    border-color: #d8dbe5 !important;
+    color: #8c96a7 !important;
+    background: #e9ecf2 !important;
+    opacity: 1;
+    cursor: not-allowed;
+}
+
+.mptbm-operation-areas-field.has-error input,
+.mptbm-operation-area-builder.has-error .mptbm-operation-area-map-shell {
+    border-color: #ef4444;
+}
+
+.osm-location-autocomplete {
+    padding: 5px;
+    border: 1px solid #dbe1ea !important;
+    border-radius: 10px !important;
+    box-shadow: 0 16px 35px -18px rgba(15, 23, 42, .65) !important;
+    font-size: 11px;
+}
+
+.osm-location-autocomplete > div {
+    border-bottom: 0 !important;
+    border-radius: 7px;
+}
+
+@media (max-width: 960px) {
+    .mptbm-operation-areas-basics,
+    .mptbm-operation-areas-map-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mptbm-operation-areas-pricing-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mptbm-operation-areas-map-grid .mptbm-operation-areas-map {
+        height: 310px;
+    }
+}
+
+@media (max-width: 782px) {
+    .mptbm-operation-areas-modal {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        align-items: stretch;
+        padding: 0;
+        overflow: hidden;
+        overscroll-behavior: contain;
+    }
+
+    .mptbm-operation-areas-dialog {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        min-height: 0;
+        max-height: none;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        transform: none;
+    }
+
+    .mptbm-operation-areas-dialog-header {
+        flex: 0 0 auto;
+        gap: 10px;
+        padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 12px max(14px, env(safe-area-inset-left));
+    }
+
+    .mptbm-operation-areas-dialog-heading {
+        gap: 10px;
+    }
+
+    .mptbm-operation-areas-dialog-icon {
+        flex-basis: 40px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .mptbm-operation-areas-dialog-header h2 {
+        overflow: hidden;
+        font-size: 17px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mptbm-operation-areas-dialog-header [data-operation-areas-subtitle] {
+        display: -webkit-box;
+        overflow: hidden;
+        font-size: 10px;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .mptbm-operation-areas-modal-close {
+        flex-basis: 44px;
+        width: 44px;
+        height: 44px;
+    }
+
+    .mptbm-operation-areas-dialog form {
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 0 max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .mptbm-operation-areas-progress {
+        position: sticky;
+        z-index: 650;
+        top: 0;
+        margin: 0 -12px 14px;
+        padding: 10px 12px;
+        box-shadow: 0 8px 18px -18px rgba(15, 23, 42, .75);
+    }
+
+    .mptbm-operation-areas-progress li {
+        flex-direction: column;
+        gap: 4px;
+        font-size: 9px;
+        text-align: center;
+    }
+
+    .mptbm-operation-areas-progress::before {
+        top: 25px;
+        right: calc(16.66% + 16px);
+        left: calc(16.66% + 16px);
+    }
+
+    .mptbm-operation-areas-progress li > span {
+        width: 28px;
+        height: 28px;
+    }
+
+    .mptbm-operation-areas-panel,
+    .mptbm-operation-area-builder {
+        padding: 14px;
+        border-radius: 12px;
+    }
+
+    .mptbm-operation-areas-panel {
+        margin-bottom: 14px;
+    }
+
+    .mptbm-operation-type-choices,
+    .mptbm-operation-areas-pricing-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mptbm-operation-areas-field input[type="text"],
+    .mptbm-operation-areas-field input[type="number"],
+    .mptbm-operation-areas-field select {
+        min-height: 46px;
+        font-size: 16px;
+    }
+
+    .mptbm-operation-type-choice {
+        min-height: 68px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .mptbm-operation-area-builder-header {
+        flex-wrap: wrap;
+    }
+
+    .mptbm-operation-area-builder-status {
+        max-width: 100%;
+    }
+
+    .mptbm-operation-areas-map,
+    .mptbm-operation-areas-map-grid .mptbm-operation-areas-map {
+        height: clamp(230px, 42vh, 320px);
+    }
+
+    .mptbm-operation-area-map-actions button span {
+        display: none;
+    }
+
+    .mptbm-operation-area-map-actions button {
+        width: 40px;
+        min-height: 40px;
+        justify-content: center;
+        padding: 4px;
+        font-size: 12px;
+    }
+
+    .mptbm-operation-area-map-actions {
+        top: 8px;
+        gap: 2px;
+        padding: 3px;
+    }
+
+    .mptbm-operation-area-map-shell .leaflet-control-zoom a,
+    .mptbm-operation-area-map-shell .leaflet-draw-toolbar a {
+        width: 38px;
+        height: 38px;
+        line-height: 38px;
+    }
+
+    .mptbm-operation-area-map-shell.is-drawing-boundary .leaflet-marker-pane .mptbm-first-draw-point {
+        width: 28px !important;
+        height: 28px !important;
+        margin-top: -14px !important;
+        margin-left: -14px !important;
+    }
+
+    .mptbm-operation-area-map-shell.is-drawing-boundary .leaflet-marker-pane .mptbm-first-draw-point::after {
+        left: 34px;
+    }
+
+    .mptbm-operation-area-map-shell.is-drawing-boundary .leaflet-marker-pane .mptbm-first-draw-point.is-label-left::after {
+        right: 34px;
+        left: auto;
+    }
+
+    .mptbm-operation-area-builder-footer {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .mptbm-operation-area-builder-footer span {
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
+    }
+
+    .mptbm-operation-areas-review {
+        gap: 9px;
+        padding: 12px;
+    }
+
+    .mptbm-operation-areas-modal-actions {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 9px;
+        margin: 12px -12px 0;
+        padding: 10px max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    }
+
+    .mptbm-operation-areas-save-state {
+        justify-content: center;
+    }
+
+    .mptbm-operation-areas-action-buttons {
+        width: 100%;
+    }
+
+    .mptbm-operation-areas-action-buttons .button {
+        flex: 1;
+        min-height: 46px;
+        margin: 0;
+    }
+
+    .osm-location-autocomplete {
+        right: 12px !important;
+        left: 12px !important;
+        box-sizing: border-box;
+        width: auto !important;
+        max-height: min(42vh, 280px) !important;
+    }
+
+    .osm-location-autocomplete > div {
+        min-height: 44px;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 480px) {
+    .mptbm-operation-areas-dialog-header {
+        padding-bottom: 10px;
+    }
+
+    .mptbm-operation-areas-dialog-header [data-operation-areas-subtitle],
+    .mptbm-operation-areas-dialog .mptbm-operation-areas-dialog-eyebrow {
+        display: none;
+    }
+
+    .mptbm-operation-areas-progress li strong {
+        max-width: 86px;
+        font-size: 8px;
+        line-height: 1.2;
+    }
+
+    .mptbm-operation-areas-panel-heading {
+        align-items: flex-start;
+    }
+
+    .mptbm-operation-areas-panel-heading > span {
+        flex-basis: 32px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .mptbm-operation-area-drawing-guide {
+        display: grid;
+        align-items: start;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .mptbm-operation-area-drawing-guide > i {
+        display: none;
+    }
+
+    .mptbm-operation-area-drawing-guide span {
+        align-items: flex-start;
+        font-size: 8px;
+        line-height: 1.25;
+    }
+
+    .mptbm-operation-area-drawing-guide b {
+        flex: 0 0 17px;
+    }
+
+    .mptbm-operation-areas-map,
+    .mptbm-operation-areas-map-grid .mptbm-operation-areas-map {
+        height: clamp(210px, 36vh, 270px);
+    }
+
+    .mptbm-operation-areas-review {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .mptbm-operation-areas-review-count {
+        display: none;
+    }
+
+    .mptbm-operation-area-map-shell.is-drawing-boundary .leaflet-marker-pane .mptbm-first-draw-point::after {
+        max-width: 118px;
+        overflow: hidden;
+        font-size: 8px;
+        text-overflow: ellipsis;
+    }
+}
+
+@media (max-width: 360px) {
+    .mptbm-operation-areas-dialog-icon {
+        display: none;
+    }
+
+    .mptbm-operation-areas-action-buttons {
+        flex-direction: column-reverse;
+    }
+}
+
+@media (max-height: 650px) and (orientation: landscape) {
+    .mptbm-operation-areas-modal {
+        align-items: stretch;
+        padding: 0;
+    }
+
+    .mptbm-operation-areas-dialog {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        max-height: none;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .mptbm-operation-areas-dialog-header {
+        padding: 8px 16px;
+    }
+
+    .mptbm-operation-areas-dialog-icon {
+        flex-basis: 34px;
+        width: 34px;
+        height: 34px;
+    }
+
+    .mptbm-operation-areas-dialog-header [data-operation-areas-subtitle],
+    .mptbm-operation-areas-dialog .mptbm-operation-areas-dialog-eyebrow {
+        display: none;
+    }
+
+    .mptbm-operation-areas-dialog form {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .mptbm-operation-areas-progress {
+        position: sticky;
+        z-index: 650;
+        top: 0;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .mptbm-operation-areas-map,
+    .mptbm-operation-areas-map-grid .mptbm-operation-areas-map {
+        height: 210px;
+    }
+}

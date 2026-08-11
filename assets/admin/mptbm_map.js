@@ -6,9 +6,16 @@ let new_coordinates = [];
 let lastElemen;
 var geoLocationOne;
 var formattedAddress;
-function InitMapOne(geoLocationOne) {
+function notifyMPTBMOperationAreaField(inputId) {
+    var input = document.getElementById(inputId);
+    if (input) {
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+}
+function InitMapOne(geoLocationOne, locationAddress) {
     var mapCanvas1 = document.getElementById('mptbm-map-canvas-one');
     if (mapCanvas1) {
+        var slotFormattedAddress = locationAddress || (document.getElementById('mptbm-starting-location-one') ? document.getElementById('mptbm-starting-location-one').value : '');
         if(geoLocationOne===undefined){
             geoLocationOne = new google.maps.LatLng(23.8103, 90.4125);
         }
@@ -41,7 +48,7 @@ function InitMapOne(geoLocationOne) {
                 clickable: true,
                 draggable: false,
                 editable: true,
-                fillColor: '#ADFF2F',
+                fillColor: '#635bff',
                 fillOpacity: 0.5
             },
             rectangleOptions: {
@@ -76,6 +83,8 @@ function InitMapOne(geoLocationOne) {
                 selectedShape.setMap(null);
                 drawingManager.setMap(map);
                 coordinates.splice(0, coordinates.length);
+                document.getElementById('mptbm-coordinates-one').value = '';
+                notifyMPTBMOperationAreaField('mptbm-coordinates-one');
             }
         }
 
@@ -114,12 +123,14 @@ function InitMapOne(geoLocationOne) {
             for (var i = 0; i < len; i++) {
                 coordinates.push(newShape.getPath().getAt(i).toUrlValue(6));
             }
-            document.getElementById('mptbm-starting-location-one-hidden').value = formattedAddress;
+            document.getElementById('mptbm-starting-location-one-hidden').value = slotFormattedAddress;
             document.getElementById('mptbm-coordinates-one').value = coordinates;
+            notifyMPTBMOperationAreaField('mptbm-starting-location-one-hidden');
+            notifyMPTBMOperationAreaField('mptbm-coordinates-one');
         };
 
         google.maps.event.addListener(drawingManager, 'polygoncomplete', function (event) {
-            event.getPath().getLength();
+            getPolygonCoords(event);
             google.maps.event.addListener(event, "dragend", getPolygonCoords(event));
             google.maps.event.addListener(event.getPath(), 'insert_at', function () {
                 getPolygonCoords(event);
@@ -148,9 +159,10 @@ function InitMapOne(geoLocationOne) {
         map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(centerControlDiv);
     }
 }
-function InitMapTwo(geoLocationOne) {
+function InitMapTwo(geoLocationOne, locationAddress) {
     var mapCanvas1 = document.getElementById('mptbm-map-canvas-two');
     if (mapCanvas1) {
+        var slotFormattedAddress = locationAddress || (document.getElementById('mptbm-starting-location-two') ? document.getElementById('mptbm-starting-location-two').value : '');
         if(geoLocationOne===undefined){
             geoLocationOne = new google.maps.LatLng(23.8103, 90.4125);
         }
@@ -183,7 +195,7 @@ function InitMapTwo(geoLocationOne) {
                 clickable: true,
                 draggable: false,
                 editable: true,
-                fillColor: '#ADFF2F',
+                fillColor: '#635bff',
                 fillOpacity: 0.5
             },
             rectangleOptions: {
@@ -218,6 +230,8 @@ function InitMapTwo(geoLocationOne) {
                 selectedShape.setMap(null);
                 drawingManager.setMap(map);
                 coordinates.splice(0, coordinates.length);
+                document.getElementById('mptbm-coordinates-two').value = '';
+                notifyMPTBMOperationAreaField('mptbm-coordinates-two');
             }
         }
 
@@ -256,12 +270,14 @@ function InitMapTwo(geoLocationOne) {
             for (var i = 0; i < len; i++) {
                 coordinates.push(newShape.getPath().getAt(i).toUrlValue(6));
             }
-            document.getElementById('mptbm-starting-location-two-hidden').value = formattedAddress;
+            document.getElementById('mptbm-starting-location-two-hidden').value = slotFormattedAddress;
             document.getElementById('mptbm-coordinates-two').value = coordinates;
+            notifyMPTBMOperationAreaField('mptbm-starting-location-two-hidden');
+            notifyMPTBMOperationAreaField('mptbm-coordinates-two');
         };
 
         google.maps.event.addListener(drawingManager, 'polygoncomplete', function (event) {
-            event.getPath().getLength();
+            getPolygonCoords(event);
             google.maps.event.addListener(event, "dragend", getPolygonCoords(event));
             google.maps.event.addListener(event.getPath(), 'insert_at', function () {
                 getPolygonCoords(event);
@@ -290,9 +306,10 @@ function InitMapTwo(geoLocationOne) {
         map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(centerControlDiv);
     }
 }
-function InitMapFixed(geoLocationOne) {
+function InitMapFixed(geoLocationOne, locationAddress) {
     var mapCanvas3 = document.getElementById('mptbm-map-canvas-three');
     if (mapCanvas3) {
+        var slotFormattedAddress = locationAddress || (document.getElementById('mptbm-starting-location-three') ? document.getElementById('mptbm-starting-location-three').value : '');
         if(geoLocationOne===undefined){
             geoLocationOne = new google.maps.LatLng(23.8103, 90.4125);
         }
@@ -325,7 +342,7 @@ function InitMapFixed(geoLocationOne) {
                 clickable: true,
                 draggable: false,
                 editable: true,
-                fillColor: '#ADFF2F',
+                fillColor: '#635bff',
                 fillOpacity: 0.5
             },
             rectangleOptions: {
@@ -360,6 +377,8 @@ function InitMapFixed(geoLocationOne) {
                 selectedShape.setMap(null);
                 drawingManager.setMap(map);
                 coordinates.splice(0, coordinates.length);
+                document.getElementById('mptbm-coordinates-three').value = '';
+                notifyMPTBMOperationAreaField('mptbm-coordinates-three');
             }
         }
 
@@ -398,18 +417,20 @@ function InitMapFixed(geoLocationOne) {
             for (var i = 0; i < len; i++) {
                 coordinates.push(newShape.getPath().getAt(i).toUrlValue(6));
             }
-            document.getElementById('mptbm-starting-location-three-hidden').value = formattedAddress;
+            document.getElementById('mptbm-starting-location-three-hidden').value = slotFormattedAddress;
             document.getElementById('mptbm-coordinates-three').value = coordinates;
+            notifyMPTBMOperationAreaField('mptbm-starting-location-three-hidden');
+            notifyMPTBMOperationAreaField('mptbm-coordinates-three');
         };
 
         google.maps.event.addListener(drawingManager, 'polygoncomplete', function (event) {
-            event.getPath().getLength();
+            getPolygonCoords(event);
             google.maps.event.addListener(event, "dragend", getPolygonCoords(event));
             google.maps.event.addListener(event.getPath(), 'insert_at', function () {
                 getPolygonCoords(event);
             });
             google.maps.event.addListener(event.getPath(), 'set_at', function () {
-                getPolygonCoords(geoLocationOne);
+                getPolygonCoords(event);
             });
         });
 
@@ -454,19 +475,19 @@ function iniSavedtMap(coordinates,mapCanvasId,mapAppendId) {
             clickable: true,
             draggable: false,
             editable: true,
-            fillColor: '#ADFF2F', // Green fill color
+            fillColor: '#635bff',
             fillOpacity: 0.5
         }
     });
 
     google.maps.event.addListener(drawingManager, 'polygoncomplete', function(event) {
-        event.getPath().getLength();
+        getPolygonCoords(event);
         google.maps.event.addListener(event, "dragend", getPolygonCoords(event));
         google.maps.event.addListener(event.getPath(), 'insert_at', function() {
             getPolygonCoords(event);
         });
         google.maps.event.addListener(event.getPath(), 'set_at', function() {
-            getPolygonCoords(geoLocationOne);
+            getPolygonCoords(event);
         });
 
     });
@@ -507,6 +528,7 @@ function iniSavedtMap(coordinates,mapCanvasId,mapAppendId) {
         }
         if(mapAppendId != null){
             document.getElementById(mapAppendId).value = coordinates;
+            notifyMPTBMOperationAreaField(mapAppendId);
         }
     };
 
@@ -532,13 +554,22 @@ function iniSavedtMap(coordinates,mapCanvasId,mapAppendId) {
         strokeColor: "#000000", // Change to black
         strokeOpacity: 0.8,
         strokeWeight: 4, // Increase the thickness
-        fillColor: "#ADFF2F", // Make selected area green instead of red
+        fillColor: "#635bff",
         fillOpacity: 0.5, // Adjust fill opacity
         editable: false // Make the polygon editable
     });
 
     // Set polygon on the map
     polygon.setMap(map);
+    google.maps.event.addListener(polygon, 'click', function() {
+        setSelection(polygon);
+    });
+    google.maps.event.addListener(polygon.getPath(), 'insert_at', function() {
+        getPolygonCoords(polygon);
+    });
+    google.maps.event.addListener(polygon.getPath(), 'set_at', function() {
+        getPolygonCoords(polygon);
+    });
 
     // Function to calculate the center of the polygon
     function calculateCenter() {
@@ -567,6 +598,10 @@ function iniSavedtMap(coordinates,mapCanvasId,mapAppendId) {
             polygon.setMap(null);
             drawingManager.setMap(map);
             coordinates.splice(0, coordinates.length);
+        }
+        if (mapAppendId) {
+            document.getElementById(mapAppendId).value = '';
+            notifyMPTBMOperationAreaField(mapAppendId);
         }
 
     }
@@ -636,6 +671,17 @@ function iniSavedtMap(coordinates,mapCanvasId,mapAppendId) {
                 formattedAddress = place.formatted_address;
                 if (place.geometry) {
                     var location = place.geometry.location;
+                    var slot = inputId.split('-').pop();
+                    var coordinatesInput = document.getElementById('mptbm-coordinates-' + slot);
+                    var locationInput = document.getElementById('mptbm-starting-location-' + slot + '-hidden');
+                    if (coordinatesInput) {
+                        coordinatesInput.value = '';
+                        notifyMPTBMOperationAreaField(coordinatesInput.id);
+                    }
+                    if (locationInput) {
+                        locationInput.value = formattedAddress || input.value;
+                        notifyMPTBMOperationAreaField(locationInput.id);
+                    }
                     mapFunction(location, formattedAddress);
                 }
             });
@@ -665,6 +711,92 @@ function iniSavedtMap(coordinates,mapCanvasId,mapAppendId) {
 var osmMapOne, osmMapTwo, osmMapFixed;
 var osmDrawLayerOne, osmDrawLayerTwo, osmDrawLayerFixed;
 var osmDrawControlOne, osmDrawControlTwo, osmDrawControlFixed;
+
+// Keep saved and newly-created modal maps in the same public slots. The
+// Operation Area builder uses these references for its accessible Draw/Edit/
+// Fit/Clear buttons, while the original Leaflet.draw toolbar remains intact.
+function registerOSMOperationAreaMap(mapCanvasId, mapInstance, drawLayer, drawControl) {
+    var slot = String(mapCanvasId || '').split('-').pop();
+    var suffix = slot ? slot.charAt(0).toUpperCase() + slot.slice(1) : '';
+    if (!suffix) return;
+    window['osmMap' + suffix] = mapInstance;
+    window['osmDrawLayer' + suffix] = drawLayer;
+    window['osmDrawControl' + suffix] = drawControl;
+    if (slot === 'one') {
+        osmMapOne = mapInstance;
+        osmDrawLayerOne = drawLayer;
+        osmDrawControlOne = drawControl;
+    } else if (slot === 'two') {
+        osmMapTwo = mapInstance;
+        osmDrawLayerTwo = drawLayer;
+        osmDrawControlTwo = drawControl;
+    } else if (slot === 'three') {
+        osmMapFixed = mapInstance;
+        osmDrawLayerFixed = drawLayer;
+        osmDrawControlFixed = drawControl;
+    }
+    setupOSMFirstPointGuide(mapCanvasId, mapInstance);
+}
+
+// Leaflet.draw renders every vertex with the same small square. Highlight the
+// first vertex during polygon creation so users always know where to click to
+// close the boundary. This is presentation-only; Leaflet keeps handling the
+// click and polygon completion exactly as before.
+function setupOSMFirstPointGuide(mapCanvasId, mapInstance) {
+    var mapCanvas = document.getElementById(mapCanvasId);
+    if (!mapCanvas || !mapInstance || mapInstance._mptbmFirstPointGuide) return;
+
+    var mapShell = mapCanvas.closest('.mptbm-operation-area-map-shell');
+    var finishLabel = window.mptbmOperationAreas && window.mptbmOperationAreas.finishAtStart
+        ? window.mptbmOperationAreas.finishAtStart
+        : 'START — click to finish';
+
+    function clearFirstPoint() {
+        mapCanvas.querySelectorAll('.mptbm-first-draw-point').forEach(function(marker) {
+            marker.classList.remove('mptbm-first-draw-point');
+            marker.classList.remove('is-label-left');
+            marker.removeAttribute('data-finish-label');
+        });
+        if (mapShell) mapShell.classList.remove('is-drawing-boundary');
+    }
+
+    function markFirstPoint(event) {
+        window.setTimeout(function() {
+            var markers = event && event.layers && typeof event.layers.getLayers === 'function'
+                ? event.layers.getLayers()
+                : [];
+            var firstMarker = markers.length && markers[0]._icon
+                ? markers[0]._icon
+                : mapCanvas.querySelector('.leaflet-marker-pane .leaflet-editing-icon');
+
+            mapCanvas.querySelectorAll('.mptbm-first-draw-point').forEach(function(marker) {
+                if (marker !== firstMarker) marker.classList.remove('mptbm-first-draw-point');
+            });
+            if (firstMarker) {
+                firstMarker.classList.add('mptbm-first-draw-point');
+                firstMarker.setAttribute('data-finish-label', finishLabel);
+                var markerRect = firstMarker.getBoundingClientRect();
+                var canvasRect = mapCanvas.getBoundingClientRect();
+                firstMarker.classList.toggle('is-label-left', markerRect.left > canvasRect.left + (canvasRect.width * 0.68));
+            }
+        }, 0);
+    }
+
+    mapInstance.on(L.Draw.Event.DRAWSTART, function() {
+        clearFirstPoint();
+        if (mapShell) mapShell.classList.add('is-drawing-boundary');
+    });
+    mapInstance.on(L.Draw.Event.DRAWVERTEX, markFirstPoint);
+    mapInstance.on(L.Draw.Event.DRAWSTOP, clearFirstPoint);
+    mapInstance.on(L.Draw.Event.CREATED, clearFirstPoint);
+    mapInstance._mptbmFirstPointGuide = true;
+}
+
+// Let the guided Operation Area UI react immediately when Leaflet changes a
+// hidden field. Native DOM assignments do not fire jQuery change handlers.
+function notifyOSMOperationAreaField(inputId) {
+    notifyMPTBMOperationAreaField(inputId);
+}
 
 // Initialize OSM Map One (Intercity - Location 1)
 function InitOSMMapOne(geoLocation) {
@@ -712,7 +844,7 @@ function InitOSMMapOne(geoLocation) {
                     message: '<strong>Error:</strong> Shape edges cannot cross!'
                 },
                 shapeOptions: {
-                    color: '#ADFF2F',
+                    color: '#635bff',
                     fillOpacity: 0.5
                 }
             },
@@ -728,6 +860,7 @@ function InitOSMMapOne(geoLocation) {
         }
     });
     osmMapOne.addControl(osmDrawControlOne);
+    registerOSMOperationAreaMap('mptbm-map-canvas-one', osmMapOne, osmDrawLayerOne, osmDrawControlOne);
     
     // Handle polygon creation
     osmMapOne.on(L.Draw.Event.CREATED, function (e) {
@@ -748,12 +881,17 @@ function InitOSMMapOne(geoLocation) {
     // Handle polygon delete
     osmMapOne.on(L.Draw.Event.DELETED, function (e) {
         document.getElementById('mptbm-coordinates-one').value = '';
+        notifyOSMOperationAreaField('mptbm-coordinates-one');
     });
     
     // Setup autocomplete for location search
     setupOSMLocationSearch('mptbm-starting-location-one', osmMapOne, function(lat, lng, displayName) {
         osmMapOne.setView([lat, lng], 13);
+        osmDrawLayerOne.clearLayers();
         document.getElementById('mptbm-starting-location-one-hidden').value = displayName;
+        document.getElementById('mptbm-coordinates-one').value = '';
+        notifyOSMOperationAreaField('mptbm-starting-location-one-hidden');
+        notifyOSMOperationAreaField('mptbm-coordinates-one');
     });
     
     // Force Leaflet to recalculate map size (fixes partial rendering)
@@ -804,7 +942,7 @@ function InitOSMMapTwo(geoLocation) {
                     message: '<strong>Error:</strong> Shape edges cannot cross!'
                 },
                 shapeOptions: {
-                    color: '#ADFF2F',
+                    color: '#635bff',
                     fillOpacity: 0.5
                 }
             },
@@ -820,6 +958,7 @@ function InitOSMMapTwo(geoLocation) {
         }
     });
     osmMapTwo.addControl(osmDrawControlTwo);
+    registerOSMOperationAreaMap('mptbm-map-canvas-two', osmMapTwo, osmDrawLayerTwo, osmDrawControlTwo);
     
     osmMapTwo.on(L.Draw.Event.CREATED, function (e) {
         osmDrawLayerTwo.clearLayers();
@@ -837,11 +976,16 @@ function InitOSMMapTwo(geoLocation) {
     
     osmMapTwo.on(L.Draw.Event.DELETED, function (e) {
         document.getElementById('mptbm-coordinates-two').value = '';
+        notifyOSMOperationAreaField('mptbm-coordinates-two');
     });
     
     setupOSMLocationSearch('mptbm-starting-location-two', osmMapTwo, function(lat, lng, displayName) {
         osmMapTwo.setView([lat, lng], 13);
+        osmDrawLayerTwo.clearLayers();
         document.getElementById('mptbm-starting-location-two-hidden').value = displayName;
+        document.getElementById('mptbm-coordinates-two').value = '';
+        notifyOSMOperationAreaField('mptbm-starting-location-two-hidden');
+        notifyOSMOperationAreaField('mptbm-coordinates-two');
     });
     
     // Force Leaflet to recalculate map size (fixes partial rendering)
@@ -892,7 +1036,7 @@ function InitOSMMapFixed(geoLocation, formattedAddress) {
                     message: '<strong>Error:</strong> Shape edges cannot cross!'
                 },
                 shapeOptions: {
-                    color: '#ADFF2F',
+                    color: '#635bff',
                     fillOpacity: 0.5
                 }
             },
@@ -908,6 +1052,7 @@ function InitOSMMapFixed(geoLocation, formattedAddress) {
         }
     });
     osmMapFixed.addControl(osmDrawControlFixed);
+    registerOSMOperationAreaMap('mptbm-map-canvas-three', osmMapFixed, osmDrawLayerFixed, osmDrawControlFixed);
     
     osmMapFixed.on(L.Draw.Event.CREATED, function (e) {
         osmDrawLayerFixed.clearLayers();
@@ -925,11 +1070,16 @@ function InitOSMMapFixed(geoLocation, formattedAddress) {
     
     osmMapFixed.on(L.Draw.Event.DELETED, function (e) {
         document.getElementById('mptbm-coordinates-three').value = '';
+        notifyOSMOperationAreaField('mptbm-coordinates-three');
     });
     
     setupOSMLocationSearch('mptbm-starting-location-three', osmMapFixed, function(lat, lng, displayName) {
         osmMapFixed.setView([lat, lng], 13);
+        osmDrawLayerFixed.clearLayers();
         document.getElementById('mptbm-starting-location-three-hidden').value = displayName;
+        document.getElementById('mptbm-coordinates-three').value = '';
+        notifyOSMOperationAreaField('mptbm-starting-location-three-hidden');
+        notifyOSMOperationAreaField('mptbm-coordinates-three');
     });
     
     // Force Leaflet to recalculate map size (fixes partial rendering)
@@ -952,6 +1102,7 @@ function saveOSMPolygonCoordinates(layer, inputId) {
     var inputElement = document.getElementById(inputId);
     if (inputElement) {
         inputElement.value = coordinates.join(',');
+        notifyOSMOperationAreaField(inputId);
     }
 }
 
@@ -959,6 +1110,18 @@ function saveOSMPolygonCoordinates(layer, inputId) {
 function iniOSMSavedMap(coordinates, mapCanvasId, mapAppendId) {
     var mapCanvas = document.getElementById(mapCanvasId);
     if (!mapCanvas) return;
+
+    var slot = String(mapCanvasId).split('-').pop();
+    var suffix = slot ? slot.charAt(0).toUpperCase() + slot.slice(1) : '';
+    var existingMap = suffix ? window['osmMap' + suffix] : null;
+
+    if (existingMap) {
+        try {
+            existingMap.remove();
+        } catch (e) {
+            console.log('[OSM] Error removing saved map:', e);
+        }
+    }
     
     // Clear any existing Leaflet instance
     if (mapCanvas._leaflet_id) {
@@ -984,7 +1147,7 @@ function iniOSMSavedMap(coordinates, mapCanvasId, mapAppendId) {
             polygon: {
                 allowIntersection: false,
                 shapeOptions: {
-                    color: '#ADFF2F',
+                    color: '#635bff',
                     fillOpacity: 0.5
                 }
             },
@@ -1000,6 +1163,22 @@ function iniOSMSavedMap(coordinates, mapCanvasId, mapAppendId) {
         }
     });
     savedMap.addControl(savedDrawControl);
+    registerOSMOperationAreaMap(mapCanvasId, savedMap, savedDrawLayer, savedDrawControl);
+    if (slot === 'one' || slot === 'two' || slot === 'three') {
+        setupOSMLocationSearch('mptbm-starting-location-' + slot, savedMap, function(lat, lng, displayName) {
+            savedMap.setView([lat, lng], 13);
+            savedDrawLayer.clearLayers();
+            var hiddenLocation = document.getElementById('mptbm-starting-location-' + slot + '-hidden');
+            if (hiddenLocation) {
+                hiddenLocation.value = displayName;
+                notifyOSMOperationAreaField(hiddenLocation.id);
+            }
+            if (mapAppendId) {
+                document.getElementById(mapAppendId).value = '';
+                notifyOSMOperationAreaField(mapAppendId);
+            }
+        });
+    }
     
     // Convert coordinates array to LatLng array
     var latlngs = [];
@@ -1009,7 +1188,7 @@ function iniOSMSavedMap(coordinates, mapCanvasId, mapAppendId) {
     
     // Draw the saved polygon
     var polygon = L.polygon(latlngs, {
-        color: '#ADFF2F',
+        color: '#635bff',
         fillOpacity: 0.5
     }).addTo(savedDrawLayer);
     
@@ -1035,6 +1214,7 @@ function iniOSMSavedMap(coordinates, mapCanvasId, mapAppendId) {
     savedMap.on(L.Draw.Event.DELETED, function (e) {
         if (mapAppendId) {
             document.getElementById(mapAppendId).value = '';
+            notifyOSMOperationAreaField(mapAppendId);
         }
     });
     
@@ -1052,20 +1232,32 @@ function iniOSMSavedMap(coordinates, mapCanvasId, mapAppendId) {
 function setupOSMLocationSearch(inputId, map, callback) {
     var input = document.getElementById(inputId);
     if (!input) return;
+
+    if (input._mptbmOsmSearchState) {
+        input._mptbmOsmSearchState.map = map;
+        input._mptbmOsmSearchState.callback = callback;
+        return;
+    }
     
     var debounceTimer;
     var resultsContainer = document.createElement('div');
     resultsContainer.className = 'osm-location-autocomplete';
-    resultsContainer.style.cssText = 'position: absolute; background: white; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 999999; display: none; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);';
+    resultsContainer.style.cssText = 'position: fixed; background: white; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 999999; display: none; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);';
     
     // Append to body to avoid parent overflow issues
     document.body.appendChild(resultsContainer);
+    var searchState = {
+        map: map,
+        callback: callback,
+        resultsContainer: resultsContainer
+    };
+    input._mptbmOsmSearchState = searchState;
     
     // Function to position the dropdown
     function positionDropdown() {
         var rect = input.getBoundingClientRect();
-        var top = rect.bottom + window.scrollY + 2;
-        var left = rect.left + window.scrollX;
+        var top = rect.bottom + 2;
+        var left = rect.left;
         var width = rect.width;
         
         resultsContainer.style.top = top + 'px';
@@ -1084,16 +1276,16 @@ function setupOSMLocationSearch(inputId, map, callback) {
         
         debounceTimer = setTimeout(function() {
             positionDropdown(); // Position before showing
-            searchOSMLocation(query, resultsContainer, input, map, callback);
+            searchOSMLocation(query, resultsContainer, input, searchState.map, searchState.callback);
         }, 300);
     });
     
     // Reposition on scroll or resize
-    window.addEventListener('scroll', function() {
+    document.addEventListener('scroll', function() {
         if (resultsContainer.style.display !== 'none') {
             positionDropdown();
         }
-    });
+    }, true);
     
     window.addEventListener('resize', function() {
         if (resultsContainer.style.display !== 'none') {
