@@ -206,6 +206,7 @@ if (sizeof($all_dates) > 0) {
 				<input type="hidden" id="mptbm_use_shortest_route" value="<?php echo esc_attr(MP_Global_Function::get_settings('mptbm_map_api_settings', 'use_shortest_route', 'no')); ?>" />
 				<input type="hidden" name="mptbm_price_based" value="<?php echo esc_attr($price_based); ?>" />
 				<input type="hidden" name="mptbm_post_id" value="" />
+				<input type="hidden" name="mptbm_source_vehicle_id" value="<?php echo esc_attr($vehicle_id ?? 0); ?>" />
 				<input type='hidden' id="mptbm_enable_view_search_result_page" name="mptbm_enable_view_search_result_page" value="<?php echo MP_Global_Function::get_settings('mptbm_general_settings', 'enable_view_search_result_page') ?>" />
 				<input type='hidden' id="mptbm_enable_return_in_different_date" name="mptbm_enable_return_in_different_date" value="<?php echo MP_Global_Function::get_settings('mptbm_general_settings', 'enable_return_in_different_date') ?>" />
 				<input type='hidden' id="mptbm_enable_filter_via_features" name="mptbm_enable_filter_via_features" value="<?php echo MP_Global_Function::get_settings('mptbm_general_settings', 'enable_filter_via_features') ?>" />
@@ -320,7 +321,7 @@ if (sizeof($all_dates) > 0) {
 
 						if ($price_based == 'manual' || $price_based == 'fixed_zone') {
 						?>
-							<?php $all_start_locations = MPTBM_Function::get_all_start_location('', $price_based); ?>
+							<?php $all_start_locations = MPTBM_Function::get_all_start_location($vehicle_id ?? 0, $price_based); ?>
 							<select id="mptbm_manual_start_place" class="mptbm_manual_start_place formControl">
 								<option selected disabled><?php echo mptbm_get_translation('select_pick_up_location_label', __(' Select Pick-Up Location', 'ecab-taxi-booking-manager')); ?></option>
 								<?php if (sizeof($all_start_locations) > 0) { ?>
@@ -387,7 +388,7 @@ if (sizeof($all_dates) > 0) {
                 <option class="textCapitalize" selected disabled><?php echo mptbm_get_translation('select_destination_location_label', __(' Select Destination Location', 'ecab-taxi-booking-manager')); ?></option>
             </select>
         <?php } elseif ($price_based == 'fixed_zone_dropoff') { ?>
-            <?php $all_end_locations = MPTBM_Function::get_all_start_location('', $price_based); ?>
+            <?php $all_end_locations = MPTBM_Function::get_all_start_location($vehicle_id ?? 0, $price_based); ?>
             <select id="mptbm_manual_end_place" class="formControl mptbm_map_end_place">
                 <option selected disabled><?php echo mptbm_get_translation('select_destination_location_label', __(' Select Destination Location', 'ecab-taxi-booking-manager')); ?></option>
                 <?php if (sizeof($all_end_locations) > 0) { ?>
@@ -904,7 +905,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			// Add to return time list
 			jQuery('.return_time_list').append('<li data-value="' + dataValue.toFixed(2) + '" data-time="' + dataTime + '">' + timeFormatted + '</li>');
 		}
-		
+
+		jQuery(document).trigger('mptbm_time_options_updated');
 		
 	}
 	

@@ -1146,7 +1146,8 @@ $mptbm_priced_duration_text = !empty($mptbm_search_context['distance_verified'])
 					</div>
 					<?php
 
-$all_posts = MPTBM_Query::query_transport_list($price_based);
+$source_vehicle_id = isset($_POST['mptbm_source_vehicle_id']) ? absint($_POST['mptbm_source_vehicle_id']) : 0;
+$all_posts = MPTBM_Query::query_transport_list($price_based, $source_vehicle_id);
 
  
 if ($all_posts->found_posts > 0) {

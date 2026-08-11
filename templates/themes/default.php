@@ -275,11 +275,11 @@
 		'fixed_hourly'   => 'fixed_hourly',
 	);
 	if ( 'manual' === $price_based ) {
-		$booking_shortcode = "[mptbm_booking tab='yes' tabs='manual']";
+		$booking_shortcode = "[mptbm_booking tab='yes' tabs='manual' vehicle_id='" . absint( $post_id ) . "']";
 	} elseif ( isset( $booking_shortcode_map[ $price_based ] ) ) {
-		$booking_shortcode = "[mptbm_booking price_based='" . $booking_shortcode_map[ $price_based ] . "']";
+		$booking_shortcode = "[mptbm_booking price_based='" . $booking_shortcode_map[ $price_based ] . "' vehicle_id='" . absint( $post_id ) . "']";
 	} else {
-		$booking_shortcode = '[mptbm_booking]';
+		$booking_shortcode = "[mptbm_booking vehicle_id='" . absint( $post_id ) . "']";
 	}
 ?>
 	<div class="mpStyle mptbm_default_theme">

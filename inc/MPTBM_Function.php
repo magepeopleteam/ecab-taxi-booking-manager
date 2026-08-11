@@ -547,62 +547,123 @@ if (!class_exists('MPTBM_Function')) {
 				$requested_intervals[] = array($return_timestamp, $return_timestamp + max(60, absint($trip_duration)));
 			}
 
-			$query = new WP_Query([
-				'post_type' => 'mptbm_booking',
-				'post_status' => array('publish', 'pending', 'private', 'draft'),
-				'posts_per_page' => -1,
-				'meta_query' => [
-					[
-						'key' => 'mptbm_id',
-						'value' => $post_id,
-						'compare' => '='
-					]
-				]
-			]);
+			foreach (self::get_inventory_booking_windows($post_id) as $booking) {
+				if (self::inventory_request_overlaps($requested_intervals, $booking['intervals'], $buffer_seconds)) {
+					$available_quantity -= $booking['quantity'];
+				}
+			}
 
-			if ($query->have_posts()) {
-				while ($query->have_posts()) {
-					$query->the_post();
-					$status = sanitize_key((string) get_post_meta(get_the_ID(), 'mptbm_order_status', true));
-					if (in_array($status, array('cancelled', 'refunded', 'failed'), true)) {
-						continue;
-					}
-					$booking_datetime = get_post_meta(get_the_ID(), 'mptbm_date', true);
-					$booking_transport_quantity = (int) get_post_meta(get_the_ID(), 'mptbm_transport_quantity', true);
-					$booking_transport_quantity = $booking_transport_quantity ?: 1;
-					$booking_timestamp = strtotime($booking_datetime);
-					$booking_duration = absint(get_post_meta(get_the_ID(), 'mptbm_duration', true));
-					if (!$booking_duration) {
-						$booking_duration = (int) round((float) get_post_meta(get_the_ID(), 'mptbm_fixed_hours', true) * HOUR_IN_SECONDS);
-					}
-					$existing_intervals = array();
-					if ($booking_timestamp) {
-						$existing_intervals[] = array($booking_timestamp, $booking_timestamp + max(60, $booking_duration));
-					}
-					$existing_return_date = (string) get_post_meta(get_the_ID(), 'mptbm_return_target_date', true);
-					$existing_return_time = (string) get_post_meta(get_the_ID(), 'mptbm_return_target_time', true);
-					$existing_return = $existing_return_date ? strtotime(trim($existing_return_date . ' ' . $existing_return_time)) : false;
-					if ($existing_return) {
-						$existing_intervals[] = array($existing_return, $existing_return + max(60, $booking_duration));
-					}
+			return $available_quantity;
+		}
 
-					$overlaps = false;
-					foreach ($requested_intervals as $requested) {
-						foreach ($existing_intervals as $existing) {
-							if ($requested[0] < ($existing[1] + $buffer_seconds) && $requested[1] > ($existing[0] - $buffer_seconds)) {
-								$overlaps = true;
-								break 2;
-							}
-						}
+		/**
+		 * Return pickup-time tokens whose full vehicle quantity is already occupied.
+		 * The one-minute requested window intentionally answers "can a trip start here?";
+		 * the existing booking's real duration plus Booking Interval Time determines
+		 * when the slot becomes selectable again.
+		 */
+		public static function get_unavailable_time_slots($post_id, $date, array $times, $force_single_quantity = false): array
+		{
+			$total_quantity = $force_single_quantity ? 1 : (int) MP_Global_Function::get_post_info($post_id, 'mptbm_quantity', 1);
+			$buffer_seconds = max(0, (int) MP_Global_Function::get_post_info($post_id, 'mptbm_booking_interval_time', 0) * 60);
+			$bookings = self::get_inventory_booking_windows($post_id);
+			$unavailable = array();
+
+			foreach (array_slice($times, 0, 288) as $time) {
+				$time = trim((string) $time);
+				if (!preg_match('/^(\d{1,2})[:.]([0-5]\d)$/', $time, $matches)) {
+					continue;
+				}
+				$hours = (int) $matches[1];
+				$minutes = (int) $matches[2];
+				if ($hours > 23) {
+					continue;
+				}
+
+				$canonical_time = sprintf('%02d.%02d', $hours, $minutes);
+				$slot_start = strtotime(trim($date . ' ' . sprintf('%02d:%02d', $hours, $minutes)));
+				if (!$slot_start) {
+					continue;
+				}
+				$requested = array(array($slot_start, $slot_start + 60));
+				$used_quantity = 0;
+
+				foreach ($bookings as $booking) {
+					if (self::inventory_request_overlaps($requested, $booking['intervals'], $buffer_seconds)) {
+						$used_quantity += $booking['quantity'];
 					}
-					if ($overlaps) {
-						$available_quantity -= $booking_transport_quantity;
+				}
+
+				if (($total_quantity - $used_quantity) <= 0) {
+					$unavailable[] = $canonical_time;
+				}
+			}
+
+			return array_values(array_unique($unavailable));
+		}
+
+		private static function inventory_request_overlaps(array $requested_intervals, array $existing_intervals, $buffer_seconds): bool
+		{
+			foreach ($requested_intervals as $requested) {
+				foreach ($existing_intervals as $existing) {
+					if ($requested[0] < ($existing[1] + $buffer_seconds) && $requested[1] > ($existing[0] - $buffer_seconds)) {
+						return true;
 					}
 				}
 			}
-			wp_reset_postdata();
 
-			return $available_quantity;
+			return false;
+		}
+
+		private static function get_inventory_booking_windows($post_id): array
+		{
+			$posts = get_posts(array(
+				'post_type' => 'mptbm_booking',
+				'post_status' => array('publish', 'pending', 'private', 'draft'),
+				'posts_per_page' => -1,
+				'meta_query' => array(
+					array(
+						'key' => 'mptbm_id',
+						'value' => absint($post_id),
+						'compare' => '=',
+					),
+				),
+			));
+			$bookings = array();
+
+			foreach ($posts as $post) {
+				$status = sanitize_key((string) get_post_meta($post->ID, 'mptbm_order_status', true));
+				if (in_array($status, array('cancelled', 'refunded', 'failed'), true)) {
+					continue;
+				}
+
+				$booking_timestamp = strtotime((string) get_post_meta($post->ID, 'mptbm_date', true));
+				$booking_duration = absint(get_post_meta($post->ID, 'mptbm_duration', true));
+				if (!$booking_duration) {
+					$booking_duration = (int) round((float) get_post_meta($post->ID, 'mptbm_fixed_hours', true) * HOUR_IN_SECONDS);
+				}
+				$intervals = array();
+				if ($booking_timestamp) {
+					$intervals[] = array($booking_timestamp, $booking_timestamp + max(60, $booking_duration));
+				}
+
+				$return_date = (string) get_post_meta($post->ID, 'mptbm_return_target_date', true);
+				$return_time = (string) get_post_meta($post->ID, 'mptbm_return_target_time', true);
+				$return_timestamp = $return_date ? strtotime(trim($return_date . ' ' . $return_time)) : false;
+				if ($return_timestamp) {
+					$intervals[] = array($return_timestamp, $return_timestamp + max(60, $booking_duration));
+				}
+
+				if ($intervals) {
+					$quantity = (int) get_post_meta($post->ID, 'mptbm_transport_quantity', true);
+					$bookings[] = array(
+						'quantity' => $quantity ?: 1,
+						'intervals' => $intervals,
+					);
+				}
+			}
+
+			return $bookings;
 		}
 
 		public static function get_all_dates($price_based = 'dynamic', $expire = false)

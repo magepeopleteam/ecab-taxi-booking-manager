@@ -28,6 +28,7 @@ if (!class_exists('MPTBM_Shortcodes')) {
             $params['tab'] = ($params['tab'] === 'yes') ? 'yes' : 'no';
             $params['map'] = ($params['map'] === 'no') ? 'no' : 'yes';
             $params['form'] = in_array($params['form'], ['horizontal', 'inline', 'vertical']) ? $params['form'] : 'horizontal';
+            $params['vehicle_id'] = absint($params['vehicle_id']);
             // Support alias `fixed_zone_pickup` and normalize to `fixed_zone`
             // Support alias `fixed_zone_pickup` and normalize to `fixed_zone`
             if ($params['price_based'] === 'fixed_zone_pickup') {
@@ -59,6 +60,7 @@ if (!class_exists('MPTBM_Shortcodes')) {
                 "form" => "horizontal",
                 "tab" => "no",
                 "tabs" => "distance,hourly,manual",
+                "vehicle_id" => 0,
             );
         }
     }

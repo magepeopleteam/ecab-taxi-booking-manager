@@ -91,8 +91,10 @@ if (!class_exists('MPTBM_Query')) {
 
 
 
-		public static function query_transport_list($price_based = ''): WP_Query
+		public static function query_transport_list($price_based = '', $vehicle_id = 0): WP_Query
 		{
+			$vehicle_id = absint($vehicle_id);
+			$vehicle_scope = $vehicle_id ? array($vehicle_id) : array();
 			// Original conditions based on $price_based
 			$price_based_1 = !$price_based || $price_based == 'dynamic' ? array(
 				'key' => 'mptbm_price_based',
@@ -159,6 +161,9 @@ if (!class_exists('MPTBM_Query')) {
 					$price_based_8
 				)
 			);
+			if ($vehicle_scope) {
+				$args['post__in'] = $vehicle_scope;
+			}
 
 			// Run the main query
 			$main_query = new WP_Query($args);
@@ -172,19 +177,25 @@ if (!class_exists('MPTBM_Query')) {
 					$price_based_6 // Inclusive condition
 				)
 			);
+			if ($vehicle_scope) {
+				$args_inclusive['post__in'] = $vehicle_scope;
+			}
 
 			// Run the second query
 			$inclusive_query = new WP_Query($args_inclusive);
 
 			// Merge the results of both queries
 			$merged_posts = array_merge($main_query->posts, $inclusive_query->posts);
+			$merged_post_ids = array_values(array_unique(array_map('absint', wp_list_pluck($merged_posts, 'ID'))));
 
 			// Return a new WP_Query object with merged posts
 			return new WP_Query(array(
 				'post_type' => array(MPTBM_Function::get_cpt()),
 				'posts_per_page' => -1,
 				'post_status' => 'publish',
-				'post__in' => wp_list_pluck($merged_posts, 'ID') // Include all post IDs from merged result
+				// WP_Query treats an empty post__in as "no restriction", so use ID 0
+				// when no vehicle matches instead of accidentally returning the fleet.
+				'post__in' => $merged_post_ids ?: array(0)
 			));
 		}
 		public static function query_all_service_sold($post_id, $date, $service_name = ''): WP_Query

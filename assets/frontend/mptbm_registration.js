@@ -2103,6 +2103,116 @@ function mptbm_init_google_map() {
             }
         }
     });
+
+    function mptbmNormalizeTimeToken(time) {
+        var parts = String(time || '').replace(':', '.').split('.');
+        if (parts.length !== 2) {
+            return '';
+        }
+
+        var hours = parseInt(parts[0], 10);
+        var minutes = parseInt(parts[1], 10);
+        if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+            return '';
+        }
+
+        return String(hours).padStart(2, '0') + '.' + String(minutes).padStart(2, '0');
+    }
+
+    function mptbmRefreshVehicleTimeAvailability(parent) {
+        var vehicleId = parseInt(parent.find('[name="mptbm_source_vehicle_id"]').val(), 10) || 0;
+        var selectedDate = parent.find('#mptbm_map_start_date').val();
+        var timeItems = parent.find('.start_time_list li[data-time]');
+
+        if (!selectedDate || !timeItems.length || typeof mp_ajax_url === 'undefined' || typeof mptbm_ajax === 'undefined') {
+            return;
+        }
+
+        var times = [];
+        timeItems.each(function () {
+            var time = mptbmNormalizeTimeToken($(this).attr('data-time'));
+            if (time) {
+                times.push(time);
+            }
+        });
+
+        clearTimeout(parent.data('mptbm-time-availability-timer'));
+        var previousRequest = parent.data('mptbm-time-availability-request');
+        if (previousRequest && previousRequest.readyState !== 4) {
+            previousRequest.abort();
+        }
+
+        var timer = setTimeout(function () {
+            var requestDate = selectedDate;
+            var request = $.ajax({
+                type: 'POST',
+                url: mp_ajax_url,
+                data: {
+                    action: 'get_mptbm_vehicle_time_availability',
+                    nonce: mptbm_ajax.search_nonce,
+                    vehicle_id: vehicleId,
+                    date: requestDate,
+                    price_based: parent.find('[name="mptbm_price_based"]').val() || 'dynamic',
+                    times: times
+                },
+                success: function (response) {
+                    if (!response.success || parent.find('#mptbm_map_start_date').val() !== requestDate) {
+                        return;
+                    }
+
+                    var unavailable = response.data.unavailable_times || [];
+                    var unavailableLookup = {};
+                    $.each(unavailable, function (index, time) {
+                        unavailableLookup[mptbmNormalizeTimeToken(time)] = true;
+                    });
+
+                    var unavailableLabel = response.data.unavailable_label || 'Booked';
+                    var unavailableTitle = response.data.unavailable_title || unavailableLabel;
+                    var selectedTimeWasDisabled = false;
+
+                    parent.find('.start_time_list li[data-time]').each(function () {
+                        var item = $(this);
+                        var isUnavailable = !!unavailableLookup[mptbmNormalizeTimeToken(item.attr('data-time'))];
+
+                        item.toggleClass('mptbm-time-unavailable', isUnavailable);
+                        if (isUnavailable) {
+                            item.attr({
+                                'aria-disabled': 'true',
+                                'data-unavailable-label': unavailableLabel,
+                                'title': unavailableTitle
+                            });
+                            if (String(parent.find('#mptbm_map_start_time').val()) === String(item.attr('data-value'))) {
+                                selectedTimeWasDisabled = true;
+                            }
+                        } else {
+                            item.removeAttr('aria-disabled data-unavailable-label title');
+                        }
+                    });
+
+                    if (selectedTimeWasDisabled) {
+                        parent.find('#mptbm_map_start_time, #mptbm_start_time').val('');
+                    }
+                }
+            });
+
+            parent.data('mptbm-time-availability-request', request);
+        }, 75);
+
+        parent.data('mptbm-time-availability-timer', timer);
+    }
+
+    $(document).on('mptbm_time_options_updated', function () {
+        $('.mptbm_transport_search_area').each(function () {
+            mptbmRefreshVehicleTimeAvailability($(this));
+        });
+    });
+
+    setTimeout(function () {
+        $('.mptbm_transport_search_area').each(function () {
+            mptbmRefreshVehicleTimeAvailability($(this));
+        });
+    }, 250);
+
     $(document).on("click", "#mptbm_get_vehicle", function () {
         let parent = $(this).closest(".mptbm_transport_search_area");
         let mptbm_enable_return_in_different_date = parent
@@ -2122,6 +2232,7 @@ function mptbm_init_google_map() {
         let waiting_time = parent.find('[name="mptbm_waiting_time"]').val();
         let fixed_time = parent.find('[name="mptbm_fixed_hours"]').val();
         let mptbm_original_price_base = parent.find('[name="mptbm_original_price_base"]').val();
+        let mptbm_source_vehicle_id = parseInt(parent.find('[name="mptbm_source_vehicle_id"]').val(), 10) || 0;
 
 
         let mptbm_enable_view_search_result_page = parent
@@ -2387,6 +2498,7 @@ function mptbm_init_google_map() {
                                     data: {
                                         action: actionValue,
                                         nonce: mptbm_ajax.search_nonce,
+                                        mptbm_source_vehicle_id: mptbm_source_vehicle_id,
                                         start_place: start_val,
                                         start_place_coordinates: JSON.stringify(startCoordinates),
                                         end_place_coordinates: JSON.stringify(endCoordinates),
@@ -2437,6 +2549,7 @@ function mptbm_init_google_map() {
                                     data: {
                                         action: actionValue,
                                         nonce: mptbm_ajax.search_nonce,
+                                        mptbm_source_vehicle_id: mptbm_source_vehicle_id,
                                         start_place: start_val,
                                         start_place_coordinates: JSON.stringify(startCoordinates),
                                         end_place_coordinates: JSON.stringify(endCoordinates),
@@ -2518,6 +2631,7 @@ function mptbm_init_google_map() {
                                 data: {
                                     action: actionValue,
                                     nonce: mptbm_ajax.search_nonce,
+                                    mptbm_source_vehicle_id: mptbm_source_vehicle_id,
                                     start_place: start_place.value,
                                     start_place_coordinates: startCoordinates,
                                     end_place_coordinates: endCoordinates,
@@ -2577,6 +2691,7 @@ function mptbm_init_google_map() {
                                 data: {
                                     action: actionValue,
                                     nonce: mptbm_ajax.search_nonce,
+                                    mptbm_source_vehicle_id: mptbm_source_vehicle_id,
                                     start_place: start_place.value,
                                     start_place_coordinates: startCoordinates,
                                     end_place_coordinates: endCoordinates,
@@ -2643,6 +2758,7 @@ function mptbm_init_google_map() {
                             data: {
                                 action: actionValue,
                                 nonce: mptbm_ajax.search_nonce,
+                                mptbm_source_vehicle_id: mptbm_source_vehicle_id,
                                 start_place: start_place.value,
                                 end_place: end_place.value,
                                 start_date: start_date,
@@ -2702,6 +2818,7 @@ function mptbm_init_google_map() {
                             data: {
                                 action: actionValue,
                                 nonce: mptbm_ajax.search_nonce,
+                                mptbm_source_vehicle_id: mptbm_source_vehicle_id,
                                 start_place: start_place.value,
                                 end_place: end_place.value,
                                 start_date: start_date,
@@ -2755,9 +2872,10 @@ function mptbm_init_google_map() {
         }
     });
     $(document).on("change", "#mptbm_map_start_date", function (e, meta) {
+        let parent = $(this).closest(".mptbm_transport_search_area");
         // Clear the time slots list
-        $('#mptbm_map_start_time').siblings('.start_time_list').empty();
-        $('.start_time_input,#mptbm_map_start_time').val('');
+        parent.find('#mptbm_map_start_time').siblings('.start_time_list').empty();
+        parent.find('.start_time_input,#mptbm_map_start_time').val('');
         let mptbm_enable_return_in_different_date = $('[name="mptbm_enable_return_in_different_date"]').val();
         let mptbm_buffer_end_minutes = parseInt($('[name="mptbm_buffer_end_minutes"]').val()) || 0;
         let mptbm_first_calendar_date = $('[name="mptbm_first_calendar_date"]').val();
@@ -2835,7 +2953,7 @@ function mptbm_init_google_map() {
             }
         }
 
-        let parent = $(this).closest(".mptbm_transport_search_area");
+        mptbmRefreshVehicleTimeAvailability(parent);
         mptbm_content_refresh(parent);
         // Auto-opening the time dropdown is a "guide the user to the next
         // field" convenience for when they've just picked a date themselves -
@@ -2893,8 +3011,11 @@ function mptbm_init_google_map() {
 
 
     $(document).on("click", ".start_time_list li", function () {
+        if ($(this).attr('aria-disabled') === 'true') {
+            return false;
+        }
         let selectedValue = $(this).attr('data-value');
-        $('#mptbm_map_start_time').val(selectedValue).trigger('change');
+        $(this).closest('.mptbm_transport_search_area').find('#mptbm_map_start_time').val(selectedValue).trigger('change');
     });
     $(document).on("click", ".return_time_list li", function () {
         let selectedValue = $(this).attr('data-value');
@@ -2998,7 +3119,7 @@ function mptbm_init_google_map() {
         if (start_place) {
             let end_place = "";
             if (price_based === "manual") {
-                let post_id = parent.find('[name="mptbm_post_id"]').val();
+                let post_id = parent.find('[name="mptbm_post_id"]').val() || parent.find('[name="mptbm_source_vehicle_id"]').val();
                 $.ajax({
                     type: "POST",
                     url: mp_ajax_url,
@@ -4030,6 +4151,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
             var form_style = $(this).attr('mptbm-data-form-style');
             var map = $(this).attr('mptbm-data-map');
             var $tabContentWrap = $(this).closest('.mptb-tab-container').find('.mptb-tabs-content-wrap');
+            var vehicle_id = parseInt($(this).closest('.mptbm_transport_search_area').find('[name="mptbm_source_vehicle_id"]').val(), 10) || 0;
 
             // Ignore re-clicks on the active tab or while a switch is already loading
             if ($(this).hasClass('current') || $tabContentWrap.hasClass('mptbm-tab-loading')) {
@@ -4084,7 +4206,8 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     nonce: mptbm_ajax.search_nonce,
                     tab_id: tab_id,
                     form_style: form_style,
-                    map: map
+                    map: map,
+                    vehicle_id: vehicle_id
                 },
                 success: function (data) {
                     var tabContainer = $("#" + tab_id);

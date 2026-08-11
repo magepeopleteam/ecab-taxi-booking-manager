@@ -19,6 +19,8 @@
 				/*********************/
 				add_action('wp_ajax_get_mptbm_end_place', [$this, 'get_mptbm_end_place']);
 				add_action('wp_ajax_nopriv_get_mptbm_end_place', [$this, 'get_mptbm_end_place']);
+				add_action('wp_ajax_get_mptbm_vehicle_time_availability', [$this, 'get_mptbm_vehicle_time_availability']);
+				add_action('wp_ajax_nopriv_get_mptbm_vehicle_time_availability', [$this, 'get_mptbm_vehicle_time_availability']);
 				/**************************/
 				add_action('wp_ajax_get_mptbm_extra_service', [$this, 'get_mptbm_extra_service']);
 				add_action('wp_ajax_nopriv_get_mptbm_extra_service', [$this, 'get_mptbm_extra_service']);
@@ -71,6 +73,7 @@
 				$map = $display_map == 'disable' ? 'no' : $map;
 				$tab = $params['tab'] ?: 'no';
 				$tabs = $params['tabs'] ?: 'distance,hourly,manual';
+				$vehicle_id = !empty($params['vehicle_id']) ? absint($params['vehicle_id']) : 0;
 				ob_start();
 				do_shortcode('[shop_messages]');
 				echo ob_get_clean();
@@ -83,6 +86,7 @@
 					$tab_id = sanitize_text_field($_POST['tab_id']); // Sanitize input
 					$form_style = sanitize_text_field($_POST['form_style']);
 					$map = sanitize_text_field($_POST['map']); // Changed from $display_map to $map
+					$vehicle_id = isset($_POST['vehicle_id']) ? absint($_POST['vehicle_id']) : 0;
 					// Include the correct template based on the tab
 					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate' || $tab_id === 'custom' || $tab_id === 'fixed_distance' || $tab_id === 'fixed_zone' || $tab_id === 'fixed_zone_dropoff') {
 						ob_start(); // Start output buffering
@@ -352,6 +356,66 @@
 				$this->verify_search_request();
 				include(MPTBM_Function::template_path('registration/get_end_place.php'));
 				die();
+			}
+
+			public function get_mptbm_vehicle_time_availability() {
+				nocache_headers();
+				$this->verify_search_request();
+
+				$vehicle_id = isset($_POST['vehicle_id']) ? absint($_POST['vehicle_id']) : 0;
+				$date = isset($_POST['date']) ? sanitize_text_field(wp_unslash($_POST['date'])) : '';
+				$times = isset($_POST['times']) ? array_map('sanitize_text_field', (array) wp_unslash($_POST['times'])) : array();
+				$price_based = isset($_POST['price_based']) ? sanitize_key(wp_unslash($_POST['price_based'])) : 'dynamic';
+				$date_parts = explode('-', $date);
+
+				if ($vehicle_id && !$this->validate_post_access($vehicle_id)) {
+					wp_send_json_error(array('message' => esc_html__('Invalid transportation.', 'ecab-taxi-booking-manager')), 400);
+				}
+				if (count($date_parts) !== 3 || !checkdate((int) $date_parts[1], (int) $date_parts[2], (int) $date_parts[0])) {
+					wp_send_json_error(array('message' => esc_html__('Invalid pickup date.', 'ecab-taxi-booking-manager')), 400);
+				}
+
+				if ($vehicle_id) {
+					$inventory_enabled = get_post_meta($vehicle_id, 'mptbm_enable_inventory', true) === 'yes';
+					$interval_minutes = max(0, (int) get_post_meta($vehicle_id, 'mptbm_booking_interval_time', true));
+					$unavailable_times = MPTBM_Function::get_unavailable_time_slots($vehicle_id, $date, $times, !$inventory_enabled);
+					/* translators: %d: booking interval in minutes. */
+					$unavailable_title = $interval_minutes > 0
+						? sprintf(esc_html__('Unavailable because this time overlaps a booking or its %d-minute interval.', 'ecab-taxi-booking-manager'), $interval_minutes)
+						: esc_html__('Unavailable because this time overlaps an existing booking.', 'ecab-taxi-booking-manager');
+				} else {
+					$allowed_price_modes = array('dynamic', 'manual', 'fixed_hourly', 'fixed_zone', 'fixed_zone_dropoff', 'fixed_distance', 'fixed_map');
+					$price_based = in_array($price_based, $allowed_price_modes, true) ? $price_based : 'dynamic';
+					$unavailable_times = array_values(array_filter(array_map(function ($time) {
+						$time = str_replace(':', '.', trim((string) $time));
+						return preg_match('/^(?:[01]\d|2[0-3])\.[0-5]\d$/', $time) ? $time : '';
+					}, array_slice($times, 0, 288))));
+					$vehicles = MPTBM_Query::query_transport_list($price_based);
+
+					foreach ($vehicles->posts as $vehicle) {
+						$check_mode = get_post_meta($vehicle->ID, 'mptbm_availability_check_mode', true) ?: 'automatic';
+						if ($check_mode === 'manual' && get_post_meta($vehicle->ID, 'mptbm_availability_status', true) === 'unavailable') {
+							continue;
+						}
+
+						$inventory_enabled = get_post_meta($vehicle->ID, 'mptbm_enable_inventory', true) === 'yes';
+						$vehicle_unavailable = MPTBM_Function::get_unavailable_time_slots($vehicle->ID, $date, $times, !$inventory_enabled);
+						$unavailable_times = array_values(array_intersect($unavailable_times, $vehicle_unavailable));
+						if (!$unavailable_times) {
+							break;
+						}
+					}
+
+					$interval_minutes = 0;
+					$unavailable_title = esc_html__('Unavailable because all matching vehicles are booked for this time.', 'ecab-taxi-booking-manager');
+				}
+
+				wp_send_json_success(array(
+					'unavailable_times' => $unavailable_times,
+					'unavailable_label' => $vehicle_id ? esc_html__('Booked', 'ecab-taxi-booking-manager') : esc_html__('Fully booked', 'ecab-taxi-booking-manager'),
+					'unavailable_title' => $unavailable_title,
+					'interval_minutes' => $interval_minutes,
+				));
 			}
 
 			// Builds the ordered pickup -> stop 1 -> ... -> dropoff waypoint list from POST and

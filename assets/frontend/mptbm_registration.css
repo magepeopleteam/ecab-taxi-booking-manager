@@ -449,6 +449,28 @@ div.mptbm_transport_search_area ul.mp_input_select_list li:hover {
 	color: #fff;
 }
 
+div.mptbm_transport_search_area ul.start_time_list li.mptbm-time-unavailable,
+div.mptbm_transport_search_area ul.start_time_list li.mptbm-time-unavailable:hover {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background-color: #f1f5f9;
+	color: #94a3b8;
+	cursor: not-allowed;
+}
+
+div.mptbm_transport_search_area ul.start_time_list li.mptbm-time-unavailable::after {
+	content: attr(data-unavailable-label);
+	margin-left: 12px;
+	padding: 2px 7px;
+	border-radius: 999px;
+	background-color: #e2e8f0;
+	color: #64748b;
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
 /* ----- Transfer Type / Extra Waiting Hours (custom-styled proxy over a real <select>) ----- */
 div.mptbm_transport_search_area .mptbm_proxy_native_select {
 	display: none !important;

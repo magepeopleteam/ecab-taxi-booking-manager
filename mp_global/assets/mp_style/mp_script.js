@@ -343,6 +343,10 @@ function mp_all_content_change($this) {
 	$(document).on("click", "div.mpStyle .mp_input_select .mp_input_select_list li", function (e) {
 		e.preventDefault();
 		let current = $(this);
+		if (current.attr('aria-disabled') === 'true') {
+			e.stopImmediatePropagation();
+			return;
+		}
 		let parent = $(this).closest('.mp_input_select');
 		let value = current.data('value');
 		let text = current.html();
