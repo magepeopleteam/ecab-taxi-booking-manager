@@ -31,7 +31,67 @@ $map = strtolower($map); // Normalize the value to lowercase
 // of whatever the shortcode's map option was set to.
 $show_map_on_result = strtolower(MP_Global_Function::get_settings('mptbm_map_api_settings', 'show_map_on_search_result', 'yes'));
 
-$all_dates = MPTBM_Function::get_all_dates($price_based);
+$vehicle_id = isset($vehicle_id) ? absint($vehicle_id) : 0;
+$manual_route_map = $vehicle_id ? MP_Global_Function::get_post_info($vehicle_id, 'mptbm_manual_route_map', 'on') : 'on';
+$manual_map_enabled = $price_based === 'manual' && $manual_route_map !== 'off' && $map === 'yes' && $map_type !== 'disable';
+$manual_map_locations = array();
+
+if ($manual_map_enabled) {
+	$manual_vehicle_ids = $vehicle_id ? array($vehicle_id) : MP_Global_Function::get_all_post_id('mptbm_rent');
+	$seen_manual_locations = array();
+
+	foreach ($manual_vehicle_ids as $manual_vehicle_id) {
+		if (!$vehicle_id && MP_Global_Function::get_post_info($manual_vehicle_id, 'mptbm_price_based', '') !== 'manual') {
+			continue;
+		}
+
+		$manual_route_rows = array_merge(
+			(array) MP_Global_Function::get_post_info($manual_vehicle_id, 'mptbm_manual_price_info', array()),
+			(array) MP_Global_Function::get_post_info($manual_vehicle_id, 'mptbm_terms_price_info', array())
+		);
+
+		foreach ($manual_route_rows as $manual_route_row) {
+			foreach (array('start_location', 'end_location') as $location_field) {
+				$location_key = isset($manual_route_row[$location_field]) ? sanitize_text_field((string) $manual_route_row[$location_field]) : '';
+				if ($location_key === '' || isset($seen_manual_locations[$location_key])) {
+					continue;
+				}
+
+				$term = false;
+				if (strpos($location_key, 'term_') === 0) {
+					$term = get_term(absint(str_replace('term_', '', $location_key)), 'locations');
+				} else {
+					$term = get_term_by('slug', $location_key, 'locations');
+				}
+
+				$label = $term && !is_wp_error($term) ? $term->name : MPTBM_Function::get_taxonomy_name_by_slug($location_key, 'locations');
+				$label = $label ?: $location_key;
+				$latitude = null;
+				$longitude = null;
+
+				if ($term && !is_wp_error($term)) {
+					$geo_location = (string) get_term_meta($term->term_id, 'mptbm_geo_location', true);
+					$coordinates = array_map('trim', explode(',', $geo_location));
+					if (count($coordinates) === 2 && is_numeric($coordinates[0]) && is_numeric($coordinates[1])) {
+						$latitude = (float) $coordinates[0];
+						$longitude = (float) $coordinates[1];
+					}
+				}
+
+				$seen_manual_locations[$location_key] = true;
+				$manual_map_locations[] = array(
+					'key' => $location_key,
+					'label' => $label,
+					'lat' => $latitude,
+					'lng' => $longitude,
+				);
+			}
+		}
+	}
+}
+$all_dates = $vehicle_id
+	? MPTBM_Function::get_date($vehicle_id)
+	: MPTBM_Function::get_all_dates($price_based);
 $form_style = $form_style ?? 'horizontal';
 $disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
 if ($price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
@@ -44,7 +104,7 @@ if ($price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
 $form_style_class = $form_style == 'horizontal' ? 'inputHorizontal' : 'inputInline';
 $area_class = $price_based == 'manual' ? ' ' : 'justifyBetween';
 $area_class = $form_style != 'horizontal' ? 'mptbm_form_details_area fdColumn' : $area_class;
-$mptbm_all_transport_id = MP_Global_Function::get_all_post_id('mptbm_rent');
+$mptbm_all_transport_id = $vehicle_id ? array($vehicle_id) : MP_Global_Function::get_all_post_id('mptbm_rent');
 $mptbm_available_for_all_time = false;
 $mptbm_schedule = [];
 $min_schedule_value = 0;
@@ -172,7 +232,7 @@ if (sizeof($all_dates) > 0) {
 	$mptbm_bags = [];
 	$mptbm_passengers = [];
 	$mptbm_hand_luggage = [];
-	$mptbm_all_transport_id = MP_Global_Function::get_all_post_id('mptbm_rent');
+	$mptbm_all_transport_id = $vehicle_id ? array($vehicle_id) : MP_Global_Function::get_all_post_id('mptbm_rent');
 	foreach ($mptbm_all_transport_id as $post_id) {
 		$bag = (int) get_post_meta($post_id, 'mptbm_maximum_bag', true);
 		$passenger = (int) get_post_meta($post_id, 'mptbm_maximum_passenger', true);
@@ -740,15 +800,27 @@ document.addEventListener('DOMContentLoaded', function() {
 		</style>
 		<?php endif; ?>
 		<span class="mptbm-map-warning" style="display:none"><?php _e('Map Authentication Failed! Please contact site admin.','ecab-taxi-booking-manager'); ?></span>
-		<div class="mptbm_map_area fdColumn" data-map="<?php echo esc_attr($map); ?>" data-show-map-result="<?php echo esc_attr($show_map_on_result); ?>" style="display: <?php echo (($price_based != 'manual') && $map === 'yes' && !($hide_dropoff && $price_based === 'fixed_hourly')) ? 'flex' : 'none'; ?>;">
+		<div class="mptbm_map_area fdColumn" data-map="<?php echo esc_attr($map); ?>" data-show-map-result="<?php echo esc_attr($show_map_on_result); ?>" data-manual-map="<?php echo $manual_map_enabled ? 'yes' : 'no'; ?>" style="display: <?php echo (($price_based !== 'manual' || $manual_map_enabled) && $map === 'yes' && !($hide_dropoff && $price_based === 'fixed_hourly')) ? 'flex' : 'none'; ?>;">
 			<div class="mptbm_map_area_header">
-				<h6><span class="fas fa-map-marked-alt mR_xs"></span><?php echo mptbm_get_translation('route_map_label', __('Route Map', 'ecab-taxi-booking-manager')); ?></h6>
+				<h6><span class="fas fa-map-marked-alt mR_xs"></span><?php echo $price_based === 'manual' ? esc_html__('Route Locations', 'ecab-taxi-booking-manager') : mptbm_get_translation('route_map_label', __('Route Map', 'ecab-taxi-booking-manager')); ?></h6>
 				<button type="button" class="mptbm_map_collapse_toggle" aria-expanded="true" data-expand-text="<?php esc_attr_e('Show Map', 'ecab-taxi-booking-manager'); ?>" data-collapse-text="<?php esc_attr_e('Hide Map', 'ecab-taxi-booking-manager'); ?>">
 					<span data-label><?php esc_html_e('Hide Map', 'ecab-taxi-booking-manager'); ?></span>
 					<i class="fas fa-chevron-up"></i>
 				</button>
 			</div>
 			<div class="mptbm_map_collapsible_body">
+				<?php if ($manual_map_enabled && !empty($manual_map_locations)) : ?>
+					<div class="mptbm_manual_map_legend" aria-label="<?php esc_attr_e('Configured route locations', 'ecab-taxi-booking-manager'); ?>">
+						<span class="mptbm_manual_map_legend_title"><i class="fas fa-map-marker-alt"></i> <?php esc_html_e('Available route locations', 'ecab-taxi-booking-manager'); ?></span>
+						<div class="mptbm_manual_map_location_pills">
+							<?php foreach ($manual_map_locations as $manual_map_location) : ?>
+								<span data-location-key="<?php echo esc_attr($manual_map_location['key']); ?>"><?php echo esc_html($manual_map_location['label']); ?></span>
+							<?php endforeach; ?>
+						</div>
+						<small class="mptbm_manual_map_status" aria-live="polite"><?php esc_html_e('Locating route points…', 'ecab-taxi-booking-manager'); ?></small>
+					</div>
+					<script type="application/json" class="mptbm-manual-map-locations"><?php echo wp_json_encode($manual_map_locations); ?></script>
+				<?php endif; ?>
 				<div class="fullHeight">
 					<?php if($map_type === 'openstreetmap'): ?>
 						<div id="mptbm_map_area"></div>
@@ -764,6 +836,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						</div>
 					<?php endif; ?>
 				</div>
+				<?php if ($price_based !== 'manual' || $manual_map_enabled) : ?>
 				<div class="_dLayout mptbm_distance_time">
 					<div class="_equalChild_separatorRight">
 						<div class="_dFlex_pR_xs">
@@ -792,6 +865,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						</div>
 					</div>
 				</div>
+				<?php endif; ?>
 			</div>
 			<div class="mptbm_inline_search_results">
 			<button type="button" class="mptbm_inline_results_reset" aria-label="<?php esc_attr_e('Reset search', 'ecab-taxi-booking-manager'); ?>" title="<?php esc_attr_e('Reset search', 'ecab-taxi-booking-manager'); ?>">

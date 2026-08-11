@@ -66,14 +66,17 @@
 			public function transport_search($params) {
 				$display_map = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'enable');
 				$price_based = $params['price_based'] ?: 'dynamic';
-				$price_based = $display_map == 'disable' ? 'manual' : $price_based;
+				$vehicle_id = !empty($params['vehicle_id']) ? absint($params['vehicle_id']) : 0;
+				if ($vehicle_id && $this->validate_post_access($vehicle_id)) {
+					$price_based = $this->vehicle_search_price_mode($vehicle_id);
+				}
+				$price_based = $display_map == 'disable' && !$vehicle_id ? 'manual' : $price_based;
 				$progressbar = $params['progressbar'] ?: 'yes';
 				$form_style= $params['form'] ?: 'horizontal';
 				$map= $params['map'] ?: 'yes';
 				$map = $display_map == 'disable' ? 'no' : $map;
 				$tab = $params['tab'] ?: 'no';
 				$tabs = $params['tabs'] ?: 'distance,hourly,manual';
-				$vehicle_id = !empty($params['vehicle_id']) ? absint($params['vehicle_id']) : 0;
 				ob_start();
 				do_shortcode('[shop_messages]');
 				echo ob_get_clean();
@@ -131,7 +134,8 @@
 				$this->verify_search_request(true);
 				// Debug logging for search initiation
 				
-				$price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
+				$price_based = $this->requested_search_price_mode();
+				$_POST['price_based'] = $price_based;
 				
 				// Buffer time validation
 				$buffer_time = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'enable_buffer_time');
@@ -221,9 +225,15 @@
 				
 				
 				
-				// if ($distance && $duration) {
-					include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
-				// }
+				// Bind the verified request mode directly while the result template prices
+				// vehicles. The session remains the cross-request checkout record, but this
+				// avoids a missing/stale session selecting the wrong formula in this request.
+				$pricing_mode_filter = static function($original_mode, $priced_vehicle_id) use ($price_based) {
+					return $price_based;
+				};
+				add_filter('mptbm_original_price_based', $pricing_mode_filter, 99, 2);
+				include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
+				remove_filter('mptbm_original_price_based', $pricing_mode_filter, 99);
 				
 			
 			die(); // Ensure further execution stops after outputting the JavaScript
@@ -235,7 +245,8 @@
 				$this->verify_search_request(true);
 				// Debug logging for redirect search initiation
 				
-				$price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
+				$price_based = $this->requested_search_price_mode();
+				$_POST['price_based'] = $price_based;
 				
 				// Buffer time validation
 				$buffer_time = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'enable_buffer_time');
@@ -324,9 +335,12 @@
 						'return_time'       => isset($_POST['return_time']) ? sanitize_text_field(wp_unslash($_POST['return_time'])) : '',
 						'return_datetime'   => trim((isset($_POST['return_date']) ? sanitize_text_field(wp_unslash($_POST['return_date'])) : '') . ' ' . str_replace('.', ':', isset($_POST['return_time']) ? sanitize_text_field(wp_unslash($_POST['return_time'])) : '')),
 					));
-					// if ($distance && $duration) {
-						include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
-					// }
+					$pricing_mode_filter = static function($original_mode, $priced_vehicle_id) use ($price_based) {
+						return $price_based;
+					};
+					add_filter('mptbm_original_price_based', $pricing_mode_filter, 99, 2);
+					include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
+					remove_filter('mptbm_original_price_based', $pricing_mode_filter, 99);
 					$content = ob_get_clean(); // Get the buffered content and clean the buffer
 					// Store the content in a session variable
 					session_start();
@@ -540,6 +554,48 @@
 
 			private function posted_coordinates($key): array {
 				return isset($_POST[$key]) ? MPTBM_Function::normalize_coordinates($_POST[$key]) : array();
+			}
+
+			/**
+			 * Convert a vehicle's admin pricing model into the public search-mode token.
+			 *
+			 * Distance, duration, distance + duration, and combined pricing all use the
+			 * map-driven dynamic form; the vehicle's own meta selects the exact formula
+			 * later in MPTBM_Function::get_price().
+			 */
+			private function vehicle_search_price_mode($vehicle_id): string {
+				$model = sanitize_key((string) get_post_meta(absint($vehicle_id), 'mptbm_price_based', true));
+				switch ($model) {
+					case 'manual':
+						return 'manual';
+					case 'fixed_hourly':
+						return 'fixed_hourly';
+					case 'fixed_distance':
+					case 'fixed_map':
+						return 'fixed_map';
+					case 'fixed_zone':
+					case 'fixed_zone_dropoff':
+						return $model;
+					default:
+						return 'dynamic';
+				}
+			}
+
+			/** Use the locked single-page vehicle's model instead of trusting a posted mode. */
+			private function requested_search_price_mode(): string {
+				$requested = isset($_POST['price_based']) ? sanitize_key(wp_unslash($_POST['price_based'])) : 'dynamic';
+				$allowed = array('dynamic', 'manual', 'fixed_hourly', 'fixed_distance', 'fixed_zone', 'fixed_zone_dropoff', 'fixed_map');
+				$requested = in_array($requested, $allowed, true) ? $requested : 'dynamic';
+				$vehicle_id = isset($_POST['mptbm_source_vehicle_id']) ? absint($_POST['mptbm_source_vehicle_id']) : 0;
+
+				if (!$vehicle_id) {
+					return $requested;
+				}
+				if (!$this->validate_post_access($vehicle_id)) {
+					wp_send_json_error(array('message' => esc_html__('Invalid transportation.', 'ecab-taxi-booking-manager')), 400);
+				}
+
+				return $this->vehicle_search_price_mode($vehicle_id);
 			}
 
 			private function verify_search_request($rate_limit_route = false): void {

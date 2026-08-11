@@ -1574,7 +1574,9 @@ if (!class_exists('MPTBM_Function')) {
 			if ($post_id && $post_id > 0) {
 				if ($should_include_manual) {
 					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+					$terms_location_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
 					$collect_locations($manual_prices);
+					$collect_locations($terms_location_prices);
 				}
 				if ($should_include_fixed_zone) {
 					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);

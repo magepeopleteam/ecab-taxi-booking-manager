@@ -85,6 +85,12 @@ var mptbm_osm_route = null;
 var mptbm_osm_start_marker = null;
 var mptbm_osm_end_marker = null;
 var mptbm_osm_extra_marker = null;
+var mptbm_manual_google_markers = [];
+var mptbm_manual_osm_markers = [];
+var mptbm_manual_google_markers_by_key = {};
+var mptbm_manual_osm_markers_by_key = {};
+var mptbm_manual_location_coordinates = {};
+var mptbm_manual_route_update_token = 0;
 
 // Per-pageload cache of address-search results, keyed by lowercased query
 // text -- re-typing something already searched (or the other field
@@ -731,6 +737,331 @@ function mptbm_get_current_map_wrap() {
     return scoped || document.querySelector('.mptbm_map_area');
 }
 
+function mptbm_get_manual_map_locations() {
+    var mapWrap = mptbm_get_current_map_wrap();
+    if (!mapWrap || mapWrap.getAttribute('data-manual-map') !== 'yes') {
+        return [];
+    }
+
+    var dataElement = mapWrap.querySelector('.mptbm-manual-map-locations');
+    if (!dataElement) {
+        return [];
+    }
+
+    try {
+        var locations = JSON.parse(dataElement.textContent || '[]');
+        return Array.isArray(locations) ? locations : [];
+    } catch (error) {
+        console.warn('[Manual Route Map] Invalid location data.', error);
+        return [];
+    }
+}
+
+function mptbm_update_manual_map_status(resolved, total, complete) {
+    var mapWrap = mptbm_get_current_map_wrap();
+    var status = mapWrap ? mapWrap.querySelector('.mptbm_manual_map_status') : null;
+    if (!status) {
+        return;
+    }
+
+    if (complete) {
+        status.textContent = resolved + ' of ' + total + (total === 1 ? ' route location shown' : ' route locations shown');
+    } else {
+        status.textContent = 'Locating route points… ' + resolved + '/' + total;
+    }
+}
+
+function mptbm_pick_manual_osm_result(results, label) {
+    if (!Array.isArray(results) || !results.length) {
+        return null;
+    }
+
+    var expectedName = String(label || '').trim().toLowerCase();
+    var countryField = document.querySelector('[name="mptbm_country"]');
+    var expectedCountry = countryField && /^[a-z]{2}$/i.test(countryField.value) ? countryField.value.toLowerCase() : '';
+    var placeTypes = ['city', 'town', 'village', 'state', 'county', 'locality'];
+
+    return results.slice().sort(function (a, b) {
+        var score = function (result) {
+            var address = result.address || {};
+            var name = String(address.name || '').trim().toLowerCase();
+            var type = String(address.osm_value || address.type || '').toLowerCase();
+            var countryCode = String(address.countrycode || '').toLowerCase();
+            var value = 0;
+            if (expectedCountry && countryCode === expectedCountry) value += 200;
+            if (String(address.osm_key || '').toLowerCase() === 'place') value += 80;
+            if (placeTypes.indexOf(type) !== -1) value += 70;
+            if (name === expectedName) value += 50;
+            if (String(result.display_name || '').toLowerCase().indexOf(expectedName) === 0) value += 20;
+            return value;
+        };
+        return score(b) - score(a);
+    })[0];
+}
+
+function mptbm_render_manual_osm_locations() {
+    var locations = mptbm_get_manual_map_locations();
+    if (!locations.length || !mptbm_osm_map || typeof L === 'undefined') {
+        return;
+    }
+
+    mptbm_manual_osm_markers.forEach(function (marker) {
+        try { marker.remove(); } catch (error) { /* Marker may already belong to a removed map. */ }
+    });
+    mptbm_manual_osm_markers = [];
+    mptbm_manual_osm_markers_by_key = {};
+
+    var bounds = L.latLngBounds([]);
+    var resolved = 0;
+    var completed = 0;
+    var fitMap = function () {
+        if (bounds.isValid()) {
+            mptbm_osm_map.fitBounds(bounds, { padding: [45, 45], maxZoom: 11 });
+        }
+        mptbm_update_manual_map_status(resolved, locations.length, completed >= locations.length);
+    };
+    var addMarker = function (location, lat, lng) {
+        if (!isFinite(lat) || !isFinite(lng)) {
+            return;
+        }
+        var marker = L.marker([lat, lng], { title: location.label }).addTo(mptbm_osm_map);
+        marker.bindTooltip(location.label, {
+            permanent: true,
+            direction: 'top',
+            offset: [0, -8],
+            className: 'mptbm-manual-location-label'
+        });
+        marker.bindPopup('<strong>' + jQuery('<div>').text(location.label).html() + '</strong>');
+        mptbm_manual_osm_markers.push(marker);
+        mptbm_manual_osm_markers_by_key[location.key] = marker;
+        mptbm_manual_location_coordinates[location.key] = { latitude: lat, longitude: lng };
+        bounds.extend([lat, lng]);
+        resolved++;
+    };
+    var finishLocation = function () {
+        completed++;
+        fitMap();
+        if (completed >= locations.length) {
+            setTimeout(function () { mptbm_osm_map.invalidateSize(); fitMap(); }, 50);
+        }
+    };
+
+    locations.forEach(function (location) {
+        var savedLat = parseFloat(location.lat);
+        var savedLng = parseFloat(location.lng);
+        if (isFinite(savedLat) && isFinite(savedLng)) {
+            addMarker(location, savedLat, savedLng);
+            finishLocation();
+            return;
+        }
+
+        var query = String(location.label || '').trim();
+        var cacheKey = query.toLowerCase();
+        var cached = mptbm_osm_search_cache[cacheKey];
+        if (cached && cached.length) {
+            var cachedResult = mptbm_pick_manual_osm_result(cached, location.label);
+            addMarker(location, parseFloat(cachedResult.lat), parseFloat(cachedResult.lon));
+            finishLocation();
+            return;
+        }
+
+        jQuery.ajax({
+            url: mptbm_ajax.ajax_url,
+            method: 'GET',
+            data: { action: 'mptbm_osm_search', nonce: mptbm_ajax.osm_nonce, q: query }
+        }).done(function (response) {
+            var results = response && response.success && Array.isArray(response.data) ? response.data : [];
+            mptbm_osm_search_cache[cacheKey] = results;
+            if (results.length) {
+                var bestResult = mptbm_pick_manual_osm_result(results, location.label);
+                addMarker(location, parseFloat(bestResult.lat), parseFloat(bestResult.lon));
+            }
+        }).always(finishLocation);
+    });
+}
+
+function mptbm_render_manual_google_locations() {
+    var locations = mptbm_get_manual_map_locations();
+    var mapContainer = mptbm_get_current_map_area();
+    if (!locations.length || !mapContainer || typeof google === 'undefined' || !google.maps) {
+        return;
+    }
+
+    if (!mptbm_map || (typeof mptbm_map.getDiv === 'function' && mptbm_map.getDiv() !== mapContainer)) {
+        mptbm_map = new google.maps.Map(mapContainer, { center: mp_lat_lng, zoom: 7, mapTypeControl: false });
+    }
+    mptbm_manual_google_markers.forEach(function (marker) { marker.setMap(null); });
+    mptbm_manual_google_markers = [];
+    mptbm_manual_google_markers_by_key = {};
+
+    var geocoder = new google.maps.Geocoder();
+    var bounds = new google.maps.LatLngBounds();
+    var resolved = 0;
+    var completed = 0;
+    var addMarker = function (location, position) {
+        var marker = new google.maps.Marker({
+            map: mptbm_map,
+            position: position,
+            title: location.label,
+            label: { text: location.label, color: '#172033', fontSize: '12px', fontWeight: '700' }
+        });
+        var infoWindow = new google.maps.InfoWindow({ content: '<strong>' + jQuery('<div>').text(location.label).html() + '</strong>' });
+        marker.addListener('click', function () { infoWindow.open({ anchor: marker, map: mptbm_map }); });
+        mptbm_manual_google_markers.push(marker);
+        mptbm_manual_google_markers_by_key[location.key] = marker;
+        mptbm_manual_location_coordinates[location.key] = {
+            latitude: typeof position.lat === 'function' ? position.lat() : position.lat,
+            longitude: typeof position.lng === 'function' ? position.lng() : position.lng
+        };
+        bounds.extend(position);
+        resolved++;
+    };
+    var finishLocation = function () {
+        completed++;
+        if (!bounds.isEmpty()) {
+            mptbm_map.fitBounds(bounds, 45);
+        }
+        mptbm_update_manual_map_status(resolved, locations.length, completed >= locations.length);
+    };
+
+    locations.forEach(function (location) {
+        var savedLat = parseFloat(location.lat);
+        var savedLng = parseFloat(location.lng);
+        if (isFinite(savedLat) && isFinite(savedLng)) {
+            addMarker(location, { lat: savedLat, lng: savedLng });
+            finishLocation();
+            return;
+        }
+
+        var request = { address: location.label };
+        var restrictCountry = document.querySelector('[name="mptbm_restrict_search_country"]');
+        var country = document.querySelector('[name="mptbm_country"]');
+        if (restrictCountry && restrictCountry.value === 'yes' && country && country.value) {
+            request.componentRestrictions = { country: country.value };
+        }
+        geocoder.geocode(request, function (results, status) {
+            if (status === 'OK' && results && results[0]) {
+                addMarker(location, results[0].geometry.location);
+            }
+            finishLocation();
+        });
+    });
+}
+
+function mptbm_resolve_manual_location(locationKey, locationLabel) {
+    var deferred = jQuery.Deferred();
+    if (mptbm_manual_location_coordinates[locationKey]) {
+        deferred.resolve(mptbm_manual_location_coordinates[locationKey]);
+        return deferred.promise();
+    }
+
+    var mapType = document.getElementById('mptbm_map_type');
+    if (mapType && mapType.value === 'openstreetmap') {
+        var query = String(locationLabel || locationKey || '').trim();
+        var cacheKey = query.toLowerCase();
+        var useResults = function (results) {
+            var result = mptbm_pick_manual_osm_result(results, query);
+            if (!result) {
+                deferred.resolve(null);
+                return;
+            }
+            var coordinates = { latitude: parseFloat(result.lat), longitude: parseFloat(result.lon) };
+            mptbm_manual_location_coordinates[locationKey] = coordinates;
+            deferred.resolve(coordinates);
+        };
+        if (mptbm_osm_search_cache[cacheKey]) {
+            useResults(mptbm_osm_search_cache[cacheKey]);
+        } else {
+            jQuery.ajax({
+                url: mptbm_ajax.ajax_url,
+                method: 'GET',
+                data: { action: 'mptbm_osm_search', nonce: mptbm_ajax.osm_nonce, q: query }
+            }).done(function (response) {
+                var results = response && response.success && Array.isArray(response.data) ? response.data : [];
+                mptbm_osm_search_cache[cacheKey] = results;
+                useResults(results);
+            }).fail(function () { deferred.resolve(null); });
+        }
+    } else if (typeof google !== 'undefined' && google.maps) {
+        var request = { address: locationLabel || locationKey };
+        var country = document.querySelector('[name="mptbm_country"]');
+        if (country && /^[a-z]{2}$/i.test(country.value)) {
+            request.componentRestrictions = { country: country.value };
+        }
+        new google.maps.Geocoder().geocode(request, function (results, status) {
+            if (status !== 'OK' || !results || !results[0]) {
+                deferred.resolve(null);
+                return;
+            }
+            var position = results[0].geometry.location;
+            var coordinates = { latitude: position.lat(), longitude: position.lng() };
+            mptbm_manual_location_coordinates[locationKey] = coordinates;
+            deferred.resolve(coordinates);
+        });
+    } else {
+        deferred.resolve(null);
+    }
+    return deferred.promise();
+}
+
+function mptbm_update_manual_route_map($searchArea) {
+    var mapWrap = mptbm_get_current_map_wrap();
+    if (!mapWrap || mapWrap.getAttribute('data-manual-map') !== 'yes') {
+        return;
+    }
+
+    $searchArea = $searchArea && $searchArea.length ? $searchArea : jQuery(mapWrap).closest('.mptbm_transport_search_area');
+    var $start = $searchArea.find('#mptbm_manual_start_place');
+    var $end = $searchArea.find('#mptbm_manual_end_place');
+    var startKey = $start.val();
+    var endKey = $end.val();
+    if (!startKey || !endKey) {
+        return;
+    }
+
+    var startLabel = $start.find('option:selected').data('label') || $start.find('option:selected').text();
+    var endLabel = $end.find('option:selected').data('label') || $end.find('option:selected').text();
+    var updateToken = ++mptbm_manual_route_update_token;
+
+    jQuery.when(
+        mptbm_resolve_manual_location(startKey, startLabel),
+        mptbm_resolve_manual_location(endKey, endLabel)
+    ).done(function (startCoordinates, endCoordinates) {
+        if (updateToken !== mptbm_manual_route_update_token || !startCoordinates || !endCoordinates) {
+            return;
+        }
+
+        $searchArea.data('mptbm-manual-start-coordinates', startCoordinates);
+        $searchArea.data('mptbm-manual-end-coordinates', endCoordinates);
+        var mapType = document.getElementById('mptbm_map_type');
+        if (mapType && mapType.value === 'openstreetmap' && mptbm_osm_map) {
+            mptbm_manual_osm_markers.forEach(function (marker) {
+                var element = marker.getElement && marker.getElement();
+                if (element) element.classList.remove('mptbm-manual-route-start', 'mptbm-manual-route-end');
+            });
+            mptbm_osm_start_marker = mptbm_manual_osm_markers_by_key[startKey] || L.marker([startCoordinates.latitude, startCoordinates.longitude]).addTo(mptbm_osm_map);
+            mptbm_osm_end_marker = mptbm_manual_osm_markers_by_key[endKey] || L.marker([endCoordinates.latitude, endCoordinates.longitude]).addTo(mptbm_osm_map);
+            var startElement = mptbm_osm_start_marker.getElement && mptbm_osm_start_marker.getElement();
+            var endElement = mptbm_osm_end_marker.getElement && mptbm_osm_end_marker.getElement();
+            if (startElement) startElement.classList.add('mptbm-manual-route-start');
+            if (endElement) endElement.classList.add('mptbm-manual-route-end');
+            mptbm_calculate_osm_distance();
+        } else if (typeof google !== 'undefined' && google.maps && mptbm_map) {
+            mptbm_start_marker = mptbm_manual_google_markers_by_key[startKey] || new google.maps.Marker({
+                map: mptbm_map,
+                position: { lat: startCoordinates.latitude, lng: startCoordinates.longitude },
+                title: startLabel
+            });
+            mptbm_end_marker = mptbm_manual_google_markers_by_key[endKey] || new google.maps.Marker({
+                map: mptbm_map,
+                position: { lat: endCoordinates.latitude, lng: endCoordinates.longitude },
+                title: endLabel
+            });
+            mptbm_calculate_google_route_from_markers();
+        }
+    });
+}
+
 function mptbm_map_area_init() {
 
     // Check if map container exists and is visible before initializing
@@ -831,6 +1162,8 @@ function mptbm_init_osm_map() {
 
     // Initialize address search functionality
     mptbm_init_osm_address_search();
+
+    mptbm_render_manual_osm_locations();
 
     return true;
 }
@@ -1438,19 +1771,20 @@ function mptbm_calculate_osm_distance() {
 
 
                 // Update distance display
-                var distanceElement = document.querySelector('.mptbm_total_distance');
+                var currentMapWrap = mptbm_get_current_map_wrap();
+                var distanceElement = currentMapWrap ? currentMapWrap.querySelector('.mptbm_total_distance') : null;
                 if (distanceElement) {
                     distanceElement.textContent = display_distance;
                 }
 
                 // Update time display
-                var timeElement = document.querySelector('.mptbm_total_time');
+                var timeElement = currentMapWrap ? currentMapWrap.querySelector('.mptbm_total_time') : null;
                 if (timeElement) {
                     timeElement.textContent = duration_text;
                 }
 
                 // Show distance/time section
-                jQuery(".mptbm_distance_time").slideDown("fast");
+                jQuery(currentMapWrap).find('.mptbm_distance_time').slideDown('fast');
                 mptbm_update_fixed_hours_warning();
 
                 // The numbers above came from OSRM, called straight from this browser.
@@ -1474,10 +1808,11 @@ function mptbm_calculate_osm_distance() {
                     return [coord[1], coord[0]]; // GeoJSON uses [lng, lat], Leaflet uses [lat, lng]
                 });
 
+                var isManualRoute = currentMapWrap && currentMapWrap.getAttribute('data-manual-map') === 'yes';
                 mptbm_osm_route = L.polyline(coordinates, {
-                    color: '#ff4757',
-                    weight: 4,
-                    opacity: 0.8
+                    color: isManualRoute ? '#059669' : '#ff4757',
+                    weight: isManualRoute ? 6 : 4,
+                    opacity: 0.9
                 }).addTo(mptbm_osm_map);
 
                 // Fit map to show the entire route
@@ -1499,7 +1834,8 @@ function mptbm_calculate_osm_distance() {
     function drawStraightLine(start, end) {
         var distance = mptbm_osm_map.distance(start, end) / 1000;
 
-        var distanceElement = document.querySelector('.mptbm_total_distance');
+        var currentMapWrap = mptbm_get_current_map_wrap();
+        var distanceElement = currentMapWrap ? currentMapWrap.querySelector('.mptbm_total_distance') : null;
         if (distanceElement) {
             var kmOrMile = document.getElementById('mptbm_km_or_mile').value;
             if (kmOrMile === 'mile') {
@@ -1606,9 +1942,10 @@ function mptbm_calculate_google_route_from_markers() {
                     directionsRenderer.setRouteIndex(routeIndex);
                 }
 
-                jQuery(".mptbm_total_distance").html(distance_text);
-                jQuery(".mptbm_total_time").html(duration_text);
-                jQuery(".mptbm_distance_time").slideDown("fast");
+                var currentMapWrap = mptbm_get_current_map_wrap();
+                jQuery(currentMapWrap).find('.mptbm_total_distance').html(distance_text);
+                jQuery(currentMapWrap).find('.mptbm_total_time').html(duration_text);
+                jQuery(currentMapWrap).find('.mptbm_distance_time').slideDown('fast');
                 mptbm_update_fixed_hours_warning();
 
                 // Fit map to show the entire route
@@ -1653,8 +1990,10 @@ function mptbm_sync_distance_from_server(startLatLng, endLatLng) {
                 return;
             }
             var d = response.data;
-            jQuery('.mptbm_total_distance').text(d.distance_text);
-            jQuery('.mptbm_total_time').text(d.duration_text);
+            var currentMapWrap = mptbm_get_current_map_wrap();
+            var currentSearchArea = jQuery(currentMapWrap).closest('.mptbm_transport_search_area');
+            jQuery(currentMapWrap).find('.mptbm_total_distance').text(d.distance_text);
+            jQuery(currentMapWrap).find('.mptbm_total_time').text(d.duration_text);
 
             // Keep every carrier of the distance in step with what is now on screen -
             // the cookies the summary panel reads, the hidden fields the search posts,
@@ -1668,7 +2007,7 @@ function mptbm_sync_distance_from_server(startLatLng, endLatLng) {
             document.cookie = 'mptbm_duration=' + encodeURIComponent(d.duration) + cookieOptions;
             document.cookie = 'mptbm_duration_text=' + encodeURIComponent(d.duration_text) + cookieOptions;
 
-            var mapArea = jQuery('#mptbm_map_area').closest('.mptbm_transport_search_area');
+            var mapArea = currentSearchArea;
             mapArea.find('input[name="mptbm_hidden_distance"]').val(d.distance);
             mapArea.find('input[name="mptbm_hidden_duration"]').val(d.duration);
             mapArea.find('input[name="mptbm_hidden_distance_text"]').val(d.distance_text);
@@ -1823,6 +2162,8 @@ function mptbm_init_google_map() {
             );
         });
     }
+
+    mptbm_render_manual_google_locations();
 }
 (function ($) {
     "use strict";
@@ -2088,8 +2429,8 @@ function mptbm_init_google_map() {
                 var currentTab = $('.mptb-tabs li.current').attr('mptbm-data-tab');
                 var mapEnabled = $('.mptb-tabs li.current').attr('mptbm-data-map');
 
-                // Don't initialize map for manual/flat-rate tab or if map is disabled
-                if (currentTab !== 'flat-rate' && mapEnabled === 'yes') {
+                // Manual/flat-rate tabs may now have their own optional location map.
+                if (mapEnabled === 'yes' && mptbm_get_current_map_wrap() && mptbm_get_current_map_wrap().style.display !== 'none') {
                     mptbm_map_area_init();
                 }
             } else {
@@ -2214,6 +2555,7 @@ function mptbm_init_google_map() {
     }, 250);
 
     $(document).on("click", "#mptbm_get_vehicle", function () {
+        let searchButton = this;
         let parent = $(this).closest(".mptbm_transport_search_area");
         let mptbm_enable_return_in_different_date = parent
             .find('[name="mptbm_enable_return_in_different_date"]')
@@ -2330,6 +2672,30 @@ function mptbm_init_google_map() {
         } else {
             // Remove any existing error messages
             removeLocationErrors();
+
+            var manualMapActive = price_based === 'manual' && parent.find('.mptbm_map_area').attr('data-manual-map') === 'yes';
+            var manualStartCoordinates = parent.data('mptbm-manual-start-coordinates');
+            var manualEndCoordinates = parent.data('mptbm-manual-end-coordinates');
+            if (manualMapActive && (!manualStartCoordinates || !manualEndCoordinates)) {
+                mptbm_search_loading(parent, true);
+                var startLabel = $(start_place).find('option:selected').data('label') || $(start_place).find('option:selected').text();
+                var endLabel = $(end_place).find('option:selected').data('label') || $(end_place).find('option:selected').text();
+                $.when(
+                    mptbm_resolve_manual_location(start_place_value, startLabel),
+                    mptbm_resolve_manual_location(end_place_value, endLabel)
+                ).done(function (resolvedStart, resolvedEnd) {
+                    mptbm_search_loading(parent, false);
+                    if (!resolvedStart || !resolvedEnd) {
+                        showLocationError(end_place, 'Unable to locate this route on the map. Please try again.');
+                        return;
+                    }
+                    parent.data('mptbm-manual-start-coordinates', resolvedStart);
+                    parent.data('mptbm-manual-end-coordinates', resolvedEnd);
+                    mptbm_update_manual_route_map(parent);
+                    $(searchButton).trigger('click');
+                });
+                return;
+            }
 
             mptbm_search_loading(parent, true);
             mptbm_content_refresh(parent);
@@ -2760,7 +3126,9 @@ function mptbm_init_google_map() {
                                 nonce: mptbm_ajax.search_nonce,
                                 mptbm_source_vehicle_id: mptbm_source_vehicle_id,
                                 start_place: start_place.value,
+                                start_place_coordinates: manualStartCoordinates ? JSON.stringify(manualStartCoordinates) : '',
                                 end_place: end_place.value,
+                                end_place_coordinates: manualEndCoordinates ? JSON.stringify(manualEndCoordinates) : '',
                                 start_date: start_date,
                                 start_time: start_time,
                                 price_based: price_based,
@@ -2820,7 +3188,9 @@ function mptbm_init_google_map() {
                                 nonce: mptbm_ajax.search_nonce,
                                 mptbm_source_vehicle_id: mptbm_source_vehicle_id,
                                 start_place: start_place.value,
+                                start_place_coordinates: manualStartCoordinates ? JSON.stringify(manualStartCoordinates) : '',
                                 end_place: end_place.value,
+                                end_place_coordinates: manualEndCoordinates ? JSON.stringify(manualEndCoordinates) : '',
                                 start_date: start_date,
                                 start_time: start_time,
                                 price_based: price_based,
@@ -3028,6 +3398,7 @@ function mptbm_init_google_map() {
     });
     $(document).on("change", "#mptbm_manual_start_place", function () {
         let parent = $(this).closest(".mptbm_transport_search_area");
+        parent.removeData('mptbm-manual-start-coordinates mptbm-manual-end-coordinates');
         mptbm_content_refresh(parent);
         let start_place = $(this).val();
         let target = parent.find(".mptbm_manual_end_place");
@@ -3163,6 +3534,7 @@ function mptbm_init_google_map() {
     });
     $(document).on("change", "#mptbm_manual_end_place", function () {
         let parent = $(this).closest(".mptbm_transport_search_area");
+        parent.removeData('mptbm-manual-end-coordinates');
         mptbm_content_refresh(parent);
         let end_place = $(this).val();
         let price_based = parent.find('[name="mptbm_price_based"]').val();
@@ -3229,6 +3601,10 @@ function mptbm_init_google_map() {
         } else {
             // Reset end coordinates if no place selected
             window.mptbm_fixed_zone_end_coords = null;
+        }
+
+        if (price_based === 'manual' && end_place) {
+            mptbm_update_manual_route_map(parent);
         }
     });
     $(document).on("change", "#mptbm_map_start_place,#mptbm_map_end_place", function () {
@@ -3389,7 +3765,8 @@ function mptbm_reveal_inline_results(target) {
     // this check, that setting was being silently ignored here and the map
     // always forced back to visible once results were shown.
     var showMapResult = ($mapArea.attr('data-show-map-result') || 'yes').toLowerCase();
-    var hasMap = priceBased !== 'manual' && showMapResult !== 'no';
+    var manualMapEnabled = ($mapArea.attr('data-manual-map') || 'no').toLowerCase() === 'yes';
+    var hasMap = (priceBased !== 'manual' || manualMapEnabled) && showMapResult !== 'no';
     // Results now show inline on step 1's own panel instead of switching to a
     // separate step-2 panel, but the step indicator above it should still
     // read as "Choose a vehicle" being current now that there's something to
@@ -3476,10 +3853,9 @@ function mptbm_reveal_inline_results(target) {
                 }
             }
         }
-        // Flat-rate/"manual" pricing never computes a real distance/time (no
-        // geocoding at all) - the bar always just shows its placeholder
-        // "0 KM"/"0 Hour" text, so skip merging it in for that mode instead
-        // of surfacing those meaningless zero values in the summary.
+        // A manual route has distance/time only when its optional map resolved
+        // both configured locations. In that case the same verified values are
+        // folded into this summary just like every other mapped pricing mode.
         var $distanceTime = hasMap ? $mapArea.find('.mptbm_distance_time') : jQuery();
         if ($summaryRow.length && $distanceTime.length) {
             var $distanceVal = $distanceTime.find('.mptbm_total_distance').first();
@@ -4244,7 +4620,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                         var currentTab = $('.mptb-tabs li.current').attr('mptbm-data-tab');
                         var mapEnabled = $('.mptb-tabs li.current').attr('mptbm-data-map');
 
-                        if (currentTab !== 'flat-rate' && mapEnabled === 'yes') {
+                        if (mapEnabled === 'yes' && mptbm_get_current_map_wrap() && mptbm_get_current_map_wrap().style.display !== 'none') {
                             mptbm_map_area_init();
                         }
 

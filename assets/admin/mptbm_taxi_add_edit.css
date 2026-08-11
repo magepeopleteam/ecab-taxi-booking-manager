@@ -1501,6 +1501,47 @@ input:checked + .mptbm_taxi_slider::before { transform: translateX(22px); }
     margin-bottom: 8px;
 }
 
+.mptbm_manual_routes_head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+.mptbm_manual_route_map_setting,
+.mptbm_manual_route_map_setting .mptbm_taxi_ex_service_toggle_wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.mptbm_manual_route_map_copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.35;
+}
+.mptbm_manual_route_map_copy strong {
+    color: var(--mp-text-800);
+    font-size: 13px;
+}
+.mptbm_manual_route_map_copy small {
+    color: var(--mp-text-500);
+    font-size: 11px;
+}
+
+@media (max-width: 782px) {
+    .mptbm_manual_routes_head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .mptbm_manual_route_map_setting {
+        justify-content: space-between;
+        width: 100%;
+    }
+    .mptbm_manual_route_map_copy {
+        align-items: flex-start;
+    }
+}
+
 .mptbm_taxi_pricing_field {
     margin-bottom: 16px;
 }

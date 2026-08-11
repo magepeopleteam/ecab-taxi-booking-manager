@@ -561,6 +561,71 @@ div.mptbm_form_details_area div.mptbm_map_area.mptbm_map_area_no_map {
 	display: none !important;
 }
 
+.mptbm_manual_map_legend {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	padding: 10px 12px;
+	margin-bottom: 10px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fff;
+}
+.mptbm_manual_map_legend_title {
+	color: #334155;
+	font-size: 12px;
+	font-weight: 700;
+}
+.mptbm_manual_map_legend_title i {
+	color: var(--color_theme);
+	margin-right: 4px;
+}
+.mptbm_manual_map_location_pills {
+	display: flex;
+	flex: 1 1 auto;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.mptbm_manual_map_location_pills > span {
+	padding: 4px 9px;
+	border-radius: 999px;
+	background: #ecfdf5;
+	color: #047857;
+	font-size: 11px;
+	font-weight: 700;
+}
+.mptbm_manual_map_status {
+	color: #64748b;
+	font-size: 11px;
+	white-space: nowrap;
+}
+.leaflet-tooltip.mptbm-manual-location-label {
+	padding: 5px 9px;
+	border: 0;
+	border-radius: 7px;
+	background: #172033;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 700;
+	box-shadow: 0 4px 12px rgba(15, 23, 42, .24);
+}
+.leaflet-tooltip-top.mptbm-manual-location-label::before {
+	border-top-color: #172033;
+}
+.leaflet-marker-icon.mptbm-manual-route-start {
+	filter: hue-rotate(105deg) saturate(1.5);
+	z-index: 900 !important;
+}
+.leaflet-marker-icon.mptbm-manual-route-end {
+	filter: hue-rotate(300deg) saturate(1.6);
+	z-index: 900 !important;
+}
+
+.mptbm_map_area[data-manual-map="yes"] .mptbm_map_collapsible_body > .fullHeight {
+	min-height: 360px;
+}
+
 div.mptbm_form_details_area div.mptbm_map_area #mptbm_map_area {
 	width: 100%;
 	height: 300px;
@@ -1472,6 +1537,16 @@ span.flatpickr-weekday {
 }
 
 @media only screen and (max-width: 800px) {
+	.mptbm_manual_map_legend {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+	.mptbm_manual_map_status {
+		white-space: normal;
+	}
+	.mptbm_map_area[data-manual-map="yes"] .mptbm_map_collapsible_body > .fullHeight {
+		min-height: 320px;
+	}
 	div.mptbm_transport_search_area .mptbm_map_area {
 		width: 100%;
 		max-width: 100%;

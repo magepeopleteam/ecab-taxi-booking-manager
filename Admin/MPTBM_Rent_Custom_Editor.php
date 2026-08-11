@@ -224,6 +224,11 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                 $inclusive_manual_locations = isset($_POST['mptbm_inclusive_manual_locations']) ? 'on' : 'off';
                 update_post_meta( $post_id, 'mptbm_inclusive_manual_locations', $inclusive_manual_locations );
 
+                if ( get_post_type( $post_id ) === 'mptbm_rent' && isset( $_POST['mptbm_manual_route_map_field_present'] ) ) {
+                    $manual_route_map = isset( $_POST['mptbm_manual_route_map'] ) ? 'on' : 'off';
+                    update_post_meta( $post_id, 'mptbm_manual_route_map', $manual_route_map );
+                }
+
                 if ( get_post_type( $post_id ) === 'mptbm_rent' && isset( $_POST['mptbm_availability_status_field_present'] ) ) {
                     $availability_status = isset( $_POST['mptbm_availability_status'] ) ? 'unavailable' : 'available';
                     update_post_meta( $post_id, 'mptbm_availability_status', $availability_status );
@@ -1694,8 +1699,26 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             <div class="mptbm_taxi_pricing_field1"
                                  id="mptbm_manual_routes"
                                  style="display: <?php echo esc_attr( $manual_pricing_set ) ; ?>">
-                                <div class="mptbm_taxi_pricing_row_head">
+                                <div class="mptbm_taxi_pricing_row_head mptbm_manual_routes_head">
                                     <span class="mptbm_taxi_pricing_label"><i class="fas fa-route"></i> <?php esc_html_e( 'Manual Routes', 'ecab-taxi-booking-manager' ); ?></span>
+                                    <?php
+                                    $manual_route_map = MP_Global_Function::get_post_info( $post_id, 'mptbm_manual_route_map', 'on' );
+                                    $manual_route_map_checked = $manual_route_map !== 'off' ? 'checked' : '';
+                                    ?>
+                                    <div class="mptbm_manual_route_map_setting">
+                                        <div class="mptbm_manual_route_map_copy">
+                                            <strong><?php esc_html_e( 'Frontend route map', 'ecab-taxi-booking-manager' ); ?></strong>
+                                            <small><?php esc_html_e( 'Show every configured route location as a labeled map marker.', 'ecab-taxi-booking-manager' ); ?></small>
+                                        </div>
+                                        <div class="mptbm_taxi_ex_service_toggle_wrapper">
+                                            <input type="hidden" name="mptbm_manual_route_map_field_present" value="1">
+                                            <label class="mptbm_taxi_ex_service_switch">
+                                                <input type="checkbox" id="mptbm_manual_route_map" name="mptbm_manual_route_map" <?php echo esc_attr( $manual_route_map_checked ); ?>>
+                                                <span class="mptbm_taxi_ex_service_slider"></span>
+                                            </label>
+                                            <span class="mptbm_taxi_ex_service_toggle_label"><?php echo $manual_route_map !== 'off' ? esc_html__( 'ON', 'ecab-taxi-booking-manager' ) : esc_html__( 'OFF', 'ecab-taxi-booking-manager' ); ?></span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="mptbm_taxi_pricing_field">
                                     <div class="mptbm_taxi_pricing_info_alert">

@@ -188,7 +188,10 @@ if (!function_exists('mptbm_get_translation')) {
 						</div>
 					<?php endif; ?>
 					
-					<?php if($price_based != 'manual' && $price_based != 'fixed_hourly'){ ?> 
+					<?php
+					$mptbm_summary_search_context = MPTBM_Function::get_search_context();
+					$manual_route_distance_available = $price_based === 'manual' && !empty($mptbm_summary_search_context['distance_verified']);
+					if($price_based != 'fixed_hourly' && ($price_based != 'manual' || $manual_route_distance_available)){ ?>
 						<div class="divider"></div>
 						<div class="divider"></div>
 						<h6 class="_mB_xs"><?php echo mptbm_get_translation('total_distance_label', __('Total Distance', 'ecab-taxi-booking-manager')); ?></h6>
@@ -206,7 +209,6 @@ if (!function_exists('mptbm_get_translation')) {
 							// request (e.g. a referrer-restricted API key) and the OSRM
 							// fallback answers instead - the customer then reads one distance
 							// and is charged for a different one.
-							$mptbm_summary_search_context = MPTBM_Function::get_search_context();
 							$distance_is_server_verified = !empty($mptbm_summary_search_context['distance_verified']) && !empty($distance);
 
 							$distance_text = $distance_is_server_verified ? MPTBM_Function::format_distance_text($distance) : '';
