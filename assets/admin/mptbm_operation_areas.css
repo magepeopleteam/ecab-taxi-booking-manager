@@ -266,6 +266,38 @@ body.mptbm-operation-areas-screen #wpbody-content {
     background: #fff7ed;
 }
 
+.mptbm-operation-areas-card-map {
+    position: relative;
+    width: 100%;
+    height: 210px;
+    margin: 6px 0 12px;
+    overflow: hidden;
+    border: 1px solid #dfe5ee;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #eef2ff, #f8fafc);
+    pointer-events: none;
+}
+
+.mptbm-operation-areas-card-map > span {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.mptbm-operation-areas-card-map.leaflet-container {
+    font: inherit;
+}
+
+.mptbm-operation-areas-card-map .leaflet-tile-pane {
+    filter: saturate(.72) contrast(.94) brightness(1.04);
+}
+
 .mptbm-operation-areas-price-line {
     display: flex;
     flex: 1;
@@ -520,6 +552,10 @@ body.mptbm-modal-open {
     .mptbm-operation-areas-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .mptbm-operation-areas-card-map {
+        height: 210px;
+    }
 }
 
 @media (max-width: 700px) {
@@ -540,6 +576,10 @@ body.mptbm-modal-open {
 
     .mptbm-operation-areas-grid {
         grid-template-columns: 1fr;
+    }
+
+    .mptbm-operation-areas-card-map {
+        height: 230px;
     }
 
     .mptbm-operation-areas-summary p {
@@ -1113,6 +1153,52 @@ body.mptbm-modal-open {
 .mptbm-operation-area-map-actions button:disabled {
     opacity: .38;
     cursor: not-allowed;
+}
+
+/* Keep Leaflet's native edit controls and their help labels above map panes. */
+.mptbm-operation-area-map-shell .leaflet-top.leaflet-right {
+    z-index: 950;
+}
+
+.mptbm-operation-area-map-shell .leaflet-draw-toolbar {
+    overflow: visible !important;
+}
+
+.mptbm-operation-area-map-shell .leaflet-draw-toolbar a[data-mptbm-tooltip] {
+    position: relative;
+    overflow: visible !important;
+}
+
+.mptbm-operation-area-map-shell .leaflet-draw-toolbar a[data-mptbm-tooltip]::after {
+    position: absolute;
+    z-index: 1200;
+    top: 50%;
+    right: calc(100% + 9px);
+    visibility: hidden;
+    min-width: max-content;
+    padding: 6px 9px;
+    border: 1px solid rgba(71, 85, 105, .18);
+    border-radius: 7px;
+    color: #fff;
+    content: attr(data-mptbm-tooltip);
+    background: #263248;
+    box-shadow: 0 8px 20px -12px rgba(15, 23, 42, .85);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(4px, -50%);
+    transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
+    white-space: nowrap;
+}
+
+.mptbm-operation-area-map-shell .leaflet-draw-toolbar a[data-mptbm-tooltip]:hover::after,
+.mptbm-operation-area-map-shell .leaflet-draw-toolbar a[data-mptbm-tooltip]:focus-visible::after {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(0, -50%);
 }
 
 /* Make Leaflet's polygon closing point obvious while a boundary is drawn. */

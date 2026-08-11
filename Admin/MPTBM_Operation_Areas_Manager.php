@@ -118,6 +118,9 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                     'boundaryReady' => esc_html__('Boundary ready', 'ecab-taxi-booking-manager'),
                     'boundaryEmpty' => esc_html__('Boundary not drawn', 'ecab-taxi-booking-manager'),
                     'finishAtStart' => esc_html__('START — click to finish', 'ecab-taxi-booking-manager'),
+                    'drawBoundary' => esc_html__('Draw a new boundary', 'ecab-taxi-booking-manager'),
+                    'editBoundary' => esc_html__('Edit boundary points', 'ecab-taxi-booking-manager'),
+                    'deleteBoundary' => esc_html__('Delete the boundary', 'ecab-taxi-booking-manager'),
                     'verticesLabel' => esc_html__('points', 'ecab-taxi-booking-manager'),
                     'areaLabel' => esc_html__('Approx. area', 'ecab-taxi-booking-manager'),
                     'completeDetails' => esc_html__('Add a clear area name to continue.', 'ecab-taxi-booking-manager'),
@@ -361,10 +364,10 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                     <div id="mptbm-map-canvas-<?php echo esc_attr($slot); ?>" class="mptbm-operation-areas-map"></div>
                     <?php if ($map_type === 'openstreetmap') : ?>
                         <div class="mptbm-operation-area-map-actions" aria-label="<?php esc_attr_e('Boundary drawing actions', 'ecab-taxi-booking-manager'); ?>">
-                            <button type="button" data-map-action="draw"><i class="fas fa-pencil-alt" aria-hidden="true"></i><span><?php esc_html_e('Draw', 'ecab-taxi-booking-manager'); ?></span></button>
-                            <button type="button" data-map-action="edit"><i class="fas fa-edit" aria-hidden="true"></i><span><?php esc_html_e('Edit', 'ecab-taxi-booking-manager'); ?></span></button>
-                            <button type="button" data-map-action="fit"><i class="fas fa-expand" aria-hidden="true"></i><span><?php esc_html_e('Fit', 'ecab-taxi-booking-manager'); ?></span></button>
-                            <button type="button" class="is-danger" data-map-action="clear"><i class="fas fa-trash-alt" aria-hidden="true"></i><span><?php esc_html_e('Clear', 'ecab-taxi-booking-manager'); ?></span></button>
+                            <button type="button" data-map-action="draw" title="<?php esc_attr_e('Draw a new boundary', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Draw a new boundary', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-pencil-alt" aria-hidden="true"></i><span><?php esc_html_e('Draw', 'ecab-taxi-booking-manager'); ?></span></button>
+                            <button type="button" data-map-action="edit" title="<?php esc_attr_e('Edit boundary points', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Edit boundary points', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-edit" aria-hidden="true"></i><span><?php esc_html_e('Edit', 'ecab-taxi-booking-manager'); ?></span></button>
+                            <button type="button" data-map-action="fit" title="<?php esc_attr_e('Fit the boundary on the map', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Fit the boundary on the map', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-expand" aria-hidden="true"></i><span><?php esc_html_e('Fit', 'ecab-taxi-booking-manager'); ?></span></button>
+                            <button type="button" class="is-danger" data-map-action="clear" title="<?php esc_attr_e('Clear the boundary', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Clear the boundary', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-trash-alt" aria-hidden="true"></i><span><?php esc_html_e('Clear', 'ecab-taxi-booking-manager'); ?></span></button>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -384,11 +387,23 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
             if ($is_fixed) {
                 $location_one = get_post_meta($post->ID, 'mptbm-starting-location-three', true);
                 $location_two = '';
-                $is_mapped = (bool) get_post_meta($post->ID, 'mptbm-coordinates-three', true);
+                $coordinates_three = get_post_meta($post->ID, 'mptbm-coordinates-three', true);
+                $is_mapped = is_array($coordinates_three) && count($coordinates_three) >= 6;
+                $preview_polygons = $is_mapped
+                    ? [ [ 'coordinates' => array_values($coordinates_three), 'color' => '#635bff' ] ]
+                    : [];
             } else {
                 $location_one = get_post_meta($post->ID, 'mptbm-starting-location-one', true);
                 $location_two = get_post_meta($post->ID, 'mptbm-starting-location-two', true);
-                $is_mapped = (bool) get_post_meta($post->ID, 'mptbm-coordinates-one', true) && (bool) get_post_meta($post->ID, 'mptbm-coordinates-two', true);
+                $coordinates_one = get_post_meta($post->ID, 'mptbm-coordinates-one', true);
+                $coordinates_two = get_post_meta($post->ID, 'mptbm-coordinates-two', true);
+                $is_mapped = is_array($coordinates_one) && count($coordinates_one) >= 6 && is_array($coordinates_two) && count($coordinates_two) >= 6;
+                $preview_polygons = $is_mapped
+                    ? [
+                        [ 'coordinates' => array_values($coordinates_one), 'color' => '#635bff' ],
+                        [ 'coordinates' => array_values($coordinates_two), 'color' => '#f59e0b' ],
+                    ]
+                    : [];
             }
 
             $price_by = get_post_meta($post->ID, 'mptbm-geo-fence-increase-price-by', true);
@@ -431,6 +446,11 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                     ?>
                     </span>
                 </div>
+                <?php if ($is_mapped) : ?>
+                    <div class="mptbm-operation-areas-card-map" data-operation-area-preview data-polygons="<?php echo esc_attr(wp_json_encode($preview_polygons)); ?>" role="img" aria-label="<?php esc_attr_e('Saved operation area boundary map', 'ecab-taxi-booking-manager'); ?>">
+                        <span><i class="fas fa-map-marked-alt" aria-hidden="true"></i><?php esc_html_e('Loading boundary map…', 'ecab-taxi-booking-manager'); ?></span>
+                    </div>
+                <?php endif; ?>
                 <?php if (!$is_fixed) : ?>
                     <p class="mptbm-operation-areas-price-line">
                         <i class="fas fa-tag" aria-hidden="true"></i>

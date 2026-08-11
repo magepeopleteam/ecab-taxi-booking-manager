@@ -106,6 +106,122 @@
         return true;
     }
 
+    function previewPolygons(element) {
+        try {
+            const polygons = JSON.parse(element.getAttribute('data-polygons') || '[]');
+            return polygons.filter(function (polygon) {
+                polygon.coordinates = parseCoordinates(polygon.coordinates);
+                return coordinatesAreValid(polygon.coordinates);
+            });
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function polygonLatLngs(coordinates) {
+        const points = [];
+        for (let index = 0; index < coordinates.length; index += 2) {
+            points.push([ coordinates[index], coordinates[index + 1] ]);
+        }
+        return points;
+    }
+
+    function initLeafletCardPreview(element, polygons) {
+        element.innerHTML = '';
+        const previewMap = L.map(element, {
+            attributionControl: false,
+            boxZoom: false,
+            doubleClickZoom: false,
+            dragging: false,
+            keyboard: false,
+            scrollWheelZoom: false,
+            tap: false,
+            touchZoom: false,
+            zoomControl: false
+        });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(previewMap);
+
+        const layers = polygons.map(function (polygon) {
+            return L.polygon(polygonLatLngs(polygon.coordinates), {
+                color: polygon.color || '#635bff',
+                fillColor: polygon.color || '#635bff',
+                fillOpacity: 0.3,
+                interactive: false,
+                weight: 2
+            }).addTo(previewMap);
+        });
+        const previewBounds = L.featureGroup(layers).getBounds();
+        previewMap.fitBounds(previewBounds, { padding: [ 18, 18 ], maxZoom: 18 });
+        element._mptbmPreviewMap = previewMap;
+        window.setTimeout(function () {
+            previewMap.invalidateSize();
+            previewMap.fitBounds(previewBounds, { padding: [ 18, 18 ], maxZoom: 18 });
+        }, 100);
+    }
+
+    function initGoogleCardPreview(element, polygons) {
+        element.innerHTML = '';
+        const previewMap = new google.maps.Map(element, {
+            clickableIcons: false,
+            disableDefaultUI: true,
+            draggable: false,
+            fullscreenControl: false,
+            gestureHandling: 'none',
+            keyboardShortcuts: false,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            scrollwheel: false
+        });
+        const bounds = new google.maps.LatLngBounds();
+        polygons.forEach(function (polygon) {
+            const path = polygonLatLngs(polygon.coordinates).map(function (point) {
+                const latLng = { lat: point[0], lng: point[1] };
+                bounds.extend(latLng);
+                return latLng;
+            });
+            new google.maps.Polygon({
+                clickable: false,
+                fillColor: polygon.color || '#635bff',
+                fillOpacity: 0.3,
+                map: previewMap,
+                paths: path,
+                strokeColor: polygon.color || '#635bff',
+                strokeOpacity: 1,
+                strokeWeight: 2
+            });
+        });
+        previewMap.fitBounds(bounds, 16);
+        element._mptbmPreviewMap = previewMap;
+    }
+
+    function initCardPreviews(context) {
+        const $context = context ? $(context) : $(document);
+        $context.find('[data-operation-area-preview]').addBack('[data-operation-area-preview]').each(function () {
+            if (this._mptbmPreviewMap) {
+                return;
+            }
+            const polygons = previewPolygons(this);
+            if (!polygons.length) {
+                return;
+            }
+            if (mptbmOperationAreas.mapType === 'openstreetmap' && typeof window.L !== 'undefined') {
+                initLeafletCardPreview(this, polygons);
+            } else if (mptbmOperationAreas.mapType === 'enable' && typeof window.google !== 'undefined' && google.maps) {
+                initGoogleCardPreview(this, polygons);
+            }
+        });
+    }
+
+    function destroyCardPreview($card) {
+        $card.find('[data-operation-area-preview]').each(function () {
+            if (this._mptbmPreviewMap && typeof this._mptbmPreviewMap.remove === 'function') {
+                this._mptbmPreviewMap.remove();
+            }
+            this._mptbmPreviewMap = null;
+        });
+    }
+
     function slotSuffix(slot) {
         return slot.charAt(0).toUpperCase() + slot.slice(1);
     }
@@ -594,6 +710,7 @@
                     window.alert((response && response.data && response.data.message) || mptbmOperationAreas.genericError);
                     return;
                 }
+                destroyCardPreview($card);
                 $card.remove();
                 const $count = $(selectors.count);
                 const next = Math.max(0, (parseInt($count.text(), 10) || 0) - 1);
@@ -643,9 +760,15 @@
             }
 
             if (isEdit) {
-                $('.mptbm-operation-areas-card[data-post-id="' + response.data.postId + '"]').replaceWith(response.data.card);
+                const $existingCard = $('.mptbm-operation-areas-card[data-post-id="' + response.data.postId + '"]');
+                const $updatedCard = $(response.data.card);
+                destroyCardPreview($existingCard);
+                $existingCard.replaceWith($updatedCard);
+                initCardPreviews($updatedCard);
             } else {
-                $(selectors.grid).prepend(response.data.card);
+                const $newCard = $(response.data.card);
+                $(selectors.grid).prepend($newCard);
+                initCardPreviews($newCard);
                 $(selectors.empty).addClass('is-hidden');
                 const $count = $(selectors.count);
                 $count.text((parseInt($count.text(), 10) || 0) + 1);
@@ -667,4 +790,6 @@
             }
         });
     });
+
+    initCardPreviews(document);
 })(jQuery);

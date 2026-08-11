@@ -736,6 +736,31 @@ function registerOSMOperationAreaMap(mapCanvasId, mapInstance, drawLayer, drawCo
         osmDrawControlFixed = drawControl;
     }
     setupOSMFirstPointGuide(mapCanvasId, mapInstance);
+    setupOSMControlTooltips(mapCanvasId);
+}
+
+// Browser title bubbles are inconsistent inside Leaflet's stacked map panes.
+// Add visible, accessible labels to the native polygon/edit/delete controls.
+function setupOSMControlTooltips(mapCanvasId) {
+    var mapCanvas = document.getElementById(mapCanvasId);
+    if (!mapCanvas) return;
+
+    window.setTimeout(function() {
+        var translations = window.mptbmOperationAreas || {};
+        var controls = [
+            [ '.leaflet-draw-draw-polygon', translations.drawBoundary || 'Draw a new boundary' ],
+            [ '.leaflet-draw-edit-edit', translations.editBoundary || 'Edit boundary points' ],
+            [ '.leaflet-draw-edit-remove', translations.deleteBoundary || 'Delete the boundary' ]
+        ];
+
+        controls.forEach(function(control) {
+            var button = mapCanvas.querySelector(control[0]);
+            if (!button) return;
+            button.setAttribute('data-mptbm-tooltip', control[1]);
+            button.setAttribute('aria-label', control[1]);
+            button.setAttribute('title', control[1]);
+        });
+    }, 0);
 }
 
 // Leaflet.draw renders every vertex with the same small square. Highlight the
