@@ -433,8 +433,7 @@ body.mptbm-operation-areas-screen #wpbody-content {
 }
 
 .mptbm-operation-areas-field input[type="text"],
-.mptbm-operation-areas-field input[type="number"],
-.mptbm-operation-areas-field select {
+.mptbm-operation-areas-field input[type="number"] {
     box-sizing: border-box;
     width: 100%;
     min-height: 42px;
@@ -443,6 +442,19 @@ body.mptbm-operation-areas-screen #wpbody-content {
     border-radius: 10px;
     color: #1e293b;
     background: #fff;
+}
+
+.mptbm-operation-areas-field select {
+    box-sizing: border-box;
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    padding: 0 36px 0 12px;
+    border: 1px solid #d8dee9;
+    border-radius: 10px;
+    color: #1e293b;
+    background-color: #fff;
+    line-height: normal;
 }
 
 .mptbm-operation-areas-field input:focus,

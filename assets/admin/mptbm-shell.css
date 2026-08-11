@@ -48,6 +48,13 @@ body.mptbm-admin *::after {
     box-sizing: border-box;
 }
 
+/* WordPress gives native selects a tall line-height. Several MPTBM sections
+   use compact fixed-height controls, so keeping that inherited value can clip
+   the selected option even though the control itself has enough height. */
+body.mptbm-admin select:not([multiple]):not([size]) {
+    line-height: normal;
+}
+
 /* Edit screen only (fixed-overlay sidebar/topbar, not the flex shell) —
    push WP's native post-edit content clear of the overlay. */
 body.mptbm-admin.post-php.post-type-mptbm_rent #wpcontent,

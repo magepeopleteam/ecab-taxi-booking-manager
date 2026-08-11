@@ -1025,6 +1025,7 @@ select.formControl,
     border-radius: var(--mp-r-md);
     padding: 0 36px 0 14px;
     font-size: 14px;
+    line-height: normal;
     font-family: var(--mp-font);
     background: var(--mp-white);
     color: var(--mp-text-700);
