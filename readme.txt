@@ -210,6 +210,28 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 2.0.7 - 2026-08-11 =
+* Security: Hardened operation-area pricing saves with nonce verification, target-post authorization, post-type validation and field-level sanitization.
+* Security: Protected REST API routes against case-variant authentication bypasses and added endpoint-level read/write scope enforcement.
+* Fixed: Single transportation pages now search only the displayed vehicle instead of listing other taxis that use the same pricing model.
+* Fixed: Vehicle quantity, existing bookings and booking-interval buffers now disable unavailable pickup times correctly on both single-vehicle and global search forms.
+* Added: Manual Routes now have a per-vehicle frontend map switch, provider-aware city detection, labeled location markers and a responsive route-location legend.
+* Added: Selecting a manual route now draws the real road connection and shows server-verified distance and duration through Google Maps or OpenStreetMap/OSRM without changing the configured fixed fare.
+* Improved: Transportation editor updates now save without a page reload and provide reliable loading, success and editor-clean states.
+* Improved: Transportation list and single-vehicle navigation now include a direct View action and vehicle-scoped preview behavior.
+* Improved: Redesigned the Operation Area builder with guided drawing controls, a clearly marked starting point, editing tools, progress feedback and full mobile responsiveness.
+* Added: Saved operation areas now display fitted map previews focused on their drawn boundaries in a professional responsive grid.
+* Fixed: Admin dropdown labels and popup fields no longer appear clipped or hidden.
+
+= 2.0.6 - 2026-08-10 =
+1. Added a shortest-route pricing option and consistent route selection across browser and server calculations
+2. Added a separate server-side Google Maps API key option so browser keys can remain HTTP-referrer restricted
+3. Added configurable fare-distance sources, validated browser distances, TomTom routing support and automatic OSRM fallback
+4. Fare calculations, vehicle results, trip summaries and checkout now use the same verified distance and duration
+5. Added routing-provider diagnostics and clearer Map API settings for Google Maps and OpenStreetMap modes
+6. Booking forms now send no-cache headers so dates, availability and security nonces remain current
+7. Removed shared search transients that could leak one visitor's last date and time into another request
+
 = 2.0.5 =
 1. Offline payment added as a free method, with its own standalone checkout
 2. Payments settings split into WooCommerce / Custom tabs, plus a Currency Settings tab for standalone mode
@@ -308,5 +330,3 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 6. Location taxonomy added for manual pricing 
 7. Manual Pricing Slug issue fixed
 8. Fixed Hourly Responsive issue Fixed
-
-
