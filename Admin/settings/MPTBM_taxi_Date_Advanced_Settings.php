@@ -308,7 +308,16 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                 </div>
 
 
-                <div class="mptbm_rent_editor_wrapper mptbm_schedule_section">
+                <?php
+                // Hidden while 24-Hour Availability is on (the weekly hours below are
+                // meaningless then - see the toggle's own description). Uses the same
+                // generic data-collapse/data-collapse-target mechanism as the switch
+                // itself (mp_global/assets/mp_style/mp_script.js) and the Particular/
+                // Recurring panels above in this same file, rather than new JS -
+                // clicking the switch already looks for '[data-collapse="#mptbm_available_for_all_time"]'
+                // and slideToggles it, this section just wasn't listening before.
+                ?>
+                <div class="mptbm_rent_editor_wrapper mptbm_schedule_section<?php echo esc_attr($available_for_all_time === 'off' ? ' mActive' : ''); ?>" data-collapse="#mptbm_available_for_all_time">
                     <div class="mptbm_rent_editor_header mptbm_schedule_section_header">
                         <div class="mptbm_schedule_heading">
                             <span class="mptbm_schedule_heading_icon" aria-hidden="true">
