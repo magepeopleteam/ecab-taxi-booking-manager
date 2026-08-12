@@ -1357,6 +1357,19 @@
             $control.find('.mptbm_date_toggle_status').text(
                 this.checked ? $control.data('enabled-label') : $control.data('disabled-label')
             );
+
+            // Schedule Date Configuration's header badge - stays visible even while
+            // .mptbm_schedule_card (the actual weekly table) is collapsed underneath,
+            // so it can explain *why* the table is hidden/shown instead of the whole
+            // section just vanishing with no context. See MPTBM_taxi_Date_Advanced_Settings.php.
+            const $badge = $('.mptbm_schedule_header_badge');
+            if ($badge.length) {
+                $badge.toggleClass('is-inactive', this.checked);
+                const label = this.checked ? $badge.data('hidden-label') : $badge.data('active-label');
+                $badge.contents().filter(function() {
+                    return this.nodeType === 3; // just the trailing text node, leave the dot span alone
+                }).last().replaceWith(document.createTextNode(' ' + label));
+            }
         });
 
         $(document).on('change', '.mptbm_off_days_conainer input[type="checkbox"]', function() {

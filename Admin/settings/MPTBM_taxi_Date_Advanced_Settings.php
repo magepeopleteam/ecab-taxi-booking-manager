@@ -309,15 +309,18 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
 
 
                 <?php
-                // Hidden while 24-Hour Availability is on (the weekly hours below are
-                // meaningless then - see the toggle's own description). Uses the same
-                // generic data-collapse/data-collapse-target mechanism as the switch
-                // itself (mp_global/assets/mp_style/mp_script.js) and the Particular/
-                // Recurring panels above in this same file, rather than new JS -
-                // clicking the switch already looks for '[data-collapse="#mptbm_available_for_all_time"]'
-                // and slideToggles it, this section just wasn't listening before.
+                // The header (with the badge below) always stays visible so it's clear
+                // *why* the table beneath it is hidden or shown, instead of the whole
+                // section vanishing with no explanation. Only .mptbm_schedule_card - the
+                // actual weekly table, which is genuinely meaningless while 24-Hour
+                // Availability is on (see the toggle's own description) - collapses.
+                // Uses the same generic data-collapse/data-collapse-target mechanism as
+                // the switch itself (mp_global/assets/mp_style/mp_script.js) and the
+                // Particular/Recurring panels above in this same file, rather than new JS.
+                $schedule_badge_hidden_label = esc_html__('Hours ignored - 24-Hour Availability is on', 'ecab-taxi-booking-manager');
+                $schedule_badge_active_label = esc_html__('Weekly availability in effect', 'ecab-taxi-booking-manager');
                 ?>
-                <div class="mptbm_rent_editor_wrapper mptbm_schedule_section<?php echo esc_attr($available_for_all_time === 'off' ? ' mActive' : ''); ?>" data-collapse="#mptbm_available_for_all_time">
+                <div class="mptbm_rent_editor_wrapper mptbm_schedule_section">
                     <div class="mptbm_rent_editor_header mptbm_schedule_section_header">
                         <div class="mptbm_schedule_heading">
                             <span class="mptbm_schedule_heading_icon" aria-hidden="true">
@@ -328,12 +331,16 @@ if ( ! class_exists('MPTBM_taxi_Date_Advanced_Settings') ) {
                                 <p class="mptbm_rent_editor_subtitle"><?php esc_html_e('Set the default operating window, then customize individual days when needed.', 'ecab-taxi-booking-manager'); ?></p>
                             </div>
                         </div>
-                        <span class="mptbm_schedule_header_badge">
+                        <span
+                            class="mptbm_schedule_header_badge<?php echo esc_attr($available_for_all_time === 'off' ? '' : ' is-inactive'); ?>"
+                            data-active-label="<?php echo esc_attr($schedule_badge_active_label); ?>"
+                            data-hidden-label="<?php echo esc_attr($schedule_badge_hidden_label); ?>"
+                        >
                             <span class="mptbm_schedule_header_badge_dot" aria-hidden="true"></span>
-                            <?php esc_html_e('Weekly availability', 'ecab-taxi-booking-manager'); ?>
+                            <?php echo $available_for_all_time === 'off' ? $schedule_badge_active_label : $schedule_badge_hidden_label; ?>
                         </span>
                     </div>
-                    <div class="mptbm_schedule_card">
+                    <div class="mptbm_schedule_card<?php echo esc_attr($available_for_all_time === 'off' ? ' mActive' : ''); ?>" data-collapse="#mptbm_available_for_all_time">
                         <div class="mptbm_schedule_table_wrap">
                         <table class="mptbm_schedule_table">
                             <thead>

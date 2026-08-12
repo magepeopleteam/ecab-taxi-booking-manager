@@ -1185,6 +1185,20 @@ body.mptbm_driver_modal_open {
     font-weight: 700;
 }
 
+/* Shown while the table below is collapsed (24-Hour Availability is on) - same
+   badge, switched to a neutral/muted tone so it reads as "not currently in effect"
+   rather than the green "active" state used the rest of the time. */
+#mptbm_rent_settings_panel .mptbm_schedule_header_badge.is-inactive {
+    border-color: var(--mp-border);
+    color: var(--mp-text-muted, #6b7280);
+    background: var(--mp-gray-light, #f3f4f6);
+}
+
+#mptbm_rent_settings_panel .mptbm_schedule_header_badge.is-inactive .mptbm_schedule_header_badge_dot {
+    background: #9ca3af;
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.14);
+}
+
 #mptbm_rent_settings_panel .mptbm_schedule_header_badge_dot {
     width: 7px;
     height: 7px;
