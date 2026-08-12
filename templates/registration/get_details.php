@@ -105,64 +105,20 @@ $form_style_class = $form_style == 'horizontal' ? 'inputHorizontal' : 'inputInli
 $area_class = $price_based == 'manual' ? ' ' : 'justifyBetween';
 $area_class = $form_style != 'horizontal' ? 'mptbm_form_details_area fdColumn' : $area_class;
 $mptbm_all_transport_id = $vehicle_id ? array($vehicle_id) : MP_Global_Function::get_all_post_id('mptbm_rent');
-$mptbm_available_for_all_time = false;
+// The search form's own time picker always offers the full day, regardless of any
+// vehicle's 24-Hour Availability toggle or custom per-day hours - it used to be
+// narrowed to the min/max of every vehicle's combined schedule (site-wide, not
+// per-vehicle, and one non-24h vehicle could shrink it for everyone), which was
+// confusing since a vehicle's own hours are enforced separately at the results
+// stage (templates/registration/choose_vehicles.php filters out vehicles that
+// aren't open at the searched time). Leaving $day_specific_times empty here also
+// makes the per-date JS re-narrowing in this file's <script> block below
+// (updateTimeRangeForDay()) fall through to this same full-day range.
 $mptbm_schedule = [];
-$min_schedule_value = 0;
-$max_schedule_value = 24;
+$min_schedule_value = 0.5; // 30 minutes
+$max_schedule_value = 24;  // 24 hours
 $loop = 1;
 $day_specific_times = [];
-
-foreach ($mptbm_all_transport_id as $key => $value) {
-	if (MP_Global_Function::get_post_info($value, 'mptbm_available_for_all_time') == 'on') {
-		$mptbm_available_for_all_time = true;
-	}
-}
-
-if ($mptbm_available_for_all_time == false) {
-	$all_schedules = [];
-	$day_specific_times = [];
-	
-	foreach ($mptbm_all_transport_id as $key => $value) {
-		$transport_schedule = MPTBM_Function::get_schedule($value);
-		if (!empty($transport_schedule)) {
-			$all_schedules[] = $transport_schedule;
-		}
-	}
-	
-	// Process all schedules to find min/max times for each day
-	foreach ($all_schedules as $schedule) {
-		foreach ($schedule as $day => $times) {
-			if (is_array($times) && count($times) >= 2) {
-				$start_time = floatval($times[0]);
-				$end_time = floatval($times[1]);
-				
-				// Store times for each day
-				if (!isset($day_specific_times[$day])) {
-					$day_specific_times[$day] = ['start' => [], 'end' => []];
-				}
-				$day_specific_times[$day]['start'][] = $start_time;
-				$day_specific_times[$day]['end'][] = $end_time;
-			}
-		}
-	}
-	
-	// Calculate global min/max from all available times
-	$all_start_times = [];
-	$all_end_times = [];
-	foreach ($day_specific_times as $day => $times) {
-		$all_start_times = array_merge($all_start_times, $times['start']);
-		$all_end_times = array_merge($all_end_times, $times['end']);
-	}
-	
-	if (!empty($all_start_times) && !empty($all_end_times)) {
-		$min_schedule_value = min($all_start_times);
-		$max_schedule_value = max($all_end_times);
-	} else {
-		// If no schedules found, set default values
-		$min_schedule_value = 0.5; // 30 minutes
-		$max_schedule_value = 24;   // 24 hours
-	}
-}
 // Ensure the schedule values are numeric
 $min_schedule_value = floatval($min_schedule_value);
 $max_schedule_value = floatval($max_schedule_value);

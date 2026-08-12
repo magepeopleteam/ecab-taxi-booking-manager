@@ -571,9 +571,17 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
         <?php
     }
     
-    // Check if transport is available for all time
-    $available_all_time = get_post_meta($post_id, 'mptbm_available_for_all_time');
-    if($available_all_time[0] == 'on'){
+    // Check if transport is available for all time. Default to 'on' (24-hour) when
+    // never explicitly saved, same as everywhere else in the plugin (the vehicle
+    // editor's toggle itself, Admin/MPTBM_Transportation.php, etc. all default this
+    // meta to 'on' via get_post_info()/get_post_meta(..., true) with a default).
+    // The previous `get_post_meta($post_id, 'mptbm_available_for_all_time')` call
+    // (no `true`, no default) returned an empty array for any vehicle that had
+    // never had this field saved, so `$available_all_time[0]` was null - not 'on' -
+    // and such vehicles silently fell through to the custom-schedule branch below
+    // with no schedule configured, making them vanish from every search result.
+    $available_all_time = get_post_meta($post_id, 'mptbm_available_for_all_time', true);
+    if ($available_all_time === '' || $available_all_time === 'on') {
         return true;
     }
     

@@ -979,6 +979,20 @@ body.mptbm_driver_modal_open {
 
 #mptbm_rent_settings_panel .mptbm_date_toggle_control .roundSwitchLabel {
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* .roundSwitch (mp_global/assets/mp_style/mp_style.css) sets width/height but never
+   a display value, so it stays a plain inline <span> here - and non-replaced inline
+   elements ignore explicit width/height entirely, collapsing this switch to 0x0
+   (invisible and unclickable) since .mptbm_date_toggle_control only turns its direct
+   child .roundSwitchLabel into a flex item, not the nested .roundSwitch span two
+   levels down. Every other place this shared switch component is used happens to sit
+   in a context that gives it real dimensions some other way; this one didn't. */
+#mptbm_rent_settings_panel .mptbm_date_toggle_control .roundSwitch {
+    display: inline-block;
+    flex: 0 0 auto;
 }
 
 #mptbm_rent_settings_panel .mptbm_date_always_card .roundSwitchLabel input:checked + .roundSwitch {
