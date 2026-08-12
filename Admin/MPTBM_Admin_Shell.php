@@ -386,6 +386,18 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             $_POST['post_status'] = $desired_status;
             unset($_POST['publish'], $_POST['saveasdraft'], $_POST['saveasprivate'], $_POST['pending']);
 
+            // The native Publish box is hidden but still in the form, so its
+            // visibility radio ships with every save. Core's edit_post() applies
+            // that field BEFORE the button fields and, for 'private', forces
+            // post_status to private *and* makes _wp_translate_postdata() skip
+            // the 'publish' button entirely - so a Private vehicle could never
+            // be taken back to Public until visibility is realigned first.
+            if ($desired_status === 'private') {
+                $_POST['visibility'] = 'private';
+            } elseif ($desired_status === 'publish') {
+                $_POST['visibility'] = 'public';
+            }
+
             if ($desired_status === 'publish') {
                 $_POST['publish'] = '1';
             } elseif ($desired_status === 'draft') {
@@ -478,6 +490,64 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             return $settings;
         }
 
+        /**
+         * Status/visibility choices for the edit screen's split-button menu.
+         *
+         * WordPress's native Publish box - the only place its Public/Private
+         * visibility control lives - is hidden on this screen (see
+         * mptbm-shell.css), so without these items an admin had no way to take
+         * a vehicle from Private back to Public: the topbar's Update button
+         * deliberately preserves the current status. ajax_save_transport()
+         * already accepts every status listed here.
+         *
+         * Publish/Private are omitted for users who cannot publish (core's
+         * edit_post() would silently downgrade their request to Pending).
+         */
+        public static function get_status_menu_items(): array {
+            $items = array();
+            $post_type = get_post_type_object(MPTBM_Function::get_cpt());
+            $can_publish = $post_type && current_user_can($post_type->cap->publish_posts);
+
+            if ($can_publish) {
+                $items['publish'] = [
+                    'label' => __('Public', 'ecab-taxi-booking-manager'),
+                    'desc' => __('Visible & bookable by everyone', 'ecab-taxi-booking-manager'),
+                    'icon' => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"></circle></svg>',
+                ];
+                $items['private'] = [
+                    'label' => __('Private', 'ecab-taxi-booking-manager'),
+                    'desc' => __('Only visible to site admins', 'ecab-taxi-booking-manager'),
+                    'icon' => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"></rect><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>',
+                ];
+            }
+
+            $items['draft'] = [
+                'label' => __('Save Draft', 'ecab-taxi-booking-manager'),
+                'desc' => __('Hidden until published', 'ecab-taxi-booking-manager'),
+                'icon' => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>',
+            ];
+
+            $items = apply_filters('mptbm_shell_status_menu_items', $items);
+
+            // Normalize, and keep the menu in lockstep with the statuses
+            // ajax_save_transport() actually accepts — an add-on can't add an
+            // item here that the save endpoint would then reject.
+            $allowed = [ 'publish', 'private', 'pending', 'draft' ];
+            $menu = array();
+            foreach ((array) $items as $status => $item) {
+                if (!in_array($status, $allowed, true) || !is_array($item) || empty($item['label'])) {
+                    continue;
+                }
+                $menu[$status] = [
+                    'label' => (string) $item['label'],
+                    'desc' => isset($item['desc']) ? (string) $item['desc'] : '',
+                    'icon' => isset($item['icon']) ? (string) $item['icon'] : '',
+                ];
+            }
+
+            return $menu;
+        }
+
         public function render_edit_screen_chrome(): void {
             if (!self::is_metabox_screen()) {
                 return;
@@ -527,11 +597,24 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                         <button type="button" class="mptbm-split-publish__toggle" id="mptbm-edit-topbar-publish-toggle" aria-expanded="false" aria-haspopup="true" aria-label="<?php esc_attr_e('Toggle publish options', 'ecab-taxi-booking-manager'); ?>">
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                         </button>
-                        <div class="mptbm-split-publish__menu" role="menu" id="mptbm-edit-topbar-publish-menu">
-                            <button type="button" class="mptbm-split-publish__item mptbm-split-publish__draft" id="mptbm-edit-topbar-save-draft" role="menuitem">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                                <?php esc_html_e('Save Draft', 'ecab-taxi-booking-manager'); ?>
-                            </button>
+                        <div class="mptbm-split-publish__menu" role="menu" id="mptbm-edit-topbar-publish-menu" aria-label="<?php esc_attr_e('Status & visibility', 'ecab-taxi-booking-manager'); ?>">
+                            <div class="mptbm-split-publish__label" aria-hidden="true"><?php esc_html_e('Status & Visibility', 'ecab-taxi-booking-manager'); ?></div>
+                            <?php foreach (self::get_status_menu_items() as $status => $item) : ?>
+                                <button type="button"
+                                        class="mptbm-split-publish__item mptbm-split-publish__<?php echo esc_attr($status); ?><?php echo $status === $status_slug ? ' is-current' : ''; ?>"
+                                        <?php echo $status === 'draft' ? 'id="mptbm-edit-topbar-save-draft"' : ''; ?>
+                                        data-status="<?php echo esc_attr($status); ?>"
+                                        role="menuitemradio"
+                                        aria-checked="<?php echo $status === $status_slug ? 'true' : 'false'; ?>">
+                                    <?php echo $item['icon']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static inline SVG ?>
+                                    <span class="mptbm-split-publish__item-text">
+                                        <span class="mptbm-split-publish__item-title"><?php echo esc_html($item['label']); ?></span>
+                                        <?php if ($item['desc'] !== '') : ?>
+                                            <span class="mptbm-split-publish__item-desc"><?php echo esc_html($item['desc']); ?></span>
+                                        <?php endif; ?>
+                                    </span>
+                                </button>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>

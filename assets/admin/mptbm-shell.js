@@ -371,6 +371,11 @@ jQuery(function ($) {
 				finishSaveButton(data.buttonLabel);
 			}, 900);
 			$('#post_status, #hidden_post_status, #original_post_status').val(data.status);
+			// Realign the hidden native Publish box's visibility field, which is
+			// still submitted with every save (see ajax_save_transport()).
+			var visibility = data.status === 'private' ? 'private' : 'public';
+			$('input[name="visibility"]').filter('[value="' + visibility + '"]').prop('checked', true);
+			$('#hidden-post-visibility').val(visibility);
 			$('#auto_draft').val('');
 			$('#_wpnonce').val(data.postNonce);
 			$('#mptbm-edit-topbar-title').text(data.title || $('#title').val());
@@ -378,6 +383,14 @@ jQuery(function ($) {
 				.removeClass('is-publish is-draft is-pending is-private')
 				.addClass('is-' + data.status)
 				.text(data.statusLabel);
+			// Keep the status menu's "current" marker in sync — the pill and the
+			// menu must never disagree about what the vehicle's visibility is.
+			$('#mptbm-edit-topbar-publish-menu .mptbm-split-publish__item')
+				.removeClass('is-current')
+				.attr('aria-checked', 'false')
+				.filter('[data-status="' + data.status + '"]')
+				.addClass('is-current')
+				.attr('aria-checked', 'true');
 			$realPublish.val(data.buttonLabel);
 			$topbarUpdate.removeClass('is-saving').text(mptbmShell.saved || 'Saved');
 			$('#mptbm-edit-topbar-preview').attr('data-preview-url', data.previewUrl).show();
@@ -432,15 +445,17 @@ jQuery(function ($) {
 		});
 	}
 
-	// Split-button "Save Draft" — available both before and after first
-	// publish, so an already-published vehicle can be taken back to Draft too.
+	// Split-button status menu (Public / Private / Save Draft) — each item is
+	// available both before and after first publish, so a published vehicle can
+	// be taken back to Draft and a Private one can be made Public again (the
+	// native Publish box that used to own visibility is hidden on this screen).
 	var $splitPublish = $('#mptbm-edit-topbar-publish');
 	if ($splitPublish.length) {
-		$('#mptbm-edit-topbar-save-draft').on('click', function (e) {
+		$splitPublish.on('click', '.mptbm-split-publish__item[data-status]', function (e) {
 			e.preventDefault();
 			$splitPublish.removeClass('is-open');
 			$publishToggle.attr('aria-expanded', 'false');
-			ajaxSaveTransport('draft');
+			ajaxSaveTransport($(this).data('status'));
 		});
 
 		$publishToggle.on('click', function (e) {

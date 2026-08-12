@@ -587,7 +587,7 @@ div#mptbm_rent_settings_panel {
     position: absolute;
     top: calc(100% + 6px);
     right: 0;
-    min-width: 160px;
+    min-width: 232px;
     background: var(--mp-white, #fff);
     border: 1px solid var(--mp-border, #e2e8f0);
     border-radius: var(--mp-r-md, 10px);
@@ -597,6 +597,15 @@ div#mptbm_rent_settings_panel {
     z-index: 1000;
 }
 .mptbm-split-publish.is-open .mptbm-split-publish__menu { display: block; }
+
+.mptbm-split-publish__label {
+    padding: 4px 10px 6px;
+    color: var(--mp-text-400, #94a3b8);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
 
 .mptbm-split-publish__item {
     display: flex;
@@ -614,6 +623,31 @@ div#mptbm_rent_settings_panel {
     cursor: pointer;
 }
 .mptbm-split-publish__item:hover { background: var(--mp-bg-muted, #f1f5f9); }
+.mptbm-split-publish__item > svg { flex: 0 0 16px; }
+.mptbm-split-publish__item-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+}
+.mptbm-split-publish__item-desc {
+    color: var(--mp-text-400, #94a3b8);
+    font-size: 11px;
+    font-weight: 400;
+}
+/* The vehicle's live status, so the menu never contradicts the topbar pill. */
+.mptbm-split-publish__item.is-current {
+    color: var(--mp-primary, #4f46e5);
+}
+.mptbm-split-publish__item.is-current::after {
+    content: '';
+    flex: 0 0 auto;
+    width: 12px;
+    height: 7px;
+    margin-left: auto;
+    border-left: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg) translateY(-2px);
+}
 
 .mptbm-ajax-save-notice {
 	position: fixed;
