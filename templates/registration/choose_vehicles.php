@@ -1084,6 +1084,12 @@ $mptbm_priced_duration_text = !empty($mptbm_search_context['distance_verified'])
 					};
 					$toolbar_start_display = $toolbar_place_short($toolbar_start_display);
 					$toolbar_end_display = $toolbar_place_short($toolbar_end_display);
+					// Order the results list is presented in before the customer touches the
+					// "Sort by" control. Free always answers 'recommended' (the query order,
+					// i.e. exactly what this list has always done); add-ons can return any of
+					// the values the dropdown below offers, and the cards are then printed in
+					// that order server-side rather than being shuffled by JS after paint.
+					$mptbm_default_sort = apply_filters('mptbm_default_sort_order', 'recommended');
 					?>
 					<div class="mptbm_results_toolbar">
 						<div class="mptbm_results_trip">
@@ -1144,10 +1150,10 @@ $mptbm_priced_duration_text = !empty($mptbm_search_context['distance_verified'])
 							<label class="mptbm_results_sort">
 								<span class="mptbm_results_sort_label_sr"><?php esc_html_e('Sort by', 'ecab-taxi-booking-manager'); ?></span>
 								<select class="mptbm_sort_select formControl" aria-label="<?php esc_attr_e('Sort by', 'ecab-taxi-booking-manager'); ?>">
-									<option value="recommended"><?php esc_html_e('Recommended', 'ecab-taxi-booking-manager'); ?></option>
-									<option value="price_low"><?php esc_html_e('Price: Low to High', 'ecab-taxi-booking-manager'); ?></option>
-									<option value="price_high"><?php esc_html_e('Price: High to Low', 'ecab-taxi-booking-manager'); ?></option>
-									<option value="rating"><?php esc_html_e('Highest Rated', 'ecab-taxi-booking-manager'); ?></option>
+									<option value="recommended" <?php selected($mptbm_default_sort, 'recommended'); ?>><?php esc_html_e('Recommended', 'ecab-taxi-booking-manager'); ?></option>
+									<option value="price_low" <?php selected($mptbm_default_sort, 'price_low'); ?>><?php esc_html_e('Price: Low to High', 'ecab-taxi-booking-manager'); ?></option>
+									<option value="price_high" <?php selected($mptbm_default_sort, 'price_high'); ?>><?php esc_html_e('Price: High to Low', 'ecab-taxi-booking-manager'); ?></option>
+									<option value="rating" <?php selected($mptbm_default_sort, 'rating'); ?>><?php esc_html_e('Highest Rated', 'ecab-taxi-booking-manager'); ?></option>
 								</select>
 							</label>
 						</div>
@@ -1161,9 +1167,15 @@ $all_posts = MPTBM_Query::query_transport_list($price_based, $source_vehicle_id)
 if ($all_posts->found_posts > 0) {
     $posts = $all_posts->posts;
     $vehicle_item_count = 0;
-    
+
     // Cache for base distances to avoid redundant API calls
     static $base_distance_cache = [];
+
+    // Each card is rendered into this list instead of straight to the page, so the
+    // whole set can be ordered once every price is known and only then printed.
+    // Prices cannot be compared any earlier than this: they are worked out inside
+    // the loop below, per vehicle, from the searched route.
+    $mptbm_result_items = [];
     
     
     foreach ($posts as $post) {
@@ -1327,6 +1339,10 @@ if ($all_posts->found_posts > 0) {
             if ($price_display_type === 'custom_message' && $custom_message) {
                 $price_display = '<div class="mptbm-custom-price-message" style="font-size: 15px;">' . wp_kses_post($custom_message) . '</div>';
                 $raw_price = 0; // Set raw price to 0 for custom message
+                // No comparable figure is shown on this card, so it must stay out of
+                // price ordering and out of "cheapest vehicle" entirely - same reason
+                // $raw_price is zeroed just above.
+                $display_price = 0;
             } else {
                 $wc_price = MP_Global_Function::wc_price($post_id, $display_price);
                 // Use high-precision price for calculation to match backend, but ensure it receives same tax treatment if needed
@@ -1345,10 +1361,45 @@ if ($all_posts->found_posts > 0) {
                 $price_display = $wc_price;
             }
             
+            // Reset before the include so the rating read back below can only ever be
+            // this vehicle's own - the template leaves it untouched on the paths where
+            // it renders nothing at all.
+            $vehicle_avg_rating = 0;
+            ob_start();
             include MPTBM_Function::template_path("registration/vehicle_item.php");
+            $mptbm_item_html = ob_get_clean();
+
+            if (trim($mptbm_item_html) !== '') {
+                $mptbm_result_items[] = array(
+                    'post_id' => $post_id,
+                    // The figure actually printed on the card, which is not always
+                    // $raw_price: base-price and per-stop charges are added on top of it
+                    // for display. Ordering on anything else would put the list in a
+                    // different order than the prices the customer is reading.
+                    'price'   => (float) $display_price,
+                    'rating'  => (float) $vehicle_avg_rating,
+                    'html'    => $mptbm_item_html,
+                );
+            }
         }
     }
-    
+
+    /**
+     * Order of the rendered vehicle cards. Free returns them untouched, in query
+     * order. Each entry has 'post_id', 'price' (as displayed), 'rating' and 'html';
+     * a handler should reorder the list and return it, not rewrite the markup.
+     */
+    $mptbm_result_items = apply_filters('mptbm_search_result_items', $mptbm_result_items, array(
+        'default_sort' => $mptbm_default_sort,
+        'price_based'  => $price_based,
+    ));
+
+    foreach ((array) $mptbm_result_items as $mptbm_result_item) {
+        if (is_array($mptbm_result_item) && isset($mptbm_result_item['html'])) {
+            echo $mptbm_result_item['html']; // Already-escaped markup built by vehicle_item.php.
+        }
+    }
+
 } else {
 ?>
 						<div class="_dLayout_mT_bgWarning">

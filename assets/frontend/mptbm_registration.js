@@ -4963,6 +4963,15 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
 (function ($) {
     "use strict";
 
+    // The price printed on the card, which is what "cheapest" has to mean here:
+    // data-transport-price is the vehicle's own fare before the base-price and
+    // per-stop charges that get added on top of it for display, so comparing that
+    // instead can badge one card while a cheaper-looking one sits above it.
+    function cardPrice(el) {
+        var displayed = parseFloat($(el).attr('data-display-price'));
+        return isFinite(displayed) ? displayed : parseFloat($(el).attr('data-transport-price'));
+    }
+
     function highlightBestPrice() {
         $('.mainSection').each(function () {
             var mainSection = $(this);
@@ -4970,7 +4979,7 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
             var cheapestPrice = Infinity;
 
             mainSection.find('.mptbm_transport_select[data-transport-price]').each(function () {
-                var price = parseFloat($(this).attr('data-transport-price'));
+                var price = cardPrice(this);
                 var item = $(this).closest('.mptbm_booking_item');
                 if (!price || price <= 0 || item.hasClass('mptbm_booking_item_hidden')) {
                     return;
@@ -5026,8 +5035,8 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
         var ordered;
         if (mode === 'price_low' || mode === 'price_high') {
             ordered = wrappers.slice().sort(function (a, b) {
-                var priceA = parseFloat($(a).find('[data-transport-price]').first().attr('data-transport-price')) || 0;
-                var priceB = parseFloat($(b).find('[data-transport-price]').first().attr('data-transport-price')) || 0;
+                var priceA = cardPrice($(a).find('[data-transport-price]').first()) || 0;
+                var priceB = cardPrice($(b).find('[data-transport-price]').first()) || 0;
                 return mode === 'price_high' ? priceB - priceA : priceA - priceB;
             });
         } else if (mode === 'rating') {
