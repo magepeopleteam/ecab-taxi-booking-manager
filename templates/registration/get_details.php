@@ -105,20 +105,96 @@ $form_style_class = $form_style == 'horizontal' ? 'inputHorizontal' : 'inputInli
 $area_class = $price_based == 'manual' ? ' ' : 'justifyBetween';
 $area_class = $form_style != 'horizontal' ? 'mptbm_form_details_area fdColumn' : $area_class;
 $mptbm_all_transport_id = $vehicle_id ? array($vehicle_id) : MP_Global_Function::get_all_post_id('mptbm_rent');
-// The search form's own time picker always offers the full day, regardless of any
-// vehicle's 24-Hour Availability toggle or custom per-day hours - it used to be
-// narrowed to the min/max of every vehicle's combined schedule (site-wide, not
-// per-vehicle, and one non-24h vehicle could shrink it for everyone), which was
-// confusing since a vehicle's own hours are enforced separately at the results
-// stage (templates/registration/choose_vehicles.php filters out vehicles that
-// aren't open at the searched time). Leaving $day_specific_times empty here also
-// makes the per-date JS re-narrowing in this file's <script> block below
-// (updateTimeRangeForDay()) fall through to this same full-day range.
+// Pickup/return time options are built from the Schedule Date Configuration of the
+// vehicles actually in scope: just this one on a single-vehicle page, the whole
+// fleet on the global search form. Offering the full 24 hours regardless (what this
+// did before) let a customer pick 22:35 from a fleet that only runs 06:00-19:00 and
+// get "No Transport Available" with nothing explaining why - the hours were only
+// enforced later, at the results stage, in choose_vehicles.php.
+//
+// The reason it was turned off is real and is handled here: a vehicle set to
+// 24-Hour Availability stores no per-day times at all, so it used to contribute
+// nothing to the min/max and the picker collapsed to the hours of whichever
+// restricted vehicle did store times. Such a vehicle now explicitly contributes the
+// full day, so it widens the range instead of being invisible to it.
 $mptbm_schedule = [];
-$min_schedule_value = 0.5; // 30 minutes
-$max_schedule_value = 24;  // 24 hours
 $loop = 1;
 $day_specific_times = [];
+
+$mptbm_week_days = array_keys(MP_Global_Function::week_day());
+$mptbm_day_start = [];   // day => [start floats]
+$mptbm_day_end = [];     // day => [end floats]
+// The window a 24-hour (or overnight) vehicle contributes. Deliberately the same
+// 0.5-24 this form used to hard-code for everyone, so a site where every vehicle is
+// 24h keeps precisely the option list it has today and only sites that actually
+// configured a schedule see any change at all.
+$mptbm_full_day_start = 0.5;
+$mptbm_full_day_end = 24.0;
+
+foreach ($mptbm_all_transport_id as $mptbm_schedule_post_id) {
+	// Unset means 24h - the same default the toggle, the vehicle editor and
+	// wptbm_get_schedule() all use, so a vehicle that never saved the field is not
+	// silently treated as having no opening hours.
+	$mptbm_all_time = get_post_meta($mptbm_schedule_post_id, 'mptbm_available_for_all_time', true);
+	$mptbm_default_start = get_post_meta($mptbm_schedule_post_id, 'mptbm_default_start_time', true);
+	$mptbm_default_end = get_post_meta($mptbm_schedule_post_id, 'mptbm_default_end_time', true);
+
+	foreach ($mptbm_week_days as $mptbm_day) {
+		if ($mptbm_all_time === '' || $mptbm_all_time === 'on') {
+			$mptbm_day_start[$mptbm_day][] = $mptbm_full_day_start;
+			$mptbm_day_end[$mptbm_day][] = $mptbm_full_day_end;
+			continue;
+		}
+
+		$mptbm_day_start_time = get_post_meta($mptbm_schedule_post_id, 'mptbm_' . $mptbm_day . '_start_time', true);
+		$mptbm_day_end_time = get_post_meta($mptbm_schedule_post_id, 'mptbm_' . $mptbm_day . '_end_time', true);
+		if ($mptbm_day_start_time === '' || $mptbm_day_start_time === 'default') {
+			$mptbm_day_start_time = $mptbm_default_start;
+		}
+		if ($mptbm_day_end_time === '' || $mptbm_day_end_time === 'default') {
+			$mptbm_day_end_time = $mptbm_default_end;
+		}
+		if ($mptbm_day_start_time === '' || $mptbm_day_end_time === '') {
+			continue;
+		}
+
+		$mptbm_day_start_time = floatval($mptbm_day_start_time);
+		$mptbm_day_end_time = floatval($mptbm_day_end_time);
+		// An overnight window (22:00-06:00) wraps midnight and cannot be expressed as
+		// one linear min..max range - narrowing to 6..22 would hide exactly the hours
+		// the vehicle is open. Offer the full day and let choose_vehicles.php, which
+		// understands wrapping, do the filtering for this one.
+		if ($mptbm_day_start_time > $mptbm_day_end_time) {
+			$mptbm_day_start[$mptbm_day][] = $mptbm_full_day_start;
+			$mptbm_day_end[$mptbm_day][] = $mptbm_full_day_end;
+			continue;
+		}
+		$mptbm_day_start[$mptbm_day][] = $mptbm_day_start_time;
+		$mptbm_day_end[$mptbm_day][] = $mptbm_day_end_time;
+	}
+}
+
+// Shape the JS in this file's <script> block already expects: per weekday, the
+// list of every in-scope vehicle's opening and closing time. It takes min(start)
+// and max(end), so the picker spans the union - a time is offered when at least
+// one vehicle could serve it, never only when all of them can.
+foreach ($mptbm_week_days as $mptbm_day) {
+	if (!empty($mptbm_day_start[$mptbm_day]) && !empty($mptbm_day_end[$mptbm_day])) {
+		$day_specific_times[$mptbm_day] = array(
+			'start' => array_values($mptbm_day_start[$mptbm_day]),
+			'end'   => array_values($mptbm_day_end[$mptbm_day]),
+		);
+	}
+}
+
+// Range for the initial paint, before any date (and therefore any weekday) has
+// been chosen: the widest window across the whole week. Falls back to the old
+// full-day values when no vehicle has a usable schedule, so a site that has never
+// configured one behaves exactly as it did.
+$mptbm_all_starts = $mptbm_day_start ? array_merge(...array_values($mptbm_day_start)) : [];
+$mptbm_all_ends = $mptbm_day_end ? array_merge(...array_values($mptbm_day_end)) : [];
+$min_schedule_value = $mptbm_all_starts ? min($mptbm_all_starts) : 0.5;
+$max_schedule_value = $mptbm_all_ends ? max($mptbm_all_ends) : 24;
 // Ensure the schedule values are numeric
 $min_schedule_value = floatval($min_schedule_value);
 $max_schedule_value = floatval($max_schedule_value);
@@ -128,7 +204,9 @@ if (!function_exists('convertToMinutes')) {
 	{
 		$hours = floor($schedule_value); // Get the hour part
 		$minutes = ($schedule_value - $hours) * 100; // Convert decimal part to minutes
-		return $hours * 60 + $minutes;
+		// Rounded: 6.30 is stored as the float 6.3, and (6.3 - 6) * 100 lands on
+		// 30.000000000000004, which drags that noise through every loop bound below.
+		return (int) round($hours * 60 + $minutes);
 	}
 }
 
