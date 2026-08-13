@@ -889,21 +889,23 @@ if (MP_Global_Function::get_settings("mptbm_general_settings", "enable_filter_vi
     $feature_bag_number = isset($_POST["feature_bag_number"]) ? sanitize_text_field($_POST["feature_bag_number"]) : "";
     $feature_hand_luggage_number = isset($_POST["feature_hand_luggage_number"]) ? sanitize_text_field($_POST["feature_hand_luggage_number"]) : "";
 }
-$mptbm_bags = [];
-$mptbm_passengers = [];
-$mptbm_hand_luggage = [];
+// Upper bound of the "Number Of Passengers"/"Number Of Bags" filter dropdowns:
+// the largest capacity anywhere in the fleet, so every vehicle stays reachable.
+// Read as plain ints - get_feature_bag()/get_feature_passenger() pass $single =
+// 0 to get_post_meta(), so each one hands back an *array*, and max() over an
+// array of arrays compared them element-wise. That happened to give the right
+// answer, but it broke in two ways: max([]) is a fatal ValueError in PHP 8 when
+// no vehicle exists yet, and a vehicle with the meta missing contributes an
+// empty array that can win the comparison, collapsing the dropdown to just "0".
+$mptbm_bags = 0;
+$mptbm_passengers = 0;
+$mptbm_hand_luggage_max = 0;
 $mptbm_all_transport_id = MP_Global_Function::get_all_post_id('mptbm_rent');
 foreach ($mptbm_all_transport_id as $key => $value) {
-	array_push($mptbm_bags, MPTBM_Function::get_feature_bag($value));
-	array_push($mptbm_passengers, MPTBM_Function::get_feature_passenger($value));
-	$hand_luggage = (int) get_post_meta($value, 'mptbm_maximum_hand_luggage', true);
-	if ($hand_luggage > 0) {
-		array_push($mptbm_hand_luggage, $hand_luggage);
-	}
+	$mptbm_bags = max($mptbm_bags, (int) get_post_meta($value, 'mptbm_maximum_bag', true));
+	$mptbm_passengers = max($mptbm_passengers, (int) get_post_meta($value, 'mptbm_maximum_passenger', true));
+	$mptbm_hand_luggage_max = max($mptbm_hand_luggage_max, (int) get_post_meta($value, 'mptbm_maximum_hand_luggage', true));
 }
-$mptbm_bags =  max($mptbm_bags);
-$mptbm_passengers = max($mptbm_passengers);
-$mptbm_hand_luggage_max = !empty($mptbm_hand_luggage) ? max($mptbm_hand_luggage) : 0;
 
 $selected_max_passenger = isset($_POST['mptbm_max_passenger']) ? intval($_POST['mptbm_max_passenger']) : 0;
 $selected_max_bag = isset($_POST['mptbm_max_bag']) ? intval($_POST['mptbm_max_bag']) : 0;
@@ -1027,7 +1029,7 @@ $mptbm_priced_duration_text = !empty($mptbm_search_context['distance_verified'])
                         <label>
 								<select id ="mptbm_passenger_number" class="formControl" name="mptbm_passenger_number">
 								<?php
-                                    for ($i = 0; $i <= $mptbm_passengers[0]; $i++) {
+                                    for ($i = 0; $i <= $mptbm_passengers; $i++) {
                                         echo '<option value="' . esc_html($i) . '">' .  esc_html($i) . '</option>';
                                     }
                                 ?>
@@ -1040,7 +1042,7 @@ $mptbm_priced_duration_text = !empty($mptbm_search_context['distance_verified'])
                         <label>
 								<select id ="mptbm_shopping_number" class="formControl" name="mptbm_shopping_number">
                                     <?php
-                                        for ($i = 0; $i <= $mptbm_bags[0]; $i++) {
+                                        for ($i = 0; $i <= $mptbm_bags; $i++) {
                                             echo '<option value="' . esc_html($i) . '">' .  esc_html($i) . '</option>';
                                         }
                                     ?>

@@ -359,7 +359,10 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					array(
 						'name' => 'enable_buffer_time',
 						'label' => $label . ' ' . esc_html__('Buffer Time', 'ecab-taxi-booking-manager'),
-						'desc' => esc_html__('Enter buffer time per minutes. Also you have to change the timezone from') . '<strong style="color: red;">' . esc_html__('Settings --> General --> Timezone', 'ecab-taxi-booking-manager') . '</strong>',
+						// Text domain was missing on the first half, so the sentence could never
+						// be translated and stayed English on localised sites while the red
+						// "Settings --> General --> Timezone" tail beside it did translate.
+						'desc' => esc_html__('Enter buffer time per minutes. Also you have to change the timezone from', 'ecab-taxi-booking-manager') . '<strong style="color: red;">' . esc_html__('WordPress Settings --> General --> Timezone', 'ecab-taxi-booking-manager') . '</strong>',
 						'type' => 'text',
 						'placeholder' => 'Ex:10'
 						),

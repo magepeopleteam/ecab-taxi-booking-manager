@@ -210,6 +210,15 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 2.0.8 - 2026-08-13 =
+* Fixed: The passenger and bag filter on the search results now keeps every vehicle able to carry the selected number, instead of matching that capacity exactly and emptying the list.
+* Fixed: Vehicles filtered out by the passenger and bag filter now actually disappear from the results instead of fading and reappearing.
+* Fixed: The passenger and bag filter dropdowns now always offer the full capacity range of the fleet, and no longer fail when a vehicle has no capacity set or no vehicles exist yet.
+* Added: Public/Private visibility options in the vehicle editor.
+* Added: Hooks for ordering the vehicle search results.
+* Fixed: Day-wise availability and the day schedule now handle 24-hour opening times correctly.
+* Fixed: The buffer time hint now translates properly and points clearly at the WordPress timezone setting.
+
 = 2.0.7 - 2026-08-11 =
 * Security: Hardened operation-area pricing saves with nonce verification, target-post authorization, post-type validation and field-level sanitization.
 * Security: Protected REST API routes against case-variant authentication bypasses and added endpoint-level read/write scope enforcement.

@@ -6,8 +6,12 @@
       "change",
       "#mptbm_shopping_number, #mptbm_passenger_number",
       function () {
-        // 0 (nothing selected) means "no filter" for that dropdown; any other
-        // value must match a vehicle's capacity exactly - not "at least".
+        // 0 (nothing selected) means "no filter" for that dropdown. Anything
+        // else is a *minimum*: "3 passengers" asks for a vehicle that can
+        // CARRY 3, so a 4- or 8-seater still qualifies. Matching the capacity
+        // exactly instead hid every larger vehicle and routinely emptied the
+        // whole result list - a 2-passenger search on a fleet of 4/6/8-seaters
+        // matched nothing at all.
         let shoppingNumber = parseInt($("#mptbm_shopping_number").val()) || 0;
         let passengerNumber = parseInt($("#mptbm_passenger_number").val()) || 0;
 
@@ -17,8 +21,8 @@
           let passengerCapacity = parseInt(element.getAttribute("data-mptbm-passanger"), 10) || 0;
           let bagCapacity = parseInt(element.getAttribute("data-mptbm-beg-count"), 10) || 0;
 
-          let passengerMatches = passengerNumber === 0 || passengerNumber === passengerCapacity;
-          let bagMatches = shoppingNumber === 0 || shoppingNumber === bagCapacity;
+          let passengerMatches = passengerNumber === 0 || passengerCapacity >= passengerNumber;
+          let bagMatches = shoppingNumber === 0 || bagCapacity >= shoppingNumber;
 
           // NOT $(element).hide()/.show() - .mptbm_transport_search_area
           // .mptbm_booking_item has "display: flex !important" (mptbm_style.css),
