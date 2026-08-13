@@ -149,36 +149,26 @@
     opacity: 0;
 }
 
-/* Card grid. Masonry-ish columns rather than a row grid: the cards have wildly
-   different check counts, and a row grid left a tall card stretching the row and
-   a lake of white space beside the short ones. Columns let each card follow the
-   one above it immediately. */
+/* Card grid.
+   Deliberately a grid and NOT CSS multi-column: with column-count the browser
+   balances by height, and because each card is break-inside:avoid it packed all
+   of them into the first three columns and left the fourth completely empty.
+   auto-fit only ever creates as many tracks as there is content to put in them,
+   so an empty trailing column is not possible here. */
 .mptbm-status-grid {
-    column-count: 2;
-    column-gap: 20px;
-}
-
-@media screen and (min-width: 1200px) {
-    .mptbm-status-grid {
-        column-count: 3;
-    }
-}
-
-@media screen and (min-width: 1600px) {
-    .mptbm-status-grid {
-        column-count: 4;
-    }
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 20px;
+    /* stretch (the default) rather than start: cards in the same row end level
+       with each other, so a short card reads as a finished card with room to
+       spare instead of leaving a torn-looking hole beside its taller neighbour. */
+    align-items: stretch;
 }
 
 /* Card */
 .mptbm-status-card {
-    /* break-inside is what stops a card being sliced across two columns. */
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
-    page-break-inside: avoid;
-    display: inline-block;
-    width: 100%;
-    margin: 0 0 20px;
+    display: flex;
+    flex-direction: column;
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 18px;
@@ -186,71 +176,90 @@
     overflow: hidden;
 }
 
-/* Check rows */
-.mptbm-status-list {
+/* Check rows.
+   These carry the .mpStyle.mptbm-status-page prefix on purpose. mp_style.css
+   ships `.mpStyle ul li { padding: 0 }` (0,2,1) and `.mpStyle ul:not(...)`
+   (0,2,2), both of which outrank a bare `.mptbm-status-row` (0,1,0) — which is
+   why every row sat flush against the card border with its value clipped off
+   the right edge. Three classes + an element (0,3,1) wins cleanly. Same trap
+   the .mpStyle.mptbm-status-page padding rule at the top of this file works
+   around. */
+.mpStyle.mptbm-status-page ul.mptbm-status-list {
+    /* flex:1 lets the list absorb the extra height a stretched card gets, so the
+       bottom border and the card's rounded corner never collide. */
+    flex: 1 1 auto;
     margin: 0;
-    padding: 6px 0;
+    padding: 8px 0 10px;
     list-style: none;
 }
 
-.mptbm-status-row {
+.mpStyle.mptbm-status-page li.mptbm-status-row {
     margin: 0;
-    padding: 13px 24px;
+    padding: 12px 22px;
     border-bottom: 1px solid #eef1f7;
+    line-height: 1.5;
     transition: background 0.2s ease;
 }
 
-.mptbm-status-row:last-child {
+.mpStyle.mptbm-status-page li.mptbm-status-row:last-child {
     border-bottom: none;
 }
 
-.mptbm-status-row:hover {
+.mpStyle.mptbm-status-page li.mptbm-status-row:hover {
     background-color: #f8fafc;
 }
 
+/* flex-start, not center: values long enough to wrap (a filesystem path, a
+   MariaDB version banner) used to centre their whole pill against the label,
+   which floated the status icon off on its own line away from the text it
+   belongs to. Top-aligning keeps the icon next to the first line. */
 .mptbm-status-row-main {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
-    min-height: 26px;
+    gap: 14px;
+    min-height: 28px;
 }
 
 .mptbm-status-row-label {
     flex: 1 1 auto;
     min-width: 0;
+    padding-top: 5px;
     color: #111827;
     font-size: 13.5px;
     font-weight: 600;
-    line-height: 1.45;
+    line-height: 1.5;
     word-break: break-word;
 }
 
-/* flex-shrink is capped rather than free: a long value (a filesystem path, a
-   database version string) otherwise squeezed the pill down to a sliver and
-   wrapped it one character per line. */
+/* flex-shrink is capped rather than free, otherwise a long value squeezed the
+   pill down to a sliver and wrapped it one character per line. */
 .mptbm-status-badge {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 7px;
     flex: 0 1 auto;
     max-width: 58%;
     padding: 5px 13px;
-    border-radius: 999px;
+    border-radius: 14px;
     font-size: 12.5px;
     font-weight: 700;
-    line-height: 1.45;
+    line-height: 1.5;
     text-align: left;
     overflow-wrap: anywhere;
 }
+
 
 .mptbm-status-badge.is-good { background: #ecfdf3; color: #15803d; }
 .mptbm-status-badge.is-warning { background: #fff7ed; color: #b45309; }
 .mptbm-status-badge.is-critical { background: #fef2f2; color: #b91c1c; }
 .mptbm-status-badge.is-info { background: #f1f5f9; color: #475569; }
 
+/* margin-top nudges the glyph onto the cap-height of the first line rather than
+   its box top, which matters once a long value wraps to two lines. */
 .mptbm-status-badge i {
     flex: 0 0 auto;
+    margin-top: 3px;
     font-size: 12px;
 }
 
@@ -276,7 +285,7 @@
    them the same rhythm as the native rows above rather than the tighter
    default table spacing. */
 .mptbm-status-card .mptbm-status-table tr {
-    padding: 13px 24px;
+    padding: 12px 22px;
     border-bottom: 1px solid #eef1f7;
 }
 
@@ -291,9 +300,10 @@
 
 .mptbm-status-card-header {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     gap: 10px;
-    padding: 18px 24px;
+    padding: 16px 22px;
     border-bottom: 1px solid #e8eaf2;
     background: #f8fafc;
 }
@@ -407,7 +417,7 @@
     }
 
     .mptbm-status-grid {
-        column-count: 1;
+        grid-template-columns: 1fr;
     }
 
     .mptbm-status-summary {

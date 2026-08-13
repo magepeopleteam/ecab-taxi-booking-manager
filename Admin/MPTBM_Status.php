@@ -10,6 +10,32 @@
 		class MPTBM_Status {
 			public function __construct() {
 				add_action('admin_menu', array($this, 'status_menu'));
+				add_action('admin_enqueue_scripts', array($this, 'enqueue_assets'));
+			}
+
+			private function is_status_screen(): bool {
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- reading the current screen, not acting on input.
+				return is_admin() && isset($_GET['page']) && sanitize_key(wp_unslash($_GET['page'])) === 'mptbm_status_page';
+			}
+
+			/**
+			 * The stylesheet used to be enqueued from inside status_page() itself, which
+			 * runs on admin_notices - long after wp_head has already been printed. The
+			 * style therefore landed in the footer and the whole page painted unstyled
+			 * first, so every load flashed raw markup before snapping into place.
+			 * admin_enqueue_scripts runs early enough for it to reach <head>.
+			 */
+			public function enqueue_assets(): void {
+				if (!$this->is_status_screen()) {
+					return;
+				}
+				$css_path = MPTBM_PLUGIN_DIR . '/assets/admin/css/status.css';
+				wp_enqueue_style(
+					'mptbm-status-style',
+					MPTBM_PLUGIN_URL . '/assets/admin/css/status.css',
+					array(),
+					file_exists($css_path) ? filemtime($css_path) : MPTBM_PLUGIN_VERSION
+				);
 			}
 			public function status_menu() {
 				$cpt = MPTBM_Function::get_cpt();
@@ -391,7 +417,9 @@
 					'info'     => 'fas fa-info-circle',
 				);
 
-				wp_enqueue_style('mptbm-status-style', MPTBM_PLUGIN_URL . '/assets/admin/css/status.css', array(), MPTBM_PLUGIN_VERSION);
+				// Style is enqueued on admin_enqueue_scripts (see enqueue_assets) so it
+				// reaches <head>; enqueueing here would be too late and reintroduce the
+				// unstyled flash on every load.
 				MPTBM_Admin_Shell::render_shell_open();
 				?>
 				<div class="mpStyle mptbm-status-page">
