@@ -211,6 +211,9 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 == Changelog ==
 = 2.0.8 - 2026-08-13 =
+* Added: Rebuilt the Status screen as a card-based system report covering PHP version, server, database, memory limits, PHP extensions, WordPress configuration, booking setup and filesystem permissions.
+* Added: Every status check now shows whether it passed, needs attention or needs fixing, with a plain-English explanation of what to do about it and a running total at the top of the page.
+* Added: A "Copy report" button on the Status screen that puts the whole environment report on the clipboard for support requests.
 * Fixed: The passenger and bag filter on the search results now keeps every vehicle able to carry the selected number, instead of matching that capacity exactly and emptying the list.
 * Fixed: Vehicles filtered out by the passenger and bag filter now actually disappear from the results instead of fading and reappearing.
 * Fixed: The passenger and bag filter dropdowns now always offer the full capacity range of the fleet, and no longer fail when a vehicle has no capacity set or no vehicles exist yet.

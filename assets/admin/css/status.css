@@ -76,13 +76,217 @@
     font-size: 13px !important;
 }
 
+/* Header summary: pass / warn / fail tally + copy-report button */
+.mptbm-status-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mptbm-status-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 84px;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafc;
+    line-height: 1.2;
+}
+
+.mptbm-status-pill strong {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.mptbm-status-pill span {
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.mptbm-status-pill.is-good { background: #ecfdf3; border-color: #bbf7d0; }
+.mptbm-status-pill.is-good strong { color: #15803d; }
+.mptbm-status-pill.is-warning { background: #fff7ed; border-color: #fed7aa; }
+.mptbm-status-pill.is-warning strong { color: #b45309; }
+.mptbm-status-pill.is-critical { background: #fef2f2; border-color: #fecaca; }
+.mptbm-status-pill.is-critical strong { color: #b91c1c; }
+
+.mptbm-status-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border: 1px solid #d8d4ff;
+    border-radius: 14px;
+    background: #ebe9ff;
+    color: #5145cd;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.mptbm-status-copy:hover {
+    background: #ded9ff;
+    border-color: #c4bdff;
+}
+
+/* Off-screen rather than display:none - a hidden field cannot be selected,
+   and the execCommand fallback used on non-HTTPS installs needs a real
+   selection to copy from. */
+.mptbm-status-report {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+/* Card grid. Masonry-ish columns rather than a row grid: the cards have wildly
+   different check counts, and a row grid left a tall card stretching the row and
+   a lake of white space beside the short ones. Columns let each card follow the
+   one above it immediately. */
+.mptbm-status-grid {
+    column-count: 2;
+    column-gap: 20px;
+}
+
+@media screen and (min-width: 1200px) {
+    .mptbm-status-grid {
+        column-count: 3;
+    }
+}
+
+@media screen and (min-width: 1600px) {
+    .mptbm-status-grid {
+        column-count: 4;
+    }
+}
+
 /* Card */
 .mptbm-status-card {
+    /* break-inside is what stops a card being sliced across two columns. */
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    display: inline-block;
+    width: 100%;
+    margin: 0 0 20px;
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 18px;
     box-shadow: 0 12px 32px -26px rgba(15, 23, 42, 0.55);
     overflow: hidden;
+}
+
+/* Check rows */
+.mptbm-status-list {
+    margin: 0;
+    padding: 6px 0;
+    list-style: none;
+}
+
+.mptbm-status-row {
+    margin: 0;
+    padding: 13px 24px;
+    border-bottom: 1px solid #eef1f7;
+    transition: background 0.2s ease;
+}
+
+.mptbm-status-row:last-child {
+    border-bottom: none;
+}
+
+.mptbm-status-row:hover {
+    background-color: #f8fafc;
+}
+
+.mptbm-status-row-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 26px;
+}
+
+.mptbm-status-row-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: #111827;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+/* flex-shrink is capped rather than free: a long value (a filesystem path, a
+   database version string) otherwise squeezed the pill down to a sliver and
+   wrapped it one character per line. */
+.mptbm-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex: 0 1 auto;
+    max-width: 58%;
+    padding: 5px 13px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.45;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.mptbm-status-badge.is-good { background: #ecfdf3; color: #15803d; }
+.mptbm-status-badge.is-warning { background: #fff7ed; color: #b45309; }
+.mptbm-status-badge.is-critical { background: #fef2f2; color: #b91c1c; }
+.mptbm-status-badge.is-info { background: #f1f5f9; color: #475569; }
+
+.mptbm-status-badge i {
+    flex: 0 0 auto;
+    font-size: 12px;
+}
+
+/* The "what do I do about it" line, only rendered for warnings and failures. */
+.mptbm-status-hint {
+    margin: 9px 0 2px !important;
+    padding: 8px 12px !important;
+    border-left: 3px solid #fdba74;
+    border-radius: 0 8px 8px 0;
+    background: #fffbf5;
+    color: #7c5b33 !important;
+    font-size: 12px !important;
+    line-height: 1.6 !important;
+}
+
+.mptbm-status-row.is-critical .mptbm-status-hint {
+    border-left-color: #f87171;
+    background: #fef6f6;
+    color: #8a4040 !important;
+}
+
+/* Legacy add-on rows (mp_status_table_item_sec) sit in a plain table, so give
+   them the same rhythm as the native rows above rather than the tighter
+   default table spacing. */
+.mptbm-status-card .mptbm-status-table tr {
+    padding: 13px 24px;
+    border-bottom: 1px solid #eef1f7;
+}
+
+.mptbm-status-card .mptbm-status-table th:first-child {
+    font-size: 13.5px;
+}
+
+.mptbm-status-card .mptbm-status-table th:last-child {
+    padding: 5px 13px;
+    font-size: 12.5px;
 }
 
 .mptbm-status-card-header {
@@ -200,6 +404,34 @@
         align-items: flex-start;
         text-align: left;
         padding: 20px;
+    }
+
+    .mptbm-status-grid {
+        column-count: 1;
+    }
+
+    .mptbm-status-summary {
+        width: 100%;
+    }
+
+    .mptbm-status-pill {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .mptbm-status-copy {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .mptbm-status-row-main {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .mptbm-status-badge {
+        max-width: 100%;
     }
 
     .mptbm-status-table tr {
