@@ -67,6 +67,7 @@
     let isDirty = false;
     let statusTimer = null;
     let mapInitTimer = null;
+    const drawHandlers = {};
 
     function callGlobal(name) {
         const args = Array.prototype.slice.call(arguments, 1);
@@ -233,6 +234,110 @@
         };
     }
 
+    // Leaflet.draw keeps one handler per drawing mode inside the map's draw
+    // control. Reaching it lets Undo work on a boundary the user started with
+    // Leaflet's own polygon button, not just with the Draw button below.
+    function controlHandler(slot, drawMode) {
+        const control = window['osmDrawControl' + slotSuffix(slot)];
+        const toolbars = control && control._toolbars ? control._toolbars : {};
+        let handler = null;
+        Object.keys(toolbars).forEach(function (key) {
+            const modes = toolbars[key] ? toolbars[key]._modes : null;
+            if (modes && modes[drawMode] && modes[drawMode].handler) {
+                handler = modes[drawMode].handler;
+            }
+        });
+        return handler;
+    }
+
+    function isEnabled(handler) {
+        return !!handler && typeof handler.enabled === 'function' && handler.enabled();
+    }
+
+    // The polygon handler drawing on this slot right now, whichever button
+    // started it.
+    function activeDrawHandler(slot) {
+        if (isEnabled(drawHandlers[slot])) {
+            return drawHandlers[slot];
+        }
+        const native = controlHandler(slot, 'polygon');
+        return isEnabled(native) ? native : null;
+    }
+
+    // Points dropped so far in the boundary being drawn — Leaflet holds one
+    // marker per placed point.
+    function pendingVertexCount(slot) {
+        const handler = activeDrawHandler(slot);
+        return handler && handler._markers ? handler._markers.length : 0;
+    }
+
+    function drawnPolygonLayer(slot) {
+        const objects = mapObjectsForSlot(slot);
+        if (!objects.layer || typeof objects.layer.getLayers !== 'function') {
+            return null;
+        }
+        return objects.layer.getLayers().filter(function (layer) {
+            return typeof layer.getLatLngs === 'function' && Array.isArray(layer.getLatLngs()[0]);
+        })[0] || null;
+    }
+
+    function polygonRing(layer) {
+        return layer ? layer.getLatLngs()[0] : [];
+    }
+
+    // '' when there is nothing to take back: no point placed yet, or a closed
+    // boundary already down to its last three corners (removing one more would
+    // leave a shape that cannot be saved - that is what Clear is for).
+    function undoTarget(slot) {
+        if (pendingVertexCount(slot) > 0) {
+            return 'drawing';
+        }
+        return polygonRing(drawnPolygonLayer(slot)).length > 3 ? 'polygon' : '';
+    }
+
+    // Removes the most recently placed point. While drawing that is Leaflet's
+    // own deleteLastVertex (identical to its native "Delete last point"
+    // action); once the boundary is closed it is the polygon's last corner,
+    // re-saving the coordinates so the stored shape follows.
+    function undoLastPoint(slot) {
+        const handler = activeDrawHandler(slot);
+        const pending = handler && handler._markers ? handler._markers.length : 0;
+        if (pending > 1) {
+            handler.deleteLastVertex();
+            clearMessage();
+            return true;
+        }
+        if (pending === 1) {
+            // Leaflet keeps the opening point no matter what, so taking that
+            // one back means leaving drawing mode with nothing placed.
+            handler.disable();
+            clearMessage();
+            return true;
+        }
+
+        const layer = drawnPolygonLayer(slot);
+        const ring = polygonRing(layer);
+        if (ring.length > 3) {
+            // Vertex handles are rebuilt from the ring, so edit mode has to be
+            // toggled around the change or its markers keep the stale corner.
+            const editing = layer.editing && isEnabled(layer.editing);
+            if (editing) {
+                layer.editing.disable();
+            }
+            layer.setLatLngs([ ring.slice(0, -1) ]);
+            if (editing) {
+                layer.editing.enable();
+            }
+            callGlobal('saveOSMPolygonCoordinates', layer, slotConfig[slot].coordinates.substring(1));
+            updateCurrentCoordinates(slot, coordinatesForSlot(slot));
+            clearMessage();
+            return true;
+        }
+
+        showMessage(mptbmOperationAreas.nothingToUndo, 'error');
+        return false;
+    }
+
     function updateCurrentCoordinates(slot, coordinates) {
         if (currentData) {
             currentData['coordinates_' + slot] = coordinates.slice();
@@ -357,6 +462,9 @@
         currentData = data || null;
         isDirty = false;
         initialSignature = '';
+        // Every map is rebuilt below, so handlers from the previous session
+        // point at removed maps - Undo must never reach one of those.
+        Object.keys(drawHandlers).forEach(function (slot) { delete drawHandlers[slot]; });
 
         $form[0].reset();
         resetShapeFields();
@@ -483,6 +591,9 @@
         $builder.find('[data-boundary-metric]').html('<i class="fas fa-vector-square" aria-hidden="true"></i>' + $('<span>').text(metric).html());
         $builder.find('[data-location-status]').html('<i class="fas fa-map-marker-alt" aria-hidden="true"></i>' + $('<span>').text(state.locationReady ? $(slotConfig[slot].hiddenLocation).val() : mptbmOperationAreas.locationNeeded).html());
         $builder.find('[data-map-action="edit"], [data-map-action="fit"], [data-map-action="clear"]').prop('disabled', !state.boundaryReady);
+        // Live while drawing too, so the button lights up as soon as the first
+        // point is down (the status timer re-runs this every 350ms).
+        $builder.find('[data-map-action="undo"]').prop('disabled', undoTarget(slot) === '');
         return state;
     }
 
@@ -563,11 +674,15 @@
                 return;
             }
             clearMessage();
-            new L.Draw.Polygon(objects.map, {
+            // Kept on the slot so Undo can reach this drawing session.
+            drawHandlers[slot] = new L.Draw.Polygon(objects.map, {
                 allowIntersection: false,
                 showArea: true,
                 shapeOptions: { color: '#635bff', fillColor: '#635bff', fillOpacity: 0.24, weight: 3 }
-            }).enable();
+            });
+            drawHandlers[slot].enable();
+        } else if (action === 'undo') {
+            undoLastPoint(slot);
         } else if (action === 'edit' && objects.layer.getLayers().length) {
             const nativeEditButton = document.querySelector('#mptbm-map-canvas-' + slot + ' .leaflet-draw-edit-edit');
             if (nativeEditButton) {
@@ -733,6 +848,24 @@
             } else {
                 trapFocus(event);
             }
+        })
+        // Ctrl/Cmd+Z takes back the last point of the boundary being drawn.
+        // Limited to an in-progress boundary on purpose: undoing a corner of a
+        // finished shape is explicit, through the Undo button on its own map.
+        .on('keydown', function (event) {
+            if (!$modal.hasClass('is-visible') || !(event.ctrlKey || event.metaKey) || String(event.key).toLowerCase() !== 'z') {
+                return;
+            }
+            if ($(event.target).is('input, textarea, select, [contenteditable="true"]')) {
+                return;
+            }
+            const drawingSlot = activeSlots().filter(function (slot) { return pendingVertexCount(slot) > 0; })[0];
+            if (!drawingSlot) {
+                return;
+            }
+            event.preventDefault();
+            undoLastPoint(drawingSlot);
+            window.setTimeout(updateWorkflow, 0);
         });
 
     $form.on('submit', function (event) {

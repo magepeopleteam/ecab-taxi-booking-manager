@@ -119,6 +119,8 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                     'boundaryEmpty' => esc_html__('Boundary not drawn', 'ecab-taxi-booking-manager'),
                     'finishAtStart' => esc_html__('START — click to finish', 'ecab-taxi-booking-manager'),
                     'drawBoundary' => esc_html__('Draw a new boundary', 'ecab-taxi-booking-manager'),
+                    'undoPoint' => esc_html__('Undo the last point', 'ecab-taxi-booking-manager'),
+                    'nothingToUndo' => esc_html__('There is no point to undo yet. Place a point first, or use Clear to start over.', 'ecab-taxi-booking-manager'),
                     'editBoundary' => esc_html__('Edit boundary points', 'ecab-taxi-booking-manager'),
                     'deleteBoundary' => esc_html__('Delete the boundary', 'ecab-taxi-booking-manager'),
                     'verticesLabel' => esc_html__('points', 'ecab-taxi-booking-manager'),
@@ -365,6 +367,7 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                     <?php if ($map_type === 'openstreetmap') : ?>
                         <div class="mptbm-operation-area-map-actions" aria-label="<?php esc_attr_e('Boundary drawing actions', 'ecab-taxi-booking-manager'); ?>">
                             <button type="button" data-map-action="draw" title="<?php esc_attr_e('Draw a new boundary', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Draw a new boundary', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-pencil-alt" aria-hidden="true"></i><span><?php esc_html_e('Draw', 'ecab-taxi-booking-manager'); ?></span></button>
+                            <button type="button" data-map-action="undo" disabled title="<?php esc_attr_e('Undo the last point', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Undo the last point', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-undo" aria-hidden="true"></i><span><?php esc_html_e('Undo', 'ecab-taxi-booking-manager'); ?></span></button>
                             <button type="button" data-map-action="edit" title="<?php esc_attr_e('Edit boundary points', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Edit boundary points', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-edit" aria-hidden="true"></i><span><?php esc_html_e('Edit', 'ecab-taxi-booking-manager'); ?></span></button>
                             <button type="button" data-map-action="fit" title="<?php esc_attr_e('Fit the boundary on the map', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Fit the boundary on the map', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-expand" aria-hidden="true"></i><span><?php esc_html_e('Fit', 'ecab-taxi-booking-manager'); ?></span></button>
                             <button type="button" class="is-danger" data-map-action="clear" title="<?php esc_attr_e('Clear the boundary', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Clear the boundary', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-trash-alt" aria-hidden="true"></i><span><?php esc_html_e('Clear', 'ecab-taxi-booking-manager'); ?></span></button>

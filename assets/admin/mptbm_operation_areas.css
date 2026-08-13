@@ -1113,6 +1113,9 @@ body.mptbm-modal-open {
     top: 10px;
     left: 50%;
     display: flex;
+    max-width: calc(100% - 76px);
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 4px;
     padding: 4px;
     border: 1px solid rgba(203, 213, 225, .9);
