@@ -716,3 +716,56 @@ div.mp_global_settings.mptbm-modern-global-settings .button-primary:focus {
         width: 100%;
     }
 }
+
+/* ---------------------------------------------------------------------------
+   Highlighted setting row.
+   Opt in per field with 'class' => 'mptbm-setting-highlight' in the field
+   definition — MAGE_Setting_API passes that straight through to
+   add_settings_field(), and WordPress puts it on the row's <tr>.
+   Reserved for settings that are routinely hunted for in the wrong place;
+   the first of them is "Show Map on Search Result Page", which people look
+   for on the shortcode instead and then report the map as unhideable.
+   Selectors mirror the base row rule above (same element+class chain) so this
+   wins on order rather than on an !important.
+   --------------------------------------------------------------------------- */
+div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr.mptbm-setting-highlight {
+    position: relative;
+    background: linear-gradient(90deg, #fbfaff 0%, #ffffff 62%);
+    border-left: 4px solid #6c5ce7;
+    box-shadow: inset 0 0 0 1px rgba(108, 92, 231, 0.13);
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr.mptbm-setting-highlight:hover {
+    background: linear-gradient(90deg, #f6f4ff 0%, #ffffff 62%);
+}
+
+/* The row is a two-column grid, so a normal-flow badge would consume a track
+   and shove the control out of alignment with every other row. Taking it out
+   of flow keeps the grid identical to its neighbours. */
+div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr.mptbm-setting-highlight::after {
+    content: attr(data-mptbm-badge);
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #ebe9ff;
+    color: #5145cd;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+
+div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr.mptbm-setting-highlight th {
+    color: #2f2a6b;
+}
+
+@media (max-width: 900px) {
+    /* Stacked rows put the control directly under the label, where an absolutely
+       positioned badge would sit on top of the label text. */
+    div.mp_global_settings.mptbm-modern-global-settings table.form-table > tbody > tr.mptbm-setting-highlight::after {
+        display: none;
+    }
+}

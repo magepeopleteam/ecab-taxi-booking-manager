@@ -177,5 +177,10 @@
             $button.val(mptbmGlobalSettings.saving).prop('disabled', true);
             $changeStatus.removeClass('is-visible').empty();
         });
+
+        // Badge text for rows flagged with 'class' => 'mptbm-setting-highlight'.
+        // Written as a data attribute for the CSS ::after to pick up, rather than
+        // hardcoded in the stylesheet, so the word stays translatable.
+        $page.find('tr.mptbm-setting-highlight').attr('data-mptbm-badge', mptbmGlobalSettings.highlightBadge);
     });
 })(jQuery);

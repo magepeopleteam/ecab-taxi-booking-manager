@@ -50,6 +50,7 @@ if (!class_exists('MPTBM_Settings_Global')) {
 				'saveHint'           => esc_html__('Review your changes before saving.', 'ecab-taxi-booking-manager'),
 				'unsaved'            => esc_html__('Unsaved changes', 'ecab-taxi-booking-manager'),
 				'saving'             => esc_html__('Saving settings…', 'ecab-taxi-booking-manager'),
+				'highlightBadge'     => esc_html__('Often missed', 'ecab-taxi-booking-manager'),
 			));
 		}
 		public function global_settings_menu()
@@ -492,8 +493,15 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					),
 					array(
 						'name' => 'show_map_on_search_result',
+						// Highlighted row: this is the only way to hide the results map, and
+						// it is routinely looked for on the shortcode instead - the map=no
+						// attribute governs the pre-search form only, so people set that,
+						// see the map return the moment they hit Search, and conclude it is
+						// broken. See the .mptbm-setting-highlight rule in
+						// assets/admin/mptbm_global_settings.css.
+						'class' => 'mptbm-setting-highlight',
 						'label' => esc_html__('Show Map on Search Result Page', 'ecab-taxi-booking-manager'),
-						'desc' => esc_html__('Show or hide the route map on the vehicle search result page. This is a master switch - selecting No hides the map everywhere regardless of the booking form/shortcode\'s own map option.', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Master switch for the route map on the vehicle search results. Select No to hide it everywhere, whatever the booking form or shortcode asks for. The shortcode\'s own map="no" only hides the map before a search is run - this is the setting that also hides it afterwards, on the results.', 'ecab-taxi-booking-manager'),
 						'type' => 'select',
 						'default' => 'yes',
 						'options' => array(
