@@ -211,6 +211,7 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 == Changelog ==
 = 2.0.8 - 2026-08-13 =
+* Fixed: Pickup and return time options now follow each vehicle's Schedule Date Configuration, on both the global search form and single vehicle pages, instead of always offering the full day and only rejecting the booking after the search ran.
 * Added: Rebuilt the Status screen as a card-based system report covering PHP version, server, database, memory limits, PHP extensions, WordPress configuration, booking setup and filesystem permissions.
 * Added: Every status check now shows whether it passed, needs attention or needs fixing, with a plain-English explanation of what to do about it and a running total at the top of the page.
 * Added: A "Copy report" button on the Status screen that puts the whole environment report on the clipboard for support requests.
