@@ -16,6 +16,9 @@ if (!class_exists('MPTBM_Dependencies')) {
 		$this->init_rest_api();
 		add_action('admin_enqueue_scripts', array($this, 'admin_enqueue'), 80);
 		add_action('wp_enqueue_scripts', array($this, 'frontend_enqueue'), 80);
+		// Runs last so every other theme/plugin has already registered its scripts.
+		add_action('wp_enqueue_scripts', array($this, 'prevent_duplicate_google_maps_api'), 9999);
+		add_action('admin_enqueue_scripts', array($this, 'prevent_duplicate_google_maps_api'), 9999);
 		add_action('admin_head', array($this, 'js_constant'), 5);
 		add_action('wp_head', array($this, 'js_constant'), 5);
 		
@@ -97,6 +100,57 @@ if (!class_exists('MPTBM_Dependencies')) {
             
             do_action('add_mptbm_common_script');
             wp_enqueue_style('mage-icons', MPTBM_PLUGIN_URL . '/assets/mage-icon/css/mage-icon.css', array(), $this->asset_ver('assets/mage-icon/css/mage-icon.css'));
+        }
+
+        /**
+         * Google's JS API may only be loaded once per page. Themes and plugins
+         * routinely enqueue their own copy - Divi ships a `google-maps-api`
+         * handle built from its own Theme Options key, which is blank on most
+         * installs and yields `maps/api/js?v=3&key&ver=x`. Two loads on one page
+         * trigger Google's "included multiple times" error, and the keyless one
+         * raises InvalidKeyMapError against the shared window.google.maps
+         * namespace - greying out every map on the page, ours included.
+         *
+         * Dropping the rival handle outright would break anything declaring it a
+         * dependency (Divi's own map module does). So re-register it as a
+         * srcless alias of our loader instead: dependents still resolve, no
+         * second request goes out, and everyone shares our instance - which
+         * carries places+drawing+geometry, a superset of what those modules ask
+         * for.
+         *
+         * Only runs when our own loader is actually on the page, so sites using
+         * OpenStreetMap or a disabled map are left completely untouched.
+         *
+         * @return void
+         */
+        public function prevent_duplicate_google_maps_api()
+        {
+            if (!wp_script_is('mptbm_map_api', 'enqueued')) {
+                return;
+            }
+            $scripts = wp_scripts();
+            if (!$scripts || empty($scripts->registered)) {
+                return;
+            }
+
+            // Collect first - re-registering while iterating would mutate the array.
+            $duplicates = array();
+            foreach ($scripts->registered as $handle => $script) {
+                if ('mptbm_map_api' === $handle || empty($script->src)) {
+                    continue;
+                }
+                if (false !== strpos($script->src, 'maps.googleapis.com/maps/api/js')) {
+                    $duplicates[$handle] = (array) $script->deps;
+                }
+            }
+
+            foreach ($duplicates as $handle => $deps) {
+                $deps   = array_diff($deps, array($handle, 'mptbm_map_api'));
+                $deps[] = 'mptbm_map_api';
+                wp_deregister_script($handle);
+                // src of false = dependency-only alias; WordPress prints no tag for it.
+                wp_register_script($handle, false, array_values($deps), null, true);
+            }
         }
 
         public function admin_enqueue()
