@@ -210,6 +210,14 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 2.0.9 - 2026-08-15 =
+* Fixed: Fares are now calculated in the distance unit the site is actually set to. The "Duration By Kilometer or Mile" setting only reached the trip summary, while every fare multiplied its per-unit rate by the distance in kilometres - so a site set to Mile charged its per-mile rate for each kilometre travelled. Sites set to Kilometer are unaffected; sites set to Mile will see distance-based fares drop to the rates they configured.
+* Fixed: The base-location pickup/drop-off charge and its distance threshold now use the same unit as the rest of the pricing.
+* Changed: The rate fields, pricing-model formula cards and the distance line on the cart now name the unit in use, instead of always saying KM.
+* Fixed: The route map no longer stays greyed out when the active theme or another plugin loads the Google Maps JavaScript API a second time.
+* Added: An Undo control while drawing operation area boundaries, so the last point can be removed without restarting the shape.
+* Changed: The results-map option is easier to find in Global Settings.
+
 = 2.0.8 - 2026-08-13 =
 * Fixed: Pickup and return time options now follow each vehicle's Schedule Date Configuration, on both the global search form and single vehicle pages, instead of always offering the full day and only rejecting the booking after the search ran.
 * Added: Rebuilt the Status screen as a card-based system report covering PHP version, server, database, memory limits, PHP extensions, WordPress configuration, booking setup and filesystem permissions.
