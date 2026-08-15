@@ -63,8 +63,8 @@ if (!class_exists('MPTBM_Base_Price_Settings')) {
 				<section>
 					<label class="label">
 						<div>
-							<h6><?php esc_html_e('Price per KM', 'ecab-taxi-booking-manager'); ?></h6>
-							<span class="desc"><?php esc_html_e('Enter the price per kilometer from base location', 'ecab-taxi-booking-manager'); ?></span>
+							<h6><?php printf(esc_html__('Price per %s', 'ecab-taxi-booking-manager'), esc_html(MPTBM_Function::distance_unit_label())); ?></h6>
+							<span class="desc"><?php printf(esc_html__('Enter the price per %s from base location', 'ecab-taxi-booking-manager'), esc_html(strtolower(MPTBM_Function::distance_unit_label()))); ?></span>
 						</div>
 						<input type="number" step="any" name="mptbm_base_price_km" class="formControl" value="<?php echo esc_attr($base_price_km); ?>" />
 					</label>

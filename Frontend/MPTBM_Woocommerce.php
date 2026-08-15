@@ -246,7 +246,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			}
 			
 			$cart_item_data['mptbm_distance'] = $distance;
-				$cart_item_data['mptbm_distance_text'] = number_format_i18n($distance / 1000, 2) . ' km';
+				$cart_item_data['mptbm_distance_text'] = number_format_i18n(MPTBM_Function::distance_in_unit($distance), 2) . ' ' . strtolower(MPTBM_Function::distance_unit_label());
 				$cart_item_data['mptbm_duration'] = $duration;
 				$cart_item_data['mptbm_fixed_hours'] = $fixed_hour;
 				$cart_item_data['mptbm_duration_text'] = (string) max(1, (int) ceil($duration / 60)) . ' min';

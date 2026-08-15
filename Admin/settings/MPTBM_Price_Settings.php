@@ -173,7 +173,7 @@ if (!class_exists('MPTBM_Price_Settings')) {
 					<label class="label">
 						<div>
 							<h6>
-								<?php esc_html_e('Price/KM', 'ecab-taxi-booking-manager'); ?>
+								<?php printf(esc_html__('Price/%s', 'ecab-taxi-booking-manager'), esc_html(MPTBM_Function::distance_unit_label())); ?>
 								<i class="fas fa-question-circle tooltip-icon" title="Price per kilometer is based on the selected pricing model: Distance (per km), Distance/Duration (per km or per hour), or Distance+Duration (combined distance and time charges)"></i>
 							</h6>
 							<span class="desc"><?php MPTBM_Settings::info_text('mptbm_km_price'); ?></span>

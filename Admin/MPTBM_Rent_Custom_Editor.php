@@ -688,8 +688,8 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
 
                         <div class="mptbm_taxi_field">
-                            <label><?php esc_html_e( 'Price per KM', 'ecab-taxi-booking-manager' ); ?></label>
-                            <p class="mptbm_taxi_help"><?php esc_html_e( 'Enter the price per kilometer from base location', 'ecab-taxi-booking-manager' ); ?></p>
+                            <label><?php printf( esc_html__( 'Price per %s', 'ecab-taxi-booking-manager' ), esc_html( MPTBM_Function::distance_unit_label() ) ); ?></label>
+                            <p class="mptbm_taxi_help"><?php printf( esc_html__( 'Enter the price per %s from base location', 'ecab-taxi-booking-manager' ), esc_html( strtolower( MPTBM_Function::distance_unit_label() ) ) ); ?></p>
                             <input
                                     name="mptbm_base_price_km"
                                     type="number"
@@ -1643,7 +1643,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                             <div class="mptbm_taxi_pricing_field"
                                  id="mptbm_distance_price"
                                  style="display: <?php echo ( $price_based === 'inclusive' || $price_based === 'distance' || $price_based === 'distance_duration' || $price_based === 'fixed_distance' ) ? 'block' : 'none'; ?>">
-                                <label><?php esc_html_e( 'Price per KM', 'ecab-taxi-booking-manager' ); ?></label>
+                                <label><?php printf( esc_html__( 'Price per %s', 'ecab-taxi-booking-manager' ), esc_html( MPTBM_Function::distance_unit_label() ) ); ?></label>
                                 <input name="mptbm_km_price" value="<?php echo esc_attr( $distance_price );?>" type="text" placeholder="1.00">
 
                             </div>
@@ -1816,7 +1816,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <h4><?php esc_html_e( 'Combined Pricing Model', 'ecab-taxi-booking-manager' ); ?></h4>
                         <p><?php esc_html_e( 'Price is calculated using both time and distance.', 'ecab-taxi-booking-manager' ); ?></p>
                         <div class="mptbm_pricing_rules_formula">
-                            <?php esc_html_e( '(Hourly Rate × Duration) + (KM Rate × Distance)', 'ecab-taxi-booking-manager' ); ?>
+                            <?php printf( esc_html__( '(Hourly Rate × Duration) + (%s Rate × Distance)', 'ecab-taxi-booking-manager' ), esc_html( MPTBM_Function::distance_unit_label() ) ); ?>
                         </div>
                     </div>
                 <?php }
@@ -1827,7 +1827,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <h4><?php esc_html_e( 'Distance Based Pricing', 'ecab-taxi-booking-manager' ); ?></h4>
                         <p><?php esc_html_e( 'Only distance is used for calculation.', 'ecab-taxi-booking-manager' ); ?></p>
                         <div class="mptbm_pricing_rules_formula">
-                            <?php esc_html_e( 'KM Rate × Distance', 'ecab-taxi-booking-manager' ); ?>
+                            <?php printf( esc_html__( '%s Rate × Distance', 'ecab-taxi-booking-manager' ), esc_html( MPTBM_Function::distance_unit_label() ) ); ?>
                         </div>
                     </div>
                 <?php }
@@ -1847,7 +1847,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <h4><?php esc_html_e( 'Distance + Duration Based Pricing', 'ecab-taxi-booking-manager' ); ?></h4>
                         <p><?php esc_html_e( 'Combines both distance and time pricing.', 'ecab-taxi-booking-manager' ); ?></p>
                         <div class="mptbm_pricing_rules_formula">
-                            <?php esc_html_e( '(Hourly Rate × Duration) + (KM Rate × Distance)', 'ecab-taxi-booking-manager' ); ?>
+                            <?php printf( esc_html__( '(Hourly Rate × Duration) + (%s Rate × Distance)', 'ecab-taxi-booking-manager' ), esc_html( MPTBM_Function::distance_unit_label() ) ); ?>
                         </div>
                     </div>
                 <?php }

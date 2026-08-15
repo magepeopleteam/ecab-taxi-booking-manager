@@ -207,7 +207,9 @@ if (!class_exists('MPTBM_Function')) {
 				}
 			}
 
-			$km = $distance / 1000;
+			// Threshold and price_km are both quoted in the site's distance unit, so
+			// the travelled distance has to be measured in that same unit.
+			$km = self::distance_in_unit($distance);
 			if ($km < (float) $settings['threshold']) {
 				return 0.0;
 			}
@@ -767,23 +769,23 @@ if (!class_exists('MPTBM_Function')) {
 				if ($price_based == 'inclusive' && $original_price_based == 'dynamic') {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
-					$price = $hour_price * ((float) $duration / 3600) + $km_price * ((float) $distance / 1000);
+					$price = $hour_price * ((float) $duration / 3600) + $km_price * self::distance_in_unit($distance);
 				} elseif ($price_based == 'distance' && $original_price_based == 'dynamic') {
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
-					$price = $km_price * ((float) $distance / 1000);
+					$price = $km_price * self::distance_in_unit($distance);
 				} elseif ($price_based == 'duration' && ($original_price_based == 'fixed_hourly' || $original_price_based == 'dynamic')) {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 					$price = $hour_price * ((float) $duration / 3600);
 				} elseif ($price_based == 'distance_duration' && $original_price_based == 'dynamic') {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
-					$price = $hour_price * ((float) $duration / 3600) + $km_price * ((float) $distance / 1000);
+					$price = $hour_price * ((float) $duration / 3600) + $km_price * self::distance_in_unit($distance);
 				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_hourly') && $original_price_based == 'fixed_hourly') {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 					$price = $hour_price * (float) $fixed_time;
 				} elseif ($price_based == 'distance' && $original_price_based == 'fixed_hourly') {
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
-					$price = $km_price * ((float) $distance / 1000);
+					$price = $km_price * self::distance_in_unit($distance);
 				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_distance' || $price_based == 'fixed_map') && ($original_price_based == 'fixed_distance' || $original_price_based == 'fixed_map')) {
 					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_route_price_info', []);
 
@@ -906,7 +908,7 @@ if (!class_exists('MPTBM_Function')) {
 							$price = (float) $fixed_map_price;
 						} else {
 							// Fallback to Distance + Duration
-							$price = ($hour_price * ((float) $duration / 3600)) + ($km_price * ((float) $distance / 1000));
+							$price = ($hour_price * ((float) $duration / 3600)) + ($km_price * self::distance_in_unit($distance));
 						}
 					}
 				}
@@ -1972,6 +1974,44 @@ if (!class_exists('MPTBM_Function')) {
 		}
 
 		/**
+		 * The distance unit this site works in: 'km' or 'mile'.
+		 *
+		 * Set once, globally, under Settings -> Global Settings -> "Duration By
+		 * Kilometer or Mile". Everything that measures a journey - the fare, the
+		 * tier bands, the labels on the rate fields, the summary line - reads it
+		 * from here so they can never disagree with each other.
+		 */
+		public static function get_distance_unit(): string {
+			$unit = MP_Global_Function::get_settings('mp_global_settings', 'km_or_mile', 'km');
+			return $unit === 'mile' ? 'mile' : 'km';
+		}
+
+		/**
+		 * Metres converted into the unit the per-unit rates are quoted in.
+		 *
+		 * Map providers always report metres. A site set to Mile quotes its rates
+		 * per mile, so dividing those metres by 1000 charges the mile rate for every
+		 * kilometre travelled - about 61% over the intended fare. Any fare that
+		 * multiplies a distance rate by a travelled distance must convert here.
+		 */
+		public static function distance_in_unit($meters): float {
+			$meters = (float) $meters;
+			return self::get_distance_unit() === 'mile'
+				? $meters * 0.000621371
+				: $meters / 1000;
+		}
+
+		/**
+		 * Unit suffix for admin labels and price previews: 'KM' or 'Mile'.
+		 * Keeps a rate field from reading "Price per KM" on a site billing per mile.
+		 */
+		public static function distance_unit_label(): string {
+			return self::get_distance_unit() === 'mile'
+				? __('Mile', 'ecab-taxi-booking-manager')
+				: __('KM', 'ecab-taxi-booking-manager');
+		}
+
+		/**
 		 * Format a metre value the way the trip summary shows it, honouring the
 		 * global km/mile setting. Shared so the distance the fare was calculated
 		 * from and the distance printed next to it can never drift apart.
@@ -1981,11 +2021,10 @@ if (!class_exists('MPTBM_Function')) {
 			if ($meters <= 0) {
 				return '';
 			}
-			$km_or_mile = MP_Global_Function::get_settings('mp_global_settings', 'km_or_mile', 'km');
-			if ($km_or_mile == 'mile') {
-				return round($meters * 0.000621371, 1) . ' miles';
+			if (self::get_distance_unit() === 'mile') {
+				return round(self::distance_in_unit($meters), 1) . ' miles';
 			}
-			return round($meters / 1000, 1) . ' km';
+			return round(self::distance_in_unit($meters), 1) . ' km';
 		}
 
 		// Counterpart of format_distance_text() for the Total Time line.
