@@ -244,21 +244,57 @@
 
 					$display = isset($_POST['display_mptbm_extra_services']) && sanitize_text_field($_POST['display_mptbm_extra_services'])? 'on' : 'off';
 					update_post_meta( $post_id, 'display_mptbm_extra_services', $display );
-					$ex_id = isset($_POST['mptbm_extra_services_id']) ? sanitize_text_field($_POST['mptbm_extra_services_id']) : $post_id;
+
+					// Only a real, existing mptbm_extra_services post counts as a shared
+					// source. Everything else - the empty "Select option" value, the
+					// vehicle's own id ("Custom"), or a stale id whose service set has
+					// since been deleted - means the rows belong to this vehicle.
+					//
+					// The modern editor lets rows be added without ever touching the
+					// Source select, so an untouched select posts '' and the old
+					// `$ex_id == $post_id` gate silently threw those rows away on every
+					// save. Normalising to $post_id also matches how the read side
+					// resolves the reference: MP_Global_Function::get_post_info() falls
+					// back to $post_id whenever mptbm_extra_services_id is empty.
+					$posted_ex_id  = isset( $_POST['mptbm_extra_services_id'] ) ? absint( wp_unslash( $_POST['mptbm_extra_services_id'] ) ) : 0;
+					$is_shared_set = $posted_ex_id
+						&& $posted_ex_id !== (int) $post_id
+						&& get_post_type( $posted_ex_id ) === 'mptbm_extra_services';
+					$ex_id         = $is_shared_set ? $posted_ex_id : (int) $post_id;
 					update_post_meta( $post_id, 'mptbm_extra_services_id', $ex_id );
-					if ( $ex_id == $post_id ) {
+
+					// A shared set owns its own rows, so leave this vehicle's saved rows
+					// untouched - they are restored intact if the source is switched
+					// back to Custom.
+					if ( ! $is_shared_set && $this->has_ex_service_payload() ) {
 						$extra_service_data = $this->ex_service_data( $post_id );
 						update_post_meta( $post_id, 'mptbm_extra_service_infos', $extra_service_data );
 					}
 				}
 			}
+			/**
+			 * Whether the submitted form actually carried the add-ons panel.
+			 *
+			 * The panel prints mptbm_extra_service_nonce, so its presence proves the
+			 * user really did submit the Fees & Extra Service step - including the
+			 * case where every row was deleted and no service_* field is posted at
+			 * all. Without this guard, any save_post that supplies only the
+			 * transportation nonce would wipe the saved rows.
+			 */
+			private function has_ex_service_payload(): bool {
+				return isset( $_POST['mptbm_extra_service_nonce'] )
+					|| isset( $_POST['service_name'] )
+					|| isset( $_POST['service_price'] );
+			}
 			public function ex_service_data( $post_id ) {
 				$new_extra_service         = array();
-				$extra_icon                =  isset($_POST['service_icon']) ? array_map('sanitize_text_field',$_POST['service_icon']) : [];
-				$extra_names               =  isset($_POST['service_name']) ? array_map('sanitize_text_field',$_POST['service_name']) : [];
-				$extra_price               =  isset($_POST['service_price']) ? array_map('sanitize_text_field',$_POST['service_price']) : [];
-				$extra_qty_type            =  isset($_POST['service_qty_type']) ? array_map('sanitize_text_field',$_POST['service_qty_type']) : [];
-				$extra_service_description =  isset($_POST['extra_service_description']) ? array_map('sanitize_textarea_field',$_POST['extra_service_description']) : [];
+				// Cast to array first: a malformed payload sending a scalar would make
+				// array_map() throw a TypeError and abort the whole save.
+				$extra_icon                =  isset($_POST['service_icon']) ? array_map('sanitize_text_field',(array) $_POST['service_icon']) : [];
+				$extra_names               =  isset($_POST['service_name']) ? array_map('sanitize_text_field',(array) $_POST['service_name']) : [];
+				$extra_price               =  isset($_POST['service_price']) ? array_map('sanitize_text_field',(array) $_POST['service_price']) : [];
+				$extra_qty_type            =  isset($_POST['service_qty_type']) ? array_map('sanitize_text_field',(array) $_POST['service_qty_type']) : [];
+				$extra_service_description =  isset($_POST['extra_service_description']) ? array_map('sanitize_textarea_field',(array) $_POST['extra_service_description']) : [];
 				$extra_count               = count( $extra_names );
 
 				for ( $i = 0; $i < $extra_count; $i ++ ) {

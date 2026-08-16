@@ -1250,7 +1250,11 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
         public static function extra_service_display( $post_id ){
 
             $display            = MP_Global_Function::get_post_info( $post_id, 'display_mptbm_extra_services', 'on' );
-            $service_id         = (int)get_post_meta( $post_id, 'mptbm_extra_services_id', true);
+            // No stored reference means the rows live on this vehicle, which is what
+            // both the save handler and the booking form already assume - so show
+            // "Custom" rather than the blank placeholder, otherwise the select
+            // contradicts the rows listed right underneath it.
+            $service_id         = (int) get_post_meta( $post_id, 'mptbm_extra_services_id', true) ?: (int) $post_id;
             $active             = $display == 'off' ? 'none' : 'block';
             $all_ex_services_id = MPTBM_Query::query_post_id( 'mptbm_extra_services' );
             ?>
