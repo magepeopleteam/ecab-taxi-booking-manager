@@ -3897,6 +3897,87 @@ function mptbm_reveal_inline_results(target) {
     if (typeof loadBgImage === 'function') {
         loadBgImage();
     }
+    mptbm_scroll_to_inline_results(target);
+}
+// Height of whatever is pinned across the top of the viewport right now - the
+// WP admin bar, a theme's fixed/sticky site header - so a scrolled-to element
+// doesn't end up hidden behind it.
+function mptbm_top_obstruction_height() {
+    var offset = 0;
+    jQuery('#wpadminbar, #masthead, .site-header, header[class*="sticky"]').each(function () {
+        var position = jQuery(this).css('position');
+        if (position !== 'fixed' && position !== 'sticky') {
+            return;
+        }
+        var rect = this.getBoundingClientRect();
+        // Only counts while actually pinned at the top - a sticky header that
+        // has scrolled away with the page is not in the way of anything.
+        if (rect.top <= 1 && rect.bottom > offset) {
+            offset = rect.bottom;
+        }
+    });
+    return offset;
+}
+// In the stacked layout - mobile at any form style, and the "inline" (vertical)
+// form style at any width - .mptbm_map_area sits *below* the whole Route
+// Planning form rather than beside it, and the results render inside that
+// column, so a fresh search drops them off-screen and the page reads as having
+// not reacted to the Search press at all. Before results moved inline, the flow
+// switched to a separate step-2 tab and mp_script.js's own handler scrolled for
+// us (active_next_tab() -> pageScrollTo()); that scroll disappeared along with
+// the tab switch. This restores it, gated on the columns' actual geometry
+// rather than a breakpoint so the side-by-side desktop layout - where results
+// land next to the form, already on screen - keeps behaving exactly as it does
+// now.
+function mptbm_scroll_to_inline_results(target) {
+    if (!target || !target.length) {
+        return;
+    }
+    var $searchArea = target.closest('.mptbm_transport_search_area').find('.mptbm_search_area').first();
+    var $mapArea = target.closest('.mptbm_map_area');
+    // Measure only after the map's collapse transition (.3s) and
+    // mptbm_refit_osm_map()'s own 320ms re-fit have finished - both change this
+    // column's height, so anything measured before them scrolls to a position
+    // that no longer exists by the time the scroll lands.
+    setTimeout(function () {
+        var resultsEl = target[0];
+        if (!resultsEl.offsetParent && resultsEl.offsetHeight === 0) {
+            return;
+        }
+        var offset = mptbm_top_obstruction_height();
+        var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        var rect = resultsEl.getBoundingClientRect();
+        var stacked = true;
+        if ($searchArea.length && $mapArea.length && $mapArea.is(':visible')) {
+            var searchRect = $searchArea[0].getBoundingClientRect();
+            var mapRect = $mapArea[0].getBoundingClientRect();
+            stacked = mapRect.top >= searchRect.bottom - 2;
+        }
+        if (!stacked) {
+            return;
+        }
+        // Results already sitting at/near the top of what's visible (a repeat
+        // search made from further down the page, say) - leave the scroll
+        // position alone rather than yanking it around for no gain.
+        if (rect.top >= offset && rect.top <= offset + (viewportHeight - offset) * 0.4) {
+            return;
+        }
+        // Small gap so a sliver of the collapsed map peek stays visible above
+        // the results card, keeping it readable as "below the map" rather than
+        // as a detached screen.
+        var gap = 24;
+        var pageTop = window.pageYOffset != null ? window.pageYOffset : document.documentElement.scrollTop;
+        var top = Math.max(0, rect.top + pageTop - offset - gap);
+        var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // Feature-detected rather than try/catch'd: browsers without options
+        // support read the object as scrollTo(x, y), coerce both to 0 and jump
+        // to the very top of the page instead of throwing.
+        if ('scrollBehavior' in document.documentElement.style) {
+            window.scrollTo({ top: top, behavior: reduceMotion ? 'auto' : 'smooth' });
+        } else {
+            jQuery('html, body').stop(true).animate({ scrollTop: top }, reduceMotion ? 0 : 500);
+        }
+    }, 380);
 }
 function mptbm_search_loading(parent, isLoading) {
     var btn = parent.find('#mptbm_get_vehicle');
