@@ -1970,9 +1970,9 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                     <div class="mptbm-oa-card-inner">
                                         <div class="mptbm-oa-header">
                                             <span class="dashicons dashicons-location mptbm-oa-icon"></span>
-                                            <div class="mptbm-oa-name"><?php esc_html_e( 'Unselect Operation Area Type', 'ecab-taxi-booking-manager' ); ?></div>
+                                            <div class="mptbm-oa-name"><?php esc_html_e( 'Fixed Zone Operation Area', 'ecab-taxi-booking-manager' ); ?></div>
                                         </div>
-                                        <div class="mptbm-oa-desc"><?php esc_html_e( 'Empty operation area', 'ecab-taxi-booking-manager' ); ?></div>
+                                        <div class="mptbm-oa-desc"><?php esc_html_e( 'Pickup or drop-off is matched against a saved zone for one flat price.', 'ecab-taxi-booking-manager' ); ?></div>
                                         <div class="mptbm-oa-select-row">
                                             <div class="mptbm-oa-dot"><div class="mptbm-oa-dot-inner"></div></div>
                                             <span class="mptbm-oa-dot-label mptbm-oa-lbl-off"><?php esc_html_e( 'Click to select', 'ecab-taxi-booking-manager' ); ?></span>
