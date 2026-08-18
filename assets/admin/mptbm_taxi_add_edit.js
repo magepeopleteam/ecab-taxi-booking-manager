@@ -947,11 +947,20 @@
             // Pricing model tabs: Fixed Zone vs Fixed With Map
             let $fixedWithMapTab = $('#mptbm_taxi_pricing_fixed_map');
             let $fixedZoneTab    = $('#mptbm_taxi_pricing_fixed_zone');
+            // "Operation Area Based Price Set" - belongs to the Fixed With Map model
+            // only. It rendered permanently visible (a PHP ternary there always
+            // resolved to 'block' regardless of price_based) and nothing here ever
+            // hid it again, so it stayed on screen even after picking the empty-value
+            // "Fixed Zone Operation Area" radio. Toggling it in the same places the
+            // two tabs already get shown/hidden keeps it in sync on both a live
+            // change and the initial togglePricingAreaButtons() call on page load.
+            let $areaBasedPriceSet = $('#mptbm_area_based_wrapper');
 
             if (!operationType) {
                 // Empty-value radio (or nothing checked): show Fixed Zone, hide Fixed With Map
                 $fixedWithMapTab.hide();
                 $fixedZoneTab.show();
+                $areaBasedPriceSet.hide();
 
                 if ($fixedWithMapTab.hasClass('active')) {
                     // Fixed With Map was active → hand off to Fixed Zone
@@ -971,10 +980,12 @@
                 // Geo-fence has no map/zone pricing model — hide both
                 $fixedWithMapTab.hide();
                 $fixedZoneTab.hide();
+                $areaBasedPriceSet.hide();
             } else {
                 // Any real value: show Fixed With Map, hide Fixed Zone
                 $fixedZoneTab.hide();
                 $fixedWithMapTab.show();
+                $areaBasedPriceSet.show();
                 if ($fixedZoneTab.hasClass('active')) {
                     $fixedZoneTab.removeClass('active');
                     $fixedWithMapTab.trigger('click');
@@ -983,6 +994,7 @@
                 // so Fixed With Map tab is also hidden in that combination
                 if (operationType === 'geo-matched-operation-area-type' && $zoneToZoneTab.hasClass('active')) {
                     $fixedWithMapTab.hide();
+                    $areaBasedPriceSet.hide();
                 }
             }
         }

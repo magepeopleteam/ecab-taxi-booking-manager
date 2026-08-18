@@ -2284,7 +2284,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
             ?>
 
             <div class="mptbm_area_based_wrapper" id="mptbm_area_based_wrapper"
-                 style="display: <?php echo ( $price_based === 'fixed_distance' ) ? 'block' : 'block'; ?>">
+                 style="display: <?php echo ( $price_based === 'fixed_distance' ) ? 'block' : 'none'; ?>">
                 <div class="bg-light mActive" style="margin-top: 20px;" data-collapse="#mp_fixed_map_routes">
                     <h4>Operation Area Based Price Set</h4>
                     <span>Set different pricing for each operation area based on transport type, distance, or time. Easily manage fixed, per km, and per hour rates without creating duplicate transports.</span>
