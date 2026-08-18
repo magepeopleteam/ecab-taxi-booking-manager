@@ -1429,7 +1429,16 @@ if (!class_exists('MPTBM_Function')) {
 					return $exit > 0;
 				}
 				return false;
-			} elseif ($price_based == 'fixed_zone' || $price_based == 'fixed_zone_dropoff') {
+			} elseif (
+				$price_based == 'fixed_zone' || $price_based == 'fixed_zone_dropoff'
+				|| ($price_based == 'inclusive' && ($original_price_based == 'fixed_zone' || $original_price_based == 'fixed_zone_dropoff'))
+			) {
+				// 'inclusive' vehicles adapt to whatever mode they're searched under (see the
+				// matching condition in get_price()) - they must clear the same zone-match gate
+				// as a real fixed_zone/fixed_zone_dropoff vehicle here too, or one with no
+				// mptbm_fixed_zone_price_info rows configured (e.g. Ford Tourneo) always passed
+				// this check and showed up in every zone search priced on nothing but its flat
+				// mptbm_initial_price, regardless of pickup/drop-off ever matching a saved zone.
 				$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
 				
 				// Use original_price_based to determine the mode (pickup vs dropoff)
