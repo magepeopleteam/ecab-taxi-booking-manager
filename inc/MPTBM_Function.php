@@ -1411,7 +1411,17 @@ if (!class_exists('MPTBM_Function')) {
 		{
 			$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
 			$search_context = self::get_search_context();
-				$original_price_based = $search_context['price_based'] ?? 'dynamic';
+			// Same fallback chain as get_price(): trust the request-scoped
+			// mptbm_original_price_based filter (set by MPTBM_Transport_Search for the
+			// exact request being served) over the session-based search context, which
+			// depends on PHP sessions persisting - something that isn't guaranteed on
+			// every host/cache setup. Without this, a host where the session context
+			// isn't readable here silently falls back to 'dynamic', which mismatches
+			// every fixed_zone/fixed_zone_dropoff row below and drops all vehicles from
+			// the results even though get_price() (which does apply this filter) would
+			// have priced them correctly.
+			$context_price_based = isset($search_context['price_based']) ? sanitize_key($search_context['price_based']) : '';
+			$original_price_based = apply_filters('mptbm_original_price_based', $context_price_based ?: 'dynamic', $post_id);
 
 			if ($price_based == 'manual') {
 				$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
