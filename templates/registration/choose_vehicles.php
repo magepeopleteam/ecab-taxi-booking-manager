@@ -1245,8 +1245,11 @@ if ($all_posts->found_posts > 0) {
             $custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
             
             
-            // Get the price (pass geo_fence_coords for fixed_zone/fixed_zone_dropoff geo-fence validation)
-            $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time, $geo_fence_coords);
+            // Get the price (pass geo_fence_coords for fixed_zone/fixed_zone_dropoff geo-fence
+            // validation, and the posted pickup/dropoff coordinates directly for fixed_distance/
+            // fixed_map's Location-to-Location & Area-to-Location matching - so that matching
+            // doesn't depend on the session-stored search context being readable on this host)
+            $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time, $geo_fence_coords, MPTBM_Function::normalize_coordinates($start_place_coordinates), MPTBM_Function::normalize_coordinates($end_place_coordinates));
             
             
             // Calculate Base Price server-side for list display

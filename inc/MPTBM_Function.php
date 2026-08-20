@@ -687,7 +687,7 @@ if (!class_exists('MPTBM_Function')) {
 		}
 
         //*************Price*********************************//
-		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0, $end_coords = null)
+		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0, $end_coords = null, $pickup_coords_hint = null, $dropoff_coords_hint = null)
 		{
 			$price = 0;
 			$search_context = self::get_search_context();
@@ -794,12 +794,23 @@ if (!class_exists('MPTBM_Function')) {
 
 					$found_zone_price = false;
 
+					// Prefer coordinates handed straight from the current request
+					// ($pickup_coords_hint/$dropoff_coords_hint, populated by the caller from
+					// $_POST) over the session-stored search context: the session isn't
+					// guaranteed to be readable on every host/cache setup, and when it silently
+					// comes back empty here, Location-to-Location/Area-to-Location matching
+					// below gets skipped entirely and pricing falls straight through to the
+					// flat "Fixed with map price" or distance+duration fallback further down -
+					// even though the searched route does have a matching row.
+					$effective_start_coords = $pickup_coords_hint ?: ($search_context['start_coords'] ?? null);
+					$effective_end_coords = $dropoff_coords_hint ?: ($search_context['end_coords'] ?? null);
+
                     if( $operation_area_fixed_map_type === 'zone_to_location' ){
                         if (!empty($fixed_zone_prices) && is_array($fixed_zone_prices)) {
-							$pickup_lat = $search_context['start_coords']['latitude'] ?? null;
-							$pickup_lng = $search_context['start_coords']['longitude'] ?? null;
-							$dropoff_lat = $search_context['end_coords']['latitude'] ?? null;
-							$dropoff_lng = $search_context['end_coords']['longitude'] ?? null;
+							$pickup_lat = $effective_start_coords['latitude'] ?? null;
+							$pickup_lng = $effective_start_coords['longitude'] ?? null;
+							$dropoff_lat = $effective_end_coords['latitude'] ?? null;
+							$dropoff_lng = $effective_end_coords['longitude'] ?? null;
 
                             if ($pickup_lat && $pickup_lng && $dropoff_lat && $dropoff_lng) {
                                 $pickup_coords = ['lat' => $pickup_lat, 'lng' => $pickup_lng];
@@ -841,10 +852,10 @@ if (!class_exists('MPTBM_Function')) {
                         }
                     }else{
                         if (!empty($fixed_map_area_to_area_price_info) && is_array($fixed_map_area_to_area_price_info)) {
-							$area_to_area_pickup_lat = $search_context['start_coords']['latitude'] ?? null;
-							$area_to_area_pickup_lng = $search_context['start_coords']['longitude'] ?? null;
-							$area_to_area_dropoff_lat = $search_context['end_coords']['latitude'] ?? null;
-							$area_to_area_dropoff_lng = $search_context['end_coords']['longitude'] ?? null;
+							$area_to_area_pickup_lat = $effective_start_coords['latitude'] ?? null;
+							$area_to_area_pickup_lng = $effective_start_coords['longitude'] ?? null;
+							$area_to_area_dropoff_lat = $effective_end_coords['latitude'] ?? null;
+							$area_to_area_dropoff_lng = $effective_end_coords['longitude'] ?? null;
 
                             if ($area_to_area_pickup_lat && $area_to_area_pickup_lng && $area_to_area_dropoff_lat && $area_to_area_dropoff_lng) {
                                 $area_to_area_pickup_coords = ['lat' => $area_to_area_pickup_lat, 'lng' => $area_to_area_pickup_lng];
