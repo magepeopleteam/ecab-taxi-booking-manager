@@ -253,12 +253,27 @@ if (!class_exists('MPTBM_Dependencies')) {
             wp_enqueue_script('mptbm_script', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_script.js', array('jquery'), time(), true);
             wp_enqueue_script('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.js', array('jquery', 'flatpickr'), time(), true);
             wp_enqueue_style('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.css', array(), time());
+            // Add Stoppage - kept in its own JS/CSS rather than merged into
+            // mptbm_registration.* since it's an independent, separately
+            // maintained feature (see Admin/MPTBM_Stoppages_Manager.php).
+            wp_enqueue_script('mptbm_stoppages', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_stoppages.js', array('jquery', 'mptbm_registration'), $this->asset_ver('assets/frontend/mptbm_stoppages.js'), true);
+            wp_enqueue_style('mptbm_stoppages', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_stoppages.css', array(), $this->asset_ver('assets/frontend/mptbm_stoppages.css'));
+            wp_localize_script('mptbm_stoppages', 'mptbm_stoppages_i18n', array(
+                'add' => esc_html__('Add this stop', 'ecab-taxi-booking-manager'),
+                'remove' => esc_html__('Remove this stop', 'ecab-taxi-booking-manager'),
+                'free' => esc_html__('Free', 'ecab-taxi-booking-manager'),
+                'badges' => array(
+                    'most_popular' => esc_html__('Most popular', 'ecab-taxi-booking-manager'),
+                    'recommended'  => esc_html__('Recommended', 'ecab-taxi-booking-manager'),
+                ),
+            ));
 			
 			// Localize script for AJAX
 			wp_localize_script('mptbm_registration', 'mptbm_ajax', array(
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'osm_nonce' => wp_create_nonce('mptbm_osm_search'),
-				'search_nonce' => wp_create_nonce('mptbm_transport_search')
+				'search_nonce' => wp_create_nonce('mptbm_transport_search'),
+				'stoppage_total_label' => esc_html__('Stops', 'ecab-taxi-booking-manager')
 			));
             
             // Font Awesome for template icons

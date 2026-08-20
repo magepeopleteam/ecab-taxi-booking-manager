@@ -43,6 +43,7 @@
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Service_Status_Manager.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Locations_Manager.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Extra_Services_Manager.php';
+			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Stoppages_Manager.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Operation_Areas_Manager.php';
 			// Limited "Bookings" list (upgrade teaser). Self-instantiates; internally stands
 			// down when the Pro plugin is active so the Pro unified list takes over.
@@ -56,6 +57,7 @@
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_General_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Price_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Extra_Service.php';
+				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Stoppage_Assignment.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Operation_Areas.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Date_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Base_Price_Settings.php';

@@ -4024,6 +4024,32 @@ function mptbm_price_calculation(parent) {
                 total = total + parseFloat(ex_price) * ex_qty;
             }
         });
+
+        let stoppage_total = 0;
+        parent.find(".mptbm_stoppage_item").each(function () {
+            let $input = jQuery(this).find('[name="mptbm_stoppage_id[]"]');
+            if ($input.val()) {
+                stoppage_total = stoppage_total + (parseFloat($input.data("price")) || 0);
+            }
+        });
+        total = total + stoppage_total;
+
+        // Own div, not the pre-existing .mptbm_stop_price_detail - that one is
+        // reserved for the older, unrelated "extra stop between pickup/dropoff"
+        // flat fee (mptbm_stop_price meta) and displaying this feature's total
+        // there would read as if it were that fee.
+        let stoppage_detail = target_summary.find(".mptbm_stoppage_price_detail");
+        if (stoppage_total > 0) {
+            stoppage_detail.html(
+                '<div class="_dFlex justifyBetween"><span>' +
+                mptbm_ajax.stoppage_total_label +
+                '</span><span>' +
+                mp_price_format(stoppage_total) +
+                '</span></div>'
+            );
+        } else {
+            stoppage_detail.html('');
+        }
     }
     var el = target_summary.find(".mptbm_product_total_price");
     el.html(mp_price_format(total));
@@ -4443,6 +4469,17 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 }
             });
 
+            // Add Stoppage - independent of Extra Services, collected the same way.
+            let stoppage_ids = {};
+            let stoppage_count = 0;
+            parent.find('[name="mptbm_stoppage_id[]"]').each(function () {
+                let stoppage_id = $(this).val();
+                if (stoppage_id) {
+                    stoppage_ids[stoppage_count] = stoppage_id;
+                    stoppage_count++;
+                }
+            });
+
             // Get coordinates for fixed_zone/fixed_zone_dropoff pricing
             let start_place_coordinates = null;
             let end_place_coordinates = null;
@@ -4503,6 +4540,7 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     mptbm_return_time: return_target_time,
                     mptbm_extra_service: extra_service_name,
                     mptbm_extra_service_qty: extra_service_qty,
+                    mptbm_stoppage_id: stoppage_ids,
                     mptbm_passengers: parent.find('#mptbm_passengers').val(),
                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),

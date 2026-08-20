@@ -227,8 +227,15 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				// scaled by quantity like the base transport price (each vehicle makes the same stops).
 				$stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
 					$stop_total_price = $stop_price_per_unit * absint($context['extra_stop_count'] ?? 0) * $quantity;
-				// Final total: transport plus extra services plus threshold-based base distance price plus extra stops
-				$total_price = $transport_total_price + $extra_total_price + $threshold_base_price + $stop_total_price;
+				// Add Stoppage selection - a one-time charge per booking, not scaled by
+				// vehicle quantity (same treatment as extra services above).
+				$mptbm_stoppage_selection = self::cart_stoppage_info($post_id);
+				$stoppage_total_price = 0;
+				foreach ($mptbm_stoppage_selection as $stoppage) {
+					$stoppage_total_price += (float) $stoppage['stoppage_price'];
+				}
+				// Final total: transport plus extra services plus threshold-based base distance price plus extra stops plus stoppages
+				$total_price = $transport_total_price + $extra_total_price + $threshold_base_price + $stop_total_price + $stoppage_total_price;
                 
                 
 					$cart_item_data['mptbm_date'] = $booking_date;
@@ -252,6 +259,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$cart_item_data['mptbm_duration_text'] = (string) max(1, (int) ceil($duration / 60)) . ' min';
 				$cart_item_data['mptbm_base_price'] = $raw_price;
 				$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info($post_id);
+				$cart_item_data['mptbm_stoppage_info'] = $mptbm_stoppage_selection;
 				$cart_item_data['mptbm_tp'] = $total_price;
 				$cart_item_data['line_total'] = $total_price;
 				$cart_item_data['line_subtotal'] = $total_price;
@@ -353,6 +361,14 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 				if ($extra_stop_enabled === 'yes' && !empty($extra_stop_locations)) {
 					$item_data[] = array('key' => mptbm_get_translation('extra_stop_location_label', __('Extra Stops', 'ecab-taxi-booking-manager')), 'value' => implode(', ', $extra_stop_locations));
+				}
+
+				$mptbm_stoppage_selection = array_key_exists('mptbm_stoppage_info', $cart_item) ? (array) $cart_item['mptbm_stoppage_info'] : [];
+				if (!empty($mptbm_stoppage_selection)) {
+					$item_data[] = array(
+						'key'   => mptbm_get_translation('stoppages_label', __('Stoppages', 'ecab-taxi-booking-manager')),
+						'value' => implode(', ', wp_list_pluck($mptbm_stoppage_selection, 'stoppage_name')),
+					);
 				}
 					$item_data[] = array('key' => mptbm_get_translation('date_label', __('Date', 'ecab-taxi-booking-manager')), 'value' => MP_Global_Function::date_format($date));
 					$item_data[] = array('key' => mptbm_get_translation('time_label', __('Time', 'ecab-taxi-booking-manager')), 'value' => MP_Global_Function::date_format($date, 'time'));
@@ -458,6 +474,21 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						$item->add_meta_data(mptbm_get_translation('extra_stop_price_label', __('Extra Stop Charge', 'ecab-taxi-booking-manager')), wp_kses_post(wc_price($stop_total_price)));
 						$item->add_meta_data('_mptbm_stop_price', $stop_total_price);
 					}
+				}
+
+				// Add Stoppage - persist each selected stop as its own order-item meta
+				// row so it stays attached to the booking after checkout (admin
+				// bookings list, driver-facing order view, etc.).
+				$mptbm_stoppage_selection = isset($values['mptbm_stoppage_info']) ? (array) $values['mptbm_stoppage_info'] : [];
+				foreach ($mptbm_stoppage_selection as $stoppage) {
+					$label = $stoppage['stoppage_name'];
+					if (!empty($stoppage['stoppage_duration'])) {
+						$label .= ' (' . $stoppage['stoppage_duration'] . ')';
+					}
+					$item->add_meta_data(
+						mptbm_get_translation('stoppage_label', __('Stoppage', 'ecab-taxi-booking-manager')),
+						$label . ' — ' . wp_kses_post(wc_price((float) $stoppage['stoppage_price']))
+					);
 				}
 				$distance = isset($values['mptbm_distance']) ? $values['mptbm_distance'] : '';
 				$distance_text = isset($values['mptbm_distance_text']) ? $values['mptbm_distance_text'] : '';
@@ -1086,6 +1117,31 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						</div>
 					<?php } ?>
 				<?php } ?>
+				<?php
+				$mptbm_stoppage_selection = array_key_exists('mptbm_stoppage_info', $cart_item) ? (array) $cart_item['mptbm_stoppage_info'] : [];
+				if (!empty($mptbm_stoppage_selection)) : ?>
+					<h5 class="_mB_xs"><?php esc_html_e('Stoppages', 'ecab-taxi-booking-manager'); ?></h5>
+					<?php foreach ($mptbm_stoppage_selection as $stoppage) : ?>
+						<div class="dLayout_xs">
+							<ul class="cart_list">
+								<li>
+									<h6 class="_mR_xs"><?php esc_html_e('Name : ', 'ecab-taxi-booking-manager'); ?></h6>
+									<span><?php echo esc_html($stoppage['stoppage_name']); ?></span>
+								</li>
+								<?php if (!empty($stoppage['stoppage_duration'])) : ?>
+								<li>
+									<h6 class="_mR_xs"><?php esc_html_e('Duration : ', 'ecab-taxi-booking-manager'); ?></h6>
+									<span><?php echo esc_html($stoppage['stoppage_duration']); ?></span>
+								</li>
+								<?php endif; ?>
+								<li>
+									<h6 class="_mR_xs"><?php esc_html_e('Price : ', 'ecab-taxi-booking-manager'); ?></h6>
+									<span><?php echo (float) $stoppage['stoppage_price'] > 0 ? wp_kses_post(wc_price($stoppage['stoppage_price'])) : esc_html__('Free', 'ecab-taxi-booking-manager'); ?></span>
+								</li>
+							</ul>
+						</div>
+					<?php endforeach; ?>
+				<?php endif; ?>
 				<?php do_action('mptbm_after_cart_item_display', $cart_item, $post_id); ?>
 			</div>
 			<?php
@@ -1162,6 +1218,36 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				}
 			}
 			return $extra_service;
+		}
+		/**
+		 * Add Stoppage selection for the cart - independent of Extra Services.
+		 * The client posts only stoppage ids; name/duration/price are always
+		 * re-resolved from this vehicle's own assigned stoppages
+		 * (MPTBM_Function::get_available_stoppages()), never trusted from $_POST.
+		 */
+		public static function cart_stoppage_info($post_id): array
+		{
+			$posted_ids = isset($_POST['mptbm_stoppage_id']) ? array_values(array_filter(array_map('absint', (array) wp_unslash($_POST['mptbm_stoppage_id'])))) : [];
+			if (empty($posted_ids)) {
+				return [];
+			}
+			$available = MPTBM_Function::get_available_stoppages($post_id);
+			$available_by_id = [];
+			foreach ($available as $stoppage) {
+				$available_by_id[$stoppage['id']] = $stoppage;
+			}
+			$selected = [];
+			foreach ($posted_ids as $id) {
+				if (isset($available_by_id[$id])) {
+					$selected[] = [
+						'stoppage_id'       => $id,
+						'stoppage_name'     => $available_by_id[$id]['name'],
+						'stoppage_duration' => $available_by_id[$id]['duration'],
+						'stoppage_price'    => $available_by_id[$id]['price'],
+					];
+				}
+			}
+			return $selected;
 		}
 		public function get_cart_total_price($post_id)
 		{

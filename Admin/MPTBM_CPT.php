@@ -367,6 +367,22 @@ if (!class_exists('MPTBM_CPT')) {
 			register_taxonomy('locations', $cpt, $taxonomy_args);
 			register_post_type('mptbm_extra_services', $ex_args);
 			register_post_type('mptbm_operate_areas', $dx_args);
+
+			$stoppage_args = array(
+				'public' => false,
+				'label' => esc_html__('Stoppages', 'ecab-taxi-booking-manager'),
+				'supports' => array('title'),
+				'show_in_menu' => 'edit.php?post_type=' . $cpt,
+				'capabilities' => $management_capabilities,
+				'map_meta_cap' => false,
+				'publicly_queryable' => false,
+				'show_ui' => true,
+				'exclude_from_search' => true,
+				'show_in_nav_menus' => false,
+				'has_archive' => false,
+				'rewrite' => false,
+			);
+			register_post_type('mptbm_stoppages', $stoppage_args);
 		}
 	}
 	new MPTBM_CPT();

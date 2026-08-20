@@ -1,0 +1,596 @@
+/* ================================================================
+   ECAB TAXI BOOKING MANAGER — Stoppages (global tourist-spot library)
+   Reuses the --mp-* design tokens defined in mptbm_taxi_add_edit.css.
+   ================================================================ */
+
+/* Hide WordPress's own list-table page (title, Add New/filters, table) -
+   admin_notices only injects our card UI alongside it, it doesn't replace
+   it, so the native wrap has to be hidden explicitly. Same rule as
+   mptbm_extra_services.css uses for its own screen. */
+body.mptbm-stoppages-screen #wpbody-content > .wrap {
+    display: none;
+}
+
+body.mptbm-stoppages-screen #wpbody-content {
+    box-sizing: border-box;
+}
+
+.mptbm-stoppages-page {
+    width: 98%;
+    max-width: 98%;
+    margin: 0 auto;
+    padding: 28px 0 48px;
+    box-sizing: border-box;
+}
+
+.mptbm-stoppages-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.mptbm-stoppages-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.mptbm-stoppages-heading-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--mp-primary-light, #f0efff);
+    color: var(--mp-primary, #4f46e5);
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.mptbm-stoppages-eyebrow {
+    margin: 0 0 2px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--mp-primary, #4f46e5);
+}
+
+.mptbm-stoppages-heading h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.mptbm-stoppages-heading p {
+    margin: 0;
+    max-width: 520px;
+    color: #64748b;
+    font-size: 13.5px;
+}
+
+.mptbm-stoppages-add {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 18px !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+}
+
+.mptbm-stoppages-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    background: var(--mp-white, #fff);
+    border: 1px solid var(--mp-border, #e2e8f0);
+    border-radius: 12px;
+}
+
+.mptbm-stoppages-summary > div {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.mptbm-stoppages-summary span {
+    font-size: 12.5px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.mptbm-stoppages-summary strong {
+    font-size: 20px;
+    color: var(--mp-primary, #4f46e5);
+    font-variant-numeric: tabular-nums;
+}
+
+.mptbm-stoppages-summary p {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+    flex: 1 1 240px;
+}
+
+.mptbm-stoppages-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    padding: 8px 12px;
+    min-width: 240px;
+    background: #f8fafc;
+    border: 1px solid var(--mp-border, #e2e8f0);
+    border-radius: 8px;
+}
+
+.mptbm-stoppages-search i {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.mptbm-stoppages-search input[type="search"] {
+    border: none;
+    background: none;
+    outline: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    font-size: 13px;
+    color: #1e293b;
+}
+
+.mptbm-stoppages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 16px;
+}
+
+.mptbm-stoppages-card {
+    background: var(--mp-white, #fff);
+    border: 1px solid var(--mp-border, #e2e8f0);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: var(--mp-transition, all .2s ease);
+}
+
+.mptbm-stoppages-card:hover {
+    box-shadow: 0 8px 20px rgba(79, 70, 229, .1);
+    border-color: var(--mp-primary-border, #c4b5fd);
+    transform: translateY(-2px);
+}
+
+.mptbm-stoppages-card-media {
+    position: relative;
+    height: 130px;
+    background: var(--mp-bg-muted, #f1f5f9) center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 26px;
+}
+
+.mptbm-stoppages-card-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: #1e293b;
+    background: #fde68a;
+}
+
+.mptbm-stoppages-card-badge.is-recommended {
+    background: #bfdbfe;
+    color: #1e3a8a;
+}
+
+.mptbm-stoppages-card-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity .15s ease;
+}
+
+.mptbm-stoppages-card:hover .mptbm-stoppages-card-actions {
+    opacity: 1;
+}
+
+.mptbm-stoppages-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .92);
+    color: #334155;
+    cursor: pointer;
+}
+
+.mptbm-stoppages-icon-btn:hover {
+    background: #fff;
+}
+
+.mptbm-stoppages-icon-btn.is-danger {
+    color: var(--mp-danger, #ef4444);
+}
+
+.mptbm-stoppages-card-body {
+    padding: 12px 14px 14px;
+}
+
+.mptbm-stoppages-card-body h2 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.mptbm-stoppages-card-meta {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+.mptbm-stoppages-card-price {
+    font-weight: 700;
+    color: var(--mp-success, #10b981);
+}
+
+.mptbm-stoppages-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748b;
+}
+
+.mptbm-stoppages-empty.is-hidden {
+    display: none;
+}
+
+.mptbm-stoppages-empty span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--mp-primary-light, #f0efff);
+    color: var(--mp-primary, #4f46e5);
+    font-size: 22px;
+    margin-bottom: 12px;
+}
+
+.mptbm-stoppages-empty h2 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    color: #1e293b;
+}
+
+/* ---- Modal ----
+   visibility/opacity toggle rather than display:none<->flex: wp_editor()'s
+   TinyMCE measures the textarea's box on init, and a display:none ancestor
+   at that moment leaves it permanently mis-sized. Staying in the flow
+   (just invisible + non-interactive + still position:fixed, so it never
+   affects page layout) fixes that without touching the JS toggle calls. */
+.mptbm-stoppages-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease;
+}
+
+.mptbm-stoppages-modal.is-open {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mptbm-stoppages-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, .6);
+}
+
+.mptbm-stoppages-dialog {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--mp-white, #fff);
+    border-radius: 18px;
+    padding: 30px 32px 26px;
+    box-shadow: 0 28px 70px rgba(15, 23, 42, .3);
+    transform: translateY(10px) scale(.98);
+    transition: transform .18s ease;
+}
+
+.mptbm-stoppages-modal.is-open .mptbm-stoppages-dialog {
+    transform: translateY(0) scale(1);
+}
+
+.mptbm-stoppages-modal-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: var(--mp-bg-muted, #f1f5f9);
+    color: #475569;
+    cursor: pointer;
+    z-index: 1;
+    transition: background .15s ease;
+}
+
+.mptbm-stoppages-modal-close:hover {
+    background: #e2e8f0;
+}
+
+.mptbm-stoppages-dialog-head {
+    margin: 0 0 24px;
+    padding-right: 34px;
+}
+
+.mptbm-stoppages-dialog-head h2 {
+    margin: 0 0 4px;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.mptbm-stoppages-dialog-head p {
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.mptbm-stoppages-field {
+    margin-bottom: 18px;
+}
+
+.mptbm-stoppages-field-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+@media (max-width: 640px) {
+    .mptbm-stoppages-field-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mptbm-stoppages-field label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: .01em;
+    color: #334155;
+}
+
+.mptbm-stoppages-field .is-optional {
+    font-weight: 400;
+    color: #94a3b8;
+}
+
+.mptbm-stoppages-field input[type="text"],
+.mptbm-stoppages-field input[type="number"],
+.mptbm-stoppages-field textarea,
+.mptbm-stoppages-field select {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1px solid var(--mp-border, #e2e8f0);
+    border-radius: 9px;
+    font-size: 13.5px;
+    box-sizing: border-box;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.mptbm-stoppages-field input:focus,
+.mptbm-stoppages-field textarea:focus,
+.mptbm-stoppages-field select:focus {
+    outline: none;
+    border-color: var(--mp-primary, #4f46e5);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, .12);
+}
+
+/* ---- Cover image + gallery row ---- */
+.mptbm-stoppages-media-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 640px) {
+    .mptbm-stoppages-media-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mptbm-stoppages-media-picker {
+    position: relative;
+    height: 140px;
+    border-radius: 12px;
+    background: var(--mp-bg-muted, #f8fafc);
+    border: 1.5px dashed var(--mp-border, #cbd5e1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.mptbm-stoppages-media-picker img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mptbm-stoppages-media-placeholder {
+    color: #cbd5e1;
+    font-size: 26px;
+}
+
+.mptbm-stoppages-media-picker.has-image .mptbm-stoppages-media-placeholder {
+    display: none;
+}
+
+.mptbm-stoppages-media-pick {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, .68);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.mptbm-stoppages-media-picker:not(.has-image) .mptbm-stoppages-media-pick {
+    position: static;
+    background: none;
+    color: var(--mp-primary, #4f46e5);
+}
+
+.mptbm-stoppages-gallery-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+    min-height: 0;
+}
+
+.mptbm-stoppages-gallery-thumb {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--mp-border, #e2e8f0);
+}
+
+.mptbm-stoppages-gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.mptbm-stoppages-gallery-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, .75);
+    color: #fff;
+    font-size: 9px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.mptbm-stoppages-gallery-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border: 1px dashed var(--mp-border, #cbd5e1);
+    border-radius: 8px;
+    background: none;
+    color: var(--mp-primary, #4f46e5);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ---- Description editor ---- */
+.mptbm-stoppages-editor-field .wp-editor-wrap,
+.mptbm-stoppages-editor-field .wp-editor-container {
+    border-radius: 9px;
+    overflow: hidden;
+}
+
+.mptbm-stoppages-editor-field .wp-editor-container {
+    border: 1px solid var(--mp-border, #e2e8f0);
+}
+
+.mptbm-stoppages-message {
+    min-height: 18px;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.mptbm-stoppages-message.is-error {
+    color: var(--mp-danger, #ef4444);
+}
+
+.mptbm-stoppages-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 4px;
+    border-top: 1px solid var(--mp-border, #f1f5f9);
+    margin-top: 4px;
+}
+
+/* mptbm_stoppages.js toggles this on <body> while the modal is open, but
+   nothing was locking scroll for it - the page behind the modal could still
+   scroll. Same rule as the frontend popup's body.mptbm-stoppage-popup-open. */
+body.mptbm-stoppages-modal-open {
+    overflow: hidden;
+}

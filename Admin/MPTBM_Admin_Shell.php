@@ -99,6 +99,11 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                     'icon' => 'fas fa-concierge-bell',
                     'link' => admin_url('edit.php?post_type=mptbm_extra_services'),
                 ],
+                'mptbm_stoppages' => [
+                    'label' => esc_html__('Stoppages', 'ecab-taxi-booking-manager'),
+                    'icon' => 'fas fa-map-signs',
+                    'link' => admin_url('edit.php?post_type=mptbm_stoppages'),
+                ],
                 'mptbm_operate_areas' => [
                     'label' => esc_html__('Operation Areas', 'ecab-taxi-booking-manager'),
                     'icon' => 'fas fa-draw-polygon',
@@ -175,6 +180,12 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                 'label' => esc_html__('Extra Services', 'ecab-taxi-booking-manager'),
                 'icon' => 'fas fa-concierge-bell',
                 'link' => admin_url('edit.php?post_type=mptbm_extra_services'),
+            ];
+            $items[] = [
+                'slug' => 'mptbm_stoppages',
+                'label' => esc_html__('Stoppages', 'ecab-taxi-booking-manager'),
+                'icon' => 'fas fa-map-signs',
+                'link' => admin_url('edit.php?post_type=mptbm_stoppages'),
             ];
             $items[] = [
                 'slug' => 'mptbm_operate_areas',

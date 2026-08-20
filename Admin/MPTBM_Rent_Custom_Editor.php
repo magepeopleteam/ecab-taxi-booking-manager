@@ -168,6 +168,33 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                                         <?php self::extra_service_display( $post_id ); ?>
                                     </div>
                                 </section>
+
+                                <section class="mptbm_fees_services_group is-services is-minimal" id="mptbm_stoppage_configuration">
+                                    <div class="mptbm_fees_services_group_header">
+                                        <div class="mptbm_fees_services_group_title">
+                                            <div>
+                                                <h3><?php esc_html_e('Add Tourist Spot', 'ecab-taxi-booking-manager'); ?></h3>
+                                                <p><?php esc_html_e('Optional sightseeing/rest stops this vehicle can offer, each with its own duration and (optional) price.', 'ecab-taxi-booking-manager'); ?></p>
+                                            </div>
+                                        </div>
+                                        <div class="mptbm_fees_services_group_header_actions">
+                                            <?php
+                                            $stoppages_display = MP_Global_Function::get_post_info( $post_id, 'display_mptbm_stoppages', 'off' );
+                                            $stoppages_checked = $stoppages_display === 'on' ? 'checked' : '';
+                                            ?>
+                                            <div class="mptbm_taxi_ex_service_toggle_wrapper">
+                                                <label class="mptbm_taxi_ex_service_switch">
+                                                    <input type="checkbox" id="mptbm_taxi_stoppage_master_toggle" name="display_mptbm_stoppages" <?php echo esc_attr($stoppages_checked); ?>>
+                                                    <span class="mptbm_taxi_ex_service_slider"></span>
+                                                </label>
+                                                <span class="mptbm_taxi_ex_service_toggle_label<?php echo esc_attr($stoppages_display === 'off' ? ' mptbm_taxi_off' : ''); ?>"><?php echo esc_html($stoppages_display === 'off' ? __('OFF', 'ecab-taxi-booking-manager') : __('ON', 'ecab-taxi-booking-manager')); ?></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mptbm_fees_services_group_body">
+                                        <?php MPTBM_Stoppage_Assignment::render( $post_id, $stoppages_display === 'on' ); ?>
+                                    </div>
+                                </section>
                             </div>
                         </div>
                         <?php

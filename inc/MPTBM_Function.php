@@ -176,6 +176,14 @@ if (!class_exists('MPTBM_Function')) {
 					return new WP_Error('mptbm_extra_service', __('An invalid extra service was selected.', 'ecab-taxi-booking-manager'));
 				}
 			}
+
+			$allowed_stoppage_ids = wp_list_pluck(self::get_available_stoppages($post_id), 'id');
+			$stoppage_ids = isset($_POST['mptbm_stoppage_id']) ? array_values(array_map('absint', (array) wp_unslash($_POST['mptbm_stoppage_id']))) : array();
+			foreach (array_filter($stoppage_ids) as $stoppage_id) {
+				if (!in_array($stoppage_id, $allowed_stoppage_ids, true)) {
+					return new WP_Error('mptbm_stoppage', __('An invalid stoppage was selected.', 'ecab-taxi-booking-manager'));
+				}
+			}
 			return true;
 		}
 
@@ -1259,6 +1267,70 @@ if (!class_exists('MPTBM_Function')) {
 			}
 			return 0;
 		}
+
+		/**
+		 * A stoppage's duration is stored as a plain number of minutes
+		 * (mptbm_stoppage_duration) - this turns 90 into "1 h 30 min", 120 into
+		 * "2 h", and 45 into "45 min" for every place it's displayed.
+		 */
+		public static function format_duration_minutes($minutes): string
+		{
+			$minutes = absint($minutes);
+			if ($minutes <= 0) {
+				return '';
+			}
+			$hours = intdiv($minutes, 60);
+			$remaining_minutes = $minutes % 60;
+
+			if ($hours > 0 && $remaining_minutes > 0) {
+				return sprintf('%d h %d min', $hours, $remaining_minutes);
+			}
+			if ($hours > 0) {
+				return sprintf('%d h', $hours);
+			}
+			return sprintf('%d min', $remaining_minutes);
+		}
+
+		/**
+		 * Every stoppage a vehicle offers, resolved server-side from its own
+		 * assignment (mptbm_stoppage_ids) - never from anything the client posts.
+		 * Empty when the vehicle has stoppages switched off or none assigned.
+		 *
+		 * @return array<int,array{id:int,name:string,description:string,duration:string,price:float,image_url:string,badge:string}>
+		 */
+		public static function get_available_stoppages($post_id): array
+		{
+			$display = MP_Global_Function::get_post_info($post_id, 'display_mptbm_stoppages', 'off');
+			if ($display !== 'on') {
+				return [];
+			}
+			$ids = get_post_meta($post_id, 'mptbm_stoppage_ids', true);
+			$ids = is_array($ids) ? array_map('absint', $ids) : [];
+			if (empty($ids)) {
+				return [];
+			}
+
+			$stoppages = [];
+			foreach ($ids as $id) {
+				$post = get_post($id);
+				if (!$post || $post->post_type !== 'mptbm_stoppages' || $post->post_status !== 'publish') {
+					continue;
+				}
+				$image_id = (int) get_post_meta($id, 'mptbm_stoppage_image', true);
+				$price = get_post_meta($id, 'mptbm_stoppage_price', true);
+				$stoppages[] = [
+					'id'          => (int) $id,
+					'name'        => $post->post_title,
+					'description' => (string) get_post_meta($id, 'mptbm_stoppage_description', true),
+					'duration'    => self::format_duration_minutes(get_post_meta($id, 'mptbm_stoppage_duration', true)),
+					'price'       => ($price !== '' && $price !== false) ? (float) $price : 0.0,
+					'image_url'   => $image_id ? (string) wp_get_attachment_image_url($image_id, 'medium') : '',
+					'badge'       => (string) get_post_meta($id, 'mptbm_stoppage_badge', true),
+				];
+			}
+			return $stoppages;
+		}
+
 		/**
 		 * Check if coordinates fall within a fixed_zone end location (operation area polygon or location term radius)
 		 * 

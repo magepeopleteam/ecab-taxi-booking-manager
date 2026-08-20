@@ -1,0 +1,510 @@
+/* ================================================================
+   Add Stoppage — customer-facing popup (own file, independent of
+   Extra Services). Reuses the site's --color_theme custom properties
+   so it matches whatever accent color the theme/customizer sets.
+   ================================================================ */
+
+.mptbm_stoppage_panel {
+    margin: 16px 0;
+}
+
+.mptbm_stoppage_trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border: 1px solid var(--color_theme, #16a34a);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--color_theme, #16a34a);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+
+.mptbm_stoppage_trigger:hover {
+    background: var(--color_theme, #16a34a);
+    color: var(--color_theme_alter, #fff);
+}
+
+.mptbm_stoppage_trigger_count {
+    display: none;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--color_theme, #16a34a);
+    color: var(--color_theme_alter, #fff);
+    font-size: 11.5px;
+    font-weight: 700;
+    align-items: center;
+    justify-content: center;
+    line-height: 20px;
+    text-align: center;
+}
+
+.mptbm_stoppage_trigger:hover .mptbm_stoppage_trigger_count {
+    background: var(--color_theme_alter, #fff);
+    color: var(--color_theme, #16a34a);
+}
+
+/* ---- Main popup ---- */
+.mptbm_stoppage_popup,
+.mptbm_stoppage_detail_popup {
+    position: fixed;
+    inset: 0;
+    z-index: 100050;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.mptbm_stoppage_popup.is-open,
+.mptbm_stoppage_detail_popup.is-open {
+    display: flex;
+}
+
+@media (min-width: 640px) {
+    .mptbm_stoppage_popup,
+    .mptbm_stoppage_detail_popup {
+        align-items: center;
+    }
+}
+
+.mptbm_stoppage_popup_backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, .6);
+}
+
+.mptbm_stoppage_dialog,
+.mptbm_stoppage_detail_dialog {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    max-height: 86vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    padding: 26px 22px 20px;
+    /* iOS home-indicator / gesture-bar clearance on the bottom-sheet layout -
+       harmless (0px) on devices/browsers without a safe area. */
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    box-shadow: 0 -10px 40px rgba(15, 23, 42, .2);
+    box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+    .mptbm_stoppage_dialog,
+    .mptbm_stoppage_detail_dialog {
+        border-radius: 20px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, .28);
+    }
+}
+
+.mptbm_stoppage_dialog_close {
+    position: absolute !important;
+    top: 14px !important;
+    right: 14px !important;
+    left: auto !important;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #475569;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.mptbm_stoppage_dialog h3 {
+    margin: 0 0 4px;
+    padding-right: 34px;
+    font-size: 19px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.mptbm_stoppage_dialog > p {
+    margin: 0 0 18px;
+    color: #64748b;
+    font-size: 13.5px;
+}
+
+/* ---- Phone-width tightening for the main "Add Stoppage" dialog ----
+   Placed after the base rules above (same selectors/specificity) so these
+   actually win inside the media query, instead of the unconditional base
+   rules winning back by virtue of coming later in the file. */
+@media (max-width: 480px) {
+    .mptbm_stoppage_dialog {
+        max-height: 90vh;
+        padding: 20px 16px 16px;
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+        border-radius: 16px 16px 0 0;
+    }
+
+    .mptbm_stoppage_dialog h3 {
+        font-size: 16.5px;
+        padding-right: 30px;
+    }
+
+    .mptbm_stoppage_dialog > p {
+        font-size: 12.5px;
+        margin-bottom: 14px;
+    }
+
+    .mptbm_stoppage_dialog_close {
+        top: 12px !important;
+        right: 12px !important;
+        width: 30px;
+        height: 30px;
+    }
+}
+
+/* ---- Horizontal-scrolling card row ---- */
+.mptbm_stoppage_row {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scroll-snap-type: x proximity;
+}
+
+.mptbm_stoppage_row::-webkit-scrollbar {
+    height: 6px;
+}
+
+.mptbm_stoppage_row::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 999px;
+}
+
+.mptbm_stoppage_item {
+    flex: 0 0 190px;
+    scroll-snap-align: start;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+@media (max-width: 480px) {
+    /* ~2 cards visible + a sliver of the 3rd as a "there's more" hint,
+       instead of a fixed 190px that only shows 1.5 cards on a narrow phone. */
+    .mptbm_stoppage_item {
+        flex: 0 0 42%;
+    }
+}
+
+@media (max-width: 360px) {
+    .mptbm_stoppage_item {
+        flex: 0 0 62%;
+    }
+}
+
+.mptbm_stoppage_item.is-selected {
+    border-color: var(--color_theme, #16a34a);
+    box-shadow: 0 0 0 1px var(--color_theme, #16a34a);
+}
+
+.mptbm_stoppage_card_media {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 130px;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    background-color: #e2e8f0;
+    background-size: cover;
+    background-position: center;
+}
+
+@media (max-width: 480px) {
+    .mptbm_stoppage_card_media {
+        height: 108px;
+    }
+
+    .mptbm_stoppage_card_name {
+        font-size: 12.5px;
+    }
+
+    .mptbm_stoppage_card_meta,
+    .mptbm_stoppage_card_footer {
+        font-size: 11.5px;
+    }
+
+    .mptbm_stoppage_add_btn {
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+    }
+}
+
+.mptbm_stoppage_card_media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, .65) 100%);
+}
+
+.mptbm_stoppage_badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: #fde68a;
+    color: #713f12;
+    font-size: 10.5px;
+    font-weight: 700;
+}
+
+.mptbm_stoppage_badge.is-recommended {
+    background: #bfdbfe;
+    color: #1e3a8a;
+}
+
+.mptbm_stoppage_card_name {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 8px;
+    z-index: 1;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+}
+
+.mptbm_stoppage_card_footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 10px 12px;
+}
+
+.mptbm_stoppage_card_meta {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--color_theme, #16a34a);
+}
+
+.mptbm_stoppage_add_btn {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: var(--color_theme, #16a34a);
+    color: var(--color_theme_alter, #fff);
+    cursor: pointer;
+    font-size: 13px;
+    transition: transform .1s ease;
+}
+
+.mptbm_stoppage_add_btn:active {
+    transform: scale(.9);
+}
+
+.mptbm_stoppage_item.is-selected .mptbm_stoppage_add_btn {
+    background: #1e293b;
+}
+
+.mptbm_stoppage_dialog_footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+
+.mptbm_stoppage_done {
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    background: var(--color_theme, #16a34a) !important;
+    color: var(--color_theme_alter, #fff) !important;
+    border: none !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+}
+
+@media (max-width: 480px) {
+    /* Full-width, thumb-friendly tap target instead of a small right-aligned
+       button on a narrow screen. */
+    .mptbm_stoppage_dialog_footer {
+        margin-top: 14px;
+    }
+
+    .mptbm_stoppage_done {
+        width: 100%;
+        padding: 13px 24px !important;
+    }
+}
+
+/* ---- Detail popup ----
+   Always a single column: image on top, content below. Plain flexbox
+   (not grid) so the close button - the dialog's only absolutely
+   positioned direct child - never gets pulled into layout by anything. */
+.mptbm_stoppage_detail_popup .mptbm_stoppage_detail_dialog {
+    max-width: 680px;
+    padding: 20px;
+    border-radius: 22px;
+    overflow: hidden;
+    transform: translateY(12px) scale(.98);
+    opacity: 0;
+    transition: transform .22s ease, opacity .22s ease;
+}
+
+.mptbm_stoppage_detail_popup.is-open .mptbm_stoppage_detail_dialog {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.mptbm_stoppage_detail_content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.mptbm_stoppage_detail_media {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    background-color: #e2e8f0;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+}
+
+.mptbm_stoppage_detail_media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, .4) 100%);
+}
+
+.mptbm_stoppage_detail_media .mptbm_stoppage_badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 1;
+}
+
+.mptbm_stoppage_detail_popup .mptbm_stoppage_dialog_close {
+    background: #35393acf;
+    color: #fff;
+    /* !important + explicit left:auto: something else with a competing
+       left/right pair on this shared .mptbm_stoppage_dialog_close class was
+       winning the browser's abspos left-vs-right tie-break (fixed width +
+       both set -> left wins over right regardless of specificity), which is
+       what was pushing this to the left edge instead of the right. */
+    top: 20px !important;
+    right: 20px !important;
+    left: auto !important;
+    width: 38px;
+    height: 38px;
+    position: absolute;
+    z-index: 3;
+}
+
+.mptbm_stoppage_detail_popup .mptbm_stoppage_dialog_close:hover {
+    background: rgba(15, 23, 42, .8);
+}
+
+.mptbm_stoppage_detail_body {
+    /* Left/right/bottom spacing already comes from the dialog's own 20px
+       padding now - only need a top gap under the image here. */
+    padding: 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.mptbm_stoppage_detail_body h4 {
+    margin: 0 0 10px;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #1e293b;
+}
+
+.mptbm_stoppage_detail_pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.mptbm_stoppage_pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;
+}
+
+.mptbm_stoppage_pill.is-duration {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.mptbm_stoppage_pill.is-price {
+    background: #dcfce7; /* fallback for browsers without color-mix() support */
+    background: color-mix(in srgb, var(--color_theme, #16a34a) 14%, transparent);
+    color: var(--color_theme, #16a34a);
+}
+
+.mptbm_stoppage_detail_desc {
+    margin: 0 0 20px;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: #475569;
+}
+
+.mptbm_stoppage_detail_add {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px !important;
+    border-radius: 12px !important;
+    background: var(--color_theme, #16a34a) !important;
+    color: var(--color_theme_alter, #fff) !important;
+    border: none !important;
+    font-weight: 700 !important;
+    font-size: 14.5px !important;
+    cursor: pointer;
+    transition: background .15s ease, transform .1s ease;
+}
+
+.mptbm_stoppage_detail_add:active {
+    transform: scale(.98);
+}
+
+.mptbm_stoppage_detail_add.is-selected {
+    background: #1e293b !important;
+}
+
+body.mptbm-stoppage-popup-open {
+    overflow: hidden;
+}
