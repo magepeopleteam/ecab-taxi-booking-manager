@@ -15,6 +15,7 @@
     gap: 18px;
     padding: 20px 24px 20px 30px;
     background: #eef1fb;
+    border: 1px solid #e0e4f5;
     border-radius: 14px;
     overflow: hidden;
 }

@@ -356,6 +356,25 @@ div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary .fas.fa-check-s
     color: var(--color_theme);
     font-size: 12px;
 }
+
+/* ----- Stoppage line items - same treatment as the extra service rows above,
+   so a customer sees which stop costs what instead of one combined total. ----- */
+div.mp_sticky_on_scroll.summary-box .mptbm_stoppage_price_detail {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2px;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_stoppage_price_detail > div {
+    padding: 7px 0;
+    border-bottom: 1px dashed rgba(15, 23, 42, .08);
+    color: #334155;
+    font-size: 13px;
+    font-weight: 500;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_stoppage_price_detail > div:last-of-type {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
 div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary p {
     display: flex;
     flex: 0 0 auto;

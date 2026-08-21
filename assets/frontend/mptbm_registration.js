@@ -4025,31 +4025,31 @@ function mptbm_price_calculation(parent) {
             }
         });
 
+        // Own div, not the pre-existing .mptbm_stop_price_detail - that one is
+        // reserved for the older, unrelated "extra stop between pickup/dropoff"
+        // flat fee (mptbm_stop_price meta) and displaying this feature's total
+        // there would read as if it were that fee. Itemized (name + price per
+        // stop), same as .mptbm_extra_service_summary's per-service rows,
+        // rather than one combined "Stops: X" line - so the customer can see
+        // which stop costs what.
         let stoppage_total = 0;
+        let $stoppage_rows = jQuery();
         parent.find(".mptbm_stoppage_item").each(function () {
-            let $input = jQuery(this).find('[name="mptbm_stoppage_id[]"]');
+            let $item = jQuery(this);
+            let $input = $item.find('[name="mptbm_stoppage_id[]"]');
             if ($input.val()) {
-                stoppage_total = stoppage_total + (parseFloat($input.data("price")) || 0);
+                let stoppage_price = parseFloat($input.data("price")) || 0;
+                stoppage_total = stoppage_total + stoppage_price;
+
+                let $row = jQuery('<div class="_dFlex justifyBetween"><span></span><span></span></div>');
+                $row.find('span').eq(0).text($item.data('name'));
+                $row.find('span').eq(1).html(mp_price_format(stoppage_price));
+                $stoppage_rows = $stoppage_rows.add($row);
             }
         });
         total = total + stoppage_total;
 
-        // Own div, not the pre-existing .mptbm_stop_price_detail - that one is
-        // reserved for the older, unrelated "extra stop between pickup/dropoff"
-        // flat fee (mptbm_stop_price meta) and displaying this feature's total
-        // there would read as if it were that fee.
-        let stoppage_detail = target_summary.find(".mptbm_stoppage_price_detail");
-        if (stoppage_total > 0) {
-            stoppage_detail.html(
-                '<div class="_dFlex justifyBetween"><span>' +
-                mptbm_ajax.stoppage_total_label +
-                '</span><span>' +
-                mp_price_format(stoppage_total) +
-                '</span></div>'
-            );
-        } else {
-            stoppage_detail.html('');
-        }
+        target_summary.find(".mptbm_stoppage_price_detail").empty().append($stoppage_rows);
     }
     var el = target_summary.find(".mptbm_product_total_price");
     el.html(mp_price_format(total));

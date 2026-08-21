@@ -273,7 +273,6 @@ if (!class_exists('MPTBM_Dependencies')) {
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'osm_nonce' => wp_create_nonce('mptbm_osm_search'),
 				'search_nonce' => wp_create_nonce('mptbm_transport_search'),
-				'stoppage_total_label' => esc_html__('Stops', 'ecab-taxi-booking-manager')
 			));
             
             // Font Awesome for template icons
