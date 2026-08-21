@@ -14,11 +14,18 @@ $mptbm_stoppage_badge_labels = [
 ];
 ?>
 <div class="mptbm_stoppage_panel">
-	<button type="button" class="mptbm_stoppage_trigger" data-stoppage-trigger>
-		<span class="fas fa-map-marker-alt" aria-hidden="true"></span>
-		<span><?php esc_html_e('Add Stoppage', 'ecab-taxi-booking-manager'); ?></span>
-		<span class="mptbm_stoppage_trigger_count" data-stoppage-count></span>
-	</button>
+	<div class="mptbm_stoppage_banner">
+		<span class="mptbm_stoppage_banner_icon"><span class="fas fa-map-marker-alt" aria-hidden="true"></span></span>
+		<div class="mptbm_stoppage_banner_text">
+			<strong><?php esc_html_e('Enhance Your Journey', 'ecab-taxi-booking-manager'); ?></strong>
+			<span><?php esc_html_e('Would you like to add a stop to see attractions during this trip? Customize your route to make the most of your travel time.', 'ecab-taxi-booking-manager'); ?></span>
+		</div>
+		<button type="button" class="mptbm_stoppage_trigger" data-stoppage-trigger>
+			<span class="fas fa-plus" aria-hidden="true"></span>
+			<span><?php esc_html_e('Add Stoppage', 'ecab-taxi-booking-manager'); ?></span>
+			<span class="mptbm_stoppage_trigger_count" data-stoppage-count></span>
+		</button>
+	</div>
 
 	<div class="mptbm_stoppage_popup" data-stoppage-popup aria-hidden="true">
 		<div class="mptbm_stoppage_popup_backdrop" data-stoppage-close></div>
