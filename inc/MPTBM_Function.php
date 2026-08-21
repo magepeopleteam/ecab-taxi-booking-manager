@@ -1296,7 +1296,7 @@ if (!class_exists('MPTBM_Function')) {
 		 * assignment (mptbm_stoppage_ids) - never from anything the client posts.
 		 * Empty when the vehicle has stoppages switched off or none assigned.
 		 *
-		 * @return array<int,array{id:int,name:string,description:string,duration:string,price:float,image_url:string,badge:string}>
+		 * @return array<int,array{id:int,name:string,description:string,duration:string,price:float,image_url:string,badge:string,gallery:array<int,string>}>
 		 */
 		public static function get_available_stoppages($post_id): array
 		{
@@ -1318,6 +1318,11 @@ if (!class_exists('MPTBM_Function')) {
 				}
 				$image_id = (int) get_post_meta($id, 'mptbm_stoppage_image', true);
 				$price = get_post_meta($id, 'mptbm_stoppage_price', true);
+				$gallery_ids = get_post_meta($id, 'mptbm_stoppage_gallery', true);
+				$gallery_ids = is_array($gallery_ids) ? array_map('absint', $gallery_ids) : [];
+				$gallery = array_values(array_filter(array_map(function ($gallery_id) {
+					return (string) wp_get_attachment_image_url($gallery_id, 'medium');
+				}, $gallery_ids)));
 				$stoppages[] = [
 					'id'          => (int) $id,
 					'name'        => $post->post_title,
@@ -1326,6 +1331,7 @@ if (!class_exists('MPTBM_Function')) {
 					'price'       => ($price !== '' && $price !== false) ? (float) $price : 0.0,
 					'image_url'   => $image_id ? (string) wp_get_attachment_image_url($image_id, 'medium') : '',
 					'badge'       => (string) get_post_meta($id, 'mptbm_stoppage_badge', true),
+					'gallery'     => $gallery,
 				];
 			}
 			return $stoppages;

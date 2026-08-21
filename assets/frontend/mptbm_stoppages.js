@@ -70,12 +70,39 @@
 		var $detail = $panel.find('[data-stoppage-detail-popup]');
 
 		var image = $item.data('image');
-		$detail.find('[data-stoppage-detail-media]').css({
-			'background-image': image ? 'url(' + image + ')' : 'none',
-			'background-size': 'cover',
-			'background-position': 'center center',
-			'background-repeat': 'no-repeat'
+		var $media = $detail.find('[data-stoppage-detail-media]');
+		setDetailMedia($media, image);
+
+		// Gallery thumbnails - main image first, then the gallery picks, so
+		// clicking one just swaps what setDetailMedia() shows without ever
+		// losing the original card image.
+		var gallery = $item.data('gallery');
+		gallery = Array.isArray(gallery) ? gallery : [];
+		var images = [];
+		if (image) {
+			images.push(image);
+		}
+		$.each(gallery, function (i, url) {
+			if (url && images.indexOf(url) === -1) {
+				images.push(url);
+			}
 		});
+
+		var $thumbs = $detail.find('[data-stoppage-detail-thumbs]');
+		$thumbs.empty();
+		if (images.length > 1) {
+			$.each(images, function (i, url) {
+				$('<button type="button" class="mptbm_stoppage_thumb"></button>')
+					.toggleClass('is-active', i === 0)
+					.css('background-image', 'url(' + url + ')')
+					.attr('data-stoppage-thumb-url', url)
+					.appendTo($thumbs);
+			});
+			$thumbs.removeAttr('hidden');
+		} else {
+			$thumbs.attr('hidden', true);
+		}
+
 		$detail.find('[data-stoppage-detail-name]').text($item.data('name'));
 
 		var badge = $item.data('badge');
@@ -109,6 +136,25 @@
 		setDetailAddButton($addBtn, $item.hasClass('is-selected'));
 
 		$detail.attr('aria-hidden', 'false').addClass('is-open');
+	});
+
+	function setDetailMedia($media, image) {
+		$media.css({
+			'background-image': image ? 'url(' + image + ')' : 'none',
+			'background-size': 'cover',
+			'background-position': 'center center',
+			'background-repeat': 'no-repeat'
+		});
+	}
+
+	// Clicking a gallery thumbnail swaps the main detail image, not the
+	// selection state - it never touches [data-stoppage-toggle]/toggleItem().
+	$(document).on('click', '[data-stoppage-thumb-url]', function () {
+		var $thumb = $(this);
+		var $detail = $thumb.closest('[data-stoppage-detail-popup]');
+		setDetailMedia($detail.find('[data-stoppage-detail-media]'), $thumb.attr('data-stoppage-thumb-url'));
+		$thumb.closest('[data-stoppage-detail-thumbs]').find('.mptbm_stoppage_thumb').removeClass('is-active');
+		$thumb.addClass('is-active');
 	});
 
 	function setDetailAddButton($btn, isSelected) {

@@ -38,6 +38,7 @@ $mptbm_stoppage_badge_labels = [
 						data-duration="<?php echo esc_attr($mptbm_stop['duration']); ?>"
 						data-price="<?php echo esc_attr($mptbm_stop['price']); ?>"
 						data-image="<?php echo esc_url($mptbm_stop['image_url']); ?>"
+						data-gallery="<?php echo esc_attr(wp_json_encode($mptbm_stop['gallery'])); ?>"
 						data-badge="<?php echo esc_attr($mptbm_stop['badge']); ?>">
 						<button type="button" class="mptbm_stoppage_card_media" data-stoppage-details-trigger
 							<?php echo $mptbm_stop['image_url'] ? 'style="background-image:url(' . esc_url($mptbm_stop['image_url']) . ')"' : ''; ?>>
@@ -85,6 +86,7 @@ $mptbm_stoppage_badge_labels = [
 				<div class="mptbm_stoppage_detail_media" data-stoppage-detail-media>
 					<span class="mptbm_stoppage_badge" data-stoppage-detail-badge hidden><span class="fas fa-star" aria-hidden="true"></span><span data-stoppage-detail-badge-text></span></span>
 				</div>
+				<div class="mptbm_stoppage_detail_thumbs" data-stoppage-detail-thumbs hidden></div>
 				<div class="mptbm_stoppage_detail_body">
 					<h4 data-stoppage-detail-name></h4>
 					<div class="mptbm_stoppage_detail_pills">
