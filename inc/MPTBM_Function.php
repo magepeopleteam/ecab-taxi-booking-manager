@@ -1269,6 +1269,104 @@ if (!class_exists('MPTBM_Function')) {
 		}
 
 		/**
+		 * Short "starting price" headline for a vehicle card (e.g. taxi list/
+		 * grid views) - same admin-filled Price Settings meta and per-mode
+		 * logic as the single vehicle page's price card, condensed to just the
+		 * headline + unit (no route table, no notes). Only fields that are
+		 * actually set are shown; an unconfigured price model returns empty
+		 * strings rather than a fabricated number.
+		 *
+		 * @return array{headline:string,unit:string}
+		 */
+		public static function get_price_headline_info($post_id): array
+		{
+			$price_based          = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based', 'distance');
+			$price_display_type   = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
+			$custom_price_message = trim((string) MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', ''));
+
+			$km_price   = MP_Global_Function::get_post_info($post_id, 'mptbm_km_price', '');
+			$hour_price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price', '');
+
+			$headline = '';
+			$unit     = '';
+
+			switch ($price_based) {
+				case 'distance':
+					if ('' !== $km_price) {
+						$headline = MP_Global_Function::format_price($km_price);
+						$unit     = esc_html__('per km', 'ecab-taxi-booking-manager');
+					}
+					break;
+				case 'duration':
+				case 'fixed_hourly':
+					if ('' !== $hour_price) {
+						$headline = MP_Global_Function::format_price($hour_price);
+						$unit     = esc_html__('per hour', 'ecab-taxi-booking-manager');
+					}
+					break;
+				case 'distance_duration':
+					if ('' !== $km_price) {
+						$headline = MP_Global_Function::format_price($km_price);
+						$unit     = esc_html__('per km', 'ecab-taxi-booking-manager');
+					}
+					break;
+				case 'inclusive':
+					if ('' !== $km_price) {
+						$headline = MP_Global_Function::format_price($km_price);
+						$unit     = esc_html__('per km', 'ecab-taxi-booking-manager');
+					} elseif ('' !== $hour_price) {
+						$headline = MP_Global_Function::format_price($hour_price);
+						$unit     = esc_html__('per hour', 'ecab-taxi-booking-manager');
+					}
+					break;
+				case 'fixed_distance':
+					$fixed_map_price = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_price', '');
+					if ('' !== $fixed_map_price) {
+						$headline = MP_Global_Function::format_price($fixed_map_price);
+						$unit     = esc_html__('fixed fare', 'ecab-taxi-booking-manager');
+					}
+					break;
+				case 'manual':
+				case 'fixed_zone':
+					// Only the route table belonging to this vehicle's *currently
+					// active* pricing model - a vehicle previously switched away
+					// from manual/fixed zone can still have old rows sitting in
+					// the other meta, and reading both would risk resurrecting a
+					// stale fare.
+					if ('manual' === $price_based) {
+						$rows = array_merge(
+							(array) MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', array()),
+							(array) MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', array())
+						);
+					} else {
+						$rows = (array) MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', array());
+					}
+					$lowest = null;
+					foreach ($rows as $row) {
+						if (isset($row['price']) && '' !== $row['price']) {
+							$row_price = (float) $row['price'];
+							$lowest    = (null === $lowest) ? $row_price : min($lowest, $row_price);
+						}
+					}
+					if (null !== $lowest) {
+						$headline = MP_Global_Function::format_price($lowest);
+						$unit     = esc_html__('starting fare', 'ecab-taxi-booking-manager');
+					}
+					break;
+			}
+
+			if ('zero' === $price_display_type) {
+				$headline = MP_Global_Function::format_price(0);
+				$unit     = '';
+			} elseif ('custom_message' === $price_display_type && '' !== $custom_price_message) {
+				$headline = esc_html($custom_price_message);
+				$unit     = '';
+			}
+
+			return array('headline' => $headline, 'unit' => $unit);
+		}
+
+		/**
 		 * A stoppage's duration is stored as a plain number of minutes
 		 * (mptbm_stoppage_duration) - this turns 90 into "1 h 30 min", 120 into
 		 * "2 h", and 45 into "45 min" for every place it's displayed.
