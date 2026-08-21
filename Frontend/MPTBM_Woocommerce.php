@@ -691,6 +691,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$item->add_meta_data('_mptbm_base_price', $base_price);
 				$item->add_meta_data('_mptbm_tp', $price);
 				$item->add_meta_data('_mptbm_service_info', $extra_service);
+				// Raw data counterpart of the human-readable "Stoppage" rows added above -
+				// without this, checkout_order_processed() has nothing to copy onto the
+				// booking post and mptbm_stoppage_info ends up empty there.
+				$item->add_meta_data('_mptbm_stoppage_info', $mptbm_stoppage_selection);
 				$item->add_meta_data('_mptbm_transport_quantity', $transport_quantity);
 
 				do_action('mptbm_checkout_create_order_line_item', $item, $values);
@@ -737,6 +741,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							$threshold_base_price = $threshold_base_price ? MP_Global_Function::data_sanitize($threshold_base_price) : '';
 							$service = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_service_info');
 							$service_info = $service ? MP_Global_Function::data_sanitize($service) : [];
+							$stoppage = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_stoppage_info');
+							$stoppage_info = $stoppage ? MP_Global_Function::data_sanitize($stoppage) : [];
 							$price = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_tp');
 							$price = $price ? MP_Global_Function::data_sanitize($price) : [];
 							$transport_quantity = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_transport_quantity');
@@ -762,6 +768,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 								'mptbm_user_id' => $user_id,
 								'mptbm_tp' => $price,
 								'mptbm_service_info' => $service_info,
+								'mptbm_stoppage_info' => $stoppage_info,
 								'mptbm_billing_name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
 								'mptbm_billing_email' => $order->get_billing_email(),
 								'mptbm_billing_phone' => $order->get_billing_phone(),
