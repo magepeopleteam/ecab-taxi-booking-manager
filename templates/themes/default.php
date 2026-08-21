@@ -50,6 +50,11 @@
 	$extra_services          = MP_Global_Function::get_post_info( $extra_service_ref_id, 'mptbm_extra_service_infos', array() );
 	$extra_services          = ( $display_extra_services === 'on' && is_array( $extra_services ) ) ? $extra_services : array();
 
+	// Tourist Spots (Admin > Add Stoppage) attached to this vehicle - same
+	// read-only treatment as Extra Services above: shown here for browsing,
+	// actually picking stops for a trip happens in the booking form itself.
+	$mptbm_page_stoppages = class_exists( 'MPTBM_Function' ) ? MPTBM_Function::get_available_stoppages( $post_id ) : array();
+
 	$rating_enabled = class_exists( 'MPTBM_Reviews' ) && MPTBM_Reviews::reviews_enabled( $post_id );
 
 	// "Browse All Vehicles" points at the site's search/results page (Settings >
@@ -444,6 +449,84 @@
 									</li>
 								<?php endforeach; ?>
 							</ul>
+						</div>
+					<?php endif; ?>
+
+					<?php if ( count( $mptbm_page_stoppages ) > 0 ) :
+						// Same badge-key => label map as templates/registration/stoppage.php,
+						// kept local since this page never loads that template.
+						$mptbm_page_stoppage_badges = array(
+							'most_popular' => esc_html__( 'Most popular', 'ecab-taxi-booking-manager' ),
+							'recommended'  => esc_html__( 'Recommended', 'ecab-taxi-booking-manager' ),
+						);
+					?>
+						<div class="mptbm_details_block mptbm_stoppage_panel">
+							<h4><?php esc_html_e( 'Tourist Spots', 'ecab-taxi-booking-manager' ); ?></h4>
+							<div class="mptbm_stoppage_row">
+								<?php foreach ( $mptbm_page_stoppages as $mptbm_stop ) : ?>
+									<div class="mptbm_stoppage_item" data-stoppage-item
+										data-id="<?php echo esc_attr( $mptbm_stop['id'] ); ?>"
+										data-name="<?php echo esc_attr( $mptbm_stop['name'] ); ?>"
+										data-description="<?php echo esc_attr( $mptbm_stop['description'] ); ?>"
+										data-duration="<?php echo esc_attr( $mptbm_stop['duration'] ); ?>"
+										data-price="<?php echo esc_attr( $mptbm_stop['price'] ); ?>"
+										data-image="<?php echo esc_url( $mptbm_stop['image_url'] ); ?>"
+										data-gallery="<?php echo esc_attr( wp_json_encode( $mptbm_stop['gallery'] ) ); ?>"
+										data-badge="<?php echo esc_attr( $mptbm_stop['badge'] ); ?>">
+										<button type="button" class="mptbm_stoppage_card_media" data-stoppage-details-trigger
+											<?php echo $mptbm_stop['image_url'] ? 'style="background-image:url(' . esc_url( $mptbm_stop['image_url'] ) . ')"' : ''; ?>>
+											<?php if ( ! empty( $mptbm_stop['badge'] ) && isset( $mptbm_page_stoppage_badges[ $mptbm_stop['badge'] ] ) ) : ?>
+												<span class="mptbm_stoppage_badge is-<?php echo esc_attr( $mptbm_stop['badge'] ); ?>">
+													<span class="fas fa-star" aria-hidden="true"></span>
+													<?php echo esc_html( $mptbm_page_stoppage_badges[ $mptbm_stop['badge'] ] ); ?>
+												</span>
+											<?php endif; ?>
+											<span class="mptbm_stoppage_card_name"><?php echo esc_html( $mptbm_stop['name'] ); ?></span>
+										</button>
+										<div class="mptbm_stoppage_card_footer">
+											<span class="mptbm_stoppage_card_meta">
+												<?php if ( $mptbm_stop['duration'] ) : ?>
+													<span class="mptbm_stoppage_card_duration"><?php echo esc_html( $mptbm_stop['duration'] ); ?></span>
+													<span aria-hidden="true"> &middot; </span>
+												<?php endif; ?>
+												<span class="mptbm_stoppage_card_price">
+													<?php echo $mptbm_stop['price'] > 0 ? wp_kses_post( MP_Global_Function::format_price( $mptbm_stop['price'] ) ) : esc_html__( 'Free', 'ecab-taxi-booking-manager' ); ?>
+												</span>
+											</span>
+										</div>
+									</div>
+								<?php endforeach; ?>
+							</div>
+
+							<!-- Shared detail view for this page's cards - same markup/JS as the
+								 booking-flow popup, minus the "Add" button (nothing to add to here). -->
+							<div class="mptbm_stoppage_detail_popup" data-stoppage-detail-popup aria-hidden="true">
+								<div class="mptbm_stoppage_popup_backdrop" data-stoppage-detail-close></div>
+								<div class="mptbm_stoppage_detail_dialog" role="dialog" aria-modal="true">
+									<button type="button" class="mptbm_stoppage_dialog_close" data-stoppage-detail-close aria-label="<?php esc_attr_e( 'Close', 'ecab-taxi-booking-manager' ); ?>">
+										<span class="fas fa-times" aria-hidden="true"></span>
+									</button>
+									<div class="mptbm_stoppage_detail_content">
+										<div class="mptbm_stoppage_detail_media" data-stoppage-detail-media>
+											<span class="mptbm_stoppage_badge" data-stoppage-detail-badge hidden><span class="fas fa-star" aria-hidden="true"></span><span data-stoppage-detail-badge-text></span></span>
+										</div>
+										<div class="mptbm_stoppage_detail_thumbs" data-stoppage-detail-thumbs hidden></div>
+										<div class="mptbm_stoppage_detail_body">
+											<h4 data-stoppage-detail-name></h4>
+											<div class="mptbm_stoppage_detail_pills">
+												<span class="mptbm_stoppage_pill is-duration" data-stoppage-detail-duration-pill hidden>
+													<span class="far fa-clock" aria-hidden="true"></span>
+													<span data-stoppage-detail-duration></span>
+												</span>
+												<span class="mptbm_stoppage_pill is-price" data-stoppage-detail-price-pill>
+													<span data-stoppage-detail-price></span>
+												</span>
+											</div>
+											<p class="mptbm_stoppage_detail_desc" data-stoppage-detail-desc></p>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 					<?php endif; ?>
 
