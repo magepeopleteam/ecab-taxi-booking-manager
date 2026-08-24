@@ -23,6 +23,7 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             'mptbm_rent_page_mptbm_settings_page',
             'mptbm_rent_page_mptbm_status_page',
             'mptbm_rent_page_mptbm_guideline_page',
+            'mptbm_rent_page_mptbm_pro_features_page',
         ];
 
         public function __construct() {
@@ -249,6 +250,17 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                 'icon' => 'fas fa-book',
                 'link' => $base_url . '&page=mptbm_guideline_page',
             ];
+            // Upgrade teaser - same self-guard as the "Bookings" item above;
+            // disappears from the sidebar the moment Pro is active.
+            if (!class_exists('MPTBM_Dependencies_Pro') && !class_exists('MPTBM_Plugin_Pro')) {
+                $items[] = [
+                    'slug' => 'mptbm_pro_features_page',
+                    'label' => esc_html__('Pro Features', 'ecab-taxi-booking-manager'),
+                    'icon' => 'fas fa-star',
+                    'link' => $base_url . '&page=mptbm_pro_features_page',
+                    'highlight' => true,
+                ];
+            }
 
             return $items;
         }
@@ -279,7 +291,7 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                     <?php foreach ($menu_items as $item) :
                         $is_active = ($current_page === $item['slug']);
                         $has_submenu = !empty($item['has_submenu']) && $is_active;
-                        $li_class = trim(($is_active ? 'is-active' : '') . ($has_submenu ? ' has-children' : ''));
+                        $li_class = trim(($is_active ? 'is-active' : '') . ($has_submenu ? ' has-children' : '') . (!empty($item['highlight']) ? ' mptbm-shell-menu-pro' : ''));
                         ?>
                         <li class="<?php echo esc_attr($li_class); ?>">
                             <a href="<?php echo esc_url($item['link']); ?>">

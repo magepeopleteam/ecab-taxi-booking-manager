@@ -350,6 +350,26 @@ div#mptbm_rent_settings_panel {
 }
 .mptbm-shell-menu li.is-active > a i { color: var(--mp-primary, #4f46e5); }
 
+/* "Pro Features" upgrade teaser - stands out in gold instead of the usual
+   slate/indigo so it reads as a distinct, premium item in the sidebar. */
+.mptbm-shell-menu li.mptbm-shell-menu-pro > a {
+    color: #b45309;
+}
+.mptbm-shell-menu li.mptbm-shell-menu-pro > a i {
+    color: #f59e0b;
+}
+.mptbm-shell-menu li.mptbm-shell-menu-pro > a:hover {
+    background: #fef3e2;
+    color: #92400e;
+}
+.mptbm-shell-menu li.mptbm-shell-menu-pro.is-active > a {
+    background: #fef3e2;
+    color: #92400e;
+}
+.mptbm-shell-menu li.mptbm-shell-menu-pro.is-active > a i {
+    color: #b45309;
+}
+
 /* Sub-menu (Transportation's All/Published/Draft/Trash sub-views) */
 .mptbm-shell-submenu {
     list-style: none;
