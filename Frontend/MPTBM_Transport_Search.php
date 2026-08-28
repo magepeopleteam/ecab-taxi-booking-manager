@@ -77,6 +77,10 @@
 				$map = $display_map == 'disable' ? 'no' : $map;
 				$tab = $params['tab'] ?: 'no';
 				$tabs = $params['tabs'] ?: 'distance,hourly,manual';
+				$pickup = isset($params['pickup']) ? sanitize_text_field($params['pickup']) : '';
+				$dropoff = isset($params['dropoff']) ? sanitize_text_field($params['dropoff']) : '';
+				$pickup_zone = isset($params['pickup_zone']) ? sanitize_text_field($params['pickup_zone']) : '';
+				$dropoff_zone = isset($params['dropoff_zone']) ? sanitize_text_field($params['dropoff_zone']) : '';
 				ob_start();
 				do_shortcode('[shop_messages]');
 				echo ob_get_clean();

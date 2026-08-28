@@ -92,6 +92,20 @@ if ($manual_map_enabled) {
 $all_dates = $vehicle_id
 	? MPTBM_Function::get_date($vehicle_id)
 	: MPTBM_Function::get_all_dates($price_based);
+$pickup = isset($pickup) ? sanitize_text_field($pickup) : '';
+$dropoff = isset($dropoff) ? sanitize_text_field($dropoff) : '';
+// Accept either a bare term ID ("12") or the internal "term_12" format so the
+// shortcode author doesn't need to know the internal option-value format.
+$pickup_zone = isset($pickup_zone) ? sanitize_text_field($pickup_zone) : '';
+if ($pickup_zone !== '') {
+	$pickup_zone_id = absint(str_replace('term_', '', $pickup_zone));
+	$pickup_zone = $pickup_zone_id > 0 ? 'term_' . $pickup_zone_id : '';
+}
+$dropoff_zone = isset($dropoff_zone) ? sanitize_text_field($dropoff_zone) : '';
+if ($dropoff_zone !== '') {
+	$dropoff_zone_id = absint(str_replace('term_', '', $dropoff_zone));
+	$dropoff_zone = $dropoff_zone_id > 0 ? 'term_' . $dropoff_zone_id : '';
+}
 $form_style = $form_style ?? 'horizontal';
 $disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
 if ($price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
@@ -415,9 +429,16 @@ if (sizeof($all_dates) > 0) {
 
 						if ($price_based == 'manual' || $price_based == 'fixed_zone') {
 						?>
-							<?php $all_start_locations = MPTBM_Function::get_all_start_location($vehicle_id ?? 0, $price_based); ?>
+							<?php
+							$all_start_locations = MPTBM_Function::get_all_start_location($vehicle_id ?? 0, $price_based);
+							// Only preselect when the requested zone is actually one of this
+							// search's real options - a bad/unconfigured term ID from the
+							// shortcode falls back to the original "please select" placeholder
+							// instead of silently selecting nothing that matches a price row.
+							$pickup_zone_matched = $pickup_zone !== '' && in_array($pickup_zone, $all_start_locations, true);
+							?>
 							<select id="mptbm_manual_start_place" class="mptbm_manual_start_place formControl">
-								<option selected disabled><?php echo mptbm_get_translation('select_pick_up_location_label', __(' Select Pick-Up Location', 'ecab-taxi-booking-manager')); ?></option>
+								<option <?php echo $pickup_zone_matched ? '' : 'selected '; ?>disabled><?php echo mptbm_get_translation('select_pick_up_location_label', __(' Select Pick-Up Location', 'ecab-taxi-booking-manager')); ?></option>
 								<?php if (sizeof($all_start_locations) > 0) { ?>
 									<?php foreach ($all_start_locations as $start_location) { ?>
 										<?php
@@ -431,15 +452,16 @@ if (sizeof($all_dates) > 0) {
 													$geo_coords = $geo_location; // format: "lat,lng"
 												}
 											}
+											$is_preselected_zone = $pickup_zone_matched && $start_location === $pickup_zone;
 										?>
-										<option class="textCapitalize" value="<?php echo esc_attr($start_location); ?>" <?php echo $geo_coords ? 'data-geo="' . esc_attr($geo_coords) . '"' : ''; ?> data-label="<?php echo esc_attr($start_label); ?>"><?php echo esc_html($start_label); ?></option>
+										<option class="textCapitalize" value="<?php echo esc_attr($start_location); ?>" <?php echo $geo_coords ? 'data-geo="' . esc_attr($geo_coords) . '"' : ''; ?> data-label="<?php echo esc_attr($start_label); ?>" <?php echo $is_preselected_zone ? 'selected' : ''; ?>><?php echo esc_html($start_label); ?></option>
 									<?php } ?>
 								<?php } ?>
 							</select>
 						<?php } elseif ($price_based == 'fixed_zone_dropoff') { ?>
-							<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_pick_up_location_label', __('Enter Pick-Up Location', 'ecab-taxi-booking-manager')); ?>" value="" />
+							<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_pick_up_location_label', __('Enter Pick-Up Location', 'ecab-taxi-booking-manager')); ?>" value="<?php echo esc_attr($pickup); ?>" />
 						<?php } else { ?>
-							<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_pick_up_location_label', __('Enter Pick-Up Location', 'ecab-taxi-booking-manager')); ?>" value="" />
+							<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_pick_up_location_label', __('Enter Pick-Up Location', 'ecab-taxi-booking-manager')); ?>" value="<?php echo esc_attr($pickup); ?>" />
 						<?php } ?>
 						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
 					</label>
@@ -482,9 +504,14 @@ if (sizeof($all_dates) > 0) {
                 <option class="textCapitalize" selected disabled><?php echo mptbm_get_translation('select_destination_location_label', __(' Select Destination Location', 'ecab-taxi-booking-manager')); ?></option>
             </select>
         <?php } elseif ($price_based == 'fixed_zone_dropoff') { ?>
-            <?php $all_end_locations = MPTBM_Function::get_all_start_location($vehicle_id ?? 0, $price_based); ?>
+            <?php
+            $all_end_locations = MPTBM_Function::get_all_start_location($vehicle_id ?? 0, $price_based);
+            // Same safety rule as the pickup zone select: only preselect when the
+            // requested zone is actually one of this search's real options.
+            $dropoff_zone_matched = $dropoff_zone !== '' && in_array($dropoff_zone, $all_end_locations, true);
+            ?>
             <select id="mptbm_manual_end_place" class="formControl mptbm_map_end_place">
-                <option selected disabled><?php echo mptbm_get_translation('select_destination_location_label', __(' Select Destination Location', 'ecab-taxi-booking-manager')); ?></option>
+                <option <?php echo $dropoff_zone_matched ? '' : 'selected '; ?>disabled><?php echo mptbm_get_translation('select_destination_location_label', __(' Select Destination Location', 'ecab-taxi-booking-manager')); ?></option>
                 <?php if (sizeof($all_end_locations) > 0) { ?>
                     <?php foreach ($all_end_locations as $end_location) { ?>
                         <?php
@@ -497,13 +524,14 @@ if (sizeof($all_dates) > 0) {
                                     $geo_coords = $geo_location;
                                 }
                             }
+                            $is_preselected_zone = $dropoff_zone_matched && $end_location === $dropoff_zone;
                         ?>
-                        <option class="textCapitalize" value="<?php echo esc_attr($end_location); ?>" <?php echo $geo_coords ? 'data-geo="' . esc_attr($geo_coords) . '"' : ''; ?> data-label="<?php echo esc_attr($end_label); ?>"><?php echo esc_html($end_label); ?></option>
+                        <option class="textCapitalize" value="<?php echo esc_attr($end_location); ?>" <?php echo $geo_coords ? 'data-geo="' . esc_attr($geo_coords) . '"' : ''; ?> data-label="<?php echo esc_attr($end_label); ?>" <?php echo $is_preselected_zone ? 'selected' : ''; ?>><?php echo esc_html($end_label); ?></option>
                     <?php } ?>
                 <?php } ?>
             </select>
         <?php } else { ?>
-            <input type="text" id="mptbm_map_end_place" class="formControl textCapitalize" placeholder="<?php echo mptbm_get_translation('enter_dropoff_location_placeholder', __(' Enter Drop-Off Location', 'ecab-taxi-booking-manager')); ?>" value="" />
+            <input type="text" id="mptbm_map_end_place" class="formControl textCapitalize" placeholder="<?php echo mptbm_get_translation('enter_dropoff_location_placeholder', __(' Enter Drop-Off Location', 'ecab-taxi-booking-manager')); ?>" value="<?php echo esc_attr($dropoff); ?>" />
         <?php } ?>
         <i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
     </label>
@@ -524,6 +552,290 @@ document.addEventListener('DOMContentLoaded', function() {
         pickup.addEventListener('input', syncDropoff);
         syncDropoff();
     }
+});
+</script>
+<?php endif; ?>
+<?php if ($pickup !== '' || $dropoff !== '') : ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Shortcode-supplied pickup/dropoff values were written straight into the
+    // input value attributes above (no user interaction happened), so nothing
+    // that normally listens for typing/selecting a place has fired yet. jQuery's
+    // delegated change handlers here only react to jQuery's own trigger(), not
+    // a plain native dispatchEvent - use jQuery (already loaded plugin-wide) so
+    // this fires exactly as if the visitor had entered these values.
+    //
+    // Note: this file's inline <script> blocks deliberately avoid the
+    // logical-AND operator (nested ifs / .every(Boolean) instead). Something
+    // in this site's output pipeline sporadically HTML-entity-encodes that
+    // bare double-ampersand token inside a <script> tag, which is a JS syntax
+    // error that silently kills the whole block - it hit this plugin's own
+    // pre-existing day-specific-time-range script the same way. Avoiding the
+    // token here sidesteps that bug rather than depending on a fix elsewhere.
+    var pickupField = document.getElementById('mptbm_map_start_place');
+    var dropoffField = document.getElementById('mptbm_map_end_place');
+    if ([pickupField, pickupField ? pickupField.value : null, typeof jQuery !== 'undefined'].every(Boolean)) {
+        jQuery(pickupField).trigger('change');
+    }
+    if ([dropoffField, dropoffField ? dropoffField.value : null, typeof jQuery !== 'undefined'].every(Boolean)) {
+        jQuery(dropoffField).trigger('change');
+    }
+
+    <?php if ($pickup !== '' && $dropoff !== '') : ?>
+    // Draw the route on the preview map immediately. Normally the route only
+    // draws once the visitor picks a suggestion from the address autocomplete
+    // (place_changed for Google, the OSM suggestion click for OpenStreetMap) -
+    // with both ends already supplied by the shortcode, no such selection ever
+    // happens, so it's triggered here using the same functions those selection
+    // handlers call.
+    (function () {
+        var pickupText = <?php echo wp_json_encode($pickup); ?>;
+        var dropoffText = <?php echo wp_json_encode($dropoff); ?>;
+
+        function isOsmMode() {
+            var mapType = document.getElementById('mptbm_map_type');
+            if (!mapType) return false;
+            return mapType.value === 'openstreetmap';
+        }
+
+        // OSRM (the OSM route engine) needs actual coordinates, unlike
+        // Google's Directions API, which can resolve plain address text on
+        // its own - so the OSM path geocodes each address first via the
+        // same admin-ajax proxy the plugin already uses elsewhere.
+        function geocodeOsm(address, callback) {
+            var url = mptbm_ajax.ajax_url + '?action=mptbm_osm_search&nonce=' + mptbm_ajax.osm_nonce + '&q=' + encodeURIComponent(address);
+            fetch(url).then(function (r) { return r.json(); }).then(function (res) {
+                var hasResults = false;
+                if ([res, res ? res.success : null, res ? res.data : null].every(Boolean)) {
+                    hasResults = res.data.length > 0;
+                }
+                if (hasResults) {
+                    callback({ lat: res.data[0].lat, lon: res.data[0].lon, display_name: res.data[0].display_name || address });
+                } else {
+                    callback(null);
+                }
+            }).catch(function () { callback(null); });
+        }
+
+        // Pickup and dropoff don't depend on each other, so geocode both at
+        // once instead of one after the other - roughly halves the time
+        // before the preview route appears (was ~2 sequential round-trips
+        // to the geocoder before the OSRM call could even start).
+        function drawOsmRoute() {
+            var startResult = null;
+            var endResult = null;
+            var startDone = false;
+            var endDone = false;
+
+            function tryDraw() {
+                if (!startDone) return;
+                if (!endDone) return;
+                if (!startResult) return;
+                if (!endResult) return;
+                drawOsmMarkersAndRoute(startResult, endResult);
+            }
+
+            geocodeOsm(pickupText, function (start) {
+                startResult = start;
+                startDone = true;
+                tryDraw();
+            });
+            geocodeOsm(dropoffText, function (end) {
+                endResult = end;
+                endDone = true;
+                tryDraw();
+            });
+        }
+
+        // A trimmed, visual-only version of the plugin's own OSM route
+        // drawing (mptbm_calculate_osm_distance() in mptbm_registration.js,
+        // which mptbm_handle_osm_address_selection() would otherwise call).
+        // That shared function also calls mptbm_sync_distance_from_server(),
+        // which re-verifies the distance through this site's own server -
+        // and with a Google key configured under Map API Settings, that
+        // hits Google's paid Distance Matrix API. Deliberately not reusing
+        // it here: with both ends supplied by the shortcode (no visitor
+        // interaction happened yet), every single page view would silently
+        // spend a Google API call before anyone expressed real intent to
+        // book. This draws the same marker + route preview using only the
+        // free, public OSRM router - the actual verified distance/price
+        // (Google if configured, OSRM otherwise) still runs normally the
+        // moment the visitor clicks Search, exactly like any other booking.
+        function drawOsmMarkersAndRoute(start, end) {
+            if (typeof mptbm_ensure_osm_map_ready === 'function') {
+                mptbm_ensure_osm_map_ready();
+            }
+            if (typeof L === 'undefined') return;
+            if (!mptbm_osm_map) return;
+
+            if (mptbm_osm_start_marker) { mptbm_osm_map.removeLayer(mptbm_osm_start_marker); }
+            if (mptbm_osm_end_marker) { mptbm_osm_map.removeLayer(mptbm_osm_end_marker); }
+
+            var startLat = parseFloat(start.lat);
+            var startLng = parseFloat(start.lon);
+            var endLat = parseFloat(end.lat);
+            var endLng = parseFloat(end.lon);
+
+            mptbm_osm_start_marker = L.marker([startLat, startLng]).addTo(mptbm_osm_map);
+            mptbm_osm_start_marker.bindPopup(start.display_name);
+            mptbm_osm_end_marker = L.marker([endLat, endLng]).addTo(mptbm_osm_map);
+            mptbm_osm_end_marker.bindPopup(end.display_name);
+
+            // Same public OSRM endpoint mptbm_calculate_osm_distance() uses for
+            // the drawn shape - free, no key, not the site's own paid Google
+            // lookup.
+            var osrmUrl = 'https://router.project-osrm.org/route/v1/driving/'
+                + startLng + ',' + startLat + ';' + endLng + ',' + endLat
+                + '?overview=full&geometries=geojson';
+
+            fetch(osrmUrl).then(function (r) { return r.json(); }).then(function (data) {
+                var hasRoute = false;
+                if ([data, data ? data.code : null, data ? data.routes : null].every(Boolean)) {
+                    hasRoute = data.code === 'Ok' ? data.routes.length > 0 : false;
+                }
+                if (!hasRoute) return;
+
+                var route = data.routes[0];
+                var coordinates = route.geometry.coordinates.map(function (coord) {
+                    return [coord[1], coord[0]];
+                });
+
+                if (mptbm_osm_route) { mptbm_osm_map.removeLayer(mptbm_osm_route); }
+                mptbm_osm_route = L.polyline(coordinates, { color: '#ff4757', weight: 4, opacity: 0.9 }).addTo(mptbm_osm_map);
+                mptbm_osm_map.fitBounds(mptbm_osm_route.getBounds().pad(0.1));
+
+                var distanceKm = route.distance / 1000;
+                var kmOrMileEl = document.getElementById('mptbm_km_or_mile');
+                var kmOrMile = kmOrMileEl ? kmOrMileEl.value : 'km';
+                var distanceText = kmOrMile === 'mile'
+                    ? (distanceKm * 0.621371).toFixed(1) + ' MILE'
+                    : distanceKm.toFixed(1) + ' KM';
+
+                var durationMin = Math.round(route.duration / 60);
+                var hours = Math.floor(durationMin / 60);
+                var minutes = durationMin % 60;
+                var durationText = hours > 0 ? (hours + ' Hour ' + minutes + ' Min') : (minutes + ' Min');
+
+                var currentMapWrap = typeof mptbm_get_current_map_wrap === 'function' ? mptbm_get_current_map_wrap() : null;
+                if (currentMapWrap) {
+                    var distanceEl = currentMapWrap.querySelector('.mptbm_total_distance');
+                    if (distanceEl) { distanceEl.textContent = ' ' + distanceText; }
+                    var timeEl = currentMapWrap.querySelector('.mptbm_total_time');
+                    if (timeEl) { timeEl.textContent = durationText; }
+                    if (typeof jQuery !== 'undefined') {
+                        jQuery(currentMapWrap).find('.mptbm_distance_time').slideDown('fast');
+                    }
+                }
+            }).catch(function () { });
+        }
+
+        function drawGoogleRoute() {
+            if (typeof mptbm_set_cookie_distance_duration === 'function') {
+                mptbm_set_cookie_distance_duration(pickupText, dropoffText);
+            }
+        }
+
+        var attempts = 0;
+        function waitForMapThenDraw() {
+            attempts++;
+            if (isOsmMode()) {
+                if (typeof L !== 'undefined') {
+                    drawOsmRoute();
+                    return;
+                }
+            } else if (typeof google !== 'undefined' ? google.maps : false) {
+                drawGoogleRoute();
+                return;
+            }
+            if (attempts < 25) {
+                setTimeout(waitForMapThenDraw, 200);
+            }
+        }
+        waitForMapThenDraw();
+    })();
+    <?php endif; ?>
+});
+</script>
+<?php endif; ?>
+<?php if ($pickup_zone_matched ?? false) : ?>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // The matching <option> above already has the "selected" attribute, but
+    // nothing that reacts to a real user pick (placing the zone marker,
+    // storing its coordinates) has run yet - dispatch the same 'change' this
+    // dropdown fires on a manual selection so that existing logic does.
+    var zoneSelect = document.getElementById('mptbm_manual_start_place');
+    var zoneValue = <?php echo wp_json_encode($pickup_zone); ?>;
+    if (!zoneSelect) return;
+    if (zoneSelect.value !== zoneValue) return;
+
+    function isOsmMode() {
+        var mapType = document.getElementById('mptbm_map_type');
+        if (!mapType) return false;
+        return mapType.value === 'openstreetmap';
+    }
+
+    // The existing change-handler for this dropdown places the zone marker
+    // only when the map object already exists, with no lazy init fallback
+    // (unlike the autocomplete-selection path, which calls
+    // mptbm_ensure_osm_map_ready() first) - dispatching before the map has
+    // finished initializing would silently drop the marker. Wait for it.
+    var mapAttempts = 0;
+    function waitForMapThenDispatch() {
+        mapAttempts++;
+        var mapReady = isOsmMode()
+            ? (typeof mptbm_osm_map !== 'undefined' ? !!mptbm_osm_map : false)
+            : (typeof mptbm_map !== 'undefined' ? !!mptbm_map : false);
+        if (mapReady) {
+            // jQuery's delegated change handler for this dropdown (the one
+            // that places the zone marker) only reacts to jQuery's own
+            // trigger(), not a plain native dispatchEvent.
+            if (typeof jQuery !== 'undefined') {
+                jQuery(zoneSelect).trigger('change');
+            }
+            return;
+        }
+        if (mapAttempts < 25) {
+            setTimeout(waitForMapThenDispatch, 200);
+        }
+    }
+    waitForMapThenDispatch();
+});
+</script>
+<?php endif; ?>
+<?php if ($dropoff_zone_matched ?? false) : ?>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Mirrors the pickup_zone block above, for fixed_zone_dropoff's dropoff
+    // dropdown instead of the pickup one.
+    var zoneSelect = document.getElementById('mptbm_manual_end_place');
+    var zoneValue = <?php echo wp_json_encode($dropoff_zone); ?>;
+    if (!zoneSelect) return;
+    if (zoneSelect.value !== zoneValue) return;
+
+    function isOsmMode() {
+        var mapType = document.getElementById('mptbm_map_type');
+        if (!mapType) return false;
+        return mapType.value === 'openstreetmap';
+    }
+
+    var mapAttempts = 0;
+    function waitForMapThenDispatch() {
+        mapAttempts++;
+        var mapReady = isOsmMode()
+            ? (typeof mptbm_osm_map !== 'undefined' ? !!mptbm_osm_map : false)
+            : (typeof mptbm_map !== 'undefined' ? !!mptbm_map : false);
+        if (mapReady) {
+            if (typeof jQuery !== 'undefined') {
+                jQuery(zoneSelect).trigger('change');
+            }
+            return;
+        }
+        if (mapAttempts < 25) {
+            setTimeout(waitForMapThenDispatch, 200);
+        }
+    }
+    waitForMapThenDispatch();
 });
 </script>
 <?php endif; ?>

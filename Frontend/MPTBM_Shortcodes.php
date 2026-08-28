@@ -61,6 +61,10 @@ if (!class_exists('MPTBM_Shortcodes')) {
                 "tab" => "no",
                 "tabs" => "distance,hourly,manual",
                 "vehicle_id" => 0,
+                "pickup" => "",
+                "dropoff" => "",
+                "pickup_zone" => "",
+                "dropoff_zone" => "",
             );
         }
     }
