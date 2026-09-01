@@ -81,6 +81,10 @@
 				$dropoff = isset($params['dropoff']) ? sanitize_text_field($params['dropoff']) : '';
 				$pickup_zone = isset($params['pickup_zone']) ? sanitize_text_field($params['pickup_zone']) : '';
 				$dropoff_zone = isset($params['dropoff_zone']) ? sanitize_text_field($params['dropoff_zone']) : '';
+				// Display-only waypoint names for the shortcode's `stops` attribute -
+				// shown between pickup/dropoff purely as text, never geocoded or added
+				// to the routed waypoint list, so they never affect distance or price.
+				$display_stops = isset($params['stops']) ? array_filter(array_map('trim', explode(',', sanitize_text_field($params['stops'])))) : array();
 				ob_start();
 				do_shortcode('[shop_messages]');
 				echo ob_get_clean();

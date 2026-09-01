@@ -65,6 +65,7 @@ if (!class_exists('MPTBM_Shortcodes')) {
                 "dropoff" => "",
                 "pickup_zone" => "",
                 "dropoff_zone" => "",
+                "stops" => "",
             );
         }
     }

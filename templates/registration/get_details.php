@@ -106,6 +106,9 @@ if ($dropoff_zone !== '') {
 	$dropoff_zone_id = absint(str_replace('term_', '', $dropoff_zone));
 	$dropoff_zone = $dropoff_zone_id > 0 ? 'term_' . $dropoff_zone_id : '';
 }
+// Display-only stop names from the shortcode's `stops` attribute - text only,
+// never turned into coordinates, so they can never affect distance or price.
+$display_stops = isset($display_stops) && is_array($display_stops) ? $display_stops : array();
 $form_style = $form_style ?? 'horizontal';
 $disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
 if ($price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
@@ -538,6 +541,18 @@ if (sizeof($all_dates) > 0) {
 </div>
 <?php else: ?>
 <input type="hidden" id="mptbm_map_end_place" />
+<?php endif; ?>
+<?php if (!empty($display_stops)): ?>
+<div class="mptbm_display_only_stops" style="margin:6px 0 14px;font-size:13px;color:#6b7280;">
+    <strong style="color:#374151;"><?php echo mptbm_get_translation('via_stops_label', __('Via:', 'ecab-taxi-booking-manager')); ?></strong>
+    <?php echo esc_html(implode(', ', $display_stops)); ?>
+</div>
+<script>
+    // Consumed by mptbm_registration.js to drop a marker for each name on
+    // whichever map is active - display only, never fed into the routed
+    // waypoint list, so distance/price stay based on pickup/dropoff alone.
+    window.mptbmDisplayStops = <?php echo wp_json_encode(array_values($display_stops)); ?>;
+</script>
 <?php endif; ?>
 <input type="hidden" name="mptbm_original_price_base" value="<?php echo esc_attr($price_based); ?>" />
 <?php if ($hide_dropoff && $price_based === 'fixed_hourly') : ?>

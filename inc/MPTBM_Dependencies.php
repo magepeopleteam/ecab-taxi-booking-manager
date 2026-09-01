@@ -25,6 +25,17 @@ if (!class_exists('MPTBM_Dependencies')) {
 		// Add AJAX handler for OpenStreetMap search
 		add_action('wp_ajax_mptbm_osm_search', array($this, 'osm_search_proxy'));
 		add_action('wp_ajax_nopriv_mptbm_osm_search', array($this, 'osm_search_proxy'));
+
+		// Display-only stop markers on Google Maps still geocode from the
+		// browser (a server-side call would silently fail for the common,
+		// more secure HTTP-referrer-restricted map key), but caching the
+		// result server-side means only the FIRST visitor to ever request a
+		// given name+area pays for that Google Geocoding call - everyone
+		// after gets a free cache hit, same safety property as OSM's proxy.
+		add_action('wp_ajax_mptbm_geocode_cache_get', array($this, 'geocode_cache_get'));
+		add_action('wp_ajax_nopriv_mptbm_geocode_cache_get', array($this, 'geocode_cache_get'));
+		add_action('wp_ajax_mptbm_geocode_cache_set', array($this, 'geocode_cache_set'));
+		add_action('wp_ajax_nopriv_mptbm_geocode_cache_set', array($this, 'geocode_cache_set'));
 		
 		// Whitelist Google Maps script from CookieAdmin
 		add_filter('script_loader_tag', array('MPTBM_Function', 'whitelist_google_maps_script'), 20, 3);
@@ -273,6 +284,7 @@ if (!class_exists('MPTBM_Dependencies')) {
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'osm_nonce' => wp_create_nonce('mptbm_osm_search'),
 				'search_nonce' => wp_create_nonce('mptbm_transport_search'),
+				'geocode_cache_nonce' => wp_create_nonce('mptbm_geocode_cache'),
 			));
             
             // Font Awesome for template icons
@@ -351,6 +363,19 @@ if (!class_exists('MPTBM_Dependencies')) {
 				'limit' => 5,
 				'lang' => 'en'
 			);
+			// Optional proximity bias (e.g. the trip's pickup/dropoff point) so an
+			// ambiguous name like "Notre-Dame Cathedral" - which exists in many
+			// cities - ranks the one actually near this trip first. Photon treats
+			// lat/lon as a soft preference, not a hard filter, so it never causes
+			// zero results the way appending a second place name to `q` would.
+			if (isset($_REQUEST['lat'], $_REQUEST['lon']) && is_numeric($_REQUEST['lat']) && is_numeric($_REQUEST['lon'])) {
+				$bias_lat = (float) $_REQUEST['lat'];
+				$bias_lon = (float) $_REQUEST['lon'];
+				if ($bias_lat >= -90 && $bias_lat <= 90 && $bias_lon >= -180 && $bias_lon <= 180) {
+					$search_params['lat'] = $bias_lat;
+					$search_params['lon'] = $bias_lon;
+				}
+			}
 			$cache_key = 'mptbm_osm_' . md5(wp_json_encode(array($search_params, $restrict_to_country, $country_code)));
 			$cached_results = get_transient($cache_key);
 			if (is_array($cached_results)) {
@@ -506,6 +531,72 @@ if (!class_exists('MPTBM_Dependencies')) {
 			
 			set_transient($cache_key, $results, 5 * MINUTE_IN_SECONDS);
 			wp_send_json_success($results);
+		}
+
+		/**
+		 * Shared cache-key builder for the Google geocode cache below - the
+		 * bias point is rounded to ~1km precision so nearby searches for the
+		 * same trip share one cache entry instead of fragmenting by exact
+		 * float coordinates, while still keeping genuinely different cities
+		 * (e.g. "Notre-Dame Cathedral" near Paris vs near Montreal) separate.
+		 */
+		private function geocode_cache_key($query, $bias_lat, $bias_lon) {
+			$rounded_lat = is_numeric($bias_lat) ? round((float) $bias_lat, 2) : '';
+			$rounded_lon = is_numeric($bias_lon) ? round((float) $bias_lon, 2) : '';
+			return 'mptbm_geocode_' . md5(strtolower($query) . '|' . $rounded_lat . '|' . $rounded_lon);
+		}
+
+		/**
+		 * Free, no-Google-call lookup a display-only stop marker's client-side
+		 * code checks BEFORE calling google.maps.Geocoder() - a cache hit here
+		 * means this exact name+area has already been resolved by an earlier
+		 * visitor, so this pageview spends no Google Geocoding API quota at all.
+		 */
+		public function geocode_cache_get() {
+			check_ajax_referer('mptbm_geocode_cache', 'nonce');
+
+			$query = isset($_REQUEST['q']) ? sanitize_text_field(wp_unslash($_REQUEST['q'])) : '';
+			if (strlen($query) < 2 || strlen($query) > 120) {
+				wp_send_json_error('No search query provided');
+				return;
+			}
+			$bias_lat = isset($_REQUEST['lat']) && is_numeric($_REQUEST['lat']) ? (float) $_REQUEST['lat'] : null;
+			$bias_lon = isset($_REQUEST['lon']) && is_numeric($_REQUEST['lon']) ? (float) $_REQUEST['lon'] : null;
+
+			$cached = get_transient($this->geocode_cache_key($query, $bias_lat, $bias_lon));
+			if (is_array($cached)) {
+				wp_send_json_success($cached);
+				return;
+			}
+			wp_send_json_error('Not cached');
+		}
+
+		/**
+		 * Stores a result the BROWSER already paid for (a real
+		 * google.maps.Geocoder() call) so every later visitor asking for the
+		 * same name near the same area gets it for free via the cache-get
+		 * above instead of triggering another billed Google call.
+		 */
+		public function geocode_cache_set() {
+			check_ajax_referer('mptbm_geocode_cache', 'nonce');
+
+			$query = isset($_REQUEST['q']) ? sanitize_text_field(wp_unslash($_REQUEST['q'])) : '';
+			$lat = isset($_REQUEST['result_lat']) ? (float) $_REQUEST['result_lat'] : null;
+			$lng = isset($_REQUEST['result_lng']) ? (float) $_REQUEST['result_lng'] : null;
+			if (strlen($query) < 2 || strlen($query) > 120 || $lat === null || $lng === null
+				|| $lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+				wp_send_json_error('Invalid data');
+				return;
+			}
+			$bias_lat = isset($_REQUEST['lat']) && is_numeric($_REQUEST['lat']) ? (float) $_REQUEST['lat'] : null;
+			$bias_lon = isset($_REQUEST['lon']) && is_numeric($_REQUEST['lon']) ? (float) $_REQUEST['lon'] : null;
+
+			$cache_key = $this->geocode_cache_key($query, $bias_lat, $bias_lon);
+			// Long-lived: a landmark's coordinates don't change, so once one
+			// visitor's browser has paid for the lookup there's no reason to
+			// make anyone pay for it again for months.
+			set_transient($cache_key, array('lat' => $lat, 'lng' => $lng), 90 * DAY_IN_SECONDS);
+			wp_send_json_success(true);
 		}
     }
     new MPTBM_Dependencies();

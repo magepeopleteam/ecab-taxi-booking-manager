@@ -5443,3 +5443,237 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
         }
     });
 })(jQuery);
+
+// --- Display-only stop markers (shortcode `stops="A,B"` attribute) ---------
+// These names are purely visual: geocoded once and pinned on the map, but
+// never written into mptbm_extra_stop_place_coordinates[], so they never join
+// the routed waypoint list and can't affect distance/price.
+//
+// The OSM path calls a cached, rate-limited server-side proxy
+// (mptbm_osm_search), so repeat pageviews cost nothing extra. Google Maps has
+// no equivalent server-side geocoder here (a server call fails against the
+// common, more secure HTTP-referrer-restricted map key), so that path still
+// calls google.maps.Geocoder() from the browser - but checks a server-side
+// cache first and writes its result back after, so only the FIRST visitor
+// ever asking for a given name near a given area actually spends Google
+// Geocoding API quota; everyone after gets a free cache hit.
+(function () {
+    function getDisplayStops() {
+        return (window.mptbmDisplayStops && Array.isArray(window.mptbmDisplayStops)) ? window.mptbmDisplayStops : [];
+    }
+
+    // A bare name like "Notre-Dame Cathedral" can match the wrong one
+    // anywhere on Earth - biasing the geocoder toward the trip's own
+    // dropoff (falling back to pickup) point steers it to the right city,
+    // without touching the query text itself (which breaks Photon entirely
+    // when two place names get concatenated into one search string).
+    function getBiasLatLng() {
+        if (typeof mptbm_osm_end_marker !== 'undefined' && mptbm_osm_end_marker) {
+            return mptbm_osm_end_marker.getLatLng();
+        }
+        if (typeof mptbm_osm_start_marker !== 'undefined' && mptbm_osm_start_marker) {
+            return mptbm_osm_start_marker.getLatLng();
+        }
+        return null;
+    }
+
+    function geocodeOneOSM(name) {
+        var body = new URLSearchParams();
+        body.append('action', 'mptbm_osm_search');
+        body.append('nonce', mptbm_ajax.osm_nonce);
+        body.append('q', name);
+        var bias = getBiasLatLng();
+        if (bias) {
+            body.append('lat', bias.lat);
+            body.append('lon', bias.lng);
+        }
+        return fetch(mptbm_ajax.ajax_url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: body,
+            credentials: 'same-origin'
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (!res.success || !res.data || !res.data.length) {
+                    return null;
+                }
+                var best = res.data[0];
+                return { name: name, lat: parseFloat(best.lat), lng: parseFloat(best.lon) };
+            })
+            .catch(function () { return null; /* a stop marker failing to geocode is non-fatal */ });
+    }
+
+    function geocodeAndMarkOSM(names) {
+        Promise.all(names.map(geocodeOneOSM)).then(function (results) {
+            if (typeof mptbm_osm_map === 'undefined' || !mptbm_osm_map || typeof L === 'undefined') {
+                return;
+            }
+            var found = results.filter(Boolean);
+            if (!found.length) {
+                return;
+            }
+            found.forEach(function (stop) {
+                var latlng = [stop.lat, stop.lng];
+                L.marker(latlng, { title: stop.name }).addTo(mptbm_osm_map).bindPopup(stop.name);
+            });
+            // The pickup/dropoff route calculation runs its own independent
+            // fitBounds() once it resolves, which would otherwise snap the
+            // view back to just the route and race with this one. Widening
+            // the bounds a beat later - after that settles - lets ours win.
+            setTimeout(function () {
+                if (!mptbm_osm_map) {
+                    return;
+                }
+                var bounds = mptbm_osm_map.getBounds();
+                found.forEach(function (stop) {
+                    bounds = bounds ? bounds.extend([stop.lat, stop.lng]) : L.latLngBounds([[stop.lat, stop.lng], [stop.lat, stop.lng]]);
+                });
+                mptbm_osm_map.fitBounds(bounds, { padding: [40, 40] });
+            }, 1200);
+        });
+    }
+
+    function getGoogleBiasLocation() {
+        if (typeof mptbm_end_marker !== 'undefined' && mptbm_end_marker) {
+            return mptbm_end_marker.getPosition();
+        }
+        if (typeof mptbm_start_marker !== 'undefined' && mptbm_start_marker) {
+            return mptbm_start_marker.getPosition();
+        }
+        return null;
+    }
+
+    function cacheGet(query, bias) {
+        var body = new URLSearchParams();
+        body.append('action', 'mptbm_geocode_cache_get');
+        body.append('nonce', mptbm_ajax.geocode_cache_nonce);
+        body.append('q', query);
+        if (bias) {
+            body.append('lat', bias.lat());
+            body.append('lon', bias.lng());
+        }
+        return fetch(mptbm_ajax.ajax_url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+            body: body,
+            credentials: 'same-origin'
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (res) { return (res.success && res.data) ? res.data : null; })
+            .catch(function () { return null; });
+    }
+
+    function cacheSet(query, bias, lat, lng) {
+        var body = new URLSearchParams();
+        body.append('action', 'mptbm_geocode_cache_set');
+        body.append('nonce', mptbm_ajax.geocode_cache_nonce);
+        body.append('q', query);
+        body.append('result_lat', lat);
+        body.append('result_lng', lng);
+        if (bias) {
+            body.append('lat', bias.lat());
+            body.append('lon', bias.lng());
+        }
+        // Fire-and-forget: a future visitor benefiting from this cache write
+        // isn't this pageview's concern, and nothing here should block on it.
+        fetch(mptbm_ajax.ajax_url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+            body: body,
+            credentials: 'same-origin'
+        }).catch(function () {});
+    }
+
+    function geocodeOneGoogle(geocoder, name) {
+        var bias = getGoogleBiasLocation();
+        return cacheGet(name, bias).then(function (cached) {
+            if (cached) {
+                return { name: name, location: new google.maps.LatLng(cached.lat, cached.lng) };
+            }
+            // Cache miss - this is the one real, billed Google Geocoding
+            // call, same as before caching was added.
+            return new Promise(function (resolve) {
+                var request = { address: name };
+                if (bias) {
+                    // A soft preference, like Photon's lat/lon - never
+                    // excludes a real match, just re-ranks nearby ones first.
+                    request.bounds = new google.maps.LatLngBounds(bias, bias);
+                }
+                geocoder.geocode(request, function (results, status) {
+                    if (status !== 'OK' || !results || !results[0]) {
+                        resolve(null);
+                        return;
+                    }
+                    var location = results[0].geometry.location;
+                    cacheSet(name, bias, location.lat(), location.lng());
+                    resolve({ name: name, location: location });
+                });
+            });
+        });
+    }
+
+    function geocodeAndMarkGoogle(names) {
+        if (typeof google === 'undefined' || !google.maps || typeof mptbm_map === 'undefined' || !mptbm_map) {
+            return;
+        }
+        var geocoder = new google.maps.Geocoder();
+        Promise.all(names.map(function (name) { return geocodeOneGoogle(geocoder, name); })).then(function (results) {
+            var found = results.filter(Boolean);
+            if (!found.length) {
+                return;
+            }
+            found.forEach(function (stop) {
+                new google.maps.Marker({
+                    position: stop.location,
+                    map: mptbm_map,
+                    title: stop.name
+                });
+            });
+            // Same race as the OSM path: the route calculation's own
+            // fitBounds() would otherwise override this. Widen the bounds a
+            // beat later so this one wins and every stop stays visible.
+            setTimeout(function () {
+                var bounds = new google.maps.LatLngBounds();
+                var mapBounds = mptbm_map.getBounds();
+                if (mapBounds) {
+                    bounds.union(mapBounds);
+                }
+                found.forEach(function (stop) { bounds.extend(stop.location); });
+                mptbm_map.fitBounds(bounds);
+            }, 1200);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var names = getDisplayStops();
+        if (!names.length) {
+            return;
+        }
+        var attempts = 0;
+        var dispatched = false;
+        var interval = setInterval(function () {
+            attempts++;
+            var mapTypeEl = document.getElementById('mptbm_map_type');
+            var isOSM = !mapTypeEl || mapTypeEl.value === 'openstreetmap';
+            // Wait for the pickup/dropoff route's own geocoding to place its
+            // marker(s) too, not just for the map to exist - firing earlier
+            // would send these searches with no bias point yet available,
+            // right when an ambiguous name most needs one.
+            var timedOut = attempts > 40; // ~20s max wait
+            if (isOSM && typeof mptbm_osm_map !== 'undefined' && mptbm_osm_map && (getBiasLatLng() || timedOut)) {
+                dispatched = true;
+                geocodeAndMarkOSM(names);
+            } else if (!isOSM && typeof mptbm_map !== 'undefined' && mptbm_map && (getGoogleBiasLocation() || timedOut)) {
+                dispatched = true;
+                geocodeAndMarkGoogle(names);
+            }
+            if (dispatched || timedOut) {
+                clearInterval(interval);
+            }
+        }, 500);
+    });
+})();
