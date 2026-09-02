@@ -455,7 +455,8 @@
                 fixed_hourly: 'Fixed Hourly',
                 manual: 'Manual Routes',
                 fixed_distance: 'Fixed with Map',
-                fixed_zone: 'Fixed Zone'
+                fixed_zone: 'Fixed Zone',
+                fixed_route: 'Fixed Route'
             };
             return labels[price_based] || 'Combined Pricing';
         }
@@ -465,6 +466,7 @@
             $("#mptbm_fixed_pricing").fadeOut();
             $("#mptbm_price_per_hour").fadeOut();
             $("#mptbm_manual_routes").fadeOut();
+            $("#mptbm_fixed_route_settings").fadeOut();
             // $("#mptbm_operation_area").fadeOut();
             $("#mptbm_row_zone").fadeOut();
         }
@@ -803,6 +805,30 @@
                             <p>Admin-defined exact route pricing.</p>
                             <div class="mptbm_pricing_rules_formula">
                                 Fixed Route Price
+                            </div>
+                        </div>`;
+                $('input[name="mptbm_price_based"]').val(price_based);
+
+                $(".mptbm_taxi_pricing_field_free").fadeOut();
+
+            }
+            else if(clicked_tab_id === 'mptbm_row_fixed_route' ){
+                // $('#mptbm_taxi_operation_araea_pricing_group').fadeOut();
+                mptbm_make_check_uncheck_operation_area(0);
+                price_based = 'fixed_route';
+                $("#mptbm_fixed_route_settings").fadeIn();
+                let shortcode = "<code>[mptbm_booking price_based='fixed_route' form='horizontal' progressbar='yes' map='yes']</code>";
+                $("#mptbm_shortcode_example_code").html(shortcode);
+
+                let primary_shortcode = "<code>[mptbm_booking price_based='fixed_route']</code>";
+                $("#mptbm_shortcode_primary_code").html(primary_shortcode);
+                $("#mptbm_manual_routes_and_fixed_fare_overrides").fadeOut();
+
+                rules = `<div class="mptbm_pricing_rules_card">
+                            <h4>Fixed Route Pricing</h4>
+                            <p>Customer picks a predefined named route - no address entry, no live distance calculation.</p>
+                            <div class="mptbm_pricing_rules_formula">
+                                Fixed Price For Selected Route
                             </div>
                         </div>`;
                 $('input[name="mptbm_price_based"]').val(price_based);

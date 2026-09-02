@@ -145,6 +145,12 @@ if (!class_exists('MPTBM_Query')) {
 				'compare' => 'IN',
 			);
 
+			$price_based_9 = $price_based == 'fixed_route' ? array(
+				'key' => 'mptbm_price_based',
+				'value' => 'fixed_route',
+				'compare' => '=',
+			) : '';
+
 			// Main query args
 			$args = array(
 				'post_type' => array(MPTBM_Function::get_cpt()),
@@ -158,7 +164,8 @@ if (!class_exists('MPTBM_Query')) {
 					$price_based_4,
 					$price_based_5,
 					$price_based_7,
-					$price_based_8
+					$price_based_8,
+					$price_based_9
 				)
 			);
 			if ($vehicle_scope) {

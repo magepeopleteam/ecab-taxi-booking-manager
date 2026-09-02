@@ -32,7 +32,8 @@ if (!class_exists('MPTBM_CPT')) {
 						'fixed_map' => 'Fixed with map price',
 						'fixed_distance' => 'Fixed with Map',
 						'fixed_zone_pickup' => 'Fixed Zone Pickup',
-						'fixed_zone_dropoff' => 'Fixed Zone Dropoff'
+						'fixed_zone_dropoff' => 'Fixed Zone Dropoff',
+						'fixed_route' => 'Fixed Route'
 					];
 					
 					$label = isset($item_price_based[$mptbm_price_based]) ? $item_price_based[$mptbm_price_based] : $mptbm_price_based;
@@ -367,6 +368,22 @@ if (!class_exists('MPTBM_CPT')) {
 			register_taxonomy('locations', $cpt, $taxonomy_args);
 			register_post_type('mptbm_extra_services', $ex_args);
 			register_post_type('mptbm_operate_areas', $dx_args);
+
+			$route_args = array(
+				'public' => false,
+				'label' => esc_html__('Routes', 'ecab-taxi-booking-manager'),
+				'supports' => array('title'),
+				'show_in_menu' => 'edit.php?post_type=' . $cpt,
+				'capabilities' => $management_capabilities,
+				'map_meta_cap' => false,
+				'publicly_queryable' => true,  // you should be able to query it
+				'show_ui' => true,  // you should be able to edit it in wp-admin
+				'exclude_from_search' => true,  // you should exclude it from search results
+				'show_in_nav_menus' => false,  // you shouldn't be able to add it to menus
+				'has_archive' => false,  // it shouldn't have archive page
+				'rewrite' => false,
+			);
+			register_post_type('mptbm_routes', $route_args);
 
 			$stoppage_args = array(
 				'public' => false,

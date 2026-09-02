@@ -993,6 +993,25 @@ if (!class_exists('MPTBM_Function')) {
 						}
 					}
 				}
+				elseif (trim($price_based) == 'fixed_route') {
+					// A predefined named route (e.g. "Paris City Tour"): the
+					// customer just picks it by name from a dropdown, so the
+					// selected route name arrives the same way a plain start
+					// location would - matched here against this vehicle's own
+					// price for that route (mptbm_assigned_routes), with no live
+					// distance/duration calculation. The route's name/waypoints
+					// themselves live once on the global mptbm_routes CPT post.
+					$assigned_routes = MP_Global_Function::get_post_info($post_id, 'mptbm_assigned_routes', []);
+					if (sizeof($assigned_routes) > 0) {
+						foreach ($assigned_routes as $assigned_route) {
+							$route_id = array_key_exists('route_id', $assigned_route) ? absint($assigned_route['route_id']) : 0;
+							$route_name = ($route_id && get_post_status($route_id) === 'publish') ? get_the_title($route_id) : '';
+							if ($start_place !== '' && $route_name !== '' && $start_place == $route_name) {
+								$price = (float) ($assigned_route['price'] ?? 0);
+							}
+						}
+					}
+				}
 
 				if ($initial_price > 0) {
 					$price += $initial_price;
@@ -1749,6 +1768,70 @@ if (!class_exists('MPTBM_Function')) {
 				}
 			}
 			return array_unique($all_location);
+		}
+		// Route names for the "fixed_route" mode's single dropdown - the
+		// customer picks the whole named route in one field, so (unlike
+		// get_all_start_location()) there's no separate start/end list.
+		public static function get_all_routes($post_id = '')
+		{
+			$route_names = [];
+			$collect = function ($assigned_routes) use (&$route_names) {
+				foreach ($assigned_routes as $assigned_route) {
+					$route_id = absint($assigned_route['route_id'] ?? 0);
+					// Skip routes trashed/deleted after being assigned to this
+					// vehicle - a stale ID shouldn't keep showing up to customers.
+					$name = ($route_id && get_post_status($route_id) === 'publish') ? get_the_title($route_id) : '';
+					if ($name) {
+						$route_names[] = $name;
+					}
+				}
+			};
+
+			if ($post_id && $post_id > 0) {
+				$collect(MP_Global_Function::get_post_info($post_id, 'mptbm_assigned_routes', []));
+			} else {
+				$all_posts = MPTBM_Query::query_transport_list('fixed_route');
+				if ($all_posts->found_posts > 0) {
+					foreach ($all_posts->posts as $post) {
+						$collect(MP_Global_Function::get_post_info($post->ID, 'mptbm_assigned_routes', []));
+					}
+				}
+			}
+			return array_unique($route_names);
+		}
+		// route_name => comma-separated waypoints, for the browser to geocode
+		// and pin on the map as a preview once a route is picked - display
+		// only, same as the `stops` shortcode attribute; never affects price.
+		// Waypoints live once on the global mptbm_routes CPT post; this vehicle
+		// only stores which route IDs (mptbm_assigned_routes) it offers.
+		public static function get_route_waypoints_map($post_id = '')
+		{
+			$map = [];
+			$collect = function ($assigned_routes) use (&$map) {
+				foreach ($assigned_routes as $assigned_route) {
+					$route_id = absint($assigned_route['route_id'] ?? 0);
+					if (!$route_id || get_post_status($route_id) !== 'publish') {
+						continue;
+					}
+					$name = get_the_title($route_id);
+					$waypoints = get_post_meta($route_id, 'mptbm_route_waypoints', true);
+					if ($name && $waypoints) {
+						$map[$name] = $waypoints;
+					}
+				}
+			};
+
+			if ($post_id && $post_id > 0) {
+				$collect(MP_Global_Function::get_post_info($post_id, 'mptbm_assigned_routes', []));
+			} else {
+				$all_posts = MPTBM_Query::query_transport_list('fixed_route');
+				if ($all_posts->found_posts > 0) {
+					foreach ($all_posts->posts as $post) {
+						$collect(MP_Global_Function::get_post_info($post->ID, 'mptbm_assigned_routes', []));
+					}
+				}
+			}
+			return $map;
 		}
 		public static function get_end_location($start_place, $post_id = '', $price_based = 'manual')
 		{

@@ -109,11 +109,29 @@ if ($dropoff_zone !== '') {
 // Display-only stop names from the shortcode's `stops` attribute - text only,
 // never turned into coordinates, so they can never affect distance or price.
 $display_stops = isset($display_stops) && is_array($display_stops) ? $display_stops : array();
+// Shortcode's `route` attribute - lets a page (e.g. a landing page for one
+// specific tour) pre-select a fixed_route by name instead of making the
+// visitor pick it from the dropdown themselves.
+$route = isset($route) ? sanitize_text_field($route) : '';
 $form_style = $form_style ?? 'horizontal';
 $disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
+// hide_dropoff hides the dropoff FIELD; hide_map_area is the separate
+// question of whether the map itself shows - fixed_route wants the first
+// (a named route already has its own end) but not the second (the map
+// previews the selected route's stops).
+$hide_map_area = false;
 if ($price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
     $form_style = 'inline';
     $map = 'no';
+    $hide_dropoff = true;
+    $hide_map_area = true;
+} elseif ($price_based === 'fixed_route') {
+    // A predefined named route (e.g. "Paris City Tour") already implies its
+    // own start and end - a separate dropoff field would be meaningless. The
+    // map still shows (as a preview of the selected route's stops), just
+    // with no live pickup/dropoff geocoding or distance calculation.
+    $form_style = 'inline';
+    $map = 'yes';
     $hide_dropoff = true;
 } else {
     $hide_dropoff = false;
@@ -297,14 +315,20 @@ if (sizeof($all_dates) > 0) {
 	$max_hand_luggage = !empty($mptbm_hand_luggage) ? max($mptbm_hand_luggage) : 1;
 	
 	$disable_dropoff_hourly = MP_Global_Function::get_settings('mptbm_general_settings', 'disable_dropoff_hourly', 'enable');
+	$hide_map_area = false;
 	if ($price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
 	    $form_style = 'inline';
 	    $map = 'no';
 	    $hide_dropoff = true;
+	    $hide_map_area = true;
+	} elseif ($price_based === 'fixed_route') {
+	    $form_style = 'inline';
+	    $map = 'yes';
+	    $hide_dropoff = true;
 	} else {
 	    $hide_dropoff = false;
 	}
-?>	
+?>
 	<div class="<?php echo esc_attr($area_class); ?> ">
 	
 		<div class="_dLayout mptbm_search_area <?php echo esc_attr($form_style_class); ?> <?php echo esc_attr(($price_based == 'manual') ? 'mAuto' : ''); ?>">
@@ -399,7 +423,7 @@ if (sizeof($all_dates) > 0) {
 				</div>
 				<div class="inputList">
 					<label class="fdColumn ">
-						<span><?php echo mptbm_get_translation('pickup_location_label', __('Pickup Location', 'ecab-taxi-booking-manager')); ?></span>
+						<span><?php echo $price_based == 'fixed_route' ? mptbm_get_translation('route_label', __('Route', 'ecab-taxi-booking-manager')) : mptbm_get_translation('pickup_location_label', __('Pickup Location', 'ecab-taxi-booking-manager')); ?></span>
 						<?php
 						if (!function_exists('mptbm_resolve_location_label')) {
 							function mptbm_resolve_location_label($location_raw) {
@@ -463,6 +487,64 @@ if (sizeof($all_dates) > 0) {
 							</select>
 						<?php } elseif ($price_based == 'fixed_zone_dropoff') { ?>
 							<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_pick_up_location_label', __('Enter Pick-Up Location', 'ecab-taxi-booking-manager')); ?>" value="<?php echo esc_attr($pickup); ?>" />
+						<?php } elseif ($price_based == 'fixed_route') { ?>
+							<?php
+								$all_routes = MPTBM_Function::get_all_routes($vehicle_id ?? 0);
+								// Shortcode's `route` attribute pre-selects this route - only when it's
+								// actually one of this vehicle's real options, same safety rule as the
+								// fixed_zone pickup/dropoff zone pre-selection above.
+								$route_matched = $route !== '' && in_array($route, $all_routes, true);
+							?>
+							<!-- Deliberately its OWN id, not #mptbm_manual_start_place: that id is
+							also matched by a global "block the native dropdown, replace it with a
+							custom search wrapper" handler meant for manual mode's location picker
+							(mptbm_registration.js). This route select never gets that custom wrapper
+							built for it, so sharing the id made it silently unclickable/unreliable
+							for real mouse users - a plain native <select> works fine here as-is. -->
+							<select id="mptbm_route_select" class="formControl">
+								<option <?php echo $route_matched ? '' : 'selected '; ?>disabled><?php echo mptbm_get_translation('select_route_label', __(' Select a Route', 'ecab-taxi-booking-manager')); ?></option>
+								<?php foreach ($all_routes as $route_name) { ?>
+									<option class="textCapitalize" value="<?php echo esc_attr($route_name); ?>" <?php echo ($route_matched && $route_name === $route) ? 'selected' : ''; ?>><?php echo esc_html($route_name); ?></option>
+								<?php } ?>
+							</select>
+							<?php
+								// wp_json_encode() returns false (not a string) if the route
+								// name/waypoints contain invalid UTF-8 - a real risk, since
+								// this is free-text an admin can paste from anywhere (Word,
+								// Excel, etc. often leave behind invalid bytes). Echoing false
+								// prints nothing, which would otherwise leave a bare
+								// "window.mptbmRouteWaypoints = ;" - a hard JS syntax error
+								// that stops every other script on the page from running too.
+								$route_waypoints_map = MPTBM_Function::get_route_waypoints_map($vehicle_id ?? 0);
+								$route_waypoints_json = wp_json_encode($route_waypoints_map, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+								if ($route_waypoints_json === false) {
+									$route_waypoints_json = '{}';
+								}
+								// Pre-selected route's stops, set as the SAME window.mptbmDisplayStops
+								// global the `stops` shortcode attribute already uses - the existing
+								// DOMContentLoaded dispatch (mptbm_registration.js) picks this up and
+								// plots it automatically, with no click needed. Only when actually
+								// matched; otherwise leave it for the generic `stops` attribute (if any)
+								// to set instead.
+								$initial_display_stops = ($route_matched && isset($route_waypoints_map[$route]))
+									? array_filter(array_map('trim', explode(',', $route_waypoints_map[$route])))
+									: array();
+								$initial_display_stops_json = wp_json_encode(array_values($initial_display_stops), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+								if ($initial_display_stops_json === false) {
+									$initial_display_stops_json = '[]';
+								}
+							?>
+							<script>
+								// Consumed by mptbm_registration.js: when the route dropdown
+								// changes, it looks up this route's waypoints and reuses the
+								// same display-only geocode+marker logic as the `stops`
+								// shortcode attribute - a map preview only, never fed into
+								// distance/price (the fixed price is already looked up by name).
+								window.mptbmRouteWaypoints = <?php echo $route_waypoints_json; ?>;
+								<?php if (!empty($initial_display_stops)) : ?>
+								window.mptbmDisplayStops = <?php echo $initial_display_stops_json; ?>;
+								<?php endif; ?>
+							</script>
 						<?php } else { ?>
 							<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_pick_up_location_label', __('Enter Pick-Up Location', 'ecab-taxi-booking-manager')); ?>" value="<?php echo esc_attr($pickup); ?>" />
 						<?php } ?>
@@ -473,7 +555,7 @@ if (sizeof($all_dates) > 0) {
 					$extra_stop = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
 					$max_extra_stops = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_max_extra_stops', 3);
 					$max_extra_stops = $max_extra_stops > 0 ? $max_extra_stops : 3;
-					$excluded_price_based = ['fixed_zone', 'fixed_zone_dropoff', 'fixed_hourly', 'fixed_price', 'fixed_zone_pickup', 'manual'];
+					$excluded_price_based = ['fixed_zone', 'fixed_zone_dropoff', 'fixed_hourly', 'fixed_price', 'fixed_zone_pickup', 'manual', 'fixed_route'];
 					if ($extra_stop == 'yes' && !in_array($price_based, $excluded_price_based)) {
 				?>
 					<div class="inputList mptbm_extra_stops_wrapper" data-max-stops="<?php echo esc_attr($max_extra_stops); ?>">
@@ -498,7 +580,7 @@ if (sizeof($all_dates) > 0) {
 						</template>
 					</div>
 				<?php } ?>
-				<?php if (!($hide_dropoff && $price_based === 'fixed_hourly')): ?>
+				<?php if (!($hide_dropoff)): ?>
 <div class="inputList">
     <label class="fdColumn mptbm_manual_end_place">
         <span><?php echo mptbm_get_translation('dropoff_location_label', __('Drop-Off Location', 'ecab-taxi-booking-manager')); ?></span>
@@ -547,24 +629,37 @@ if (sizeof($all_dates) > 0) {
     <strong style="color:#374151;"><?php echo mptbm_get_translation('via_stops_label', __('Via:', 'ecab-taxi-booking-manager')); ?></strong>
     <?php echo esc_html(implode(', ', $display_stops)); ?>
 </div>
+<?php
+    // See the fixed_route waypoints block above for why this guards against
+    // wp_json_encode() returning false (invalid UTF-8 in the shortcode's
+    // `stops` text) instead of echoing it directly.
+    $display_stops_json = wp_json_encode(array_values($display_stops), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    if ($display_stops_json === false) {
+        $display_stops_json = '[]';
+    }
+?>
 <script>
     // Consumed by mptbm_registration.js to drop a marker for each name on
     // whichever map is active - display only, never fed into the routed
     // waypoint list, so distance/price stay based on pickup/dropoff alone.
-    window.mptbmDisplayStops = <?php echo wp_json_encode(array_values($display_stops)); ?>;
+    window.mptbmDisplayStops = <?php echo $display_stops_json; ?>;
 </script>
 <?php endif; ?>
 <input type="hidden" name="mptbm_original_price_base" value="<?php echo esc_attr($price_based); ?>" />
-<?php if ($hide_dropoff && $price_based === 'fixed_hourly') : ?>
+<?php if ($hide_dropoff) : ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var pickup = document.getElementById('mptbm_map_start_place');
+    // fixed_hourly's pickup is the #mptbm_map_start_place text input; fixed_route's
+    // is the #mptbm_route_select route <select> instead - check both so this
+    // sync works for either mode that hides the dropoff field.
+    var pickup = document.getElementById('mptbm_map_start_place') || document.getElementById('mptbm_route_select');
     var dropoff = document.getElementById('mptbm_map_end_place');
     if (pickup && dropoff) {
         function syncDropoff() {
             dropoff.value = pickup.value;
         }
         pickup.addEventListener('input', syncDropoff);
+        pickup.addEventListener('change', syncDropoff);
         syncDropoff();
     }
 });
@@ -1161,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		</style>
 		<?php endif; ?>
 		<span class="mptbm-map-warning" style="display:none"><?php _e('Map Authentication Failed! Please contact site admin.','ecab-taxi-booking-manager'); ?></span>
-		<div class="mptbm_map_area fdColumn" data-map="<?php echo esc_attr($map); ?>" data-show-map-result="<?php echo esc_attr($show_map_on_result); ?>" data-manual-map="<?php echo $manual_map_enabled ? 'yes' : 'no'; ?>" style="display: <?php echo (($price_based !== 'manual' || $manual_map_enabled) && $map === 'yes' && !($hide_dropoff && $price_based === 'fixed_hourly')) ? 'flex' : 'none'; ?>;">
+		<div class="mptbm_map_area fdColumn" data-map="<?php echo esc_attr($map); ?>" data-show-map-result="<?php echo esc_attr($show_map_on_result); ?>" data-manual-map="<?php echo $manual_map_enabled ? 'yes' : 'no'; ?>" style="display: <?php echo (($price_based !== 'manual' || $manual_map_enabled) && $map === 'yes' && !($hide_map_area)) ? 'flex' : 'none'; ?>;">
 			<div class="mptbm_map_area_header">
 				<h6><span class="fas fa-map-marked-alt mR_xs"></span><?php echo $price_based === 'manual' ? esc_html__('Route Locations', 'ecab-taxi-booking-manager') : mptbm_get_translation('route_map_label', __('Route Map', 'ecab-taxi-booking-manager')); ?></h6>
 				<button type="button" class="mptbm_map_collapse_toggle" aria-expanded="true" data-expand-text="<?php esc_attr_e('Show Map', 'ecab-taxi-booking-manager'); ?>" data-collapse-text="<?php esc_attr_e('Hide Map', 'ecab-taxi-booking-manager'); ?>">
@@ -1299,23 +1394,32 @@ document.addEventListener('DOMContentLoaded', function () {
 		
 		// Find the time range for this specific day
 		var dayTimes = dayTimeRanges[dayName];
-		if (dayTimes && dayTimes.start.length > 0 && dayTimes.end.length > 0) {
+		// Built as a single boolean, not `dayTimes && dayTimes.start.length > 0 && ...`:
+		// some content filter running on this page's output (WordPress's own
+		// wptexturize/convert_chars, or a caching/optimizer plugin re-processing
+		// the final HTML) was turning literal "&&" into the HTML entity
+		// "&#038;&#038;" here, which is a hard JS syntax error that silently
+		// kills every other inline script on the page - Search, the route
+		// map preview, all of it. Avoiding the "&&" character sequence
+		// entirely sidesteps whatever is doing that, regardless of the cause.
+		var hasDayTimes = dayTimes ? (dayTimes.start.length > 0 ? dayTimes.end.length > 0 : false) : false;
+		if (hasDayTimes) {
 			// For each day, find the earliest start time and latest end time
 			// This ensures we get the correct range for that specific day
 			var minTime = Math.min.apply(Math, dayTimes.start);
 			var maxTime = Math.max.apply(Math, dayTimes.end);
-			
-	
-			
+
+
+
 			// Update the time picker options
 			updateTimePickerOptions(minTime, maxTime);
 		} else {
-			
+
 			// Use global range if no specific day times
 			updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>);
 		}
 	}
-	
+
 	function updateTimePickerOptions(minTime, maxTime) {
 		// Convert to minutes for easier calculation
 		var minMinutes = Math.floor(minTime) * 60 + (minTime % 1) * 100;

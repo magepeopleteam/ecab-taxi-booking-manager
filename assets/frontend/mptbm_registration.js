@@ -363,7 +363,7 @@ jQuery(document).ready(function ($) {
     })();
 
     // Clear errors on input for pickup location
-    $(document).on('input change', '#mptbm_map_start_place, #mptbm_manual_start_place', function () {
+    $(document).on('input change', '#mptbm_map_start_place, #mptbm_manual_start_place, #mptbm_route_select', function () {
         if (this.classList.contains('mptbm-error-field')) {
             this.classList.remove('mptbm-error-field');
             var errorMsg = this.parentElement.querySelector('.mptbm-location-error');
@@ -2589,6 +2589,9 @@ function mptbm_init_google_map() {
         } else if (price_based === "fixed_zone_dropoff") {
             start_place = document.getElementById("mptbm_map_start_place");
             end_place = document.getElementById("mptbm_manual_end_place");
+        } else if (price_based === "fixed_route") {
+            start_place = document.getElementById("mptbm_route_select");
+            end_place = document.getElementById("mptbm_map_end_place");
         } else {
             start_place = document.getElementById("mptbm_map_start_place");
             end_place = document.getElementById("mptbm_map_end_place");
@@ -2794,6 +2797,93 @@ function mptbm_init_google_map() {
                 return getCoordinatesAsync(address);
             }
             if (price_based !== 'manual') {
+
+                // fixed_route's price comes from a name match against the admin-defined
+                // route (get_price()'s 'fixed_route' branch) - there is no real address
+                // to geocode, so this skips the geocoding path entirely and submits the
+                // selected route name directly, the same way fixed_zone bypasses it below.
+                if (price_based === 'fixed_route') {
+                    let start_val = getElementValue(start_place);
+                    let end_val = getElementValue(end_place);
+                    // First/last stop of the route's own waypoint list, resolved by
+                    // the display-stops geocoding that already ran when the route
+                    // was selected (see mptbmRouteEndpoints in the OSM/Google
+                    // geocodeAndMark* functions). Lets the trip show its real
+                    // distance/duration like any other booking - price still comes
+                    // from the fixed per-route lookup either way, unaffected by this.
+                    let routeEndpoints = window.mptbmRouteEndpoints;
+                    let startCoordsForSubmit = routeEndpoints ? JSON.stringify({ latitude: routeEndpoints.start.lat, longitude: routeEndpoints.start.lng }) : '';
+                    let endCoordsForSubmit = routeEndpoints ? JSON.stringify({ latitude: routeEndpoints.end.lat, longitude: routeEndpoints.end.lng }) : '';
+                    if (!(start_val && start_date &&
+                        (start_time !== undefined && start_time !== null && start_time !== '') &&
+                        return_date &&
+                        (return_time !== undefined && return_time !== null && return_time !== ''))) {
+                        mptbm_search_loading(parent, false);
+                        return;
+                    }
+                    let actionValue = !mptbm_enable_view_search_result_page ? "get_mptbm_map_search_result" : "get_mptbm_map_search_result_redirect";
+                    $.ajax({
+                        type: "POST",
+                        url: mp_ajax_url,
+                        data: {
+                            action: actionValue,
+                            nonce: mptbm_ajax.search_nonce,
+                            mptbm_source_vehicle_id: mptbm_source_vehicle_id,
+                            start_place: start_val,
+                            start_place_coordinates: startCoordsForSubmit,
+                            end_place_coordinates: endCoordsForSubmit,
+                            end_place: end_val,
+                            start_date: start_date,
+                            start_time: start_time,
+                            price_based: price_based,
+                            two_way: two_way,
+                            waiting_time: waiting_time,
+                            fixed_time: fixed_time,
+                            return_date: return_date,
+                            return_time: return_time,
+                            mptbm_passengers: parent.find('#mptbm_passengers').val(),
+                            mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
+                            mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
+                            mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                            mptbm_extra_stop_place: mptbm_collect_extra_stop_places(parent),
+                            mptbm_extra_stop_place_coordinates: mptbm_collect_extra_stop_coordinates(parent),
+                            mptbm_original_price_base: mptbm_original_price_base,
+                            mptbm_distance: parent.find('#mptbm_calculated_distance').val() || parent.find('input[name="mptbm_hidden_distance"]').val(),
+                            mptbm_duration: parent.find('#mptbm_calculated_duration').val() || parent.find('input[name="mptbm_hidden_duration"]').val(),
+                        },
+                        success: function (data) {
+                            if (data.success === false) {
+                                alert(data.data.message || 'An error occurred. Please try again.');
+                                mptbm_search_loading(parent, false);
+                                return;
+                            }
+                            if (!mptbm_enable_view_search_result_page) {
+                                target.append(data).promise().done(function () {
+                                    mptbm_search_loading(parent, false);
+                                    mptbm_reveal_inline_results(target);
+                                    if (mptbm_is_ios()) {
+                                        target[0].style.display = 'none';
+                                        void target[0].offsetHeight;
+                                        target[0].style.display = '';
+                                    }
+                                });
+                            } else {
+                                var redirectUrl = mptbm_resolve_redirect_url(data);
+                                if (!redirectUrl) {
+                                    mptbm_search_loading(parent, false);
+                                    alert('Unable to open the search results page. Please try again.');
+                                    return;
+                                }
+                                window.location.href = redirectUrl;
+                            }
+                        },
+                        error: function (response) {
+                            console.log(response);
+                            mptbm_search_loading(parent, false);
+                        },
+                    });
+                    return; // Exit early for fixed_route - no geocoding needed
+                }
 
                 // For fixed_zone, pickup is from dropdown (term_XX), so we use pre-stored coords
                 // Only geocode the end_place (dropoff search input)
@@ -5462,17 +5552,98 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
         return (window.mptbmDisplayStops && Array.isArray(window.mptbmDisplayStops)) ? window.mptbmDisplayStops : [];
     }
 
+    // Re-run when the "fixed_route" dropdown changes (a new route needs new
+    // pins), so previous markers must be cleared first or they'd just pile up.
+    var activeOSMMarkers = [];
+    var activeGoogleMarkers = [];
+    var activeRouteLine = null;
+    function clearActiveMarkers() {
+        activeOSMMarkers.forEach(function (m) {
+            if (typeof mptbm_osm_map !== 'undefined' && mptbm_osm_map) {
+                mptbm_osm_map.removeLayer(m);
+            }
+        });
+        activeOSMMarkers = [];
+        activeGoogleMarkers.forEach(function (m) { m.setMap(null); });
+        activeGoogleMarkers = [];
+        if (activeRouteLine) {
+            if (typeof activeRouteLine.setMap === 'function') {
+                activeRouteLine.setMap(null); // Google Polyline
+            } else if (typeof mptbm_osm_map !== 'undefined' && mptbm_osm_map) {
+                mptbm_osm_map.removeLayer(activeRouteLine); // Leaflet polyline
+            }
+            activeRouteLine = null;
+        }
+        window.mptbmRouteEndpoints = null;
+    }
+
+    // First stop = pickup, last stop = dropoff, everything between is a via
+    // stop - same convention as a normal pickup/dropoff trip, just derived
+    // from the route's own ordered waypoint list instead of two separate
+    // address fields.
+    function stopPopupLabel(stop, index, total) {
+        if (total < 2) {
+            return stop.name;
+        }
+        if (index === 0) {
+            return 'Pickup: ' + stop.name;
+        }
+        if (index === total - 1) {
+            return 'Dropoff: ' + stop.name;
+        }
+        return 'Stop ' + (index + 1) + ': ' + stop.name;
+    }
+
+    // Real pickup/dropoff marker only - no site-default fallback. Used purely
+    // to decide WHEN to dispatch (see dispatchDisplayStops): modes where the
+    // customer types a real address should still wait out the short timeout
+    // for that marker to appear before falling back to anything else, same
+    // as before the site-default fallback below existed. Folding the
+    // fallback into this check instead would make it truthy on the very
+    // first poll for every mode, geocoding "via" stops against the site's
+    // default location before the customer has even started typing - fine
+    // for fixed_route (which never has a real marker to wait for anyway,
+    // so it always hit the timeout regardless), wrong for modes that do.
+    function hasRealOSMBiasMarker() {
+        if (typeof mptbm_osm_end_marker !== 'undefined' && mptbm_osm_end_marker) {
+            return true;
+        }
+        return typeof mptbm_osm_start_marker !== 'undefined' && !!mptbm_osm_start_marker;
+    }
+
+    function hasRealGoogleBiasMarker() {
+        if (typeof mptbm_end_marker !== 'undefined' && mptbm_end_marker) {
+            return true;
+        }
+        return typeof mptbm_start_marker !== 'undefined' && !!mptbm_start_marker;
+    }
+
     // A bare name like "Notre-Dame Cathedral" can match the wrong one
     // anywhere on Earth - biasing the geocoder toward the trip's own
     // dropoff (falling back to pickup) point steers it to the right city,
     // without touching the query text itself (which breaks Photon entirely
-    // when two place names get concatenated into one search string).
+    // when two place names get concatenated into one search string). Used
+    // for the actual geocoding calls, once dispatch has already decided to
+    // go ahead (see hasRealOSMBiasMarker() above for that decision) - so the
+    // site-default fallback here only ever kicks in once a real marker was
+    // either found or given up on, never instead of waiting for one.
     function getBiasLatLng() {
         if (typeof mptbm_osm_end_marker !== 'undefined' && mptbm_osm_end_marker) {
             return mptbm_osm_end_marker.getLatLng();
         }
         if (typeof mptbm_osm_start_marker !== 'undefined' && mptbm_osm_start_marker) {
             return mptbm_osm_start_marker.getLatLng();
+        }
+        // Modes with no live pickup/dropoff geocoding at all (fixed_route: the
+        // customer just picks a named route, never types an address) never
+        // reach either marker above, so this used to fall through to no bias -
+        // meaning a short/common stop name from that route (e.g. "Savar",
+        // "Mohammadpur") could resolve anywhere on Earth instead of near this
+        // business. Falling back to the site's own configured location (the
+        // same admin-set lat/lng already used for the map's default center)
+        // keeps it in the right country even with no trip-specific point yet.
+        if (typeof mp_lat_lng !== 'undefined' && mp_lat_lng && mp_lat_lng.lat && mp_lat_lng.lng) {
+            return { lat: mp_lat_lng.lat, lng: mp_lat_lng.lng };
         }
         return null;
     }
@@ -5512,26 +5683,56 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
             if (typeof mptbm_osm_map === 'undefined' || !mptbm_osm_map || typeof L === 'undefined') {
                 return;
             }
+            clearActiveMarkers();
             var found = results.filter(Boolean);
             if (!found.length) {
                 return;
             }
-            found.forEach(function (stop) {
+            found.forEach(function (stop, index) {
                 var latlng = [stop.lat, stop.lng];
-                L.marker(latlng, { title: stop.name }).addTo(mptbm_osm_map).bindPopup(stop.name);
+                activeOSMMarkers.push(L.marker(latlng, { title: stop.name }).addTo(mptbm_osm_map).bindPopup(stopPopupLabel(stop, index, found.length)));
             });
+            if (found.length > 1) {
+                activeRouteLine = L.polyline(found.map(function (stop) { return [stop.lat, stop.lng]; }), {
+                    color: '#4f46e5',
+                    weight: 3,
+                    opacity: 0.85,
+                    dashArray: '8,6'
+                }).addTo(mptbm_osm_map);
+                // First/last resolved stop, exposed so the search submission can
+                // send them as real pickup/dropoff coordinates - this route still
+                // has a fixed price regardless of the actual distance, but the
+                // trip's real distance/duration can now be shown like any other
+                // booking instead of always reading 0.
+                window.mptbmRouteEndpoints = {
+                    start: { lat: found[0].lat, lng: found[0].lng },
+                    end: { lat: found[found.length - 1].lat, lng: found[found.length - 1].lng }
+                };
+            }
             // The pickup/dropoff route calculation runs its own independent
             // fitBounds() once it resolves, which would otherwise snap the
             // view back to just the route and race with this one. Widening
             // the bounds a beat later - after that settles - lets ours win.
+            //
+            // Built from just the stops (plus the real start/end markers, if
+            // this booking mode has any) - NOT the map's current/default
+            // view, which for a mode with no real route (fixed_route) is
+            // still sitting on the site's unrelated default center and would
+            // otherwise stretch the fit into a huge, near-useless span.
             setTimeout(function () {
                 if (!mptbm_osm_map) {
                     return;
                 }
-                var bounds = mptbm_osm_map.getBounds();
-                found.forEach(function (stop) {
-                    bounds = bounds ? bounds.extend([stop.lat, stop.lng]) : L.latLngBounds([[stop.lat, stop.lng], [stop.lat, stop.lng]]);
-                });
+                var points = found.map(function (stop) { return [stop.lat, stop.lng]; });
+                if (typeof mptbm_osm_start_marker !== 'undefined' && mptbm_osm_start_marker) {
+                    var s = mptbm_osm_start_marker.getLatLng();
+                    points.push([s.lat, s.lng]);
+                }
+                if (typeof mptbm_osm_end_marker !== 'undefined' && mptbm_osm_end_marker) {
+                    var e = mptbm_osm_end_marker.getLatLng();
+                    points.push([e.lat, e.lng]);
+                }
+                var bounds = L.latLngBounds(points);
                 mptbm_osm_map.fitBounds(bounds, { padding: [40, 40] });
             }, 1200);
         });
@@ -5543,6 +5744,14 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
         }
         if (typeof mptbm_start_marker !== 'undefined' && mptbm_start_marker) {
             return mptbm_start_marker.getPosition();
+        }
+        // Same fallback as the OSM path's getBiasLatLng(): fixed_route has no
+        // live pickup/dropoff geocoding to bias from, so without this a short
+        // stop name could resolve anywhere on Earth instead of near this
+        // business. Must be a real LatLng (not a plain {lat,lng}) - callers
+        // call .lat()/.lng() on it and pass it straight into LatLngBounds.
+        if (typeof mp_lat_lng !== 'undefined' && mp_lat_lng && mp_lat_lng.lat && mp_lat_lng.lng && typeof google !== 'undefined' && google.maps) {
+            return new google.maps.LatLng(mp_lat_lng.lat, mp_lat_lng.lng);
         }
         return null;
     }
@@ -5622,58 +5831,126 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
         }
         var geocoder = new google.maps.Geocoder();
         Promise.all(names.map(function (name) { return geocodeOneGoogle(geocoder, name); })).then(function (results) {
+            clearActiveMarkers();
             var found = results.filter(Boolean);
             if (!found.length) {
                 return;
             }
-            found.forEach(function (stop) {
-                new google.maps.Marker({
+            found.forEach(function (stop, index) {
+                var marker = new google.maps.Marker({
                     position: stop.location,
                     map: mptbm_map,
                     title: stop.name
                 });
+                marker.addListener('click', function () {
+                    new google.maps.InfoWindow({ content: stopPopupLabel(stop, index, found.length) }).open(mptbm_map, marker);
+                });
+                activeGoogleMarkers.push(marker);
             });
-            // Same race as the OSM path: the route calculation's own
-            // fitBounds() would otherwise override this. Widen the bounds a
-            // beat later so this one wins and every stop stays visible.
+            if (found.length > 1) {
+                activeRouteLine = new google.maps.Polyline({
+                    path: found.map(function (stop) { return stop.location; }),
+                    map: mptbm_map,
+                    strokeColor: '#4f46e5',
+                    strokeWeight: 3,
+                    strokeOpacity: 0.85
+                });
+                // See the OSM path's identical comment: exposes real pickup/dropoff
+                // coordinates for the search submission to use, so distance/duration
+                // reflect the actual route even though price stays fixed.
+                window.mptbmRouteEndpoints = {
+                    start: { lat: found[0].location.lat(), lng: found[0].location.lng() },
+                    end: { lat: found[found.length - 1].location.lat(), lng: found[found.length - 1].location.lng() }
+                };
+            }
+            // Same race as the OSM path, and same fix: built from just the
+            // stops (plus the real start/end markers, if any) - not the
+            // map's current/default view, which for a mode with no real
+            // route (fixed_route) would otherwise stretch the fit across a
+            // huge, near-useless span back to the site's default center.
             setTimeout(function () {
                 var bounds = new google.maps.LatLngBounds();
-                var mapBounds = mptbm_map.getBounds();
-                if (mapBounds) {
-                    bounds.union(mapBounds);
-                }
                 found.forEach(function (stop) { bounds.extend(stop.location); });
+                if (typeof mptbm_start_marker !== 'undefined' && mptbm_start_marker) {
+                    bounds.extend(mptbm_start_marker.getPosition());
+                }
+                if (typeof mptbm_end_marker !== 'undefined' && mptbm_end_marker) {
+                    bounds.extend(mptbm_end_marker.getPosition());
+                }
                 mptbm_map.fitBounds(bounds);
             }, 1200);
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        var names = getDisplayStops();
+    function dispatchDisplayStops(names) {
         if (!names.length) {
+            clearActiveMarkers();
             return;
         }
+        // #mptbm_route_select only ever renders for price_based='fixed_route',
+        // which never has a real pickup/dropoff marker to wait for at all (the
+        // customer picks a named route, never types an address) - so for that
+        // mode specifically, skip the wait below entirely instead of running
+        // out the same ~3s every other mode's `stops` attribute uses to give a
+        // REAL trip location a chance to appear first. Scoped to this one
+        // check so other modes' `stops` timing is completely untouched.
+        var isFixedRoute = !!document.getElementById('mptbm_route_select');
         var attempts = 0;
         var dispatched = false;
-        var interval = setInterval(function () {
+        function tick() {
             attempts++;
             var mapTypeEl = document.getElementById('mptbm_map_type');
             var isOSM = !mapTypeEl || mapTypeEl.value === 'openstreetmap';
+            // The map object itself may not exist yet on the very first tick
+            // (its own init can run slightly after this, especially right on
+            // page load for a pre-selected route) - this must keep retrying
+            // regardless of mode until it does, or a page-load preload can
+            // give up permanently before the map ever appears. isFixedRoute
+            // only skips the SEPARATE wait below (for a bias marker), never
+            // this one.
+            var mapReady = isOSM
+                ? (typeof mptbm_osm_map !== 'undefined' && !!mptbm_osm_map)
+                : (typeof mptbm_map !== 'undefined' && !!mptbm_map);
+            if (!mapReady) {
+                return false;
+            }
             // Wait for the pickup/dropoff route's own geocoding to place its
-            // marker(s) too, not just for the map to exist - firing earlier
-            // would send these searches with no bias point yet available,
-            // right when an ambiguous name most needs one.
-            var timedOut = attempts > 40; // ~20s max wait
-            if (isOSM && typeof mptbm_osm_map !== 'undefined' && mptbm_osm_map && (getBiasLatLng() || timedOut)) {
+            // marker(s) too - firing earlier would send these searches with
+            // no bias point yet available, right when an ambiguous name most
+            // needs one.
+            var timedOut = isFixedRoute || attempts > 6; // fixed_route: no wait; others: ~3s max
+            if (isOSM && (hasRealOSMBiasMarker() || timedOut)) {
                 dispatched = true;
                 geocodeAndMarkOSM(names);
-            } else if (!isOSM && typeof mptbm_map !== 'undefined' && mptbm_map && (getGoogleBiasLocation() || timedOut)) {
+            } else if (!isOSM && (hasRealGoogleBiasMarker() || timedOut)) {
                 dispatched = true;
                 geocodeAndMarkGoogle(names);
             }
-            if (dispatched || timedOut) {
+            return dispatched || timedOut;
+        }
+        if (tick()) {
+            return; // fixed_route (or an already-ready map) dispatched immediately
+        }
+        var interval = setInterval(function () {
+            if (tick()) {
                 clearInterval(interval);
             }
         }, 500);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        dispatchDisplayStops(getDisplayStops());
+
+        // "Fixed Route" mode: #mptbm_route_select already exists whenever a
+        // route is chosen - look up its waypoints and preview them the same
+        // way the `stops` shortcode attribute does.
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.id === 'mptbm_route_select' && window.mptbmRouteWaypoints) {
+                var waypoints = window.mptbmRouteWaypoints[e.target.value];
+                var names = waypoints ? waypoints.split(',').map(function (s) { return s.trim(); }).filter(Boolean) : [];
+                window.mptbmDisplayStops = names;
+                dispatchDisplayStops(names);
+            }
+        });
     });
 })();

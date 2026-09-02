@@ -110,6 +110,11 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                     'icon' => 'fas fa-draw-polygon',
                     'link' => admin_url('edit.php?post_type=mptbm_operate_areas'),
                 ],
+                'mptbm_routes' => [
+                    'label' => esc_html__('Routes', 'ecab-taxi-booking-manager'),
+                    'icon' => 'fas fa-route',
+                    'link' => admin_url('edit.php?post_type=mptbm_routes'),
+                ],
             ];
 
             $key = '';
@@ -193,6 +198,12 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                 'label' => esc_html__('Operation Areas', 'ecab-taxi-booking-manager'),
                 'icon' => 'fas fa-draw-polygon',
                 'link' => admin_url('edit.php?post_type=mptbm_operate_areas'),
+            ];
+            $items[] = [
+                'slug' => 'mptbm_routes',
+                'label' => esc_html__('Routes', 'ecab-taxi-booking-manager'),
+                'icon' => 'fas fa-route',
+                'link' => admin_url('edit.php?post_type=mptbm_routes'),
             ];
             $items[] = [
                 'slug' => 'mptbm_analytics_dashboard',
