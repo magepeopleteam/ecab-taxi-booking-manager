@@ -258,6 +258,21 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					),
 					array(
+						'name' => 'minimum_booking_days',
+						'label' => esc_html__('Minimum Booking Days (Fixed Daily Pricing)', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Minimum days required for a fixed-daily (per day) booking. Bookings below this won\'t be allowed.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => '1',
+						'options' => array(
+							'1' => esc_html__('1 Day', 'ecab-taxi-booking-manager'),
+							'2' => esc_html__('2 Days', 'ecab-taxi-booking-manager'),
+							'3' => esc_html__('3 Days', 'ecab-taxi-booking-manager'),
+							'4' => esc_html__('4 Days', 'ecab-taxi-booking-manager'),
+							'5' => esc_html__('5 Days', 'ecab-taxi-booking-manager'),
+							'7' => esc_html__('7 Days', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
 						'name' => 'payment_system',
 						'label' => esc_html__('Payment System', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('Please Select Payment System.', 'ecab-taxi-booking-manager'),

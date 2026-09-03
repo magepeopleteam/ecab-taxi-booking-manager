@@ -1130,16 +1130,29 @@ document.addEventListener('DOMContentLoaded', function () {
 						</select>
 					</div>
 				<?php } ?>
-				<?php if ($price_based == 'fixed_hourly') {
-					$minimum_booking_hours = MP_Global_Function::get_settings('mptbm_general_settings', 'minimum_booking_hours', '0');
-					$minimum_booking_hours = intval($minimum_booking_hours);
-					$max_hours = 12; // Maximum hours to show in dropdown
+				<?php if ($price_based == 'fixed_hourly' || $price_based == 'fixed_daily') {
+					$mptbm_is_daily_pricing = ($price_based == 'fixed_daily');
+					if ($mptbm_is_daily_pricing) {
+						$minimum_booking_hours = MP_Global_Function::get_settings('mptbm_general_settings', 'minimum_booking_days', '1');
+						$minimum_booking_hours = max(1, intval($minimum_booking_hours));
+						$max_hours = 30; // Maximum days to show in dropdown
+					} else {
+						$minimum_booking_hours = MP_Global_Function::get_settings('mptbm_general_settings', 'minimum_booking_hours', '0');
+						$minimum_booking_hours = intval($minimum_booking_hours);
+						$max_hours = 12; // Maximum hours to show in dropdown
+					}
 					// If setting is 0 (disabled), start from 1 hour
 					$start_hours = ($minimum_booking_hours == 0) ? 1 : $minimum_booking_hours;
 				?>
 					<?php
 						$hour_labels = array();
 						for ($i = $start_hours; $i <= $max_hours; $i++) {
+							if ($mptbm_is_daily_pricing) {
+								$hour_labels[$i] = ($i == 1)
+									? mptbm_get_translation('one_day_label', __('1 Day', 'ecab-taxi-booking-manager'))
+									: sprintf(__('%d Days', 'ecab-taxi-booking-manager'), $i);
+								continue;
+							}
 							switch ($i) {
 								case 1: $hour_labels[$i] = mptbm_get_translation('one_hour_label', __('1 Hour', 'ecab-taxi-booking-manager')); break;
 								case 2: $hour_labels[$i] = mptbm_get_translation('two_hours_label', __('2 Hours', 'ecab-taxi-booking-manager')); break;
@@ -1160,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					<div class="inputList mp_input_select">
 						<input type="hidden" name="mptbm_fixed_hours" id="mptbm_fixed_hours" value="<?php echo esc_attr($start_hours); ?>" />
 						<label class="fdColumn">
-							<span><?php echo mptbm_get_translation('select_hours_label', __('Select Hours', 'ecab-taxi-booking-manager')); ?></span>
+							<span><?php echo $mptbm_is_daily_pricing ? mptbm_get_translation('select_days_label', __('Select Days', 'ecab-taxi-booking-manager')) : mptbm_get_translation('select_hours_label', __('Select Hours', 'ecab-taxi-booking-manager')); ?></span>
 							<input type="text" class="formControl" value="<?php echo esc_attr($hour_labels[$start_hours]); ?>" readonly />
 							<i class="far fa-clock mptbm_left_icon allCenter"></i>
 						</label>
@@ -1198,13 +1211,13 @@ document.addEventListener('DOMContentLoaded', function () {
 					</button>
 				</div>
 				<?php if ($form_style != 'horizontal') { ?>
-					<?php if ($taxi_return != 'enable' && $price_based != 'fixed_hourly') { ?>
+					<?php if ($taxi_return != 'enable' && $price_based != 'fixed_hourly' && $price_based != 'fixed_daily') { ?>
 						<div class="inputList"></div>
 					<?php } ?>
-					<?php if ($waiting_time_check != 'enable' && $price_based != 'fixed_hourly') { ?>
+					<?php if ($waiting_time_check != 'enable' && $price_based != 'fixed_hourly' && $price_based != 'fixed_daily') { ?>
 						<div class="inputList"></div>
 					<?php } ?>
-					<?php if ($price_based == 'fixed_hourly') { ?>
+					<?php if ($price_based == 'fixed_hourly' || $price_based == 'fixed_daily') { ?>
 						<div class="inputList"></div>
 					<?php } ?>
 					<div class="inputList"></div>

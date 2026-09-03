@@ -191,7 +191,14 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				if (empty($price_based)) {
 					$price_based = isset($_POST['mptbm_price_based']) ? sanitize_text_field($_POST['mptbm_price_based']) : '';
 				}
-				
+
+				// Fixed Daily has no map route to derive a duration from (dropoff may not even
+				// be routed), so the inventory/calendar-blocking duration is the full rental
+				// span instead: the customer-picked day count converted to seconds.
+				if ($price_based === 'fixed_daily') {
+					$duration = (int) round($fixed_hour * DAY_IN_SECONDS);
+				}
+
 				// Parse coordinates for fixed_zone/fixed_zone_dropoff geo-fence validation
 				$geo_fence_coords = null;
 				// Relaxed condition: Check for coordinates based on price mode, don't strictly require both unless needed
@@ -256,7 +263,9 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$cart_item_data['mptbm_distance_text'] = number_format_i18n(MPTBM_Function::distance_in_unit($distance), 2) . ' ' . strtolower(MPTBM_Function::distance_unit_label());
 				$cart_item_data['mptbm_duration'] = $duration;
 				$cart_item_data['mptbm_fixed_hours'] = $fixed_hour;
-				$cart_item_data['mptbm_duration_text'] = (string) max(1, (int) ceil($duration / 60)) . ' min';
+				$cart_item_data['mptbm_duration_text'] = ($price_based === 'fixed_daily')
+					? sprintf(_n('%d Day', '%d Days', max(1, (int) round($fixed_hour)), 'ecab-taxi-booking-manager'), max(1, (int) round($fixed_hour)))
+					: (string) max(1, (int) ceil($duration / 60)) . ' min';
 				$cart_item_data['mptbm_base_price'] = $raw_price;
 				$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info($post_id);
 				$cart_item_data['mptbm_stoppage_info'] = $mptbm_stoppage_selection;
@@ -511,7 +520,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					$item->add_meta_data(mptbm_get_translation('extra_waiting_hours_label', __('Extra Waiting Hours', 'ecab-taxi-booking-manager')), $waiting_time . ' ' . mptbm_get_translation('hours_in_waiting_label', __('Hour', 'ecab-taxi-booking-manager')));
 				}
 				if ($fixed_time && $fixed_time > 0) {
-					$item->add_meta_data(mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')), $fixed_time . ' ' . mptbm_get_translation('hours_in_waiting_label', __('Hour', 'ecab-taxi-booking-manager')));
+					$service_times_value = ($original_price_based === 'fixed_daily')
+						? sprintf(_n('%d Day', '%d Days', (int) round($fixed_time), 'ecab-taxi-booking-manager'), (int) round($fixed_time))
+						: $fixed_time . ' ' . mptbm_get_translation('hours_in_waiting_label', __('Hour', 'ecab-taxi-booking-manager'));
+					$item->add_meta_data(mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')), $service_times_value);
 				}
 				$item->add_meta_data(mptbm_get_translation('date_label', __('Date', 'ecab-taxi-booking-manager')), esc_html(MP_Global_Function::date_format($date)));
 				$item->add_meta_data(mptbm_get_translation('time_label', __('Time', 'ecab-taxi-booking-manager')), esc_html(MP_Global_Function::date_format($date, 'time')));
@@ -899,6 +911,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			$return = array_key_exists('mptbm_taxi_return', $cart_item) ? $cart_item['mptbm_taxi_return'] : '';
 			$waiting_time = array_key_exists('mptbm_waiting_time', $cart_item) ? $cart_item['mptbm_waiting_time'] : '';
 			$fixed_time = array_key_exists('mptbm_fixed_hours', $cart_item) ? $cart_item['mptbm_fixed_hours'] : '';
+			$original_price_based = array_key_exists('original_price_based', $cart_item) ? $cart_item['original_price_based'] : '';
 			$extra_service = array_key_exists('mptbm_extra_service_info', $cart_item) ? $cart_item['mptbm_extra_service_info'] : [];
 			$passengers = array_key_exists('mptbm_passengers', $cart_item) ? absint($cart_item['mptbm_passengers']) : '';
 			if ($passengers === '' && array_key_exists('mptbm_max_passenger', $cart_item)) {
@@ -1048,7 +1061,11 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						<?php if ($fixed_time && $fixed_time > 0) { ?>
 							<li>
 								<h6 class="_mR_xs"><?php echo mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')); ?> :</h6>
-								<span><?php echo esc_html($fixed_time); ?><?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></span>
+								<?php if ($original_price_based === 'fixed_daily') { ?>
+									<span><?php echo esc_html(sprintf(_n('%d Day', '%d Days', (int) round($fixed_time), 'ecab-taxi-booking-manager'), (int) round($fixed_time))); ?></span>
+								<?php } else { ?>
+									<span><?php echo esc_html($fixed_time); ?><?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></span>
+								<?php } ?>
 							</li>
 						<?php } ?>
 						<?php if ($pro_active && $enable_max_passenger_filter === 'yes') { ?>

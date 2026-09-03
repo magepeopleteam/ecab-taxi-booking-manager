@@ -149,6 +149,13 @@ if (!class_exists('MPTBM_Function')) {
 					return new WP_Error('mptbm_quote_hours', __('Please select a valid hourly booking duration.', 'ecab-taxi-booking-manager'));
 				}
 			}
+			if (sanitize_key($context['price_based'] ?? '') === 'fixed_daily') {
+				$days = (float) ($context['fixed_time'] ?? 0);
+				$minimum_days = max(1, (int) MP_Global_Function::get_settings('mptbm_general_settings', 'minimum_booking_days', '1'));
+				if ($days <= 0 || $days > 90 || $days < $minimum_days) {
+					return new WP_Error('mptbm_quote_days', __('Please select a valid number of booking days.', 'ecab-taxi-booking-manager'));
+				}
+			}
 			return $context;
 		}
 
@@ -792,6 +799,14 @@ if (!class_exists('MPTBM_Function')) {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 					$price = $hour_price * (float) $fixed_time;
 				} elseif ($price_based == 'distance' && $original_price_based == 'fixed_hourly') {
+					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
+					$price = $km_price * self::distance_in_unit($distance);
+				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_daily') && $original_price_based == 'fixed_daily') {
+					// $fixed_time carries the customer-selected day count for this mode
+					// (reuses the same "fixed_time" wire format as fixed_hourly's hour count).
+					$day_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_day_price');
+					$price = $day_price * (float) $fixed_time;
+				} elseif ($price_based == 'distance' && $original_price_based == 'fixed_daily') {
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
 					$price = $km_price * self::distance_in_unit($distance);
 				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_distance' || $price_based == 'fixed_map') && ($original_price_based == 'fixed_distance' || $original_price_based == 'fixed_map')) {

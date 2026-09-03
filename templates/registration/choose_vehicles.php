@@ -1192,7 +1192,8 @@ if ($all_posts->found_posts > 0) {
 
         $mptbm_enable_inventory_check = get_post_meta($post_id, 'mptbm_enable_inventory', true);
         $mptbm_force_single_quantity = ($mptbm_enable_inventory_check !== 'yes');
-		$mptbm_trip_duration = max(absint($duration ?? 0), (int) round((float) ($fixed_time ?? 0) * HOUR_IN_SECONDS));
+		$mptbm_fixed_time_unit_seconds = ($price_based === 'fixed_daily') ? DAY_IN_SECONDS : HOUR_IN_SECONDS;
+		$mptbm_trip_duration = max(absint($duration ?? 0), (int) round((float) ($fixed_time ?? 0) * $mptbm_fixed_time_unit_seconds));
 		if (MPTBM_Function::get_available_quantity($post_id, $start_date, $start_time_formatted, $mptbm_force_single_quantity, $mptbm_trip_duration, $return_date_time ?? '') <= 0) {
             $mptbm_unavailable = true;
             $mptbm_unavailable_reason = esc_html__('Fully booked for this time', 'ecab-taxi-booking-manager');

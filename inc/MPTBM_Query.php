@@ -126,6 +126,12 @@ if (!class_exists('MPTBM_Query')) {
 				'compare' => '=',
 			) : '';
 
+			$price_based_10 = $price_based == 'fixed_daily' ? array(
+				'key' => 'mptbm_price_based',
+				'value' => 'fixed_daily',
+				'compare' => '=',
+			) : '';
+
 			$price_based_8 = ($price_based == 'fixed_zone' || $price_based == 'fixed_zone_dropoff') ? array(
 				'key' => 'mptbm_price_based',
 				'value' => 'fixed_zone',
@@ -165,7 +171,8 @@ if (!class_exists('MPTBM_Query')) {
 					$price_based_5,
 					$price_based_7,
 					$price_based_8,
-					$price_based_9
+					$price_based_9,
+					$price_based_10
 				)
 			);
 			if ($vehicle_scope) {

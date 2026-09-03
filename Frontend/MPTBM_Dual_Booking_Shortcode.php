@@ -44,7 +44,7 @@ if (!defined('ABSPATH')) {
 if (!class_exists('MPTBM_Dual_Booking_Shortcode')) {
     class MPTBM_Dual_Booking_Shortcode {
         const VALID_PRICE_BASED = array(
-            'dynamic', 'manual', 'fixed_hourly', 'fixed_distance', 'fixed_zone', 'fixed_zone_dropoff', 'fixed_map',
+            'dynamic', 'manual', 'fixed_hourly', 'fixed_daily', 'fixed_distance', 'fixed_zone', 'fixed_zone_dropoff', 'fixed_map',
         );
         const VALID_FORM_STYLE = array('horizontal', 'inline', 'vertical');
 
