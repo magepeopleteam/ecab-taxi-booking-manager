@@ -127,11 +127,12 @@ if ($price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
     $hide_map_area = true;
 } elseif ($price_based === 'fixed_route') {
     // A predefined named route (e.g. "Paris City Tour") already implies its
-    // own start and end - a separate dropoff field would be meaningless. The
-    // map still shows (as a preview of the selected route's stops), just
-    // with no live pickup/dropoff geocoding or distance calculation.
-    $form_style = 'inline';
-    $map = 'yes';
+    // own start and end - a separate dropoff field would be meaningless.
+    // Kept on the default horizontal sidebar+map layout (same as distance/
+    // fixed_map) rather than the compact inline flex-row: that row layout
+    // was tuned for fixed_hourly's smaller field set and left fixed_route's
+    // extra fields (route select, transfer type, waiting time, etc.)
+    // uncompensated, producing a ragged, uneven row.
     $hide_dropoff = true;
 } else {
     $hide_dropoff = false;
@@ -322,8 +323,6 @@ if (sizeof($all_dates) > 0) {
 	    $hide_dropoff = true;
 	    $hide_map_area = true;
 	} elseif ($price_based === 'fixed_route') {
-	    $form_style = 'inline';
-	    $map = 'yes';
 	    $hide_dropoff = true;
 	} else {
 	    $hide_dropoff = false;
