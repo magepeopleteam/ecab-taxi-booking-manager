@@ -172,7 +172,7 @@ if (!class_exists('MPTBM_Plugin')) {
 
                         case 'transport-tabs':
                             $post_title = 'Transport Tabs';
-                            $post_content = '[mptbm_booking tab="yes" tabs="hourly,distance,manual"]';
+                            $post_content = '[mptbm_booking tab="yes" tabs="hourly,distance,manual,fixed_route,daily"]';
                             break;
                     }
 
@@ -326,7 +326,7 @@ if (!class_exists('MPTBM_Plugin')) {
 				'transport_booking'              => '[mptbm_booking]',
 				'transport_booking_manual'       => '[mptbm_booking price_based="manual" form="inline"]',
 				'transport_booking_fixed_hourly' => '[mptbm_booking price_based="fixed_hourly"]',
-				'transport-tabs'                 => '[mptbm_booking tab="yes" tabs="hourly,distance,manual"]',
+				'transport-tabs'                 => '[mptbm_booking tab="yes" tabs="hourly,distance,manual,fixed_route,daily"]',
 			);
 			foreach ($auto_pages as $slug => $content) {
 				$page = get_page_by_path($slug, OBJECT, 'page');

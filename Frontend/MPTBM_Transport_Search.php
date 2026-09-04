@@ -103,7 +103,7 @@
 					$map = sanitize_text_field($_POST['map']); // Changed from $display_map to $map
 					$vehicle_id = isset($_POST['vehicle_id']) ? absint($_POST['vehicle_id']) : 0;
 					// Include the correct template based on the tab
-					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate' || $tab_id === 'custom' || $tab_id === 'fixed_distance' || $tab_id === 'fixed_zone' || $tab_id === 'fixed_zone_dropoff') {
+					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate' || $tab_id === 'custom' || $tab_id === 'fixed_distance' || $tab_id === 'fixed_zone' || $tab_id === 'fixed_zone_dropoff' || $tab_id === 'fixed_route' || $tab_id === 'daily') {
 						ob_start(); // Start output buffering
 						
 						if($tab_id === 'distance'){
@@ -124,6 +124,12 @@
 							include MPTBM_Function::template_path('registration/get_details.php');
 						}else if($tab_id === 'fixed_zone_dropoff'){
 							$price_based = 'fixed_zone_dropoff';
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'fixed_route'){
+							$price_based = 'fixed_route';
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'daily'){
+							$price_based = 'fixed_daily';
 							include MPTBM_Function::template_path('registration/get_details.php');
 						}else if($tab_id === 'custom'){
 							do_action('mptbm_render_custom');
