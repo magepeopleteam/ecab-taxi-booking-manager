@@ -497,6 +497,34 @@ if (!class_exists('MPTBM_Function')) {
 			return apply_filters('mptbm_get_date', $all_dates, $post_id);
 		}
 
+		/**
+		 * Drops any date from $dates where this vehicle has zero remaining
+		 * quantity for the whole day, based on existing bookings - used to grey
+		 * these out on the single-vehicle page calendar alongside its normal
+		 * off-days. Result is cached briefly per vehicle since it re-checks
+		 * every candidate date against the vehicle's full booking history.
+		 */
+		public static function exclude_fully_booked_dates($post_id, array $dates): array
+		{
+			if (empty($dates)) {
+				return $dates;
+			}
+			$cache_key = 'mptbm_booked_dates_' . absint($post_id);
+			$booked_dates = get_transient($cache_key);
+			if ($booked_dates === false) {
+				$force_single = get_post_meta($post_id, 'mptbm_enable_inventory', true) !== 'yes';
+				$booked_dates = [];
+				foreach ($dates as $date) {
+					$available = self::get_available_quantity($post_id, $date, '00:00', $force_single, DAY_IN_SECONDS);
+					if ($available <= 0) {
+						$booked_dates[] = $date;
+					}
+				}
+				set_transient($cache_key, $booked_dates, 5 * MINUTE_IN_SECONDS);
+			}
+			return array_values(array_diff($dates, $booked_dates));
+		}
+
 		// Labels for the "Reason" dropdown on the manual Vehicle Availability toggle.
 		// Shared by the admin editor, the admin vehicle list column, and the front-end search result.
 		public static function get_availability_reason_labels()

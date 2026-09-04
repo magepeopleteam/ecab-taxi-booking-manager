@@ -90,7 +90,7 @@ if ($manual_map_enabled) {
 	}
 }
 $all_dates = $vehicle_id
-	? MPTBM_Function::get_date($vehicle_id)
+	? MPTBM_Function::exclude_fully_booked_dates($vehicle_id, MPTBM_Function::get_date($vehicle_id))
 	: MPTBM_Function::get_all_dates($price_based);
 $pickup = isset($pickup) ? sanitize_text_field($pickup) : '';
 $dropoff = isset($dropoff) ? sanitize_text_field($dropoff) : '';

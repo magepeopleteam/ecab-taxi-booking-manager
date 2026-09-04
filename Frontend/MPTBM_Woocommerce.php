@@ -1363,6 +1363,9 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				if ($cpt_name == 'mptbm_booking') {
 					update_post_meta($post_id, 'mptbm_pin', MPTBM_Function::create_booking_reference());
 					MPTBM_Function::get_booking_access_token($post_id, true);
+					// Invalidate the single-vehicle-page calendar's cached fully-booked-dates
+					// list so this new booking is reflected immediately, not after its TTL.
+					delete_transient('mptbm_booked_dates_' . $locked_vehicle);
 				}
 			if ($locked_vehicle) {
 				MPTBM_Function::release_inventory_lock($locked_vehicle);
