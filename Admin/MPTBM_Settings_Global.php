@@ -189,8 +189,33 @@ if (!class_exists('MPTBM_Settings_Global')) {
 			$gm_api_url = 'https://developers.google.com/maps/documentation/javascript/get-api-key';
 			$label = MPTBM_Function::get_name();
 
-			
-			
+			// Options for the Service Area Restriction fields below - built here
+			// (not as static arrays) so newly drawn Operation Areas / Locations
+			// show up without any other code change.
+			$service_area_operation_area_options = array();
+			$service_area_areas = get_posts(array(
+				'post_type' => 'mptbm_operate_areas',
+				'posts_per_page' => -1,
+				'post_status' => 'publish',
+				'orderby' => 'title',
+				'order' => 'ASC',
+			));
+			foreach ($service_area_areas as $service_area_area) {
+				$service_area_operation_area_options[$service_area_area->ID] = $service_area_area->post_title;
+			}
+
+			$service_area_location_options = array();
+			$service_area_locations = get_terms(array(
+				'taxonomy' => 'locations',
+				'hide_empty' => false,
+				'orderby' => 'name',
+				'order' => 'ASC',
+			));
+			if (!is_wp_error($service_area_locations)) {
+				foreach ($service_area_locations as $service_area_location_term) {
+					$service_area_location_options[$service_area_location_term->term_id] = $service_area_location_term->name;
+				}
+			}
 
 			$settings_fields = array(
 				'mptbm_general_settings' => apply_filters('filter_mptbm_general_settings', array(
@@ -460,6 +485,33 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					// 		'no' => esc_html__('No', 'ecab-taxi-booking-manager')
 					// 	)
 					// ),
+					array(
+						'name' => 'mptbm_service_area_restriction',
+						'label' => esc_html__('Enable Service Area Restriction', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('When enabled, online booking is only allowed when both pickup and drop-off fall inside the selected Operation Area below, or are one of the Approved Exception Locations (e.g. an airport) - never between two exception locations. Every other search is blocked and shows the "No Transport Available" message. Disabled by default; existing bookings/pricing are unaffected either way.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'disable',
+						'options' => array(
+							'disable' => esc_html__('Disable', 'ecab-taxi-booking-manager'),
+							'enable' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
+						'name' => 'mptbm_service_area_operation_area',
+						'label' => esc_html__('Service Area (Operation Area)', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('One or more Operation Areas (drawn under Operation Areas) that represent your service boundary, e.g. a ring road, or several separate cities/zones. A pickup or drop-off inside ANY of the checked areas counts as "in the service area". Only used when Service Area Restriction above is enabled.', 'ecab-taxi-booking-manager'),
+						'type' => 'multicheck',
+						'default' => array(),
+						'options' => $service_area_operation_area_options
+					),
+					array(
+						'name' => 'mptbm_service_area_exception_locations',
+						'label' => esc_html__('Approved Exception Locations', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Locations (e.g. airports) that are bookable to/from the Service Area above even though they fall outside it. A booking between two exception locations is always blocked. Only used when Service Area Restriction above is enabled.', 'ecab-taxi-booking-manager'),
+						'type' => 'multicheck',
+						'default' => array(),
+						'options' => $service_area_location_options
+					),
 					array(
 						'name' => 'no_transport_message',
 						'label' => esc_html__('No Transport Available Message', 'ecab-taxi-booking-manager'),

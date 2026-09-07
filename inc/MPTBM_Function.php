@@ -1577,6 +1577,90 @@ if (!class_exists('MPTBM_Function')) {
 			return false;
 		}
 
+		/**
+		 * Optional site-wide gate: restrict online booking to a drawn service
+		 * area (e.g. a ring road) plus a short list of named exception points
+		 * (e.g. airports) that are bookable to/from the area but never to each
+		 * other. Off by default (Settings > General Settings) and a no-op for
+		 * every existing site unless an admin explicitly configures it - reuses
+		 * is_point_in_fixed_zone()/get_search_context() rather than adding any
+		 * new geometry code, and only trims the already-computed result list
+		 * (mptbm_search_result_items), so it never touches get_price(),
+		 * location_exit(), or the vehicle query itself.
+		 */
+		public static function apply_service_area_restriction($items) {
+			$enabled = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_service_area_restriction', 'disable');
+			if ($enabled !== 'enable') {
+				return $items;
+			}
+
+			$area_ids = (array) MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_service_area_operation_area', array());
+			$area_ids = array_filter(array_map('absint', array_keys($area_ids)));
+			if (empty($area_ids)) {
+				// Not configured yet - fail open rather than blocking every search.
+				return $items;
+			}
+
+			$context = self::get_search_context();
+			$start_coords = isset($context['start_coords']) ? $context['start_coords'] : array();
+			$end_coords = isset($context['end_coords']) ? $context['end_coords'] : array();
+			if (empty($start_coords) || empty($end_coords)) {
+				// No verified coordinates for this search (e.g. manual/fixed_zone
+				// modes, which already have their own location_exit() gate) -
+				// nothing to evaluate, so don't block.
+				return $items;
+			}
+
+			// "In the service area" means inside ANY of the checked areas, not
+			// all of them - e.g. two separate cities served independently.
+			$start_in_area = false;
+			$end_in_area = false;
+			foreach ($area_ids as $area_id) {
+				$area_location = 'post_' . $area_id;
+				if (!$start_in_area) {
+					$start_in_area = self::is_point_in_fixed_zone($area_location, $start_coords);
+				}
+				if (!$end_in_area) {
+					$end_in_area = self::is_point_in_fixed_zone($area_location, $end_coords);
+				}
+			}
+
+			$exception_terms = (array) MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_service_area_exception_locations', array());
+			$start_is_exception = false;
+			$end_is_exception = false;
+			foreach (array_keys($exception_terms) as $term_id) {
+				$term_id = absint($term_id);
+				if (!$term_id) {
+					continue;
+				}
+				$term_location = 'term_' . $term_id;
+				if (!$start_is_exception) {
+					$start_is_exception = self::is_point_in_fixed_zone($term_location, $start_coords);
+				}
+				if (!$end_is_exception) {
+					$end_is_exception = self::is_point_in_fixed_zone($term_location, $end_coords);
+				}
+			}
+
+			$start_allowed = $start_in_area || $start_is_exception;
+			$end_allowed = $end_in_area || $end_is_exception;
+
+			// A location marked as an exception is treated as an exception
+			// unconditionally - whether or not it also happens to fall inside
+			// the drawn service area - so two exception-marked locations are
+			// always blocked from being paired together. Admins should only
+			// mark genuinely special/outside-the-area locations as exceptions;
+			// marking an ordinary inside-area location this way will block its
+			// routes to other exception locations even though both are inside.
+			$both_exceptions = $start_is_exception && $end_is_exception;
+
+			if (!$start_allowed || !$end_allowed || $both_exceptions) {
+				return array();
+			}
+
+			return $items;
+		}
+
 		public static function get_base_price_settings($post_id) {
 
             $taxi_base_location_pricing = MP_Global_Function::get_post_info( $post_id, 'mptbm_display_taxi_base_location_pricing', 'off' );
@@ -2763,4 +2847,5 @@ if (!class_exists('MPTBM_Function')) {
 		}
 	}
 	new MPTBM_Function();
+	add_filter('mptbm_search_result_items', array('MPTBM_Function', 'apply_service_area_restriction'), 10, 1);
 }
