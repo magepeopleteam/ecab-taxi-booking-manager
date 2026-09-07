@@ -387,6 +387,13 @@ body.mptbm-operation-areas-screen #wpbody-content {
     backdrop-filter: blur(3px);
 }
 
+/* Google's Places Autocomplete dropdown is appended straight to <body> with
+   its own default z-index (1000), well below this modal (100100) - without
+   this it renders correctly but sits hidden behind the modal backdrop. */
+.pac-container {
+    z-index: 100200 !important;
+}
+
 .mptbm-operation-areas-dialog {
     position: relative;
     z-index: 1;
