@@ -1601,9 +1601,28 @@ if (!class_exists('MPTBM_Function')) {
 				return $items;
 			}
 
-			$context = self::get_search_context();
-			$start_coords = isset($context['start_coords']) ? $context['start_coords'] : array();
-			$end_coords = isset($context['end_coords']) ? $context['end_coords'] : array();
+			// Read straight off this same request's POST rather than the
+			// session context: set_search_context() closes the session
+			// (session_write_close()) right after writing it, and by the time
+			// this filter runs, choose_vehicles.php has already echoed markup
+			// - so get_search_context()'s own session_start() sees
+			// headers_sent() and quietly skips, leaving the context empty.
+			// Whether that skip actually happens depends on the host's output
+			// buffering config, which is why this worked on some sites and
+			// silently failed open (no blocking at all) on others. The
+			// coordinates are already sitting in $_POST for this exact
+			// request, so there's no need to round-trip them through the
+			// session at all.
+			$start_coords = self::normalize_coordinates($_POST['start_place_coordinates'] ?? '');
+			$end_coords = self::normalize_coordinates($_POST['end_place_coordinates'] ?? '');
+			if (empty($start_coords) || empty($end_coords)) {
+				// Fallback for any caller that reaches this filter outside the
+				// normal AJAX search POST (e.g. a redirect flow re-rendering
+				// the last search from session).
+				$context = self::get_search_context();
+				$start_coords = $start_coords ?: (isset($context['start_coords']) ? $context['start_coords'] : array());
+				$end_coords = $end_coords ?: (isset($context['end_coords']) ? $context['end_coords'] : array());
+			}
 			if (empty($start_coords) || empty($end_coords)) {
 				// No verified coordinates for this search (e.g. manual/fixed_zone
 				// modes, which already have their own location_exit() gate) -
