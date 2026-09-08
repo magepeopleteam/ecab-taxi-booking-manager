@@ -4,7 +4,7 @@ Author URI : https://mage-people.com
 Tags: Taxi booking, Cab booking, Ride booking , Chauffeur service, Airport transfer, Distance based pricing, Fare calculator, Car booking, Map Booking, Limousine service, Transportation, Dispatch system
 Requires at least: 5.3
 Stable tag: trunk
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -210,6 +210,15 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 2.1.0 - 2026-09-08 =
+* Added: Service Area Restriction - optionally confine online booking to one or more drawn Operation Areas, with a list of named "Approved Exception Locations" (e.g. airports) that stay bookable to/from the area even though they sit outside it. A booking between two exception locations, or between the area and anywhere else outside it, is blocked automatically with the existing "No Transport Available" message. Off by default in Settings > General Settings; existing sites are unaffected until an admin turns it on.
+* Added: Multiple Operation Areas can be selected for Service Area Restriction at once (e.g. several cities served independently) - a pickup or drop-off inside any one of them counts as "in the service area".
+* Added: [mptbm_booking] shortcode `pickup` and `dropoff` parameters to pre-fill the pickup/drop-off fields for `dynamic`/`fixed_map` searches, with the route automatically previewed on the map (drawn via the free public OSM/OSRM routing service, not a paid Google Distance Matrix lookup) - the real server-verified fare is still calculated normally the moment the visitor searches.
+* Improved: The pickup/drop-off route preview above now geocodes both addresses in parallel instead of one after another, roughly halving the time before the preview route appears.
+* Added: [mptbm_booking] shortcode `pickup_zone` and `dropoff_zone` parameters to pre-select a Locations-taxonomy pickup/drop-off dropdown by term ID for `fixed_zone`/`fixed_zone_dropoff` searches, with the matching zone marker placed on the map automatically.
+* Fixed: An intermittent site-side output issue could HTML-entity-encode a `&&` inside certain inline scripts, breaking them; the new scripts above avoid the token entirely rather than depend on a fix elsewhere.
+* Documented: Fixed Daily pricing (`fixed_daily`) - book a vehicle for one or more full days at a per-day rate, with an admin-configurable minimum number of days. This had already shipped in an earlier release but was missing from this changelog.
+
 = 2.0.9 - 2026-08-15 =
 * Fixed: Fares are now calculated in the distance unit the site is actually set to. The "Duration By Kilometer or Mile" setting only reached the trip summary, while every fare multiplied its per-unit rate by the distance in kilometres - so a site set to Mile charged its per-mile rate for each kilometre travelled. Sites set to Kilometer are unaffected; sites set to Mile will see distance-based fares drop to the rates they configured.
 * Fixed: The base-location pickup/drop-off charge and its distance threshold now use the same unit as the rest of the pricing.
