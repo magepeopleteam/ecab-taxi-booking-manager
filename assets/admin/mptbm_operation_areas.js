@@ -563,15 +563,43 @@
         return Math.abs(total * radius * radius / 2) / 1000000;
     }
 
-    function slotState(slot) {
+    // The hidden input is only written by a geocoder pick (Google Places, or the
+    // OSM/Photon result list). That made a third-party geocode the sole route to
+    // saving: with Places unavailable or Photon blocked, a perfectly good hand
+    // drawn polygon could never be submitted. The location string is only ever a
+    // human-readable label - every runtime geo-fence test is point-in-polygon
+    // against the coordinates alone (see mptbm_check_transport_area_geo_fence)
+    // - so fall back to whatever was typed. A geocoded pick is still preferred,
+    // because only that recentres the map on the place.
+    function locationLabel(slot) {
         const config = slotConfig[slot];
+        return $.trim($(config.hiddenLocation).val()) || $.trim($(config.visibleLocation).val());
+    }
+
+    function slotState(slot) {
         const coordinates = coordinatesForSlot(slot);
+        const label = locationLabel(slot);
         return {
             coordinates: coordinates,
-            locationReady: $.trim($(config.hiddenLocation).val()) !== '',
+            label: label,
+            locationReady: label !== '',
             boundaryReady: coordinatesAreValid(coordinates),
-            complete: $.trim($(config.hiddenLocation).val()) !== '' && coordinatesAreValid(coordinates)
+            complete: label !== '' && coordinatesAreValid(coordinates)
         };
+    }
+
+    // Only the hidden input carries a name attribute, so the visible search box
+    // never reaches the server on its own. Mirror the resolved label across
+    // before serializing, otherwise a typed (non-geocoded) name is dropped at
+    // submit time and validate_submission() rejects the save.
+    function syncLocationLabels() {
+        activeSlots().forEach(function (slot) {
+            const config = slotConfig[slot];
+            const label = locationLabel(slot);
+            if (label !== $.trim($(config.hiddenLocation).val())) {
+                $(config.hiddenLocation).val(label);
+            }
+        });
     }
 
     function updateBuilder(slot) {
@@ -589,7 +617,7 @@
             .toggleClass('is-complete', state.complete);
         $builder.find('[data-boundary-status] span').text(state.boundaryReady ? mptbmOperationAreas.boundaryReady : mptbmOperationAreas.boundaryEmpty);
         $builder.find('[data-boundary-metric]').html('<i class="fas fa-vector-square" aria-hidden="true"></i>' + $('<span>').text(metric).html());
-        $builder.find('[data-location-status]').html('<i class="fas fa-map-marker-alt" aria-hidden="true"></i>' + $('<span>').text(state.locationReady ? $(slotConfig[slot].hiddenLocation).val() : mptbmOperationAreas.locationNeeded).html());
+        $builder.find('[data-location-status]').html('<i class="fas fa-map-marker-alt" aria-hidden="true"></i>' + $('<span>').text(state.locationReady ? state.label : mptbmOperationAreas.locationNeeded).html());
         $builder.find('[data-map-action="edit"], [data-map-action="fit"], [data-map-action="clear"]').prop('disabled', !state.boundaryReady);
         // Live while drawing too, so the button lights up as soon as the first
         // point is down (the status timer re-runs this every 350ms).
@@ -876,6 +904,7 @@
 
         setSubmitting(true);
         clearMessage();
+        syncLocationLabels();
         const isEdit = mode === 'edit';
         const payload = $form.serializeArray();
         payload.push({ name: 'action', value: isEdit ? mptbmOperationAreas.updateAction : mptbmOperationAreas.addAction });

@@ -111,7 +111,7 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                     'confirmDiscard' => esc_html__('Discard the unsaved changes to this operation area?', 'ecab-taxi-booking-manager'),
                     'dataLoadError' => esc_html__('Could not load this operation area.', 'ecab-taxi-booking-manager'),
                     'mapUnavailable' => esc_html__('The map drawing tools are unavailable. Check the map provider settings and reload this page.', 'ecab-taxi-booking-manager'),
-                    'locationNeeded' => esc_html__('Choose a location from the search suggestions.', 'ecab-taxi-booking-manager'),
+                    'locationNeeded' => esc_html__('Pick a location from the suggestions, or just type a name for this area.', 'ecab-taxi-booking-manager'),
                     'boundaryNeeded' => esc_html__('Draw a boundary with at least three points.', 'ecab-taxi-booking-manager'),
                     'notReady' => esc_html__('Setup incomplete', 'ecab-taxi-booking-manager'),
                     'readyToSave' => esc_html__('Ready to save', 'ecab-taxi-booking-manager'),

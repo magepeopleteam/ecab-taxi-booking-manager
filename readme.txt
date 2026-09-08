@@ -210,6 +210,11 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 
 
 == Changelog ==
+= 2.1.0 - 2026-09-08 =
+* Fixed: Operation areas can now be saved with a hand-drawn boundary even when location search returns no suggestions. The starting location is only a label - the geo-fence itself is matched against the drawn polygon - so typing a name is now enough, and "Add area" no longer stays permanently disabled.
+* Fixed: Location search suggestions no longer disappear from every operation-area field when the Google Maps API key has no legacy Places API enabled. The autocomplete setup now checks for the Places library first instead of throwing, which previously stopped all three location fields from initialising.
+* Added: A console warning naming the missing Places library, so this is diagnosable without reading the plugin source.
+
 = 2.0.9 - 2026-08-15 =
 * Fixed: Fares are now calculated in the distance unit the site is actually set to. The "Duration By Kilometer or Mile" setting only reached the trip summary, while every fare multiplied its per-unit rate by the distance in kilometres - so a site set to Mile charged its per-mile rate for each kilometre travelled. Sites set to Kilometer are unaffected; sites set to Mile will see distance-based fares drop to the rates they configured.
 * Fixed: The base-location pickup/drop-off charge and its distance threshold now use the same unit as the rest of the pricing.

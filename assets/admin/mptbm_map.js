@@ -663,7 +663,19 @@ function iniSavedtMap(coordinates,mapCanvasId,mapAppendId) {
             if (!input || input.hasAttribute('data-autocomplete-initialized')) {
                 return;
             }
-            
+
+            // google.maps can be present while google.maps.places is not: the
+            // Maps JavaScript API loads and renders happily on a key whose
+            // project has no legacy Places API enabled (projects created after
+            // March 2025 default to "Places API (New)" only, which this widget
+            // cannot use). Constructing regardless threw a TypeError out of the
+            // ready handler, so slot one killed autocomplete for slots two and
+            // three too - the map still drew, and no search box anywhere had a
+            // dropdown. Same guard mptbm_locations.js and mptbm_routes.js use.
+            if (!window.google || !google.maps || !google.maps.places) {
+                return;
+            }
+
             var autocomplete = new google.maps.places.Autocomplete(input, { types: ['geocode'] });
             
             autocomplete.addListener('place_changed', function() {
@@ -694,6 +706,9 @@ function iniSavedtMap(coordinates,mapCanvasId,mapAppendId) {
         // Only initialize Google Maps autocomplete if Google Maps API is loaded
         // OpenStreetMap autocomplete is handled in the OSM functions
         if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+            if (!google.maps.places && window.console && console.warn) {
+                console.warn('MPTBM: Google Maps loaded without the Places library, so location search suggestions are unavailable. Enable the (legacy) Places API for this API key, or type an area name manually.');
+            }
             initializeAutocomplete('mptbm-starting-location-one', InitMapOne);
             initializeAutocomplete('mptbm-starting-location-two', InitMapTwo);
             initializeAutocomplete('mptbm-starting-location-three', InitMapFixed);
