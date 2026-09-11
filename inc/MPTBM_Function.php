@@ -509,6 +509,18 @@ if (!class_exists('MPTBM_Function')) {
 			if (empty($dates)) {
 				return $dates;
 			}
+			// A whole calendar day only makes sense to grey out as "booked" for
+			// day-rental vehicles (fixed_daily), where one booking genuinely occupies
+			// the entire day. For point-to-point modes (distance/hourly/manual/etc.)
+			// a single short trip earlier that day would otherwise flag the whole
+			// date as unavailable even though the vehicle is free the rest of it -
+			// that time-of-day granularity is already handled separately by
+			// get_unavailable_time_slots() once a date is picked. It would also
+			// collapse the calendar's minDate/maxDate range down to almost nothing
+			// (see MP_Global_Function::date_picker_js()), breaking month navigation.
+			if (MP_Global_Function::get_post_info($post_id, 'mptbm_price_based') !== 'fixed_daily') {
+				return $dates;
+			}
 			$cache_key = 'mptbm_booked_dates_' . absint($post_id);
 			$booked_dates = get_transient($cache_key);
 			if ($booked_dates === false) {
