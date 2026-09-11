@@ -474,7 +474,7 @@ if (!class_exists('MPTBM_Function')) {
 					$start_date = $now;
 				}
 				$repeated_after = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
-				$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 10) - 1;
+				$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 60) - 1;
 				$end_date = date('Y-m-d', strtotime($start_date . ' +' . $active_days . ' day'));
 				$dates = MP_Global_Function::date_separate_period($start_date, $end_date, $repeated_after);
 				foreach ($dates as $date) {
