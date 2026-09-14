@@ -1140,6 +1140,7 @@ $mptbm_priced_duration_text = !empty($mptbm_search_context['distance_verified'])
 						<h3 class="mptbm_results_summary_title">
 							<strong class="mptbm_results_count_number">0</strong> <?php esc_html_e('available', 'ecab-taxi-booking-manager'); ?>
 						</h3>
+						<?php if (MP_Global_Function::get_settings('mptbm_general_settings', 'hide_sort_view_controls', 'no') !== 'yes') { ?>
 						<div class="mptbm_results_controls_right">
 							<div class="mptbm_results_view_toggle" role="group" aria-label="<?php esc_attr_e('Layout view', 'ecab-taxi-booking-manager'); ?>">
 								<button type="button" class="is-active" data-view="list" aria-label="<?php esc_attr_e('List view', 'ecab-taxi-booking-manager'); ?>">
@@ -1159,6 +1160,7 @@ $mptbm_priced_duration_text = !empty($mptbm_search_context['distance_verified'])
 								</select>
 							</label>
 						</div>
+						<?php } ?>
 					</div>
 					<?php
 

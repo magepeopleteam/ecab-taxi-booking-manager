@@ -464,6 +464,17 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					),
 					array(
+						'name' => 'hide_sort_view_controls',
+						'label' => esc_html__('Hide Sort & View Toggle Controls', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Hides the List/Grid view switch and the Sort-by dropdown from the search results toolbar, on both desktop and mobile. Select yes to hide them. Default is No.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'no',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no' => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
 						'name' => 'show_summary_mobile',
 						'label' => esc_html__('Show Summary in Mobile Version', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('Select yes if you want to show the summary section in mobile devices. Default is Yes', 'ecab-taxi-booking-manager'),
