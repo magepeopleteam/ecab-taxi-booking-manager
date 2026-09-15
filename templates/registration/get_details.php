@@ -1444,20 +1444,49 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 			// Update the time picker options
-			updateTimePickerOptions(minTime, maxTime);
+			updateTimePickerOptions(minTime, maxTime, selectedDate);
 		} else {
 
 			// Use global range if no specific day times
-			updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>);
+			updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>, selectedDate);
 		}
 	}
 
-	function updateTimePickerOptions(minTime, maxTime) {
+	function updateTimePickerOptions(minTime, maxTime, selectedDate) {
 		// Convert to minutes for easier calculation
 		var minMinutes = Math.floor(minTime) * 60 + (minTime % 1) * 100;
 		var maxMinutes = Math.floor(maxTime) * 60 + (maxTime % 1) * 100;
 		var intervalTime = <?php echo $interval_time; ?>;
-		
+
+		// Raise the floor for "today" (or the buffer-shifted first bookable date),
+		// using a freshly computed current time every call - never a value baked in
+		// once at page load, which is only accurate for the instant the page
+		// rendered. This rebuild runs on every date click (see the .flatpickr-day
+		// handler below) and used to always win over mptbm_registration.js's own
+		// buffer-aware rebuild (that one fires first but this one, 100ms later,
+		// overwrote it with the full unfiltered range) - already-passed times for
+		// today were reappearing the moment the customer clicked any date and came
+		// back. Folding the same buffer check in here, computed fresh each time,
+		// fixes it regardless of which rebuild happens to run last.
+		if (selectedDate) {
+			var bufferMinutesTotal = <?php echo (int) $buffer_time; ?>;
+			var now = new Date();
+			var todayIso = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+			var firstCalendarDate = jQuery('[name="mptbm_first_calendar_date"]').val();
+
+			if (selectedDate === todayIso) {
+				var nowMinutes = now.getHours() * 60 + now.getMinutes() + bufferMinutesTotal;
+				if (nowMinutes > minMinutes) minMinutes = nowMinutes;
+			} else if (bufferMinutesTotal > 1440 && firstCalendarDate && selectedDate === firstCalendarDate) {
+				// Buffer spills past midnight: today was dropped from the calendar
+				// entirely (see the $days_to_hide PHP logic above) and this is the new
+				// first bookable day - only the buffer's remainder (after the full
+				// day(s) it already consumed) still applies to it.
+				var spilloverMinutes = bufferMinutesTotal % 1440;
+				if (spilloverMinutes > minMinutes) minMinutes = spilloverMinutes;
+			}
+		}
+
 		// Clear existing options
 		jQuery('.start_time_list li').remove();
 		jQuery('.return_time_list li').remove();
