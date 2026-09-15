@@ -6046,3 +6046,307 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
         });
     });
 })();
+
+/**
+ * Pickup field's "Use my location" link (templates/registration/get_details.php).
+ *
+ * Fills #mptbm_map_start_place from the browser's own geolocation, then reverse
+ * geocodes those coordinates into a readable address with whichever provider the
+ * site is configured for (#mptbm_map_type). The result is handed to the exact
+ * same code path a hand-picked autocomplete suggestion goes through, so the
+ * marker, the distance/price recalculation and the coordinate cache the Search
+ * button reads (window.mptbm_fixed_zone_start_coords +
+ * window.mptbm_osm_start_coords_address) all stay in sync -- reverse geocoding
+ * only replaces the "which address did the customer mean" step, nothing after it.
+ */
+(function ($) {
+    "use strict";
+
+    var MPTBM_GEO_TIMEOUT = 10000;
+
+    function mptbm_geo_text(key, fallback) {
+        if (typeof mptbm_ajax !== 'undefined' && mptbm_ajax.geo_i18n && mptbm_ajax.geo_i18n[key]) {
+            return mptbm_ajax.geo_i18n[key];
+        }
+        return fallback;
+    }
+
+    // Geolocation is a secure-context API: on a plain-HTTP page the permission
+    // prompt never appears (Chrome/Firefox) or the call fails silently, so the
+    // link is hidden rather than left there to do nothing when clicked. Checked
+    // in the browser because the server cannot reliably tell whether the page
+    // was actually served over HTTPS (reverse proxies, mixed setups).
+    function mptbm_geo_supported() {
+        return !!(navigator.geolocation && window.isSecureContext);
+    }
+
+    function mptbm_geo_sync_visibility() {
+        if (!mptbm_geo_supported()) {
+            $('.mptbm_use_my_location_wrap').hide();
+        }
+    }
+
+    function mptbm_geo_status($wrap, message, isError) {
+        var $status = $wrap.find('.mptbm_use_my_location_status');
+        if (!message) {
+            $status.remove();
+            return;
+        }
+        if (!$status.length) {
+            $status = $('<div class="mptbm_use_my_location_status" role="status" aria-live="polite"></div>').appendTo($wrap);
+        }
+        $status.toggleClass('mptbm_use_my_location_status_error', !!isError).text(message);
+    }
+
+    function mptbm_geo_busy($btn, busy) {
+        $btn.prop('disabled', busy).toggleClass('mptbm_use_my_location_busy', busy);
+    }
+
+    function mptbm_geo_restriction() {
+        var restrictEl = document.getElementById('mptbm_restrict_search_country');
+        var countryEl = document.getElementById('mptbm_country');
+        return {
+            restrict: !!restrictEl && restrictEl.value === 'yes',
+            country: (countryEl && countryEl.value ? countryEl.value : '').toUpperCase()
+        };
+    }
+
+    /**
+     * Reverse results are usually a plain street address, where Photon returns
+     * housenumber/street and no `name` at all -- mptbm_transform_photon_results()
+     * would then fall through to its state/country fallback and fill the pickup
+     * field with something as useless as "Dhaka Division, Bangladesh". Build the
+     * street part explicitly instead, keeping the same deliberately short
+     * "<place>, <city>" shape the autocomplete suggestions use.
+     */
+    function mptbm_geo_photon_label(props) {
+        var street = [props.housenumber, props.street].filter(Boolean).join(' ');
+        var parts = [props.name || street || props.district, props.city].filter(Boolean);
+        if (!parts.length) {
+            parts = [props.state, props.country].filter(Boolean);
+        }
+        return parts.join(', ');
+    }
+
+    /**
+     * Photon's reverse endpoint returns the same GeoJSON shape as the /api/
+     * search used by the autocomplete, so the country filtering is reused as-is
+     * (BD special-casing included) by running the shared transform over this one
+     * feature. Resolves {address: {display_name, lat, lon}} on success, or
+     * {reason: 'not_found'|'outside'} so the caller can tell "nothing there"
+     * apart from "outside the configured service country".
+     */
+    function mptbm_geo_reverse_osm(lat, lng) {
+        var deferred = $.Deferred();
+        var restriction = mptbm_geo_restriction();
+        var abortController = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        // Same bound as the autocomplete search: Photon is a shared public
+        // instance, so never leave the button spinning indefinitely on a stall.
+        var timeoutId = abortController ? setTimeout(function () {
+            abortController.abort();
+        }, 8000) : null;
+
+        var url = 'https://photon.komoot.io/reverse?lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng) + '&lang=en';
+
+        fetch(url, { signal: abortController ? abortController.signal : undefined })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (geojson) {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+
+                var feature = (geojson && Array.isArray(geojson.features)) ? geojson.features[0] : null;
+                var label = feature ? mptbm_geo_photon_label(feature.properties || {}) : '';
+                if (!label) {
+                    deferred.resolve({ reason: 'not_found' });
+                    return;
+                }
+
+                if (restriction.restrict && restriction.country &&
+                    !mptbm_transform_photon_results({ features: [feature] }, true, restriction.country).length) {
+                    deferred.resolve({ reason: 'outside' });
+                    return;
+                }
+
+                // The device's own coordinates, not the geocoder's snapped-to-
+                // street ones: they are what the customer is actually standing
+                // at, and the address is only the human-readable label for them.
+                deferred.resolve({ address: { display_name: label, lat: lat, lon: lng } });
+            })
+            .catch(function (error) {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+                console.error('[Use my location] Reverse geocode failed:', error);
+                deferred.resolve({ reason: 'not_found' });
+            });
+
+        return deferred.promise();
+    }
+
+    function mptbm_geo_reverse_google(lat, lng) {
+        var deferred = $.Deferred();
+
+        if (typeof google === 'undefined' || !google.maps || !google.maps.Geocoder) {
+            deferred.resolve({ reason: 'not_found' });
+            return deferred.promise();
+        }
+
+        var restriction = mptbm_geo_restriction();
+
+        // componentRestrictions is ignored for reverse geocoding, so the
+        // country gate is applied to the result's own components instead.
+        new google.maps.Geocoder().geocode({ location: { lat: lat, lng: lng } }, function (results, status) {
+            if (status !== 'OK' || !results || !results[0]) {
+                deferred.resolve({ reason: 'not_found' });
+                return;
+            }
+
+            var result = results[0];
+
+            if (restriction.restrict && restriction.country) {
+                var components = result.address_components || [];
+                var resultCountry = '';
+                for (var i = 0; i < components.length; i++) {
+                    if ((components[i].types || []).indexOf('country') !== -1) {
+                        resultCountry = (components[i].short_name || '').toUpperCase();
+                        break;
+                    }
+                }
+                // An empty country component means Google simply did not return
+                // one - let it through rather than rejecting a valid address,
+                // the same lenient rule mptbm_transform_photon_results() uses.
+                if (resultCountry && resultCountry !== restriction.country) {
+                    deferred.resolve({ reason: 'outside' });
+                    return;
+                }
+            }
+
+            deferred.resolve({
+                address: {
+                    display_name: result.formatted_address,
+                    lat: result.geometry.location.lat(),
+                    lon: result.geometry.location.lng()
+                }
+            });
+        });
+
+        return deferred.promise();
+    }
+
+    /**
+     * Google counterpart of mptbm_handle_osm_address_selection(): mirrors what
+     * the Places Autocomplete "place_changed" listener does once a pickup is
+     * chosen, so a location picked this way behaves identically from here on.
+     */
+    function mptbm_geo_apply_google(address, input) {
+        var lat = parseFloat(address.lat);
+        var lng = parseFloat(address.lon);
+        var end_place = document.getElementById('mptbm_map_end_place');
+
+        window.mptbm_fixed_zone_start_coords = { latitude: lat, longitude: lng };
+        window.mptbm_osm_start_coords_address = address.display_name;
+
+        if (end_place && end_place.type === 'hidden') {
+            end_place.value = input.value;
+        }
+
+        if (typeof google !== 'undefined' && google.maps && mptbm_map) {
+            var position = new google.maps.LatLng(lat, lng);
+            if (mptbm_start_marker) {
+                mptbm_start_marker.setMap(null);
+            }
+            mptbm_start_marker = new google.maps.Marker({
+                position: position,
+                map: mptbm_map,
+                title: address.display_name
+            });
+            mptbm_map.setCenter(position);
+            mptbm_map.setZoom(14);
+
+            if (mptbm_end_marker) {
+                mptbm_calculate_google_route_from_markers();
+            }
+        }
+
+        mptbm_set_cookie_distance_duration(
+            input.value,
+            end_place ? end_place.value : input.value
+        );
+    }
+
+    $(document).on('click', '.mptbm_use_my_location', function (e) {
+        e.preventDefault();
+
+        var $btn = $(this);
+        var $wrap = $btn.closest('.mptbm_use_my_location_wrap');
+        // Scoped to this field's own .inputList: the booking form's ids are
+        // duplicated across tabs, so a bare getElementById() could fill the
+        // pickup input of a different (hidden) tab.
+        var input = $btn.closest('.inputList').find('#mptbm_map_start_place')[0];
+
+        if (!input || $btn.prop('disabled')) {
+            return;
+        }
+
+        if (!mptbm_geo_supported()) {
+            mptbm_geo_status($wrap, mptbm_geo_text('unavailable', 'Your location could not be determined. Please enter the pickup address manually.'), true);
+            return;
+        }
+
+        mptbm_geo_busy($btn, true);
+        mptbm_geo_status($wrap, mptbm_geo_text('locating', 'Locating…'), false);
+
+        navigator.geolocation.getCurrentPosition(function (position) {
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+            var mapTypeEl = document.getElementById('mptbm_map_type');
+            var isOSM = !!mapTypeEl && mapTypeEl.value === 'openstreetmap';
+            var lookup = isOSM ? mptbm_geo_reverse_osm(lat, lng) : mptbm_geo_reverse_google(lat, lng);
+
+            lookup.done(function (outcome) {
+                mptbm_geo_busy($btn, false);
+
+                if (!outcome || !outcome.address) {
+                    var reason = (outcome && outcome.reason === 'outside') ? 'outside' : 'not_found';
+                    mptbm_geo_status($wrap, mptbm_geo_text(reason, reason === 'outside'
+                        ? 'Your current location is outside the service area.'
+                        : 'No address was found for your current position. Please enter the pickup address manually.'), true);
+                    return;
+                }
+
+                mptbm_geo_status($wrap, '', false);
+                input.value = outcome.address.display_name;
+
+                if (isOSM) {
+                    mptbm_handle_osm_address_selection(outcome.address, 'start');
+                } else {
+                    mptbm_geo_apply_google(outcome.address, input);
+                }
+
+                // Lets the existing listeners (error clearing, price refresh)
+                // react exactly as they do to a typed/picked address.
+                $(input).trigger('input').trigger('change');
+            });
+        }, function (error) {
+            mptbm_geo_busy($btn, false);
+            var key = (error && error.code === 1) ? 'denied' : 'unavailable';
+            mptbm_geo_status($wrap, mptbm_geo_text(key, key === 'denied'
+                ? 'Location permission was denied. Please enter the pickup address manually.'
+                : 'Your location could not be determined. Please enter the pickup address manually.'), true);
+        }, {
+            enableHighAccuracy: true,
+            timeout: MPTBM_GEO_TIMEOUT,
+            // A position up to a minute old is still a fine pickup point and
+            // avoids a second GPS fix when the link is clicked twice.
+            maximumAge: 60000
+        });
+    });
+
+    $(document).ready(mptbm_geo_sync_visibility);
+    // The search form is re-rendered by AJAX in several flows (tab switch,
+    // vehicle change) - re-check rather than leaving a dead link behind.
+    $(document).ajaxComplete(mptbm_geo_sync_visibility);
+})(jQuery);

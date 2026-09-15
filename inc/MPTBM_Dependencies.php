@@ -286,6 +286,17 @@ if (!class_exists('MPTBM_Dependencies')) {
 				'osm_nonce' => wp_create_nonce('mptbm_osm_search'),
 				'search_nonce' => wp_create_nonce('mptbm_transport_search'),
 				'geocode_cache_nonce' => wp_create_nonce('mptbm_geocode_cache'),
+				// Strings for the pickup field's "Use my location" link
+				// (templates/registration/get_details.php). Kept here rather than
+				// hardcoded in the JS so they follow the site's locale like the
+				// rest of the booking form.
+				'geo_i18n' => array(
+					'locating'    => esc_html__('Locating…', 'ecab-taxi-booking-manager'),
+					'denied'      => esc_html__('Location permission was denied. Please enter the pickup address manually.', 'ecab-taxi-booking-manager'),
+					'unavailable' => esc_html__('Your location could not be determined. Please enter the pickup address manually.', 'ecab-taxi-booking-manager'),
+					'not_found'   => esc_html__('No address was found for your current position. Please enter the pickup address manually.', 'ecab-taxi-booking-manager'),
+					'outside'     => esc_html__('Your current location is outside the service area.', 'ecab-taxi-booking-manager'),
+				),
 			));
             
             // Font Awesome for template icons

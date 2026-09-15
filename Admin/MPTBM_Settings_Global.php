@@ -452,6 +452,21 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						'default' => 3
 					),
 					array(
+						'name' => 'mptbm_enable_use_my_location',
+						'label' => $label . ' ' . esc_html__('"Use my location" link on pickup', 'ecab-taxi-booking-manager'),
+						// Only applies to the price types that render a free-text pickup
+						// field - Manual / Fixed Zone / Fixed Route pick from an
+						// admin-defined list, where a detected street address is not a
+						// selectable option.
+						'desc' => esc_html__('Select yes to let customers fill the pickup location from their device\'s current position. Requires an HTTPS site; the link hides itself automatically when the browser cannot provide a location.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'yes',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no' => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
 						'name' => 'enable_filter_via_features',
 						'label' => $label . ' ' . esc_html__('Enable filter via features', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('Select yes if you want to enable filter via passenger and bags', 'ecab-taxi-booking-manager'),

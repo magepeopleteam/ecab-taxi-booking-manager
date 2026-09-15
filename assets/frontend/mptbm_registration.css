@@ -1668,3 +1668,67 @@ span.flatpickr-weekday {
 .mptbm_transport_search_area {
 	margin: 0 auto;
 }
+
+/* Pickup field's "Use my location" link (templates/registration/get_details.php).
+   A <button> rather than an <a> so it is keyboard-operable and never navigates;
+   the appearance is reset to a plain inline link to match the "Add Extra Stop"
+   action directly underneath it. */
+.mptbm_use_my_location_wrap {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	margin-top: 6px;
+}
+
+button.mptbm_use_my_location {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	color: var(--color_theme);
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.4;
+	cursor: pointer;
+}
+
+button.mptbm_use_my_location:hover,
+button.mptbm_use_my_location:focus {
+	background: none;
+	text-decoration: underline;
+}
+
+button.mptbm_use_my_location i {
+	font-size: 12px;
+}
+
+button.mptbm_use_my_location.mptbm_use_my_location_busy {
+	opacity: .6;
+	cursor: default;
+	text-decoration: none;
+}
+
+button.mptbm_use_my_location.mptbm_use_my_location_busy i {
+	animation: mptbm_use_my_location_pulse 1s ease-in-out infinite;
+}
+
+@keyframes mptbm_use_my_location_pulse {
+	50% {
+		opacity: .25;
+	}
+}
+
+.mptbm_use_my_location_status {
+	margin-top: 4px;
+	color: #6b7280;
+	font-size: 12px;
+	line-height: 1.4;
+	text-align: right;
+}
+
+.mptbm_use_my_location_status.mptbm_use_my_location_status_error {
+	color: #dc3545;
+}

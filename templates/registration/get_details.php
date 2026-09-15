@@ -559,6 +559,26 @@ if (sizeof($all_dates) > 0) {
 						<?php } ?>
 						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
 					</label>
+					<?php
+						// "Use my location" only makes sense for the free-text map input:
+						// 'manual'/'fixed_zone'/'fixed_route' render a <select> of admin-defined
+						// zones/routes instead, where a geocoded street address is not a valid
+						// option. Rendered even on non-HTTPS pages -- the browser is the only
+						// thing that can tell whether geolocation is actually usable, so
+						// mptbm_registration.js hides it at runtime when it is not.
+						$pickup_is_map_input = !in_array($price_based, array('manual', 'fixed_zone', 'fixed_route'), true);
+						$use_my_location = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_enable_use_my_location', 'yes');
+						// 'disable' ("Without map api") has no geocoder at all, so detected
+						// coordinates could never be turned into an address to fill in.
+						if ($pickup_is_map_input && $use_my_location === 'yes' && $map_type !== 'disable') {
+					?>
+						<div class="mptbm_use_my_location_wrap">
+							<button type="button" class="mptbm_use_my_location">
+								<i class="fas fa-location-arrow" aria-hidden="true"></i>
+								<span class="mptbm_use_my_location_text"><?php echo mptbm_get_translation('use_my_location_label', __('Use my location', 'ecab-taxi-booking-manager')); ?></span>
+							</button>
+						</div>
+					<?php } ?>
 				</div>
 				<?php
 					$extra_stop = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
