@@ -546,16 +546,6 @@ if (sizeof($all_dates) > 0) {
 							</script>
 						<?php } else { ?>
 							<input type="text" id="mptbm_map_start_place" class="formControl" placeholder="<?php echo mptbm_get_translation('enter_pick_up_location_label', __('Enter Pick-Up Location', 'ecab-taxi-booking-manager')); ?>" value="<?php echo esc_attr($pickup); ?>" />
-							<?php if (empty($pickup) && MP_Global_Function::get_settings('mptbm_general_settings', 'enable_use_current_location', 'no') === 'yes') { ?>
-								<!-- Only offered when the shortcode/page hasn't already fixed a
-								pickup (e.g. a dedicated "Airport Transfer" landing page) - there
-								the pickup is meant to stay put, so the option to overwrite it
-								with the visitor's browser location would work against the page's
-								own purpose. -->
-								<button type="button" id="mptbm_use_current_location" class="mptbm_use_current_location_link" data-loading-text="<?php echo esc_attr(mptbm_get_translation('detecting_location_label', __('Detecting…', 'ecab-taxi-booking-manager'))); ?>">
-									<i class="fas fa-location-arrow"></i> <?php echo mptbm_get_translation('use_current_location_label', __('Use my current location', 'ecab-taxi-booking-manager')); ?>
-								</button>
-							<?php } ?>
 						<?php } ?>
 						<i class="fas fa-map-marker-alt mptbm_left_icon allCenter"></i>
 					</label>

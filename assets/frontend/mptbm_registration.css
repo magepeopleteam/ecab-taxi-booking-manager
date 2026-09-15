@@ -1,26 +1,3 @@
-/* "Use my current location" link under the Pickup Location field */
-.mptbm_use_current_location_link {
-	display: inline-flex;
-	align-items: center;
-	gap: 5px;
-	margin-top: 4px;
-	padding: 0;
-	background: none;
-	border: none;
-	font-size: 12px;
-	font-weight: 600;
-	color: var(--color_theme);
-	cursor: pointer;
-}
-.mptbm_use_current_location_link:hover {
-	text-decoration: underline;
-}
-.mptbm_use_current_location_link:disabled {
-	cursor: default;
-	opacity: .6;
-	text-decoration: none;
-}
-
 /* Loading Spinner Animation */
 .mptbm-spinner {
 	border: 4px solid #f3f3f3;

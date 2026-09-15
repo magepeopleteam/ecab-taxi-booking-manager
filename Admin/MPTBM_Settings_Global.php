@@ -479,17 +479,6 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					),
 					array(
-						'name' => 'enable_use_current_location',
-						'label' => esc_html__('Enable "Use My Current Location" Link', 'ecab-taxi-booking-manager'),
-						'desc' => esc_html__('Shows a link under the Pickup Location field that fills it in from the visitor\'s browser location. Requires HTTPS to work. Select yes to show it. Default is No.', 'ecab-taxi-booking-manager'),
-						'type' => 'select',
-						'default' => 'no',
-						'options' => array(
-							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
-							'no' => esc_html__('No', 'ecab-taxi-booking-manager')
-						)
-					),
-					array(
 						'name' => 'hide_sort_view_controls',
 						'label' => esc_html__('Hide Sort & View Toggle Controls', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('Hides the List/Grid view switch and the Sort-by dropdown from the search results toolbar, on both desktop and mobile. Select yes to hide them. Default is No.', 'ecab-taxi-booking-manager'),
