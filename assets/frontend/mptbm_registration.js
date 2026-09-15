@@ -384,6 +384,98 @@ jQuery(document).ready(function ($) {
         }
     });
 
+    // "Use my current location" - reads the browser's own GPS position, reverse-
+    // geocodes it with whichever map provider is active, and fills the pickup field
+    // the same way picking an address from the autocomplete dropdown would: sets the
+    // marker the booking-time coordinate fallback already reads (mptbm_start_marker /
+    // mptbm_osm_start_marker - see the "Book Now" handler's fallback chain and the
+    // fixed_zone dropdown handler above, which both set exactly these), then fires a
+    // real change event so the existing distance/route recalculation wires up
+    // untouched instead of needing its own copy of that logic.
+    $(document).on('click', '#mptbm_use_current_location', function (e) {
+        e.preventDefault();
+        var $button = $(this);
+        if (!navigator.geolocation) {
+            alert('Your browser does not support location detection.');
+            return;
+        }
+        var $input = $('#mptbm_map_start_place');
+        var originalButtonHtml = $button.html();
+        $button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> ' + $button.data('loading-text'));
+
+        navigator.geolocation.getCurrentPosition(function (position) {
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+            mptbm_apply_current_location(lat, lng, $input, function () {
+                $button.prop('disabled', false).html(originalButtonHtml);
+            });
+        }, function (error) {
+            $button.prop('disabled', false).html(originalButtonHtml);
+            var message = 'Could not detect your location.';
+            if (error.code === error.PERMISSION_DENIED) {
+                message = 'Location access was denied. Please allow location access and try again.';
+            } else if (error.code === error.TIMEOUT) {
+                message = 'Detecting your location took too long. Please try again.';
+            }
+            alert(message);
+        }, { enableHighAccuracy: true, timeout: 10000 });
+    });
+
+    function mptbm_apply_current_location(lat, lng, $input, done) {
+        var mapType = document.getElementById('mptbm_map_type');
+        var useOsm = mapType && mapType.value === 'openstreetmap';
+
+        function fillResolvedAddress(address) {
+            $input.val(address).trigger('input').trigger('change');
+            done();
+        }
+
+        if (!useOsm && typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+            var latLng = new google.maps.LatLng(lat, lng);
+            if (typeof mptbm_start_marker !== 'undefined' && mptbm_start_marker) {
+                mptbm_start_marker.setMap(null);
+            }
+            if (typeof mptbm_map !== 'undefined' && mptbm_map) {
+                mptbm_start_marker = new google.maps.Marker({ position: latLng, map: mptbm_map, title: 'Current location' });
+                mptbm_map.setCenter(latLng);
+                mptbm_map.setZoom(15);
+            }
+            new google.maps.Geocoder().geocode({ location: latLng }, function (results, status) {
+                var address = (status === 'OK' && results && results[0]) ? results[0].formatted_address : (lat.toFixed(6) + ', ' + lng.toFixed(6));
+                fillResolvedAddress(address);
+                if (typeof mptbm_end_marker !== 'undefined' && mptbm_end_marker && typeof mptbm_calculate_google_route_from_markers === 'function') {
+                    mptbm_calculate_google_route_from_markers();
+                }
+            });
+        } else if (useOsm && typeof mptbm_osm_map !== 'undefined' && mptbm_osm_map && typeof L !== 'undefined') {
+            if (typeof mptbm_osm_start_marker !== 'undefined' && mptbm_osm_start_marker) {
+                mptbm_osm_map.removeLayer(mptbm_osm_start_marker);
+            }
+            mptbm_osm_start_marker = L.marker([lat, lng]).addTo(mptbm_osm_map);
+            mptbm_osm_map.setView([lat, lng], 15);
+            window.mptbm_fixed_zone_start_coords = { latitude: lat, longitude: lng };
+
+            $.ajax({
+                url: 'https://nominatim.openstreetmap.org/reverse',
+                data: { format: 'json', lat: lat, lon: lng },
+                dataType: 'json'
+            }).done(function (data) {
+                var address = (data && data.display_name) ? data.display_name : (lat.toFixed(6) + ', ' + lng.toFixed(6));
+                fillResolvedAddress(address);
+                if (typeof mptbm_osm_end_marker !== 'undefined' && mptbm_osm_end_marker && typeof mptbm_calculate_osm_distance === 'function') {
+                    mptbm_calculate_osm_distance();
+                }
+            }).fail(function () {
+                fillResolvedAddress(lat.toFixed(6) + ', ' + lng.toFixed(6));
+            });
+        } else {
+            // No map provider available at all (map disabled) - still fill the field
+            // with the raw coordinates so a search can proceed.
+            window.mptbm_fixed_zone_start_coords = { latitude: lat, longitude: lng };
+            fillResolvedAddress(lat.toFixed(6) + ', ' + lng.toFixed(6));
+        }
+    }
+
     // Clear errors on input for extra stop location
     $(document).on('input change', '#mptbm_map_extra_stop_place', function () {
         if (this.classList.contains('mptbm-error-field')) {
