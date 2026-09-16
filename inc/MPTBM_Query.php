@@ -144,12 +144,24 @@ if (!class_exists('MPTBM_Query')) {
 		'compare' => '=',
 	) : '';
 
-			// New inclusive condition ($price_based_6)
-			$price_based_6 = array(
+			// Inclusive-mode vehicles (Combined Pricing) are a deliberate fallback for
+			// several other search modes - get_price() has a matching formula for each
+			// of dynamic, fixed_hourly, fixed_daily, fixed_distance/fixed_map, and
+			// fixed_zone/fixed_zone_dropoff. This used to run completely unconditionally
+			// (merging every Combined-Pricing vehicle into every filtered search page -
+			// manual and fixed_route included, where get_price() has no inclusive
+			// formula at all) instead of being scoped to the modes it's actually meant
+			// to cover.
+			$mptbm_inclusive_applies = !$price_based || in_array($price_based, array(
+				'dynamic', 'fixed_hourly', 'fixed_daily',
+				'fixed_distance', 'fixed_map',
+				'fixed_zone', 'fixed_zone_dropoff',
+			), true);
+			$price_based_6 = $mptbm_inclusive_applies ? array(
 				'key' => 'mptbm_price_based',
-				'value' => array('inclusive', 'fixed_distance'),
-				'compare' => 'IN',
-			);
+				'value' => 'inclusive',
+				'compare' => '=',
+			) : '';
 
 			$price_based_9 = $price_based == 'fixed_route' ? array(
 				'key' => 'mptbm_price_based',
@@ -182,24 +194,48 @@ if (!class_exists('MPTBM_Query')) {
 			// Run the main query
 			$main_query = new WP_Query($args);
 
-			// Query for the inclusive values ($price_based_6)
-			$args_inclusive = array(
-				'post_type' => array(MPTBM_Function::get_cpt()),
-				'posts_per_page' => -1,
-				'post_status' => 'publish',
-				'meta_query' => array(
-					$price_based_6 // Inclusive condition
-				)
-			);
-			if ($vehicle_scope) {
-				$args_inclusive['post__in'] = $vehicle_scope;
+			// Query for the inclusive values ($price_based_6) - skipped entirely when
+			// $price_based_6 is '' (mode not covered by the inclusive fallback at all),
+			// since an empty single-clause meta_query is invalid and WP_Query would
+			// otherwise silently ignore it and return every vehicle, unfiltered.
+			$inclusive_posts = array();
+			if ($price_based_6) {
+				$args_inclusive = array(
+					'post_type' => array(MPTBM_Function::get_cpt()),
+					'posts_per_page' => -1,
+					'post_status' => 'publish',
+					'meta_query' => array(
+						$price_based_6 // Inclusive condition
+					)
+				);
+				if ($vehicle_scope) {
+					$args_inclusive['post__in'] = $vehicle_scope;
+				}
+
+				// Run the second query
+				$inclusive_query = new WP_Query($args_inclusive);
+				$inclusive_posts = $inclusive_query->posts;
+
+				// fixed_zone/fixed_distance/fixed_map need their own per-route/zone
+				// price table to produce a real price at all (get_price()'s inclusive
+				// branch for these modes looks up a row there) - an inclusive vehicle
+				// with no rows configured for the requested mode would otherwise appear
+				// in these results with no genuine price for it.
+				if (in_array($price_based, array('fixed_zone', 'fixed_zone_dropoff'), true)) {
+					$inclusive_posts = array_values(array_filter($inclusive_posts, function ($post) {
+						$rows = get_post_meta($post->ID, 'mptbm_fixed_zone_price_info', true);
+						return !empty($rows) && is_array($rows);
+					}));
+				} elseif (in_array($price_based, array('fixed_distance', 'fixed_map'), true)) {
+					$inclusive_posts = array_values(array_filter($inclusive_posts, function ($post) {
+						$rows = get_post_meta($post->ID, 'mptbm_fixed_map_route_price_info', true);
+						return !empty($rows) && is_array($rows);
+					}));
+				}
 			}
 
-			// Run the second query
-			$inclusive_query = new WP_Query($args_inclusive);
-
 			// Merge the results of both queries
-			$merged_posts = array_merge($main_query->posts, $inclusive_query->posts);
+			$merged_posts = array_merge($main_query->posts, $inclusive_posts);
 			$merged_post_ids = array_values(array_unique(array_map('absint', wp_list_pluck($merged_posts, 'ID'))));
 
 			// Return a new WP_Query object with merged posts
