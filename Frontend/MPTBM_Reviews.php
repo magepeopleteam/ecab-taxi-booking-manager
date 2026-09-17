@@ -272,7 +272,21 @@
 
 				update_comment_meta($comment_id, 'rating', $rating);
 				update_comment_meta($comment_id, 'mptbm_booking_id', $booking->ID);
-				$driver_id = get_post_meta($post_id, 'mptbm_selected_driver', true);
+
+				// The driver this rating counts against is whoever actually drove THIS
+				// booking, not whoever the vehicle's assigned driver happens to be today -
+				// a car can change hands between the trip and whenever the rider gets
+				// round to reviewing it, and the rating must follow the trip. A direct
+				// assignment on the booking itself outranks the vehicle's own driver,
+				// mirroring the priority MPTBM_Driver::driver_bookings_meta_query() uses
+				// to decide which driver a booking belongs to.
+				$driver_id = (int) get_post_meta($booking->ID, 'mptbm_driver_id', true);
+				if (!$driver_id) {
+					$driver_id = (int) get_post_meta($booking->ID, 'mptbm_selected_driver', true);
+				}
+				if (!$driver_id) {
+					$driver_id = (int) get_post_meta($post_id, 'mptbm_selected_driver', true);
+				}
 				if ($driver_id) {
 					update_comment_meta($comment_id, 'mptbm_review_driver_id', $driver_id);
 				}
