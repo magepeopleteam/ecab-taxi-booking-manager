@@ -24,7 +24,7 @@ Note: This video demonstrates the full ecosystem. Advanced features like the Dri
 https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce/
 
 ## Make Yourself Comfortable With:
-🧶 [View Live Taxi Booking Demo](https://demo.ecabtaxi.com/)
+🧶 [View Live Taxi Booking Demo](https://ecabtaxi.com/)
 👉 [Plugin Documentation](https://docs.mage-people.com/plugins/ecab/overview)
 
 ## Why Choose E-cab? (Key Features):
