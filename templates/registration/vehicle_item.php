@@ -325,8 +325,9 @@ if (sizeof($all_dates) > 0 && in_array($start_date, $all_dates)) {
                         ?>
                         <h4 class="mptbm_vehicle_price"> <?php echo wp_kses_post($price_display); ?></h4>
                         <?php
-                        // Hook for peak hour badge display
-                        do_action('mptbm_after_vehicle_price', $post_id, $price_display);
+                        // Hook for peak hour badge display. The numeric card total (the
+                        // amount $price_display was formatted from) lets add-ons explain it.
+                        do_action('mptbm_after_vehicle_price', $post_id, $price_display, $display_price ?? null);
                         ?>
                     </div>
                     <?php
