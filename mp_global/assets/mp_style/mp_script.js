@@ -776,11 +776,25 @@ function mp_check_required(input) {
 (function ($) {
 	"use strict";
 	$(document).on('keyup change', '.mpStyle .mp_number_validation', function () {
+		// <input type="number"> polices its own value already, and while a
+		// decimal is half-typed ("1.") the browser reports .val() as '' -
+		// rewriting it from here therefore ate the separator, turning 1.5
+		// into 15. Leave numeric inputs to the browser.
+		if (String($(this).attr('type')).toLowerCase() === 'number') {
+			return true;
+		}
 		let n = $(this).val();
 		$(this).val(n.replace(/\D/g, ''));
 		return true;
 	});
 	$(document).on('keyup change', '.mpStyle .mp_price_validation', function () {
+		// <input type="number"> polices its own value already, and while a
+		// decimal is half-typed ("1.") the browser reports .val() as '' -
+		// rewriting it from here therefore ate the separator, turning 1.5
+		// into 15. Leave numeric inputs to the browser.
+		if (String($(this).attr('type')).toLowerCase() === 'number') {
+			return true;
+		}
 		let n = $(this).val();
 		$(this).val(n.replace(/[^\d.]/g, ''));
 		return true;

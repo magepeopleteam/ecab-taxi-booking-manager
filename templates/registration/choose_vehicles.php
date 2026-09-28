@@ -1302,7 +1302,12 @@ if ($all_posts->found_posts > 0) {
                     }
                 }
 
-                $d_km = $total_b_dist / 1000;
+                // Threshold and price_km below are quoted in the site's distance unit,
+                // so the travelled distance has to be measured in that same unit -
+                // dividing by 1000 here charged the per-mile rate for every kilometre
+                // on a Mile site, and disagreed with the fare the cart then charged
+                // (MPTBM_Function::calculate_base_location_price() already converts).
+                $d_km = MPTBM_Function::distance_in_unit($total_b_dist);
                 $d_hr = $total_b_dur / 3600;
 
                 if ($d_km >= $bp_settings['threshold']) {
