@@ -284,6 +284,18 @@ if ($days_to_hide > 0 && !empty($all_dates)) {
     $buffer_end_minutes = $buffer_end_minutes % 1440;
 }
 
+// The check above only asks whether the buffer ran past midnight, so an evening
+// visitor still got today as the first calendar date once its last bookable slot
+// had gone. The picker then preselected that date and mptbm_registration.js
+// filtered every option out of the time list against this same figure, leaving a
+// preselected date whose time dropdown opens empty. Today is equally unbookable
+// once its closing time has passed, so move to the next date, which starts with
+// its whole day ahead of it.
+if (!empty($all_dates) && $buffer_end_minutes >= $max_minutes) {
+    array_shift($all_dates);
+    $buffer_end_minutes = 0;
+}
+
 if (sizeof($all_dates) > 0) {
 	$taxi_return = MPTBM_Function::get_general_settings('taxi_return', 'enable');
 	$interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time', '30');
