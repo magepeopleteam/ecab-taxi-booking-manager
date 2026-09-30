@@ -212,6 +212,7 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 == Changelog ==
 = 2.1.2 - 2026-09-30 =
 * Added: "Auto-detect Visitor's Location" option in Settings > Map API Settings - when enabled, the booking map centers on each visitor's own location (with their browser's permission) on both Google Maps and OpenStreetMap, falling back to the configured default location if access is denied or unavailable.
+* Added: Compatibility with the Advanced Partial Payment/Deposit for WooCommerce plugin (Pro) - the Bookings list, single booking detail view and PDF ticket now show the true order total, amount paid and balance due for deposit orders, instead of the checkout deposit amount being mislabeled as the full total. No change for sites without that plugin active.
 
 = 2.1.0 - 2026-09-08 =
 * Added: Service Area Restriction - optionally confine online booking to one or more drawn Operation Areas, with a list of named "Approved Exception Locations" (e.g. airports) that stay bookable to/from the area even though they sit outside it. A booking between two exception locations, or between the area and anywhere else outside it, is blocked automatically with the existing "No Transport Available" message. Off by default in Settings > General Settings; existing sites are unaffected until an admin turns it on.
