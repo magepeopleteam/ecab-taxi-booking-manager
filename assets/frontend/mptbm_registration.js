@@ -428,6 +428,9 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
             center: mp_lat_lng,
             zoom: 15,
         });
+        mptbm_auto_detect_recenter(function (lat, lng) {
+            mptbm_map.setCenter({ lat: lat, lng: lng });
+        });
     }
 
     // Check if we have enough locations to calculate a route
@@ -637,6 +640,9 @@ function mptbm_set_cookie_distance_duration(start_place, end_place) {
             mptbm_map = new google.maps.Map(mapContainer, {
                 center: mp_lat_lng,
                 zoom: 15,
+            });
+            mptbm_auto_detect_recenter(function (lat, lng) {
+                mptbm_map.setCenter({ lat: lat, lng: lng });
             });
         }
 
@@ -889,6 +895,9 @@ function mptbm_render_manual_google_locations() {
 
     if (!mptbm_map || (typeof mptbm_map.getDiv === 'function' && mptbm_map.getDiv() !== mapContainer)) {
         mptbm_map = new google.maps.Map(mapContainer, { center: mp_lat_lng, zoom: 7, mapTypeControl: false });
+        mptbm_auto_detect_recenter(function (lat, lng) {
+            mptbm_map.setCenter({ lat: lat, lng: lng });
+        });
     }
     mptbm_manual_google_markers.forEach(function (marker) { marker.setMap(null); });
     mptbm_manual_google_markers = [];
@@ -1117,6 +1126,30 @@ function mptbm_ensure_osm_map_ready() {
     return mptbm_init_osm_map();
 }
 
+// When "Auto-detect Visitor's Location" is enabled in Map API Settings, asks
+// the browser for the visitor's own position and hands its coordinates to
+// `recenter` so the just-created map can move off the admin-configured
+// default. Silently does nothing (leaving the default in place) if the
+// setting is off, the page isn't HTTPS, or the visitor denies/ignores the
+// permission prompt -- this must never block map init on a response.
+function mptbm_auto_detect_recenter(recenter) {
+    if (typeof mptbm_auto_detect_location === 'undefined' || mptbm_auto_detect_location !== 'enable') {
+        return;
+    }
+    if (!navigator.geolocation || !window.isSecureContext) {
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(
+        function (position) {
+            recenter(position.coords.latitude, position.coords.longitude);
+        },
+        function () {
+            // Denied, unavailable, or timed out -- keep the admin default.
+        },
+        { timeout: 10000 }
+    );
+}
+
 function mptbm_init_osm_map() {
 
     if (typeof L === 'undefined') {
@@ -1154,6 +1187,12 @@ function mptbm_init_osm_map() {
     // duplicated across tabs -- Leaflet would otherwise resolve it via its
     // own getElementById and land on the wrong tab's div.
     mptbm_osm_map = L.map(mapContainer).setView([defaultLat, defaultLng], 10);
+
+    mptbm_auto_detect_recenter(function (lat, lng) {
+        if (mptbm_osm_map) {
+            mptbm_osm_map.setView([lat, lng], 10);
+        }
+    });
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

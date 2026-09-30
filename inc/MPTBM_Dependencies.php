@@ -321,6 +321,7 @@ if (!class_exists('MPTBM_Dependencies')) {
                     lat: <?php echo esc_js(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_latitude', '23.81234828905659')); ?>,
                     lng: <?php echo esc_js(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_longitude', '90.41069652669002')); ?>
                 };
+                const mptbm_auto_detect_location = "<?php echo esc_js(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_auto_detect_location', 'disable')); ?>";
                 const mp_map_options = {
                     componentRestrictions: {
                         country: "<?php echo esc_js(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'BD')); ?>"

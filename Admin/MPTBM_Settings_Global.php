@@ -701,6 +701,17 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					),
 					array(
+						'name' => 'mp_auto_detect_location',
+						'label' => esc_html__('Auto-detect Visitor\'s Location', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('If enabled, the booking map will try to center on each visitor\'s own location (with their browser\'s permission) instead of the fixed location below. Falls back to the fixed location if the visitor denies or the browser does not support it.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'disable',
+						'options' => array(
+							'disable' => esc_html__('No (Always use the fixed location below)', 'ecab-taxi-booking-manager'),
+							'enable' => esc_html__('Yes (Use visitor\'s location when available)', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
 						'name' => 'mp_latitude',
 						'label' => esc_html__('Your Location Latitude', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('Please type Your Location Latitude.This are mandatory for google map show. To find latitude please ', 'ecab-taxi-booking-manager') . '<a href="https://www.latlong.net/" target="_blank">' . esc_html__('Click Here', 'ecab-taxi-booking-manager') . '</a>',
