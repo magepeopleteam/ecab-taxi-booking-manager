@@ -422,6 +422,17 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					),
 					array(
+						'name' => 'mptbm_time_picker_grid_style',
+						'label' => $label . ' ' . esc_html__('Pickup/Return Time Picker Style', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Classic keeps the existing single-column scrollable list. Grid shows the same time slots as a wrapping grid of chip buttons instead - same slots, same click behaviour, different layout.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'no',
+						'options' => array(
+							'no' => esc_html__('Classic list (default)', 'ecab-taxi-booking-manager'),
+							'yes' => esc_html__('Grid of buttons', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
 						'name' => 'enable_return_in_different_date',
 						'label' => $label . ' ' . esc_html__('Enable return in different date', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('Select yes if you want to enable different date return field', 'ecab-taxi-booking-manager'),

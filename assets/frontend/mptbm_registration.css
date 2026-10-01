@@ -488,6 +488,57 @@ div.mptbm_transport_search_area ul.start_time_list li.mptbm-time-unavailable::af
 	line-height: 1.4;
 }
 
+/* Pickup/return time slots as a wrapping grid of chip buttons instead of a
+   single-column scroll list - same <li data-value>/<li data-time> markup and
+   click handling (mp_script.js) as every other .mp_input_select_list, just a
+   different layout, so no functionality changes with it. Opt-in: only applies
+   when Settings > General Settings > "Pickup/Return Time Picker Style" is set
+   to Grid, which adds .mptbm-time-grid to .mptbm_search_area - every existing
+   site keeps the classic list unless an admin switches this on. Also scoped
+   to these two lists only - the shared .mp_input_select_list class is also
+   used by single-column pickers (locations, routes, transfer type) that
+   should stay as a list either way. */
+div.mptbm_transport_search_area .mptbm-time-grid ul.start_time_list,
+div.mptbm_transport_search_area .mptbm-time-grid ul.return_time_list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+div.mptbm_transport_search_area .mptbm-time-grid ul.start_time_list li,
+div.mptbm_transport_search_area .mptbm-time-grid ul.return_time_list li {
+	flex: 1 1 calc(33.33% - 4px);
+	margin: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	border: 1px solid #e7eaf0;
+}
+
+div.mptbm_transport_search_area .mptbm-time-grid ul.start_time_list li.mptbm-time-unavailable,
+div.mptbm_transport_search_area .mptbm-time-grid ul.start_time_list li.mptbm-time-unavailable:hover,
+div.mptbm_transport_search_area .mptbm-time-grid ul.return_time_list li.mptbm-time-unavailable,
+div.mptbm_transport_search_area .mptbm-time-grid ul.return_time_list li.mptbm-time-unavailable:hover {
+	flex-direction: column;
+	gap: 2px;
+	background-color: #f1f5f9;
+	color: #94a3b8;
+	cursor: not-allowed;
+}
+
+div.mptbm_transport_search_area .mptbm-time-grid ul.start_time_list li.mptbm-time-unavailable::after,
+div.mptbm_transport_search_area .mptbm-time-grid ul.return_time_list li.mptbm-time-unavailable::after {
+	content: attr(data-unavailable-label);
+	padding: 2px 7px;
+	border-radius: 999px;
+	background-color: #e2e8f0;
+	color: #64748b;
+	font-size: 9px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
 /* ----- Transfer Type / Extra Waiting Hours (custom-styled proxy over a real <select>) ----- */
 div.mptbm_transport_search_area .mptbm_proxy_native_select {
 	display: none !important;

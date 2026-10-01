@@ -300,6 +300,7 @@ if (sizeof($all_dates) > 0) {
 	$taxi_return = MPTBM_Function::get_general_settings('taxi_return', 'enable');
 	$interval_time = MPTBM_Function::get_general_settings('mptbm_pickup_interval_time', '30');
 	$interval_hours = $interval_time / 60;
+	$time_picker_grid = MPTBM_Function::get_general_settings('mptbm_time_picker_grid_style', 'no');
 	$waiting_time_check = MPTBM_Function::get_general_settings('taxi_waiting_time', 'enable');
 
 	// Check if Pro plugin is active
@@ -342,7 +343,7 @@ if (sizeof($all_dates) > 0) {
 ?>
 	<div class="<?php echo esc_attr($area_class); ?> ">
 	
-		<div class="_dLayout mptbm_search_area <?php echo esc_attr($form_style_class); ?> <?php echo esc_attr(($price_based == 'manual') ? 'mAuto' : ''); ?>">
+		<div class="_dLayout mptbm_search_area <?php echo esc_attr($form_style_class); ?> <?php echo esc_attr(($price_based == 'manual') ? 'mAuto' : ''); ?> <?php echo esc_attr($time_picker_grid === 'yes' ? 'mptbm-time-grid' : ''); ?>">
 			<div class="mptbm_search_area_header">
 				<span class="fas fa-search mptbm_search_area_header_icon"></span>
 				<h3><?php echo mptbm_get_translation('route_planning_label', __('Route Planning', 'ecab-taxi-booking-manager')); ?></h3>
