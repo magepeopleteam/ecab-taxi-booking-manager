@@ -378,7 +378,7 @@ function mp_all_content_change($this) {
 			});
 			$(this).closest('.mp_input_select').find('.mp_input_select_list').slideDown(250);
 		}
-	}, 'div.mpStyle .mp_input_select input.formControl');
+	}, 'div.mpStyle .mp_input_select input.formControl:not([type="time"])');
 }(jQuery));
 //============================================================================Sticky================//
 function mp_sticky_management() {

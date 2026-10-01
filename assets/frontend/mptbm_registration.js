@@ -2499,7 +2499,50 @@ function mptbm_init_google_map() {
         return String(hours).padStart(2, '0') + '.' + String(minutes).padStart(2, '0');
     }
 
+    function mptbmSyncNativePickupTime(parent) {
+        var input = parent.find('#mptbm_start_time[type="time"]')[0];
+        if (!input) return;
+
+        var slots = parent.find('.start_time_list li[data-time]').filter(function () {
+            return !!mptbmNormalizeTimeToken($(this).attr('data-time'));
+        });
+        input.disabled = !parent.find('#mptbm_map_start_date').val() || !slots.length;
+        input.removeAttribute('min');
+        input.removeAttribute('max');
+        input.step = '60';
+        if (slots.length) {
+            input.min = slots.first().attr('data-time').replace('.', ':');
+            input.max = slots.last().attr('data-time').replace('.', ':');
+            if (slots.length > 1) {
+                var minutes = function (item) {
+                    var parts = item.attr('data-time').split('.');
+                    return Number(parts[0]) * 60 + Number(parts[1]);
+                };
+                input.step = String((minutes(slots.eq(1)) - minutes(slots.first())) * 60);
+            }
+        }
+
+        var selected = slots.filter(function () {
+            return mptbmNormalizeTimeToken($(this).attr('data-time')) === mptbmNormalizeTimeToken(input.value);
+        }).first();
+        var valid = !input.disabled && selected.length && selected.attr('aria-disabled') !== 'true';
+        input.setCustomValidity(input.value && !valid ? input.getAttribute('data-invalid-time') : '');
+        parent.find('#mptbm_map_start_time').val(valid ? selected.attr('data-value') : '');
+    }
+
+    $(document).on('change', '#mptbm_start_time[type="time"]', function () {
+        var parent = $(this).closest('.mptbm_transport_search_area');
+        mptbmSyncNativePickupTime(parent);
+        if (!this.checkValidity()) {
+            mptbm_content_refresh(parent);
+            this.reportValidity();
+            return;
+        }
+        parent.find('#mptbm_map_start_time').trigger('change');
+    });
+
     function mptbmRefreshVehicleTimeAvailability(parent) {
+        mptbmSyncNativePickupTime(parent);
         var vehicleId = parseInt(parent.find('[name="mptbm_source_vehicle_id"]').val(), 10) || 0;
         var selectedDate = parent.find('#mptbm_map_start_date').val();
         var timeItems = parent.find('.start_time_list li[data-time]');
@@ -2570,7 +2613,11 @@ function mptbm_init_google_map() {
                     });
 
                     if (selectedTimeWasDisabled) {
-                        parent.find('#mptbm_map_start_time, #mptbm_start_time').val('');
+                        parent.find('#mptbm_map_start_time, #mptbm_start_time:not([type="time"])').val('');
+                    }
+                    mptbmSyncNativePickupTime(parent);
+                    if (selectedTimeWasDisabled) {
+                        mptbm_content_refresh(parent);
                     }
                 }
             });
@@ -2596,6 +2643,14 @@ function mptbm_init_google_map() {
     $(document).on("click", "#mptbm_get_vehicle", function () {
         let searchButton = this;
         let parent = $(this).closest(".mptbm_transport_search_area");
+        var nativeTime = parent.find('#mptbm_start_time[type="time"]')[0];
+        if (nativeTime) {
+            mptbmSyncNativePickupTime(parent);
+            if (!nativeTime.checkValidity()) {
+                nativeTime.reportValidity();
+                return;
+            }
+        }
         let mptbm_enable_return_in_different_date = parent
             .find('[name="mptbm_enable_return_in_different_date"]')
             .val();
