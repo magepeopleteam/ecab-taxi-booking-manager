@@ -1402,3 +1402,141 @@ function searchOSMLocation(query, container, input, map, callback) {
             container.innerHTML = '<div style="padding: 10px; color: #f00;">Search failed</div>';
         });
 }
+
+// Google equivalent of setupOSMLocationSearch() above - same custom,
+// body-appended, fixed-position dropdown instead of Google's own
+// `places.Autocomplete` widget. That widget positions its `.pac-container`
+// relative to the nearest *positioned* ancestor, and several of our admin
+// modals (Routes, Locations) are `position: relative` + `overflow-y: auto`
+// so a long form can scroll - that combination throws Google's positioning
+// off and the suggestions render outside the dialog's visible, clipped
+// area, invisible even though the search itself worked.
+function setupGoogleLocationSearch(inputId, map, callback) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+
+    if (input._mptbmGoogleSearchState) {
+        input._mptbmGoogleSearchState.map = map;
+        input._mptbmGoogleSearchState.callback = callback;
+        return;
+    }
+
+    if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
+        return;
+    }
+
+    var debounceTimer;
+    var resultsContainer = document.createElement('div');
+    resultsContainer.className = 'osm-location-autocomplete';
+    resultsContainer.style.cssText = 'position: fixed; background: white; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 999999; display: none; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);';
+
+    // Append to body to avoid parent overflow/positioned-ancestor issues
+    document.body.appendChild(resultsContainer);
+    var searchState = {
+        map: map,
+        callback: callback,
+        resultsContainer: resultsContainer
+    };
+    input._mptbmGoogleSearchState = searchState;
+
+    var autocompleteService = new google.maps.places.AutocompleteService();
+    var geocoder = new google.maps.Geocoder();
+
+    // Function to position the dropdown
+    function positionDropdown() {
+        var rect = input.getBoundingClientRect();
+        var top = rect.bottom + 2;
+        var left = rect.left;
+        var width = rect.width;
+
+        resultsContainer.style.top = top + 'px';
+        resultsContainer.style.left = left + 'px';
+        resultsContainer.style.width = width + 'px';
+    }
+
+    input.addEventListener('input', function(e) {
+        clearTimeout(debounceTimer);
+        var query = e.target.value.trim();
+
+        if (query.length < 3) {
+            resultsContainer.style.display = 'none';
+            return;
+        }
+
+        debounceTimer = setTimeout(function() {
+            positionDropdown(); // Position before showing
+            searchGoogleLocation(query, resultsContainer, input, autocompleteService, geocoder, searchState.callback);
+        }, 300);
+    });
+
+    // Reposition on scroll or resize
+    document.addEventListener('scroll', function() {
+        if (resultsContainer.style.display !== 'none') {
+            positionDropdown();
+        }
+    }, true);
+
+    window.addEventListener('resize', function() {
+        if (resultsContainer.style.display !== 'none') {
+            positionDropdown();
+        }
+    });
+
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target !== input && !resultsContainer.contains(e.target)) {
+            resultsContainer.style.display = 'none';
+        }
+    });
+}
+
+// Search location using Google's AutocompleteService, resolved to lat/lng via
+// Geocoder's placeId lookup once one is picked - mirrors searchOSMLocation().
+function searchGoogleLocation(query, container, input, autocompleteService, geocoder, callback) {
+    container.innerHTML = '<div style="padding: 2px; text-align: center; color: #666;">Searching...</div>';
+    container.style.display = 'block';
+
+    autocompleteService.getPlacePredictions({ input: query }, function(predictions, status) {
+        container.innerHTML = '';
+
+        if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions || predictions.length === 0) {
+            container.innerHTML = '<div style="padding: 2px; color: #666;">No results found</div>';
+            return;
+        }
+
+        predictions.forEach(function(prediction) {
+            var displayName = prediction.description;
+
+            var item = document.createElement('div');
+            item.style.cssText = 'padding: 10px; cursor: pointer; border-bottom: 1px solid #eee;';
+            item.textContent = displayName;
+
+            item.addEventListener('click', function() {
+                container.style.display = 'none';
+
+                geocoder.geocode({ placeId: prediction.place_id }, function(results, geoStatus) {
+                    if (geoStatus !== 'OK' || !results || !results[0]) {
+                        return;
+                    }
+
+                    input.value = displayName;
+                    var location = results[0].geometry.location;
+
+                    if (callback) {
+                        callback(location.lat(), location.lng(), displayName);
+                    }
+                });
+            });
+
+            item.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f5f5f5';
+            });
+
+            item.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'white';
+            });
+
+            container.appendChild(item);
+        });
+    });
+}

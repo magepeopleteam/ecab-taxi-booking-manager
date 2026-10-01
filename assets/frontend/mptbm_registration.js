@@ -3459,6 +3459,20 @@ function mptbm_init_google_map() {
         }
     });
     $(document).on("change", "#mptbm_map_start_date", function (e, meta) {
+        // Flatpickr fires "change" on every day click, including re-clicking
+        // whichever date is already selected (see the .flatpickr-day handler
+        // below, which re-dispatches this same event on every click regardless
+        // of whether the value actually moved) - this unconditionally wiped
+        // whatever pickup time the customer had already chosen, even though
+        // nothing about the date changed. Skip the rebuild entirely when the
+        // value is identical to what this field already had, so an already
+        // -valid time selection survives re-opening the calendar.
+        var selectedDateForGuard = $(this).val();
+        if ($(this).data('mptbmPrevStartDate') === selectedDateForGuard) {
+            return;
+        }
+        $(this).data('mptbmPrevStartDate', selectedDateForGuard);
+
         let parent = $(this).closest(".mptbm_transport_search_area");
         // Clear the time slots list
         parent.find('#mptbm_map_start_time').siblings('.start_time_list').empty();
@@ -3564,6 +3578,14 @@ function mptbm_init_google_map() {
 
 
     $(document).on("change", "#mptbm_map_return_date", function () {
+        // Same re-click-fires-change guard as #mptbm_map_start_date above - skip
+        // wiping an already-chosen return time when the date didn't actually move.
+        var selectedReturnDateForGuard = $(this).val();
+        if ($(this).data('mptbmPrevReturnDate') === selectedReturnDateForGuard) {
+            return;
+        }
+        $(this).data('mptbmPrevReturnDate', selectedReturnDateForGuard);
+
         let mptbm_enable_return_in_different_date = $('[name="mptbm_enable_return_in_different_date"]').val();
 
         if (mptbm_enable_return_in_different_date == 'yes') {

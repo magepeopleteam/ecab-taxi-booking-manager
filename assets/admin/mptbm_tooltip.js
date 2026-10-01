@@ -11,8 +11,17 @@
         // neighboring button sits. The floating tooltip div then
         // overlaps/intercepts the neighbor, causing rapid open/close flicker
         // between the two and making clicks land inconsistently.
+        //
+        // .mptbm-routes-stop-chip-name (Fixed Routes' "Add Stops" list) is
+        // excluded for a sharper reason: that `<li>` list is torn down with
+        // `.empty()` and fully rebuilt on every single stop added or removed
+        // (see renderStopList() in mptbm_routes.js). Hovering/clicking a stop
+        // right as that rebuild runs raced this delegated widget - it threw
+        // "Cannot read properties of undefined (reading 'tooltip')" against
+        // the element mid-replacement, which aborted renderStopList()'s loop
+        // partway through and silently dropped every stop after the first.
         $(document).tooltip({
-            items: "[title]:not(.select2-container *):not(.select2-selection *):not(.select2-dropdown *):not(.ui-datepicker *):not(.mptbm-vtog):not(.mptbm-vtog *):not(.mptbm-act-btn):not(.mptbm-act-btn *)",
+            items: "[title]:not(.select2-container *):not(.select2-selection *):not(.select2-dropdown *):not(.ui-datepicker *):not(.mptbm-vtog):not(.mptbm-vtog *):not(.mptbm-act-btn):not(.mptbm-act-btn *):not(.mptbm-routes-stop-chip-name)",
             show: {
                 effect: "fadeIn",
                 duration: 200

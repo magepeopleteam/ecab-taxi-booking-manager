@@ -1530,30 +1530,56 @@ document.addEventListener('DOMContentLoaded', function () {
 	jQuery(document).ready(function() {
 		// Initialize with global range on page load
 		updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>);
-		
+
+		// Flatpickr fires "change" on its input, and a "click" on each day cell,
+		// every time a day is clicked in the UI - including re-clicking whichever
+		// date is already selected (e.g. re-opening the calendar and clicking
+		// today again). All three handlers below used to call
+		// updateTimeRangeForDay() unconditionally on every such event, which
+		// clears and rebuilds the time list - wiping a pickup/return time the
+		// customer had already chosen for no reason, since the date itself never
+		// moved. Tracking the last date actually acted on and skipping repeats
+		// fixes that without touching what happens on a genuine date change.
+		// Seeded from the server-known first bookable date, not the hidden
+		// #mptbm_map_start_date field's value - that field starts out empty in
+		// the markup and is only populated by flatpickr asynchronously, so
+		// reading it here (synchronously, before flatpickr has necessarily run)
+		// could seed an empty baseline and let the very next click - even one
+		// that doesn't actually change the date - look like a real change.
+		var mptbmLastStartRangeDate = jQuery('#mptbm_first_calendar_date').val();
+		var mptbmLastReturnRangeDate = jQuery('#mptbm_map_return_date').val();
+
 		jQuery('#mptbm_start_date').on('change', function() {
 			var fp = this._flatpickr;
 			if (fp && fp.selectedDates.length > 0) {
 				var d = fp.selectedDates[0];
 				var isoDate = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
-				updateTimeRangeForDay(isoDate);
+				if (isoDate !== mptbmLastStartRangeDate) {
+					mptbmLastStartRangeDate = isoDate;
+					updateTimeRangeForDay(isoDate);
+				}
 			}
 		});
-		
+
 		jQuery('#mptbm_return_date').on('change', function() {
 			var fp = this._flatpickr;
 			if (fp && fp.selectedDates.length > 0) {
 				var d = fp.selectedDates[0];
 				var isoDate = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
-				updateTimeRangeForDay(isoDate);
+				if (isoDate !== mptbmLastReturnRangeDate) {
+					mptbmLastReturnRangeDate = isoDate;
+					updateTimeRangeForDay(isoDate);
+				}
 			}
 		});
-		
-		// Also trigger on flatpickr date selection
+
+		// Also trigger on flatpickr date selection (belt-and-braces alongside the
+		// "change" handler above - see its comment for why the guard is needed).
 		jQuery(document).on('click', '.flatpickr-day:not(.prevMonthDay):not(.nextMonthDay):not(.flatpickr-disabled)', function() {
 			setTimeout(function() {
 				var selectedDate = jQuery('#mptbm_map_start_date').val();
-				if (selectedDate) {
+				if (selectedDate && selectedDate !== mptbmLastStartRangeDate) {
+					mptbmLastStartRangeDate = selectedDate;
 					updateTimeRangeForDay(selectedDate);
 				}
 			}, 100);

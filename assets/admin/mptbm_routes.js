@@ -25,6 +25,7 @@
 		var map = null;
 		var searchBound = false;
 		var geocoder = null;
+		var autocompleteService = null;
 		var searchDebounce = null;
 		var $searchResults = null;
 
@@ -222,47 +223,15 @@
 			$searchResults.css({ top: (rect.bottom + 2) + 'px', left: rect.left + 'px', width: rect.width + 'px' });
 		}
 
-		function setupStopSearchOSM() {
+		function ensureSearchResultsEl() {
 			if ($searchResults) {
-				return; // Already wired for this page load.
+				return;
 			}
 			$searchResults = $('<div>', { class: 'osm-location-autocomplete' }).css({
 				position: 'fixed', background: '#fff', border: '1px solid #ddd', borderRadius: '4px',
 				maxHeight: '200px', overflowY: 'auto', zIndex: 999999, display: 'none',
 				boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
 			}).appendTo('body');
-
-			$stopSearch.on('input', function () {
-				clearTimeout(searchDebounce);
-				var query = $stopSearch.val().trim();
-				if (query.length < 3) {
-					$searchResults.hide();
-					return;
-				}
-				searchDebounce = setTimeout(function () {
-					positionSearchDropdown();
-					$searchResults.show().html('<div style="padding:10px;text-align:center;color:#666;">Searching…</div>');
-					searchStopCandidates(query).then(function (results) {
-						$searchResults.empty();
-						if (results.length === 0) {
-							$searchResults.html('<div style="padding:10px;color:#666;">No results found</div>');
-							return;
-						}
-						results.forEach(function (result) {
-							var $item = $('<div>', { text: result.display_name })
-								.css({ padding: '10px', cursor: 'pointer', borderBottom: '1px solid #eee' })
-								.on('mouseenter', function () { $(this).css('background', '#f5f5f5'); })
-								.on('mouseleave', function () { $(this).css('background', '#fff'); })
-								.on('click', function () {
-									$searchResults.hide();
-									addStop(shortNameFor(result), result.lat, result.lon);
-									$stopSearch.val('');
-								});
-							$searchResults.append($item);
-						});
-					});
-				}, 300);
-			});
 
 			$(window).on('scroll resize', function () {
 				if ($searchResults.is(':visible')) {
@@ -274,6 +243,121 @@
 					$searchResults.hide();
 				}
 			});
+		}
+
+		// Shared "type to search, pick from a dropdown" wiring for both map
+		// backends. Built as our own fixed-position element (appended to
+		// <body>, repositioned on scroll/resize) instead of relying on either
+		// backend's native suggestion widget - Google's `places.Autocomplete`
+		// in particular positions its `.pac-container` relative to the
+		// nearest *positioned* ancestor, and the route modal's dialog
+		// (`position: relative` + `overflow-y: auto`, needed so a long stop
+		// list scrolls) throws that math off: Google renders the dropdown
+		// outside the dialog's visible, clipped area, so suggestions never
+		// actually appear even though the search itself succeeded.
+		function bindStopSearchInput(fetchCandidates, renderLabel, onPick) {
+			$stopSearch.off('input.mptbmRouteSearch').on('input.mptbmRouteSearch', function () {
+				clearTimeout(searchDebounce);
+				var query = $stopSearch.val().trim();
+				if (query.length < 3) {
+					$searchResults.hide();
+					return;
+				}
+				searchDebounce = setTimeout(function () {
+					positionSearchDropdown();
+					$searchResults.show().html('<div style="padding:10px;text-align:center;color:#666;">Searching…</div>');
+					fetchCandidates(query).then(function (results) {
+						$searchResults.empty();
+						if (results.length === 0) {
+							$searchResults.html('<div style="padding:10px;color:#666;">No results found</div>');
+							return;
+						}
+						results.forEach(function (result) {
+							var $item = $('<div>', { text: renderLabel(result) })
+								.css({ padding: '10px', cursor: 'pointer', borderBottom: '1px solid #eee' })
+								.on('mouseenter', function () { $(this).css('background', '#f5f5f5'); })
+								.on('mouseleave', function () { $(this).css('background', '#fff'); })
+								.on('click', function () {
+									$searchResults.hide();
+									$stopSearch.val('');
+									onPick(result);
+								});
+							$searchResults.append($item);
+						});
+					});
+				}, 300);
+			});
+		}
+
+		function setupStopSearchOSM() {
+			if (searchBound) {
+				return; // Already wired for this page load.
+			}
+			ensureSearchResultsEl();
+			bindStopSearchInput(
+				searchStopCandidates,
+				function (result) { return result.display_name; },
+				function (result) { addStop(shortNameFor(result), result.lat, result.lon); }
+			);
+			searchBound = true;
+		}
+
+		// Headless equivalent of the OSM path above: `AutocompleteService` gives
+		// predictions without Google's own DOM widget, and `Geocoder`'s
+		// `placeId` lookup resolves the picked one to lat/lng - so stop search
+		// renders through our own dropdown on both backends alike.
+		function searchGooglePredictions(query) {
+			if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
+				return Promise.resolve([]);
+			}
+			if (!autocompleteService) {
+				autocompleteService = new google.maps.places.AutocompleteService();
+			}
+			var bias = (cfg.defaultLat && cfg.defaultLng)
+				? new google.maps.Circle({ center: { lat: parseFloat(cfg.defaultLat), lng: parseFloat(cfg.defaultLng) }, radius: 100000 }).getBounds()
+				: null;
+			return new Promise(function (resolve) {
+				autocompleteService.getPlacePredictions({ input: query, bounds: bias }, function (predictions, status) {
+					resolve((status === google.maps.places.PlacesServiceStatus.OK && predictions) ? predictions : []);
+				});
+			});
+		}
+
+		function resolveGooglePrediction(prediction) {
+			if (!geocoder) {
+				geocoder = new google.maps.Geocoder();
+			}
+			return new Promise(function (resolve) {
+				geocoder.geocode({ placeId: prediction.place_id }, function (results, status) {
+					resolve((status === 'OK' && results && results[0]) ? {
+						lat: results[0].geometry.location.lat(),
+						lng: results[0].geometry.location.lng()
+					} : null);
+				});
+			});
+		}
+
+		function setupStopSearchGoogle() {
+			if (searchBound || typeof google === 'undefined' || !google.maps || !google.maps.places) {
+				return;
+			}
+			ensureSearchResultsEl();
+			bindStopSearchInput(
+				searchGooglePredictions,
+				function (prediction) { return prediction.description; },
+				function (prediction) {
+					resolveGooglePrediction(prediction).then(function (loc) {
+						if (loc) {
+							addStop(
+								(prediction.structured_formatting && prediction.structured_formatting.main_text) || prediction.description,
+								loc.lat,
+								loc.lng
+							);
+						}
+					});
+				}
+			);
+			searchBound = true;
 		}
 
 		// One-name-at-a-time geocode, used only to re-plot a route's already
@@ -368,21 +452,7 @@
 				var center = { lat: parseFloat(cfg.defaultLat) || 23.8103, lng: parseFloat(cfg.defaultLng) || 90.4125 };
 				map = new google.maps.Map(canvas, { zoom: 12, center: center });
 
-				if (!searchBound && google.maps.places) {
-					var autocomplete = new google.maps.places.Autocomplete($stopSearch[0]);
-					// Soft bias (not a hard filter, like the OSM path's lat/lon) so
-					// results near the business's own city rank first.
-					autocomplete.setBounds(new google.maps.Circle({ center: center, radius: 100000 }).getBounds());
-					autocomplete.addListener('place_changed', function () {
-						var place = autocomplete.getPlace();
-						if (place && place.geometry) {
-							var location = place.geometry.location;
-							addStop(place.name || place.formatted_address, location.lat(), location.lng());
-						}
-						$stopSearch.val('');
-					});
-					searchBound = true;
-				}
+				setupStopSearchGoogle();
 			}
 		}
 
