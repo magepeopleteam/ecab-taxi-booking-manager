@@ -377,11 +377,11 @@ if (sizeof($all_dates) > 0) {
 					<input type="hidden" id="mptbm_map_start_time" value="" />
 					<label class="fdColumn">
 						<span><?php echo mptbm_get_translation('pickup_time_label', __('Pickup Time', 'ecab-taxi-booking-manager')); ?></span>
-						<input type="text" id="mptbm_start_time" class="formControl" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" readonly />
+						<input type="text" <?php echo ! empty($vehicle_id) ? 'data-mptbm-schedule-time="true"' : 'readonly'; ?> id="mptbm_start_time" class="formControl start_time_input" step="60" disabled data-invalid-time="<?php esc_attr_e('Choose an available pickup time within the operating hours and configured time interval.', 'ecab-taxi-booking-manager'); ?>" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" />
 						<span class="far fa-clock mptbm_left_icon allCenter"></span>
 					</label>
 
-					<ul class="mp_input_select_list start_time_list">
+					<ul class="mp_input_select_list start_time_list" <?php echo ! empty($vehicle_id) ? 'aria-hidden="true" style="display:none !important"' : 'style="display:none"'; ?>>
 						<?php
 						for ($i = $min_minutes; $i <= $max_minutes; $i += $interval_time) {
 
@@ -1430,10 +1430,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	function updateTimeRangeForDay(selectedDate) {
 		if (!selectedDate) return;
 		
-		// Get the day name from the selected date
+		// ISO date-only strings are parsed at midnight UTC. Read the weekday in
+		// UTC too, so customers west of UTC do not get the previous day's hours.
 		var date = new Date(selectedDate);
 		var dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-		var dayName = dayNames[date.getDay()];
+		var dayName = dayNames[date.getUTCDay()];
 		
 		
 		
@@ -1460,15 +1461,15 @@ document.addEventListener('DOMContentLoaded', function () {
 			updateTimePickerOptions(minTime, maxTime, selectedDate);
 		} else {
 
-			// Use global range if no specific day times
-			updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>, selectedDate);
+			// No saved hours for this weekday: do not offer another day's range.
+			updateTimePickerOptions(1, 0, selectedDate);
 		}
 	}
 
 	function updateTimePickerOptions(minTime, maxTime, selectedDate) {
 		// Convert to minutes for easier calculation
-		var minMinutes = Math.floor(minTime) * 60 + (minTime % 1) * 100;
-		var maxMinutes = Math.floor(maxTime) * 60 + (maxTime % 1) * 100;
+		var minMinutes = Math.round(Math.floor(minTime) * 60 + (minTime % 1) * 100);
+		var maxMinutes = Math.round(Math.floor(maxTime) * 60 + (maxTime % 1) * 100);
 		var intervalTime = <?php echo $interval_time; ?>;
 
 		// Raise the floor for "today" (or the buffer-shifted first bookable date),

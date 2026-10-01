@@ -448,6 +448,8 @@ div.mptbm_transport_search_area ul.mp_input_select_list {
 	padding: 6px;
 	margin-top: 6px !important;
 	max-height: 240px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
 }
 
 div.mptbm_transport_search_area ul.mp_input_select_list li {
