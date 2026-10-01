@@ -2501,7 +2501,12 @@ function mptbm_init_google_map() {
 
     function mptbmSyncNativePickupTime(parent) {
         var input = parent.find('#mptbm_start_time[data-mptbm-schedule-time]')[0];
-        if (!input) return;
+        if (!input) {
+            // Global search uses the scrollable slot list rather than the time spinner.
+            parent.find('#mptbm_start_time').prop('disabled',
+                !parent.find('#mptbm_map_start_date').val() || !parent.find('.start_time_list li[data-time]').length);
+            return;
+        }
 
         var slots = parent.find('.start_time_list li[data-time]').filter(function () {
             return !!mptbmNormalizeTimeToken($(this).attr('data-time'));

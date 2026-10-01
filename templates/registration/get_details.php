@@ -376,11 +376,11 @@ if (sizeof($all_dates) > 0) {
 					<input type="hidden" id="mptbm_map_start_time" value="" />
 					<label class="fdColumn">
 						<span><?php echo mptbm_get_translation('pickup_time_label', __('Pickup Time', 'ecab-taxi-booking-manager')); ?></span>
-						<input type="text" data-mptbm-schedule-time="true" id="mptbm_start_time" class="formControl start_time_input" step="60" disabled data-invalid-time="<?php esc_attr_e('Choose an available pickup time within the operating hours and configured time interval.', 'ecab-taxi-booking-manager'); ?>" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" />
+						<input type="text" <?php echo ! empty($vehicle_id) ? 'data-mptbm-schedule-time="true"' : 'readonly'; ?> id="mptbm_start_time" class="formControl start_time_input" step="60" disabled data-invalid-time="<?php esc_attr_e('Choose an available pickup time within the operating hours and configured time interval.', 'ecab-taxi-booking-manager'); ?>" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" />
 						<span class="far fa-clock mptbm_left_icon allCenter"></span>
 					</label>
 
-					<ul class="mp_input_select_list start_time_list" aria-hidden="true" style="display:none !important">
+					<ul class="mp_input_select_list start_time_list" <?php echo ! empty($vehicle_id) ? 'aria-hidden="true" style="display:none !important"' : 'style="display:none"'; ?>>
 						<?php
 						for ($i = $min_minutes; $i <= $max_minutes; $i += $interval_time) {
 
