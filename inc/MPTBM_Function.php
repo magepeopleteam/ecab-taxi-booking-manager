@@ -123,6 +123,31 @@ if (!class_exists('MPTBM_Function')) {
 		}
 
 		/**
+		 * The customer-chosen duration of a fixed-hourly / fixed-daily search, as a whole number.
+		 *
+		 * The booking form only offers whole hours and days, and the number multiplies the vehicle's
+		 * rate, so a fractional value (fixed_time=0.01) can only come from a hand-built request and
+		 * would scale the fare towards zero. Anything that is not a whole number is returned as 0, which
+		 * every range check below already rejects. Accepts what an earlier version may have left in the
+		 * session (an int or a float).
+		 *
+		 * @param mixed $value Raw posted value or stored context value.
+		 * @return int Whole hours/days, or 0 when the value is not a whole number.
+		 */
+		public static function normalize_fixed_time($value): int
+		{
+			if (is_int($value) || is_float($value)) {
+				$value = (string) $value;
+			}
+			if (!is_string($value)) {
+				return 0;
+			}
+			$value = trim($value);
+			// Whole digits only (a trailing ".0" is tolerated); four digits is far above every limit.
+			return preg_match('/^\d{1,4}(\.0+)?$/', $value) ? (int) $value : 0;
+		}
+
+		/**
 		 * Validate that checkout is using the server-side search which produced the quote.
 		 * Returns the context or a WP_Error suitable for a customer-facing checkout error.
 		 */
@@ -144,13 +169,16 @@ if (!class_exists('MPTBM_Function')) {
 				return new WP_Error('mptbm_quote_unverified', __('The route could not be verified by the server. Please try the search again.', 'ecab-taxi-booking-manager'));
 			}
 			if (sanitize_key($context['price_based'] ?? '') === 'fixed_hourly') {
-				$hours = (float) ($context['fixed_time'] ?? 0);
-				if ($hours <= 0 || $hours > 168) {
+				$hours = self::normalize_fixed_time($context['fixed_time'] ?? 0);
+				// Whole hours, and never below the admin's "Minimum Booking Hours" (1 when it is off):
+				// the form offers nothing shorter, so a shorter value is a hand-built request.
+				$minimum_hours = max(1, (int) MP_Global_Function::get_settings('mptbm_general_settings', 'minimum_booking_hours', '0'));
+				if ($hours < $minimum_hours || $hours > 168) {
 					return new WP_Error('mptbm_quote_hours', __('Please select a valid hourly booking duration.', 'ecab-taxi-booking-manager'));
 				}
 			}
 			if (sanitize_key($context['price_based'] ?? '') === 'fixed_daily') {
-				$days = (float) ($context['fixed_time'] ?? 0);
+				$days = self::normalize_fixed_time($context['fixed_time'] ?? 0);
 				$minimum_days = max(1, (int) MP_Global_Function::get_settings('mptbm_general_settings', 'minimum_booking_days', '1'));
 				if ($days <= 0 || $days > 90 || $days < $minimum_days) {
 					return new WP_Error('mptbm_quote_days', __('Please select a valid number of booking days.', 'ecab-taxi-booking-manager'));
