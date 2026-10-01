@@ -419,6 +419,23 @@ div.mptbm_transport_search_area .mptbm_left_icon {
 	transition: color 0.2s ease;
 }
 
+/* Font Awesome's solid ("fas"/"fa") glyphs only exist at font-weight 900 and
+   regular ("far") glyphs only at 400 - the icon font has no 500/600/700 face.
+   A theme or another plugin's form-control styling (e.g. a generic
+   `label, select { font-weight: 500 }` rule) can out-specificity/out-order
+   Font Awesome's own weight rule on this span without erroring - the glyph
+   just silently fails to paint, leaving an empty icon slot (seen on fields
+   like Maximum Passenger/Bag/Hand Luggage/Transfer Type, which sit next to a
+   <select> rather than an <input>). Pin the weight explicitly so the icon
+   can't go missing this way regardless of what else is on the page. */
+div.mptbm_transport_search_area .mptbm_left_icon.fas,
+div.mptbm_transport_search_area .mptbm_left_icon.fa {
+	font-weight: 900 !important;
+}
+div.mptbm_transport_search_area .mptbm_left_icon.far {
+	font-weight: 400 !important;
+}
+
 div.mptbm_transport_search_area label:focus-within .mptbm_left_icon {
 	color: var(--color_theme);
 }
