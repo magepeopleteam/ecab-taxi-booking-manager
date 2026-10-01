@@ -40,6 +40,9 @@ if (!process.argv.includes('--timezone-check')) {
 	context.dayTimeRanges.monday = { start: [8, 6], end: [18, 22] };
 	context.updateTimeRangeForDay('2026-10-05');
 	assert.deepEqual(actual, [6, 22, '2026-10-05']);
+	delete context.dayTimeRanges.monday;
+	context.updateTimeRangeForDay('2026-10-05');
+	assert.deepEqual(actual, [1, 0, '2026-10-05'], 'Missing weekday hours must generate no options');
 	actual = undefined;
 	context.updateTimeRangeForDay('');
 	assert.equal(actual, undefined, 'An empty date must not rebuild options');

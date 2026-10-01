@@ -376,7 +376,7 @@ if (sizeof($all_dates) > 0) {
 					<input type="hidden" id="mptbm_map_start_time" value="" />
 					<label class="fdColumn">
 						<span><?php echo mptbm_get_translation('pickup_time_label', __('Pickup Time', 'ecab-taxi-booking-manager')); ?></span>
-						<input type="time" id="mptbm_start_time" class="formControl start_time_input" step="60" disabled data-invalid-time="<?php esc_attr_e('Choose an available pickup time within the operating hours and configured time interval.', 'ecab-taxi-booking-manager'); ?>" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" />
+						<input type="text" data-mptbm-schedule-time="true" id="mptbm_start_time" class="formControl start_time_input" step="60" disabled data-invalid-time="<?php esc_attr_e('Choose an available pickup time within the operating hours and configured time interval.', 'ecab-taxi-booking-manager'); ?>" placeholder="<?php echo mptbm_get_translation('please_select_time_label', __('Please Select Time', 'ecab-taxi-booking-manager')); ?>" value="" />
 						<span class="far fa-clock mptbm_left_icon allCenter"></span>
 					</label>
 
@@ -1460,8 +1460,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			updateTimePickerOptions(minTime, maxTime, selectedDate);
 		} else {
 
-			// Use global range if no specific day times
-			updateTimePickerOptions(<?php echo $min_schedule_value; ?>, <?php echo $max_schedule_value; ?>, selectedDate);
+			// No saved hours for this weekday: do not offer another day's range.
+			updateTimePickerOptions(1, 0, selectedDate);
 		}
 	}
 

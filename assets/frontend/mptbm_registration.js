@@ -2500,7 +2500,7 @@ function mptbm_init_google_map() {
     }
 
     function mptbmSyncNativePickupTime(parent) {
-        var input = parent.find('#mptbm_start_time[type="time"]')[0];
+        var input = parent.find('#mptbm_start_time[data-mptbm-schedule-time]')[0];
         if (!input) return;
 
         var slots = parent.find('.start_time_list li[data-time]').filter(function () {
@@ -2522,6 +2522,34 @@ function mptbm_init_google_map() {
             }
         }
 
+        var enteredTime = input.value;
+        // Native browser time controls may expose all hours even with min/max.
+        // Use the already-loaded Flatpickr time editor on desktop and mobile.
+        if (!input._flatpickr && typeof flatpickr === 'function') {
+            flatpickr(input, {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: 'H:i',
+                time_24hr: true,
+                disableMobile: true,
+                allowInput: true,
+                onClose: function () { $(input).trigger('change'); }
+            });
+        }
+        if (input._flatpickr) {
+            input._flatpickr.set({
+                minTime: slots.length ? input.min : '00:00',
+                maxTime: slots.length ? input.max : '23:59',
+                defaultHour: slots.length ? Number(input.min.split(':')[0]) : 0,
+                defaultMinute: slots.length ? Number(input.min.split(':')[1]) : 0,
+                minuteIncrement: Math.max(1, Math.min(60, Number(input.step) / 60))
+            });
+            // set() refreshes the field from Flatpickr's previous selection.
+            // Keep the customer's current entry for slot validation below.
+            input.value = enteredTime;
+            if (input.disabled && input._flatpickr.isOpen) input._flatpickr.close();
+        }
+
         var selected = slots.filter(function () {
             return mptbmNormalizeTimeToken($(this).attr('data-time')) === mptbmNormalizeTimeToken(input.value);
         }).first();
@@ -2530,7 +2558,7 @@ function mptbm_init_google_map() {
         parent.find('#mptbm_map_start_time').val(valid ? selected.attr('data-value') : '');
     }
 
-    $(document).on('change', '#mptbm_start_time[type="time"]', function () {
+    $(document).on('change', '#mptbm_start_time[data-mptbm-schedule-time]', function () {
         var parent = $(this).closest('.mptbm_transport_search_area');
         mptbmSyncNativePickupTime(parent);
         if (!this.checkValidity()) {
@@ -2613,7 +2641,7 @@ function mptbm_init_google_map() {
                     });
 
                     if (selectedTimeWasDisabled) {
-                        parent.find('#mptbm_map_start_time, #mptbm_start_time:not([type="time"])').val('');
+                        parent.find('#mptbm_map_start_time, #mptbm_start_time:not([data-mptbm-schedule-time])').val('');
                     }
                     mptbmSyncNativePickupTime(parent);
                     if (selectedTimeWasDisabled) {
@@ -2643,7 +2671,7 @@ function mptbm_init_google_map() {
     $(document).on("click", "#mptbm_get_vehicle", function () {
         let searchButton = this;
         let parent = $(this).closest(".mptbm_transport_search_area");
-        var nativeTime = parent.find('#mptbm_start_time[type="time"]')[0];
+        var nativeTime = parent.find('#mptbm_start_time[data-mptbm-schedule-time]')[0];
         if (nativeTime) {
             mptbmSyncNativePickupTime(parent);
             if (!nativeTime.checkValidity()) {
@@ -3497,6 +3525,11 @@ function mptbm_init_google_map() {
             $('.start_time_list-no-dsiplay li').each(function () {
                 $('#mptbm_map_start_time').siblings('.start_time_list').append($(this).clone());
             });
+        }
+
+        // Replace the legacy full-week copy with the selected weekday immediately.
+        if (typeof updateTimeRangeForDay === 'function') {
+            updateTimeRangeForDay(selectedDate);
         }
 
         // Update the return date picker if needed
