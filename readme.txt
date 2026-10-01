@@ -208,9 +208,20 @@ Please report security bugs found in the source code of the Taxi Booking Manager
 
 This transparency is crucial for legal protection. By using this plugin, you acknowledge and accept the reliance on the Google Maps API. Review the terms of use and privacy policy for both this plugin and the Google Maps API to ensure a comprehensive understanding of the services and how your data is handled.
 
+== External Services ==
+
+This plugin can connect to third-party services when you turn them on or confirm them. Nothing is sent to these services unless you enable the related feature or confirm the related notice.
+
+= Appneck =
+
+This plugin uses the [Appneck](https://appneck.com) SDK to collect some telemetry data upon your confirmation, to troubleshoot problems faster and make product improvements. Appneck does not gather any data by default; the SDK only starts gathering basic telemetry data when you allow it via the admin notice.
+
+* Service: [Appneck](https://appneck.com)
+* Privacy policy: https://appneck.com/privacy-policy/
 
 == Changelog ==
 = 2.1.2 - 2026-09-30 =
+* New: added the Appneck SDK for opt-in telemetry and update tracking. It does not collect any data by default; it only starts after you confirm via the admin notice. See External Services in this readme.
 * Added: "Auto-detect Visitor's Location" option in Settings > Map API Settings - when enabled, the booking map centers on each visitor's own location (with their browser's permission) on both Google Maps and OpenStreetMap, falling back to the configured default location if access is denied or unavailable.
 * Added: Compatibility with the Advanced Partial Payment/Deposit for WooCommerce plugin (Pro) - the Bookings list, single booking detail view and PDF ticket now show the true order total, amount paid and balance due for deposit orders, instead of the checkout deposit amount being mislabeled as the full total. No change for sites without that plugin active.
 * Fixed (Pro): The automated booking-confirmation email and PDF ticket could silently fail to send - a crash mid-PDF-generation (e.g. a font/rendering error) previously took down the whole request before the email was sent, and a broken internal check meant a partially-generated PDF could still be attached. Both are now caught: generation failures are logged and skipped gracefully, and the email still sends without a broken attachment.
