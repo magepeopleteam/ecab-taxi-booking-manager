@@ -1123,7 +1123,9 @@ $mptbm_priced_duration_text = !empty($mptbm_search_context['distance_verified'])
 					// The toolbar has room for the place name only, not the full "City, Region,
 					// Country" string the map autocomplete stores - take just the first segment.
 					$toolbar_place_short = function ($place) {
-						$parts = explode(',', $place);
+						// get_taxonomy_name_by_slug() returns null for a slug with no matching
+						// location term; explode() deprecates null on PHP 8.1+.
+						$parts = explode(',', (string) $place);
 						return trim($parts[0]);
 					};
 					$toolbar_start_display = $toolbar_place_short($toolbar_start_display);

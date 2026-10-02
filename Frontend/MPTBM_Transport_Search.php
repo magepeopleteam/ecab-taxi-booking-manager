@@ -170,7 +170,13 @@
 						
 						// Create datetime string
 						$booking_datetime = $start_date . ' ' . sprintf('%02d:%02d', $hours, $minutes);
-						$booking_timestamp = strtotime($booking_datetime);
+						// The picked date/time is site-local, but WordPress pins PHP's default
+						// timezone to UTC, so strtotime() read it as UTC. West of UTC (e.g.
+						// America/New_York, -4) a ride 1 hour out came back 3 hours in the past
+						// and every buffer rejected it; east of UTC the buffer was too lenient.
+						// An unparseable date stays rejected, as strtotime()'s false was.
+						$booking_date_object = date_create_immutable($booking_datetime, wp_timezone());
+						$booking_timestamp = $booking_date_object ? $booking_date_object->getTimestamp() : 0;
 						$current_timestamp = time();
 						
 						// Calculate time difference in minutes
@@ -281,7 +287,13 @@
 						
 						// Create datetime string
 						$booking_datetime = $start_date . ' ' . sprintf('%02d:%02d', $hours, $minutes);
-						$booking_timestamp = strtotime($booking_datetime);
+						// The picked date/time is site-local, but WordPress pins PHP's default
+						// timezone to UTC, so strtotime() read it as UTC. West of UTC (e.g.
+						// America/New_York, -4) a ride 1 hour out came back 3 hours in the past
+						// and every buffer rejected it; east of UTC the buffer was too lenient.
+						// An unparseable date stays rejected, as strtotime()'s false was.
+						$booking_date_object = date_create_immutable($booking_datetime, wp_timezone());
+						$booking_timestamp = $booking_date_object ? $booking_date_object->getTimestamp() : 0;
 						$current_timestamp = time();
 						
 						// Calculate time difference in minutes
