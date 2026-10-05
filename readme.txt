@@ -214,12 +214,14 @@ This plugin can connect to third-party services when you turn them on or confirm
 
 = Appneck =
 
-This plugin uses the [Appneck](https://appneck.com) SDK to collect some telemetry data upon your confirmation, to troubleshoot problems faster and make product improvements. Appneck does not gather any data by default; the SDK only starts gathering basic telemetry data when you allow it via the admin notice.
-
-* Service: [Appneck](https://appneck.com)
-* Privacy policy: https://appneck.com/privacy-policy/
+This Plugin uses [Appneck](https://appneck.com) SDK to collect some telemetry data upon the user's confirmation to troubleshoot problems faster & make product improvements.
+Appneck SDK **does not gather any data by default.** The SDK only starts gathering basic telemetry data **when a user allows it via the admin notice**. We collect the data to ensure a great user experience for all our users. Integrating Appneck SDK **DOES NOT IMMEDIATELY** start gathering data, **without confirmation from users in any case.**
+Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.1.3 - 2026-10-05 =
+* New: Updated the bundled Appneck SDK to the latest version.
+
 = 2.1.2 - 2026-09-30 =
 * New: added the Appneck SDK for opt-in telemetry and update tracking. It does not collect any data by default; it only starts after you confirm via the admin notice. See External Services in this readme.
 * Added: "Auto-detect Visitor's Location" option in Settings > Map API Settings - when enabled, the booking map centers on each visitor's own location (with their browser's permission) on both Google Maps and OpenStreetMap, falling back to the configured default location if access is denied or unavailable.
