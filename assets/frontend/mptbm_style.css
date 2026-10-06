@@ -759,11 +759,11 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
 .mptbm_transport_search_area button._mpBtn_xs.mptbm_out_of_stock {
     width: 100%;
     white-space: nowrap;
-    padding: 10px 14px !important;
+    padding: 12px 20px !important;
     background: var(--color_theme) !important;
     color: #ffffff !important;
     border: 0 !important;
-    border-radius: 10px !important;
+    border-radius: 999px !important;
     font-size: 13px !important;
     font-weight: 600 !important;
     cursor: pointer;
@@ -774,6 +774,19 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     align-items: center;
     justify-content: center;
     gap: 6px;
+}
+/* The icon span is always in the DOM (JS just toggles its fa- classes on
+   select/deselect) so with flex's `gap` it reserved 6px even while empty,
+   nudging the label off-center and making the button's content box wider
+   than the label alone needs - hide the slot entirely until a checkmark
+   class is actually toggled on, so the label centers cleanly and only the
+   selected state pays the icon+gap width. */
+.mptbm_transport_search_area button._mpBtn_xs.mptbm_transport_select [data-icon] {
+    display: none;
+}
+.mptbm_transport_search_area button._mpBtn_xs.mptbm_transport_select.active_select [data-icon] {
+    display: inline-flex;
+    align-items: center;
 }
 .mptbm_transport_search_area button._mpBtn_xs.mptbm_transport_select:hover {
     /* No pre-darkened "--color_theme_dark" token exists in this codebase to
@@ -810,10 +823,10 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     gap: 6px;
     width: 100%;
     margin-top: 0;
-    padding: 10px 16px;
+    padding: 11px 20px;
     background: #ffffff;
     border: 1px solid #e2e8f0 !important;
-    border-radius: 10px;
+    border-radius: 999px;
     color: #334155;
     font-size: 12.5px;
     font-weight: 700;
@@ -1817,7 +1830,7 @@ button.mptbm_results_edit:hover i {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    align-items: start;
+    align-items: stretch;
 }
 .mp_sticky_depend_area.mptbm_view_grid > .mptbm_results_toolbar,
 .mp_sticky_depend_area.mptbm_view_grid > .mptbm_results_controls_row,
@@ -1826,22 +1839,46 @@ button.mptbm_results_edit:hover i {
 .mp_sticky_depend_area.mptbm_view_grid > ._dLayout_dFlex_fdColumn_btLight_2 {
     grid-column: 1 / -1;
 }
+/* Stretched to match the tallest card in the row (align-items:stretch above)
+   so price/CTA lands on the same line across a row regardless of how many
+   feature chips a given card wraps to - position:relative so the expanded
+   details panel below can anchor to THIS card specifically rather than the
+   page. overflow is NOT hidden here (see .mptbm_vehicle_image below for
+   where the rounded-corner clipping actually happens instead): the details
+   panel is positioned absolute, outside normal flow, specifically so that
+   expanding it never changes this wrapper's own layout size - an earlier
+   version instead grew the wrapper/row to fit the panel in flow, which
+   stretched every OTHER card in the row to match (align-items:stretch
+   reacting to the new row height), visibly puffing up still-collapsed
+   neighbours as if a second panel had opened on its own. */
+/* A CSS Grid item with any z-index (even inherited/auto from a descendant)
+   is still painted as one atomic unit relative to its sibling grid items -
+   a high z-index on the panel alone can't escape ITS OWN wrapper to paint
+   above a sibling wrapper's card. Elevating the wrapper itself (the actual
+   grid item) whenever its own toggle is open is what lets the floating
+   panel below actually sit on top of the row(s) underneath it. */
+.mp_sticky_depend_area.mptbm_view_grid .mptbm-vehicle-wrapper:has(.mptbm_view_details_toggle.is-open) {
+    z-index: 5;
+}
 .mp_sticky_depend_area.mptbm_view_grid .mptbm-vehicle-wrapper {
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    overflow: visible;
 }
 
 /* Grid cards get their own column layout (image on top, full-width content
    below) instead of the list view's side-by-side row - the row layout only
    leaves ~140px for title/chips at grid-column widths, which is what was
-   truncating everything unreadably.
-   Cards intentionally do NOT stretch to match the tallest card in their row
-   (no height:100%): once any single card's own details panel expands, its
-   grid row grows to fit it - forcing every card in that row to also stretch
-   to the new row height would push each of THEIR price/button sections down
-   with dead space above them, even on cards nobody expanded. Natural,
-   independent per-card height avoids that entirely. */
+   truncating everything unreadably. flex:1 1 auto (not height:100%) so a
+   flex column's default min-height:auto stops this from being squeezed
+   below its own natural content - see .mptbm-vehicle-wrapper above for why
+   the expanding details panel can't feed back into this at all now. */
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_booking_item {
     flex-direction: column !important;
+    flex: 1 1 auto;
     padding: 0 !important;
     gap: 0 !important;
     overflow: hidden;
@@ -1851,7 +1888,8 @@ button.mptbm_results_edit:hover i {
     width: 100%;
     max-width: none;
     flex: 0 0 auto;
-    border-radius: 0;
+    border-radius: 18px 18px 0 0;
+    overflow: hidden;
     align-self: auto;
 }
 /* mp_script.js's mp_resize_bg_image_area() sets an inline min-height on the
@@ -1875,16 +1913,46 @@ button.mptbm_results_edit:hover i {
     white-space: normal;
     line-height: 1.25;
 }
+/* Price (left) + Select Car/View Details side by side (right, auto-width)
+   in one single row - a grid rather than flex so each piece can be placed
+   in its own column without extra wrapper markup around the two buttons. */
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_cta {
     flex: 0 0 auto;
     width: 100%;
     max-width: 100%;
     border-left: 0;
     padding: 14px 16px 16px;
+    display: grid !important;
+    grid-template-columns: auto 1fr auto auto;
+    column-gap: 8px;
+    align-items: center;
 }
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_price_col {
+    grid-column: 1;
+    grid-row: 1;
     align-items: flex-start !important;
-    width: 100%;
+    width: auto;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_cta_row {
+    grid-column: 3;
+    grid-row: 1;
+    width: auto;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm-button-container {
+    width: auto;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid button._mpBtn_xs.mptbm_transport_select,
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid button._mpBtn_xs.mptbm_out_of_stock {
+    width: auto !important;
+    white-space: nowrap;
+    padding: 12px 16px !important;
+}
+.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_view_details_toggle {
+    grid-column: 4;
+    grid-row: 1;
+    width: auto;
+    padding: 11px 14px;
+    white-space: nowrap;
 }
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid h4.mptbm_vehicle_price {
     font-size: 19px !important;
@@ -1893,17 +1961,29 @@ button.mptbm_results_edit:hover i {
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid ul.mptbm_features_grid > li.mptbm_feature_item:nth-child(n+4) {
     display: none !important;
 }
-.mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_view_details_toggle {
-    margin-top: 4px;
-}
 /* Grid cards are always narrow (2-up), regardless of viewport width, so the
    details panel's 2-column layout never has enough room - it was cramming
    the spec-table's own 2-column grid + block titles into ~200px sub-columns,
-   reading as overlapping/collided text. Always single-column here. */
+   reading as overlapping/collided text. Always single-column here.
+   position:absolute, floating below the card it belongs to (anchored by
+   .mptbm-vehicle-wrapper's position:relative above): this is what keeps an
+   expanding panel out of the row's own height calculation entirely, so
+   row-mates stay exactly where they were. It does mean an open panel visibly
+   floats over whatever cards are in the row(s) below until it's collapsed
+   again - the deliberate trade-off for "same card only" sizing. */
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_vehicle_details_panel {
     grid-template-columns: 1fr;
     gap: 28px 0;
     padding: 18px 16px 20px;
+    flex: 0 0 auto;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 20;
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.18), 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+    box-sizing: border-box;
 }
 .mptbm_transport_search_area .mp_sticky_depend_area.mptbm_view_grid .mptbm_spec_table {
     grid-template-columns: 1fr;
