@@ -343,7 +343,7 @@ if (!function_exists('mptbm_get_translation')) {
 						<div class="mptbm_extra_service_summary"></div>
 						<div class="divider"></div>
 						<div class="justifyBetween">
-							<h4><?php esc_html_e('Total : ', 'ecab-taxi-booking-manager'); ?></h4>
+							<h4><?php esc_html_e('Total:', 'ecab-taxi-booking-manager'); ?></h4>
 							<h6 class="mptbm_product_total_price"></h6>
 						</div>
 					</div>

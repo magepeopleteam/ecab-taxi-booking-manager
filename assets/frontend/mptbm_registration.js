@@ -4388,12 +4388,12 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
         if (customMessage) {
             // If there's a custom message, show it with quantity
             $summary.find('.mptbm_product_price').html(
-                'x' + updatedVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span>' + customMessage
+                '<span class="mptbm_product_qty">x' + updatedVal + '</span><span class="mptbm_product_price_value">' + customMessage + '</span>'
             );
         } else {
             // If no custom message, show price as before
             $summary.find('.mptbm_product_price').html(
-                'x' + updatedVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span>' + mp_price_format(transportPrice * updatedVal)
+                '<span class="mptbm_product_qty">x' + updatedVal + '</span><span class="mptbm_product_price_value">' + mp_price_format(transportPrice * updatedVal) + '</span>'
             );
         }
 
@@ -4453,11 +4453,11 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                 let customMessage = $this.closest('.mptbm_booking_item').find('.mptbm-custom-price-message').html();
                 if (customMessage) {
                     target_summary.find('.mptbm_product_price').html(
-                        'x' + quantityVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span> ' + customMessage
+                        '<span class="mptbm_product_qty">x' + quantityVal + '</span><span class="mptbm_product_price_value">' + customMessage + '</span>'
                     );
                 } else {
                     target_summary.find('.mptbm_product_price').html(
-                        'x' + quantityVal + ' <span style="color:#000;">|&nbsp;&nbsp;</span> ' + mp_price_format(transport_price * quantityVal)
+                        '<span class="mptbm_product_qty">x' + quantityVal + '</span><span class="mptbm_product_price_value">' + mp_price_format(transport_price * quantityVal) + '</span>'
                     );
                 }
 

@@ -74,16 +74,18 @@
 									</div>
 								</div>
 								<div class="mptbm_exsvc_meta">
-									<span class="mptbm_exsvc_price"><?php echo wp_kses_post(MP_Global_Function::format_price($service_price)); ?></span>
-									<div class="mptbm_exsvc_actions">
-										<div class="_mR_min_100" data-collapse="<?php echo esc_attr($ex_unique_id); ?>">
-											<?php MP_Custom_Layout::qty_input('mptbm_extra_service_qty[]', $service_price, 100, 1, 0); ?>
+									<div class="_mR_min_100" data-collapse="<?php echo esc_attr($ex_unique_id); ?>">
+										<?php MP_Custom_Layout::qty_input('mptbm_extra_service_qty[]', $service_price, 100, 1, 0); ?>
+									</div>
+									<div class="mptbm_exsvc_price_btn">
+										<span class="mptbm_exsvc_price"><?php echo wp_kses_post(MP_Global_Function::format_price($service_price)); ?></span>
+										<div class="mptbm_exsvc_actions">
+											<button type="button" class="mptbm_price_calculation mptbm_exsvc_select" data-extra-item data-collapse-target="<?php echo esc_attr($ex_unique_id); ?>" data-open-icon="far fa-check-circle" data-close-icon="" data-open-text="<?php esc_attr_e('Select', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_attr_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-add-class="mActive">
+												<input type="hidden" name="mptbm_extra_service[]" data-value="<?php echo esc_attr($service_name); ?>" value=""/>
+												<span data-text><?php esc_html_e('Select', 'ecab-taxi-booking-manager'); ?></span>
+												<span data-icon class="mL_xs"></span>
+											</button>
 										</div>
-										<button type="button" class="mptbm_price_calculation mptbm_exsvc_select" data-extra-item data-collapse-target="<?php echo esc_attr($ex_unique_id); ?>" data-open-icon="far fa-check-circle" data-close-icon="" data-open-text="<?php esc_attr_e('Select', 'ecab-taxi-booking-manager'); ?>" data-close-text="<?php esc_attr_e('Selected', 'ecab-taxi-booking-manager'); ?>" data-add-class="mActive">
-											<input type="hidden" name="mptbm_extra_service[]" data-value="<?php echo esc_attr($service_name); ?>" value=""/>
-											<span data-text><?php esc_html_e('Select', 'ecab-taxi-booking-manager'); ?></span>
-											<span data-icon class="mL_xs"></span>
-										</button>
 									</div>
 								</div>
 							</div>
@@ -135,7 +137,7 @@
 			<div class="mptbm_extra_service_summary"></div>
 			<div class="divider"></div>
 			<div class="justifyBetween">
-				<h4><?php esc_html_e('Total : ', 'ecab-taxi-booking-manager'); ?></h4>
+				<h4><?php esc_html_e('Total:', 'ecab-taxi-booking-manager'); ?></h4>
 				<h6 class="mptbm_product_total_price"></h6>
 			</div>
 		</div>

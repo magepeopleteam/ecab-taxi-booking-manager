@@ -265,147 +265,193 @@ div.mp_sticky_on_scroll.summary-box > div._dFlex_fdColumn > * + * {
     margin-top: 2px;
 }
 
-/* ----- Transportation  Details block ----- */
-div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary {
+/* ----- Transportation Details block -----
+   Every selector in this section is duplicated against
+   .mptbm_exsvc_summary_footer: extra_service.php renders a second copy of
+   this exact block (same .mptbm_transport_summary markup, kept in sync for
+   free since mptbm_registration.js updates every ".mptbm_transport_summary"
+   it finds) right above the "Book Now" button, as a mobile/scrolled-past
+   echo of the running total.
+   One consistent itemized-list pattern for every row (the main vehicle line,
+   each extra service, each stoppage): icon + dark label on the left, a muted
+   qty pill + dark price on the right, no per-row border - rhythm comes from
+   padding alone, with a single solid divider right before the total instead
+   of a dashed line under every item. Line prices are neutral dark, not
+   theme-colored - color is reserved for the grand total alone so it reads
+   as the one number that matters. */
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary,
+.mptbm_exsvc_summary_footer {
     margin-top: 14px;
-    padding: 14px 14px 12px;
-    background: linear-gradient(180deg, #f8fafc, #ffffff);
-    border: 1px dashed var(--color_theme_77);
-    border-radius: 12px;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
 }
-div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .divider {
-    margin: 8px 0 !important;
+/* The first child is a bare .divider meant to separate this card from
+   whatever precedes it in the sidebar - inside the card's own padding,
+   with nothing above it, it only ever read as a stray line under the
+   heading. */
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary > .divider:first-child,
+.mptbm_exsvc_summary_footer > .divider:first-child {
+    display: none;
 }
-div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h6 {
-    color: var(--color_theme) !important;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h6::before {
-    background: var(--color_theme);
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary ._textColor_4 {
-    color: #0f172a !important;
-    font-size: 14px;
-    font-weight: 600;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_name {
-    font-weight: 600;
-    color: #0f172a;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_price {
-    color: var(--color_theme) !important;
-    font-weight: 700;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .justifyBetween {
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h6._mB_xs,
+.mptbm_exsvc_summary_footer h6._mB_xs {
+    margin: 0 0 12px !important;
+    display: flex;
     align-items: center;
-    margin-top: 4px;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h4 {
-    margin: 0 !important;
-    font-size: 15px !important;
+    gap: 9px;
+    font-size: 14px !important;
     font-weight: 700 !important;
     color: #0f172a !important;
+    letter-spacing: -.01em;
+    text-transform: none !important;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h6._mB_xs::before,
+.mptbm_exsvc_summary_footer h6._mB_xs::before {
+    content: "";
+    width: 5px;
+    height: 16px;
+    border-radius: 3px;
+    background: var(--color_theme);
+    flex-shrink: 0;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary ._textColor_4,
+.mptbm_exsvc_summary_footer ._textColor_4,
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_extra_service_summary [data-extra-service] ._textLight_1_dFlex_flexWrap_justifyBetween,
+.mptbm_exsvc_summary_footer .mptbm_extra_service_summary [data-extra-service] ._textLight_1_dFlex_flexWrap_justifyBetween {
+    padding: 7px 0;
+    align-items: center;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_name,
+.mptbm_exsvc_summary_footer .mptbm_product_name,
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary [data-extra-service] ._dFlex_alignCenter > span:last-child,
+.mptbm_exsvc_summary_footer .mptbm_extra_service_summary [data-extra-service] ._dFlex_alignCenter > span:last-child {
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_price,
+.mptbm_exsvc_summary_footer .mptbm_product_price {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_qty,
+.mptbm_exsvc_summary_footer .mptbm_product_qty,
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .ex_service_qty,
+.mptbm_exsvc_summary_footer .ex_service_qty {
+    padding: 2px 8px;
+    color: #64748b !important;
+    background: #f1f5f9;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_price_value,
+.mptbm_exsvc_summary_footer .mptbm_product_price_value,
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary [data-extra-service] p > span.textTheme:last-child,
+.mptbm_exsvc_summary_footer .mptbm_extra_service_summary [data-extra-service] p > span.textTheme:last-child {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0f172a;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .justifyBetween,
+.mptbm_exsvc_summary_footer .justifyBetween {
+    align-items: center;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary > .divider,
+.mptbm_exsvc_summary_footer > .divider {
+    margin: 10px 0 !important;
+    border-color: #e5e7eb;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary h4,
+.mptbm_exsvc_summary_footer h4 {
+    margin: 0 !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    color: #64748b !important;
     text-transform: uppercase;
     letter-spacing: .04em;
 }
-div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_total_price {
-    font-size: 20px !important;
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_total_price,
+.mptbm_exsvc_summary_footer .mptbm_product_total_price {
+    font-size: 21px !important;
     font-weight: 800 !important;
     color: var(--color_theme) !important;
     letter-spacing: -.01em;
 }
+/* .mptbm_product_total_price is itself an <h6> (summary.php), so the
+   sidebar's generic "section heading" rule (div.mp_sticky_on_scroll
+   .summary-box h6::before - a small grey bullet dot, meant for labels like
+   "Passengers"/"Bags") was also painting that dot in front of the total
+   price. It's a value, not a section label - cancel the bullet here. */
+div.mp_sticky_on_scroll.summary-box .mptbm_product_total_price::before {
+    content: none;
+}
 
-/* ----- Icon styling for the check-square in transport row ----- */
-div.mp_sticky_on_scroll.summary-box ._textColor_4 .fas.fa-check-square {
+/* ----- Icon styling for the check-square in transport row -----
+   Cancel the inherited _mR_xs margin-right from the markup - spacing to the
+   label is driven solely by the parent's flex `gap` below, otherwise the
+   two stack and the extra-service rows end up with nearly double the gap
+   of the main vehicle row. */
+div.mp_sticky_on_scroll.summary-box ._textColor_4 .fas.fa-check-square,
+.mptbm_exsvc_summary_footer ._textColor_4 .fas.fa-check-square,
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary .fas.fa-check-square,
+.mptbm_exsvc_summary_footer .mptbm_extra_service_summary .fas.fa-check-square {
     color: var(--color_theme);
-    font-size: 14px;
+    font-size: 12px;
+    margin-right: 0 !important;
+    flex: 0 0 auto;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary ._textColor_4 ._dFlex_alignCenter,
+.mptbm_exsvc_summary_footer ._textColor_4 ._dFlex_alignCenter {
+    gap: 6px;
 }
 
 /* ----- Extra service line items (Child Seat, Bouquet of Flowers, etc.) ----- */
-div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary {
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary,
+.mptbm_exsvc_summary_footer .mptbm_extra_service_summary {
     display: flex;
     flex-direction: column;
-    margin-top: 2px;
 }
-div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary [data-extra-service] {
-    padding: 7px 0;
-    border-bottom: 1px dashed rgba(15, 23, 42, .08);
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary [data-extra-service]:last-of-type {
-    border-bottom: 0;
-    padding-bottom: 0;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary [class*="_dFlex_flexWrap_justifyBetween"] {
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary [class*="_dFlex_flexWrap_justifyBetween"],
+.mptbm_exsvc_summary_footer .mptbm_extra_service_summary [class*="_dFlex_flexWrap_justifyBetween"] {
     align-items: center;
     gap: 10px;
 }
-div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary ._dFlex_alignCenter {
-    gap: 7px;
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary ._dFlex_alignCenter,
+.mptbm_exsvc_summary_footer .mptbm_extra_service_summary ._dFlex_alignCenter {
+    gap: 6px;
     min-width: 0;
     flex: 1 1 auto;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary ._dFlex_alignCenter > span:last-child {
-    overflow: hidden;
-    color: #334155 !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary .fas.fa-check-square {
-    flex: 0 0 auto;
-    color: var(--color_theme);
-    font-size: 12px;
 }
 
 /* ----- Stoppage line items - same treatment as the extra service rows above,
    so a customer sees which stop costs what instead of one combined total. ----- */
-div.mp_sticky_on_scroll.summary-box .mptbm_stoppage_price_detail {
+div.mp_sticky_on_scroll.summary-box .mptbm_stoppage_price_detail,
+.mptbm_exsvc_summary_footer .mptbm_stoppage_price_detail {
     display: flex;
     flex-direction: column;
-    margin-top: 2px;
 }
-div.mp_sticky_on_scroll.summary-box .mptbm_stoppage_price_detail > div {
+div.mp_sticky_on_scroll.summary-box .mptbm_stoppage_price_detail > div,
+.mptbm_exsvc_summary_footer .mptbm_stoppage_price_detail > div {
     padding: 7px 0;
-    border-bottom: 1px dashed rgba(15, 23, 42, .08);
     color: #334155;
     font-size: 13px;
     font-weight: 500;
 }
-div.mp_sticky_on_scroll.summary-box .mptbm_stoppage_price_detail > div:last-of-type {
-    border-bottom: 0;
-    padding-bottom: 0;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary p {
+div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary p,
+.mptbm_exsvc_summary_footer .mptbm_extra_service_summary p {
     display: flex;
     flex: 0 0 auto;
     align-items: center;
-    gap: 9px;
+    gap: 8px;
     margin: 0 !important;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary .ex_service_qty {
-    padding: 1px 7px !important;
-    color: #64748b !important;
-    background: #f1f5f9;
-    border-radius: 999px;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary p > span.textTheme:last-child {
-    position: relative;
-    padding-left: 9px;
-    color: #0f172a !important;
-    font-size: 13.5px !important;
-    font-weight: 700 !important;
-}
-div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary p > span.textTheme:last-child::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 1px;
-    height: 11px;
-    background: rgba(15, 23, 42, .15);
-    transform: translateY(-50%);
 }
 
 /* ----- "Previous" button ----- */
@@ -447,7 +493,8 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
         padding: 18px 16px;
     }
     div.mp_sticky_on_scroll.summary-box p { font-size: 13px !important; }
-    div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_total_price { font-size: 18px !important; }
+    div.mp_sticky_on_scroll.summary-box .mptbm_transport_summary .mptbm_product_total_price,
+    .mptbm_exsvc_summary_footer .mptbm_product_total_price { font-size: 18px !important; }
 }
 
 /* ============================================
@@ -629,7 +676,12 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     color: #64748b;
 }
 
-/* ----- Right column: price + Book Now + View Details ----- */
+/* ----- Right column: price + Book Now + View Details -----
+   align-items:flex-end (not stretch) so the buttons below shrink-wrap to
+   their own label instead of being stretched to fill this column's full
+   200px - they looked oversized/"long" relative to short labels like
+   "Select Car". Price stays flush right either way (its own
+   align-items:flex-end !important already right-aligns its text). */
 .mptbm_transport_search_area .mptbm_vehicle_cta {
     flex: 0 0 200px;
     width: 200px;
@@ -637,7 +689,7 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     min-width: 0;
     display: flex !important;
     flex-direction: column !important;
-    align-items: stretch;
+    align-items: flex-end;
     justify-content: flex-start;
     gap: 10px;
     border-left: 1px solid rgba(15, 23, 42, 0.06);
@@ -740,14 +792,17 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     text-overflow: ellipsis;
 }
 
-/* ----- CTA row: full-width "Select Car" button ----- */
+/* ----- CTA row: shrink-wrapped "Select Car" button -----
+   width:auto (not 100%) on the row/container/button together - the column
+   is align-items:flex-end now (see .mptbm_vehicle_cta above), but that only
+   has anything to shrink to if nothing downstream still forces full width. */
 .mptbm_transport_search_area .mptbm_vehicle_cta_row {
     display: flex;
-    width: 100%;
+    width: auto;
 }
 .mptbm_transport_search_area .mptbm-button-container {
     display: flex;
-    width: 100%;
+    width: auto;
     position: relative;
 }
 /* Simpler/more compact than the old version: less horizontal padding (was
@@ -757,7 +812,7 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
    visually dominating the card. */
 .mptbm_transport_search_area button._mpBtn_xs.mptbm_transport_select,
 .mptbm_transport_search_area button._mpBtn_xs.mptbm_out_of_stock {
-    width: 100%;
+    width: auto;
     white-space: nowrap;
     padding: 12px 20px !important;
     background: var(--color_theme) !important;
@@ -821,7 +876,7 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     align-items: center;
     justify-content: center;
     gap: 6px;
-    width: 100%;
+    width: auto;
     margin-top: 0;
     padding: 11px 20px;
     background: #ffffff;
@@ -833,6 +888,19 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     text-transform: none;
     cursor: pointer;
     transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+/* List view only: both buttons shrink-wrap to their own label (see
+   .mptbm_vehicle_cta_row/.mptbm-button-container/button width:auto above),
+   so "Select Car"/"Selected" and "View Details" naturally land at different
+   widths - "View Details" carries a chevron icon and is the longer label
+   (~130px vs ~105-125px). A shared min-width, picked to fit the longest of
+   the three, makes both buttons match instead of each sizing independently.
+   Scoped to list view specifically: grid view's buttons sit side by side in
+   a much narrower card and already size themselves to fit that row. */
+.mp_sticky_depend_area.mptbm_view_list .mptbm_vehicle_cta button._mpBtn_xs.mptbm_transport_select,
+.mp_sticky_depend_area.mptbm_view_list .mptbm_vehicle_cta button._mpBtn_xs.mptbm_out_of_stock,
+.mp_sticky_depend_area.mptbm_view_list .mptbm_vehicle_cta button.mptbm_view_details_toggle {
+    min-width: 132px;
 }
 .mptbm_transport_search_area button.mptbm_view_details_toggle span[data-label] {
     color: inherit;
@@ -885,6 +953,19 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
         padding-left: 0;
         border-top: 1px solid rgba(15, 23, 42, 0.06);
         padding-top: 14px;
+        /* Desktop's align-items:flex-end (above) shrinks the buttons to
+           their label width against the 200px column's right edge - on a
+           full-width mobile card that would strand them as a narrow island
+           on the right instead of full-width tap targets, so go back to
+           stretch + explicit full width here. */
+        align-items: stretch;
+    }
+    .mptbm_transport_search_area .mptbm_vehicle_cta_row,
+    .mptbm_transport_search_area .mptbm-button-container,
+    .mptbm_transport_search_area button._mpBtn_xs.mptbm_transport_select,
+    .mptbm_transport_search_area button._mpBtn_xs.mptbm_out_of_stock,
+    .mptbm_transport_search_area button.mptbm_view_details_toggle {
+        width: 100%;
     }
     .mptbm_transport_search_area .mptbm_vehicle_price_col {
         align-items: center !important;
@@ -997,7 +1078,7 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
 .mptbm_exsvc_top {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 16px;
     width: 100%;
 }
@@ -1005,12 +1086,28 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     flex: 1;
     min-width: 0;
 }
+/* Row: the quantity stepper (shown only once a service is selected) sits to
+   the left of the price+button pair. The qty stepper used to live inside
+   .mptbm_exsvc_actions, as a sibling of the button - appearing/disappearing
+   there changed .mptbm_exsvc_actions's own width, and since price was
+   centered over that same width (align-items:center), selecting an item
+   visibly shifted the price out from over the button. Splitting them into
+   separate siblings here, with price+button now centered only within their
+   own .mptbm_exsvc_price_btn (next rule) - a group whose width never
+   includes the stepper - keeps price locked above the button regardless of
+   whether the stepper is showing. */
 .mptbm_exsvc_meta {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+    flex-direction: row;
+    align-items: center;
     gap: 10px;
     flex-shrink: 0;
+}
+.mptbm_exsvc_price_btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
 }
 
 /* Title */
@@ -1079,8 +1176,20 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     gap: 10px;
 }
 
-/* Quantity Control */
-.mptbm_exsvc_actions .qtyIncDec,
+/* Quantity Control
+   The qty stepper's own markup is `.groupContent.qtyIncDec` (MP_Custom_Layout::
+   qty_input()), and mp_global's core mp_style.css has a generic
+   `.mpStyle .groupContent { background: var(--color_theme); ... }` (2-class
+   specificity) that would otherwise paint every groupContent - including
+   this one - in the solid theme-green "selected pill" look. The bare
+   `.qtyIncDec` selector below is only 1 class, too weak to beat that; it
+   used to be paired with the then-correct `.mptbm_exsvc_actions .qtyIncDec`
+   (2 classes) which won the specificity tie by loading later in the
+   cascade. Moving the qty stepper out of .mptbm_exsvc_actions (see
+   .mptbm_exsvc_meta above) broke that pairing - .mptbm_extra_service
+   (the stable outer wrapper the whole panel loads into, regardless of
+   internal structure) restores the same 2-class specificity. */
+.mptbm_extra_service .qtyIncDec,
 .qtyIncDec {
     display: flex;
     align-items: center;
@@ -1091,8 +1200,8 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     gap: 4px;
     height: 38px;
 }
-.mptbm_exsvc_actions .decQty,
-.mptbm_exsvc_actions .incQty,
+.mptbm_extra_service .decQty,
+.mptbm_extra_service .incQty,
 .qtyIncDec .decQty,
 .qtyIncDec .incQty {
     cursor: pointer;
@@ -1107,20 +1216,20 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     transition: background .15s ease, color .15s ease;
     flex-shrink: 0;
 }
-.mptbm_exsvc_actions .decQty:hover,
-.mptbm_exsvc_actions .incQty:hover,
+.mptbm_extra_service .decQty:hover,
+.mptbm_extra_service .incQty:hover,
 .qtyIncDec .decQty:hover,
 .qtyIncDec .incQty:hover {
     background: #e2e8f0;
     color: #334155;
 }
-.mptbm_exsvc_actions .decQty .fas,
-.mptbm_exsvc_actions .incQty .fas,
+.mptbm_extra_service .decQty .fas,
+.mptbm_extra_service .incQty .fas,
 .qtyIncDec .decQty .fas,
 .qtyIncDec .incQty .fas {
     margin: 0;
 }
-.mptbm_exsvc_actions .qtyIncDec input[type="text"],
+.mptbm_extra_service .qtyIncDec input[type="text"],
 .qtyIncDec input[type="text"] {
     border: none;
     background: transparent;
@@ -1148,7 +1257,7 @@ button.mptbm_price_calculation.mptbm_exsvc_select {
     background: linear-gradient(135deg, var(--color_theme) 0%, var(--color_theme_cc) 100%) !important;
     color: var(--color_theme_alter) !important;
     border: 0 !important;
-    border-radius: 10px !important;
+    border-radius: 999px !important;
     font-size: 13px !important;
     font-weight: 700 !important;
     letter-spacing: .02em;
@@ -1162,6 +1271,19 @@ button.mptbm_price_calculation.mptbm_exsvc_select {
 .mptbm_exsvc_select span[data-text] {
     text-transform: uppercase;
     letter-spacing: .02em;
+}
+/* The icon span is always in the DOM (JS only toggles its fa- classes on
+   select/deselect) so with flex's `gap` it reserved 6px even while empty,
+   nudging the "Select" label off-center - same root cause as the vehicle
+   Select Car button. Hide the slot until a checkmark class is actually
+   toggled on (.mActive, added alongside the icon class by the same click
+   handler) so the label centers cleanly. */
+.mptbm_exsvc_select [data-icon] {
+    display: none;
+}
+.mptbm_exsvc_select.mActive [data-icon] {
+    display: inline-flex;
+    align-items: center;
 }
 .mptbm_exsvc_select:hover {
     transform: translateY(-1px);
