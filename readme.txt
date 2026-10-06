@@ -219,6 +219,9 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.1.4 - 2026-10-06 =
+* Fix: Updated the bundled Appneck SDK to the latest version. The SDK could previously contact Appneck's server before a site owner answered the telemetry consent prompt; it now only registers or sends any data after consent is explicitly accepted.
+
 = 2.1.3 - 2026-10-05 =
 * New: Updated the bundled Appneck SDK to the latest version.
 
