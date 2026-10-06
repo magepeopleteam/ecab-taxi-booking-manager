@@ -108,17 +108,14 @@
                 setGeoValue(position.lat(), position.lng());
             });
 
-            if (!searchBound && google.maps.places) {
-                const autocomplete = new google.maps.places.Autocomplete($geoSearch[0]);
-                autocomplete.addListener('place_changed', function () {
-                    const place = autocomplete.getPlace();
-                    if (place && place.geometry) {
-                        const location = place.geometry.location;
-                        map.setCenter(location);
-                        map.setZoom(15);
-                        marker.setPosition(location);
-                        setGeoValue(location.lat(), location.lng());
-                    }
+            if (!searchBound && typeof setupGoogleLocationSearch === 'function') {
+                setupGoogleLocationSearch('mptbm-locations-geo-search', map, function (newLat, newLng, displayName) {
+                    const location = { lat: newLat, lng: newLng };
+                    map.setCenter(location);
+                    map.setZoom(15);
+                    marker.setPosition(location);
+                    setGeoValue(newLat, newLng);
+                    $geoSearch.val(displayName);
                 });
                 searchBound = true;
             }

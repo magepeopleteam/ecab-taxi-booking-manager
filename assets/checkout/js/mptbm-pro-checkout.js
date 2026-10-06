@@ -289,10 +289,15 @@
 					$('.mpStyles .checkout input[name="new_name"]').val(field.name);
 					$('.mpStyles .checkout input[name="name"]').val(field.name);
 					$('.mpStyles .checkout input[name="name"]').prop('disabled', true);
-					var option = new Option(field.attributes.type, field.attributes.type,'1','1');
+					// Core WooCommerce fields (billing_address_1, billing_address_2, ...) carry
+					// no explicit type and rely on WooCommerce's own 'text' default. Posting the
+					// resulting undefined as new_type saved the field with an empty type, which
+					// WooCommerce renders as nothing while still validating it as required.
+					var field_type = field.attributes.type ? field.attributes.type : 'text';
+					var option = new Option(field_type, field_type,'1','1');
 					$('.mpStyles .checkout select#type').append(option);
 					$('.mpStyles .checkout select#type').prop('disabled', true);
-					$('.mpStyles .checkout input[name="new_type"]').val(field.attributes.type);
+					$('.mpStyles .checkout input[name="new_type"]').val(field_type);
 					$('.mpStyles .checkout input[name="label"]').val(field.attributes.label);
 					$('.mpStyles .checkout input[name="priority"]').val(field.attributes.priority);
 					$('.mpStyles .checkout input[name="class"]').val(field.attributes.class);

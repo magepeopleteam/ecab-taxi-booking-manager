@@ -16,12 +16,26 @@ if (!class_exists('MPTBM_Dependencies')) {
 		$this->init_rest_api();
 		add_action('admin_enqueue_scripts', array($this, 'admin_enqueue'), 80);
 		add_action('wp_enqueue_scripts', array($this, 'frontend_enqueue'), 80);
+		// Runs last so every other theme/plugin has already registered its scripts.
+		add_action('wp_enqueue_scripts', array($this, 'prevent_duplicate_google_maps_api'), 9999);
+		add_action('admin_enqueue_scripts', array($this, 'prevent_duplicate_google_maps_api'), 9999);
 		add_action('admin_head', array($this, 'js_constant'), 5);
 		add_action('wp_head', array($this, 'js_constant'), 5);
 		
 		// Add AJAX handler for OpenStreetMap search
 		add_action('wp_ajax_mptbm_osm_search', array($this, 'osm_search_proxy'));
 		add_action('wp_ajax_nopriv_mptbm_osm_search', array($this, 'osm_search_proxy'));
+
+		// Display-only stop markers on Google Maps still geocode from the
+		// browser (a server-side call would silently fail for the common,
+		// more secure HTTP-referrer-restricted map key), but caching the
+		// result server-side means only the FIRST visitor to ever request a
+		// given name+area pays for that Google Geocoding call - everyone
+		// after gets a free cache hit, same safety property as OSM's proxy.
+		add_action('wp_ajax_mptbm_geocode_cache_get', array($this, 'geocode_cache_get'));
+		add_action('wp_ajax_nopriv_mptbm_geocode_cache_get', array($this, 'geocode_cache_get'));
+		add_action('wp_ajax_mptbm_geocode_cache_set', array($this, 'geocode_cache_set'));
+		add_action('wp_ajax_nopriv_mptbm_geocode_cache_set', array($this, 'geocode_cache_set'));
 		
 		// Whitelist Google Maps script from CookieAdmin
 		add_filter('script_loader_tag', array('MPTBM_Function', 'whitelist_google_maps_script'), 20, 3);
@@ -99,6 +113,57 @@ if (!class_exists('MPTBM_Dependencies')) {
             wp_enqueue_style('mage-icons', MPTBM_PLUGIN_URL . '/assets/mage-icon/css/mage-icon.css', array(), $this->asset_ver('assets/mage-icon/css/mage-icon.css'));
         }
 
+        /**
+         * Google's JS API may only be loaded once per page. Themes and plugins
+         * routinely enqueue their own copy - Divi ships a `google-maps-api`
+         * handle built from its own Theme Options key, which is blank on most
+         * installs and yields `maps/api/js?v=3&key&ver=x`. Two loads on one page
+         * trigger Google's "included multiple times" error, and the keyless one
+         * raises InvalidKeyMapError against the shared window.google.maps
+         * namespace - greying out every map on the page, ours included.
+         *
+         * Dropping the rival handle outright would break anything declaring it a
+         * dependency (Divi's own map module does). So re-register it as a
+         * srcless alias of our loader instead: dependents still resolve, no
+         * second request goes out, and everyone shares our instance - which
+         * carries places+drawing+geometry, a superset of what those modules ask
+         * for.
+         *
+         * Only runs when our own loader is actually on the page, so sites using
+         * OpenStreetMap or a disabled map are left completely untouched.
+         *
+         * @return void
+         */
+        public function prevent_duplicate_google_maps_api()
+        {
+            if (!wp_script_is('mptbm_map_api', 'enqueued')) {
+                return;
+            }
+            $scripts = wp_scripts();
+            if (!$scripts || empty($scripts->registered)) {
+                return;
+            }
+
+            // Collect first - re-registering while iterating would mutate the array.
+            $duplicates = array();
+            foreach ($scripts->registered as $handle => $script) {
+                if ('mptbm_map_api' === $handle || empty($script->src)) {
+                    continue;
+                }
+                if (false !== strpos($script->src, 'maps.googleapis.com/maps/api/js')) {
+                    $duplicates[$handle] = (array) $script->deps;
+                }
+            }
+
+            foreach ($duplicates as $handle => $deps) {
+                $deps   = array_diff($deps, array($handle, 'mptbm_map_api'));
+                $deps[] = 'mptbm_map_api';
+                wp_deregister_script($handle);
+                // src of false = dependency-only alias; WordPress prints no tag for it.
+                wp_register_script($handle, false, array_values($deps), null, true);
+            }
+        }
+
         public function admin_enqueue()
         {
             $this->global_enqueue();
@@ -119,6 +184,12 @@ if (!class_exists('MPTBM_Dependencies')) {
 			wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_admin.js'), true);
 			wp_localize_script('mptbm_admin', 'mptbm_admin_security', array(
 				'extra_service_nonce' => wp_create_nonce('mptbm_get_extra_service'),
+				// The area-pricing save in mptbm_admin.js referenced a global (MPTBM_Ajax)
+				// that nothing ever localised, so it threw and the request never left the
+				// browser - while the handler itself accepted anything. Both halves are
+				// fixed together: the token is issued here and verified in
+				// MPTBM_Price_Settings::mptbm_operation_area_price_data_set().
+				'operation_area_price_nonce' => wp_create_nonce('mptbm_operation_area_price'),
 			));
             wp_enqueue_script('mptbm_tooltip', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_tooltip.js', array('jquery', 'jquery-ui-tooltip'), $this->asset_ver('assets/admin/mptbm_tooltip.js'), true);
             wp_enqueue_script('mptbm_transportation_lists', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_transportation_lists.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_transportation_lists.js'), true);
@@ -151,8 +222,9 @@ if (!class_exists('MPTBM_Dependencies')) {
             $is_settings_page = ($screen && isset($_GET['page']) && $_GET['page'] === 'mptbm_settings_page');
             $is_rent_page = ($screen && $screen->post_type === 'mptbm_rent');
             $is_locations_screen = ($screen && ($screen->id === 'edit-locations' || $screen->taxonomy === 'locations'));
-            
-            if (($is_operation_areas_page || $is_settings_page || $is_rent_page || $is_locations_screen)) {
+            $is_routes_page = ($screen && $screen->post_type === 'mptbm_routes');
+
+            if (($is_operation_areas_page || $is_settings_page || $is_rent_page || $is_locations_screen || $is_routes_page)) {
                 if ($map_type === 'openstreetmap') {
                     // Leaflet core - must load BEFORE mptbm_admin_map
                     wp_enqueue_style('leaflet', 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css', array(), '1.9.4');
@@ -193,12 +265,38 @@ if (!class_exists('MPTBM_Dependencies')) {
             wp_enqueue_script('mptbm_script', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_script.js', array('jquery'), time(), true);
             wp_enqueue_script('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.js', array('jquery', 'flatpickr'), time(), true);
             wp_enqueue_style('mptbm_registration', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_registration.css', array(), time());
+            // Add Stoppage - kept in its own JS/CSS rather than merged into
+            // mptbm_registration.* since it's an independent, separately
+            // maintained feature (see Admin/MPTBM_Stoppages_Manager.php).
+            wp_enqueue_script('mptbm_stoppages', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_stoppages.js', array('jquery', 'mptbm_registration'), $this->asset_ver('assets/frontend/mptbm_stoppages.js'), true);
+            wp_enqueue_style('mptbm_stoppages', MPTBM_PLUGIN_URL . '/assets/frontend/mptbm_stoppages.css', array(), $this->asset_ver('assets/frontend/mptbm_stoppages.css'));
+            wp_localize_script('mptbm_stoppages', 'mptbm_stoppages_i18n', array(
+                'add' => esc_html__('Add this stop', 'ecab-taxi-booking-manager'),
+                'remove' => esc_html__('Remove this stop', 'ecab-taxi-booking-manager'),
+                'free' => esc_html__('Free', 'ecab-taxi-booking-manager'),
+                'badges' => array(
+                    'most_popular' => esc_html__('Most popular', 'ecab-taxi-booking-manager'),
+                    'recommended'  => esc_html__('Recommended', 'ecab-taxi-booking-manager'),
+                ),
+            ));
 			
 			// Localize script for AJAX
 			wp_localize_script('mptbm_registration', 'mptbm_ajax', array(
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'osm_nonce' => wp_create_nonce('mptbm_osm_search'),
-				'search_nonce' => wp_create_nonce('mptbm_transport_search')
+				'search_nonce' => wp_create_nonce('mptbm_transport_search'),
+				'geocode_cache_nonce' => wp_create_nonce('mptbm_geocode_cache'),
+				// Strings for the pickup field's "Use my location" link
+				// (templates/registration/get_details.php). Kept here rather than
+				// hardcoded in the JS so they follow the site's locale like the
+				// rest of the booking form.
+				'geo_i18n' => array(
+					'locating'    => esc_html__('Locating…', 'ecab-taxi-booking-manager'),
+					'denied'      => esc_html__('Location permission was denied. Please enter the pickup address manually.', 'ecab-taxi-booking-manager'),
+					'unavailable' => esc_html__('Your location could not be determined. Please enter the pickup address manually.', 'ecab-taxi-booking-manager'),
+					'not_found'   => esc_html__('No address was found for your current position. Please enter the pickup address manually.', 'ecab-taxi-booking-manager'),
+					'outside'     => esc_html__('Your current location is outside the service area.', 'ecab-taxi-booking-manager'),
+				),
 			));
             
             // Font Awesome for template icons
@@ -223,6 +321,7 @@ if (!class_exists('MPTBM_Dependencies')) {
                     lat: <?php echo esc_js(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_latitude', '23.81234828905659')); ?>,
                     lng: <?php echo esc_js(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_longitude', '90.41069652669002')); ?>
                 };
+                const mptbm_auto_detect_location = "<?php echo esc_js(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_auto_detect_location', 'disable')); ?>";
                 const mp_map_options = {
                     componentRestrictions: {
                         country: "<?php echo esc_js(MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'BD')); ?>"
@@ -277,6 +376,19 @@ if (!class_exists('MPTBM_Dependencies')) {
 				'limit' => 5,
 				'lang' => 'en'
 			);
+			// Optional proximity bias (e.g. the trip's pickup/dropoff point) so an
+			// ambiguous name like "Notre-Dame Cathedral" - which exists in many
+			// cities - ranks the one actually near this trip first. Photon treats
+			// lat/lon as a soft preference, not a hard filter, so it never causes
+			// zero results the way appending a second place name to `q` would.
+			if (isset($_REQUEST['lat'], $_REQUEST['lon']) && is_numeric($_REQUEST['lat']) && is_numeric($_REQUEST['lon'])) {
+				$bias_lat = (float) $_REQUEST['lat'];
+				$bias_lon = (float) $_REQUEST['lon'];
+				if ($bias_lat >= -90 && $bias_lat <= 90 && $bias_lon >= -180 && $bias_lon <= 180) {
+					$search_params['lat'] = $bias_lat;
+					$search_params['lon'] = $bias_lon;
+				}
+			}
 			$cache_key = 'mptbm_osm_' . md5(wp_json_encode(array($search_params, $restrict_to_country, $country_code)));
 			$cached_results = get_transient($cache_key);
 			if (is_array($cached_results)) {
@@ -432,6 +544,72 @@ if (!class_exists('MPTBM_Dependencies')) {
 			
 			set_transient($cache_key, $results, 5 * MINUTE_IN_SECONDS);
 			wp_send_json_success($results);
+		}
+
+		/**
+		 * Shared cache-key builder for the Google geocode cache below - the
+		 * bias point is rounded to ~1km precision so nearby searches for the
+		 * same trip share one cache entry instead of fragmenting by exact
+		 * float coordinates, while still keeping genuinely different cities
+		 * (e.g. "Notre-Dame Cathedral" near Paris vs near Montreal) separate.
+		 */
+		private function geocode_cache_key($query, $bias_lat, $bias_lon) {
+			$rounded_lat = is_numeric($bias_lat) ? round((float) $bias_lat, 2) : '';
+			$rounded_lon = is_numeric($bias_lon) ? round((float) $bias_lon, 2) : '';
+			return 'mptbm_geocode_' . md5(strtolower($query) . '|' . $rounded_lat . '|' . $rounded_lon);
+		}
+
+		/**
+		 * Free, no-Google-call lookup a display-only stop marker's client-side
+		 * code checks BEFORE calling google.maps.Geocoder() - a cache hit here
+		 * means this exact name+area has already been resolved by an earlier
+		 * visitor, so this pageview spends no Google Geocoding API quota at all.
+		 */
+		public function geocode_cache_get() {
+			check_ajax_referer('mptbm_geocode_cache', 'nonce');
+
+			$query = isset($_REQUEST['q']) ? sanitize_text_field(wp_unslash($_REQUEST['q'])) : '';
+			if (strlen($query) < 2 || strlen($query) > 120) {
+				wp_send_json_error('No search query provided');
+				return;
+			}
+			$bias_lat = isset($_REQUEST['lat']) && is_numeric($_REQUEST['lat']) ? (float) $_REQUEST['lat'] : null;
+			$bias_lon = isset($_REQUEST['lon']) && is_numeric($_REQUEST['lon']) ? (float) $_REQUEST['lon'] : null;
+
+			$cached = get_transient($this->geocode_cache_key($query, $bias_lat, $bias_lon));
+			if (is_array($cached)) {
+				wp_send_json_success($cached);
+				return;
+			}
+			wp_send_json_error('Not cached');
+		}
+
+		/**
+		 * Stores a result the BROWSER already paid for (a real
+		 * google.maps.Geocoder() call) so every later visitor asking for the
+		 * same name near the same area gets it for free via the cache-get
+		 * above instead of triggering another billed Google call.
+		 */
+		public function geocode_cache_set() {
+			check_ajax_referer('mptbm_geocode_cache', 'nonce');
+
+			$query = isset($_REQUEST['q']) ? sanitize_text_field(wp_unslash($_REQUEST['q'])) : '';
+			$lat = isset($_REQUEST['result_lat']) ? (float) $_REQUEST['result_lat'] : null;
+			$lng = isset($_REQUEST['result_lng']) ? (float) $_REQUEST['result_lng'] : null;
+			if (strlen($query) < 2 || strlen($query) > 120 || $lat === null || $lng === null
+				|| $lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+				wp_send_json_error('Invalid data');
+				return;
+			}
+			$bias_lat = isset($_REQUEST['lat']) && is_numeric($_REQUEST['lat']) ? (float) $_REQUEST['lat'] : null;
+			$bias_lon = isset($_REQUEST['lon']) && is_numeric($_REQUEST['lon']) ? (float) $_REQUEST['lon'] : null;
+
+			$cache_key = $this->geocode_cache_key($query, $bias_lat, $bias_lon);
+			// Long-lived: a landmark's coordinates don't change, so once one
+			// visitor's browser has paid for the lookup there's no reason to
+			// make anyone pay for it again for months.
+			set_transient($cache_key, array('lat' => $lat, 'lng' => $lng), 90 * DAY_IN_SECONDS);
+			wp_send_json_success(true);
 		}
     }
     new MPTBM_Dependencies();

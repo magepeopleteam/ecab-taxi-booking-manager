@@ -30,8 +30,20 @@ if (!class_exists('MPTBM_Price_Settings')) {
 			$distance_price = MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
 			$time_price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 			$time_price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
+			$day_price = MP_Global_Function::get_post_info($post_id, 'mptbm_day_price');
 			$fixed_map_price = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_price');
 			$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+			// Route definitions (name + waypoints) now live once on the global
+			// mptbm_routes CPT (Routes admin menu) - this vehicle only stores
+			// which routes it offers and at what price (see route_price_item()).
+			$assigned_routes = MP_Global_Function::get_post_info($post_id, 'mptbm_assigned_routes', []);
+			$all_routes = get_posts([
+				'post_type'   => 'mptbm_routes',
+				'post_status' => 'publish',
+				'numberposts' => -1,
+				'orderby'     => 'title',
+				'order'       => 'ASC',
+			]);
 			$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
 			$fixed_map_route_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_route_price_info', []);
 			$terms_location_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
@@ -78,7 +90,10 @@ if (!class_exists('MPTBM_Price_Settings')) {
 			$fixed_hourly_selected = $price_based == 'fixed_hourly' ? 'selected' : '';
 			$fixed_hourly_selected = $price_based == 'fixed_hourly' ? 'selected' : '';
 			$fixed_hourly_selected = $display_map == 'disable' ? 'disabled' : $fixed_hourly_selected;
-			
+
+			$fixed_daily_selected = $price_based == 'fixed_daily' ? 'selected' : '';
+			$fixed_daily_selected = $display_map == 'disable' ? 'disabled' : $fixed_daily_selected;
+
 			$fixed_distance_selected = $price_based == 'fixed_distance' ? 'selected' : '';
 			$fixed_distance_selected = $display_map == 'disable' ? 'disabled' : $fixed_distance_selected;
 			
@@ -163,8 +178,10 @@ if (!class_exists('MPTBM_Price_Settings')) {
 								<option value="distance_duration" data-option-target data-option-target-multi="#mp_distance #mp_duration" <?php echo esc_attr($distance_duration_selected); ?>><?php esc_html_e('Distance + Duration as google map', 'ecab-taxi-booking-manager'); ?></option>
 								<option value="manual" data-option-target data-option-target-multi="#mp_manual" <?php echo esc_attr($price_based == 'manual' ? 'selected' : ''); ?>><?php esc_html_e('Manual as fixed Location', 'ecab-taxi-booking-manager'); ?></option>
 								<option value="fixed_hourly" data-option-target="#mp_duration" <?php echo esc_attr($fixed_hourly_selected); ?>><?php esc_html_e('Fixed Hourly', 'ecab-taxi-booking-manager'); ?></option>
+								<option value="fixed_daily" data-option-target="#mp_day" <?php echo esc_attr($fixed_daily_selected); ?>><?php esc_html_e('Fixed Daily', 'ecab-taxi-booking-manager'); ?></option>
 								<option value="fixed_distance" data-option-target data-option-target-multi="#mp_distance #mp_duration #mp_fixed_map #mp_fixed_map_routes" <?php echo esc_attr($fixed_distance_selected); ?>><?php esc_html_e('Fixed with Map', 'ecab-taxi-booking-manager'); ?></option>
 								<option value="fixed_zone" data-option-target data-option-target-multi="#mp_fixed_zone" <?php echo esc_attr($price_based == 'fixed_zone' ? 'selected' : ''); ?>><?php esc_html_e('Fixed Zone', 'ecab-taxi-booking-manager'); ?></option>
+								<option value="fixed_route" data-option-target data-option-target-multi="#mp_fixed_route" <?php echo esc_attr($price_based == 'fixed_route' ? 'selected' : ''); ?>><?php esc_html_e('Fixed Route (predefined named route)', 'ecab-taxi-booking-manager'); ?></option>
 							</select>
 						</div>
 					</label>
@@ -173,7 +190,7 @@ if (!class_exists('MPTBM_Price_Settings')) {
 					<label class="label">
 						<div>
 							<h6>
-								<?php esc_html_e('Price/KM', 'ecab-taxi-booking-manager'); ?>
+								<?php printf(esc_html__('Price/%s', 'ecab-taxi-booking-manager'), esc_html(MPTBM_Function::distance_unit_label())); ?>
 								<i class="fas fa-question-circle tooltip-icon" title="Price per kilometer is based on the selected pricing model: Distance (per km), Distance/Duration (per km or per hour), or Distance+Duration (combined distance and time charges)"></i>
 							</h6>
 							<span class="desc"><?php MPTBM_Settings::info_text('mptbm_km_price'); ?></span>
@@ -207,6 +224,16 @@ if (!class_exists('MPTBM_Price_Settings')) {
 							<span class="desc"><?php MPTBM_Settings::info_text('mptbm_hour_price'); ?></span>
 						</div>
 						<input class="formControl mp_price_validation" name="mptbm_hour_price" value="<?php echo esc_attr($time_price); ?>" type="text" placeholder="<?php esc_html_e('EX:10', 'ecab-taxi-booking-manager'); ?>" />
+					</label>
+				</section>
+
+				<section data-collapse="#mp_day" class="<?php echo esc_attr($price_based == 'fixed_daily' ? 'mActive' : ''); ?>">
+					<label class="label">
+						<div>
+							<h6><?php esc_html_e('Price/Day', 'ecab-taxi-booking-manager'); ?></h6>
+							<span class="desc"><?php esc_html_e('Flat rate charged per day for a Fixed Daily (multi-day rental) booking.', 'ecab-taxi-booking-manager'); ?></span>
+						</div>
+						<input class="formControl mp_price_validation" name="mptbm_day_price" value="<?php echo esc_attr($day_price); ?>" type="text" placeholder="<?php esc_html_e('EX:50', 'ecab-taxi-booking-manager'); ?>" />
 					</label>
 				</section>
 
@@ -244,6 +271,57 @@ if (!class_exists('MPTBM_Price_Settings')) {
 						<div class="my-2"></div>
 						<?php MP_Custom_Layout::add_new_button(esc_html__('Add New Price', 'ecab-taxi-booking-manager')); ?>
 						<?php $this->hidden_manual_price_item($location_terms); ?>
+					</div>
+				</section>
+
+				<!-- Fixed Route price -->
+				<section class="bg-light" style="margin-top: 20px;" data-collapse="#mp_fixed_route">
+					<h6><?php esc_html_e('Fixed Route Settings', 'ecab-taxi-booking-manager'); ?></h6>
+					<span>
+						<?php
+						printf(
+							/* translators: %s: link to the Routes admin menu */
+							esc_html__('Assign routes to this vehicle and set this vehicle\'s price for each. Routes themselves (name + stops) are created once under %s.', 'ecab-taxi-booking-manager'),
+							'<a href="' . esc_url(admin_url('edit.php?post_type=mptbm_routes')) . '" target="_blank">' . esc_html__('Routes', 'ecab-taxi-booking-manager') . '</a>'
+						);
+						?>
+					</span>
+				</section>
+				<section class="<?php echo esc_attr($price_based == 'fixed_route' ? 'mActive' : ''); ?>" data-collapse="#mp_fixed_route">
+					<div class="mp_settings_area">
+						<?php if (empty($all_routes)) : ?>
+							<p>
+								<?php
+								printf(
+									/* translators: %s: link to add a new route */
+									esc_html__('No routes exist yet. %s first, then come back here to assign it to this vehicle.', 'ecab-taxi-booking-manager'),
+									'<a href="' . esc_url(admin_url('edit.php?post_type=mptbm_routes')) . '" target="_blank">' . esc_html__('Create a route', 'ecab-taxi-booking-manager') . '</a>'
+								);
+								?>
+							</p>
+						<?php else : ?>
+							<table>
+								<thead>
+									<tr>
+										<th><?php esc_html_e('Route', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></th>
+										<th><?php esc_html_e('Price', 'ecab-taxi-booking-manager'); ?><span class="textRequired">&nbsp;*</span></th>
+										<th class="_w_100"><?php esc_html_e('Action', 'ecab-taxi-booking-manager'); ?></th>
+									</tr>
+								</thead>
+								<tbody class="mp_sortable_area mp_item_insert">
+									<?php
+									if (sizeof($assigned_routes) > 0) {
+										foreach ($assigned_routes as $assigned_route) {
+											$this->route_price_item($assigned_route, $all_routes);
+										}
+									}
+									?>
+								</tbody>
+							</table>
+							<div class="my-2"></div>
+							<?php MP_Custom_Layout::add_new_button(esc_html__('Assign Another Route', 'ecab-taxi-booking-manager')); ?>
+							<?php $this->hidden_route_price_item($all_routes); ?>
+						<?php endif; ?>
 					</div>
 				</section>
 
@@ -682,6 +760,50 @@ if (!class_exists('MPTBM_Price_Settings')) {
 			</tr>
 			<?php
 		}
+		// Static (not just an instance method) so the modern MPTBM_Rent_Custom_Editor
+		// screen can reuse this exact row markup too, without instantiating a second
+		// MPTBM_Price_Settings (which would re-register its save_post/tab-content
+		// hooks a second time).
+		public static function route_price_item($assigned_route = array(), $all_routes = array())
+		{
+			$assigned_route = $assigned_route && is_array($assigned_route) ? $assigned_route : array();
+			$selected_route_id = array_key_exists('route_id', $assigned_route) ? absint($assigned_route['route_id']) : 0;
+			$price = array_key_exists('price', $assigned_route) ? $assigned_route['price'] : '';
+		?>
+			<tr class="mp_remove_area">
+				<td>
+					<label>
+						<select name="mptbm_assigned_route_id[]" class="formControl">
+							<option value="" <?php echo esc_attr($selected_route_id ? '' : 'selected'); ?> disabled><?php esc_html_e('Select a route', 'ecab-taxi-booking-manager'); ?></option>
+							<?php foreach ($all_routes as $route_post) { ?>
+								<option value="<?php echo esc_attr($route_post->ID); ?>" <?php echo esc_attr($selected_route_id === $route_post->ID ? 'selected' : ''); ?>><?php echo esc_html($route_post->post_title); ?></option>
+							<?php } ?>
+						</select>
+					</label>
+				</td>
+				<td>
+					<label>
+						<input type="text" name="mptbm_assigned_route_price[]" class="formControl mp_price_validation" value="<?php echo esc_attr($price); ?>" placeholder="<?php esc_attr_e('EX:50', 'ecab-taxi-booking-manager'); ?>" />
+					</label>
+				</td>
+				<td>
+					<?php MP_Custom_Layout::move_remove_button(); ?>
+				</td>
+			</tr>
+		<?php
+		}
+		public static function hidden_route_price_item($all_routes = array())
+		{
+		?>
+			<div class="mp_hidden_content">
+				<table>
+					<tbody class="mp_hidden_item">
+						<?php self::route_price_item(array(), $all_routes); ?>
+					</tbody>
+				</table>
+			</div>
+		<?php
+		}
 		public function location_terms_price_item($location_terms = array(), $terms_location_prices = array())
 		{
 
@@ -812,6 +934,8 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				update_post_meta($post_id, 'mptbm_km_price', $distance_price);
 				$hour_price = isset($_POST['mptbm_hour_price']) ? sanitize_text_field($_POST['mptbm_hour_price']) : 0;
 				update_post_meta($post_id, 'mptbm_hour_price', $hour_price);
+				$day_price = isset($_POST['mptbm_day_price']) ? sanitize_text_field($_POST['mptbm_day_price']) : 0;
+				update_post_meta($post_id, 'mptbm_day_price', $day_price);
 				$fixed_map_price = isset($_POST['mptbm_fixed_map_price']) ? sanitize_text_field($_POST['mptbm_fixed_map_price']) : 0;
 				update_post_meta($post_id, 'mptbm_fixed_map_price', $fixed_map_price);
 				$manual_price_infos = array();
@@ -832,6 +956,28 @@ if (!class_exists('MPTBM_Price_Settings')) {
 				}
 
 				update_post_meta($post_id, 'mptbm_manual_price_info', $manual_price_infos);
+
+				// Route name/waypoints now live once on the global mptbm_routes CPT
+				// (Routes admin menu) - this vehicle only stores which route IDs it
+				// offers and its own price for each (route_id is re-validated against
+				// real published mptbm_routes posts, never trusted from POST directly).
+				$assigned_route_infos = array();
+				$assigned_route_ids = isset($_POST['mptbm_assigned_route_id']) ? array_map('absint', $_POST['mptbm_assigned_route_id']) : [];
+				$assigned_route_prices = isset($_POST['mptbm_assigned_route_price']) ? array_map('sanitize_text_field', $_POST['mptbm_assigned_route_price']) : [];
+
+				if (sizeof($assigned_route_ids) > 0) {
+					$count = 0;
+					foreach ($assigned_route_ids as $key => $route_id) {
+						$price = isset($assigned_route_prices[$key]) ? $assigned_route_prices[$key] : '';
+						if ($route_id && $price !== '' && get_post_type($route_id) === 'mptbm_routes') {
+							$assigned_route_infos[$count]['route_id'] = $route_id;
+							$assigned_route_infos[$count]['price'] = $price;
+							$count++;
+						}
+					}
+				}
+
+				update_post_meta($post_id, 'mptbm_assigned_routes', $assigned_route_infos);
 
 				$fixed_zone_price_infos = array();
 				// "Fixed Zone" pricing has two editor UIs posting under different field
@@ -1003,17 +1149,60 @@ if (!class_exists('MPTBM_Price_Settings')) {
 
         }
 
+        /**
+         * Save the per-operation-area pricing rows for one transport.
+         *
+         * SECURITY: this writes a value that feeds straight into the fare customers are
+         * charged (MPTBM_Function::get_price() reads mptbm_operation_area_pricing), so
+         * every part of the request has to be established before the write:
+         *
+         *  - The nonce proves the request came from the editor screen. The browser has
+         *    always sent one; nothing verified it, so the endpoint was reachable with any
+         *    logged-in session and a plain HTTP client.
+         *  - Authorisation is against THIS post. The previous current_user_can('edit_posts')
+         *    is a generic capability the built-in Contributor role also holds, so it
+         *    established nothing about the target: a contributor could rewrite the pricing
+         *    of an administrator's transport just by passing its post_id.
+         *  - The post type is checked, so an arbitrary post ID cannot be given plugin
+         *    pricing meta.
+         *  - The decoded payload is rebuilt field by field instead of being trusted as
+         *    sent.
+         */
         function mptbm_operation_area_price_data_set() {
 
-            if (!current_user_can('edit_posts')) {
+            check_ajax_referer('mptbm_operation_area_price', 'nonce');
+
+            $post_id = isset( $_POST['post_id'] ) ? absint( wp_unslash( $_POST['post_id'] ) ) : 0;
+
+            if ( ! $post_id || get_post_type( $post_id ) !== MPTBM_Function::get_cpt() ) {
+                wp_send_json_error('Invalid data');
+            }
+
+            if ( ! current_user_can( 'edit_post', $post_id ) ) {
                 wp_send_json_error('Permission denied');
             }
 
-            $post_id = isset( $_POST['post_id'] ) ? intval( wp_unslash($_POST['post_id'] ) ) : '';
-            $pricing = json_decode( sanitize_text_field( wp_unslash( $_POST['area_price_data'] ) ), true );
+            $raw = isset( $_POST['area_price_data'] )
+                ? json_decode( wp_unslash( $_POST['area_price_data'] ), true )
+                : null;
 
-            if ( !$post_id ) {
+            if ( ! is_array( $raw ) ) {
                 wp_send_json_error('Invalid data');
+            }
+
+            // Rebuilt rather than stored as sent: only the three price fields the editor
+            // produces survive, keyed the way get_area_based_pricing() keys them.
+            $pricing = [];
+            foreach ( $raw as $area_key => $row ) {
+                $area_key = sanitize_key( $area_key );
+                if ( $area_key === '' || ! is_array( $row ) ) {
+                    continue;
+                }
+                $pricing[ $area_key ] = [
+                    'fixed'    => isset( $row['fixed'] ) ? sanitize_text_field( $row['fixed'] ) : '',
+                    'per_km'   => isset( $row['per_km'] ) ? sanitize_text_field( $row['per_km'] ) : '',
+                    'per_hour' => isset( $row['per_hour'] ) ? sanitize_text_field( $row['per_hour'] ) : '',
+                ];
             }
 
             // Save to meta

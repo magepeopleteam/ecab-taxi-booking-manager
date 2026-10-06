@@ -93,6 +93,18 @@ jQuery(function ($) {
 	});
 
 	$(document).on('change', '#mptbm_map_start_date', function (e, meta) {
+		// Flatpickr fires "change" on every day click, including re-clicking
+		// whichever date is already selected - this unconditionally wiped
+		// whatever pickup time the visitor had already chosen even though the
+		// date itself never moved. Skip the rebuild when it's unchanged, same
+		// fix as mptbm_registration.js's copy of this handler (this file
+		// replaces that one via the .off() above, so it needs it too).
+		var selectedDateForGuard = $(this).val();
+		if ($(this).data('mptbmPrevStartDate') === selectedDateForGuard) {
+			return;
+		}
+		$(this).data('mptbmPrevStartDate', selectedDateForGuard);
+
 		var parent = $(this).closest('.mptbm_transport_search_area');
 
 		parent.find('#mptbm_map_start_time').siblings('.start_time_list').empty();
@@ -157,6 +169,13 @@ jQuery(function ($) {
 	});
 
 	$(document).on('change', '#mptbm_map_return_date', function () {
+		// Same re-click-fires-change guard as the start-date handler above.
+		var selectedReturnDateForGuard = $(this).val();
+		if ($(this).data('mptbmPrevReturnDate') === selectedReturnDateForGuard) {
+			return;
+		}
+		$(this).data('mptbmPrevReturnDate', selectedReturnDateForGuard);
+
 		var parent = $(this).closest('.mptbm_transport_search_area');
 		var enableReturnDiffDate = parent.find('[name="mptbm_enable_return_in_different_date"]').val();
 

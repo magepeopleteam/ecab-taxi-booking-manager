@@ -23,6 +23,7 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             'mptbm_rent_page_mptbm_settings_page',
             'mptbm_rent_page_mptbm_status_page',
             'mptbm_rent_page_mptbm_guideline_page',
+            'mptbm_rent_page_mptbm_pro_features_page',
         ];
 
         public function __construct() {
@@ -33,6 +34,7 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             add_action('admin_head', [ $this, 'print_metabox_reveal_style' ]);
             add_filter('admin_body_class', [ $this, 'add_body_class' ]);
             add_action('wp_ajax_mptbm_set_menu_layout_style', [ $this, 'ajax_set_menu_layout_style' ]);
+            add_action('wp_ajax_mptbm_ajax_save_transport', [ $this, 'ajax_save_transport' ]);
         }
 
         // SCREEN_IDS plus whatever add-on plugins register via this filter —
@@ -98,10 +100,20 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                     'icon' => 'fas fa-concierge-bell',
                     'link' => admin_url('edit.php?post_type=mptbm_extra_services'),
                 ],
+                'mptbm_stoppages' => [
+                    'label' => esc_html__('Stoppages', 'ecab-taxi-booking-manager'),
+                    'icon' => 'fas fa-map-signs',
+                    'link' => admin_url('edit.php?post_type=mptbm_stoppages'),
+                ],
                 'mptbm_operate_areas' => [
                     'label' => esc_html__('Operation Areas', 'ecab-taxi-booking-manager'),
                     'icon' => 'fas fa-draw-polygon',
                     'link' => admin_url('edit.php?post_type=mptbm_operate_areas'),
+                ],
+                'mptbm_routes' => [
+                    'label' => esc_html__('Routes', 'ecab-taxi-booking-manager'),
+                    'icon' => 'fas fa-route',
+                    'link' => admin_url('edit.php?post_type=mptbm_routes'),
                 ],
             ];
 
@@ -176,10 +188,22 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                 'link' => admin_url('edit.php?post_type=mptbm_extra_services'),
             ];
             $items[] = [
+                'slug' => 'mptbm_stoppages',
+                'label' => esc_html__('Stoppages', 'ecab-taxi-booking-manager'),
+                'icon' => 'fas fa-map-signs',
+                'link' => admin_url('edit.php?post_type=mptbm_stoppages'),
+            ];
+            $items[] = [
                 'slug' => 'mptbm_operate_areas',
                 'label' => esc_html__('Operation Areas', 'ecab-taxi-booking-manager'),
                 'icon' => 'fas fa-draw-polygon',
                 'link' => admin_url('edit.php?post_type=mptbm_operate_areas'),
+            ];
+            $items[] = [
+                'slug' => 'mptbm_routes',
+                'label' => esc_html__('Routes', 'ecab-taxi-booking-manager'),
+                'icon' => 'fas fa-route',
+                'link' => admin_url('edit.php?post_type=mptbm_routes'),
             ];
             $items[] = [
                 'slug' => 'mptbm_analytics_dashboard',
@@ -237,6 +261,17 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                 'icon' => 'fas fa-book',
                 'link' => $base_url . '&page=mptbm_guideline_page',
             ];
+            // Upgrade teaser - same self-guard as the "Bookings" item above;
+            // disappears from the sidebar the moment Pro is active.
+            if (!class_exists('MPTBM_Dependencies_Pro') && !class_exists('MPTBM_Plugin_Pro')) {
+                $items[] = [
+                    'slug' => 'mptbm_pro_features_page',
+                    'label' => esc_html__('Pro Features', 'ecab-taxi-booking-manager'),
+                    'icon' => 'fas fa-star',
+                    'link' => $base_url . '&page=mptbm_pro_features_page',
+                    'highlight' => true,
+                ];
+            }
 
             return $items;
         }
@@ -267,7 +302,7 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                     <?php foreach ($menu_items as $item) :
                         $is_active = ($current_page === $item['slug']);
                         $has_submenu = !empty($item['has_submenu']) && $is_active;
-                        $li_class = trim(($is_active ? 'is-active' : '') . ($has_submenu ? ' has-children' : ''));
+                        $li_class = trim(($is_active ? 'is-active' : '') . ($has_submenu ? ' has-children' : '') . (!empty($item['highlight']) ? ' mptbm-shell-menu-pro' : ''));
                         ?>
                         <li class="<?php echo esc_attr($li_class); ?>">
                             <a href="<?php echo esc_url($item['link']); ?>">
@@ -344,6 +379,101 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             return in_array($style, [ 'full', 'compact' ], true) ? $style : 'full';
         }
 
+        /**
+         * Save the complete native transportation edit form without reloading.
+         *
+         * WordPress's edit_post() remains the single save pipeline, so revisions,
+         * taxonomies and every existing save_post callback continue to behave the
+         * same as a normal Update/Publish request.
+         */
+        public function ajax_save_transport(): void {
+            if (!check_ajax_referer('mptbm_shell_nonce', 'nonce', false)) {
+                wp_send_json_error([ 'message' => esc_html__('The save session expired. Refresh the page and try again.', 'ecab-taxi-booking-manager') ], 403);
+            }
+
+            $post_id = isset($_POST['post_ID']) ? absint($_POST['post_ID']) : 0;
+            $post = $post_id ? get_post($post_id) : null;
+            if (!$post || $post->post_type !== MPTBM_Function::get_cpt()) {
+                wp_send_json_error([ 'message' => esc_html__('Invalid transportation.', 'ecab-taxi-booking-manager') ], 400);
+            }
+            if (!current_user_can('edit_post', $post_id)) {
+                wp_send_json_error([ 'message' => esc_html__('You are not allowed to edit this transportation.', 'ecab-taxi-booking-manager') ], 403);
+            }
+
+            $post_nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
+            $settings_nonce = isset($_POST['mptbm_transportation_type_nonce']) ? sanitize_text_field(wp_unslash($_POST['mptbm_transportation_type_nonce'])) : '';
+            if (!wp_verify_nonce($post_nonce, 'update-post_' . $post_id)
+                || !wp_verify_nonce($settings_nonce, 'mptbm_transportation_type_nonce')) {
+                wp_send_json_error([ 'message' => esc_html__('The save session expired. Refresh the page and try again.', 'ecab-taxi-booking-manager') ], 403);
+            }
+
+            $desired_status = isset($_POST['desired_status']) ? sanitize_key(wp_unslash($_POST['desired_status'])) : $post->post_status;
+            if (!in_array($desired_status, [ 'publish', 'draft', 'pending', 'private' ], true)) {
+                wp_send_json_error([ 'message' => esc_html__('Invalid transportation status.', 'ecab-taxi-booking-manager') ], 400);
+            }
+
+            // Remove the AJAX routing fields before handing the otherwise-native
+            // form payload to WordPress's standard post-edit pipeline.
+            unset($_POST['nonce'], $_POST['desired_status']);
+            $_POST['action'] = 'editpost';
+            $_POST['originalaction'] = 'editpost';
+            $_POST['post_status'] = $desired_status;
+            unset($_POST['publish'], $_POST['saveasdraft'], $_POST['saveasprivate'], $_POST['pending']);
+
+            // The native Publish box is hidden but still in the form, so its
+            // visibility radio ships with every save. Core's edit_post() applies
+            // that field BEFORE the button fields and, for 'private', forces
+            // post_status to private *and* makes _wp_translate_postdata() skip
+            // the 'publish' button entirely - so a Private vehicle could never
+            // be taken back to Public until visibility is realigned first.
+            if ($desired_status === 'private') {
+                $_POST['visibility'] = 'private';
+            } elseif ($desired_status === 'publish') {
+                $_POST['visibility'] = 'public';
+            }
+
+            if ($desired_status === 'publish') {
+                $_POST['publish'] = '1';
+            } elseif ($desired_status === 'draft') {
+                $_POST['saveasdraft'] = '1';
+            } elseif ($desired_status === 'private') {
+                $_POST['saveasprivate'] = '1';
+            } elseif ($desired_status === 'pending') {
+                $_POST['pending'] = '1';
+            }
+
+            require_once ABSPATH . 'wp-admin/includes/post.php';
+            $saved_id = edit_post($_POST);
+            if (!$saved_id) {
+                wp_send_json_error([ 'message' => esc_html__('The transportation could not be saved.', 'ecab-taxi-booking-manager') ], 500);
+            }
+
+            clean_post_cache($saved_id);
+            $saved_post = get_post($saved_id);
+            $is_published = $saved_post->post_status === 'publish';
+            $status_labels = [
+                'publish' => esc_html__('Published', 'ecab-taxi-booking-manager'),
+                'pending' => esc_html__('Pending', 'ecab-taxi-booking-manager'),
+                'private' => esc_html__('Private', 'ecab-taxi-booking-manager'),
+                'draft' => esc_html__('Draft', 'ecab-taxi-booking-manager'),
+            ];
+
+            wp_send_json_success([
+                'postId' => $saved_id,
+                'title' => get_the_title($saved_id),
+                'status' => $saved_post->post_status,
+                'statusLabel' => $status_labels[$saved_post->post_status] ?? ucfirst($saved_post->post_status),
+                'buttonLabel' => $is_published || $saved_post->post_status === 'private'
+                    ? esc_html__('Update', 'ecab-taxi-booking-manager')
+                    : esc_html__('Publish', 'ecab-taxi-booking-manager'),
+                'message' => esc_html__('Transportation saved successfully.', 'ecab-taxi-booking-manager'),
+                'editUrl' => get_edit_post_link($saved_id, 'raw'),
+                'previewUrl' => $is_published ? get_permalink($saved_id) : get_preview_post_link($saved_id),
+                'postNonce' => wp_create_nonce('update-post_' . $saved_id),
+                'savedAt' => current_time(get_option('time_format')),
+            ]);
+        }
+
         // The native Add/Edit Transportation screen (post.php/post-new.php for
         // mptbm_rent). WordPress renders this screen itself, so the topbar
         // chrome is injected via in_admin_header as a fixed overlay rather
@@ -392,6 +522,64 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             $settings['tinymce']['wp_autoresize_on'] = false;
 
             return $settings;
+        }
+
+        /**
+         * Status/visibility choices for the edit screen's split-button menu.
+         *
+         * WordPress's native Publish box - the only place its Public/Private
+         * visibility control lives - is hidden on this screen (see
+         * mptbm-shell.css), so without these items an admin had no way to take
+         * a vehicle from Private back to Public: the topbar's Update button
+         * deliberately preserves the current status. ajax_save_transport()
+         * already accepts every status listed here.
+         *
+         * Publish/Private are omitted for users who cannot publish (core's
+         * edit_post() would silently downgrade their request to Pending).
+         */
+        public static function get_status_menu_items(): array {
+            $items = array();
+            $post_type = get_post_type_object(MPTBM_Function::get_cpt());
+            $can_publish = $post_type && current_user_can($post_type->cap->publish_posts);
+
+            if ($can_publish) {
+                $items['publish'] = [
+                    'label' => __('Public', 'ecab-taxi-booking-manager'),
+                    'desc' => __('Visible & bookable by everyone', 'ecab-taxi-booking-manager'),
+                    'icon' => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"></circle></svg>',
+                ];
+                $items['private'] = [
+                    'label' => __('Private', 'ecab-taxi-booking-manager'),
+                    'desc' => __('Only visible to site admins', 'ecab-taxi-booking-manager'),
+                    'icon' => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"></rect><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>',
+                ];
+            }
+
+            $items['draft'] = [
+                'label' => __('Save Draft', 'ecab-taxi-booking-manager'),
+                'desc' => __('Hidden until published', 'ecab-taxi-booking-manager'),
+                'icon' => '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>',
+            ];
+
+            $items = apply_filters('mptbm_shell_status_menu_items', $items);
+
+            // Normalize, and keep the menu in lockstep with the statuses
+            // ajax_save_transport() actually accepts — an add-on can't add an
+            // item here that the save endpoint would then reject.
+            $allowed = [ 'publish', 'private', 'pending', 'draft' ];
+            $menu = array();
+            foreach ((array) $items as $status => $item) {
+                if (!in_array($status, $allowed, true) || !is_array($item) || empty($item['label'])) {
+                    continue;
+                }
+                $menu[$status] = [
+                    'label' => (string) $item['label'],
+                    'desc' => isset($item['desc']) ? (string) $item['desc'] : '',
+                    'icon' => isset($item['icon']) ? (string) $item['icon'] : '',
+                ];
+            }
+
+            return $menu;
         }
 
         public function render_edit_screen_chrome(): void {
@@ -443,11 +631,24 @@ if (!class_exists('MPTBM_Admin_Shell')) {
                         <button type="button" class="mptbm-split-publish__toggle" id="mptbm-edit-topbar-publish-toggle" aria-expanded="false" aria-haspopup="true" aria-label="<?php esc_attr_e('Toggle publish options', 'ecab-taxi-booking-manager'); ?>">
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                         </button>
-                        <div class="mptbm-split-publish__menu" role="menu" id="mptbm-edit-topbar-publish-menu">
-                            <button type="button" class="mptbm-split-publish__item mptbm-split-publish__draft" id="mptbm-edit-topbar-save-draft" role="menuitem">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                                <?php esc_html_e('Save Draft', 'ecab-taxi-booking-manager'); ?>
-                            </button>
+                        <div class="mptbm-split-publish__menu" role="menu" id="mptbm-edit-topbar-publish-menu" aria-label="<?php esc_attr_e('Status & visibility', 'ecab-taxi-booking-manager'); ?>">
+                            <div class="mptbm-split-publish__label" aria-hidden="true"><?php esc_html_e('Status & Visibility', 'ecab-taxi-booking-manager'); ?></div>
+                            <?php foreach (self::get_status_menu_items() as $status => $item) : ?>
+                                <button type="button"
+                                        class="mptbm-split-publish__item mptbm-split-publish__<?php echo esc_attr($status); ?><?php echo $status === $status_slug ? ' is-current' : ''; ?>"
+                                        <?php echo $status === 'draft' ? 'id="mptbm-edit-topbar-save-draft"' : ''; ?>
+                                        data-status="<?php echo esc_attr($status); ?>"
+                                        role="menuitemradio"
+                                        aria-checked="<?php echo $status === $status_slug ? 'true' : 'false'; ?>">
+                                    <?php echo $item['icon']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static inline SVG ?>
+                                    <span class="mptbm-split-publish__item-text">
+                                        <span class="mptbm-split-publish__item-title"><?php echo esc_html($item['label']); ?></span>
+                                        <?php if ($item['desc'] !== '') : ?>
+                                            <span class="mptbm-split-publish__item-desc"><?php echo esc_html($item['desc']); ?></span>
+                                        <?php endif; ?>
+                                    </span>
+                                </button>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
@@ -495,6 +696,10 @@ if (!class_exists('MPTBM_Admin_Shell')) {
             wp_localize_script('mptbm-shell', 'mptbmShell', [
                 'ajaxUrl' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('mptbm_shell_nonce'),
+                'saving' => esc_html__('Saving…', 'ecab-taxi-booking-manager'),
+                'saved' => esc_html__('Saved', 'ecab-taxi-booking-manager'),
+                'saveError' => esc_html__('The transportation could not be saved. Please try again.', 'ecab-taxi-booking-manager'),
+                'unsavedWarning' => esc_html__('You have unsaved transportation changes.', 'ecab-taxi-booking-manager'),
             ]);
         }
     }

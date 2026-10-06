@@ -395,8 +395,18 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
         if (is_array($operation_area_ids)) {
             $is_in_any_area = false;
             $transport_operation_type = get_post_meta($post_id, 'mptbm_operation_area_type', true);
+            // Inclusive vehicles resolve to $price_based === 'dynamic' for search matching
+            // (see MPTBM_Transport_Search::vehicle_search_price_mode()), so without this
+            // flag they'd fall through to the generic "both pickup and dropoff must be in
+            // area" branch below - even when the admin picked "Pickup In" - and that branch
+            // relies on a client-side geolib check that's broken (coordinates get
+            // wp_json_encode()'d as an already-JSON string, so it always evaluates false).
+            // Scoped to Inclusive only: distance/duration/distance_duration keep their
+            // existing (unfixed) behavior untouched.
+            $vehicle_price_based_meta = get_post_meta($post_id, 'mptbm_price_based', true);
+            $is_inclusive_dynamic = ($price_based === 'dynamic' && $vehicle_price_based_meta === 'inclusive');
             foreach ($operation_area_ids as $operation_area_id) {
-                if ($transport_operation_type === 'fixed-map-operation-area-type' && $price_based === 'fixed_map') {
+                if ($transport_operation_type === 'fixed-map-operation-area-type' && ($price_based === 'fixed_map' || $is_inclusive_dynamic)) {
                     // Get coordinates for this area dynamically
                     $area_type = get_post_meta($operation_area_id, 'mptbm-operation-type', true);
                     $coord_key = 'mptbm-coordinates-three';
@@ -414,8 +424,8 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                             $operation_area_coordinates[] = ["latitude" => $flat_operation_area_coordinates[$i], "longitude" => $flat_operation_area_coordinates[$i + 1]];
                         }
 
-                        $start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : json_decode($start_place_coordinates, true);
-                        $end_coords = is_array($end_place_coordinates) ? $end_place_coordinates : json_decode($end_place_coordinates, true);
+                        $start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : (json_decode($start_place_coordinates, true) ?: json_decode(stripslashes($start_place_coordinates), true));
+                        $end_coords = is_array($end_place_coordinates) ? $end_place_coordinates : (json_decode($end_place_coordinates, true) ?: json_decode(stripslashes($end_place_coordinates), true));
 
                         $start_in_area = false;
                         $end_in_area = false;
@@ -425,6 +435,11 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                         if ($start_in_area) {
                             $is_in_any_area = true;
                             $_SESSION["mptbm_fixed_distance_match_" . $post_id] = $end_in_area ? 'full' : 'partial';
+                            if ($is_inclusive_dynamic) {
+                                // Lets get_price()'s Inclusive branch look up this area's
+                                // per_km/per_hour override instead of the vehicle's flat rate.
+                                $_SESSION["mptbm_operation_area_match_" . $post_id] = $operation_area_id;
+                            }
                             ?>
                             <script>
                                 var selectorClass = `.mptbm_booking_item_<?php echo $post_id; ?>`;
@@ -498,6 +513,32 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                         for ($i = 0; $i < count($flat_operation_area_coordinates); $i += 2) {
                             $operation_area_coordinates[] = ["latitude" => $flat_operation_area_coordinates[$i], "longitude" => $flat_operation_area_coordinates[$i + 1]];
                         }
+                        if ($is_inclusive_dynamic) {
+                            // Reliable PHP-side "Both In" check for Inclusive vehicles only -
+                            // the JS geolib fallback below (used by distance/duration/
+                            // distance_duration) is left exactly as-is.
+                            // Coordinates normally arrive as a real PHP array here (jQuery
+                            // serializes the JS {latitude,longitude} object with bracket
+                            // notation), but fall back to decoding a JSON-string form too -
+                            // trying it raw first, then stripslashes()'d, since WordPress's
+                            // wp_magic_quotes() slashes $_POST and a plain json_decode() of
+                            // that slashed string silently returns null.
+                            $inclusive_start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : (json_decode($start_place_coordinates, true) ?: json_decode(stripslashes($start_place_coordinates), true));
+                            $inclusive_end_coords = is_array($end_place_coordinates) ? $end_place_coordinates : (json_decode($end_place_coordinates, true) ?: json_decode(stripslashes($end_place_coordinates), true));
+                            $inclusive_start_in = is_array($inclusive_start_coords) ? pointInPolygon($inclusive_start_coords, $operation_area_coordinates) : false;
+                            $inclusive_end_in = is_array($inclusive_end_coords) ? pointInPolygon($inclusive_end_coords, $operation_area_coordinates) : false;
+                            if ($inclusive_start_in && $inclusive_end_in) {
+                                $is_in_any_area = true;
+                                $_SESSION["mptbm_operation_area_match_" . $post_id] = $operation_area_id;
+                                ?>
+                                <script>
+                                    var selectorClass = `.mptbm_booking_item_<?php echo $post_id; ?>`;
+                                    jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
+                                    document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                                </script>
+                                <?php
+                            }
+                        } else {
                         ?>
                         <script>
                             var operation_area_coordinates = <?php echo wp_json_encode($operation_area_coordinates); ?>;
@@ -512,6 +553,7 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                                 document.cookie = selectorClass + '=' + selectorClass + ";path=/";
                                 <?php $is_in_any_area = true; ?>
                             }
+                            <?php } ?>
                         </script>
                         <?php
                     }
@@ -571,9 +613,17 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
         <?php
     }
     
-    // Check if transport is available for all time
-    $available_all_time = get_post_meta($post_id, 'mptbm_available_for_all_time');
-    if($available_all_time[0] == 'on'){
+    // Check if transport is available for all time. Default to 'on' (24-hour) when
+    // never explicitly saved, same as everywhere else in the plugin (the vehicle
+    // editor's toggle itself, Admin/MPTBM_Transportation.php, etc. all default this
+    // meta to 'on' via get_post_info()/get_post_meta(..., true) with a default).
+    // The previous `get_post_meta($post_id, 'mptbm_available_for_all_time')` call
+    // (no `true`, no default) returned an empty array for any vehicle that had
+    // never had this field saved, so `$available_all_time[0]` was null - not 'on' -
+    // and such vehicles silently fell through to the custom-schedule branch below
+    // with no schedule configured, making them vanish from every search result.
+    $available_all_time = get_post_meta($post_id, 'mptbm_available_for_all_time', true);
+    if ($available_all_time === '' || $available_all_time === 'on') {
         return true;
     }
     
@@ -685,21 +735,16 @@ $start_date = isset($_POST["start_date"]) ? sanitize_text_field($_POST["start_da
 $start_time_schedule = isset($_POST["start_time"]) ? sanitize_text_field($_POST["start_time"]) : "";
 $start_time = isset($_POST["start_time"]) ? sanitize_text_field($_POST["start_time"]) : "";
 
-// Define unique keys for each transient
-$transient_key_schedule = 'start_time_schedule_transient';
-$transient_key_date = 'start_date_transient';
-// Check and set the transient for start_time_schedule
-if (get_transient($transient_key_schedule)) {
-    delete_transient($transient_key_schedule); // Delete existing transient if found
-}
-set_transient($transient_key_schedule, $start_time); // Set new transient
-
-
-// Check and set the transient for start_time
-if (get_transient($transient_key_date)) {
-    delete_transient($transient_key_date); // Delete existing transient if found
-}
-set_transient($transient_key_date, $start_date); // Set new transient
+// NOTE: this used to stash $start_time and $start_date into two site-wide
+// transients ('start_time_schedule_transient' / 'start_date_transient') on every
+// single search. Nothing in the plugin - free or pro - ever read them back, and
+// they were written with no expiry, so they persisted forever holding whichever
+// visitor searched last. That is one global slot shared by every concurrent
+// customer, rewritten on each request: a stale date long after the search that
+// set it, and a DB write per search for a value nobody consumes. The per-request
+// values live in $start_date / $start_time below (and, for anything that needs
+// them after the request, in the session search context set by
+// MPTBM_Function::set_search_context()), so the transients are simply removed.
 
 if ($start_time !== "") {
     if ($start_time !== "0") {
@@ -886,21 +931,23 @@ if (MP_Global_Function::get_settings("mptbm_general_settings", "enable_filter_vi
     $feature_bag_number = isset($_POST["feature_bag_number"]) ? sanitize_text_field($_POST["feature_bag_number"]) : "";
     $feature_hand_luggage_number = isset($_POST["feature_hand_luggage_number"]) ? sanitize_text_field($_POST["feature_hand_luggage_number"]) : "";
 }
-$mptbm_bags = [];
-$mptbm_passengers = [];
-$mptbm_hand_luggage = [];
+// Upper bound of the "Number Of Passengers"/"Number Of Bags" filter dropdowns:
+// the largest capacity anywhere in the fleet, so every vehicle stays reachable.
+// Read as plain ints - get_feature_bag()/get_feature_passenger() pass $single =
+// 0 to get_post_meta(), so each one hands back an *array*, and max() over an
+// array of arrays compared them element-wise. That happened to give the right
+// answer, but it broke in two ways: max([]) is a fatal ValueError in PHP 8 when
+// no vehicle exists yet, and a vehicle with the meta missing contributes an
+// empty array that can win the comparison, collapsing the dropdown to just "0".
+$mptbm_bags = 0;
+$mptbm_passengers = 0;
+$mptbm_hand_luggage_max = 0;
 $mptbm_all_transport_id = MP_Global_Function::get_all_post_id('mptbm_rent');
 foreach ($mptbm_all_transport_id as $key => $value) {
-	array_push($mptbm_bags, MPTBM_Function::get_feature_bag($value));
-	array_push($mptbm_passengers, MPTBM_Function::get_feature_passenger($value));
-	$hand_luggage = (int) get_post_meta($value, 'mptbm_maximum_hand_luggage', true);
-	if ($hand_luggage > 0) {
-		array_push($mptbm_hand_luggage, $hand_luggage);
-	}
+	$mptbm_bags = max($mptbm_bags, (int) get_post_meta($value, 'mptbm_maximum_bag', true));
+	$mptbm_passengers = max($mptbm_passengers, (int) get_post_meta($value, 'mptbm_maximum_passenger', true));
+	$mptbm_hand_luggage_max = max($mptbm_hand_luggage_max, (int) get_post_meta($value, 'mptbm_maximum_hand_luggage', true));
 }
-$mptbm_bags =  max($mptbm_bags);
-$mptbm_passengers = max($mptbm_passengers);
-$mptbm_hand_luggage_max = !empty($mptbm_hand_luggage) ? max($mptbm_hand_luggage) : 0;
 
 $selected_max_passenger = isset($_POST['mptbm_max_passenger']) ? intval($_POST['mptbm_max_passenger']) : 0;
 $selected_max_bag = isset($_POST['mptbm_max_bag']) ? intval($_POST['mptbm_max_bag']) : 0;
@@ -934,6 +981,19 @@ if (empty($distance)) {
 if (empty($duration)) {
     $duration = 3600; // Default 1 hour in seconds
 }
+
+// The distance/duration every price below was calculated from, pre-formatted for
+// display. The map's own Total Distance/Total Time bar is written by the browser's
+// Directions call, which is a different lookup than the server-side one used for
+// pricing and can legitimately disagree with it (different provider, different
+// route). Publishing the priced numbers here lets mptbm_reveal_inline_results()
+// put the same figures in the bar once results render, so the customer is never
+// shown one distance while being quoted a fare for another. Rendered as classes,
+// not names, so they stay out of the posted payload and can't collide with the
+// mptbm_hidden_* fields the map script maintains separately.
+$mptbm_search_context = MPTBM_Function::get_search_context();
+$mptbm_priced_distance_text = !empty($mptbm_search_context['distance_verified']) ? MPTBM_Function::format_distance_text($distance) : '';
+$mptbm_priced_duration_text = !empty($mptbm_search_context['distance_verified']) ? MPTBM_Function::format_duration_text($duration) : '';
 ?>
 <div data-tabs-next="#mptbm_search_result" class="mptbm_map_search_result">
 	<input type="hidden" name="mptbm_post_id" value="" data-price="" />
@@ -951,6 +1011,8 @@ if (empty($duration)) {
     <input type="hidden" name="mptbm_hidden_distance" value="<?php echo esc_attr($distance); ?>" />
     <input type="hidden" name="mptbm_hidden_duration" value="<?php echo esc_attr($duration); ?>" />
     <input type="hidden" name="mptbm_hidden_duration_text" value="" />
+    <input type="hidden" class="mptbm_priced_distance_text" value="<?php echo esc_attr($mptbm_priced_distance_text); ?>" />
+    <input type="hidden" class="mptbm_priced_duration_text" value="<?php echo esc_attr($mptbm_priced_duration_text); ?>" />
 	<input type="hidden" name="mptbm_taxi_return" value="<?php echo esc_attr($two_way); ?>" />
 	<input type="hidden" name="mptbm_waiting_time" value="<?php echo esc_attr($waiting_time); ?>" />
 	<input type="hidden" name="mptbm_fixed_hours" value="<?php echo esc_attr($fixed_time); ?>" />
@@ -1009,7 +1071,7 @@ if (empty($duration)) {
                         <label>
 								<select id ="mptbm_passenger_number" class="formControl" name="mptbm_passenger_number">
 								<?php
-                                    for ($i = 0; $i <= $mptbm_passengers[0]; $i++) {
+                                    for ($i = 0; $i <= $mptbm_passengers; $i++) {
                                         echo '<option value="' . esc_html($i) . '">' .  esc_html($i) . '</option>';
                                     }
                                 ?>
@@ -1022,7 +1084,7 @@ if (empty($duration)) {
                         <label>
 								<select id ="mptbm_shopping_number" class="formControl" name="mptbm_shopping_number">
                                     <?php
-                                        for ($i = 0; $i <= $mptbm_bags[0]; $i++) {
+                                        for ($i = 0; $i <= $mptbm_bags; $i++) {
                                             echo '<option value="' . esc_html($i) . '">' .  esc_html($i) . '</option>';
                                         }
                                     ?>
@@ -1061,11 +1123,19 @@ if (empty($duration)) {
 					// The toolbar has room for the place name only, not the full "City, Region,
 					// Country" string the map autocomplete stores - take just the first segment.
 					$toolbar_place_short = function ($place) {
-						$parts = explode(',', $place);
+						// get_taxonomy_name_by_slug() returns null for a slug with no matching
+						// location term; explode() deprecates null on PHP 8.1+.
+						$parts = explode(',', (string) $place);
 						return trim($parts[0]);
 					};
 					$toolbar_start_display = $toolbar_place_short($toolbar_start_display);
 					$toolbar_end_display = $toolbar_place_short($toolbar_end_display);
+					// Order the results list is presented in before the customer touches the
+					// "Sort by" control. Free always answers 'recommended' (the query order,
+					// i.e. exactly what this list has always done); add-ons can return any of
+					// the values the dropdown below offers, and the cards are then printed in
+					// that order server-side rather than being shuffled by JS after paint.
+					$mptbm_default_sort = apply_filters('mptbm_default_sort_order', 'recommended');
 					?>
 					<div class="mptbm_results_toolbar">
 						<div class="mptbm_results_trip">
@@ -1114,6 +1184,7 @@ if (empty($duration)) {
 						<h3 class="mptbm_results_summary_title">
 							<strong class="mptbm_results_count_number">0</strong> <?php esc_html_e('available', 'ecab-taxi-booking-manager'); ?>
 						</h3>
+						<?php if (MP_Global_Function::get_settings('mptbm_general_settings', 'hide_sort_view_controls', 'no') !== 'yes') { ?>
 						<div class="mptbm_results_controls_right">
 							<div class="mptbm_results_view_toggle" role="group" aria-label="<?php esc_attr_e('Layout view', 'ecab-taxi-booking-manager'); ?>">
 								<button type="button" class="is-active" data-view="list" aria-label="<?php esc_attr_e('List view', 'ecab-taxi-booking-manager'); ?>">
@@ -1126,25 +1197,33 @@ if (empty($duration)) {
 							<label class="mptbm_results_sort">
 								<span class="mptbm_results_sort_label_sr"><?php esc_html_e('Sort by', 'ecab-taxi-booking-manager'); ?></span>
 								<select class="mptbm_sort_select formControl" aria-label="<?php esc_attr_e('Sort by', 'ecab-taxi-booking-manager'); ?>">
-									<option value="recommended"><?php esc_html_e('Recommended', 'ecab-taxi-booking-manager'); ?></option>
-									<option value="price_low"><?php esc_html_e('Price: Low to High', 'ecab-taxi-booking-manager'); ?></option>
-									<option value="price_high"><?php esc_html_e('Price: High to Low', 'ecab-taxi-booking-manager'); ?></option>
-									<option value="rating"><?php esc_html_e('Highest Rated', 'ecab-taxi-booking-manager'); ?></option>
+									<option value="recommended" <?php selected($mptbm_default_sort, 'recommended'); ?>><?php esc_html_e('Recommended', 'ecab-taxi-booking-manager'); ?></option>
+									<option value="price_low" <?php selected($mptbm_default_sort, 'price_low'); ?>><?php esc_html_e('Price: Low to High', 'ecab-taxi-booking-manager'); ?></option>
+									<option value="price_high" <?php selected($mptbm_default_sort, 'price_high'); ?>><?php esc_html_e('Price: High to Low', 'ecab-taxi-booking-manager'); ?></option>
+									<option value="rating" <?php selected($mptbm_default_sort, 'rating'); ?>><?php esc_html_e('Highest Rated', 'ecab-taxi-booking-manager'); ?></option>
 								</select>
 							</label>
 						</div>
+						<?php } ?>
 					</div>
 					<?php
 
-$all_posts = MPTBM_Query::query_transport_list($price_based);
+$source_vehicle_id = isset($_POST['mptbm_source_vehicle_id']) ? absint($_POST['mptbm_source_vehicle_id']) : 0;
+$all_posts = MPTBM_Query::query_transport_list($price_based, $source_vehicle_id);
 
  
 if ($all_posts->found_posts > 0) {
     $posts = $all_posts->posts;
     $vehicle_item_count = 0;
-    
+
     // Cache for base distances to avoid redundant API calls
     static $base_distance_cache = [];
+
+    // Each card is rendered into this list instead of straight to the page, so the
+    // whole set can be ordered once every price is known and only then printed.
+    // Prices cannot be compared any earlier than this: they are worked out inside
+    // the loop below, per vehicle, from the searched route.
+    $mptbm_result_items = [];
     
     
     foreach ($posts as $post) {
@@ -1159,7 +1238,8 @@ if ($all_posts->found_posts > 0) {
 
         $mptbm_enable_inventory_check = get_post_meta($post_id, 'mptbm_enable_inventory', true);
         $mptbm_force_single_quantity = ($mptbm_enable_inventory_check !== 'yes');
-		$mptbm_trip_duration = max(absint($duration ?? 0), (int) round((float) ($fixed_time ?? 0) * HOUR_IN_SECONDS));
+		$mptbm_fixed_time_unit_seconds = ($price_based === 'fixed_daily') ? DAY_IN_SECONDS : HOUR_IN_SECONDS;
+		$mptbm_trip_duration = max(absint($duration ?? 0), (int) round((float) ($fixed_time ?? 0) * $mptbm_fixed_time_unit_seconds));
 		if (MPTBM_Function::get_available_quantity($post_id, $start_date, $start_time_formatted, $mptbm_force_single_quantity, $mptbm_trip_duration, $return_date_time ?? '') <= 0) {
             $mptbm_unavailable = true;
             $mptbm_unavailable_reason = esc_html__('Fully booked for this time', 'ecab-taxi-booking-manager');
@@ -1212,8 +1292,11 @@ if ($all_posts->found_posts > 0) {
             $custom_message = MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', '');
             
             
-            // Get the price (pass geo_fence_coords for fixed_zone/fixed_zone_dropoff geo-fence validation)
-            $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time, $geo_fence_coords);
+            // Get the price (pass geo_fence_coords for fixed_zone/fixed_zone_dropoff geo-fence
+            // validation, and the posted pickup/dropoff coordinates directly for fixed_distance/
+            // fixed_map's Location-to-Location & Area-to-Location matching - so that matching
+            // doesn't depend on the session-stored search context being readable on this host)
+            $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time, $geo_fence_coords, MPTBM_Function::normalize_coordinates($start_place_coordinates), MPTBM_Function::normalize_coordinates($end_place_coordinates));
             
             
             // Calculate Base Price server-side for list display
@@ -1263,7 +1346,12 @@ if ($all_posts->found_posts > 0) {
                     }
                 }
 
-                $d_km = $total_b_dist / 1000;
+                // Threshold and price_km are quoted in the site's distance unit, so the
+                // travelled distance must be measured in it too - dividing by 1000 here
+                // charged the per-mile rate for every kilometre on a Mile site, making
+                // this listing 1.609x the price MPTBM_Function::calculate_base_location_price()
+                // recomputes at add-to-cart. Keep the two in step.
+                $d_km = MPTBM_Function::distance_in_unit($total_b_dist);
                 $d_hr = $total_b_dur / 3600;
 
                 if ($d_km >= $bp_settings['threshold']) {
@@ -1308,6 +1396,10 @@ if ($all_posts->found_posts > 0) {
             if ($price_display_type === 'custom_message' && $custom_message) {
                 $price_display = '<div class="mptbm-custom-price-message" style="font-size: 15px;">' . wp_kses_post($custom_message) . '</div>';
                 $raw_price = 0; // Set raw price to 0 for custom message
+                // No comparable figure is shown on this card, so it must stay out of
+                // price ordering and out of "cheapest vehicle" entirely - same reason
+                // $raw_price is zeroed just above.
+                $display_price = 0;
             } else {
                 $wc_price = MP_Global_Function::wc_price($post_id, $display_price);
                 // Use high-precision price for calculation to match backend, but ensure it receives same tax treatment if needed
@@ -1326,10 +1418,45 @@ if ($all_posts->found_posts > 0) {
                 $price_display = $wc_price;
             }
             
+            // Reset before the include so the rating read back below can only ever be
+            // this vehicle's own - the template leaves it untouched on the paths where
+            // it renders nothing at all.
+            $vehicle_avg_rating = 0;
+            ob_start();
             include MPTBM_Function::template_path("registration/vehicle_item.php");
+            $mptbm_item_html = ob_get_clean();
+
+            if (trim($mptbm_item_html) !== '') {
+                $mptbm_result_items[] = array(
+                    'post_id' => $post_id,
+                    // The figure actually printed on the card, which is not always
+                    // $raw_price: base-price and per-stop charges are added on top of it
+                    // for display. Ordering on anything else would put the list in a
+                    // different order than the prices the customer is reading.
+                    'price'   => (float) $display_price,
+                    'rating'  => (float) $vehicle_avg_rating,
+                    'html'    => $mptbm_item_html,
+                );
+            }
         }
     }
-    
+
+    /**
+     * Order of the rendered vehicle cards. Free returns them untouched, in query
+     * order. Each entry has 'post_id', 'price' (as displayed), 'rating' and 'html';
+     * a handler should reorder the list and return it, not rewrite the markup.
+     */
+    $mptbm_result_items = apply_filters('mptbm_search_result_items', $mptbm_result_items, array(
+        'default_sort' => $mptbm_default_sort,
+        'price_based'  => $price_based,
+    ));
+
+    foreach ((array) $mptbm_result_items as $mptbm_result_item) {
+        if (is_array($mptbm_result_item) && isset($mptbm_result_item['html'])) {
+            echo $mptbm_result_item['html']; // Already-escaped markup built by vehicle_item.php.
+        }
+    }
+
 } else {
 ?>
 						<div class="_dLayout_mT_bgWarning">

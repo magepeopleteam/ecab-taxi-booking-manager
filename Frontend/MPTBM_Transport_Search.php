@@ -19,6 +19,8 @@
 				/*********************/
 				add_action('wp_ajax_get_mptbm_end_place', [$this, 'get_mptbm_end_place']);
 				add_action('wp_ajax_nopriv_get_mptbm_end_place', [$this, 'get_mptbm_end_place']);
+				add_action('wp_ajax_get_mptbm_vehicle_time_availability', [$this, 'get_mptbm_vehicle_time_availability']);
+				add_action('wp_ajax_nopriv_get_mptbm_vehicle_time_availability', [$this, 'get_mptbm_vehicle_time_availability']);
 				/**************************/
 				add_action('wp_ajax_get_mptbm_extra_service', [$this, 'get_mptbm_extra_service']);
 				add_action('wp_ajax_nopriv_get_mptbm_extra_service', [$this, 'get_mptbm_extra_service']);
@@ -31,6 +33,9 @@
 				/**************************/
 				add_action('wp_ajax_mptbm_refresh_search_nonce', [$this, 'refresh_search_nonce']);
 				add_action('wp_ajax_nopriv_mptbm_refresh_search_nonce', [$this, 'refresh_search_nonce']);
+				/**************************/
+				add_action('wp_ajax_get_mptbm_route_distance', [$this, 'get_mptbm_route_distance']);
+				add_action('wp_ajax_nopriv_get_mptbm_route_distance', [$this, 'get_mptbm_route_distance']);
 			}
 			/**
 			 * Issue a freshly generated booking nonce.
@@ -61,13 +66,29 @@
 			public function transport_search($params) {
 				$display_map = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'enable');
 				$price_based = $params['price_based'] ?: 'dynamic';
-				$price_based = $display_map == 'disable' ? 'manual' : $price_based;
+				$vehicle_id = !empty($params['vehicle_id']) ? absint($params['vehicle_id']) : 0;
+				if ($vehicle_id && $this->validate_post_access($vehicle_id)) {
+					$price_based = $this->vehicle_search_price_mode($vehicle_id);
+				}
+				$price_based = $display_map == 'disable' && !$vehicle_id ? 'manual' : $price_based;
 				$progressbar = $params['progressbar'] ?: 'yes';
 				$form_style= $params['form'] ?: 'horizontal';
 				$map= $params['map'] ?: 'yes';
 				$map = $display_map == 'disable' ? 'no' : $map;
 				$tab = $params['tab'] ?: 'no';
 				$tabs = $params['tabs'] ?: 'distance,hourly,manual';
+				$pickup = isset($params['pickup']) ? sanitize_text_field($params['pickup']) : '';
+				$dropoff = isset($params['dropoff']) ? sanitize_text_field($params['dropoff']) : '';
+				$pickup_zone = isset($params['pickup_zone']) ? sanitize_text_field($params['pickup_zone']) : '';
+				$dropoff_zone = isset($params['dropoff_zone']) ? sanitize_text_field($params['dropoff_zone']) : '';
+				// Display-only waypoint names for the shortcode's `stops` attribute -
+				// shown between pickup/dropoff purely as text, never geocoded or added
+				// to the routed waypoint list, so they never affect distance or price.
+				$display_stops = isset($params['stops']) ? array_filter(array_map('trim', explode(',', sanitize_text_field($params['stops'])))) : array();
+				// Pre-selects a fixed_route by name (see get_details.php) - lets a page
+				// (e.g. a landing page for one specific tour) show that route's stops
+				// plotted on load instead of making the visitor pick it themselves.
+				$route = isset($params['route']) ? sanitize_text_field($params['route']) : '';
 				ob_start();
 				do_shortcode('[shop_messages]');
 				echo ob_get_clean();
@@ -80,8 +101,9 @@
 					$tab_id = sanitize_text_field($_POST['tab_id']); // Sanitize input
 					$form_style = sanitize_text_field($_POST['form_style']);
 					$map = sanitize_text_field($_POST['map']); // Changed from $display_map to $map
+					$vehicle_id = isset($_POST['vehicle_id']) ? absint($_POST['vehicle_id']) : 0;
 					// Include the correct template based on the tab
-					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate' || $tab_id === 'custom' || $tab_id === 'fixed_distance' || $tab_id === 'fixed_zone' || $tab_id === 'fixed_zone_dropoff') {
+					if ($tab_id === 'distance' || $tab_id === 'hourly' || $tab_id === 'flat-rate' || $tab_id === 'custom' || $tab_id === 'fixed_distance' || $tab_id === 'fixed_zone' || $tab_id === 'fixed_zone_dropoff' || $tab_id === 'fixed_route' || $tab_id === 'daily') {
 						ob_start(); // Start output buffering
 						
 						if($tab_id === 'distance'){
@@ -102,6 +124,12 @@
 							include MPTBM_Function::template_path('registration/get_details.php');
 						}else if($tab_id === 'fixed_zone_dropoff'){
 							$price_based = 'fixed_zone_dropoff';
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'fixed_route'){
+							$price_based = 'fixed_route';
+							include MPTBM_Function::template_path('registration/get_details.php');
+						}else if($tab_id === 'daily'){
+							$price_based = 'fixed_daily';
 							include MPTBM_Function::template_path('registration/get_details.php');
 						}else if($tab_id === 'custom'){
 							do_action('mptbm_render_custom');
@@ -124,7 +152,8 @@
 				$this->verify_search_request(true);
 				// Debug logging for search initiation
 				
-				$price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
+				$price_based = $this->requested_search_price_mode();
+				$_POST['price_based'] = $price_based;
 				
 				// Buffer time validation
 				$buffer_time = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'enable_buffer_time');
@@ -141,7 +170,13 @@
 						
 						// Create datetime string
 						$booking_datetime = $start_date . ' ' . sprintf('%02d:%02d', $hours, $minutes);
-						$booking_timestamp = strtotime($booking_datetime);
+						// The picked date/time is site-local, but WordPress pins PHP's default
+						// timezone to UTC, so strtotime() read it as UTC. West of UTC (e.g.
+						// America/New_York, -4) a ride 1 hour out came back 3 hours in the past
+						// and every buffer rejected it; east of UTC the buffer was too lenient.
+						// An unparseable date stays rejected, as strtotime()'s false was.
+						$booking_date_object = date_create_immutable($booking_datetime, wp_timezone());
+						$booking_timestamp = $booking_date_object ? $booking_date_object->getTimestamp() : 0;
 						$current_timestamp = time();
 						
 						// Calculate time difference in minutes
@@ -170,7 +205,7 @@
 					$s_lng = isset($start_coords['longitude']) ? $start_coords['longitude'] : '';
 					$e_lat = isset($end_coords['latitude']) ? $end_coords['latitude'] : '';
 					$e_lng = isset($end_coords['longitude']) ? $end_coords['longitude'] : '';
-					$server_data = $this->get_server_distance_with_stops($s_lat, $s_lng, $e_lat, $e_lng);
+					$server_data = $this->resolve_trip_distance($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 
 					if ($server_data) {
@@ -204,7 +239,7 @@
 						'booking_datetime'  => trim((isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '') . ' ' . str_replace('.', ':', isset($_POST['start_time']) ? sanitize_text_field(wp_unslash($_POST['start_time'])) : '')),
 						'waiting_time'      => isset($_POST['waiting_time']) ? absint($_POST['waiting_time']) : 0,
 						'two_way'           => isset($_POST['two_way']) ? max(1, absint($_POST['two_way'])) : 1,
-						'fixed_time'        => isset($_POST['fixed_time']) ? max(0, (float) $_POST['fixed_time']) : 0,
+						'fixed_time'        => isset($_POST['fixed_time']) ? MPTBM_Function::normalize_fixed_time(wp_unslash($_POST['fixed_time'])) : 0,
 						'extra_stop_places' => isset($_POST['mptbm_extra_stop_place']) ? array_values(array_filter(array_map('sanitize_text_field', (array) wp_unslash($_POST['mptbm_extra_stop_place'])))) : array(),
 						'extra_stop_count'  => isset($_POST['mptbm_extra_stop_place']) ? count(array_filter((array) $_POST['mptbm_extra_stop_place'])) : 0,
 						'return_date'       => isset($_POST['return_date']) ? sanitize_text_field(wp_unslash($_POST['return_date'])) : '',
@@ -214,9 +249,15 @@
 				
 				
 				
-				// if ($distance && $duration) {
-					include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
-				// }
+				// Bind the verified request mode directly while the result template prices
+				// vehicles. The session remains the cross-request checkout record, but this
+				// avoids a missing/stale session selecting the wrong formula in this request.
+				$pricing_mode_filter = static function($original_mode, $priced_vehicle_id) use ($price_based) {
+					return $price_based;
+				};
+				add_filter('mptbm_original_price_based', $pricing_mode_filter, 99, 2);
+				include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
+				remove_filter('mptbm_original_price_based', $pricing_mode_filter, 99);
 				
 			
 			die(); // Ensure further execution stops after outputting the JavaScript
@@ -228,7 +269,8 @@
 				$this->verify_search_request(true);
 				// Debug logging for redirect search initiation
 				
-				$price_based = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
+				$price_based = $this->requested_search_price_mode();
+				$_POST['price_based'] = $price_based;
 				
 				// Buffer time validation
 				$buffer_time = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'enable_buffer_time');
@@ -245,7 +287,13 @@
 						
 						// Create datetime string
 						$booking_datetime = $start_date . ' ' . sprintf('%02d:%02d', $hours, $minutes);
-						$booking_timestamp = strtotime($booking_datetime);
+						// The picked date/time is site-local, but WordPress pins PHP's default
+						// timezone to UTC, so strtotime() read it as UTC. West of UTC (e.g.
+						// America/New_York, -4) a ride 1 hour out came back 3 hours in the past
+						// and every buffer rejected it; east of UTC the buffer was too lenient.
+						// An unparseable date stays rejected, as strtotime()'s false was.
+						$booking_date_object = date_create_immutable($booking_datetime, wp_timezone());
+						$booking_timestamp = $booking_date_object ? $booking_date_object->getTimestamp() : 0;
 						$current_timestamp = time();
 						
 						// Calculate time difference in minutes
@@ -278,7 +326,7 @@
 					$e_lng = isset($end_coords['longitude']) ? $end_coords['longitude'] : '';
 
 
-					$server_data = $this->get_server_distance_with_stops($s_lat, $s_lng, $e_lat, $e_lng);
+					$server_data = $this->resolve_trip_distance($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 
 					if ($server_data) {
@@ -310,16 +358,19 @@
 						'booking_datetime'  => trim((isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '') . ' ' . str_replace('.', ':', isset($_POST['start_time']) ? sanitize_text_field(wp_unslash($_POST['start_time'])) : '')),
 						'waiting_time'      => isset($_POST['waiting_time']) ? absint($_POST['waiting_time']) : 0,
 						'two_way'           => isset($_POST['two_way']) ? max(1, absint($_POST['two_way'])) : 1,
-						'fixed_time'        => isset($_POST['fixed_time']) ? max(0, (float) $_POST['fixed_time']) : 0,
+						'fixed_time'        => isset($_POST['fixed_time']) ? MPTBM_Function::normalize_fixed_time(wp_unslash($_POST['fixed_time'])) : 0,
 						'extra_stop_places' => isset($_POST['mptbm_extra_stop_place']) ? array_values(array_filter(array_map('sanitize_text_field', (array) wp_unslash($_POST['mptbm_extra_stop_place'])))) : array(),
 						'extra_stop_count'  => isset($_POST['mptbm_extra_stop_place']) ? count(array_filter((array) $_POST['mptbm_extra_stop_place'])) : 0,
 						'return_date'       => isset($_POST['return_date']) ? sanitize_text_field(wp_unslash($_POST['return_date'])) : '',
 						'return_time'       => isset($_POST['return_time']) ? sanitize_text_field(wp_unslash($_POST['return_time'])) : '',
 						'return_datetime'   => trim((isset($_POST['return_date']) ? sanitize_text_field(wp_unslash($_POST['return_date'])) : '') . ' ' . str_replace('.', ':', isset($_POST['return_time']) ? sanitize_text_field(wp_unslash($_POST['return_time'])) : '')),
 					));
-					// if ($distance && $duration) {
-						include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
-					// }
+					$pricing_mode_filter = static function($original_mode, $priced_vehicle_id) use ($price_based) {
+						return $price_based;
+					};
+					add_filter('mptbm_original_price_based', $pricing_mode_filter, 99, 2);
+					include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
+					remove_filter('mptbm_original_price_based', $pricing_mode_filter, 99);
 					$content = ob_get_clean(); // Get the buffered content and clean the buffer
 					// Store the content in a session variable
 					session_start();
@@ -351,10 +402,82 @@
 				die();
 			}
 
+			public function get_mptbm_vehicle_time_availability() {
+				nocache_headers();
+				$this->verify_search_request();
+
+				$vehicle_id = isset($_POST['vehicle_id']) ? absint($_POST['vehicle_id']) : 0;
+				$date = isset($_POST['date']) ? sanitize_text_field(wp_unslash($_POST['date'])) : '';
+				$times = isset($_POST['times']) ? array_map('sanitize_text_field', (array) wp_unslash($_POST['times'])) : array();
+				$price_based = isset($_POST['price_based']) ? sanitize_key(wp_unslash($_POST['price_based'])) : 'dynamic';
+				$date_parts = explode('-', $date);
+
+				if ($vehicle_id && !$this->validate_post_access($vehicle_id)) {
+					wp_send_json_error(array('message' => esc_html__('Invalid transportation.', 'ecab-taxi-booking-manager')), 400);
+				}
+				if (count($date_parts) !== 3 || !checkdate((int) $date_parts[1], (int) $date_parts[2], (int) $date_parts[0])) {
+					wp_send_json_error(array('message' => esc_html__('Invalid pickup date.', 'ecab-taxi-booking-manager')), 400);
+				}
+
+				if ($vehicle_id) {
+					$inventory_enabled = get_post_meta($vehicle_id, 'mptbm_enable_inventory', true) === 'yes';
+					$interval_minutes = max(0, (int) get_post_meta($vehicle_id, 'mptbm_booking_interval_time', true));
+					$unavailable_times = MPTBM_Function::get_unavailable_time_slots($vehicle_id, $date, $times, !$inventory_enabled);
+					/* translators: %d: booking interval in minutes. */
+					$unavailable_title = $interval_minutes > 0
+						? sprintf(esc_html__('Unavailable because this time overlaps a booking or its %d-minute interval.', 'ecab-taxi-booking-manager'), $interval_minutes)
+						: esc_html__('Unavailable because this time overlaps an existing booking.', 'ecab-taxi-booking-manager');
+				} else {
+					$allowed_price_modes = array('dynamic', 'manual', 'fixed_hourly', 'fixed_daily', 'fixed_zone', 'fixed_zone_dropoff', 'fixed_distance', 'fixed_map', 'fixed_route');
+					$price_based = in_array($price_based, $allowed_price_modes, true) ? $price_based : 'dynamic';
+					$unavailable_times = array_values(array_filter(array_map(function ($time) {
+						$time = str_replace(':', '.', trim((string) $time));
+						return preg_match('/^(?:[01]\d|2[0-3])\.[0-5]\d$/', $time) ? $time : '';
+					}, array_slice($times, 0, 288))));
+					$vehicles = MPTBM_Query::query_transport_list($price_based);
+
+					foreach ($vehicles->posts as $vehicle) {
+						$check_mode = get_post_meta($vehicle->ID, 'mptbm_availability_check_mode', true) ?: 'automatic';
+						if ($check_mode === 'manual' && get_post_meta($vehicle->ID, 'mptbm_availability_status', true) === 'unavailable') {
+							continue;
+						}
+
+						$inventory_enabled = get_post_meta($vehicle->ID, 'mptbm_enable_inventory', true) === 'yes';
+						$vehicle_unavailable = MPTBM_Function::get_unavailable_time_slots($vehicle->ID, $date, $times, !$inventory_enabled);
+						$unavailable_times = array_values(array_intersect($unavailable_times, $vehicle_unavailable));
+						if (!$unavailable_times) {
+							break;
+						}
+					}
+
+					$interval_minutes = 0;
+					$unavailable_title = esc_html__('Unavailable because all matching vehicles are booked for this time.', 'ecab-taxi-booking-manager');
+				}
+
+				wp_send_json_success(array(
+					'unavailable_times' => $unavailable_times,
+					'unavailable_label' => $vehicle_id ? esc_html__('Booked', 'ecab-taxi-booking-manager') : esc_html__('Fully booked', 'ecab-taxi-booking-manager'),
+					'unavailable_title' => $unavailable_title,
+					'interval_minutes' => $interval_minutes,
+				));
+			}
+
 			// Builds the ordered pickup -> stop 1 -> ... -> dropoff waypoint list from POST and
 			// resolves the total route distance/duration in one call. With no extra stops this
 			// behaves exactly like the old direct pickup->dropoff calculation.
 			private function get_server_distance_with_stops($start_lat, $start_lng, $end_lat, $end_lng) {
+				$waypoints = $this->trip_waypoints($start_lat, $start_lng, $end_lat, $end_lng);
+				if (!$waypoints) {
+					return false;
+				}
+
+				return MPTBM_Function::get_server_distance_multi($waypoints);
+			}
+
+			// The ordered waypoint list for this search, or false when pickup/drop-off
+			// coordinates are missing. Split out of get_server_distance_with_stops() so the
+			// same list can also be used to sanity-check a browser-reported distance.
+			private function trip_waypoints($start_lat, $start_lng, $end_lat, $end_lng) {
 				if (!$start_lat || !$start_lng || !$end_lat || !$end_lng) {
 					return false;
 				}
@@ -380,11 +503,133 @@
 
 				$waypoints[] = ['lat' => $end_lat, 'lng' => $end_lng];
 
-				return MPTBM_Function::get_server_distance_multi($waypoints);
+				return $waypoints;
+			}
+
+			/**
+			 * The distance and duration this search will be priced on.
+			 *
+			 * Default ('server') is unchanged: the server looks the route up itself, which
+			 * is the safest source because nothing the customer sends can influence it.
+			 *
+			 * 'browser' exists for sites whose Google key is restricted to their own domain
+			 * - a correct and common setup for the key that draws the map, but one Google
+			 * refuses for server-side requests. Those sites get no Google answer on the
+			 * server at all and silently price every trip off the OpenStreetMap fallback,
+			 * which can quote a long detour where OSM's road data is incomplete and
+			 * overcharge the customer. In that mode the accurate figure the browser already
+			 * has is used instead, but only after MPTBM_Function::validate_client_trip()
+			 * bounds it against the straight-line distance, and the server-side lookup still
+			 * takes over whenever the reported figure doesn't hold up.
+			 */
+			private function resolve_trip_distance($start_lat, $start_lng, $end_lat, $end_lng) {
+				$source = MP_Global_Function::get_settings('mptbm_map_api_settings', 'fare_distance_source', 'server');
+
+				if ($source === 'browser') {
+					$waypoints = $this->trip_waypoints($start_lat, $start_lng, $end_lat, $end_lng);
+					if ($waypoints) {
+						$claimed_distance = isset($_POST['mptbm_distance']) ? (float) $_POST['mptbm_distance'] : 0;
+						$claimed_duration = isset($_POST['mptbm_duration']) ? (float) $_POST['mptbm_duration'] : 0;
+						$verified = MPTBM_Function::validate_client_trip($claimed_distance, $claimed_duration, $waypoints);
+						if ($verified) {
+							return $verified;
+						}
+					}
+				}
+
+				return $this->get_server_distance_with_stops($start_lat, $start_lng, $end_lat, $end_lng);
+			}
+
+			/**
+			 * The route distance/duration as the SERVER measures it, for the map's own
+			 * "Total Distance / Total Time" bar.
+			 *
+			 * In OpenStreetMap mode the booking form used to call the public OSRM
+			 * endpoint straight from the browser while the fare was measured separately
+			 * on the server. Two independent lookups of the same trip means the number on
+			 * screen and the number charged can disagree - and once a routing service
+			 * other than OSRM is configured (Map API Settings > Routing Service) they
+			 * disagree by design, because the browser would still be asking OSRM.
+			 *
+			 * Answering from the server instead collapses that back to one measurement,
+			 * through the same resolver the price uses, so the bar and the fare can only
+			 * ever show the same distance.
+			 */
+			public function get_mptbm_route_distance() {
+				nocache_headers();
+				$this->verify_search_request(true);
+
+				$start = $this->posted_coordinates('start_place_coordinates');
+				$end   = $this->posted_coordinates('end_place_coordinates');
+				if (empty($start) || empty($end)) {
+					wp_send_json_error(array('message' => esc_html__('Pick-up and drop-off coordinates are required.', 'ecab-taxi-booking-manager')));
+				}
+
+				$data = $this->resolve_trip_distance(
+					$start['latitude'], $start['longitude'],
+					$end['latitude'], $end['longitude']
+				);
+				if (!$data) {
+					wp_send_json_error(array('message' => esc_html__('The route could not be calculated.', 'ecab-taxi-booking-manager')));
+				}
+
+				wp_send_json_success(array(
+					'distance'      => (float) $data['distance'],
+					'duration'      => (float) $data['duration'],
+					'distance_text' => MPTBM_Function::format_distance_text($data['distance']),
+					'duration_text' => MPTBM_Function::format_duration_text($data['duration']),
+					'provider'      => isset($data['provider']) ? $data['provider'] : '',
+				));
 			}
 
 			private function posted_coordinates($key): array {
 				return isset($_POST[$key]) ? MPTBM_Function::normalize_coordinates($_POST[$key]) : array();
+			}
+
+			/**
+			 * Convert a vehicle's admin pricing model into the public search-mode token.
+			 *
+			 * Distance, duration, distance + duration, and combined pricing all use the
+			 * map-driven dynamic form; the vehicle's own meta selects the exact formula
+			 * later in MPTBM_Function::get_price().
+			 */
+			private function vehicle_search_price_mode($vehicle_id): string {
+				$model = sanitize_key((string) get_post_meta(absint($vehicle_id), 'mptbm_price_based', true));
+				switch ($model) {
+					case 'manual':
+						return 'manual';
+					case 'fixed_hourly':
+						return 'fixed_hourly';
+					case 'fixed_daily':
+						return 'fixed_daily';
+					case 'fixed_distance':
+					case 'fixed_map':
+						return 'fixed_map';
+					case 'fixed_zone':
+					case 'fixed_zone_dropoff':
+						return $model;
+					case 'fixed_route':
+						return 'fixed_route';
+					default:
+						return 'dynamic';
+				}
+			}
+
+			/** Use the locked single-page vehicle's model instead of trusting a posted mode. */
+			private function requested_search_price_mode(): string {
+				$requested = isset($_POST['price_based']) ? sanitize_key(wp_unslash($_POST['price_based'])) : 'dynamic';
+				$allowed = array('dynamic', 'manual', 'fixed_hourly', 'fixed_daily', 'fixed_distance', 'fixed_zone', 'fixed_zone_dropoff', 'fixed_map', 'fixed_route');
+				$requested = in_array($requested, $allowed, true) ? $requested : 'dynamic';
+				$vehicle_id = isset($_POST['mptbm_source_vehicle_id']) ? absint($_POST['mptbm_source_vehicle_id']) : 0;
+
+				if (!$vehicle_id) {
+					return $requested;
+				}
+				if (!$this->validate_post_access($vehicle_id)) {
+					wp_send_json_error(array('message' => esc_html__('Invalid transportation.', 'ecab-taxi-booking-manager')), 400);
+				}
+
+				return $this->vehicle_search_price_mode($vehicle_id);
 			}
 
 			private function verify_search_request($rate_limit_route = false): void {

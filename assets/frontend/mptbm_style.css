@@ -356,6 +356,25 @@ div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary .fas.fa-check-s
     color: var(--color_theme);
     font-size: 12px;
 }
+
+/* ----- Stoppage line items - same treatment as the extra service rows above,
+   so a customer sees which stop costs what instead of one combined total. ----- */
+div.mp_sticky_on_scroll.summary-box .mptbm_stoppage_price_detail {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2px;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_stoppage_price_detail > div {
+    padding: 7px 0;
+    border-bottom: 1px dashed rgba(15, 23, 42, .08);
+    color: #334155;
+    font-size: 13px;
+    font-weight: 500;
+}
+div.mp_sticky_on_scroll.summary-box .mptbm_stoppage_price_detail > div:last-of-type {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
 div.mp_sticky_on_scroll.summary-box .mptbm_extra_service_summary p {
     display: flex;
     flex: 0 0 auto;
@@ -478,6 +497,18 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
     padding: 0;
     gap: 18px;
     position: relative;
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity .22s ease, transform .22s ease;
+}
+/* Fade/shrink first, then mptbm_booking_item_hidden (below) actually pulls it
+   out of layout .22s later once the fade has finished - display can't be
+   transitioned, so jumping straight to display:none skipped the animation
+   entirely. See the change handler in mptbm_script.js. */
+.mptbm_transport_search_area .mptbm_booking_item.mptbm_booking_item_fading {
+    opacity: 0;
+    transform: scale(.97);
+    pointer-events: none;
 }
 .mptbm_transport_search_area .mptbm_booking_item.mptbm_booking_item_hidden {
     display: none !important;
@@ -822,11 +853,13 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
         flex: 0 0 auto;
         width: 100%;
         max-width: 100%;
-        height: 150px;
+        height: auto;
+        aspect-ratio: 16 / 9;
     }
     .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area,
     .mptbm_transport_search_area .mptbm_vehicle_image .bg_image_area > div {
-        min-height: 150px;
+        height: 100%;
+        min-height: 0;
     }
     .mptbm_transport_search_area .mptbm_vehicle_main {
         padding: 14px 18px 0;
@@ -841,10 +874,12 @@ div.mp_sticky_on_scroll.summary-box button._mpBtn_fullWidth.mptbm_get_vehicle_pr
         padding-top: 14px;
     }
     .mptbm_transport_search_area .mptbm_vehicle_price_col {
-        align-items: flex-start !important;
+        align-items: center !important;
+        width: 100%;
     }
     .mptbm_transport_search_area h4.mptbm_vehicle_price {
-        text-align: left !important;
+        text-align: center !important;
+        width: 100%;
     }
     .mptbm_vehicle_title { font-size: 15px !important; }
     .mptbm_transport_search_area h4.mptbm_vehicle_price { font-size: 20px !important; }

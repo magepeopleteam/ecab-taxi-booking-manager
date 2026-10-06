@@ -28,12 +28,13 @@ if (!class_exists('MPTBM_Shortcodes')) {
             $params['tab'] = ($params['tab'] === 'yes') ? 'yes' : 'no';
             $params['map'] = ($params['map'] === 'no') ? 'no' : 'yes';
             $params['form'] = in_array($params['form'], ['horizontal', 'inline', 'vertical']) ? $params['form'] : 'horizontal';
+            $params['vehicle_id'] = absint($params['vehicle_id']);
             // Support alias `fixed_zone_pickup` and normalize to `fixed_zone`
             // Support alias `fixed_zone_pickup` and normalize to `fixed_zone`
             if ($params['price_based'] === 'fixed_zone_pickup') {
                 $params['price_based'] = 'fixed_zone';
             }
-            $params['price_based'] = in_array($params['price_based'], ['dynamic', 'manual', 'fixed_hourly', 'fixed_distance', 'fixed_zone', 'fixed_zone_dropoff', 'fixed_map']) ? $params['price_based'] : 'dynamic';
+            $params['price_based'] = in_array($params['price_based'], ['dynamic', 'manual', 'fixed_hourly', 'fixed_daily', 'fixed_distance', 'fixed_zone', 'fixed_zone_dropoff', 'fixed_map', 'fixed_route']) ? $params['price_based'] : 'dynamic';
 
             ob_start();
             do_action('mptbm_transport_search', $params);
@@ -59,6 +60,13 @@ if (!class_exists('MPTBM_Shortcodes')) {
                 "form" => "horizontal",
                 "tab" => "no",
                 "tabs" => "distance,hourly,manual",
+                "vehicle_id" => 0,
+                "pickup" => "",
+                "dropoff" => "",
+                "pickup_zone" => "",
+                "dropoff_zone" => "",
+                "stops" => "",
+                "route" => "",
             );
         }
     }

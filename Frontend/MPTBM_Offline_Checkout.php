@@ -272,6 +272,12 @@
 				$raw_price += MPTBM_Function::calculate_base_location_price($post_id, $context);
 				$raw_price += (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0) * absint($context['extra_stop_count'] ?? 0);
 
+				// Add Stoppage - one-time charge, not scaled by quantity (same
+				// treatment as extra services above).
+				foreach ($this->posted_stoppages($post_id) as $stoppage) {
+					$raw_price += (float) $stoppage['stoppage_price'];
+				}
+
 				return $raw_price;
 			}
 
@@ -292,6 +298,35 @@
 						'service_quantity' => (isset($qtys[$i]) && $qtys[$i] > 0) ? min(100, $qtys[$i]) : 1,
 						'service_price'    => (float) MPTBM_Function::get_extra_service_price_by_name($post_id, $names[$i]),
 					);
+				}
+				return $rows;
+			}
+
+			/**
+			 * Add Stoppage - normalised rows from the posted ids. Mirrors
+			 * MPTBM_Woocommerce::cart_stoppage_info(): only ids that are actually
+			 * assigned to this vehicle survive - name/duration/price always come
+			 * from MPTBM_Function::get_available_stoppages(), never from $_POST.
+			 */
+			private function posted_stoppages($post_id): array {
+				$posted_ids = isset($_POST['mptbm_stoppage_id']) ? array_values(array_filter(array_map('absint', (array) wp_unslash($_POST['mptbm_stoppage_id'])))) : array();
+				if (empty($posted_ids)) {
+					return array();
+				}
+				$available_by_id = array();
+				foreach (MPTBM_Function::get_available_stoppages($post_id) as $stoppage) {
+					$available_by_id[$stoppage['id']] = $stoppage;
+				}
+				$rows = array();
+				foreach ($posted_ids as $id) {
+					if (isset($available_by_id[$id])) {
+						$rows[] = array(
+							'stoppage_id'       => $id,
+							'stoppage_name'     => $available_by_id[$id]['name'],
+							'stoppage_duration' => $available_by_id[$id]['duration'],
+							'stoppage_price'    => $available_by_id[$id]['price'],
+						);
+					}
 				}
 				return $rows;
 			}
@@ -323,6 +358,7 @@
 					'mptbm_user_id'                     => get_current_user_id(),
 					'mptbm_tp'                          => $total,
 					'mptbm_service_info'                => $this->posted_extra_services($post_id),
+					'mptbm_stoppage_info'               => $this->posted_stoppages($post_id),
 					'mptbm_billing_name'                => $name,
 					'mptbm_billing_email'               => $email,
 					'mptbm_billing_phone'               => $phone,

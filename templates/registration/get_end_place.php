@@ -19,8 +19,9 @@ if (!function_exists('mptbm_get_translation')) {
     
    
     
-    // If no end locations found from manual pricing, show all available locations
-    if (sizeof($end_locations) == 0) {
+    // Global forms may fall back to every configured route. A single-vehicle
+    // form must remain scoped so it never offers another vehicle's destination.
+    if (sizeof($end_locations) == 0 && !$post_id) {
         $all_locations = MPTBM_Function::get_all_start_location('', $price_based);
         // Remove the current start location from end options
         $end_locations = array_filter($all_locations, function($location) use ($start_place) {

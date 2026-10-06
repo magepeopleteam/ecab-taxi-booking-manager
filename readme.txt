@@ -4,7 +4,7 @@ Author URI : https://mage-people.com
 Tags: Taxi booking, Cab booking, Ride booking , Chauffeur service, Airport transfer, Distance based pricing, Fare calculator, Car booking, Map Booking, Limousine service, Transportation, Dispatch system
 Requires at least: 5.3
 Stable tag: trunk
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -24,7 +24,7 @@ Note: This video demonstrates the full ecosystem. Advanced features like the Dri
 https://mage-people.com/product/wordpress-taxi-cab-booking-plugin-for-woocommerce/
 
 ## Make Yourself Comfortable With:
-🧶 [View Live Taxi Booking Demo](https://demo.ecabtaxi.com/)
+🧶 [View Live Taxi Booking Demo](https://ecabtaxi.com/)
 👉 [Plugin Documentation](https://docs.mage-people.com/plugins/ecab/overview)
 
 ## Why Choose E-cab? (Key Features):
@@ -208,8 +208,84 @@ Please report security bugs found in the source code of the Taxi Booking Manager
 
 This transparency is crucial for legal protection. By using this plugin, you acknowledge and accept the reliance on the Google Maps API. Review the terms of use and privacy policy for both this plugin and the Google Maps API to ensure a comprehensive understanding of the services and how your data is handled.
 
+== External Services ==
+
+This plugin can connect to third-party services when you turn them on or confirm them. Nothing is sent to these services unless you enable the related feature or confirm the related notice.
+
+= Appneck =
+
+This Plugin uses [Appneck](https://appneck.com) SDK to collect some telemetry data upon the user's confirmation to troubleshoot problems faster & make product improvements.
+Appneck SDK **does not gather any data by default.** The SDK only starts gathering basic telemetry data **when a user allows it via the admin notice**. We collect the data to ensure a great user experience for all our users. Integrating Appneck SDK **DOES NOT IMMEDIATELY** start gathering data, **without confirmation from users in any case.**
+Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.1.3 - 2026-10-05 =
+* New: Updated the bundled Appneck SDK to the latest version.
+
+= 2.1.2 - 2026-09-30 =
+* New: added the Appneck SDK for opt-in telemetry and update tracking. It does not collect any data by default; it only starts after you confirm via the admin notice. See External Services in this readme.
+* Added: "Auto-detect Visitor's Location" option in Settings > Map API Settings - when enabled, the booking map centers on each visitor's own location (with their browser's permission) on both Google Maps and OpenStreetMap, falling back to the configured default location if access is denied or unavailable.
+* Added: Compatibility with the Advanced Partial Payment/Deposit for WooCommerce plugin (Pro) - the Bookings list, single booking detail view and PDF ticket now show the true order total, amount paid and balance due for deposit orders, instead of the checkout deposit amount being mislabeled as the full total. No change for sites without that plugin active.
+* Fixed (Pro): The automated booking-confirmation email and PDF ticket could silently fail to send - a crash mid-PDF-generation (e.g. a font/rendering error) previously took down the whole request before the email was sent, and a broken internal check meant a partially-generated PDF could still be attached. Both are now caught: generation failures are logged and skipped gracefully, and the email still sends without a broken attachment.
+* Added (Pro): Optional "Also Send on Status Change" setting under Email Settings - off by default. The booking-confirmation email previously only sent when the customer's browser loaded the order-received page, so a delayed payment-gateway confirmation (webhook arriving after that page loads) could mean the email never went out. Enabling this setting also sends it on the order's status change, with a safeguard against sending the same email twice.
+* Fixed: Icons on booking form fields next to a dropdown (Maximum Passenger, Maximum Bag, Maximum Hand Luggage, Transfer Type) could silently fail to render - a theme or another plugin's styling could set a font-weight Font Awesome has no glyph for, leaving the icon slot blank with no visible error, while icons next to text fields (Pickup/Drop-off Location) were unaffected. The correct weight is now pinned explicitly so this can't happen regardless of what else is loaded on the page.
+* Added: Optional "Pickup/Return Time Picker Style" setting in Settings > General Settings - off (classic list) by default. Switching it to Grid shows the same pickup/return time slots as a wrapping grid of chip buttons instead of a single-column scrollable list, with identical click behaviour - no change for sites that leave it on Classic.
+
+= 2.1.0 - 2026-09-08 =
+* Added: Service Area Restriction - optionally confine online booking to one or more drawn Operation Areas, with a list of named "Approved Exception Locations" (e.g. airports) that stay bookable to/from the area even though they sit outside it. A booking between two exception locations, or between the area and anywhere else outside it, is blocked automatically with the existing "No Transport Available" message. Off by default in Settings > General Settings; existing sites are unaffected until an admin turns it on.
+* Added: Multiple Operation Areas can be selected for Service Area Restriction at once (e.g. several cities served independently) - a pickup or drop-off inside any one of them counts as "in the service area".
+* Added: [mptbm_booking] shortcode `pickup` and `dropoff` parameters to pre-fill the pickup/drop-off fields for `dynamic`/`fixed_map` searches, with the route automatically previewed on the map (drawn via the free public OSM/OSRM routing service, not a paid Google Distance Matrix lookup) - the real server-verified fare is still calculated normally the moment the visitor searches.
+* Improved: The pickup/drop-off route preview above now geocodes both addresses in parallel instead of one after another, roughly halving the time before the preview route appears.
+* Added: [mptbm_booking] shortcode `pickup_zone` and `dropoff_zone` parameters to pre-select a Locations-taxonomy pickup/drop-off dropdown by term ID for `fixed_zone`/`fixed_zone_dropoff` searches, with the matching zone marker placed on the map automatically.
+* Fixed: An intermittent site-side output issue could HTML-entity-encode a `&&` inside certain inline scripts, breaking them; the new scripts above avoid the token entirely rather than depend on a fix elsewhere.
+* Fixed: Operation areas can now be saved with a hand-drawn boundary even when location search returns no suggestions. The starting location is only a label - the geo-fence itself is matched against the drawn polygon - so typing a name is now enough, and "Add area" no longer stays permanently disabled.
+* Fixed: Location search suggestions no longer disappear from every operation-area field when the Google Maps API key has no legacy Places API enabled. The autocomplete setup now checks for the Places library first instead of throwing, which previously stopped all three location fields from initialising.
+* Added: A console warning naming the missing Places library, so this is diagnosable without reading the plugin source.
+* Documented: Fixed Daily pricing (`fixed_daily`) - book a vehicle for one or more full days at a per-day rate, with an admin-configurable minimum number of days. This had already shipped in an earlier release but was missing from this changelog.
+
+= 2.0.9 - 2026-08-15 =
+* Fixed: Fares are now calculated in the distance unit the site is actually set to. The "Duration By Kilometer or Mile" setting only reached the trip summary, while every fare multiplied its per-unit rate by the distance in kilometres - so a site set to Mile charged its per-mile rate for each kilometre travelled. Sites set to Kilometer are unaffected; sites set to Mile will see distance-based fares drop to the rates they configured.
+* Fixed: The base-location pickup/drop-off charge and its distance threshold now use the same unit as the rest of the pricing.
+* Changed: The rate fields, pricing-model formula cards and the distance line on the cart now name the unit in use, instead of always saying KM.
+* Fixed: The route map no longer stays greyed out when the active theme or another plugin loads the Google Maps JavaScript API a second time.
+* Added: An Undo control while drawing operation area boundaries, so the last point can be removed without restarting the shape.
+* Changed: The results-map option is easier to find in Global Settings.
+
+= 2.0.8 - 2026-08-13 =
+* Fixed: Pickup and return time options now follow each vehicle's Schedule Date Configuration, on both the global search form and single vehicle pages, instead of always offering the full day and only rejecting the booking after the search ran.
+* Added: Rebuilt the Status screen as a card-based system report covering PHP version, server, database, memory limits, PHP extensions, WordPress configuration, booking setup and filesystem permissions.
+* Added: Every status check now shows whether it passed, needs attention or needs fixing, with a plain-English explanation of what to do about it and a running total at the top of the page.
+* Added: A "Copy report" button on the Status screen that puts the whole environment report on the clipboard for support requests.
+* Fixed: The passenger and bag filter on the search results now keeps every vehicle able to carry the selected number, instead of matching that capacity exactly and emptying the list.
+* Fixed: Vehicles filtered out by the passenger and bag filter now actually disappear from the results instead of fading and reappearing.
+* Fixed: The passenger and bag filter dropdowns now always offer the full capacity range of the fleet, and no longer fail when a vehicle has no capacity set or no vehicles exist yet.
+* Added: Public/Private visibility options in the vehicle editor.
+* Added: Hooks for ordering the vehicle search results.
+* Fixed: Day-wise availability and the day schedule now handle 24-hour opening times correctly.
+* Fixed: The buffer time hint now translates properly and points clearly at the WordPress timezone setting.
+
+= 2.0.7 - 2026-08-11 =
+* Security: Hardened operation-area pricing saves with nonce verification, target-post authorization, post-type validation and field-level sanitization.
+* Security: Protected REST API routes against case-variant authentication bypasses and added endpoint-level read/write scope enforcement.
+* Fixed: Single transportation pages now search only the displayed vehicle instead of listing other taxis that use the same pricing model.
+* Fixed: Vehicle quantity, existing bookings and booking-interval buffers now disable unavailable pickup times correctly on both single-vehicle and global search forms.
+* Added: Manual Routes now have a per-vehicle frontend map switch, provider-aware city detection, labeled location markers and a responsive route-location legend.
+* Added: Selecting a manual route now draws the real road connection and shows server-verified distance and duration through Google Maps or OpenStreetMap/OSRM without changing the configured fixed fare.
+* Improved: Transportation editor updates now save without a page reload and provide reliable loading, success and editor-clean states.
+* Improved: Transportation list and single-vehicle navigation now include a direct View action and vehicle-scoped preview behavior.
+* Improved: Redesigned the Operation Area builder with guided drawing controls, a clearly marked starting point, editing tools, progress feedback and full mobile responsiveness.
+* Added: Saved operation areas now display fitted map previews focused on their drawn boundaries in a professional responsive grid.
+* Fixed: Admin dropdown labels and popup fields no longer appear clipped or hidden.
+
+= 2.0.6 - 2026-08-10 =
+1. Added a shortest-route pricing option and consistent route selection across browser and server calculations
+2. Added a separate server-side Google Maps API key option so browser keys can remain HTTP-referrer restricted
+3. Added configurable fare-distance sources, validated browser distances, TomTom routing support and automatic OSRM fallback
+4. Fare calculations, vehicle results, trip summaries and checkout now use the same verified distance and duration
+5. Added routing-provider diagnostics and clearer Map API settings for Google Maps and OpenStreetMap modes
+6. Booking forms now send no-cache headers so dates, availability and security nonces remain current
+7. Removed shared search transients that could leak one visitor's last date and time into another request
+
 = 2.0.5 =
 1. Offline payment added as a free method, with its own standalone checkout
 2. Payments settings split into WooCommerce / Custom tabs, plus a Currency Settings tab for standalone mode
@@ -308,5 +384,3 @@ This transparency is crucial for legal protection. By using this plugin, you ack
 6. Location taxonomy added for manual pricing 
 7. Manual Pricing Slug issue fixed
 8. Fixed Hourly Responsive issue Fixed
-
-

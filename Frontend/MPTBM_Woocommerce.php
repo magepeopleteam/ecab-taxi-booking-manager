@@ -191,7 +191,14 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				if (empty($price_based)) {
 					$price_based = isset($_POST['mptbm_price_based']) ? sanitize_text_field($_POST['mptbm_price_based']) : '';
 				}
-				
+
+				// Fixed Daily has no map route to derive a duration from (dropoff may not even
+				// be routed), so the inventory/calendar-blocking duration is the full rental
+				// span instead: the customer-picked day count converted to seconds.
+				if ($price_based === 'fixed_daily') {
+					$duration = (int) round($fixed_hour * DAY_IN_SECONDS);
+				}
+
 				// Parse coordinates for fixed_zone/fixed_zone_dropoff geo-fence validation
 				$geo_fence_coords = null;
 				// Relaxed condition: Check for coordinates based on price mode, don't strictly require both unless needed
@@ -227,8 +234,15 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				// scaled by quantity like the base transport price (each vehicle makes the same stops).
 				$stop_price_per_unit = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_stop_price', 0);
 					$stop_total_price = $stop_price_per_unit * absint($context['extra_stop_count'] ?? 0) * $quantity;
-				// Final total: transport plus extra services plus threshold-based base distance price plus extra stops
-				$total_price = $transport_total_price + $extra_total_price + $threshold_base_price + $stop_total_price;
+				// Add Stoppage selection - a one-time charge per booking, not scaled by
+				// vehicle quantity (same treatment as extra services above).
+				$mptbm_stoppage_selection = self::cart_stoppage_info($post_id);
+				$stoppage_total_price = 0;
+				foreach ($mptbm_stoppage_selection as $stoppage) {
+					$stoppage_total_price += (float) $stoppage['stoppage_price'];
+				}
+				// Final total: transport plus extra services plus threshold-based base distance price plus extra stops plus stoppages
+				$total_price = $transport_total_price + $extra_total_price + $threshold_base_price + $stop_total_price + $stoppage_total_price;
                 
                 
 					$cart_item_data['mptbm_date'] = $booking_date;
@@ -246,12 +260,15 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			}
 			
 			$cart_item_data['mptbm_distance'] = $distance;
-				$cart_item_data['mptbm_distance_text'] = number_format_i18n($distance / 1000, 2) . ' km';
+				$cart_item_data['mptbm_distance_text'] = number_format_i18n(MPTBM_Function::distance_in_unit($distance), 2) . ' ' . strtolower(MPTBM_Function::distance_unit_label());
 				$cart_item_data['mptbm_duration'] = $duration;
 				$cart_item_data['mptbm_fixed_hours'] = $fixed_hour;
-				$cart_item_data['mptbm_duration_text'] = (string) max(1, (int) ceil($duration / 60)) . ' min';
+				$cart_item_data['mptbm_duration_text'] = ($price_based === 'fixed_daily')
+					? sprintf(_n('%d Day', '%d Days', max(1, (int) round($fixed_hour)), 'ecab-taxi-booking-manager'), max(1, (int) round($fixed_hour)))
+					: (string) max(1, (int) ceil($duration / 60)) . ' min';
 				$cart_item_data['mptbm_base_price'] = $raw_price;
 				$cart_item_data['mptbm_extra_service_info'] = self::cart_extra_service_info($post_id);
+				$cart_item_data['mptbm_stoppage_info'] = $mptbm_stoppage_selection;
 				$cart_item_data['mptbm_tp'] = $total_price;
 				$cart_item_data['line_total'] = $total_price;
 				$cart_item_data['line_subtotal'] = $total_price;
@@ -353,6 +370,14 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 				if ($extra_stop_enabled === 'yes' && !empty($extra_stop_locations)) {
 					$item_data[] = array('key' => mptbm_get_translation('extra_stop_location_label', __('Extra Stops', 'ecab-taxi-booking-manager')), 'value' => implode(', ', $extra_stop_locations));
+				}
+
+				$mptbm_stoppage_selection = array_key_exists('mptbm_stoppage_info', $cart_item) ? (array) $cart_item['mptbm_stoppage_info'] : [];
+				if (!empty($mptbm_stoppage_selection)) {
+					$item_data[] = array(
+						'key'   => mptbm_get_translation('stoppages_label', __('Stoppages', 'ecab-taxi-booking-manager')),
+						'value' => implode(', ', wp_list_pluck($mptbm_stoppage_selection, 'stoppage_name')),
+					);
 				}
 					$item_data[] = array('key' => mptbm_get_translation('date_label', __('Date', 'ecab-taxi-booking-manager')), 'value' => MP_Global_Function::date_format($date));
 					$item_data[] = array('key' => mptbm_get_translation('time_label', __('Time', 'ecab-taxi-booking-manager')), 'value' => MP_Global_Function::date_format($date, 'time'));
@@ -459,6 +484,21 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						$item->add_meta_data('_mptbm_stop_price', $stop_total_price);
 					}
 				}
+
+				// Add Stoppage - persist each selected stop as its own order-item meta
+				// row so it stays attached to the booking after checkout (admin
+				// bookings list, driver-facing order view, etc.).
+				$mptbm_stoppage_selection = isset($values['mptbm_stoppage_info']) ? (array) $values['mptbm_stoppage_info'] : [];
+				foreach ($mptbm_stoppage_selection as $stoppage) {
+					$label = $stoppage['stoppage_name'];
+					if (!empty($stoppage['stoppage_duration'])) {
+						$label .= ' (' . $stoppage['stoppage_duration'] . ')';
+					}
+					$item->add_meta_data(
+						mptbm_get_translation('stoppage_label', __('Stoppage', 'ecab-taxi-booking-manager')),
+						$label . ' — ' . wp_kses_post(wc_price((float) $stoppage['stoppage_price']))
+					);
+				}
 				$distance = isset($values['mptbm_distance']) ? $values['mptbm_distance'] : '';
 				$distance_text = isset($values['mptbm_distance_text']) ? $values['mptbm_distance_text'] : '';
 				$duration = isset($values['mptbm_duration']) ? $values['mptbm_duration'] : '';
@@ -480,7 +520,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					$item->add_meta_data(mptbm_get_translation('extra_waiting_hours_label', __('Extra Waiting Hours', 'ecab-taxi-booking-manager')), $waiting_time . ' ' . mptbm_get_translation('hours_in_waiting_label', __('Hour', 'ecab-taxi-booking-manager')));
 				}
 				if ($fixed_time && $fixed_time > 0) {
-					$item->add_meta_data(mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')), $fixed_time . ' ' . mptbm_get_translation('hours_in_waiting_label', __('Hour', 'ecab-taxi-booking-manager')));
+					$service_times_value = ($original_price_based === 'fixed_daily')
+						? sprintf(_n('%d Day', '%d Days', (int) round($fixed_time), 'ecab-taxi-booking-manager'), (int) round($fixed_time))
+						: $fixed_time . ' ' . mptbm_get_translation('hours_in_waiting_label', __('Hour', 'ecab-taxi-booking-manager'));
+					$item->add_meta_data(mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')), $service_times_value);
 				}
 				$item->add_meta_data(mptbm_get_translation('date_label', __('Date', 'ecab-taxi-booking-manager')), esc_html(MP_Global_Function::date_format($date)));
 				$item->add_meta_data(mptbm_get_translation('time_label', __('Time', 'ecab-taxi-booking-manager')), esc_html(MP_Global_Function::date_format($date, 'time')));
@@ -660,6 +703,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$item->add_meta_data('_mptbm_base_price', $base_price);
 				$item->add_meta_data('_mptbm_tp', $price);
 				$item->add_meta_data('_mptbm_service_info', $extra_service);
+				// Raw data counterpart of the human-readable "Stoppage" rows added above -
+				// without this, checkout_order_processed() has nothing to copy onto the
+				// booking post and mptbm_stoppage_info ends up empty there.
+				$item->add_meta_data('_mptbm_stoppage_info', $mptbm_stoppage_selection);
 				$item->add_meta_data('_mptbm_transport_quantity', $transport_quantity);
 
 				do_action('mptbm_checkout_create_order_line_item', $item, $values);
@@ -706,6 +753,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							$threshold_base_price = $threshold_base_price ? MP_Global_Function::data_sanitize($threshold_base_price) : '';
 							$service = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_service_info');
 							$service_info = $service ? MP_Global_Function::data_sanitize($service) : [];
+							$stoppage = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_stoppage_info');
+							$stoppage_info = $stoppage ? MP_Global_Function::data_sanitize($stoppage) : [];
 							$price = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_tp');
 							$price = $price ? MP_Global_Function::data_sanitize($price) : [];
 							$transport_quantity = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_transport_quantity');
@@ -731,6 +780,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 								'mptbm_user_id' => $user_id,
 								'mptbm_tp' => $price,
 								'mptbm_service_info' => $service_info,
+								'mptbm_stoppage_info' => $stoppage_info,
 								'mptbm_billing_name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
 								'mptbm_billing_email' => $order->get_billing_email(),
 								'mptbm_billing_phone' => $order->get_billing_phone(),
@@ -816,6 +866,11 @@ if (!class_exists('MPTBM_Woocommerce')) {
 							}
 
 							$data['mptbm_item_name'] = $this->ordered_item_name;
+							// The booking record this payload belongs to. Listeners (Google
+							// Calendar, Sheets) need a stable per-item identity to store sync
+							// state against - the order id alone is ambiguous because one order
+							// can hold several journeys.
+							$data['mptbm_booking_id'] = $booking_id;
 							$driver_id = get_post_meta($post_id, 'mptbm_selected_driver', true);
 							if ($driver_id) {
 								$driver_info = get_userdata($driver_id);
@@ -856,6 +911,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			$return = array_key_exists('mptbm_taxi_return', $cart_item) ? $cart_item['mptbm_taxi_return'] : '';
 			$waiting_time = array_key_exists('mptbm_waiting_time', $cart_item) ? $cart_item['mptbm_waiting_time'] : '';
 			$fixed_time = array_key_exists('mptbm_fixed_hours', $cart_item) ? $cart_item['mptbm_fixed_hours'] : '';
+			$original_price_based = array_key_exists('original_price_based', $cart_item) ? $cart_item['original_price_based'] : '';
 			$extra_service = array_key_exists('mptbm_extra_service_info', $cart_item) ? $cart_item['mptbm_extra_service_info'] : [];
 			$passengers = array_key_exists('mptbm_passengers', $cart_item) ? absint($cart_item['mptbm_passengers']) : '';
 			if ($passengers === '' && array_key_exists('mptbm_max_passenger', $cart_item)) {
@@ -1005,7 +1061,11 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						<?php if ($fixed_time && $fixed_time > 0) { ?>
 							<li>
 								<h6 class="_mR_xs"><?php echo mptbm_get_translation('service_times_label', __('Service Times', 'ecab-taxi-booking-manager')); ?> :</h6>
-								<span><?php echo esc_html($fixed_time); ?><?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></span>
+								<?php if ($original_price_based === 'fixed_daily') { ?>
+									<span><?php echo esc_html(sprintf(_n('%d Day', '%d Days', (int) round($fixed_time), 'ecab-taxi-booking-manager'), (int) round($fixed_time))); ?></span>
+								<?php } else { ?>
+									<span><?php echo esc_html($fixed_time); ?><?php echo mptbm_get_translation('hours_in_waiting_label', __('Hours', 'ecab-taxi-booking-manager')); ?></span>
+								<?php } ?>
 							</li>
 						<?php } ?>
 						<?php if ($pro_active && $enable_max_passenger_filter === 'yes') { ?>
@@ -1081,6 +1141,31 @@ if (!class_exists('MPTBM_Woocommerce')) {
 						</div>
 					<?php } ?>
 				<?php } ?>
+				<?php
+				$mptbm_stoppage_selection = array_key_exists('mptbm_stoppage_info', $cart_item) ? (array) $cart_item['mptbm_stoppage_info'] : [];
+				if (!empty($mptbm_stoppage_selection)) : ?>
+					<h5 class="_mB_xs"><?php esc_html_e('Stoppages', 'ecab-taxi-booking-manager'); ?></h5>
+					<?php foreach ($mptbm_stoppage_selection as $stoppage) : ?>
+						<div class="dLayout_xs">
+							<ul class="cart_list">
+								<li>
+									<h6 class="_mR_xs"><?php esc_html_e('Name : ', 'ecab-taxi-booking-manager'); ?></h6>
+									<span><?php echo esc_html($stoppage['stoppage_name']); ?></span>
+								</li>
+								<?php if (!empty($stoppage['stoppage_duration'])) : ?>
+								<li>
+									<h6 class="_mR_xs"><?php esc_html_e('Duration : ', 'ecab-taxi-booking-manager'); ?></h6>
+									<span><?php echo esc_html($stoppage['stoppage_duration']); ?></span>
+								</li>
+								<?php endif; ?>
+								<li>
+									<h6 class="_mR_xs"><?php esc_html_e('Price : ', 'ecab-taxi-booking-manager'); ?></h6>
+									<span><?php echo (float) $stoppage['stoppage_price'] > 0 ? wp_kses_post(wc_price($stoppage['stoppage_price'])) : esc_html__('Free', 'ecab-taxi-booking-manager'); ?></span>
+								</li>
+							</ul>
+						</div>
+					<?php endforeach; ?>
+				<?php endif; ?>
 				<?php do_action('mptbm_after_cart_item_display', $cart_item, $post_id); ?>
 			</div>
 			<?php
@@ -1157,6 +1242,36 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				}
 			}
 			return $extra_service;
+		}
+		/**
+		 * Add Stoppage selection for the cart - independent of Extra Services.
+		 * The client posts only stoppage ids; name/duration/price are always
+		 * re-resolved from this vehicle's own assigned stoppages
+		 * (MPTBM_Function::get_available_stoppages()), never trusted from $_POST.
+		 */
+		public static function cart_stoppage_info($post_id): array
+		{
+			$posted_ids = isset($_POST['mptbm_stoppage_id']) ? array_values(array_filter(array_map('absint', (array) wp_unslash($_POST['mptbm_stoppage_id'])))) : [];
+			if (empty($posted_ids)) {
+				return [];
+			}
+			$available = MPTBM_Function::get_available_stoppages($post_id);
+			$available_by_id = [];
+			foreach ($available as $stoppage) {
+				$available_by_id[$stoppage['id']] = $stoppage;
+			}
+			$selected = [];
+			foreach ($posted_ids as $id) {
+				if (isset($available_by_id[$id])) {
+					$selected[] = [
+						'stoppage_id'       => $id,
+						'stoppage_name'     => $available_by_id[$id]['name'],
+						'stoppage_duration' => $available_by_id[$id]['duration'],
+						'stoppage_price'    => $available_by_id[$id]['price'],
+					];
+				}
+			}
+			return $selected;
 		}
 		public function get_cart_total_price($post_id)
 		{
@@ -1248,6 +1363,9 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				if ($cpt_name == 'mptbm_booking') {
 					update_post_meta($post_id, 'mptbm_pin', MPTBM_Function::create_booking_reference());
 					MPTBM_Function::get_booking_access_token($post_id, true);
+					// Invalidate the single-vehicle-page calendar's cached fully-booked-dates
+					// list so this new booking is reflected immediately, not after its TTL.
+					delete_transient('mptbm_booked_dates_' . $locked_vehicle);
 				}
 			if ($locked_vehicle) {
 				MPTBM_Function::release_inventory_lock($locked_vehicle);

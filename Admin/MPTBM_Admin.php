@@ -33,6 +33,9 @@
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Taxonomy_Meta.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Status.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Guideline.php';
+			// Upgrade teaser menu listing Pro-only features. Self-instantiates; internally
+			// stands down (never registers its menu) when the Pro plugin is active.
+			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Pro_Features_Page.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_License.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Analytics_Dashboard.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_API_Documentation.php';
@@ -43,7 +46,9 @@
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Service_Status_Manager.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Locations_Manager.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Extra_Services_Manager.php';
+			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Stoppages_Manager.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Operation_Areas_Manager.php';
+			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Routes_Manager.php';
 			// Limited "Bookings" list (upgrade teaser). Self-instantiates; internally stands
 			// down when the Pro plugin is active so the Pro unified list takes over.
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Booking_List_Free.php';
@@ -56,6 +61,7 @@
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_General_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Price_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Extra_Service.php';
+				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Stoppage_Assignment.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Operation_Areas.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Date_Settings.php';
 				require_once MPTBM_PLUGIN_DIR . '/Admin/settings/MPTBM_Base_Price_Settings.php';

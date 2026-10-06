@@ -218,6 +218,7 @@ class MPTBM_Transportation
         $items = array();
         foreach ($query->posts as $post) {
             $pid   = $post->ID;
+            $view_link = $post->post_status === 'publish' ? get_permalink($pid) : (get_preview_post_link($pid) ?: get_permalink($pid));
             $feature_map = array();
             $features = get_post_meta($pid, 'mptbm_features', true);
             if (!empty($features) && is_array($features)) {
@@ -254,6 +255,7 @@ class MPTBM_Transportation
                 'modified'    => $post->post_modified,
                 'author'      => get_the_author_meta('display_name', $post->post_author),
                 'edit_link'   => get_edit_post_link($pid, ''),
+                'view_link'   => $view_link,
                 'trash_link'  => wp_nonce_url(admin_url('admin-post.php?action=mptbm_trash_transport&id=' . $pid), 'mptbm_trash_' . $pid),
                 'restore_link' => wp_nonce_url(admin_url('admin-post.php?action=mptbm_restore_transport&id=' . $pid), 'mptbm_restore_' . $pid),
                 'delete_link'  => wp_nonce_url(admin_url('admin-post.php?action=mptbm_delete_transport&id=' . $pid), 'mptbm_delete_' . $pid),
@@ -546,6 +548,9 @@ class MPTBM_Transportation
                                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                                         </a>
                                     <?php else : ?>
+                                        <a class="mptbm-act-btn view" href="<?php echo esc_url($it['view_link']); ?>" target="_blank" rel="noopener noreferrer" title="<?php esc_attr_e('View single page', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('View single page', 'ecab-taxi-booking-manager'); ?>">
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        </a>
                                         <a class="mptbm-act-btn edit" href="<?php echo esc_url($it['edit_link']); ?>" title="<?php esc_attr_e('Edit', 'ecab-taxi-booking-manager'); ?>">
                                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                         </a>
@@ -649,6 +654,7 @@ class MPTBM_Transportation
                                         <a class="mptbm-table-edit" href="<?php echo esc_url($it['restore_link']); ?>" title="<?php esc_attr_e('Restore', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Restore', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-trash-restore" aria-hidden="true"></i></a>
                                         <a class="mptbm-table-del" href="<?php echo esc_url($it['delete_link']); ?>" onclick="return confirm('<?php echo esc_js(__('Permanently delete this item? This cannot be undone.', 'ecab-taxi-booking-manager')); ?>');" title="<?php esc_attr_e('Delete', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Delete', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-trash-alt" aria-hidden="true"></i></a>
                                     <?php else : ?>
+                                        <a class="mptbm-table-view" href="<?php echo esc_url($it['view_link']); ?>" target="_blank" rel="noopener noreferrer" title="<?php esc_attr_e('View single page', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('View single page', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-eye" aria-hidden="true"></i></a>
                                         <a class="mptbm-table-edit" href="<?php echo esc_url($it['edit_link']); ?>" title="<?php esc_attr_e('Edit', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Edit', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-pen" aria-hidden="true"></i></a>
                                         <a class="mptbm-table-dup" href="<?php echo esc_url($it['duplicate_link']); ?>" onclick="return confirm('<?php echo esc_js(__('Create a duplicate of this transportation?', 'ecab-taxi-booking-manager')); ?>');" title="<?php esc_attr_e('Duplicate', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Duplicate', 'ecab-taxi-booking-manager'); ?>"><i class="far fa-copy" aria-hidden="true"></i></a>
                                         <a class="mptbm-table-del" href="<?php echo esc_url($it['trash_link']); ?>" onclick="return confirm('<?php echo esc_js(__('Move this item to Trash?', 'ecab-taxi-booking-manager')); ?>');" title="<?php esc_attr_e('Trash', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Trash', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-trash-alt" aria-hidden="true"></i></a>

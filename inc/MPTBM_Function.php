@@ -123,6 +123,31 @@ if (!class_exists('MPTBM_Function')) {
 		}
 
 		/**
+		 * The customer-chosen duration of a fixed-hourly / fixed-daily search, as a whole number.
+		 *
+		 * The booking form only offers whole hours and days, and the number multiplies the vehicle's
+		 * rate, so a fractional value (fixed_time=0.01) can only come from a hand-built request and
+		 * would scale the fare towards zero. Anything that is not a whole number is returned as 0, which
+		 * every range check below already rejects. Accepts what an earlier version may have left in the
+		 * session (an int or a float).
+		 *
+		 * @param mixed $value Raw posted value or stored context value.
+		 * @return int Whole hours/days, or 0 when the value is not a whole number.
+		 */
+		public static function normalize_fixed_time($value): int
+		{
+			if (is_int($value) || is_float($value)) {
+				$value = (string) $value;
+			}
+			if (!is_string($value)) {
+				return 0;
+			}
+			$value = trim($value);
+			// Whole digits only (a trailing ".0" is tolerated); four digits is far above every limit.
+			return preg_match('/^\d{1,4}(\.0+)?$/', $value) ? (int) $value : 0;
+		}
+
+		/**
 		 * Validate that checkout is using the server-side search which produced the quote.
 		 * Returns the context or a WP_Error suitable for a customer-facing checkout error.
 		 */
@@ -144,9 +169,19 @@ if (!class_exists('MPTBM_Function')) {
 				return new WP_Error('mptbm_quote_unverified', __('The route could not be verified by the server. Please try the search again.', 'ecab-taxi-booking-manager'));
 			}
 			if (sanitize_key($context['price_based'] ?? '') === 'fixed_hourly') {
-				$hours = (float) ($context['fixed_time'] ?? 0);
-				if ($hours <= 0 || $hours > 168) {
+				$hours = self::normalize_fixed_time($context['fixed_time'] ?? 0);
+				// Whole hours, and never below the admin's "Minimum Booking Hours" (1 when it is off):
+				// the form offers nothing shorter, so a shorter value is a hand-built request.
+				$minimum_hours = max(1, (int) MP_Global_Function::get_settings('mptbm_general_settings', 'minimum_booking_hours', '0'));
+				if ($hours < $minimum_hours || $hours > 168) {
 					return new WP_Error('mptbm_quote_hours', __('Please select a valid hourly booking duration.', 'ecab-taxi-booking-manager'));
+				}
+			}
+			if (sanitize_key($context['price_based'] ?? '') === 'fixed_daily') {
+				$days = self::normalize_fixed_time($context['fixed_time'] ?? 0);
+				$minimum_days = max(1, (int) MP_Global_Function::get_settings('mptbm_general_settings', 'minimum_booking_days', '1'));
+				if ($days <= 0 || $days > 90 || $days < $minimum_days) {
+					return new WP_Error('mptbm_quote_days', __('Please select a valid number of booking days.', 'ecab-taxi-booking-manager'));
 				}
 			}
 			return $context;
@@ -174,6 +209,14 @@ if (!class_exists('MPTBM_Function')) {
 			foreach (array_filter($names) as $index => $name) {
 				if (!in_array($name, $allowed, true) || (isset($qtys[$index]) && $qtys[$index] > 100)) {
 					return new WP_Error('mptbm_extra_service', __('An invalid extra service was selected.', 'ecab-taxi-booking-manager'));
+				}
+			}
+
+			$allowed_stoppage_ids = wp_list_pluck(self::get_available_stoppages($post_id), 'id');
+			$stoppage_ids = isset($_POST['mptbm_stoppage_id']) ? array_values(array_map('absint', (array) wp_unslash($_POST['mptbm_stoppage_id']))) : array();
+			foreach (array_filter($stoppage_ids) as $stoppage_id) {
+				if (!in_array($stoppage_id, $allowed_stoppage_ids, true)) {
+					return new WP_Error('mptbm_stoppage', __('An invalid stoppage was selected.', 'ecab-taxi-booking-manager'));
 				}
 			}
 			return true;
@@ -207,7 +250,9 @@ if (!class_exists('MPTBM_Function')) {
 				}
 			}
 
-			$km = $distance / 1000;
+			// Threshold and price_km are both quoted in the site's distance unit, so
+			// the travelled distance has to be measured in that same unit.
+			$km = self::distance_in_unit($distance);
 			if ($km < (float) $settings['threshold']) {
 				return 0.0;
 			}
@@ -457,7 +502,7 @@ if (!class_exists('MPTBM_Function')) {
 					$start_date = $now;
 				}
 				$repeated_after = MP_Global_Function::get_post_info($post_id, 'mptbm_repeated_after', 1);
-				$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 10) - 1;
+				$active_days = MP_Global_Function::get_post_info($post_id, 'mptbm_active_days', 60) - 1;
 				$end_date = date('Y-m-d', strtotime($start_date . ' +' . $active_days . ' day'));
 				$dates = MP_Global_Function::date_separate_period($start_date, $end_date, $repeated_after);
 				foreach ($dates as $date) {
@@ -478,6 +523,46 @@ if (!class_exists('MPTBM_Function')) {
 				}
 			}
 			return apply_filters('mptbm_get_date', $all_dates, $post_id);
+		}
+
+		/**
+		 * Drops any date from $dates where this vehicle has zero remaining
+		 * quantity for the whole day, based on existing bookings - used to grey
+		 * these out on the single-vehicle page calendar alongside its normal
+		 * off-days. Result is cached briefly per vehicle since it re-checks
+		 * every candidate date against the vehicle's full booking history.
+		 */
+		public static function exclude_fully_booked_dates($post_id, array $dates): array
+		{
+			if (empty($dates)) {
+				return $dates;
+			}
+			// A whole calendar day only makes sense to grey out as "booked" for
+			// day-rental vehicles (fixed_daily), where one booking genuinely occupies
+			// the entire day. For point-to-point modes (distance/hourly/manual/etc.)
+			// a single short trip earlier that day would otherwise flag the whole
+			// date as unavailable even though the vehicle is free the rest of it -
+			// that time-of-day granularity is already handled separately by
+			// get_unavailable_time_slots() once a date is picked. It would also
+			// collapse the calendar's minDate/maxDate range down to almost nothing
+			// (see MP_Global_Function::date_picker_js()), breaking month navigation.
+			if (MP_Global_Function::get_post_info($post_id, 'mptbm_price_based') !== 'fixed_daily') {
+				return $dates;
+			}
+			$cache_key = 'mptbm_booked_dates_' . absint($post_id);
+			$booked_dates = get_transient($cache_key);
+			if ($booked_dates === false) {
+				$force_single = get_post_meta($post_id, 'mptbm_enable_inventory', true) !== 'yes';
+				$booked_dates = [];
+				foreach ($dates as $date) {
+					$available = self::get_available_quantity($post_id, $date, '00:00', $force_single, DAY_IN_SECONDS);
+					if ($available <= 0) {
+						$booked_dates[] = $date;
+					}
+				}
+				set_transient($cache_key, $booked_dates, 5 * MINUTE_IN_SECONDS);
+			}
+			return array_values(array_diff($dates, $booked_dates));
 		}
 
 		// Labels for the "Reason" dropdown on the manual Vehicle Availability toggle.
@@ -547,62 +632,123 @@ if (!class_exists('MPTBM_Function')) {
 				$requested_intervals[] = array($return_timestamp, $return_timestamp + max(60, absint($trip_duration)));
 			}
 
-			$query = new WP_Query([
-				'post_type' => 'mptbm_booking',
-				'post_status' => array('publish', 'pending', 'private', 'draft'),
-				'posts_per_page' => -1,
-				'meta_query' => [
-					[
-						'key' => 'mptbm_id',
-						'value' => $post_id,
-						'compare' => '='
-					]
-				]
-			]);
+			foreach (self::get_inventory_booking_windows($post_id) as $booking) {
+				if (self::inventory_request_overlaps($requested_intervals, $booking['intervals'], $buffer_seconds)) {
+					$available_quantity -= $booking['quantity'];
+				}
+			}
 
-			if ($query->have_posts()) {
-				while ($query->have_posts()) {
-					$query->the_post();
-					$status = sanitize_key((string) get_post_meta(get_the_ID(), 'mptbm_order_status', true));
-					if (in_array($status, array('cancelled', 'refunded', 'failed'), true)) {
-						continue;
-					}
-					$booking_datetime = get_post_meta(get_the_ID(), 'mptbm_date', true);
-					$booking_transport_quantity = (int) get_post_meta(get_the_ID(), 'mptbm_transport_quantity', true);
-					$booking_transport_quantity = $booking_transport_quantity ?: 1;
-					$booking_timestamp = strtotime($booking_datetime);
-					$booking_duration = absint(get_post_meta(get_the_ID(), 'mptbm_duration', true));
-					if (!$booking_duration) {
-						$booking_duration = (int) round((float) get_post_meta(get_the_ID(), 'mptbm_fixed_hours', true) * HOUR_IN_SECONDS);
-					}
-					$existing_intervals = array();
-					if ($booking_timestamp) {
-						$existing_intervals[] = array($booking_timestamp, $booking_timestamp + max(60, $booking_duration));
-					}
-					$existing_return_date = (string) get_post_meta(get_the_ID(), 'mptbm_return_target_date', true);
-					$existing_return_time = (string) get_post_meta(get_the_ID(), 'mptbm_return_target_time', true);
-					$existing_return = $existing_return_date ? strtotime(trim($existing_return_date . ' ' . $existing_return_time)) : false;
-					if ($existing_return) {
-						$existing_intervals[] = array($existing_return, $existing_return + max(60, $booking_duration));
-					}
+			return $available_quantity;
+		}
 
-					$overlaps = false;
-					foreach ($requested_intervals as $requested) {
-						foreach ($existing_intervals as $existing) {
-							if ($requested[0] < ($existing[1] + $buffer_seconds) && $requested[1] > ($existing[0] - $buffer_seconds)) {
-								$overlaps = true;
-								break 2;
-							}
-						}
+		/**
+		 * Return pickup-time tokens whose full vehicle quantity is already occupied.
+		 * The one-minute requested window intentionally answers "can a trip start here?";
+		 * the existing booking's real duration plus Booking Interval Time determines
+		 * when the slot becomes selectable again.
+		 */
+		public static function get_unavailable_time_slots($post_id, $date, array $times, $force_single_quantity = false): array
+		{
+			$total_quantity = $force_single_quantity ? 1 : (int) MP_Global_Function::get_post_info($post_id, 'mptbm_quantity', 1);
+			$buffer_seconds = max(0, (int) MP_Global_Function::get_post_info($post_id, 'mptbm_booking_interval_time', 0) * 60);
+			$bookings = self::get_inventory_booking_windows($post_id);
+			$unavailable = array();
+
+			foreach (array_slice($times, 0, 288) as $time) {
+				$time = trim((string) $time);
+				if (!preg_match('/^(\d{1,2})[:.]([0-5]\d)$/', $time, $matches)) {
+					continue;
+				}
+				$hours = (int) $matches[1];
+				$minutes = (int) $matches[2];
+				if ($hours > 23) {
+					continue;
+				}
+
+				$canonical_time = sprintf('%02d.%02d', $hours, $minutes);
+				$slot_start = strtotime(trim($date . ' ' . sprintf('%02d:%02d', $hours, $minutes)));
+				if (!$slot_start) {
+					continue;
+				}
+				$requested = array(array($slot_start, $slot_start + 60));
+				$used_quantity = 0;
+
+				foreach ($bookings as $booking) {
+					if (self::inventory_request_overlaps($requested, $booking['intervals'], $buffer_seconds)) {
+						$used_quantity += $booking['quantity'];
 					}
-					if ($overlaps) {
-						$available_quantity -= $booking_transport_quantity;
+				}
+
+				if (($total_quantity - $used_quantity) <= 0) {
+					$unavailable[] = $canonical_time;
+				}
+			}
+
+			return array_values(array_unique($unavailable));
+		}
+
+		private static function inventory_request_overlaps(array $requested_intervals, array $existing_intervals, $buffer_seconds): bool
+		{
+			foreach ($requested_intervals as $requested) {
+				foreach ($existing_intervals as $existing) {
+					if ($requested[0] < ($existing[1] + $buffer_seconds) && $requested[1] > ($existing[0] - $buffer_seconds)) {
+						return true;
 					}
 				}
 			}
-			wp_reset_postdata();
 
-			return $available_quantity;
+			return false;
+		}
+
+		private static function get_inventory_booking_windows($post_id): array
+		{
+			$posts = get_posts(array(
+				'post_type' => 'mptbm_booking',
+				'post_status' => array('publish', 'pending', 'private', 'draft'),
+				'posts_per_page' => -1,
+				'meta_query' => array(
+					array(
+						'key' => 'mptbm_id',
+						'value' => absint($post_id),
+						'compare' => '=',
+					),
+				),
+			));
+			$bookings = array();
+
+			foreach ($posts as $post) {
+				$status = sanitize_key((string) get_post_meta($post->ID, 'mptbm_order_status', true));
+				if (in_array($status, array('cancelled', 'refunded', 'failed'), true)) {
+					continue;
+				}
+
+				$booking_timestamp = strtotime((string) get_post_meta($post->ID, 'mptbm_date', true));
+				$booking_duration = absint(get_post_meta($post->ID, 'mptbm_duration', true));
+				if (!$booking_duration) {
+					$booking_duration = (int) round((float) get_post_meta($post->ID, 'mptbm_fixed_hours', true) * HOUR_IN_SECONDS);
+				}
+				$intervals = array();
+				if ($booking_timestamp) {
+					$intervals[] = array($booking_timestamp, $booking_timestamp + max(60, $booking_duration));
+				}
+
+				$return_date = (string) get_post_meta($post->ID, 'mptbm_return_target_date', true);
+				$return_time = (string) get_post_meta($post->ID, 'mptbm_return_target_time', true);
+				$return_timestamp = $return_date ? strtotime(trim($return_date . ' ' . $return_time)) : false;
+				if ($return_timestamp) {
+					$intervals[] = array($return_timestamp, $return_timestamp + max(60, $booking_duration));
+				}
+
+				if ($intervals) {
+					$quantity = (int) get_post_meta($post->ID, 'mptbm_transport_quantity', true);
+					$bookings[] = array(
+						'quantity' => $quantity ?: 1,
+						'intervals' => $intervals,
+					);
+				}
+			}
+
+			return $bookings;
 		}
 
 		public static function get_all_dates($price_based = 'dynamic', $expire = false)
@@ -624,7 +770,7 @@ if (!class_exists('MPTBM_Function')) {
 		}
 
         //*************Price*********************************//
-		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0, $end_coords = null)
+		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0, $end_coords = null, $pickup_coords_hint = null, $dropoff_coords_hint = null)
 		{
 			$price = 0;
 			$search_context = self::get_search_context();
@@ -706,23 +852,55 @@ if (!class_exists('MPTBM_Function')) {
 				if ($price_based == 'inclusive' && $original_price_based == 'dynamic') {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
-					$price = $hour_price * ((float) $duration / 3600) + $km_price * ((float) $distance / 1000);
+
+					// Operation Area per-area rate override, scoped to Inclusive only.
+					// choose_vehicles.php's wptbm_get_schedule() sets this session key once
+					// it PHP-side-matches an Operation Area for an Inclusive vehicle - mirrors
+					// the fixed_map/fixed_distance override further below, but limited to
+					// per_hour/per_km (Inclusive has no single "flat" figure to override).
+					$inclusive_area_match_id = isset($_SESSION['mptbm_operation_area_match_' . $post_id]) ? $_SESSION['mptbm_operation_area_match_' . $post_id] : '';
+					if ($inclusive_area_match_id) {
+						// get_post_meta()'s 3rd param is $single (bool) - array() is falsy,
+						// which would silently ask for the "all values" form (wrapping the
+						// unserialized array in another array) instead of the value itself.
+						$inclusive_area_pricing = get_post_meta($post_id, 'mptbm_operation_area_pricing', true);
+						$inclusive_area_post_id = 'post_' . $inclusive_area_match_id;
+						$inclusive_area_price_data = (is_array($inclusive_area_pricing) && !empty($inclusive_area_pricing[0][$inclusive_area_post_id])) ? $inclusive_area_pricing[0][$inclusive_area_post_id] : array();
+						if (is_array($inclusive_area_price_data)) {
+							if (isset($inclusive_area_price_data['per_hour']) && $inclusive_area_price_data['per_hour'] > 0) {
+								$hour_price = (float) $inclusive_area_price_data['per_hour'];
+							}
+							if (isset($inclusive_area_price_data['per_km']) && $inclusive_area_price_data['per_km'] > 0) {
+								$km_price = (float) $inclusive_area_price_data['per_km'];
+							}
+						}
+					}
+
+					$price = $hour_price * ((float) $duration / 3600) + $km_price * self::distance_in_unit($distance);
 				} elseif ($price_based == 'distance' && $original_price_based == 'dynamic') {
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
-					$price = $km_price * ((float) $distance / 1000);
+					$price = $km_price * self::distance_in_unit($distance);
 				} elseif ($price_based == 'duration' && ($original_price_based == 'fixed_hourly' || $original_price_based == 'dynamic')) {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 					$price = $hour_price * ((float) $duration / 3600);
 				} elseif ($price_based == 'distance_duration' && $original_price_based == 'dynamic') {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
-					$price = $hour_price * ((float) $duration / 3600) + $km_price * ((float) $distance / 1000);
+					$price = $hour_price * ((float) $duration / 3600) + $km_price * self::distance_in_unit($distance);
 				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_hourly') && $original_price_based == 'fixed_hourly') {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 					$price = $hour_price * (float) $fixed_time;
 				} elseif ($price_based == 'distance' && $original_price_based == 'fixed_hourly') {
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
-					$price = $km_price * ((float) $distance / 1000);
+					$price = $km_price * self::distance_in_unit($distance);
+				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_daily') && $original_price_based == 'fixed_daily') {
+					// $fixed_time carries the customer-selected day count for this mode
+					// (reuses the same "fixed_time" wire format as fixed_hourly's hour count).
+					$day_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_day_price');
+					$price = $day_price * (float) $fixed_time;
+				} elseif ($price_based == 'distance' && $original_price_based == 'fixed_daily') {
+					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
+					$price = $km_price * self::distance_in_unit($distance);
 				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_distance' || $price_based == 'fixed_map') && ($original_price_based == 'fixed_distance' || $original_price_based == 'fixed_map')) {
 					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_route_price_info', []);
 
@@ -731,12 +909,23 @@ if (!class_exists('MPTBM_Function')) {
 
 					$found_zone_price = false;
 
+					// Prefer coordinates handed straight from the current request
+					// ($pickup_coords_hint/$dropoff_coords_hint, populated by the caller from
+					// $_POST) over the session-stored search context: the session isn't
+					// guaranteed to be readable on every host/cache setup, and when it silently
+					// comes back empty here, Location-to-Location/Area-to-Location matching
+					// below gets skipped entirely and pricing falls straight through to the
+					// flat "Fixed with map price" or distance+duration fallback further down -
+					// even though the searched route does have a matching row.
+					$effective_start_coords = $pickup_coords_hint ?: ($search_context['start_coords'] ?? null);
+					$effective_end_coords = $dropoff_coords_hint ?: ($search_context['end_coords'] ?? null);
+
                     if( $operation_area_fixed_map_type === 'zone_to_location' ){
                         if (!empty($fixed_zone_prices) && is_array($fixed_zone_prices)) {
-							$pickup_lat = $search_context['start_coords']['latitude'] ?? null;
-							$pickup_lng = $search_context['start_coords']['longitude'] ?? null;
-							$dropoff_lat = $search_context['end_coords']['latitude'] ?? null;
-							$dropoff_lng = $search_context['end_coords']['longitude'] ?? null;
+							$pickup_lat = $effective_start_coords['latitude'] ?? null;
+							$pickup_lng = $effective_start_coords['longitude'] ?? null;
+							$dropoff_lat = $effective_end_coords['latitude'] ?? null;
+							$dropoff_lng = $effective_end_coords['longitude'] ?? null;
 
                             if ($pickup_lat && $pickup_lng && $dropoff_lat && $dropoff_lng) {
                                 $pickup_coords = ['lat' => $pickup_lat, 'lng' => $pickup_lng];
@@ -778,10 +967,10 @@ if (!class_exists('MPTBM_Function')) {
                         }
                     }else{
                         if (!empty($fixed_map_area_to_area_price_info) && is_array($fixed_map_area_to_area_price_info)) {
-							$area_to_area_pickup_lat = $search_context['start_coords']['latitude'] ?? null;
-							$area_to_area_pickup_lng = $search_context['start_coords']['longitude'] ?? null;
-							$area_to_area_dropoff_lat = $search_context['end_coords']['latitude'] ?? null;
-							$area_to_area_dropoff_lng = $search_context['end_coords']['longitude'] ?? null;
+							$area_to_area_pickup_lat = $effective_start_coords['latitude'] ?? null;
+							$area_to_area_pickup_lng = $effective_start_coords['longitude'] ?? null;
+							$area_to_area_dropoff_lat = $effective_end_coords['latitude'] ?? null;
+							$area_to_area_dropoff_lng = $effective_end_coords['longitude'] ?? null;
 
                             if ($area_to_area_pickup_lat && $area_to_area_pickup_lng && $area_to_area_dropoff_lat && $area_to_area_dropoff_lng) {
                                 $area_to_area_pickup_coords = ['lat' => $area_to_area_pickup_lat, 'lng' => $area_to_area_pickup_lng];
@@ -845,7 +1034,7 @@ if (!class_exists('MPTBM_Function')) {
 							$price = (float) $fixed_map_price;
 						} else {
 							// Fallback to Distance + Duration
-							$price = ($hour_price * ((float) $duration / 3600)) + ($km_price * ((float) $distance / 1000));
+							$price = ($hour_price * ((float) $duration / 3600)) + ($km_price * self::distance_in_unit($distance));
 						}
 					}
 				}
@@ -907,6 +1096,25 @@ if (!class_exists('MPTBM_Function')) {
 							$end_location = array_key_exists('end_location', $manual_price) ? $manual_price['end_location'] : '';
 							if ($start_place == $start_location && $destination_place == $end_location) {
 								$price = (float) ($manual_price['price'] ?? 0);
+							}
+						}
+					}
+				}
+				elseif (trim($price_based) == 'fixed_route') {
+					// A predefined named route (e.g. "Paris City Tour"): the
+					// customer just picks it by name from a dropdown, so the
+					// selected route name arrives the same way a plain start
+					// location would - matched here against this vehicle's own
+					// price for that route (mptbm_assigned_routes), with no live
+					// distance/duration calculation. The route's name/waypoints
+					// themselves live once on the global mptbm_routes CPT post.
+					$assigned_routes = MP_Global_Function::get_post_info($post_id, 'mptbm_assigned_routes', []);
+					if (sizeof($assigned_routes) > 0) {
+						foreach ($assigned_routes as $assigned_route) {
+							$route_id = array_key_exists('route_id', $assigned_route) ? absint($assigned_route['route_id']) : 0;
+							$route_name = ($route_id && get_post_status($route_id) === 'publish') ? get_the_title($route_id) : '';
+							if ($start_place !== '' && $route_name !== '' && $start_place == $route_name) {
+								$price = (float) ($assigned_route['price'] ?? 0);
 							}
 						}
 					}
@@ -1185,6 +1393,174 @@ if (!class_exists('MPTBM_Function')) {
 			}
 			return 0;
 		}
+
+		/**
+		 * Short "starting price" headline for a vehicle card (e.g. taxi list/
+		 * grid views) - same admin-filled Price Settings meta and per-mode
+		 * logic as the single vehicle page's price card, condensed to just the
+		 * headline + unit (no route table, no notes). Only fields that are
+		 * actually set are shown; an unconfigured price model returns empty
+		 * strings rather than a fabricated number.
+		 *
+		 * @return array{headline:string,unit:string}
+		 */
+		public static function get_price_headline_info($post_id): array
+		{
+			$price_based          = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based', 'distance');
+			$price_display_type   = MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal');
+			$custom_price_message = trim((string) MP_Global_Function::get_post_info($post_id, 'mptbm_custom_price_message', ''));
+
+			$km_price   = MP_Global_Function::get_post_info($post_id, 'mptbm_km_price', '');
+			$hour_price = MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price', '');
+
+			$headline = '';
+			$unit     = '';
+
+			switch ($price_based) {
+				case 'distance':
+					if ('' !== $km_price) {
+						$headline = MP_Global_Function::format_price($km_price);
+						$unit     = esc_html__('per km', 'ecab-taxi-booking-manager');
+					}
+					break;
+				case 'duration':
+				case 'fixed_hourly':
+					if ('' !== $hour_price) {
+						$headline = MP_Global_Function::format_price($hour_price);
+						$unit     = esc_html__('per hour', 'ecab-taxi-booking-manager');
+					}
+					break;
+				case 'distance_duration':
+					if ('' !== $km_price) {
+						$headline = MP_Global_Function::format_price($km_price);
+						$unit     = esc_html__('per km', 'ecab-taxi-booking-manager');
+					}
+					break;
+				case 'inclusive':
+					if ('' !== $km_price) {
+						$headline = MP_Global_Function::format_price($km_price);
+						$unit     = esc_html__('per km', 'ecab-taxi-booking-manager');
+					} elseif ('' !== $hour_price) {
+						$headline = MP_Global_Function::format_price($hour_price);
+						$unit     = esc_html__('per hour', 'ecab-taxi-booking-manager');
+					}
+					break;
+				case 'fixed_distance':
+					$fixed_map_price = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_map_price', '');
+					if ('' !== $fixed_map_price) {
+						$headline = MP_Global_Function::format_price($fixed_map_price);
+						$unit     = esc_html__('fixed fare', 'ecab-taxi-booking-manager');
+					}
+					break;
+				case 'manual':
+				case 'fixed_zone':
+					// Only the route table belonging to this vehicle's *currently
+					// active* pricing model - a vehicle previously switched away
+					// from manual/fixed zone can still have old rows sitting in
+					// the other meta, and reading both would risk resurrecting a
+					// stale fare.
+					if ('manual' === $price_based) {
+						$rows = array_merge(
+							(array) MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', array()),
+							(array) MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', array())
+						);
+					} else {
+						$rows = (array) MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', array());
+					}
+					$lowest = null;
+					foreach ($rows as $row) {
+						if (isset($row['price']) && '' !== $row['price']) {
+							$row_price = (float) $row['price'];
+							$lowest    = (null === $lowest) ? $row_price : min($lowest, $row_price);
+						}
+					}
+					if (null !== $lowest) {
+						$headline = MP_Global_Function::format_price($lowest);
+						$unit     = esc_html__('starting fare', 'ecab-taxi-booking-manager');
+					}
+					break;
+			}
+
+			if ('zero' === $price_display_type) {
+				$headline = MP_Global_Function::format_price(0);
+				$unit     = '';
+			} elseif ('custom_message' === $price_display_type && '' !== $custom_price_message) {
+				$headline = esc_html($custom_price_message);
+				$unit     = '';
+			}
+
+			return array('headline' => $headline, 'unit' => $unit);
+		}
+
+		/**
+		 * A stoppage's duration is stored as a plain number of minutes
+		 * (mptbm_stoppage_duration) - this turns 90 into "1 h 30 min", 120 into
+		 * "2 h", and 45 into "45 min" for every place it's displayed.
+		 */
+		public static function format_duration_minutes($minutes): string
+		{
+			$minutes = absint($minutes);
+			if ($minutes <= 0) {
+				return '';
+			}
+			$hours = intdiv($minutes, 60);
+			$remaining_minutes = $minutes % 60;
+
+			if ($hours > 0 && $remaining_minutes > 0) {
+				return sprintf('%d h %d min', $hours, $remaining_minutes);
+			}
+			if ($hours > 0) {
+				return sprintf('%d h', $hours);
+			}
+			return sprintf('%d min', $remaining_minutes);
+		}
+
+		/**
+		 * Every stoppage a vehicle offers, resolved server-side from its own
+		 * assignment (mptbm_stoppage_ids) - never from anything the client posts.
+		 * Empty when the vehicle has stoppages switched off or none assigned.
+		 *
+		 * @return array<int,array{id:int,name:string,description:string,duration:string,price:float,image_url:string,badge:string,gallery:array<int,string>}>
+		 */
+		public static function get_available_stoppages($post_id): array
+		{
+			$display = MP_Global_Function::get_post_info($post_id, 'display_mptbm_stoppages', 'off');
+			if ($display !== 'on') {
+				return [];
+			}
+			$ids = get_post_meta($post_id, 'mptbm_stoppage_ids', true);
+			$ids = is_array($ids) ? array_map('absint', $ids) : [];
+			if (empty($ids)) {
+				return [];
+			}
+
+			$stoppages = [];
+			foreach ($ids as $id) {
+				$post = get_post($id);
+				if (!$post || $post->post_type !== 'mptbm_stoppages' || $post->post_status !== 'publish') {
+					continue;
+				}
+				$image_id = (int) get_post_meta($id, 'mptbm_stoppage_image', true);
+				$price = get_post_meta($id, 'mptbm_stoppage_price', true);
+				$gallery_ids = get_post_meta($id, 'mptbm_stoppage_gallery', true);
+				$gallery_ids = is_array($gallery_ids) ? array_map('absint', $gallery_ids) : [];
+				$gallery = array_values(array_filter(array_map(function ($gallery_id) {
+					return (string) wp_get_attachment_image_url($gallery_id, 'medium');
+				}, $gallery_ids)));
+				$stoppages[] = [
+					'id'          => (int) $id,
+					'name'        => $post->post_title,
+					'description' => (string) get_post_meta($id, 'mptbm_stoppage_description', true),
+					'duration'    => self::format_duration_minutes(get_post_meta($id, 'mptbm_stoppage_duration', true)),
+					'price'       => ($price !== '' && $price !== false) ? (float) $price : 0.0,
+					'image_url'   => $image_id ? (string) wp_get_attachment_image_url($image_id, 'medium') : '',
+					'badge'       => (string) get_post_meta($id, 'mptbm_stoppage_badge', true),
+					'gallery'     => $gallery,
+				];
+			}
+			return $stoppages;
+		}
+
 		/**
 		 * Check if coordinates fall within a fixed_zone end location (operation area polygon or location term radius)
 		 * 
@@ -1263,6 +1639,109 @@ if (!class_exists('MPTBM_Function')) {
 			}
 			
 			return false;
+		}
+
+		/**
+		 * Optional site-wide gate: restrict online booking to a drawn service
+		 * area (e.g. a ring road) plus a short list of named exception points
+		 * (e.g. airports) that are bookable to/from the area but never to each
+		 * other. Off by default (Settings > General Settings) and a no-op for
+		 * every existing site unless an admin explicitly configures it - reuses
+		 * is_point_in_fixed_zone()/get_search_context() rather than adding any
+		 * new geometry code, and only trims the already-computed result list
+		 * (mptbm_search_result_items), so it never touches get_price(),
+		 * location_exit(), or the vehicle query itself.
+		 */
+		public static function apply_service_area_restriction($items) {
+			$enabled = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_service_area_restriction', 'disable');
+			if ($enabled !== 'enable') {
+				return $items;
+			}
+
+			$area_ids = (array) MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_service_area_operation_area', array());
+			$area_ids = array_filter(array_map('absint', array_keys($area_ids)));
+			if (empty($area_ids)) {
+				// Not configured yet - fail open rather than blocking every search.
+				return $items;
+			}
+
+			// Read straight off this same request's POST rather than the
+			// session context: set_search_context() closes the session
+			// (session_write_close()) right after writing it, and by the time
+			// this filter runs, choose_vehicles.php has already echoed markup
+			// - so get_search_context()'s own session_start() sees
+			// headers_sent() and quietly skips, leaving the context empty.
+			// Whether that skip actually happens depends on the host's output
+			// buffering config, which is why this worked on some sites and
+			// silently failed open (no blocking at all) on others. The
+			// coordinates are already sitting in $_POST for this exact
+			// request, so there's no need to round-trip them through the
+			// session at all.
+			$start_coords = self::normalize_coordinates($_POST['start_place_coordinates'] ?? '');
+			$end_coords = self::normalize_coordinates($_POST['end_place_coordinates'] ?? '');
+			if (empty($start_coords) || empty($end_coords)) {
+				// Fallback for any caller that reaches this filter outside the
+				// normal AJAX search POST (e.g. a redirect flow re-rendering
+				// the last search from session).
+				$context = self::get_search_context();
+				$start_coords = $start_coords ?: (isset($context['start_coords']) ? $context['start_coords'] : array());
+				$end_coords = $end_coords ?: (isset($context['end_coords']) ? $context['end_coords'] : array());
+			}
+			if (empty($start_coords) || empty($end_coords)) {
+				// No verified coordinates for this search (e.g. manual/fixed_zone
+				// modes, which already have their own location_exit() gate) -
+				// nothing to evaluate, so don't block.
+				return $items;
+			}
+
+			// "In the service area" means inside ANY of the checked areas, not
+			// all of them - e.g. two separate cities served independently.
+			$start_in_area = false;
+			$end_in_area = false;
+			foreach ($area_ids as $area_id) {
+				$area_location = 'post_' . $area_id;
+				if (!$start_in_area) {
+					$start_in_area = self::is_point_in_fixed_zone($area_location, $start_coords);
+				}
+				if (!$end_in_area) {
+					$end_in_area = self::is_point_in_fixed_zone($area_location, $end_coords);
+				}
+			}
+
+			$exception_terms = (array) MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_service_area_exception_locations', array());
+			$start_is_exception = false;
+			$end_is_exception = false;
+			foreach (array_keys($exception_terms) as $term_id) {
+				$term_id = absint($term_id);
+				if (!$term_id) {
+					continue;
+				}
+				$term_location = 'term_' . $term_id;
+				if (!$start_is_exception) {
+					$start_is_exception = self::is_point_in_fixed_zone($term_location, $start_coords);
+				}
+				if (!$end_is_exception) {
+					$end_is_exception = self::is_point_in_fixed_zone($term_location, $end_coords);
+				}
+			}
+
+			$start_allowed = $start_in_area || $start_is_exception;
+			$end_allowed = $end_in_area || $end_is_exception;
+
+			// A location marked as an exception is treated as an exception
+			// unconditionally - whether or not it also happens to fall inside
+			// the drawn service area - so two exception-marked locations are
+			// always blocked from being paired together. Admins should only
+			// mark genuinely special/outside-the-area locations as exceptions;
+			// marking an ordinary inside-area location this way will block its
+			// routes to other exception locations even though both are inside.
+			$both_exceptions = $start_is_exception && $end_is_exception;
+
+			if (!$start_allowed || !$end_allowed || $both_exceptions) {
+				return array();
+			}
+
+			return $items;
 		}
 
 		public static function get_base_price_settings($post_id) {
@@ -1348,7 +1827,17 @@ if (!class_exists('MPTBM_Function')) {
 		{
 			$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
 			$search_context = self::get_search_context();
-				$original_price_based = $search_context['price_based'] ?? 'dynamic';
+			// Same fallback chain as get_price(): trust the request-scoped
+			// mptbm_original_price_based filter (set by MPTBM_Transport_Search for the
+			// exact request being served) over the session-based search context, which
+			// depends on PHP sessions persisting - something that isn't guaranteed on
+			// every host/cache setup. Without this, a host where the session context
+			// isn't readable here silently falls back to 'dynamic', which mismatches
+			// every fixed_zone/fixed_zone_dropoff row below and drops all vehicles from
+			// the results even though get_price() (which does apply this filter) would
+			// have priced them correctly.
+			$context_price_based = isset($search_context['price_based']) ? sanitize_key($search_context['price_based']) : '';
+			$original_price_based = apply_filters('mptbm_original_price_based', $context_price_based ?: 'dynamic', $post_id);
 
 			if ($price_based == 'manual') {
 				$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
@@ -1366,7 +1855,16 @@ if (!class_exists('MPTBM_Function')) {
 					return $exit > 0;
 				}
 				return false;
-			} elseif ($price_based == 'fixed_zone' || $price_based == 'fixed_zone_dropoff') {
+			} elseif (
+				$price_based == 'fixed_zone' || $price_based == 'fixed_zone_dropoff'
+				|| ($price_based == 'inclusive' && ($original_price_based == 'fixed_zone' || $original_price_based == 'fixed_zone_dropoff'))
+			) {
+				// 'inclusive' vehicles adapt to whatever mode they're searched under (see the
+				// matching condition in get_price()) - they must clear the same zone-match gate
+				// as a real fixed_zone/fixed_zone_dropoff vehicle here too, or one with no
+				// mptbm_fixed_zone_price_info rows configured (e.g. Ford Tourneo) always passed
+				// this check and showed up in every zone search priced on nothing but its flat
+				// mptbm_initial_price, regardless of pickup/drop-off ever matching a saved zone.
 				$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
 				
 				// Use original_price_based to determine the mode (pickup vs dropoff)
@@ -1481,6 +1979,70 @@ if (!class_exists('MPTBM_Function')) {
 			}
 			return array_unique($all_location);
 		}
+		// Route names for the "fixed_route" mode's single dropdown - the
+		// customer picks the whole named route in one field, so (unlike
+		// get_all_start_location()) there's no separate start/end list.
+		public static function get_all_routes($post_id = '')
+		{
+			$route_names = [];
+			$collect = function ($assigned_routes) use (&$route_names) {
+				foreach ($assigned_routes as $assigned_route) {
+					$route_id = absint($assigned_route['route_id'] ?? 0);
+					// Skip routes trashed/deleted after being assigned to this
+					// vehicle - a stale ID shouldn't keep showing up to customers.
+					$name = ($route_id && get_post_status($route_id) === 'publish') ? get_the_title($route_id) : '';
+					if ($name) {
+						$route_names[] = $name;
+					}
+				}
+			};
+
+			if ($post_id && $post_id > 0) {
+				$collect(MP_Global_Function::get_post_info($post_id, 'mptbm_assigned_routes', []));
+			} else {
+				$all_posts = MPTBM_Query::query_transport_list('fixed_route');
+				if ($all_posts->found_posts > 0) {
+					foreach ($all_posts->posts as $post) {
+						$collect(MP_Global_Function::get_post_info($post->ID, 'mptbm_assigned_routes', []));
+					}
+				}
+			}
+			return array_unique($route_names);
+		}
+		// route_name => comma-separated waypoints, for the browser to geocode
+		// and pin on the map as a preview once a route is picked - display
+		// only, same as the `stops` shortcode attribute; never affects price.
+		// Waypoints live once on the global mptbm_routes CPT post; this vehicle
+		// only stores which route IDs (mptbm_assigned_routes) it offers.
+		public static function get_route_waypoints_map($post_id = '')
+		{
+			$map = [];
+			$collect = function ($assigned_routes) use (&$map) {
+				foreach ($assigned_routes as $assigned_route) {
+					$route_id = absint($assigned_route['route_id'] ?? 0);
+					if (!$route_id || get_post_status($route_id) !== 'publish') {
+						continue;
+					}
+					$name = get_the_title($route_id);
+					$waypoints = get_post_meta($route_id, 'mptbm_route_waypoints', true);
+					if ($name && $waypoints) {
+						$map[$name] = $waypoints;
+					}
+				}
+			};
+
+			if ($post_id && $post_id > 0) {
+				$collect(MP_Global_Function::get_post_info($post_id, 'mptbm_assigned_routes', []));
+			} else {
+				$all_posts = MPTBM_Query::query_transport_list('fixed_route');
+				if ($all_posts->found_posts > 0) {
+					foreach ($all_posts->posts as $post) {
+						$collect(MP_Global_Function::get_post_info($post->ID, 'mptbm_assigned_routes', []));
+					}
+				}
+			}
+			return $map;
+		}
 		public static function get_end_location($start_place, $post_id = '', $price_based = 'manual')
 		{
 			$all_location = [];
@@ -1513,7 +2075,9 @@ if (!class_exists('MPTBM_Function')) {
 			if ($post_id && $post_id > 0) {
 				if ($should_include_manual) {
 					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
+					$terms_location_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
 					$collect_locations($manual_prices);
+					$collect_locations($terms_location_prices);
 				}
 				if ($should_include_fixed_zone) {
 					$fixed_zone_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_fixed_zone_price_info', []);
@@ -1813,45 +2377,466 @@ if (!class_exists('MPTBM_Function')) {
 		}
 
 		
+		/**
+		 * The key used for SERVER-side Google calls (Distance Matrix / Directions).
+		 *
+		 * Those are Web Service APIs, a different product family from the Maps
+		 * JavaScript API the booking form loads in the browser, and Google refuses
+		 * any key carrying an HTTP-referrer restriction on them:
+		 *
+		 *     REQUEST_DENIED - "API keys with referer restrictions cannot be used
+		 *     with this API."
+		 *
+		 * A referrer-restricted key is exactly what most sites paste into
+		 * 'gmap_api_key', because that IS the correct restriction for a browser key.
+		 * Reusing it here meant every server-side lookup was denied, the code below
+		 * silently fell through to OSRM, and the customer got quoted a fare built on
+		 * OpenStreetMap's road graph while the map in front of them showed Google's
+		 * distance - two different numbers, with only the second one visible.
+		 *
+		 * Hence the separate optional 'gmap_server_api_key' field (Map API Settings)
+		 * for an IP-restricted/unrestricted key. It falls back to the browser key, so
+		 * sites already using a single unrestricted key keep working untouched.
+		 */
+		private static function map_server_api_key() {
+			$server_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_server_api_key');
+			if ($server_key) {
+				return $server_key;
+			}
+			return MP_Global_Function::get_settings('mptbm_map_api_settings', 'gmap_api_key');
+		}
+
+		/**
+		 * Remember why a server-side Google lookup failed.
+		 *
+		 * The OSRM fallback below keeps the booking form working when Google is
+		 * unreachable, but it prices trips off a different road network - so a
+		 * permanently failing Google key is a silent mispricing, not a cosmetic
+		 * problem. Recording the reason is what turns it back into something an
+		 * admin can see (MPTBM_Plugin::show_map_api_failure_notice()).
+		 */
+		private static function record_map_api_failure($reason) {
+			$reason = trim((string) $reason);
+			if ($reason === '') {
+				$reason = 'Unknown error';
+			}
+			set_transient('mptbm_map_api_failure', array(
+				'reason' => $reason,
+				'time'   => time(),
+			), DAY_IN_SECONDS);
+		}
+
+		public static function get_map_api_failure(): array {
+			$failure = get_transient('mptbm_map_api_failure');
+			return is_array($failure) ? $failure : array();
+		}
+
+		// Called on every successful Google lookup so the warning self-clears as
+		// soon as the key is fixed, instead of sticking around for its full TTL.
+		private static function clear_map_api_failure(): void {
+			if (get_transient('mptbm_map_api_failure') !== false) {
+				delete_transient('mptbm_map_api_failure');
+			}
+		}
+
+		/**
+		 * One Google Web Service GET with the failure surfaced instead of swallowed.
+		 *
+		 * @return array|false Decoded body when Google answered OK, false otherwise
+		 *                     (the reason is recorded before returning).
+		 */
+		private static function google_maps_request($url) {
+			$response = wp_remote_get($url, array('timeout' => 15));
+			if (is_wp_error($response)) {
+				self::record_map_api_failure($response->get_error_message());
+				return false;
+			}
+			$code = (int) wp_remote_retrieve_response_code($response);
+			if ($code !== 200) {
+				self::record_map_api_failure(sprintf('HTTP %d from Google Maps', $code));
+				return false;
+			}
+			$data = json_decode(wp_remote_retrieve_body($response), true);
+			if (!is_array($data)) {
+				self::record_map_api_failure('Unreadable response from Google Maps');
+				return false;
+			}
+			// Google reports its own errors in a 200 body: REQUEST_DENIED,
+			// OVER_QUERY_LIMIT, ZERO_RESULTS, ... error_message carries the detail
+			// (e.g. the referrer-restriction text quoted in map_server_api_key()).
+			$status = isset($data['status']) ? (string) $data['status'] : '';
+			if ($status !== 'OK') {
+				self::record_map_api_failure(trim($status . ' ' . (isset($data['error_message']) ? $data['error_message'] : '')));
+				return false;
+			}
+			return $data;
+		}
+
+		/**
+		 * The distance unit this site works in: 'km' or 'mile'.
+		 *
+		 * Set once, globally, under Settings -> Global Settings -> "Duration By
+		 * Kilometer or Mile". Everything that measures a journey - the fare, the
+		 * tier bands, the labels on the rate fields, the summary line - reads it
+		 * from here so they can never disagree with each other.
+		 */
+		public static function get_distance_unit(): string {
+			$unit = MP_Global_Function::get_settings('mp_global_settings', 'km_or_mile', 'km');
+			return $unit === 'mile' ? 'mile' : 'km';
+		}
+
+		/**
+		 * Metres converted into the unit the per-unit rates are quoted in.
+		 *
+		 * Map providers always report metres. A site set to Mile quotes its rates
+		 * per mile, so dividing those metres by 1000 charges the mile rate for every
+		 * kilometre travelled - about 61% over the intended fare. Any fare that
+		 * multiplies a distance rate by a travelled distance must convert here.
+		 */
+		public static function distance_in_unit($meters): float {
+			$meters = (float) $meters;
+			return self::get_distance_unit() === 'mile'
+				? $meters * 0.000621371
+				: $meters / 1000;
+		}
+
+		/**
+		 * Unit suffix for admin labels and price previews: 'KM' or 'Mile'.
+		 * Keeps a rate field from reading "Price per KM" on a site billing per mile.
+		 */
+		public static function distance_unit_label(): string {
+			return self::get_distance_unit() === 'mile'
+				? __('Mile', 'ecab-taxi-booking-manager')
+				: __('KM', 'ecab-taxi-booking-manager');
+		}
+
+		/**
+		 * Format a metre value the way the trip summary shows it, honouring the
+		 * global km/mile setting. Shared so the distance the fare was calculated
+		 * from and the distance printed next to it can never drift apart.
+		 */
+		public static function format_distance_text($meters): string {
+			$meters = (float) $meters;
+			if ($meters <= 0) {
+				return '';
+			}
+			if (self::get_distance_unit() === 'mile') {
+				return round(self::distance_in_unit($meters), 1) . ' miles';
+			}
+			return round(self::distance_in_unit($meters), 1) . ' km';
+		}
+
+		// Counterpart of format_distance_text() for the Total Time line.
+		public static function format_duration_text($seconds): string {
+			$seconds = (int) $seconds;
+			if ($seconds <= 0) {
+				return '';
+			}
+			$hours = (int) floor($seconds / 3600);
+			$minutes = (int) round(($seconds % 3600) / 60);
+			if ($hours > 0) {
+				return sprintf(__('%d Hour %d Min', 'ecab-taxi-booking-manager'), $hours, $minutes);
+			}
+			return sprintf(__('%d Min', 'ecab-taxi-booking-manager'), $minutes);
+		}
+
+		/**
+		 * Route an ordered waypoint list with TomTom's Routing API.
+		 *
+		 * Exists because the OSRM/OpenStreetMap fallback is only ever as good as OSM's
+		 * road data, and where that data is incomplete the detour it invents is charged
+		 * to the customer as real distance. TomTom runs its own road network rather than
+		 * OSM's, so it answers correctly on roads OSM has not mapped yet - and unlike
+		 * Google's web services, a TomTom key is issued without a billing account, which
+		 * is usually the actual obstacle to configuring a server-side key at all.
+		 *
+		 * Endpoint shape: /routing/1/calculateRoute/{lat},{lon}:{lat},{lon}[:...]/json
+		 * Waypoints are colon-separated in the path, so one call covers every stop.
+		 *
+		 * @param array $waypoints Ordered [['lat'=>..,'lng'=>..], ...].
+		 * @return array|false
+		 */
+		private static function tomtom_route(array $waypoints) {
+			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'tomtom_api_key');
+			if (!$api_key || count($waypoints) < 2) {
+				return false;
+			}
+
+			$path = implode(':', array_map(function ($p) {
+				return $p['lat'] . ',' . $p['lng'];
+			}, $waypoints));
+
+			// TomTom exposes shortest-distance routing as a first-class route type, so
+			// the 'use_shortest_route' setting maps straight onto it - no need to fetch
+			// alternatives and compare them the way the Google/OSRM paths have to.
+			$route_type = MP_Global_Function::get_settings('mptbm_map_api_settings', 'use_shortest_route', 'no') === 'yes' ? 'shortest' : 'fastest';
+
+			$url = add_query_arg(
+				array(
+					'key'        => rawurlencode($api_key),
+					'travelMode' => 'car',
+					'routeType'  => $route_type,
+				),
+				'https://api.tomtom.com/routing/1/calculateRoute/' . rawurlencode($path) . '/json'
+			);
+
+			$response = wp_remote_get($url, array('timeout' => 15));
+			if (is_wp_error($response)) {
+				self::record_map_api_failure('TomTom: ' . $response->get_error_message());
+				return false;
+			}
+			$code = (int) wp_remote_retrieve_response_code($response);
+			$data = json_decode(wp_remote_retrieve_body($response), true);
+			if ($code !== 200 || !is_array($data)) {
+				$detail = isset($data['error']['description']) ? $data['error']['description'] : ('HTTP ' . $code);
+				self::record_map_api_failure('TomTom: ' . $detail);
+				return false;
+			}
+			if (!isset($data['routes'][0]['summary']['lengthInMeters'])) {
+				self::record_map_api_failure('TomTom returned no route for this trip');
+				return false;
+			}
+
+			$summary = $data['routes'][0]['summary'];
+			return array(
+				'distance' => (float) $summary['lengthInMeters'],
+				'duration' => (float) ($summary['travelTimeInSeconds'] ?? 0),
+				'provider' => 'tomtom',
+			);
+		}
+
+		/**
+		 * The non-Google routing service to try before falling back to OSRM.
+		 * Returns false when none is configured, so the OSRM path runs unchanged.
+		 */
+		private static function fallback_route(array $waypoints) {
+			$provider = MP_Global_Function::get_settings('mptbm_map_api_settings', 'fallback_routing_provider', 'osrm');
+			if ($provider === 'tomtom') {
+				return self::tomtom_route($waypoints);
+			}
+			return false;
+		}
+
+		/**
+		 * Straight-line (great-circle) length of an ordered waypoint list, in metres.
+		 *
+		 * This is the one distance that needs no map provider at all, and it is a hard
+		 * physical floor: no road between two points can ever be shorter than the line
+		 * between them. That property is what makes it usable as a cheat-check on a
+		 * distance the browser reports - see validate_client_trip().
+		 *
+		 * @param array $waypoints Ordered [['lat'=>..,'lng'=>..], ...], pickup first.
+		 */
+		public static function great_circle_meters(array $waypoints): float {
+			$points = array_values(array_filter($waypoints, function ($p) {
+				return isset($p['lat'], $p['lng']) && is_numeric($p['lat']) && is_numeric($p['lng']);
+			}));
+			if (count($points) < 2) {
+				return 0.0;
+			}
+			$meters = 0.0;
+			for ($i = 1; $i < count($points); $i++) {
+				$meters += self::haversine_distance(
+					(float) $points[$i - 1]['lat'], (float) $points[$i - 1]['lng'],
+					(float) $points[$i]['lat'], (float) $points[$i]['lng']
+				) * 1000;
+			}
+			return $meters;
+		}
+
+		/**
+		 * Sanity-check a distance/duration the customer's browser calculated.
+		 *
+		 * Used only when 'fare_distance_source' is set to 'browser'. The point of that
+		 * mode is that the browser's Google Maps result is often the only *accurate*
+		 * road distance available: the browser key is allowed to call Google, while a
+		 * referrer-restricted key is refused server-side, leaving the server with the
+		 * OpenStreetMap fallback - which in areas where OSM is missing a road quotes a
+		 * long detour and overcharges the customer.
+		 *
+		 * Browser-supplied numbers can't simply be trusted, though, or a customer could
+		 * post distance=1 and pay the minimum fare for a long trip. So the value is
+		 * bounded here against the great-circle distance between the same coordinates:
+		 *
+		 *  - It can never be shorter than the straight line (minus a small tolerance for
+		 *    coordinate rounding and the way routers snap to the nearest road).
+		 *  - It can't be absurdly longer either, which catches a broken or garbage
+		 *    reading rather than an attack - inflating the distance only overcharges the
+		 *    person sending it.
+		 *
+		 * Anything outside those bounds is rejected and the caller falls back to the
+		 * ordinary server-side lookup, so a failed check is never a cheaper fare.
+		 *
+		 * Note this deliberately does not make the coordinates themselves trustworthy -
+		 * they are already browser-supplied today and the server-side lookup routes
+		 * between whatever it is given, so this mode adds no new exposure there.
+		 *
+		 * @return array|false Trip data on success, false when the reading is rejected.
+		 */
+		public static function validate_client_trip($distance, $duration, array $waypoints) {
+			$distance = (float) $distance;
+			$duration = (float) $duration;
+			if ($distance <= 0 || $duration <= 0 || $duration > DAY_IN_SECONDS) {
+				return false;
+			}
+
+			$straight_line = self::great_circle_meters($waypoints);
+			if ($straight_line <= 0) {
+				// No usable coordinates, so nothing to check the claim against.
+				return false;
+			}
+
+			// 5% under the straight line absorbs coordinate rounding and road snapping;
+			// anything below that is claiming a road shorter than the crow flies.
+			if ($distance < $straight_line * 0.95) {
+				return false;
+			}
+
+			// A real road route wanders, but not without limit. Whichever of the two is
+			// larger keeps short in-town trips (where a 10km allowance dominates) and
+			// long trips (where the multiple does) both sensible.
+			$ceiling = max($straight_line * 4, $straight_line + 10000);
+			if ($distance > $ceiling) {
+				return false;
+			}
+
+			// Implied average speed, as a cross-check that distance and duration came
+			// from the same journey rather than being edited independently.
+			$kmh = ($distance / 1000) / ($duration / 3600);
+			if ($kmh < 5 || $kmh > 130) {
+				return false;
+			}
+
+			return array(
+				'distance' => $distance,
+				'duration' => $duration,
+				'provider' => 'browser',
+			);
+		}
+
 		// Helper to calculate distance server-side
 		public static function get_server_distance($start_lat, $start_lng, $end_lat, $end_lng) {
 			if (!$start_lat || !$start_lng || !$end_lat || !$end_lng) {
 				return false;
 			}
-			
-			// Try Google Maps Distance Matrix API first if Key exists
-			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'map_api_key');
+
+			// Off by default: Google/OSRM's own recommended route balances time and
+			// distance (and, for Google, live traffic) - generally the route a driver
+			// actually navigates. Switching this on instead compares every route
+			// alternative and always prices the smallest-distance one, which can quote
+			// a lower fare than what the driver ends up actually driving. See
+			// Admin/MPTBM_Settings_Global.php's 'use_shortest_route' field description.
+			$use_shortest = MP_Global_Function::get_settings('mptbm_map_api_settings', 'use_shortest_route', 'no') === 'yes';
+
+			// Try Google Maps first if Key exists
+			// (settings field is 'gmap_api_key', with an optional server-only override -
+			// see map_server_api_key(), Admin/MPTBM_Settings_Global.php and
+			// MPTBM_Rest_Api.php/MPTBM_Dependencies.php, which all read the same names;
+			// this used to read 'map_api_key', a name nothing ever saves, so the option
+			// lookup was always empty and this branch could never run.)
+			$api_key = self::map_server_api_key();
 			if ($api_key) {
-				$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={$start_lat},{$start_lng}&destinations={$end_lat},{$end_lng}&mode=driving&key={$api_key}";
-				$response = wp_remote_get($url);
-				if (!is_wp_error($response)) {
-					$body = wp_remote_retrieve_body($response);
-					$data = json_decode($body, true);
-					if (isset($data['rows'][0]['elements'][0]['status']) && $data['rows'][0]['elements'][0]['status'] === 'OK') {
-						return [
-							'distance' => $data['rows'][0]['elements'][0]['distance']['value'], // meters
-							'duration' => $data['rows'][0]['elements'][0]['duration']['value']  // seconds
-						];
+				if ($use_shortest) {
+					// Directions API (not Distance Matrix) because it's the only one of
+					// the two that supports alternatives=true.
+					$url = "https://maps.googleapis.com/maps/api/directions/json?origin={$start_lat},{$start_lng}&destination={$end_lat},{$end_lng}&mode=driving&alternatives=true&key={$api_key}";
+					$data = self::google_maps_request($url);
+					if ($data && !empty($data['routes'])) {
+						$route = self::shortest_route_leg($data['routes']);
+						if ($route) {
+							self::clear_map_api_failure();
+							return $route;
+						}
+					}
+				} else {
+					$url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={$start_lat},{$start_lng}&destinations={$end_lat},{$end_lng}&mode=driving&key={$api_key}";
+					$data = self::google_maps_request($url);
+					if ($data) {
+						// Distance Matrix answers OK at the top level and reports the
+						// per-pair outcome inside the element, so that has to be checked
+						// separately from google_maps_request()'s own status check.
+						$element_status = isset($data['rows'][0]['elements'][0]['status']) ? (string) $data['rows'][0]['elements'][0]['status'] : 'UNKNOWN';
+						if ($element_status === 'OK') {
+							self::clear_map_api_failure();
+							return [
+								'distance' => $data['rows'][0]['elements'][0]['distance']['value'], // meters
+								'duration' => $data['rows'][0]['elements'][0]['duration']['value'], // seconds
+								'provider' => 'google',
+							];
+						}
+						self::record_map_api_failure('Distance Matrix returned ' . $element_status . ' for this route');
 					}
 				}
 			}
 
+			// A configured non-Google provider (TomTom) is tried before OSRM, because it
+			// is the one that can answer correctly where OSM's road data has gaps.
+			$fallback = self::fallback_route(array(
+				array('lat' => $start_lat, 'lng' => $start_lng),
+				array('lat' => $end_lat, 'lng' => $end_lng),
+			));
+			if ($fallback) {
+				return $fallback;
+			}
+
 			// Fallback to OSRM (Open Source Routing Machine)
 			// Note: OSRM uses {lng},{lat} order
-			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$start_lng},{$start_lat};{$end_lng},{$end_lat}?overview=false";
+			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$start_lng},{$start_lat};{$end_lng},{$end_lat}?" . ($use_shortest ? 'alternatives=true&' : '') . "overview=false";
 			$response = wp_remote_get($osrm_url);
 			if (!is_wp_error($response)) {
 				$body = wp_remote_retrieve_body($response);
 				$data = json_decode($body, true);
-				if (isset($data['code']) && $data['code'] === 'Ok' && isset($data['routes'][0])) {
+				if (isset($data['code']) && $data['code'] === 'Ok' && !empty($data['routes'])) {
+					if ($use_shortest) {
+						return self::shortest_osrm_route($data['routes']);
+					}
 					return [
 						'distance' => $data['routes'][0]['distance'], // meters
-						'duration' => $data['routes'][0]['duration']  // seconds
+						'duration' => $data['routes'][0]['duration'], // seconds
+						'provider' => 'osrm',
 					];
 				}
 			}
-			
+
 			return false;
+		}
+
+		// Given Google Directions API routes (each with one leg, since this plugin only
+		// calls it point-to-point or via get_server_distance_multi's own waypoint
+		// handling), pick the one with the smallest total distance. Only used when the
+		// 'use_shortest_route' setting is enabled - see get_server_distance() above.
+		private static function shortest_route_leg($routes) {
+			$best = null;
+			foreach ($routes as $route) {
+				if (empty($route['legs'])) {
+					continue;
+				}
+				$distance = 0;
+				$duration = 0;
+				foreach ($route['legs'] as $leg) {
+					$distance += $leg['distance']['value'];
+					$duration += $leg['duration']['value'];
+				}
+				if ($best === null || $distance < $best['distance']) {
+					$best = ['distance' => $distance, 'duration' => $duration, 'provider' => 'google'];
+				}
+			}
+			return $best;
+		}
+
+		// Same idea as shortest_route_leg() but for OSRM's flatter route shape
+		// (top-level distance/duration, no legs array to sum for a simple 2-point trip).
+		private static function shortest_osrm_route($routes) {
+			$best = null;
+			foreach ($routes as $route) {
+				if (!isset($route['distance'])) {
+					continue;
+				}
+				if ($best === null || $route['distance'] < $best['distance']) {
+					$best = ['distance' => $route['distance'], 'duration' => $route['duration'], 'provider' => 'osrm'];
+				}
+			}
+			return $best;
 		}
 
 		// Multi-stop version of get_server_distance(): $waypoints is an ordered array of
@@ -1871,8 +2856,10 @@ if (!class_exists('MPTBM_Function')) {
 				return self::get_server_distance($waypoints[0]['lat'], $waypoints[0]['lng'], $waypoints[1]['lat'], $waypoints[1]['lng']);
 			}
 
+			$use_shortest = MP_Global_Function::get_settings('mptbm_map_api_settings', 'use_shortest_route', 'no') === 'yes';
+
 			// Google Directions API supports intermediate waypoints in one call.
-			$api_key = MP_Global_Function::get_settings('mptbm_map_api_settings', 'map_api_key');
+			$api_key = self::map_server_api_key();
 			if ($api_key) {
 				$origin = $waypoints[0]['lat'] . ',' . $waypoints[0]['lng'];
 				$destination = end($waypoints)['lat'] . ',' . end($waypoints)['lng'];
@@ -1885,20 +2872,36 @@ if (!class_exists('MPTBM_Function')) {
 				if ($waypoints_param) {
 					$url .= '&waypoints=' . rawurlencode($waypoints_param);
 				}
-				$response = wp_remote_get($url);
-				if (!is_wp_error($response)) {
-					$body = wp_remote_retrieve_body($response);
-					$data = json_decode($body, true);
-					if (isset($data['status']) && $data['status'] === 'OK' && !empty($data['routes'][0]['legs'])) {
+				if ($use_shortest) {
+					$url .= '&alternatives=true';
+				}
+				$data = self::google_maps_request($url);
+				if ($data && !empty($data['routes'])) {
+					if ($use_shortest) {
+						$route = self::shortest_route_leg($data['routes']);
+						if ($route) {
+							self::clear_map_api_failure();
+							return $route;
+						}
+					}
+					if (!empty($data['routes'][0]['legs'])) {
 						$distance = 0;
 						$duration = 0;
 						foreach ($data['routes'][0]['legs'] as $leg) {
 							$distance += $leg['distance']['value'];
 							$duration += $leg['duration']['value'];
 						}
-						return ['distance' => $distance, 'duration' => $duration];
+						self::clear_map_api_failure();
+						return ['distance' => $distance, 'duration' => $duration, 'provider' => 'google'];
 					}
 				}
+			}
+
+			// As in get_server_distance(): a configured non-Google provider gets first
+			// refusal, since OSRM is only as accurate as OSM's road coverage.
+			$fallback = self::fallback_route($waypoints);
+			if ($fallback) {
+				return $fallback;
 			}
 
 			// Fallback to OSRM - its route endpoint natively accepts more than 2 coordinates
@@ -1906,15 +2909,19 @@ if (!class_exists('MPTBM_Function')) {
 			$coords = implode(';', array_map(function ($p) {
 				return $p['lng'] . ',' . $p['lat']; // OSRM uses {lng},{lat} order
 			}, $waypoints));
-			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$coords}?overview=false";
+			$osrm_url = "http://router.project-osrm.org/route/v1/driving/{$coords}?" . ($use_shortest ? 'alternatives=true&' : '') . "overview=false";
 			$response = wp_remote_get($osrm_url);
 			if (!is_wp_error($response)) {
 				$body = wp_remote_retrieve_body($response);
 				$data = json_decode($body, true);
-				if (isset($data['code']) && $data['code'] === 'Ok' && isset($data['routes'][0])) {
+				if (isset($data['code']) && $data['code'] === 'Ok' && !empty($data['routes'])) {
+					if ($use_shortest) {
+						return self::shortest_osrm_route($data['routes']);
+					}
 					return [
 						'distance' => $data['routes'][0]['distance'],
 						'duration' => $data['routes'][0]['duration'],
+						'provider' => 'osrm',
 					];
 				}
 			}
@@ -1923,4 +2930,5 @@ if (!class_exists('MPTBM_Function')) {
 		}
 	}
 	new MPTBM_Function();
+	add_filter('mptbm_search_result_items', array('MPTBM_Function', 'apply_service_area_restriction'), 10, 1);
 }

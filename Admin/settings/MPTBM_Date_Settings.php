@@ -76,9 +76,18 @@
 				
 				$end_time = MP_Global_Function::get_post_info($post_id, $end_name, $default_end_time);
 				
+				// The "Default" row above the weekday rows is a shared fallback: any
+				// weekday left as "Default" below uses these hours instead of its own
+				// - editing this row therefore changes every such day at once, which
+				// reads as "I changed Sunday and Monday changed too" if the two rows
+				// are mistaken for each other. Label it unambiguously instead of just
+				// "Default", which looks like just another day in this same table.
+				$row_label = $day === 'default'
+					? esc_html__('Default (fallback for every day left blank below)', 'ecab-taxi-booking-manager')
+					: esc_html(ucfirst($day));
 				?>
 				<tr>
-					<th style="text-transform: capitalize;"><?php echo esc_html($day); ?></th>
+					<th<?php echo $day === 'default' ? '' : ' style="text-transform: capitalize;"'; ?>><?php echo $row_label; ?></th>
 					<td class="mptbm_start_time" data-day-name="<?php echo esc_attr($day); ?>">
 						<label>
 							<select class="formControl" name="<?php echo esc_attr($start_name); ?>">

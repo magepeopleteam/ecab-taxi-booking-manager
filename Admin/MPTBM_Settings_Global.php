@@ -50,6 +50,7 @@ if (!class_exists('MPTBM_Settings_Global')) {
 				'saveHint'           => esc_html__('Review your changes before saving.', 'ecab-taxi-booking-manager'),
 				'unsaved'            => esc_html__('Unsaved changes', 'ecab-taxi-booking-manager'),
 				'saving'             => esc_html__('Saving settings…', 'ecab-taxi-booking-manager'),
+				'highlightBadge'     => esc_html__('Often missed', 'ecab-taxi-booking-manager'),
 			));
 		}
 		public function global_settings_menu()
@@ -188,8 +189,33 @@ if (!class_exists('MPTBM_Settings_Global')) {
 			$gm_api_url = 'https://developers.google.com/maps/documentation/javascript/get-api-key';
 			$label = MPTBM_Function::get_name();
 
-			
-			
+			// Options for the Service Area Restriction fields below - built here
+			// (not as static arrays) so newly drawn Operation Areas / Locations
+			// show up without any other code change.
+			$service_area_operation_area_options = array();
+			$service_area_areas = get_posts(array(
+				'post_type' => 'mptbm_operate_areas',
+				'posts_per_page' => -1,
+				'post_status' => 'publish',
+				'orderby' => 'title',
+				'order' => 'ASC',
+			));
+			foreach ($service_area_areas as $service_area_area) {
+				$service_area_operation_area_options[$service_area_area->ID] = $service_area_area->post_title;
+			}
+
+			$service_area_location_options = array();
+			$service_area_locations = get_terms(array(
+				'taxonomy' => 'locations',
+				'hide_empty' => false,
+				'orderby' => 'name',
+				'order' => 'ASC',
+			));
+			if (!is_wp_error($service_area_locations)) {
+				foreach ($service_area_locations as $service_area_location_term) {
+					$service_area_location_options[$service_area_location_term->term_id] = $service_area_location_term->name;
+				}
+			}
 
 			$settings_fields = array(
 				'mptbm_general_settings' => apply_filters('filter_mptbm_general_settings', array(
@@ -254,6 +280,21 @@ if (!class_exists('MPTBM_Settings_Global')) {
 							'8' => esc_html__('8 Hours', 'ecab-taxi-booking-manager'),
 							'9' => esc_html__('9 Hours', 'ecab-taxi-booking-manager'),
 							'10' => esc_html__('10 Hours', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
+						'name' => 'minimum_booking_days',
+						'label' => esc_html__('Minimum Booking Days (Fixed Daily Pricing)', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Minimum days required for a fixed-daily (per day) booking. Bookings below this won\'t be allowed.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => '1',
+						'options' => array(
+							'1' => esc_html__('1 Day', 'ecab-taxi-booking-manager'),
+							'2' => esc_html__('2 Days', 'ecab-taxi-booking-manager'),
+							'3' => esc_html__('3 Days', 'ecab-taxi-booking-manager'),
+							'4' => esc_html__('4 Days', 'ecab-taxi-booking-manager'),
+							'5' => esc_html__('5 Days', 'ecab-taxi-booking-manager'),
+							'7' => esc_html__('7 Days', 'ecab-taxi-booking-manager'),
 						)
 					),
 					array(
@@ -359,7 +400,10 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					array(
 						'name' => 'enable_buffer_time',
 						'label' => $label . ' ' . esc_html__('Buffer Time', 'ecab-taxi-booking-manager'),
-						'desc' => esc_html__('Enter buffer time per minutes. Also you have to change the timezone from') . '<strong style="color: red;">' . esc_html__('Settings --> General --> Timezone', 'ecab-taxi-booking-manager') . '</strong>',
+						// Text domain was missing on the first half, so the sentence could never
+						// be translated and stayed English on localised sites while the red
+						// "Settings --> General --> Timezone" tail beside it did translate.
+						'desc' => esc_html__('Enter buffer time per minutes. Also you have to change the timezone from', 'ecab-taxi-booking-manager') . '<strong style="color: red;">' . esc_html__('WordPress Settings --> General --> Timezone', 'ecab-taxi-booking-manager') . '</strong>',
 						'type' => 'text',
 						'placeholder' => 'Ex:10'
 						),
@@ -375,6 +419,17 @@ if (!class_exists('MPTBM_Settings_Global')) {
 							15 => esc_html__('15', 'ecab-taxi-booking-manager'),
 							10 => esc_html__('10', 'ecab-taxi-booking-manager'),
 							5 => esc_html__('5', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
+						'name' => 'mptbm_time_picker_grid_style',
+						'label' => $label . ' ' . esc_html__('Pickup/Return Time Picker Style', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Classic keeps the existing single-column scrollable list. Grid shows the same time slots as a wrapping grid of chip buttons instead - same slots, same click behaviour, different layout.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'no',
+						'options' => array(
+							'no' => esc_html__('Classic list (default)', 'ecab-taxi-booking-manager'),
+							'yes' => esc_html__('Grid of buttons', 'ecab-taxi-booking-manager'),
 						)
 					),
 					array(
@@ -408,10 +463,36 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						'default' => 3
 					),
 					array(
+						'name' => 'mptbm_enable_use_my_location',
+						'label' => $label . ' ' . esc_html__('"Use my location" link on pickup', 'ecab-taxi-booking-manager'),
+						// Only applies to the price types that render a free-text pickup
+						// field - Manual / Fixed Zone / Fixed Route pick from an
+						// admin-defined list, where a detected street address is not a
+						// selectable option.
+						'desc' => esc_html__('Select yes to let customers fill the pickup location from their device\'s current position. Requires an HTTPS site; the link hides itself automatically when the browser cannot provide a location.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'yes',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no' => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
 						'name' => 'enable_filter_via_features',
 						'label' => $label . ' ' . esc_html__('Enable filter via features', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('Select yes if you want to enable filter via passenger and bags', 'ecab-taxi-booking-manager'),
 						'ecab-taxi-booking-manager' . '<strong> ' . esc_html__('Yes', 'ecab-taxi-booking-manager') . '</strong>' . esc_html__('or to make it hidden, select', 'ecab-taxi-booking-manager') . '<strong> ' . esc_html__('No', 'ecab-taxi-booking-manager') . '</strong>' . esc_html__('. Default is', 'ecab-taxi-booking-manager') . '<strong>' . esc_html__('No', 'ecab-taxi-booking-manager') . '</strong>',
+						'type' => 'select',
+						'default' => 'no',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no' => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
+						'name' => 'hide_sort_view_controls',
+						'label' => esc_html__('Hide Sort & View Toggle Controls', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Hides the List/Grid view switch and the Sort-by dropdown from the search results toolbar, on both desktop and mobile. Select yes to hide them. Default is No.', 'ecab-taxi-booking-manager'),
 						'type' => 'select',
 						'default' => 'no',
 						'options' => array(
@@ -441,6 +522,33 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					// 		'no' => esc_html__('No', 'ecab-taxi-booking-manager')
 					// 	)
 					// ),
+					array(
+						'name' => 'mptbm_service_area_restriction',
+						'label' => esc_html__('Enable Service Area Restriction', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('When enabled, online booking is only allowed when both pickup and drop-off fall inside the selected Operation Area below, or are one of the Approved Exception Locations (e.g. an airport) - never between two exception locations. Every other search is blocked and shows the "No Transport Available" message. Disabled by default; existing bookings/pricing are unaffected either way.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'disable',
+						'options' => array(
+							'disable' => esc_html__('Disable', 'ecab-taxi-booking-manager'),
+							'enable' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
+						'name' => 'mptbm_service_area_operation_area',
+						'label' => esc_html__('Service Area (Operation Area)', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('One or more Operation Areas (drawn under Operation Areas) that represent your service boundary, e.g. a ring road, or several separate cities/zones. A pickup or drop-off inside ANY of the checked areas counts as "in the service area". Only used when Service Area Restriction above is enabled.', 'ecab-taxi-booking-manager'),
+						'type' => 'multicheck',
+						'default' => array(),
+						'options' => $service_area_operation_area_options
+					),
+					array(
+						'name' => 'mptbm_service_area_exception_locations',
+						'label' => esc_html__('Approved Exception Locations', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Locations (e.g. airports) that are bookable to/from the Service Area above even though they fall outside it. A booking between two exception locations is always blocked. Only used when Service Area Restriction above is enabled.', 'ecab-taxi-booking-manager'),
+						'type' => 'multicheck',
+						'default' => array(),
+						'options' => $service_area_location_options
+					),
 					array(
 						'name' => 'no_transport_message',
 						'label' => esc_html__('No Transport Available Message', 'ecab-taxi-booking-manager'),
@@ -488,11 +596,131 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					),
 					array(
+						'name' => 'show_map_on_search_result',
+						// Highlighted row: this is the only way to hide the results map, and
+						// it is routinely looked for on the shortcode instead - the map=no
+						// attribute governs the pre-search form only, so people set that,
+						// see the map return the moment they hit Search, and conclude it is
+						// broken. See the .mptbm-setting-highlight rule in
+						// assets/admin/mptbm_global_settings.css.
+						'class' => 'mptbm-setting-highlight',
+						'label' => esc_html__('Show Map on Search Result Page', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Master switch for the route map on the vehicle search results. Select No to hide it everywhere, whatever the booking form or shortcode asks for. The shortcode\'s own map="no" only hides the map before a search is run - this is the setting that also hides it afterwards, on the results.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'yes',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no' => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
 						'name' => 'gmap_api_key',
 						'label' => esc_html__('Google MAP API', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('Please enter your Google Maps API key in this Options.', 'ecab-taxi-booking-manager') . '<a class="" href=' . $gm_api_url . ' target="_blank">Click Here to get google api key</a>',
 						'type' => 'text',
 						'default' => ''
+					),
+					array(
+						'name' => 'gmap_server_api_key',
+						'label' => esc_html__('Google MAP API Key (Server Side)', 'ecab-taxi-booking-manager'),
+						// Fares are calculated from a distance this site looks up itself, using
+						// Google's Distance Matrix/Directions Web Service APIs. Google rejects
+						// referrer-restricted keys on those APIs ("API keys with referer
+						// restrictions cannot be used with this API"), and a referrer restriction
+						// is the correct setting for the key above, which the browser uses. When
+						// the same restricted key is used for both, every server-side lookup is
+						// denied and pricing silently falls back to OSRM - a different road
+						// network, so a different distance than the map shows.
+						'desc' => esc_html__('Optional. Used only for the server-side distance lookup that fares are calculated from. Leave empty to reuse the key above. If the key above has HTTP referrer (website) restrictions, Google will reject it here, and trips get priced from the OpenStreetMap fallback instead - which can quote a noticeably different distance than the map shows. In that case add a second key restricted by IP address (or unrestricted) with the Distance Matrix API and Directions API enabled.', 'ecab-taxi-booking-manager'),
+						'type' => 'text',
+						'default' => ''
+					),
+					array(
+						'name' => 'fallback_routing_provider',
+						// This field does two different jobs depending on the map mode, so it
+						// says two different things. Under OpenStreetMap it IS the thing that
+						// measures every fare. Under Google map it is only a backup - which is
+						// not obvious from a bare "Routing Service" label sitting next to a
+						// Google API key, and reads as a competing setting. Both variants are
+						// rendered and assets/admin/mptbm_global_settings.js shows whichever
+						// matches the selected map mode (same approach as use_shortest_route).
+						'label' => sprintf(
+							'<span data-routing-label="openstreetmap">%1$s</span><span data-routing-label="enable" style="display:none">%2$s</span>',
+							esc_html__('Routing Service (distance measurement)', 'ecab-taxi-booking-manager'),
+							esc_html__('Backup Routing Service', 'ecab-taxi-booking-manager')
+						),
+						// OpenStreetMap's routing is free and needs no account, but it can only
+						// route over roads that have actually been mapped into OSM. Where a road
+						// is missing, the router detours around it and that detour is billed to
+						// the customer as real distance. TomTom runs its own road network, so it
+						// answers correctly there - and issues keys without a billing account,
+						// which is normally the real obstacle to a server-side key.
+						'desc' => sprintf(
+							'<span data-routing-desc="openstreetmap">%1$s</span><span data-routing-desc="enable" style="display:none">%2$s</span>',
+							esc_html__('Which service measures the driving distance that fares are calculated from. OpenStreetMap is free and needs no account, but it can only route over roads mapped into OpenStreetMap - where a road is missing it takes a long detour and the customer is charged for it. If the quoted distance is longer than the real route, switch to TomTom: a free key allows 2,500 requests per day, needs no credit card, and uses TomTom\'s own road data. Falls back to OpenStreetMap automatically if TomTom is unreachable.', 'ecab-taxi-booking-manager'),
+							esc_html__('Google measures the distance while it can, and this is only used when it cannot - most often because the Google key is restricted to your website, which Google does not accept for server-side requests. That fallback is silent, so leaving it on OpenStreetMap means fares can quietly be measured on roads OpenStreetMap has not mapped, and quoted longer than the real route. Set it to TomTom if the warning about the Google lookup ever appears.', 'ecab-taxi-booking-manager')
+						),
+						'type' => 'select',
+						'default' => 'osrm',
+						'options' => array(
+							'osrm' => esc_html__('OpenStreetMap / OSRM (free, no account)', 'ecab-taxi-booking-manager'),
+							'tomtom' => esc_html__('TomTom (free key, own road data - more accurate)', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
+						'name' => 'tomtom_api_key',
+						'label' => esc_html__('TomTom API Key', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Required when the routing service above is set to TomTom. Get a free key at', 'ecab-taxi-booking-manager') . ' <a href="https://developer.tomtom.com/" target="_blank" rel="noopener">developer.tomtom.com</a> ' . esc_html__('- registration is free, no credit card is needed, and the free allowance is 2,500 requests per day. Enable the "Routing" API on the key.', 'ecab-taxi-booking-manager'),
+						'type' => 'text',
+						'default' => ''
+					),
+					array(
+						'name' => 'fare_distance_source',
+						'label' => esc_html__('Fare Distance Source', 'ecab-taxi-booking-manager'),
+						// The safe default is the server measuring the route itself, since
+						// nothing the customer sends can influence it. The 'browser' option is
+						// for sites whose only Google key is referrer-restricted: Google refuses
+						// those server-side, so every fare is silently priced off the
+						// OpenStreetMap fallback, which overcharges wherever OSM's road data is
+						// incomplete. See MPTBM_Transport_Search::resolve_trip_distance() and
+						// MPTBM_Function::validate_client_trip() for the bounds applied.
+						'desc' => esc_html__('Which distance the fare is calculated from. "Server" is the most tamper-proof and is recommended when you have a working server-side Google key. Choose "Browser" if you cannot add a server-side key: it prices the trip on the accurate distance Google already calculated in the customer\'s browser, after the server checks that figure against the straight-line distance and rejects anything shorter than physically possible. Use Browser when the fare does not match the distance shown on the map.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'server',
+						'options' => array(
+							'server' => esc_html__('Server (most secure, needs a server-side API key)', 'ecab-taxi-booking-manager'),
+							'browser' => esc_html__('Browser, verified server-side (no extra API key needed)', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
+						'name' => 'use_shortest_route',
+						'label' => esc_html__('Use Shortest Distance Route', 'ecab-taxi-booking-manager'),
+						// Two variants, only one shown at a time - assets/admin/mptbm_global_settings.js
+						// toggles between them (by [data-shortest-route-desc]) as the select changes,
+						// so the description always reflects the currently-picked option instead of
+						// permanently listing both at once.
+						'desc' => sprintf(
+							'<span data-shortest-route-desc="no">%1$s</span><span data-shortest-route-desc="yes" style="display:none">%2$s</span>',
+							esc_html__('Price trips using the route Google/OSRM recommends as best (balances time and distance - generally the route a driver would actually navigate).', 'ecab-taxi-booking-manager'),
+							esc_html__('Compare all available route alternatives and always price the one with the smallest distance - this can lower quoted fares but may not match the route actually driven.', 'ecab-taxi-booking-manager')
+						),
+						'type' => 'select',
+						'default' => 'no',
+						'options' => array(
+							'no' => esc_html__('No (Recommended route)', 'ecab-taxi-booking-manager'),
+							'yes' => esc_html__('Yes (Always shortest distance)', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
+						'name' => 'mp_auto_detect_location',
+						'label' => esc_html__('Auto-detect Visitor\'s Location', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('If enabled, the booking map will try to center on each visitor\'s own location (with their browser\'s permission) instead of the fixed location below. Falls back to the fixed location if the visitor denies or the browser does not support it.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'disable',
+						'options' => array(
+							'disable' => esc_html__('No (Always use the fixed location below)', 'ecab-taxi-booking-manager'),
+							'enable' => esc_html__('Yes (Use visitor\'s location when available)', 'ecab-taxi-booking-manager'),
+						)
 					),
 					array(
 						'name' => 'mp_latitude',

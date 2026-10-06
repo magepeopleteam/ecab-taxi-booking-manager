@@ -76,8 +76,99 @@
     font-size: 13px !important;
 }
 
+/* Header summary: pass / warn / fail tally + copy-report button */
+.mptbm-status-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mptbm-status-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 84px;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafc;
+    line-height: 1.2;
+}
+
+.mptbm-status-pill strong {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.mptbm-status-pill span {
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.mptbm-status-pill.is-good { background: #ecfdf3; border-color: #bbf7d0; }
+.mptbm-status-pill.is-good strong { color: #15803d; }
+.mptbm-status-pill.is-warning { background: #fff7ed; border-color: #fed7aa; }
+.mptbm-status-pill.is-warning strong { color: #b45309; }
+.mptbm-status-pill.is-critical { background: #fef2f2; border-color: #fecaca; }
+.mptbm-status-pill.is-critical strong { color: #b91c1c; }
+
+.mptbm-status-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border: 1px solid #d8d4ff;
+    border-radius: 14px;
+    background: #ebe9ff;
+    color: #5145cd;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.mptbm-status-copy:hover {
+    background: #ded9ff;
+    border-color: #c4bdff;
+}
+
+/* Off-screen rather than display:none - a hidden field cannot be selected,
+   and the execCommand fallback used on non-HTTPS installs needs a real
+   selection to copy from. */
+.mptbm-status-report {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+/* Card grid.
+   Deliberately a grid and NOT CSS multi-column: with column-count the browser
+   balances by height, and because each card is break-inside:avoid it packed all
+   of them into the first three columns and left the fourth completely empty.
+   auto-fit only ever creates as many tracks as there is content to put in them,
+   so an empty trailing column is not possible here. */
+.mptbm-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 20px;
+    /* stretch (the default) rather than start: cards in the same row end level
+       with each other, so a short card reads as a finished card with room to
+       spare instead of leaving a torn-looking hole beside its taller neighbour. */
+    align-items: stretch;
+}
+
 /* Card */
 .mptbm-status-card {
+    display: flex;
+    flex-direction: column;
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 18px;
@@ -85,11 +176,134 @@
     overflow: hidden;
 }
 
+/* Check rows.
+   These carry the .mpStyle.mptbm-status-page prefix on purpose. mp_style.css
+   ships `.mpStyle ul li { padding: 0 }` (0,2,1) and `.mpStyle ul:not(...)`
+   (0,2,2), both of which outrank a bare `.mptbm-status-row` (0,1,0) — which is
+   why every row sat flush against the card border with its value clipped off
+   the right edge. Three classes + an element (0,3,1) wins cleanly. Same trap
+   the .mpStyle.mptbm-status-page padding rule at the top of this file works
+   around. */
+.mpStyle.mptbm-status-page ul.mptbm-status-list {
+    /* flex:1 lets the list absorb the extra height a stretched card gets, so the
+       bottom border and the card's rounded corner never collide. */
+    flex: 1 1 auto;
+    margin: 0;
+    padding: 8px 0 10px;
+    list-style: none;
+}
+
+.mpStyle.mptbm-status-page li.mptbm-status-row {
+    margin: 0;
+    padding: 12px 22px;
+    border-bottom: 1px solid #eef1f7;
+    line-height: 1.5;
+    transition: background 0.2s ease;
+}
+
+.mpStyle.mptbm-status-page li.mptbm-status-row:last-child {
+    border-bottom: none;
+}
+
+.mpStyle.mptbm-status-page li.mptbm-status-row:hover {
+    background-color: #f8fafc;
+}
+
+/* flex-start, not center: values long enough to wrap (a filesystem path, a
+   MariaDB version banner) used to centre their whole pill against the label,
+   which floated the status icon off on its own line away from the text it
+   belongs to. Top-aligning keeps the icon next to the first line. */
+.mptbm-status-row-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    min-height: 28px;
+}
+
+.mptbm-status-row-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-top: 5px;
+    color: #111827;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+/* flex-shrink is capped rather than free, otherwise a long value squeezed the
+   pill down to a sliver and wrapped it one character per line. */
+.mptbm-status-badge {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 7px;
+    flex: 0 1 auto;
+    max-width: 58%;
+    padding: 5px 13px;
+    border-radius: 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+
+.mptbm-status-badge.is-good { background: #ecfdf3; color: #15803d; }
+.mptbm-status-badge.is-warning { background: #fff7ed; color: #b45309; }
+.mptbm-status-badge.is-critical { background: #fef2f2; color: #b91c1c; }
+.mptbm-status-badge.is-info { background: #f1f5f9; color: #475569; }
+
+/* margin-top nudges the glyph onto the cap-height of the first line rather than
+   its box top, which matters once a long value wraps to two lines. */
+.mptbm-status-badge i {
+    flex: 0 0 auto;
+    margin-top: 3px;
+    font-size: 12px;
+}
+
+/* The "what do I do about it" line, only rendered for warnings and failures. */
+.mptbm-status-hint {
+    margin: 9px 0 2px !important;
+    padding: 8px 12px !important;
+    border-left: 3px solid #fdba74;
+    border-radius: 0 8px 8px 0;
+    background: #fffbf5;
+    color: #7c5b33 !important;
+    font-size: 12px !important;
+    line-height: 1.6 !important;
+}
+
+.mptbm-status-row.is-critical .mptbm-status-hint {
+    border-left-color: #f87171;
+    background: #fef6f6;
+    color: #8a4040 !important;
+}
+
+/* Legacy add-on rows (mp_status_table_item_sec) sit in a plain table, so give
+   them the same rhythm as the native rows above rather than the tighter
+   default table spacing. */
+.mptbm-status-card .mptbm-status-table tr {
+    padding: 12px 22px;
+    border-bottom: 1px solid #eef1f7;
+}
+
+.mptbm-status-card .mptbm-status-table th:first-child {
+    font-size: 13.5px;
+}
+
+.mptbm-status-card .mptbm-status-table th:last-child {
+    padding: 5px 13px;
+    font-size: 12.5px;
+}
+
 .mptbm-status-card-header {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     gap: 10px;
-    padding: 18px 24px;
+    padding: 16px 22px;
     border-bottom: 1px solid #e8eaf2;
     background: #f8fafc;
 }
@@ -200,6 +414,34 @@
         align-items: flex-start;
         text-align: left;
         padding: 20px;
+    }
+
+    .mptbm-status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mptbm-status-summary {
+        width: 100%;
+    }
+
+    .mptbm-status-pill {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .mptbm-status-copy {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .mptbm-status-row-main {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .mptbm-status-badge {
+        max-width: 100%;
     }
 
     .mptbm-status-table tr {

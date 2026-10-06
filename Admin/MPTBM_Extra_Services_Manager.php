@@ -181,7 +181,7 @@ if (!class_exists('MPTBM_Extra_Services_Manager')) {
 
                         <div class="mptbm-extra-services-field">
                             <label><?php esc_html_e('Service items', 'ecab-taxi-booking-manager'); ?></label>
-                            <div class="mp_settings_area mptbm-extra-services-rows-area">
+                            <div class="mp_settings_area mptbm-extra-services-rows-area mpStyle">
                                 <div class="_ovAuto_mT_xs">
                                     <table class="mptbm-extra-services-rows-table">
                                         <thead>

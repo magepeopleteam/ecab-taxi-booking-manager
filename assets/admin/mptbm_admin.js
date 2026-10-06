@@ -175,10 +175,12 @@
 				action: "mptbm_operation_area_price_data_set",
 				area_price_data: JSON.stringify(area_price_data),
 				post_id: post_id,
-				nonce: MPTBM_Ajax.nonce
+				// Was MPTBM_Ajax.nonce - a global nothing localises, so this threw a
+				// ReferenceError and the save never fired. Issued in
+				// MPTBM_Dependencies::admin_enqueue(), verified server-side.
+				nonce: mptbm_admin_security.operation_area_price_nonce
 			},
 			beforeSend: function () {
-				console.log("Sending...", area_price_data);
 			},
 			success: function (res) {
 				$this.text('Saved');
