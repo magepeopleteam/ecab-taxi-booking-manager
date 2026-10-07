@@ -1487,17 +1487,27 @@ document.addEventListener('DOMContentLoaded', function () {
 			var now = new Date();
 			var todayIso = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
 			var firstCalendarDate = jQuery('[name="mptbm_first_calendar_date"]').val();
+			// The raised floor is "now + buffer", which is rarely on the interval
+			// grid (07:32 + 15 = 07:47), and the loop below steps from it - so the
+			// whole list came out as 07:47, 08:02, 08:17... Round the floor up to
+			// the next slot of the schedule's own grid instead, so today shows the
+			// same 07:50, 08:00, 08:10... slots every other day does.
+			var scheduleStartMinutes = minMinutes;
+			var ceilToInterval = function(value) {
+				if (!(intervalTime > 0)) return value;
+				return scheduleStartMinutes + Math.ceil((value - scheduleStartMinutes) / intervalTime) * intervalTime;
+			};
 
 			if (selectedDate === todayIso) {
 				var nowMinutes = now.getHours() * 60 + now.getMinutes() + bufferMinutesTotal;
-				if (nowMinutes > minMinutes) minMinutes = nowMinutes;
+				if (nowMinutes > minMinutes) minMinutes = ceilToInterval(nowMinutes);
 			} else if (bufferMinutesTotal > 1440 && firstCalendarDate && selectedDate === firstCalendarDate) {
 				// Buffer spills past midnight: today was dropped from the calendar
 				// entirely (see the $days_to_hide PHP logic above) and this is the new
 				// first bookable day - only the buffer's remainder (after the full
 				// day(s) it already consumed) still applies to it.
 				var spilloverMinutes = bufferMinutesTotal % 1440;
-				if (spilloverMinutes > minMinutes) minMinutes = spilloverMinutes;
+				if (spilloverMinutes > minMinutes) minMinutes = ceilToInterval(spilloverMinutes);
 			}
 		}
 
