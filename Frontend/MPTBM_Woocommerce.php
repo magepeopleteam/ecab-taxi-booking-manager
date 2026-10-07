@@ -168,16 +168,16 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			$linked_id = MP_Global_Function::get_post_info($product_id, 'link_mptbm_id', $product_id);
 			$post_id = is_string(get_post_status($linked_id)) ? $linked_id : $product_id;
 				if (get_post_type($post_id) == MPTBM_Function::get_cpt()) {
-					$start_place = isset($_POST['mptbm_start_place']) ? sanitize_text_field($_POST['mptbm_start_place']) : '';
-					$end_place = isset($_POST['mptbm_end_place']) ? sanitize_text_field($_POST['mptbm_end_place']) : '';
+					$start_place = isset($_POST['mptbm_start_place']) ? sanitize_text_field(wp_unslash($_POST['mptbm_start_place'])) : '';
+					$end_place = isset($_POST['mptbm_end_place']) ? sanitize_text_field(wp_unslash($_POST['mptbm_end_place'])) : '';
 					$context = MPTBM_Function::get_checkout_search_context($start_place, $end_place, $mptbm_original_price_base);
 					if (is_wp_error($context)) {
 						return $cart_item_data;
 					}
 					$distance = absint($context['distance'] ?? 0);
 					$duration = absint($context['duration'] ?? 0);
-				$start_place = isset($_POST['mptbm_start_place']) ? sanitize_text_field($_POST['mptbm_start_place']) : '';
-				$end_place = isset($_POST['mptbm_end_place']) ? sanitize_text_field($_POST['mptbm_end_place']) : '';
+				$start_place = isset($_POST['mptbm_start_place']) ? sanitize_text_field(wp_unslash($_POST['mptbm_start_place'])) : '';
+				$end_place = isset($_POST['mptbm_end_place']) ? sanitize_text_field(wp_unslash($_POST['mptbm_end_place'])) : '';
 				$extra_stop_places = isset($context['extra_stop_places']) && is_array($context['extra_stop_places']) ? $context['extra_stop_places'] : array();
 					$waiting_time = absint($context['waiting_time'] ?? 0);
 					$return       = max(1, absint($context['two_way'] ?? 1));

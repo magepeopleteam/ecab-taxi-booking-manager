@@ -794,10 +794,10 @@ if ($date && $start_time !== "") {
     $date .= " " . $start_time_formatted;
 }
 
-$start_place = isset($_POST["start_place"]) ? sanitize_text_field($_POST["start_place"]) : "";
+$start_place = isset($_POST["start_place"]) ? sanitize_text_field(wp_unslash($_POST["start_place"])) : "";
 $start_place_coordinates = isset($_POST["start_place_coordinates"]) ? $_POST["start_place_coordinates"] : "";
 $end_place_coordinates = isset($_POST["end_place_coordinates"]) ? $_POST["end_place_coordinates"] : "";
-$end_place = isset($_POST["end_place"]) ? sanitize_text_field($_POST["end_place"]) : "";
+$end_place = isset($_POST["end_place"]) ? sanitize_text_field(wp_unslash($_POST["end_place"])) : "";
 $extra_stop_place_raw = isset($_POST["mptbm_extra_stop_place"]) ? $_POST["mptbm_extra_stop_place"] : "";
 $extra_stop_places = [];
 if (is_array($extra_stop_place_raw)) {
