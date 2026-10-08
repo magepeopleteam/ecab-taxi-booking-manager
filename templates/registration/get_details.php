@@ -138,7 +138,12 @@ if ($price_based === 'fixed_hourly' && $disable_dropoff_hourly === 'disable') {
     $hide_dropoff = false;
 }
 $form_style_class = $form_style == 'horizontal' ? 'inputHorizontal' : 'inputInline';
-$area_class = $price_based == 'manual' ? ' ' : 'justifyBetween';
+// Every price_based mode gets the side-by-side sidebar+map flex layout via
+// justifyBetween (see .mpStyle .justifyBetween in mp_global/assets/mp_style/
+// mp_style.css) - manual mode used to be special-cased to an empty class
+// here with no compensating layout rule, which left its sidebar and map
+// stacked on top of each other instead of side by side.
+$area_class = 'justifyBetween';
 $area_class = $form_style != 'horizontal' ? 'mptbm_form_details_area fdColumn' : $area_class;
 $mptbm_all_transport_id = $vehicle_id ? array($vehicle_id) : MP_Global_Function::get_all_post_id('mptbm_rent');
 // Pickup/return time options are built from the Schedule Date Configuration of the

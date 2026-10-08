@@ -1839,7 +1839,15 @@ if (!class_exists('MPTBM_Function')) {
 			$context_price_based = isset($search_context['price_based']) ? sanitize_key($search_context['price_based']) : '';
 			$original_price_based = apply_filters('mptbm_original_price_based', $context_price_based ?: 'dynamic', $post_id);
 
-			if ($price_based == 'manual') {
+			// A true 'manual' vehicle always needs an exact route match here. An
+			// 'inclusive' (Combined Pricing) vehicle only needs the same check when
+			// THIS search is specifically in 'manual' mode - matching the identical
+			// condition get_price() uses for its inclusive+manual route-price lookup,
+			// so a Combined-Pricing vehicle with Manual Pricing routes configured
+			// shows up (and prices correctly) only for the routes it actually has,
+			// not for every pickup/dropoff shown at $0 just because manual mode
+			// started including inclusive vehicles as candidates.
+			if ($price_based == 'manual' || ($price_based == 'inclusive' && $original_price_based == 'manual')) {
 				$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 				$terms_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
 				$manual_prices = array_merge($manual_prices, $terms_prices);

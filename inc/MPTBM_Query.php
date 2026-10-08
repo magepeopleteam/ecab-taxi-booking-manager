@@ -146,16 +146,18 @@ if (!class_exists('MPTBM_Query')) {
 
 			// Inclusive-mode vehicles (Combined Pricing) are a deliberate fallback for
 			// several other search modes - get_price() has a matching formula for each
-			// of dynamic, fixed_hourly, fixed_daily, fixed_distance/fixed_map, and
-			// fixed_zone/fixed_zone_dropoff. This used to run completely unconditionally
-			// (merging every Combined-Pricing vehicle into every filtered search page -
-			// manual and fixed_route included, where get_price() has no inclusive
-			// formula at all) instead of being scoped to the modes it's actually meant
-			// to cover.
+			// of dynamic, fixed_hourly, fixed_daily, fixed_distance/fixed_map,
+			// fixed_zone/fixed_zone_dropoff, and manual (see the inclusive+manual
+			// branch in get_price(), keyed off mptbm_manual_price_info /
+			// mptbm_terms_price_info - the same "Manual Pricing" route table a
+			// Combined-Pricing vehicle's edit screen lets you fill in). fixed_route
+			// is the only mode get_price() truly has no inclusive formula for, so
+			// it alone stays excluded.
 			$mptbm_inclusive_applies = !$price_based || in_array($price_based, array(
 				'dynamic', 'fixed_hourly', 'fixed_daily',
 				'fixed_distance', 'fixed_map',
 				'fixed_zone', 'fixed_zone_dropoff',
+				'manual',
 			), true);
 			$price_based_6 = $mptbm_inclusive_applies ? array(
 				'key' => 'mptbm_price_based',
@@ -216,11 +218,16 @@ if (!class_exists('MPTBM_Query')) {
 				$inclusive_query = new WP_Query($args_inclusive);
 				$inclusive_posts = $inclusive_query->posts;
 
-				// fixed_zone/fixed_distance/fixed_map need their own per-route/zone
+				// fixed_zone/fixed_distance/fixed_map/manual need their own per-route/zone
 				// price table to produce a real price at all (get_price()'s inclusive
 				// branch for these modes looks up a row there) - an inclusive vehicle
 				// with no rows configured for the requested mode would otherwise appear
-				// in these results with no genuine price for it.
+				// in these results with no genuine price for it. location_exit() still
+				// does the per-request exact-route match against mptbm_manual_price_info/
+				// mptbm_terms_price_info; this is only the coarser "has it configured
+				// anything at all" gate so an inclusive vehicle with an empty Manual
+				// Pricing table doesn't appear in manual search results in the first
+				// place.
 				if (in_array($price_based, array('fixed_zone', 'fixed_zone_dropoff'), true)) {
 					$inclusive_posts = array_values(array_filter($inclusive_posts, function ($post) {
 						$rows = get_post_meta($post->ID, 'mptbm_fixed_zone_price_info', true);
@@ -230,6 +237,12 @@ if (!class_exists('MPTBM_Query')) {
 					$inclusive_posts = array_values(array_filter($inclusive_posts, function ($post) {
 						$rows = get_post_meta($post->ID, 'mptbm_fixed_map_route_price_info', true);
 						return !empty($rows) && is_array($rows);
+					}));
+				} elseif ($price_based === 'manual') {
+					$inclusive_posts = array_values(array_filter($inclusive_posts, function ($post) {
+						$manual_rows = get_post_meta($post->ID, 'mptbm_manual_price_info', true);
+						$terms_rows = get_post_meta($post->ID, 'mptbm_terms_price_info', true);
+						return (!empty($manual_rows) && is_array($manual_rows)) || (!empty($terms_rows) && is_array($terms_rows));
 					}));
 				}
 			}
