@@ -240,6 +240,14 @@ if (!class_exists('MPTBM_Query')) {
 					}));
 				} elseif ($price_based === 'manual') {
 					$inclusive_posts = array_values(array_filter($inclusive_posts, function ($post) {
+						// A Combined-Pricing vehicle only qualifies for manual search if
+						// its own "Manual Routes" toggle is on - otherwise its route
+						// table may just be left over from when the toggle used to be
+						// on (turning it off only hides the UI, see
+						// mptbm_taxi_add_edit.js, it never clears the saved rows).
+						if (!MPTBM_Function::inclusive_manual_enabled($post->ID)) {
+							return false;
+						}
 						$manual_rows = get_post_meta($post->ID, 'mptbm_manual_price_info', true);
 						$terms_rows = get_post_meta($post->ID, 'mptbm_terms_price_info', true);
 						return (!empty($manual_rows) && is_array($manual_rows)) || (!empty($terms_rows) && is_array($terms_rows));

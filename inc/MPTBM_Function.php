@@ -770,6 +770,21 @@ if (!class_exists('MPTBM_Function')) {
 		}
 
         //*************Price*********************************//
+
+		/**
+		 * Whether a Combined-Pricing ('inclusive') vehicle has its "Manual Routes"
+		 * toggle switched on. The admin UI only hides the Manual Routes table when
+		 * this is off (mptbm_taxi_add_edit.js) - it never clears the saved
+		 * mptbm_manual_price_info/mptbm_terms_price_info rows - so every manual-mode
+		 * price/availability/location lookup for an 'inclusive' vehicle must check
+		 * this flag too, or a vehicle that once had Manual Routes configured keeps
+		 * showing up for manual-mode searches after the admin turns it back off.
+		 */
+		public static function inclusive_manual_enabled($post_id)
+		{
+			return 'on' === MP_Global_Function::get_post_info($post_id, 'mptbm_inclusive_manual_locations', 'off');
+		}
+
 		public static function get_price($post_id, $distance = 1000, $duration = 3600, $start_place = '', $destination_place = '', $waiting_time = 0, $two_way = 1, $fixed_time = 0, $end_coords = null, $pickup_coords_hint = null, $dropoff_coords_hint = null)
 		{
 			$price = 0;
@@ -1085,7 +1100,8 @@ if (!class_exists('MPTBM_Function')) {
 						}
 					}
 				}
-				elseif ((trim($price_based) == 'inclusive' || trim($price_based) == 'manual') && trim($original_price_based) == 'manual') {
+				elseif ((trim($price_based) == 'inclusive' || trim($price_based) == 'manual') && trim($original_price_based) == 'manual'
+					&& (trim($price_based) == 'manual' || self::inclusive_manual_enabled($post_id))) {
 					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 					$term_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
 					$manual_prices = array_merge($manual_prices, $term_prices);
@@ -1847,7 +1863,13 @@ if (!class_exists('MPTBM_Function')) {
 			// shows up (and prices correctly) only for the routes it actually has,
 			// not for every pickup/dropoff shown at $0 just because manual mode
 			// started including inclusive vehicles as candidates.
-			if ($price_based == 'manual' || ($price_based == 'inclusive' && $original_price_based == 'manual')) {
+			if ($price_based == 'inclusive' && $original_price_based == 'manual' && !self::inclusive_manual_enabled($post_id)) {
+				// Combined-Pricing vehicle searched in manual mode, but its Manual
+				// Routes toggle is off: it must not fall through to the generic
+				// "other pricing modes" true below just because none of the
+				// specific branches matched.
+				return false;
+			} elseif ($price_based == 'manual' || ($price_based == 'inclusive' && $original_price_based == 'manual')) {
 				$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 				$terms_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
 				$manual_prices = array_merge($manual_prices, $terms_prices);
@@ -1955,7 +1977,14 @@ if (!class_exists('MPTBM_Function')) {
 			};
 
 			if ($post_id && $post_id > 0) {
-				if ($should_include_manual) {
+				// A specific vehicle only actually has manual routes when its own
+				// pricing is 'manual', or it's Combined Pricing with the Manual
+				// Routes toggle on - not just because the caller asked for 'manual'
+				// mode and this vehicle happens to have leftover rows saved.
+				$vehicle_price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
+				$vehicle_manual_eligible = $vehicle_price_based === 'manual'
+					|| ($vehicle_price_based === 'inclusive' && self::inclusive_manual_enabled($post_id));
+				if ($should_include_manual && $vehicle_manual_eligible) {
 				$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 					$terms_location_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
 					$collect_locations($manual_prices);
@@ -2081,7 +2110,12 @@ if (!class_exists('MPTBM_Function')) {
 			};
 
 			if ($post_id && $post_id > 0) {
-				if ($should_include_manual) {
+				// See get_all_start_location(): only treat this vehicle's own rows as
+				// real manual routes when its pricing mode actually makes them live.
+				$vehicle_price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
+				$vehicle_manual_eligible = $vehicle_price_based === 'manual'
+					|| ($vehicle_price_based === 'inclusive' && self::inclusive_manual_enabled($post_id));
+				if ($should_include_manual && $vehicle_manual_eligible) {
 					$manual_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_manual_price_info', []);
 					$terms_location_prices = MP_Global_Function::get_post_info($post_id, 'mptbm_terms_price_info', []);
 					$collect_locations($manual_prices);
