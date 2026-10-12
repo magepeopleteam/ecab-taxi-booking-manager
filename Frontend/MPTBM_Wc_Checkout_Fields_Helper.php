@@ -29,14 +29,112 @@
 				
 				// Always inject our fields, even if Pro is active - use high priority to run last
 				add_filter('woocommerce_checkout_fields', array($this, 'inject_checkout_fields'), 999);
-				
+
 				// Render file fields after WooCommerce fields in each section
 				add_action('woocommerce_after_checkout_billing_form', function() { $this->output_file_fields_for_section('billing'); });
 				add_action('woocommerce_after_checkout_shipping_form', function() { $this->output_file_fields_for_section('shipping'); });
 				add_action('woocommerce_after_checkout_order_form', function() { $this->output_file_fields_for_section('order'); });
-				
+
 				// Add CSS for hidden fields
 				add_action('wp_head', array($this, 'add_hidden_field_css'));
+
+				// The filter above only reaches the classic [woocommerce_checkout]
+				// shortcode - a site on the WooCommerce Checkout block (the "Edit
+				// with Elementor"-free Gutenberg block, now WooCommerce's own
+				// default for new checkout pages) never calls
+				// woocommerce_checkout_fields at all, so a field added here would
+				// silently never appear on that checkout. Register the same fields
+				// through WooCommerce's own block-checkout field API too, so both
+				// checkout types show them.
+				// On a Store API / REST request, WooCommerce's own bootstrap can fire
+				// woocommerce_init before this constructor runs (plugin load order
+				// isn't a reliable guide to action-firing order across request
+				// types) - add_action() for a hook that has already fired never
+				// calls back, which silently dropped this registration on exactly
+				// the request type that matters most (the block checkout's own
+				// schema fetch). Register immediately when that's already the
+				// case; otherwise defer normally.
+				if (did_action('woocommerce_init')) {
+					$this->register_block_checkout_fields();
+				} else {
+					add_action('woocommerce_init', array($this, 'register_block_checkout_fields'));
+				}
+			}
+
+			/**
+			 * The WooCommerce Checkout block's own "Additional checkout field"
+			 * registry only supports text/select/checkbox (see
+			 * CheckoutFields::$supported_field_types) - there is no block-native
+			 * equivalent of this plugin's "Image" (file upload) field type, so
+			 * those are skipped here rather than registered broken. Everything
+			 * else added through Checkout Fields > Billing Fields is mirrored into
+			 * the "Additional information" area of the block checkout, under the
+			 * same id every time (`mptbm/<slug>`) so get_block_checkout_field_id()
+			 * elsewhere can look values back up by the original admin field key.
+			 */
+			public function register_block_checkout_fields() {
+				if (self::disable_custom_checkout_system() || !function_exists('woocommerce_register_additional_checkout_field')) {
+					return;
+				}
+				$sections = get_option('mptbm_custom_checkout_fields', array());
+				if (!is_array($sections)) {
+					return;
+				}
+				foreach ($sections as $section_fields) {
+					if (!is_array($section_fields)) {
+						continue;
+					}
+					foreach ($section_fields as $key => $field) {
+						if (!is_array($field) || !empty($field['deleted']) || !empty($field['disabled'])) {
+							continue;
+						}
+						$type = (string) ($field['type'] ?? 'text');
+						if (!in_array($type, array('text', 'select'), true)) {
+							// 'file' (Image) has no block-checkout equivalent - skip.
+							continue;
+						}
+
+						$args = array(
+							'id'       => self::get_block_checkout_field_id($key),
+							'label'    => (string) ($field['label'] ?? $key),
+							'location' => 'order',
+							'type'     => $type,
+							'required' => !empty($field['required']),
+						);
+						if (!empty($field['placeholder'])) {
+							// Top-level option, not an 'attributes' entry - the block
+							// API's attribute whitelist (maxLength/readOnly/pattern/
+							// autocomplete/autocapitalize/title/aria-*/data-*) doesn't
+							// include placeholder.
+							$args['placeholder'] = (string) $field['placeholder'];
+						}
+						if ($type === 'select') {
+							$raw_options = is_array($field['options'] ?? null) ? $field['options'] : array();
+							if (!$raw_options) {
+								// A select field with nothing to pick from would fail
+								// registration (the block API requires a non-empty
+								// options array) - skip it instead of erroring.
+								continue;
+							}
+							$options = array();
+							foreach ($raw_options as $value => $text) {
+								$options[] = array('value' => (string) $value, 'label' => (string) $text);
+							}
+							$args['options'] = $options;
+						}
+
+						woocommerce_register_additional_checkout_field($args);
+					}
+				}
+			}
+
+			/**
+			 * The block-checkout field id a Billing Fields admin key is registered
+			 * under (see register_block_checkout_fields()) - deterministic, so
+			 * callers can look a value back up without storing a separate map.
+			 */
+			public static function get_block_checkout_field_id($key) {
+				return 'mptbm/' . sanitize_title((string) $key);
 			}
 			public static function woocommerce_default_checkout_fields() {
 				// Use a static variable to cache the fields once translations are available

@@ -1688,6 +1688,70 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			return $entries;
 		}
 
+		/**
+		 * Counterpart to get_billing_fields_custom_entries() for orders placed
+		 * through the WooCommerce Checkout *block* instead of the classic
+		 * [woocommerce_checkout] shortcode - see
+		 * MPTBM_Wc_Checkout_Fields_Helper::register_block_checkout_fields(),
+		 * which registers the same Billing Fields admin entries under
+		 * WooCommerce's own block-checkout field API so they're collected at
+		 * all on that checkout type. Values for those live in WooCommerce's
+		 * own storage (read via its CheckoutFields service, not raw postmeta -
+		 * the exact meta key is a WooCommerce implementation detail this
+		 * plugin shouldn't hardcode), and that service itself already refuses
+		 * to return anything for an order that wasn't actually placed via the
+		 * block/Store API, so this is always empty for a classic-checkout
+		 * order - safe to call unconditionally alongside the method above.
+		 *
+		 * @return array<string,array{label:string,value:string}>
+		 */
+		private function get_block_checkout_custom_entries($order) {
+			if (!class_exists('MPTBM_Wc_Checkout_Fields_Helper') || !function_exists('wc_get_container')) {
+				return array();
+			}
+			$checkout_fields_class = 'Automattic\\WooCommerce\\Blocks\\Domain\\Services\\CheckoutFields';
+			if (!class_exists($checkout_fields_class)) {
+				return array();
+			}
+			try {
+				$service = wc_get_container()->get($checkout_fields_class);
+			} catch (Exception $e) {
+				return array();
+			}
+			if (!$service) {
+				return array();
+			}
+
+			$sections = get_option('mptbm_custom_checkout_fields', array());
+			if (!is_array($sections)) {
+				return array();
+			}
+			$values_by_block_id = $service->get_order_additional_fields_with_values($order, 'order', 'other', 'view');
+
+			$entries = array();
+			foreach ($sections as $section_fields) {
+				if (!is_array($section_fields)) {
+					continue;
+				}
+				foreach ($section_fields as $key => $field) {
+					if (!is_array($field) || !empty($field['deleted']) || !empty($field['disabled'])) {
+						continue;
+					}
+					$block_id = MPTBM_Wc_Checkout_Fields_Helper::get_block_checkout_field_id($key);
+					if (!isset($values_by_block_id[$block_id]['value'])) {
+						continue;
+					}
+					$value = $values_by_block_id[$block_id]['value'];
+					if ($value === '' || $value === null) {
+						continue;
+					}
+					$label = (string) ($field['label'] ?? $key);
+					$entries[$key] = array('label' => $label, 'value' => esc_html((string) $value));
+				}
+			}
+			return $entries;
+		}
+
 		public function display_custom_fields_in_admin_order($order) {
 			$settings = get_option('mptbm_checkout_fields_settings', array());
 			$fields = isset($settings['fields']) ? $settings['fields'] : array();
@@ -1711,7 +1775,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					}
 				}
 			}
-			$custom_fields = array_merge($custom_fields, $this->get_billing_fields_custom_entries($order->get_id()));
+			$custom_fields = array_merge($custom_fields, $this->get_billing_fields_custom_entries($order->get_id()), $this->get_block_checkout_custom_entries($order));
 			if (!$custom_fields) return;
 			echo '<div class="mptbm-custom-fields"><h3>' . esc_html__('Custom Booking Details', 'ecab-taxi-booking-manager') . '</h3><table>';
 			foreach ($custom_fields as $entry) {
@@ -1743,7 +1807,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					}
 				}
 			}
-			$custom_fields = array_merge($custom_fields, $this->get_billing_fields_custom_entries($order->get_id()));
+			$custom_fields = array_merge($custom_fields, $this->get_billing_fields_custom_entries($order->get_id()), $this->get_block_checkout_custom_entries($order));
 			return array_merge($fields, $custom_fields);
 		}
 
