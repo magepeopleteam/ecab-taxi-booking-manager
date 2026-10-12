@@ -229,6 +229,9 @@ Learn more about how [Appneck collects and uses this data](https://appneck.com/p
 * Fixed: A custom field added via Settings > Checkout Fields > Billing Fields (e.g. a "Flight Number" field) was collected at checkout and saved with the order, but never appeared on the admin order screen or in order emails - those only looked at a separate, older custom-fields list. Fields added through Billing Fields now show in both places too.
 * Added: Checkout Fields > Billing Fields (text and select field types) now also work on a site using the WooCommerce Checkout block instead of the classic `[woocommerce_checkout]` shortcode - previously these fields only ever appeared on classic checkout, since the block checkout doesn't use the same field hook at all. They now appear in the block checkout's "Additional information" area too, and their values flow through to the admin order screen and order emails exactly like classic-checkout fields do. (Fields of type "Image" still require classic checkout - the block checkout has no file-upload field type to register them as.)
 
+= 2.1.4 - 2026-10-06 =
+* Fix: Updated the bundled Appneck SDK to the latest version.
+
 = 2.1.3 - 2026-10-05 =
 * New: Updated the bundled Appneck SDK to the latest version.
 
