@@ -641,9 +641,45 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					// Format date and time for Google Calendar
 					$formatted_date_time = $start_date_time->format('Ymd\THis\Z'); // Start time in Google Calendar format
 
-					// For the event end time (assuming 1 hour duration)
+					// Default: a 2-hour placeholder block for the pickup leg alone.
 					$end_date_time = clone $start_date_time;
-					$end_date_time->modify('+2  hour'); // Set the end time to 1 hour later
+					$end_date_time->modify('+2  hour');
+
+					// A return booking with its own captured return date/time (only saved
+					// when Settings > General > "Enable Return In Different Date" is on -
+					// see checkout_create_order_line_item() above) spans the whole round
+					// trip instead, so the calendar event runs from pickup through the
+					// actual return rather than always ending 2 hours after pickup
+					// regardless of when the vehicle is really expected back.
+					$is_return_event = false;
+					$return_datetime_string = '';
+					if ($return && $return > 1) {
+						$calendar_return_date = $values['mptbm_return_target_date'] ?? '';
+						$calendar_return_time = $values['mptbm_return_target_time'] ?? '';
+						if (!empty($calendar_return_date) && $calendar_return_date !== '0') {
+							$return_datetime_string = $calendar_return_date;
+							if (!empty($calendar_return_time) && $calendar_return_time !== '0') {
+								if (is_numeric($calendar_return_time)) {
+									$r_hours = floor($calendar_return_time);
+									$r_minutes = round(($calendar_return_time - $r_hours) * 100);
+									$return_datetime_string .= ' ' . sprintf('%02d:%02d', $r_hours, $r_minutes);
+								} else {
+									$return_datetime_string .= ' ' . $calendar_return_time;
+								}
+							}
+							try {
+								$return_date_time = new DateTime($return_datetime_string, $timezone);
+								$return_date_time->setTimezone(new DateTimeZone('UTC'));
+								if ($return_date_time > $start_date_time) {
+									$end_date_time = $return_date_time;
+									$is_return_event = true;
+								}
+							} catch (Exception $e) {
+								// Unparseable return date/time - fall back to the 2-hour
+								// pickup-only block set above rather than breaking checkout.
+							}
+						}
+					}
 					$formatted_end_time = $end_date_time->format('Ymd\THis\Z'); // End time in Google Calendar format
 					$driver_id = get_post_meta($post_id, 'mptbm_selected_driver', true);
 					if ($driver_id) {
@@ -657,6 +693,9 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 					// Build the details string conditionally
 					$details = "Transport service from " . $start_location . " to " . $end_location;
+					if ($is_return_event) {
+						$details .= ". Return journey included - back by " . MP_Global_Function::date_format($return_datetime_string);
+					}
 					if ($driver_email) {
 						$details .= ". Driver email: " . $driver_email;
 					}
