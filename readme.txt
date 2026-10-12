@@ -226,6 +226,7 @@ Learn more about how [Appneck collects and uses this data](https://appneck.com/p
 * Fixed: The Bookings list (Pro) showed a "Return" badge for round-trip bookings but never the actual return date/time, even when it had been captured - there was nowhere in the list to see it. It now shows next to the Return badge when available.
 * Fixed (Pro): The Google Calendar sync (Settings > Google Calendar) only ever created an event covering the pickup leg, even for a round-trip booking with a captured return date/time - the return journey was silently left out, always ending a fixed duration after pickup regardless of when the vehicle was actually due back. The synced event now extends through to the actual return date/time when one was captured, and notes the return in its description.
 * Fixed: A round-trip booking's return date/time wasn't shown on the Booking Detail page (Pro) or in the booking confirmation email, even when it had been captured. Both now show a Return Date row when available. (The PDF/thermal receipt already showed this correctly.)
+* Fixed: A custom field added via Settings > Checkout Fields > Billing Fields (e.g. a "Flight Number" field) was collected at checkout and saved with the order, but never appeared on the admin order screen or in order emails - those only looked at a separate, older custom-fields list. Fields added through Billing Fields now show in both places too.
 
 = 2.1.3 - 2026-10-05 =
 * New: Updated the bundled Appneck SDK to the latest version.

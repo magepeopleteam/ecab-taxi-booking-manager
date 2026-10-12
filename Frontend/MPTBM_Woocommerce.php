@@ -1637,11 +1637,61 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			}
 		}
 
+		/**
+		 * Custom fields added via Checkout Fields > Billing Fields (option
+		 * 'mptbm_custom_checkout_fields', managed by MPTBM_Wc_Checkout_Fields /
+		 * MPTBM_Wc_Checkout_Fields_Helper) are a completely separate registry from
+		 * the "Additional Information" fields below (option
+		 * 'mptbm_checkout_fields_settings'), which is the only one
+		 * display_custom_fields_in_admin_order()/add_custom_fields_to_email() used
+		 * to read. A field added through Billing Fields - e.g. a custom "Flight
+		 * Number" field - showed correctly on checkout and was saved to the order
+		 * (WooCommerce itself persists any injected billing_* field as order meta
+		 * '_' . $key - see WC_Checkout::create_order()), but never appeared in the
+		 * admin order screen or in order emails, because neither function knew
+		 * this second registry existed. This reads it the same way, so both
+		 * callers can merge it in.
+		 *
+		 * @return array<string,array{label:string,value:string}>
+		 */
+		private function get_billing_fields_custom_entries($order_id) {
+			$sections = get_option('mptbm_custom_checkout_fields', array());
+			if (!is_array($sections)) {
+				return array();
+			}
+			$entries = array();
+			foreach ($sections as $section_fields) {
+				if (!is_array($section_fields)) {
+					continue;
+				}
+				foreach ($section_fields as $key => $field) {
+					if (!is_array($field) || !empty($field['deleted']) || !empty($field['disabled'])) {
+						continue;
+					}
+					$label = (string) ($field['label'] ?? $key);
+					$type = (string) ($field['type'] ?? '');
+					$value = get_post_meta($order_id, '_' . $key, true);
+					if ($value === '' || $value === null) {
+						continue;
+					}
+					if ($type === 'file') {
+						$file_url = esc_url((string) $value);
+						$file_name = basename($file_url);
+						$entries[$key] = array('label' => $label, 'value' => '<a href="' . $file_url . '" target="_blank" rel="noopener">' . esc_html($file_name) . '</a>');
+					} elseif (is_array($value)) {
+						$entries[$key] = array('label' => $label, 'value' => implode(', ', array_map('esc_html', $value)));
+					} else {
+						$entries[$key] = array('label' => $label, 'value' => esc_html((string) $value));
+					}
+				}
+			}
+			return $entries;
+		}
+
 		public function display_custom_fields_in_admin_order($order) {
 			$settings = get_option('mptbm_checkout_fields_settings', array());
 			$fields = isset($settings['fields']) ? $settings['fields'] : array();
-			if (!$fields) return;
-			echo '<div class="mptbm-custom-fields"><h3>' . esc_html__('Custom Booking Details', 'ecab-taxi-booking-manager') . '</h3><table>';
+			$custom_fields = array();
 			foreach ($fields as $key => $field) {
 				if (empty($field['show'])) continue;
 				$label = (string)($field['label'] ?? '');
@@ -1651,15 +1701,21 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					if ($type === 'file') {
 						$file_url = esc_url((string)$value);
 						$file_name = basename((string)$file_url);
-						echo '<tr><th style="text-align:left;">' . esc_html($label) . ':</th><td><a href="' . $file_url . '" target="_blank" rel="noopener">' . esc_html($file_name) . '</a></td></tr>';
+						$custom_fields[$key] = array('label' => $label, 'value' => '<a href="' . $file_url . '" target="_blank" rel="noopener">' . esc_html($file_name) . '</a>');
 					} else if (is_array($value)) {
 						$value = implode(', ', array_map(function($v){ return esc_html((string)$v); }, $value));
-						echo '<tr><th style="text-align:left;">' . esc_html($label) . ':</th><td>' . $value . '</td></tr>';
+						$custom_fields[$key] = array('label' => $label, 'value' => $value);
 					} else {
 						$value = esc_html((string)$value);
-						echo '<tr><th style="text-align:left;">' . esc_html($label) . ':</th><td>' . $value . '</td></tr>';
+						$custom_fields[$key] = array('label' => $label, 'value' => $value);
 					}
 				}
+			}
+			$custom_fields = array_merge($custom_fields, $this->get_billing_fields_custom_entries($order->get_id()));
+			if (!$custom_fields) return;
+			echo '<div class="mptbm-custom-fields"><h3>' . esc_html__('Custom Booking Details', 'ecab-taxi-booking-manager') . '</h3><table>';
+			foreach ($custom_fields as $entry) {
+				echo '<tr><th style="text-align:left;">' . esc_html($entry['label']) . ':</th><td>' . $entry['value'] . '</td></tr>';
 			}
 			echo '</table></div>';
 		}
@@ -1687,6 +1743,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					}
 				}
 			}
+			$custom_fields = array_merge($custom_fields, $this->get_billing_fields_custom_entries($order->get_id()));
 			return array_merge($fields, $custom_fields);
 		}
 
