@@ -219,6 +219,9 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.1.6 - 2026-10-14 =
+* Added: Operation Areas > a Single Operation Area can now have a "Minimum Price" set directly on it. For any vehicle that has that Operation Area selected on its own Price Settings, a trip picking up or dropping off inside it is automatically charged at least that amount - previously a minimum fare could only be set per vehicle, with no way to tie it to a specific area.
+
 = 2.1.5 - 2026-10-12 =
 * Fixed: A vehicle set to "Combined Pricing Model" with the "Manual Pricing" route table filled in (per-route fixed fares) never showed up in a Manual-mode search (`price_based='manual'`), even for a route it had explicitly priced - the search only ever matched vehicles whose Pricing Model was set to "Manual" itself. It now also matches a Combined Pricing vehicle for routes it has configured in its Manual Pricing table, priced at that route's fixed fare; it's skipped for any route not in that table, so it never appears at an unpriced $0.
 * Fixed: Searching with `price_based='fixed_route'` always failed with a "Please enter a dropoff location" error and a blocked Search button, even though Fixed Route mode has no drop-off field by design - the form's drop-off validation only recognized Fixed Hourly as a mode allowed to skip that field. Fixed Route is now recognized the same way, matching how the field is already hidden for it.

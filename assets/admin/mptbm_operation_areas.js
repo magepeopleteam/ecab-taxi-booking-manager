@@ -483,6 +483,7 @@
             $('#mptbm-geo-fence-fixed-price-amount').val(data.fixedAmount);
             $('#mptbm-geo-fence-percentage-amount').val(data.percentageAmount);
             $('#mptbm-geo-fence-direction').val(data.direction);
+            $('#mptbm-operation-area-min-price').val(data.minPrice);
         } else {
             $(selectors.title).text(mptbmOperationAreas.addTitle);
             $(selectors.subtitle).text(mptbmOperationAreas.addSubtitle);

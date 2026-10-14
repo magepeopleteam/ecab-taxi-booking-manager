@@ -263,6 +263,22 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
 
                         <section class="mptbm-operation-areas-section mActive" data-collapse="#fixed-operation-area-type">
                             <?php $this->render_map_builder('three', __('Service boundary', 'ecab-taxi-booking-manager'), __('Search for the service location, then outline the area covered by this rule.', 'ecab-taxi-booking-manager'), __('Single area', 'ecab-taxi-booking-manager'), $map_type); ?>
+
+                            <section class="mptbm-operation-areas-panel mptbm-operation-areas-pricing" aria-labelledby="mptbm-area-min-price-heading">
+                                <div class="mptbm-operation-areas-panel-heading">
+                                    <span class="is-amber" aria-hidden="true"><i class="fas fa-tags"></i></span>
+                                    <div>
+                                        <h3 id="mptbm-area-min-price-heading"><?php esc_html_e('Minimum price', 'ecab-taxi-booking-manager'); ?></h3>
+                                        <p><?php esc_html_e('Optional. Applies only to a vehicle that has this Operation Area selected on its own Price Settings - a trip picking up or dropping off inside this area is then charged at least this amount.', 'ecab-taxi-booking-manager'); ?></p>
+                                    </div>
+                                </div>
+                                <div class="mptbm-operation-areas-pricing-grid">
+                                    <div class="mptbm-operation-areas-field">
+                                        <label for="mptbm-operation-area-min-price"><?php esc_html_e('Minimum price', 'ecab-taxi-booking-manager'); ?></label>
+                                        <input class="formControl" type="number" min="0" step="0.01" name="mptbm-operation-area-min-price" id="mptbm-operation-area-min-price" placeholder="<?php esc_attr_e('For example: 20', 'ecab-taxi-booking-manager'); ?>" />
+                                    </div>
+                                </div>
+                            </section>
                         </section>
 
                         <section class="mptbm-operation-areas-section" data-collapse="#geo-fence-operation-area-type">
@@ -412,6 +428,7 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
             $price_by = get_post_meta($post->ID, 'mptbm-geo-fence-increase-price-by', true);
             $fixed_amount = get_post_meta($post->ID, 'mptbm-geo-fence-fixed-price-amount', true);
             $percentage_amount = get_post_meta($post->ID, 'mptbm-geo-fence-percentage-amount', true);
+            $min_price = get_post_meta($post->ID, 'mptbm-operation-area-min-price', true);
 
             $initial = function_exists('mb_substr') ? mb_substr($post->post_title, 0, 1) : substr($post->post_title, 0, 1);
             $initial = function_exists('mb_strtoupper') ? mb_strtoupper($initial) : strtoupper($initial);
@@ -466,6 +483,11 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                             esc_html_e('No surcharge set', 'ecab-taxi-booking-manager');
                         }
                         ?>
+                    </p>
+                <?php elseif ($min_price !== '' && (float) $min_price > 0) : ?>
+                    <p class="mptbm-operation-areas-price-line">
+                        <i class="fas fa-tag" aria-hidden="true"></i>
+                        <?php printf(esc_html__('Min fare: %s', 'ecab-taxi-booking-manager'), esc_html($min_price)); ?>
                     </p>
                 <?php endif; ?>
                 <footer>
@@ -720,6 +742,7 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                     'fixedAmount' => (string) get_post_meta($post_id, 'mptbm-geo-fence-fixed-price-amount', true),
                     'percentageAmount' => (string) get_post_meta($post_id, 'mptbm-geo-fence-percentage-amount', true),
                     'direction' => (string) get_post_meta($post_id, 'mptbm-geo-fence-direction', true) ?: 'geo-fence-one-direction',
+                    'minPrice' => (string) get_post_meta($post_id, 'mptbm-operation-area-min-price', true),
                 ]
             );
         }

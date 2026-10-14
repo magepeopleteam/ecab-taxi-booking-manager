@@ -36,7 +36,8 @@ if (!class_exists('MPTBM_Operation_Areas')) {
             $mptbm_geo_fence_fixed_price_amount = MP_Global_Function::get_post_info($post_id, 'mptbm-geo-fence-fixed-price-amount');
             $mptbm_geo_fence_percentage_amount = MP_Global_Function::get_post_info($post_id, 'mptbm-geo-fence-percentage-amount');
             $mptbm_geo_fence_direction = MP_Global_Function::get_post_info($post_id, 'mptbm-geo-fence-direction');
-            
+            $mptbm_operation_area_min_price = MP_Global_Function::get_post_info($post_id, 'mptbm-operation-area-min-price');
+
             // Get map type setting
             $map_type = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'openstreetmap');
             if ($coordinates_three) {
@@ -206,6 +207,13 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                                 </br>
                                 <div id="mptbm-map-canvas-three" style="width: 100%; height: 600px"></div>
                             </div>
+                            <label class="label">
+                                <div>
+                                    <h6><?php esc_html_e('Minimum Price', 'ecab-taxi-booking-manager'); ?></h6>
+                                    <span class="desc"><?php esc_html_e('Optional. Applies only to a vehicle that has this Operation Area selected on its own Price Settings - a trip picking up or dropping off inside this area is then charged at least this amount. Leave blank to disable.', 'ecab-taxi-booking-manager'); ?></span>
+                                </div>
+                                <input class="formControl mp_price_validation" type="number" min="0" step="0.01" name="mptbm-operation-area-min-price" id="mptbm-operation-area-min-price" value="<?php echo esc_attr(!empty($mptbm_operation_area_min_price) ? $mptbm_operation_area_min_price : ''); ?>" placeholder="<?php esc_attr_e('EX: 20', 'ecab-taxi-booking-manager'); ?>" />
+                            </label>
                         </section>
                         
                         <section class="mptbm_geo_matched_operation_settings <?php echo ($operation_type == 'geo-matched-operation-area-type') ? 'mActive' : '';  ?>" data-collapse="#geo-matched-operation-area-type">
@@ -360,6 +368,13 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                     update_post_meta($post_id, 'mptbm-starting-location-three', $mptbm_starting_location_three);
                     update_post_meta($post_id, 'mptbm-coordinates-three', $mptbm_coordinates_three);
                     update_post_meta($post_id, 'mptbm-operation-type', $mptbm_operation_type);
+                }
+
+                $mptbm_operation_area_min_price = isset($_POST['mptbm-operation-area-min-price']) ? trim(sanitize_text_field($_POST['mptbm-operation-area-min-price'])) : '';
+                if ($mptbm_operation_area_min_price !== '' && is_numeric($mptbm_operation_area_min_price) && (float) $mptbm_operation_area_min_price > 0) {
+                    update_post_meta($post_id, 'mptbm-operation-area-min-price', (float) $mptbm_operation_area_min_price);
+                } else {
+                    delete_post_meta($post_id, 'mptbm-operation-area-min-price');
                 }
             } elseif ($mptbm_operation_type === 'geo-matched-operation-area-type') {
 

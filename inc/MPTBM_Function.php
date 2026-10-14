@@ -1360,8 +1360,17 @@ if (!class_exists('MPTBM_Function')) {
 				$price = apply_filters('mptbm_calculate_price', $price, $post_id, $selected_start_date, $selected_start_time, $extra_data);
 			}
 
-
-
+			// Per-area minimum fare (see get_operation_area_minimum_price()) -
+			// applied last, after every other pricing branch/filter above, so it
+			// floors the actual final price rather than an intermediate one.
+			$area_min_price = self::get_operation_area_minimum_price(
+				$post_id,
+				$pickup_coords_hint ?: ($search_context['start_coords'] ?? null),
+				$dropoff_coords_hint ?: ($search_context['end_coords'] ?? null)
+			);
+			if ($area_min_price > 0 && $area_min_price > $price) {
+				$price = $area_min_price;
+			}
 
 			return (float) $price;
 
@@ -1758,6 +1767,89 @@ if (!class_exists('MPTBM_Function')) {
 			}
 
 			return $items;
+		}
+
+		/**
+		 * Per-request cache of Operation Areas that have a Minimum Price
+		 * configured - populated once per get_operation_area_minimum_price()
+		 * call chain (a search prices several vehicles, one query is enough).
+		 */
+		private static $operation_area_min_price_zones = null;
+
+		/**
+		 * Optional per-area minimum fare: when a Single Operation Area has a
+		 * "Minimum Price" set (Operation Areas screen), a trip whose pickup or
+		 * dropoff falls inside it is floored to at least that price - but only
+		 * for a vehicle that has that Operation Area selected (its own
+		 * mptbm_selected_operation_areas), the same opt-in every other
+		 * area-based pricing feature in this plugin (surcharge, fixed price
+		 * override) already requires. It does NOT apply to a vehicle with no
+		 * Operation Area selected, or one scoped to a different area - confirmed
+		 * with the user after an initial version floored every vehicle
+		 * unconditionally, including ones with nothing selected, which
+		 * surprised them. A no-op for every existing site unless an admin
+		 * explicitly sets this on an Operation Area AND assigns that area to a
+		 * vehicle (the meta query below then returns nothing and this function
+		 * short-circuits to 0 every time).
+		 *
+		 * Reuses is_point_in_fixed_zone() (same matching already used for
+		 * Fixed Zone pricing and the service-area restriction above) rather
+		 * than adding new polygon-matching code.
+		 *
+		 * @param int        $post_id      The vehicle being priced.
+		 * @param array|null $start_coords ['latitude'=>, 'longitude'=>] or ['lat'=>, 'lng'=>]
+		 * @param array|null $end_coords   Same shape as $start_coords.
+		 * @return float The highest matching area minimum, or 0 if none matched.
+		 */
+		public static function get_operation_area_minimum_price($post_id, $start_coords, $end_coords) {
+			if (empty($start_coords) && empty($end_coords)) {
+				return 0;
+			}
+
+			$selected_areas = get_post_meta($post_id, 'mptbm_selected_operation_areas', true);
+			if (empty($selected_areas) || !is_array($selected_areas)) {
+				return 0;
+			}
+
+			if (self::$operation_area_min_price_zones === null) {
+				self::$operation_area_min_price_zones = get_posts(array(
+					'post_type'      => 'mptbm_operate_areas',
+					'post_status'    => 'publish',
+					'posts_per_page' => -1,
+					'fields'         => 'ids',
+					'meta_query'     => array(
+						array(
+							'key'     => 'mptbm-operation-area-min-price',
+							'value'   => 0,
+							'compare' => '>',
+							'type'    => 'NUMERIC',
+						),
+					),
+				));
+			}
+
+			if (empty(self::$operation_area_min_price_zones)) {
+				return 0;
+			}
+
+			$matched_min = 0;
+			foreach (self::$operation_area_min_price_zones as $area_id) {
+				if (!in_array((int) $area_id, array_map('intval', $selected_areas), true)) {
+					continue;
+				}
+				$area_min_price = (float) get_post_meta($area_id, 'mptbm-operation-area-min-price', true);
+				if ($area_min_price <= 0 || $area_min_price <= $matched_min) {
+					continue;
+				}
+				$area_location = 'post_' . $area_id;
+				$in_area = (!empty($start_coords) && self::is_point_in_fixed_zone($area_location, $start_coords))
+					|| (!empty($end_coords) && self::is_point_in_fixed_zone($area_location, $end_coords));
+				if ($in_area) {
+					$matched_min = $area_min_price;
+				}
+			}
+
+			return $matched_min;
 		}
 
 		public static function get_base_price_settings($post_id) {
