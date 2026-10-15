@@ -1128,7 +1128,13 @@ if (!class_exists('MPTBM_Function')) {
 					if (sizeof($assigned_routes) > 0) {
 						foreach ($assigned_routes as $assigned_route) {
 							$route_id = array_key_exists('route_id', $assigned_route) ? absint($assigned_route['route_id']) : 0;
-							$route_name = ($route_id && get_post_status($route_id) === 'publish') ? get_the_title($route_id) : '';
+							// Same html_entity_decode() as get_all_routes()/get_route_waypoints_map()
+							// (MPTBM_Function) - $start_place arrives from the browser already
+							// HTML-entity-decoded (it's a <select> option's .value), so without this
+							// decode here too, a route name containing " - " (wptexturize'd by
+							// get_the_title() into "&#8211;") would never match, silently pricing
+							// every vehicle at 0 and showing "No Transport Available".
+							$route_name = ($route_id && get_post_status($route_id) === 'publish') ? html_entity_decode(get_the_title($route_id), ENT_QUOTES, 'UTF-8') : '';
 							if ($start_place !== '' && $route_name !== '' && $start_place == $route_name) {
 								$price = (float) ($assigned_route['price'] ?? 0);
 							}
@@ -2119,7 +2125,18 @@ if (!class_exists('MPTBM_Function')) {
 					$route_id = absint($assigned_route['route_id'] ?? 0);
 					// Skip routes trashed/deleted after being assigned to this
 					// vehicle - a stale ID shouldn't keep showing up to customers.
-					$name = ($route_id && get_post_status($route_id) === 'publish') ? get_the_title($route_id) : '';
+					// get_the_title() can come back with a literal HTML entity
+					// baked into the string (e.g. a route named with " - "
+					// gets wptexturize'd into "&#8211;" instead of a real
+					// dash character) - harmless printed inside HTML (the
+					// browser decodes it when parsing the <option> tag), but
+					// get_route_waypoints_map() below embeds the same name
+					// as a JSON object key inside a <script> block, where
+					// entities are NOT decoded - the two ended up as
+					// different strings in the browser, so selecting the
+					// route could never find its own waypoints. Decoding
+					// here keeps both call sites using the identical string.
+					$name = ($route_id && get_post_status($route_id) === 'publish') ? html_entity_decode(get_the_title($route_id), ENT_QUOTES, 'UTF-8') : '';
 					if ($name) {
 						$route_names[] = $name;
 					}
@@ -2152,7 +2169,10 @@ if (!class_exists('MPTBM_Function')) {
 					if (!$route_id || get_post_status($route_id) !== 'publish') {
 						continue;
 					}
-					$name = get_the_title($route_id);
+					// See the identical comment in get_all_routes() just above -
+					// this map's keys must match that function's route name
+					// strings exactly, or the frontend's lookup silently misses.
+					$name = html_entity_decode(get_the_title($route_id), ENT_QUOTES, 'UTF-8');
 					$waypoints = get_post_meta($route_id, 'mptbm_route_waypoints', true);
 					if ($name && $waypoints) {
 						$map[$name] = $waypoints;
