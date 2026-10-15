@@ -74,7 +74,7 @@ if (!class_exists('MPTBM_Plugin')) {
                 // define('MPTBM_PLUGIN_DATA', get_plugin_data(__FILE__));
             }
             if (!defined('MPTBM_PLUGIN_VERSION')) {
-                define('MPTBM_PLUGIN_VERSION', '2.1.5');
+                define('MPTBM_PLUGIN_VERSION', '2.1.6');
             }
 
             // Create required directories if they don't exist
