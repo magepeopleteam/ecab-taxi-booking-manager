@@ -57,25 +57,30 @@ var mptbm_extra_marker = null;
 // always resolves to an empty jQuery object and every request silently
 // submitted zero stops regardless of what the customer added.
 function mptbm_collect_extra_stop_places($scope) {
-    var places = [];
-    ($scope || jQuery(document)).find('.mptbm_extra_stop_place_input').each(function () {
-        var val = jQuery(this).val();
-        if (val) {
-            places.push(val);
-        }
-    });
-    return places;
+    return mptbm_collect_extra_stops($scope).places;
 }
 
 function mptbm_collect_extra_stop_coordinates($scope) {
-    var coords = [];
-    ($scope || jQuery(document)).find('.mptbm_extra_stop_coords').each(function () {
+    return mptbm_collect_extra_stops($scope).coords;
+}
+
+// One entry per named stop in both lists, with '' for a stop that has no
+// coordinates yet, so the server can pair each stop name with its own
+// coordinates (MPTBM_Transport_Search::verify_trip_places()).
+function mptbm_collect_extra_stops($scope) {
+    var stops = { places: [], coords: [] };
+    ($scope || jQuery(document)).find('.mptbm_extra_stop_place_input').each(function () {
         var val = jQuery(this).val();
         if (val) {
-            coords.push(val);
+            var $coords = jQuery(this).closest('.mptbm_extra_stop_row').find('.mptbm_extra_stop_coords');
+            if (!$coords.length) {
+                $coords = jQuery(this).siblings('.mptbm_extra_stop_coords');
+            }
+            stops.places.push(val);
+            stops.coords.push($coords.first().val() || '');
         }
     });
-    return coords;
+    return stops;
 }
 
 // OpenStreetMap variables

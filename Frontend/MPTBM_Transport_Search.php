@@ -198,7 +198,8 @@
 				// Secure: Calculate distance server-side using coordinates passed from JS
 				$start_coords = $this->posted_coordinates('start_place_coordinates');
 				$end_coords = $this->posted_coordinates('end_place_coordinates');
-				
+				$location_check = $this->verify_trip_places($price_based, $start_coords, $end_coords);
+
 				$server_data = false;
 				if (!empty($start_coords) && !empty($end_coords)) {
 					$s_lat = isset($start_coords['latitude']) ? $start_coords['latitude'] : '';
@@ -207,6 +208,7 @@
 					$e_lng = isset($end_coords['longitude']) ? $end_coords['longitude'] : '';
 					$server_data = $this->resolve_trip_distance($s_lat, $s_lng, $e_lat, $e_lng);
 				}
+				$this->require_route_for_distance_pricing($server_data, $price_based);
 
 					if ($server_data) {
 					$distance = $server_data['distance'];
@@ -220,8 +222,8 @@
 					$_SESSION['mptbm_secure_end_place'] = isset($_POST['end_place']) ? sanitize_text_field($_POST['end_place']) : '';
 					session_write_close();
 					} else {
-					// Fallback (Less Secure, but keeps functionality if server API fails)
-					// We still try to use POST over Cookie as per previous fix
+					// Only modes that don't price on distance get here (distance modes stop in
+					// require_route_for_distance_pricing()), so the browser's figure is display-only.
 					$distance = isset($_POST['mptbm_distance']) ? absint($_POST['mptbm_distance']) : (isset($_COOKIE['mptbm_distance']) ? absint($_COOKIE['mptbm_distance']) : '');
 						$duration = isset($_POST['mptbm_duration']) ? absint($_POST['mptbm_duration']) : (isset($_COOKIE['mptbm_duration']) ? absint($_COOKIE['mptbm_duration']) : '');
 					}
@@ -233,6 +235,9 @@
 						'end_place'         => isset($_POST['end_place']) ? sanitize_text_field(wp_unslash($_POST['end_place'])) : '',
 						'start_coords'      => MPTBM_Function::normalize_coordinates($start_coords),
 						'end_coords'        => MPTBM_Function::normalize_coordinates($end_coords),
+						'extra_stop_coords' => $location_check['stop_coords'],
+						'location_checked'  => $location_check['checked'],
+						'location_verified' => $location_check['verified'],
 						'price_based'       => $price_based,
 						'start_date'        => isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '',
 						'start_time'        => isset($_POST['start_time']) ? sanitize_text_field(wp_unslash($_POST['start_time'])) : '',
@@ -317,7 +322,8 @@
 				// Secure: Calculate distance server-side using coordinates passed from JS
 				$start_coords = $this->posted_coordinates('start_place_coordinates');
 				$end_coords = $this->posted_coordinates('end_place_coordinates');
-				
+				$location_check = $this->verify_trip_places($price_based, $start_coords, $end_coords);
+
 				$server_data = false;
 				if (!empty($start_coords) && !empty($end_coords)) {
 					$s_lat = isset($start_coords['latitude']) ? $start_coords['latitude'] : '';
@@ -328,6 +334,7 @@
 
 					$server_data = $this->resolve_trip_distance($s_lat, $s_lng, $e_lat, $e_lng);
 				}
+				$this->require_route_for_distance_pricing($server_data, $price_based);
 
 					if ($server_data) {
 					$distance = $server_data['distance'];
@@ -352,6 +359,9 @@
 						'end_place'         => isset($_POST['end_place']) ? sanitize_text_field(wp_unslash($_POST['end_place'])) : '',
 						'start_coords'      => MPTBM_Function::normalize_coordinates($start_coords),
 						'end_coords'        => MPTBM_Function::normalize_coordinates($end_coords),
+						'extra_stop_coords' => $location_check['stop_coords'],
+						'location_checked'  => $location_check['checked'],
+						'location_verified' => $location_check['verified'],
 						'price_based'       => $price_based,
 						'start_date'        => isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '',
 						'start_time'        => isset($_POST['start_time']) ? sanitize_text_field(wp_unslash($_POST['start_time'])) : '',
@@ -584,6 +594,91 @@
 
 			private function posted_coordinates($key): array {
 				return isset($_POST[$key]) ? MPTBM_Function::normalize_coordinates($_POST[$key]) : array();
+			}
+
+			/**
+			 * Extra-stop coordinates in posted order ("lat,lng" each), an empty array for a stop
+			 * that has none. The booking form posts them index-aligned with the stop names.
+			 */
+			private function posted_stop_coordinates(): array {
+				$stops = array();
+				foreach (array_slice(array_values((array) ($_POST['mptbm_extra_stop_place_coordinates'] ?? array())), 0, 10) as $raw) {
+					$parts = is_string($raw) ? array_map('trim', explode(',', sanitize_text_field(wp_unslash($raw)))) : array();
+					$stops[] = count($parts) === 2 ? MPTBM_Function::normalize_coordinates(array('latitude' => $parts[0], 'longitude' => $parts[1])) : array();
+				}
+				return $stops;
+			}
+
+			/**
+			 * Make sure every endpoint the fare is measured from is the place its name says.
+			 *
+			 * Routing uses the posted coordinates, the booking shows the posted names, and the two
+			 * arrive as separate fields, so a long trip's names could be sent with two points a few
+			 * metres apart and booked at the short trip's fare. Each priced endpoint is checked
+			 * with MPTBM_Function::verify_place_coordinates(). In the default 'strict' mode a
+			 * failed check ends the search with a message; in 'flag' mode the search goes on and
+			 * the booking is marked as not verified.
+			 *
+			 * @return array{checked: bool, verified: bool, stop_coords: array}
+			 */
+			private function verify_trip_places($price_based, array $start_coords, array $end_coords): array {
+				$stop_coords = $this->posted_stop_coordinates();
+				$result = array('checked' => false, 'verified' => false, 'stop_coords' => $stop_coords);
+				$endpoints = MPTBM_Function::coordinate_priced_endpoints($price_based);
+				if (!$endpoints) {
+					return $result;
+				}
+
+				$places = array();
+				if (in_array('start', $endpoints, true)) {
+					$places[] = array('start', isset($_POST['start_place']) ? wp_unslash($_POST['start_place']) : '', $start_coords);
+				}
+				if (in_array('end', $endpoints, true)) {
+					$places[] = array('end', isset($_POST['end_place']) ? wp_unslash($_POST['end_place']) : '', $end_coords);
+				}
+				if (in_array('stops', $endpoints, true)) {
+					$stop_labels = isset($_POST['mptbm_extra_stop_place']) ? array_values(array_filter(array_map('sanitize_text_field', (array) wp_unslash($_POST['mptbm_extra_stop_place'])))) : array();
+					// Names and coordinates can only be paired when they line up one to one;
+					// otherwise every stop is left without coordinates and fails the check.
+					$aligned = count($stop_labels) === count($stop_coords);
+					foreach ($stop_labels as $index => $stop_label) {
+						$places[] = array('stop', $stop_label, $aligned ? $stop_coords[$index] : array());
+					}
+				}
+
+				$messages = array(
+					'start' => __('We could not match the pickup address to its location on the map. Please choose it from the suggestions and search again.', 'ecab-taxi-booking-manager'),
+					'end'   => __('We could not match the drop-off address to its location on the map. Please choose it from the suggestions and search again.', 'ecab-taxi-booking-manager'),
+					'stop'  => __('We could not match an extra stop to its location on the map. Please choose each stop from the suggestions and search again.', 'ecab-taxi-booking-manager'),
+					'unavailable' => __('We could not verify the addresses right now. Please try again in a few minutes.', 'ecab-taxi-booking-manager'),
+				);
+				$verified = true;
+				foreach ($places as $place) {
+					list($kind, $label, $coords) = $place;
+					$check = MPTBM_Function::verify_place_coordinates($label, $coords);
+					if ($check['verified']) {
+						continue;
+					}
+					if (MPTBM_Function::address_verification_mode() !== 'flag') {
+						wp_send_json_error(array('message' => esc_html($messages[$check['reason'] === 'unavailable' ? 'unavailable' : $kind])));
+					}
+					$verified = false;
+				}
+
+				$result['checked'] = true;
+				$result['verified'] = $verified;
+				return $result;
+			}
+
+			/**
+			 * Distance-priced modes can only be quoted on a distance the server measured itself.
+			 * The browser's mptbm_distance POST/cookie values used to stand in when the lookup
+			 * failed; checkout refused those quotes anyway, so fail here with a clear message.
+			 */
+			private function require_route_for_distance_pricing($server_data, $price_based): void {
+				if (!$server_data && in_array($price_based, array('dynamic', 'fixed_distance', 'fixed_map'), true)) {
+					wp_send_json_error(array('message' => esc_html__('The route between these addresses could not be calculated. Please check them and try again.', 'ecab-taxi-booking-manager')));
+				}
 			}
 
 			/**

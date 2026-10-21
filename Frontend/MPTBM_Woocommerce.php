@@ -44,6 +44,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 
 			// Show custom fields in admin order details
 			add_action('woocommerce_admin_order_data_after_billing_address', array($this, 'display_custom_fields_in_admin_order'), 10, 1);
+			// Show the operator where the priced route really runs, under each booking line.
+			add_action('woocommerce_after_order_itemmeta', array($this, 'display_route_record_in_admin_order'), 10, 2);
 			// Show custom fields in customer and admin emails
 			add_filter('woocommerce_email_order_meta_fields', array($this, 'add_custom_fields_to_email'), 10, 3);
 
@@ -260,6 +262,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			}
 			
 			$cart_item_data['mptbm_distance'] = $distance;
+				$cart_item_data['mptbm_route_record'] = MPTBM_Function::route_record($context);
 				$cart_item_data['mptbm_distance_text'] = number_format_i18n(MPTBM_Function::distance_in_unit($distance), 2) . ' ' . strtolower(MPTBM_Function::distance_unit_label());
 				$cart_item_data['mptbm_duration'] = $duration;
 				$cart_item_data['mptbm_fixed_hours'] = $fixed_hour;
@@ -747,6 +750,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				// booking post and mptbm_stoppage_info ends up empty there.
 				$item->add_meta_data('_mptbm_stoppage_info', $mptbm_stoppage_selection);
 				$item->add_meta_data('_mptbm_transport_quantity', $transport_quantity);
+				// The coordinates the fare was measured on (see MPTBM_Function::route_record()).
+				foreach ((array) ($values['mptbm_route_record'] ?? array()) as $route_key => $route_value) {
+					$item->add_meta_data('_' . $route_key, sanitize_text_field((string) $route_value));
+				}
 
 				do_action('mptbm_checkout_create_order_line_item', $item, $values);
 			}
@@ -826,7 +833,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 								'mptbm_target_pickup_interval_time' => MPTBM_Function::get_general_settings('mptbm_pickup_interval_time', '30'),
 								'mptbm_transport_quantity' => $quantity
 							];
-							
+							foreach (array_keys(MPTBM_Function::route_record(array())) as $route_key) {
+								$data[$route_key] = sanitize_text_field(MP_Global_Function::get_order_item_meta($item_id, '_' . $route_key));
+							}
+
 							if ($return > 1 && MP_Global_Function::get_settings('mptbm_general_settings', 'enable_return_in_different_date') == 'yes') {
 								$data['mptbm_return_target_date'] = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_return_date');
 								$data['mptbm_return_target_time'] = MP_Global_Function::get_order_item_meta($item_id, '_mptbm_return_time');
@@ -1782,6 +1792,40 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				echo '<tr><th style="text-align:left;">' . esc_html($entry['label']) . ':</th><td>' . $entry['value'] . '</td></tr>';
 			}
 			echo '</table></div>';
+		}
+
+		/**
+		 * Admin order screen: the coordinates and distance the fare was measured on, with the
+		 * address check result, so a quote whose route doesn't match its place names is visible.
+		 */
+		public function display_route_record_in_admin_order($item_id, $item) {
+			if (!is_admin() || !is_a($item, 'WC_Order_Item_Product') || !$item->get_meta('_mptbm_id')) {
+				return;
+			}
+			$record = array();
+			foreach (array_keys(MPTBM_Function::route_record(array())) as $route_key) {
+				$record[$route_key] = (string) $item->get_meta('_' . $route_key);
+			}
+			if (!$record['mptbm_start_coords'] && !$record['mptbm_end_coords']) {
+				return;
+			}
+			$distance = (float) $item->get_meta('_mptbm_distance');
+			$map_url = MPTBM_Function::route_record_map_url($record);
+			$check_labels = array(
+				'verified'   => __('Addresses verified', 'ecab-taxi-booking-manager'),
+				'unverified' => __('Addresses NOT verified - check the route before accepting', 'ecab-taxi-booking-manager'),
+			);
+			?>
+			<div class="mptbm-route-record" style="margin-top:6px;font-size:12px;color:#50575e;">
+				<strong><?php esc_html_e('Priced route', 'ecab-taxi-booking-manager'); ?>:</strong>
+				<?php echo esc_html($record['mptbm_start_coords'] ?: '—'); ?> &rarr; <?php echo esc_html($record['mptbm_end_coords'] ?: '—'); ?>
+				<?php if ($distance > 0) : ?>(<?php echo esc_html(MPTBM_Function::format_distance_text($distance)); ?>)<?php endif; ?>
+				<?php if ($map_url) : ?><a href="<?php echo esc_url($map_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('View on map', 'ecab-taxi-booking-manager'); ?></a><?php endif; ?>
+				<?php if (isset($check_labels[$record['mptbm_address_check']])) : ?>
+					<br><span style="<?php echo $record['mptbm_address_check'] === 'verified' ? '' : 'color:#b32d2e;font-weight:600;'; ?>"><?php echo esc_html($check_labels[$record['mptbm_address_check']]); ?></span>
+				<?php endif; ?>
+			</div>
+			<?php
 		}
 
 		public function add_custom_fields_to_email($fields, $sent_to_admin, $order) {

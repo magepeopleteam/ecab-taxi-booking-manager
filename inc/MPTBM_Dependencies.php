@@ -389,7 +389,7 @@ if (!class_exists('MPTBM_Dependencies')) {
 					$search_params['lon'] = $bias_lon;
 				}
 			}
-			$cache_key = 'mptbm_osm_' . md5(wp_json_encode(array($search_params, $restrict_to_country, $country_code)));
+			$cache_key = MPTBM_Function::osm_search_cache_key($search_params, $restrict_to_country, $country_code);
 			$cached_results = get_transient($cache_key);
 			if (is_array($cached_results)) {
 				wp_send_json_success($cached_results);
