@@ -148,6 +148,90 @@ if (!class_exists('MPTBM_Function')) {
 		}
 
 		/**
+		 * Which trip endpoints feed the fare through their coordinates, per search mode.
+		 *
+		 * The fare is measured between coordinates the browser posts, while the order and the
+		 * driver only ever see the place names posted next to them. Every endpoint listed here
+		 * must have its coordinates matched to its name (verify_place_coordinates()) before the
+		 * quote can be booked; otherwise a short route can be priced under a long trip's names.
+		 * Select-based endpoints (fixed_zone pickup, fixed_zone_dropoff drop-off) are admin
+		 * locations matched by name, so only the free-text side of those modes is listed.
+		 *
+		 * @return string[] Any of 'start', 'end', 'stops'; empty when coordinates don't affect the fare.
+		 */
+		public static function coordinate_priced_endpoints($price_based): array
+		{
+			switch (sanitize_key((string) $price_based)) {
+				case 'dynamic':
+				case 'fixed_distance':
+				case 'fixed_map':
+					return array('start', 'end', 'stops');
+				case 'fixed_zone':
+					return array('end');
+				case 'fixed_zone_dropoff':
+					return array('start');
+			}
+			return array();
+		}
+
+		/**
+		 * 'strict' (default) refuses a search whose address can't be matched to its coordinates;
+		 * 'flag' lets it through and marks the booking "not verified" for the operator to check.
+		 */
+		public static function address_verification_mode(): string
+		{
+			$mode = MP_Global_Function::get_settings('mptbm_map_api_settings', 'mptbm_address_verification', 'strict');
+			return $mode === 'flag' ? 'flag' : 'strict';
+		}
+
+		/**
+		 * The route the fare was actually measured on, as booking meta.
+		 *
+		 * Stored next to the place names on the order item and the booking so the operator can
+		 * see where the priced route really runs (and whether its addresses were verified).
+		 */
+		public static function route_record(array $context): array
+		{
+			$format = static function ($coords): string {
+				$coords = self::normalize_coordinates($coords);
+				return $coords ? sprintf('%.6F,%.6F', $coords['latitude'], $coords['longitude']) : '';
+			};
+			$stops = array();
+			foreach ((array) ($context['extra_stop_coords'] ?? array()) as $stop) {
+				$stops[] = $format($stop);
+			}
+			$check = '';
+			if (!empty($context['location_checked'])) {
+				$check = !empty($context['location_verified']) ? 'verified' : 'unverified';
+			}
+			return array(
+				'mptbm_start_coords'      => $format($context['start_coords'] ?? array()),
+				'mptbm_end_coords'        => $format($context['end_coords'] ?? array()),
+				'mptbm_extra_stop_coords' => implode('|', array_filter($stops)),
+				'mptbm_address_check'     => $check,
+			);
+		}
+
+		/** A Google Maps directions link for a route_record() (empty without both endpoints). */
+		public static function route_record_map_url(array $record): string
+		{
+			$point = static function ($value): string {
+				return preg_match('/^-?\d{1,3}\.\d+,-?\d{1,3}\.\d+$/', (string) $value) ? (string) $value : '';
+			};
+			$start = $point($record['mptbm_start_coords'] ?? '');
+			$end = $point($record['mptbm_end_coords'] ?? '');
+			if (!$start || !$end) {
+				return '';
+			}
+			$args = array('api' => 1, 'origin' => $start, 'destination' => $end, 'travelmode' => 'driving');
+			$stops = array_filter(array_map($point, explode('|', (string) ($record['mptbm_extra_stop_coords'] ?? ''))));
+			if ($stops) {
+				$args['waypoints'] = implode('|', $stops);
+			}
+			return 'https://www.google.com/maps/dir/?' . http_build_query($args);
+		}
+
+		/**
 		 * Validate that checkout is using the server-side search which produced the quote.
 		 * Returns the context or a WP_Error suitable for a customer-facing checkout error.
 		 */
@@ -167,6 +251,15 @@ if (!class_exists('MPTBM_Function')) {
 			$distance_modes = array('dynamic', 'fixed_distance', 'fixed_map');
 			if (in_array(sanitize_key($context['price_based'] ?? ''), $distance_modes, true) && empty($context['distance_verified'])) {
 				return new WP_Error('mptbm_quote_unverified', __('The route could not be verified by the server. Please try the search again.', 'ecab-taxi-booking-manager'));
+			}
+			// The search must also have matched each priced endpoint's coordinates to its name.
+			// A quote saved before this check existed carries neither flag and is refused too.
+			if (self::coordinate_priced_endpoints($context['price_based'] ?? '')) {
+				$accepted = !empty($context['location_verified'])
+					|| (!empty($context['location_checked']) && self::address_verification_mode() === 'flag');
+				if (!$accepted) {
+					return new WP_Error('mptbm_quote_location', __('The pickup or drop-off address could not be matched to its map location. Please search for the trip again.', 'ecab-taxi-booking-manager'));
+				}
 			}
 			if (sanitize_key($context['price_based'] ?? '') === 'fixed_hourly') {
 				$hours = self::normalize_fixed_time($context['fixed_time'] ?? 0);
@@ -2709,9 +2802,9 @@ if (!class_exists('MPTBM_Function')) {
 		 * Anything outside those bounds is rejected and the caller falls back to the
 		 * ordinary server-side lookup, so a failed check is never a cheaper fare.
 		 *
-		 * Note this deliberately does not make the coordinates themselves trustworthy -
-		 * they are already browser-supplied today and the server-side lookup routes
-		 * between whatever it is given, so this mode adds no new exposure there.
+		 * The coordinates themselves are browser-supplied in both modes; they are tied to
+		 * the place names the booking shows by verify_place_coordinates(), which the
+		 * search runs before either distance source is consulted.
 		 *
 		 * @return array|false Trip data on success, false when the reading is rejected.
 		 */
@@ -2754,6 +2847,268 @@ if (!class_exists('MPTBM_Function')) {
 				'duration' => $duration,
 				'provider' => 'browser',
 			);
+		}
+
+		/**
+		 * Check that posted coordinates really are the place the posted name describes.
+		 *
+		 * The fare is routed between coordinates the browser sends, but the order, the booking
+		 * and the driver only see the place names sent next to them. Nothing tied the two
+		 * together, so "Downtown -> Airport" could be priced on two points 100 m apart. The
+		 * browser obtains its coordinates by geocoding the name (Google's geocoder, or Photon
+		 * in OpenStreetMap mode), so the server geocodes the same name itself, biased towards
+		 * the posted point, and accepts the pair only when one of the results lies within
+		 * address_match_tolerance() of that point (or the point is inside a result's own area,
+		 * e.g. an airport or a district).
+		 *
+		 * @param string $label  The place name the booking will show.
+		 * @param mixed  $coords Coordinates in any shape normalize_coordinates() accepts.
+		 * @return array{verified: bool, reason: string, provider: string} reason is 'match',
+		 *         'no_match' (geocoded, but nowhere near), 'unavailable' (no geocoder answered),
+		 *         'no_label' or 'no_coords'.
+		 */
+		public static function verify_place_coordinates($label, $coords): array
+		{
+			$label  = trim(sanitize_text_field((string) $label));
+			$coords = self::normalize_coordinates($coords);
+			if ($label === '') {
+				$result = array('verified' => false, 'reason' => 'no_label', 'provider' => '');
+			} elseif (!$coords) {
+				$result = array('verified' => false, 'reason' => 'no_coords', 'provider' => '');
+			} else {
+				$result = self::geocode_place_near($label, $coords);
+			}
+
+			/**
+			 * Lets a site plug in its own geocoder, or override the verdict for a known place.
+			 *
+			 * @param array  $result Keys 'verified' (bool), 'reason', 'provider'.
+			 * @param string $label  Place name.
+			 * @param array  $coords Normalised coordinates (empty when none were posted).
+			 */
+			$result = apply_filters('mptbm_verify_place_coordinates', $result, $label, $coords);
+			return array(
+				'verified' => !empty($result['verified']),
+				'reason'   => isset($result['reason']) ? (string) $result['reason'] : '',
+				'provider' => isset($result['provider']) ? (string) $result['provider'] : '',
+			);
+		}
+
+		/**
+		 * Transient key of a cached mptbm_osm_search (server-side Photon) answer. Shared with
+		 * MPTBM_Dependencies::osm_search_proxy() so the address check can reuse what the
+		 * server itself fetched for the browser moments earlier.
+		 */
+		public static function osm_search_cache_key(array $search_params, $restrict_to_country, $country_code): string
+		{
+			return 'mptbm_osm_' . md5(wp_json_encode(array($search_params, $restrict_to_country, $country_code)));
+		}
+
+		/** How far (metres) a geocoded result may be from the posted point and still count. */
+		public static function address_match_tolerance(): float
+		{
+			return max(100.0, (float) apply_filters('mptbm_address_match_tolerance', 1500));
+		}
+
+		private static function geocode_place_near(string $label, array $coords): array
+		{
+			$cache_key = 'mptbm_addr_' . md5(strtolower($label) . '|' . round($coords['latitude'], 4) . ',' . round($coords['longitude'], 4));
+			$cached = get_transient($cache_key);
+			if (is_array($cached) && isset($cached['verified'], $cached['reason'])) {
+				return $cached;
+			}
+
+			// Ask the geocoder that produced the name: Google in Google map mode (Photon as a
+			// free second opinion), Photon only in OpenStreetMap mode - a Google key left over
+			// from before a switch to OpenStreetMap must not start running up Geocoding bills.
+			// First of all, the answer the server's own Photon proxy gave the browser for this
+			// exact text (typed addresses are geocoded through it), which costs no request at
+			// all - the public Photon instance throttles servers that ask it too often.
+			$google_mode = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'openstreetmap') === 'enable';
+			$providers = $google_mode ? array('photon-cache', 'google', 'photon') : array('photon-cache', 'photon');
+			$tolerance = self::address_match_tolerance();
+			$answered = false;
+			foreach ($providers as $provider) {
+				if ($provider === 'photon-cache') {
+					$candidates = self::proxy_cached_candidates($label);
+				} else {
+					$candidates = $provider === 'google' ? self::google_geocode_candidates($label, $coords) : self::photon_geocode_candidates($label, $coords);
+				}
+				if ($candidates === null) {
+					continue;
+				}
+				$answered = $answered || $provider !== 'photon-cache';
+				foreach ($candidates as $candidate) {
+					if (self::point_matches_candidate($coords, $candidate, $tolerance)) {
+						$result = array('verified' => true, 'reason' => 'match', 'provider' => $provider);
+						set_transient($cache_key, $result, WEEK_IN_SECONDS);
+						return $result;
+					}
+				}
+			}
+
+			if (!$answered) {
+				// Not cached: the geocoders may be back on the next search. Recorded so the
+				// admin learns why searches are being refused (MPTBM_Plugin notice).
+				set_transient('mptbm_geocode_failure', array(
+					'type'   => 'unreachable',
+					'reason' => __('No geocoding service could be reached (photon.komoot.io / Google Geocoding).', 'ecab-taxi-booking-manager'),
+					'time'   => time(),
+				), DAY_IN_SECONDS);
+				return array('verified' => false, 'reason' => 'unavailable', 'provider' => '');
+			}
+			$result = array('verified' => false, 'reason' => 'no_match', 'provider' => '');
+			set_transient($cache_key, $result, HOUR_IN_SECONDS);
+			return $result;
+		}
+
+		/**
+		 * A match is the result's own point within tolerance, or - for a result that covers an
+		 * area (airport, district, park) - the posted point within tolerance of that area. Very
+		 * large areas (a state, a country) are ignored: a name that vague says nothing about
+		 * where the car has to go.
+		 */
+		private static function point_matches_candidate(array $coords, array $candidate, float $tolerance): bool
+		{
+			$lat = $coords['latitude'];
+			$lng = $coords['longitude'];
+			if (self::haversine_distance($lat, $lng, $candidate['lat'], $candidate['lng']) * 1000 <= $tolerance) {
+				return true;
+			}
+			if (empty($candidate['bbox'])) {
+				return false;
+			}
+			list($south, $west, $north, $east) = $candidate['bbox'];
+			if ($south > $north || $west > $east || self::haversine_distance($south, $west, $north, $east) > 60) {
+				return false;
+			}
+			$nearest_lat = min(max($lat, $south), $north);
+			$nearest_lng = min(max($lng, $west), $east);
+			return self::haversine_distance($lat, $lng, $nearest_lat, $nearest_lng) * 1000 <= $tolerance;
+		}
+
+		/**
+		 * Photon (OpenStreetMap) results for $label, ranked towards $coords.
+		 *
+		 * @return array|null Candidates [['lat','lng','bbox'=>[s,w,n,e]|null], ...], or null
+		 *                    when Photon could not be reached / gave no usable answer.
+		 */
+		private static function photon_geocode_candidates(string $label, array $coords)
+		{
+			$url = 'https://photon.komoot.io/api/?' . http_build_query(array(
+				'q'     => $label,
+				'lat'   => $coords['latitude'],
+				'lon'   => $coords['longitude'],
+				'limit' => 10,
+				'lang'  => 'en',
+			));
+			$response = wp_remote_get($url, array('timeout' => 8, 'headers' => array('Accept' => 'application/json')));
+			if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) !== 200) {
+				return null;
+			}
+			$data = json_decode(wp_remote_retrieve_body($response), true);
+			if (!is_array($data) || !isset($data['features']) || !is_array($data['features'])) {
+				return null;
+			}
+			$candidates = array();
+			foreach ($data['features'] as $feature) {
+				$point = $feature['geometry']['coordinates'] ?? null;
+				if (!is_array($point) || !isset($point[0], $point[1]) || !is_numeric($point[0]) || !is_numeric($point[1])) {
+					continue;
+				}
+				// Photon's extent is [west, north, east, south].
+				$extent = $feature['properties']['extent'] ?? null;
+				$bbox = is_array($extent) && count($extent) === 4 && count(array_filter($extent, 'is_numeric')) === 4
+					? array((float) min($extent[1], $extent[3]), (float) $extent[0], (float) max($extent[1], $extent[3]), (float) $extent[2])
+					: null;
+				$candidates[] = array('lat' => (float) $point[1], 'lng' => (float) $point[0], 'bbox' => $bbox);
+			}
+			$failure = get_transient('mptbm_geocode_failure');
+			if (is_array($failure) && ($failure['type'] ?? '') === 'unreachable') {
+				delete_transient('mptbm_geocode_failure');
+			}
+			return $candidates;
+		}
+
+		/**
+		 * What mptbm_osm_search fetched from Photon for exactly this text, if still cached.
+		 * Only the server writes that cache, so it is as trustworthy as a fresh request.
+		 *
+		 * @return array|null Candidates (no areas), or null when nothing is cached.
+		 */
+		private static function proxy_cached_candidates(string $label)
+		{
+			$key = self::osm_search_cache_key(
+				array('q' => $label, 'limit' => 5, 'lang' => 'en'),
+				MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country_restriction', 'no'),
+				MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'BD')
+			);
+			$cached = get_transient($key);
+			if (!is_array($cached)) {
+				return null;
+			}
+			$candidates = array();
+			foreach ($cached as $row) {
+				if (isset($row['lat'], $row['lon']) && is_numeric($row['lat']) && is_numeric($row['lon'])) {
+					$candidates[] = array('lat' => (float) $row['lat'], 'lng' => (float) $row['lon'], 'bbox' => null);
+				}
+			}
+			return $candidates;
+		}
+
+		/**
+		 * Google Geocoding results for $label, biased towards $coords.
+		 *
+		 * @return array|null Candidates as photon_geocode_candidates(), or null when no key is
+		 *                    configured or Google refused/failed the request.
+		 */
+		private static function google_geocode_candidates(string $label, array $coords)
+		{
+			$api_key = self::map_server_api_key();
+			if (!$api_key || get_transient('mptbm_geocode_google_denied')) {
+				return null;
+			}
+			$url = 'https://maps.googleapis.com/maps/api/geocode/json?' . http_build_query(array(
+				'address' => $label,
+				'bounds'  => sprintf('%.6F,%.6F|%.6F,%.6F', $coords['latitude'] - 0.25, $coords['longitude'] - 0.25, $coords['latitude'] + 0.25, $coords['longitude'] + 0.25),
+				'key'     => $api_key,
+			));
+			$response = wp_remote_get($url, array('timeout' => 8));
+			if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) !== 200) {
+				return null;
+			}
+			$data = json_decode(wp_remote_retrieve_body($response), true);
+			$status = is_array($data) && isset($data['status']) ? (string) $data['status'] : '';
+			if ($status === 'ZERO_RESULTS') {
+				return array();
+			}
+			if ($status !== 'OK' || empty($data['results']) || !is_array($data['results'])) {
+				if (in_array($status, array('REQUEST_DENIED', 'OVER_DAILY_LIMIT'), true)) {
+					// Typically a referrer-restricted key, or a key without the Geocoding API.
+					// Stop asking for an hour, and tell the admin (MPTBM_Plugin notice).
+					set_transient('mptbm_geocode_google_denied', 1, HOUR_IN_SECONDS);
+					set_transient('mptbm_geocode_failure', array(
+						'type'   => 'google_denied',
+						'reason' => trim($status . ' ' . ($data['error_message'] ?? '')),
+						'time'   => time(),
+					), DAY_IN_SECONDS);
+				}
+				return null;
+			}
+			delete_transient('mptbm_geocode_failure');
+			$candidates = array();
+			foreach ($data['results'] as $result) {
+				$location = $result['geometry']['location'] ?? null;
+				if (!isset($location['lat'], $location['lng']) || !is_numeric($location['lat']) || !is_numeric($location['lng'])) {
+					continue;
+				}
+				$box = $result['geometry']['bounds'] ?? ($result['geometry']['viewport'] ?? null);
+				$bbox = isset($box['southwest']['lat'], $box['southwest']['lng'], $box['northeast']['lat'], $box['northeast']['lng'])
+					? array((float) $box['southwest']['lat'], (float) $box['southwest']['lng'], (float) $box['northeast']['lat'], (float) $box['northeast']['lng'])
+					: null;
+				$candidates[] = array('lat' => (float) $location['lat'], 'lng' => (float) $location['lng'], 'bbox' => $bbox);
+			}
+			return $candidates;
 		}
 
 		// Helper to calculate distance server-side

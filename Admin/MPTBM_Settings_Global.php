@@ -693,6 +693,22 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					),
 					array(
+						'name' => 'mptbm_address_verification',
+						'label' => esc_html__('Address Verification', 'ecab-taxi-booking-manager'),
+						// The fare is measured between map coordinates while the booking shows the
+						// typed place names, so the server checks that each name really is at its
+						// coordinates (MPTBM_Function::verify_place_coordinates()). Strict is the
+						// tamper-proof setting; Flag only exists for sites whose addresses the
+						// server cannot geocode reliably (see the description).
+						'desc' => esc_html__('Checks on the server that each pickup, drop-off and extra-stop address really is at the map point the fare is calculated from, so a long trip cannot be priced as a short one. "Strict" refuses the search and asks the customer to pick the address again. "Flag only" accepts it and marks the booking "Addresses NOT verified" on the order for you to check. Google map users: enable the Geocoding API on the server-side key for the most reliable checks.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'strict',
+						'options' => array(
+							'strict' => esc_html__('Strict - refuse addresses that cannot be verified (recommended)', 'ecab-taxi-booking-manager'),
+							'flag' => esc_html__('Flag only - accept them and mark the booking for review', 'ecab-taxi-booking-manager'),
+						)
+					),
+					array(
 						'name' => 'use_shortest_route',
 						'label' => esc_html__('Use Shortest Distance Route', 'ecab-taxi-booking-manager'),
 						// Two variants, only one shown at a time - assets/admin/mptbm_global_settings.js
