@@ -366,6 +366,8 @@
 					'mptbm_target_pickup_interval_time' => MPTBM_Function::get_general_settings('mptbm_pickup_interval_time', '30'),
 					'mptbm_transport_quantity'          => $quantity,
 				);
+				// The coordinates the fare was measured on, next to the place names.
+				$meta = array_merge($meta, MPTBM_Function::route_record($context));
 
 				$return_date = sanitize_text_field($context['return_date'] ?? '');
 				$return_time = sanitize_text_field($context['return_time'] ?? '');
