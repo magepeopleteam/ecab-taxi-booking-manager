@@ -325,18 +325,34 @@ if (!class_exists('MPTBM_Function')) {
 			if (count($base) !== 2 || !is_numeric($base[0]) || !is_numeric($base[1]) || !$pickup || !$dropoff) {
 				return 0.0;
 			}
+			$base = array('latitude' => $base[0], 'longitude' => $base[1]);
+
+			$price = self::base_location_leg_price($settings, $base, $pickup, $dropoff);
+			// A return on its own date is a second, separate pickup at the drop-off point:
+			// the car drives out from base to it and back to base after dropping the
+			// customer at the original pickup. That leg is charged on its own, exactly as
+			// booking it as a second one-way trip would be.
+			if (absint($context['two_way'] ?? 1) > 1 && MP_Global_Function::get_settings('mptbm_general_settings', 'enable_return_in_different_date') == 'yes') {
+				$price += self::base_location_leg_price($settings, $base, $dropoff, $pickup);
+			}
+			return $price;
+		}
+
+		/** Base charge for one leg: base to its pickup and/or its drop-off back to base, less the free threshold. */
+		private static function base_location_leg_price(array $settings, array $base, array $pickup, array $dropoff): float
+		{
+			$runs = array();
+			if ('yes' === $settings['charge_pickup']) {
+				$runs[] = array($base, $pickup);
+			}
+			if ('yes' === $settings['charge_dropoff']) {
+				$runs[] = array($dropoff, $base);
+			}
 
 			$distance = 0.0;
 			$duration = 0.0;
-			if ('yes' === $settings['charge_pickup']) {
-				$data = self::get_server_distance($base[0], $base[1], $pickup['latitude'], $pickup['longitude']);
-				if (is_array($data)) {
-					$distance += (float) ($data['distance'] ?? 0);
-					$duration += (float) ($data['duration'] ?? 0);
-				}
-			}
-			if ('yes' === $settings['charge_dropoff']) {
-				$data = self::get_server_distance($dropoff['latitude'], $dropoff['longitude'], $base[0], $base[1]);
+			foreach ($runs as $run) {
+				$data = self::base_location_run($run[0], $run[1]);
 				if (is_array($data)) {
 					$distance += (float) ($data['distance'] ?? 0);
 					$duration += (float) ($data['duration'] ?? 0);
@@ -352,6 +368,17 @@ if (!class_exists('MPTBM_Function')) {
 			$charged_km = max(0, $km - (float) $settings['threshold']);
 			$charged_hr = $km > 0 ? ($duration / 3600) * ($charged_km / $km) : 0;
 			return max(0.0, ($charged_km * (float) $settings['price_km']) + ($charged_hr * (float) $settings['price_hour']));
+		}
+
+		/** Route data for one base run, fetched once per request: every vehicle on a results page asks for the same runs. */
+		private static function base_location_run(array $from, array $to)
+		{
+			static $runs = array();
+			$key = implode(',', array($from['latitude'], $from['longitude'], $to['latitude'], $to['longitude']));
+			if (!array_key_exists($key, $runs)) {
+				$runs[$key] = self::get_server_distance($from['latitude'], $from['longitude'], $to['latitude'], $to['longitude']);
+			}
+			return $runs[$key];
 		}
 
 		//**************Support multi Language*********************//

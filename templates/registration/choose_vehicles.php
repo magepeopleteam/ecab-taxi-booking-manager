@@ -1216,9 +1216,6 @@ if ($all_posts->found_posts > 0) {
     $posts = $all_posts->posts;
     $vehicle_item_count = 0;
 
-    // Cache for base distances to avoid redundant API calls
-    static $base_distance_cache = [];
-
     // Each card is rendered into this list instead of straight to the page, so the
     // whole set can be ordered once every price is known and only then printed.
     // Prices cannot be compared any earlier than this: they are worked out inside
@@ -1299,70 +1296,20 @@ if ($all_posts->found_posts > 0) {
             $price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $two_way, $fixed_time, $geo_fence_coords, MPTBM_Function::normalize_coordinates($start_place_coordinates), MPTBM_Function::normalize_coordinates($end_place_coordinates));
             
             
-            // Calculate Base Price server-side for list display
+            // Calculate Base Price server-side for list display. This is the same calculation
+            // add-to-cart and every checkout re-run, so the listed fare and the charged fare
+            // cannot drift apart (a separate copy here once charged the per-mile rate for every
+            // kilometre, and then left out the return leg's own base run).
             $base_price_extra = 0;
-            $bp_settings = MPTBM_Function::get_base_price_settings($post_id);
             $price_based_mode = isset($_POST['price_based']) ? sanitize_text_field($_POST['price_based']) : 'dynamic';
             $fixed_route_found = MPTBM_Function::fixed_route_found($post_id);
 
-            if ($bp_settings && !empty($bp_settings['coords']) && ($price_based_mode !== 'fixed_map' || !$fixed_route_found)) {
-                $base_coords = $bp_settings['coords'];
-                $total_b_dist = 0;
-                $total_b_dur = 0;
-
-                // Pickup to Base
-                if ($bp_settings['charge_pickup'] === 'yes') {
-                    $cache_key = md5($base_coords . $start_place);
-                    if (!isset($base_distance_cache[$cache_key])) {
-                        // We need the coordinates for start_place too if we want to use server_distance
-                        // But we can try to use start_place name if the API allows or if we have start_place_coordinates
-                        $s_coords = $start_place_coordinates;
-                        if (is_string($s_coords)) $s_coords = json_decode(stripslashes($s_coords), true);
-                        
-                        $b_coords_arr = explode(',', $base_coords);
-                        $dist_data = MPTBM_Function::get_server_distance($b_coords_arr[0], $b_coords_arr[1], $s_coords['lat'] ?? $s_coords['latitude'], $s_coords['lng'] ?? $s_coords['longitude']);
-                        $base_distance_cache[$cache_key] = $dist_data;
-                    }
-                    if ($base_distance_cache[$cache_key]) {
-                        $total_b_dist += $base_distance_cache[$cache_key]['distance'];
-                        $total_b_dur += $base_distance_cache[$cache_key]['duration'];
-                    }
-                }
-
-                // Dropoff to Base
-                if ($bp_settings['charge_dropoff'] === 'yes') {
-                    $cache_key = md5($end_place . $base_coords);
-                    if (!isset($base_distance_cache[$cache_key])) {
-                        $e_coords = $end_place_coordinates;
-                        if (is_string($e_coords)) $e_coords = json_decode(stripslashes($e_coords), true);
-
-                        $b_coords_arr = explode(',', $base_coords);
-                        $dist_data = MPTBM_Function::get_server_distance($e_coords['lat'] ?? $e_coords['latitude'], $e_coords['lng'] ?? $e_coords['longitude'], $b_coords_arr[0], $b_coords_arr[1]);
-                        $base_distance_cache[$cache_key] = $dist_data;
-                    }
-                    if ($base_distance_cache[$cache_key]) {
-                        $total_b_dist += $base_distance_cache[$cache_key]['distance'];
-                        $total_b_dur += $base_distance_cache[$cache_key]['duration'];
-                    }
-                }
-
-                // Threshold and price_km are quoted in the site's distance unit, so the
-                // travelled distance must be measured in it too - dividing by 1000 here
-                // charged the per-mile rate for every kilometre on a Mile site, making
-                // this listing 1.609x the price MPTBM_Function::calculate_base_location_price()
-                // recomputes at add-to-cart. Keep the two in step.
-                $d_km = MPTBM_Function::distance_in_unit($total_b_dist);
-                $d_hr = $total_b_dur / 3600;
-
-                if ($d_km >= $bp_settings['threshold']) {
-                    $charged_km = max(0, $d_km - $bp_settings['threshold']);
-                    // Deduct duration proportionally: only charge for duration spent outside threshold
-                    $charged_hr = ($d_km > 0) ? ($total_b_dur / 3600) * ($charged_km / $d_km) : 0;
-                    
-                    if ($bp_settings['price_km'] > 0) $base_price_extra += $charged_km * $bp_settings['price_km'];
-                    if ($bp_settings['price_hour'] > 0) $base_price_extra += $charged_hr * $bp_settings['price_hour'];
-                    
-                }
+            if ($price_based_mode !== 'fixed_map' || !$fixed_route_found) {
+                $base_price_extra = MPTBM_Function::calculate_base_location_price($post_id, array(
+                    'start_coords' => MPTBM_Function::normalize_coordinates($start_place_coordinates),
+                    'end_coords'   => MPTBM_Function::normalize_coordinates($end_place_coordinates),
+                    'two_way'      => $two_way,
+                ));
             }
             
             // Calculate Tax Multiplier for this transport
