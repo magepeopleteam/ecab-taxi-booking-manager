@@ -443,6 +443,10 @@
             updatePricingContainer();
         });
 
+        // Site distance unit ('KM' or 'Mile') for the pricing-rule formulas below -
+        // mirrors MPTBM_Function::distance_unit_label() on the PHP side.
+        var mptbm_distance_unit = (typeof mptbm_editor_l10n !== 'undefined' && mptbm_editor_l10n.distance_unit) || 'KM';
+
         // Keeps the "Configure Pricing Rules" header badge in sync with
         // whichever pricing-model tab is active — mirrors
         // MPTBM_Rent_Custom_Editor::price_based_label() on the PHP side.
@@ -518,7 +522,7 @@
     
                                     Formula (fallback):
     
-                                    (Hour Price × Duration) + (KM Price × Distance)
+                                    (Hour Price × Duration) + (${mptbm_distance_unit} Price × Distance)
                                 </div>
                             </div>`;
 
@@ -598,7 +602,7 @@
                                     <h4>Combined Pricing Model</h4>
                                     <p>Price is calculated using both time and distance.</p>
                                     <div class="mptbm_pricing_rules_formula">
-                                        (Hourly Rate × Duration) + (KM Rate × Distance)
+                                        (Hourly Rate × Duration) + (${mptbm_distance_unit} Rate × Distance)
                                     </div>
                                 </div>`;
 
@@ -621,7 +625,7 @@
                                     <h4>Distance Based Pricing</h4>
                                     <p>Only distance is used for calculation.</p>
                                     <div class="mptbm_pricing_rules_formula">
-                                        KM Rate × Distance
+                                        ${mptbm_distance_unit} Rate × Distance
                                     </div>
                                 </div>`;
 
@@ -671,7 +675,7 @@
                             <h4> Distance + Duration Based Pricing</h4>
                             <p>Combines both distance and time pricing.</p>
                             <div class="mptbm_pricing_rules_formula">
-                                (Hourly Rate × Duration) + (KM Rate × Distance)
+                                (Hourly Rate × Duration) + (${mptbm_distance_unit} Rate × Distance)
                             </div>
                         </div>`;
 
@@ -763,7 +767,7 @@
     
                                     Formula (fallback):
     
-                                    (Hour Price × Duration) + (KM Price × Distance)
+                                    (Hour Price × Duration) + (${mptbm_distance_unit} Price × Distance)
                                 </div>
                             </div>`;
                 }else if( activeDataId === 'mptbm_row_zone' ){
@@ -806,7 +810,7 @@
     
                                     Formula (fallback):
     
-                                    (Hour Price × Duration) + (KM Price × Distance)
+                                    (Hour Price × Duration) + (${mptbm_distance_unit} Price × Distance)
                                 </div>
                             </div>`;
 
@@ -892,7 +896,7 @@
                                 <h4>Combined Pricing Model</h4>
                                 <p>Price is calculated using both time and distance.</p>
                                 <div class="mptbm_pricing_rules_formula">
-                                    (Hourly Rate × Duration) + (KM Rate × Distance)
+                                    (Hourly Rate × Duration) + (${mptbm_distance_unit} Rate × Distance)
                                 </div>
                             </div>`;
                 $('input[name="mptbm_price_based"]').val(price_based);

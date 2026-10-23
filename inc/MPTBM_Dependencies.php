@@ -180,6 +180,7 @@ if (!class_exists('MPTBM_Dependencies')) {
                 'ajax_url'       => admin_url('admin-ajax.php'),
                 'required_error' => esc_html__('Complete all required driver fields.', 'ecab-taxi-booking-manager'),
                 'request_error'  => esc_html__('The driver could not be added. Please try again.', 'ecab-taxi-booking-manager'),
+                'distance_unit'  => MPTBM_Function::distance_unit_label(),
             ));
 			wp_enqueue_script('mptbm_admin', MPTBM_PLUGIN_URL . '/assets/admin/mptbm_admin.js', array('jquery'), $this->asset_ver('assets/admin/mptbm_admin.js'), true);
 			wp_localize_script('mptbm_admin', 'mptbm_admin_security', array(

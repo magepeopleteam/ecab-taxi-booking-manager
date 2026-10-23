@@ -1617,7 +1617,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                             <div class="mptbm_taxi_pricing_tab_info">
                                 <h4><?php esc_html_e('Distance', 'ecab-taxi-booking-manager'); ?></h4>
-                                <span><?php esc_html_e('Based on KM', 'ecab-taxi-booking-manager'); ?></span>
+                                <span><?php printf( esc_html__( 'Based on %s', 'ecab-taxi-booking-manager' ), esc_html( MPTBM_Function::distance_unit_label() ) ); ?></span>
                             </div>
                         </div>
 
@@ -1635,7 +1635,7 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
                             <div class="mptbm_taxi_pricing_tab_info">
                                 <h4><?php esc_html_e('Distance + Duration', 'ecab-taxi-booking-manager'); ?></h4>
-                                <span><?php esc_html_e('Based on KM and Time', 'ecab-taxi-booking-manager'); ?></span>
+                                <span><?php printf( esc_html__( 'Based on %s and Time', 'ecab-taxi-booking-manager' ), esc_html( MPTBM_Function::distance_unit_label() ) ); ?></span>
                             </div>
                         </div>
 
@@ -2010,14 +2010,14 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
                         <h4><?php esc_html_e( 'Fixed Map Zone-based Pricing', 'ecab-taxi-booking-manager' ); ?></h4>
                         <p><?php esc_html_e( 'Zone-based fixed pricing or fallback calculation.', 'ecab-taxi-booking-manager' ); ?></p>
                         <div class="mptbm_pricing_rules_formula">
-                            <?php esc_html_e( 'If matched → fixed route price is applied
+                            <?php printf( esc_html__( 'If matched → fixed route price is applied
                                         If not matched → fallback calculation:
                                         Hourly + Distance pricing OR
                                         Operation area pricing override
 
                                         Formula (fallback):
 
-                                        (Hour Price × Duration) + (KM Price × Distance)', 'ecab-taxi-booking-manager' ); ?><?php esc_html_e( 'First checks predefined zone route price', 'ecab-taxi-booking-manager' ); ?>
+                                        (Hour Price × Duration) + (%s Price × Distance)', 'ecab-taxi-booking-manager' ), esc_html( MPTBM_Function::distance_unit_label() ) ); ?><?php esc_html_e( 'First checks predefined zone route price', 'ecab-taxi-booking-manager' ); ?>
                         </div>
 
                     </div>
