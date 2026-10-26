@@ -220,6 +220,18 @@ if (!class_exists('MPTBM_Plugin')) {
 				// WordPress truncates the former 21-character slug to 20 characters.
 				// Migrate those legacy rows to the valid canonical CPT slug.
 				$wpdb->update($wpdb->posts, array('post_type' => 'mptbm_service_book'), array('post_type' => 'mptbm_service_bookin'), array('%s'), array('%s'));
+				return;
+			}
+			// The version flag only says the grant ran once. A role editor's
+			// "reset to defaults" (or any restore of the administrator role) drops
+			// the cap afterwards while the flag stays '2', and nothing re-granted
+			// it: the Transportation List still opens (it needs manage_options) but
+			// every vehicle Edit link comes out empty and post.php refuses the
+			// vehicle. Administrators always manage transportation, so put it back;
+			// shop_manager is left alone since removing it there can be deliberate.
+			$admin = get_role('administrator');
+			if ($admin && !$admin->has_cap('manage_mptbm_transportation')) {
+				$admin->add_cap('manage_mptbm_transportation');
 			}
 		}
 

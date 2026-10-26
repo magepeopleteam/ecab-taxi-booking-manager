@@ -33,6 +33,7 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			add_action('woocommerce_checkout_order_processed', array($this, 'checkout_order_processed'), 90, 3);
 			add_action('woocommerce_store_api_checkout_order_processed', array($this, 'checkout_order_processed'), 90, 3);
 			add_filter('woocommerce_order_status_changed', array($this, 'order_status_changed'));
+			add_action('woocommerce_update_order', array($this, 'sync_booking_customer'), 20, 2);
 			/*****************************/
 			add_action('wp_ajax_mptbm_add_to_cart', [$this, 'mptbm_add_to_cart']);
 			add_action('wp_ajax_nopriv_mptbm_add_to_cart', [$this, 'mptbm_add_to_cart']);
@@ -945,6 +946,41 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					if ($order->has_status('processing') || $order->has_status('pending') || $order->has_status('on-hold') || $order->has_status('completed') || $order->has_status('cancelled') || $order->has_status('refunded') || $order->has_status('failed') || $order->has_status('requested')) {
 						$this->wc_order_status_change($order_status, $post_id, $order_id);
 					}
+				}
+			}
+		}
+		/**
+		 * Keep the booking's account in step with the order's customer.
+		 *
+		 * checkout_order_processed() copies the customer onto the booking once, as
+		 * mptbm_user_id. An operator who books on a customer's behalf and then moves the
+		 * order to that customer in WooCommerce would otherwise leave the booking - its
+		 * account bookings list, reviews, ride notifications - on the operator's account.
+		 */
+		public function sync_booking_customer($order_id, $order = null)
+		{
+			$order = $order instanceof WC_Order ? $order : wc_get_order($order_id);
+			if (!$order instanceof WC_Order) {
+				return;
+			}
+			$customer_id = absint($order->get_customer_id());
+			$records = get_posts(array(
+				'post_type' => array('mptbm_booking', 'mptbm_service_book'),
+				'post_status' => 'any',
+				'posts_per_page' => -1,
+				'fields' => 'ids',
+				'no_found_rows' => true,
+				'meta_query' => array(
+					array('key' => 'mptbm_order_id', 'value' => $order->get_id()),
+				),
+			));
+			foreach ($records as $record_id) {
+				// A non-WooCommerce booking is its own order id; it is never a WC order's.
+				if ((int) $record_id === (int) $order->get_id()) {
+					continue;
+				}
+				if (absint(get_post_meta($record_id, 'mptbm_user_id', true)) !== $customer_id) {
+					update_post_meta($record_id, 'mptbm_user_id', $customer_id);
 				}
 			}
 		}
