@@ -310,7 +310,7 @@
 			//***********************************//
 			public static function price_convert_raw($price) {
 				$price = wp_strip_all_tags($price);
-				if (self::check_woocommerce() === 1) {
+				if (!self::use_native_currency_display()) {
 					$price = str_replace(get_woocommerce_currency_symbol(), '', $price);
 					$price = str_replace(wc_get_price_thousand_separator(), 't_s', $price);
 					$price = str_replace(wc_get_price_decimal_separator(), 'd_s', $price);
@@ -385,22 +385,44 @@
 				}
 			}
 			/**
+			 * Whether prices should display (and format) through the Custom Payment
+			 * Currency Settings tab instead of WooCommerce's own currency.
+			 *
+			 * WooCommerce being installed/active (check_woocommerce()) is NOT the same
+			 * question as which flow is actually taking bookings (MPTBM_Booking_Mode) -
+			 * a site can have WooCommerce active (so check_woocommerce() === 1) while
+			 * Booking Mode is set to Custom Payment, in which case bookings are charged
+			 * in whatever Currency Code that mode is configured with - but prices were
+			 * still being displayed in WooCommerce's currency regardless, since both
+			 * format_price() and wc_price() below only ever checked WooCommerce's own
+			 * active/installed state. Guarded on class_exists() since MP_Global_Function
+			 * is shared with other mage-people plugins that don't have this class.
+			 */
+			private static function use_native_currency_display(): bool {
+				if (class_exists('MPTBM_Booking_Mode')) {
+					return MPTBM_Booking_Mode::get_mode() === MPTBM_Booking_Mode::CUSTOM;
+				}
+				return self::check_woocommerce() !== 1;
+			}
+			/**
 			 * WooCommerce-safe price formatter for display.
-			 * Uses wc_price() when WooCommerce is active, otherwise formats through the
-			 * Currency Settings tab so standalone (no-WC) prices carry the configured
-			 * symbol/position instead of a bare number.
+			 * Uses wc_price() when the WooCommerce flow is actually taking bookings,
+			 * otherwise formats through the Currency Settings tab so standalone/Custom
+			 * Payment prices carry that mode's configured symbol/position instead of
+			 * WooCommerce's own currency.
 			 */
 			public static function format_price($price) {
-				if (self::check_woocommerce() === 1 && function_exists('wc_price')) {
+				if (!self::use_native_currency_display() && function_exists('wc_price')) {
 					return wc_price($price);
 				}
 				return self::native_format_amount($price);
 			}
 			public static function wc_price($post_id, $price, $args = array()): string {
-				// Check if WooCommerce is active before using WooCommerce functions
-				if (self::check_woocommerce() !== 1) {
-					// Standalone: format through the Currency Settings tab so the symbol,
-					// position and separators the admin chose are honoured.
+				if (self::use_native_currency_display()) {
+					// Custom Payment (or no WooCommerce at all): format through the
+					// Currency Settings tab so the symbol, position and separators the
+					// admin chose there are honoured - WooCommerce's own tax/currency
+					// logic below doesn't apply to a booking that flow never processes.
 					if ('' === $price) {
 						return '';
 					}

@@ -97,7 +97,17 @@
 					window.mp_date_format_without_year = "<?php echo esc_attr(self::to_flatpickr_format(MP_Global_Function::get_settings('mp_global_settings', 'date_format_without_year', 'D d M'))); ?>";
 				</script>
 				<?php
-				if (MP_Global_Function::check_woocommerce() == 1) {
+				// Same question as MP_Global_Function::use_native_currency_display():
+				// WooCommerce being installed/active is not the same thing as Booking
+				// Mode actually being WooCommerce - a site can have both WooCommerce
+				// active AND Booking Mode set to Custom Payment, in which case the
+				// live-updating totals this JS renders (mp_price_format(), used right
+				// after a vehicle is selected) need the Custom Payment currency, not
+				// WooCommerce's, even though check_woocommerce() alone would say yes.
+				$use_wc_currency = class_exists('MPTBM_Booking_Mode')
+					? MPTBM_Booking_Mode::get_mode() !== MPTBM_Booking_Mode::CUSTOM
+					: MP_Global_Function::check_woocommerce() == 1;
+				if ($use_wc_currency && MP_Global_Function::check_woocommerce() == 1) {
 					?>
 					<script type="text/javascript">
 						window.mp_currency_symbol = "<?php echo get_woocommerce_currency_symbol(); ?>";
