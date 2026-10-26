@@ -1011,9 +1011,34 @@ if (!class_exists('MPTBM_Function')) {
 						}
 					}
 
+					// Per-area discounted per-km rate (see get_operation_area_discounted_km_rate()) -
+					// the simpler, Operation-Area-side counterpart to the per-vehicle override just
+					// above; only ever lowers the rate actually used, never raises it, and applies
+					// even without a session match (coordinate-matched directly, like the minimum
+					// price floor below) so it isn't limited to whatever choose_vehicles.php happened
+					// to already match this request against.
+					$area_km_rate = self::get_operation_area_discounted_km_rate(
+						$post_id,
+						$pickup_coords_hint ?: ($search_context['start_coords'] ?? null),
+						$dropoff_coords_hint ?: ($search_context['end_coords'] ?? null)
+					);
+					if ($area_km_rate > 0 && ($km_price <= 0 || $area_km_rate < $km_price)) {
+						$km_price = $area_km_rate;
+					}
+
 					$price = $hour_price * ((float) $duration / 3600) + $km_price * self::distance_in_unit($distance);
 				} elseif ($price_based == 'distance' && $original_price_based == 'dynamic') {
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
+					// Per-area discounted per-km rate (see get_operation_area_discounted_km_rate()) -
+					// only ever lowers the rate actually used, never raises it.
+					$area_km_rate = self::get_operation_area_discounted_km_rate(
+						$post_id,
+						$pickup_coords_hint ?: ($search_context['start_coords'] ?? null),
+						$dropoff_coords_hint ?: ($search_context['end_coords'] ?? null)
+					);
+					if ($area_km_rate > 0 && ($km_price <= 0 || $area_km_rate < $km_price)) {
+						$km_price = $area_km_rate;
+					}
 					$price = $km_price * self::distance_in_unit($distance);
 				} elseif ($price_based == 'duration' && ($original_price_based == 'fixed_hourly' || $original_price_based == 'dynamic')) {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
@@ -1021,6 +1046,14 @@ if (!class_exists('MPTBM_Function')) {
 				} elseif ($price_based == 'distance_duration' && $original_price_based == 'dynamic') {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
 					$km_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_km_price');
+					$area_km_rate = self::get_operation_area_discounted_km_rate(
+						$post_id,
+						$pickup_coords_hint ?: ($search_context['start_coords'] ?? null),
+						$dropoff_coords_hint ?: ($search_context['end_coords'] ?? null)
+					);
+					if ($area_km_rate > 0 && ($km_price <= 0 || $area_km_rate < $km_price)) {
+						$km_price = $area_km_rate;
+					}
 					$price = $hour_price * ((float) $duration / 3600) + $km_price * self::distance_in_unit($distance);
 				} elseif (($price_based == 'inclusive' || $price_based == 'fixed_hourly') && $original_price_based == 'fixed_hourly') {
 					$hour_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_hour_price');
@@ -1976,6 +2009,89 @@ if (!class_exists('MPTBM_Function')) {
 			}
 
 			return $matched_min;
+		}
+
+		/**
+		 * Per-request cache of Operation Areas that have a Discounted Per KM
+		 * Rate configured - same pattern as $operation_area_min_price_zones
+		 * above, populated once per get_operation_area_discounted_km_rate()
+		 * call chain.
+		 */
+		private static $operation_area_discount_km_zones = null;
+
+		/**
+		 * Optional per-area discounted per-km rate: when a Single Operation
+		 * Area has a "Discounted Per KM Rate" set (Operation Areas screen), a
+		 * Dynamic (per-km) trip whose pickup or dropoff falls inside it is
+		 * priced at that rate instead of the vehicle's own per-km rate - but
+		 * only when it's actually lower, and only for a vehicle that has that
+		 * Operation Area selected (its own mptbm_selected_operation_areas),
+		 * the same opt-in get_operation_area_minimum_price() above already
+		 * uses. It does NOT touch which vehicles are shown for a search -
+		 * unlike mptbm_selected_operation_areas' other use in
+		 * choose_vehicles.php (the client-side visibility/geo-fence check),
+		 * this is applied purely inside get_price() via coordinate math, so a
+		 * vehicle stays visible/bookable for every trip exactly as before;
+		 * only the price for a matching trip changes. A no-op for every
+		 * existing site unless an admin explicitly sets this on an Operation
+		 * Area AND assigns that area to a vehicle.
+		 *
+		 * Reuses is_point_in_fixed_zone(), same as the minimum-price feature.
+		 *
+		 * @param int        $post_id      The vehicle being priced.
+		 * @param array|null $start_coords ['latitude'=>, 'longitude'=>] or ['lat'=>, 'lng'=>]
+		 * @param array|null $end_coords   Same shape as $start_coords.
+		 * @return float The lowest matching area rate, or 0 if none matched.
+		 */
+		public static function get_operation_area_discounted_km_rate($post_id, $start_coords, $end_coords) {
+			if (empty($start_coords) && empty($end_coords)) {
+				return 0;
+			}
+
+			$selected_areas = get_post_meta($post_id, 'mptbm_selected_operation_areas', true);
+			if (empty($selected_areas) || !is_array($selected_areas)) {
+				return 0;
+			}
+
+			if (self::$operation_area_discount_km_zones === null) {
+				self::$operation_area_discount_km_zones = get_posts(array(
+					'post_type'      => 'mptbm_operate_areas',
+					'post_status'    => 'publish',
+					'posts_per_page' => -1,
+					'fields'         => 'ids',
+					'meta_query'     => array(
+						array(
+							'key'     => 'mptbm-operation-area-discount-per-km',
+							'value'   => 0,
+							'compare' => '>',
+							'type'    => 'NUMERIC',
+						),
+					),
+				));
+			}
+
+			if (empty(self::$operation_area_discount_km_zones)) {
+				return 0;
+			}
+
+			$matched_rate = 0;
+			foreach (self::$operation_area_discount_km_zones as $area_id) {
+				if (!in_array((int) $area_id, array_map('intval', $selected_areas), true)) {
+					continue;
+				}
+				$area_rate = (float) get_post_meta($area_id, 'mptbm-operation-area-discount-per-km', true);
+				if ($area_rate <= 0 || ($matched_rate > 0 && $area_rate >= $matched_rate)) {
+					continue;
+				}
+				$area_location = 'post_' . $area_id;
+				$in_area = (!empty($start_coords) && self::is_point_in_fixed_zone($area_location, $start_coords))
+					|| (!empty($end_coords) && self::is_point_in_fixed_zone($area_location, $end_coords));
+				if ($in_area) {
+					$matched_rate = $area_rate;
+				}
+			}
+
+			return $matched_rate;
 		}
 
 		public static function get_base_price_settings($post_id) {

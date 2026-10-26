@@ -277,6 +277,10 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                                         <label for="mptbm-operation-area-min-price"><?php esc_html_e('Minimum price', 'ecab-taxi-booking-manager'); ?></label>
                                         <input class="formControl" type="number" min="0" step="0.01" name="mptbm-operation-area-min-price" id="mptbm-operation-area-min-price" placeholder="<?php esc_attr_e('For example: 20', 'ecab-taxi-booking-manager'); ?>" />
                                     </div>
+                                    <div class="mptbm-operation-areas-field">
+                                        <label for="mptbm-operation-area-discount-per-km"><?php esc_html_e('Discounted per-km rate', 'ecab-taxi-booking-manager'); ?></label>
+                                        <input class="formControl" type="number" min="0" step="0.01" name="mptbm-operation-area-discount-per-km" id="mptbm-operation-area-discount-per-km" placeholder="<?php esc_attr_e('For example: 1.5', 'ecab-taxi-booking-manager'); ?>" />
+                                    </div>
                                 </div>
                             </section>
                         </section>
@@ -429,6 +433,7 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
             $fixed_amount = get_post_meta($post->ID, 'mptbm-geo-fence-fixed-price-amount', true);
             $percentage_amount = get_post_meta($post->ID, 'mptbm-geo-fence-percentage-amount', true);
             $min_price = get_post_meta($post->ID, 'mptbm-operation-area-min-price', true);
+            $discount_per_km = get_post_meta($post->ID, 'mptbm-operation-area-discount-per-km', true);
 
             $initial = function_exists('mb_substr') ? mb_substr($post->post_title, 0, 1) : substr($post->post_title, 0, 1);
             $initial = function_exists('mb_strtoupper') ? mb_strtoupper($initial) : strtoupper($initial);
@@ -488,6 +493,12 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                     <p class="mptbm-operation-areas-price-line">
                         <i class="fas fa-tag" aria-hidden="true"></i>
                         <?php printf(esc_html__('Min fare: %s', 'ecab-taxi-booking-manager'), esc_html($min_price)); ?>
+                    </p>
+                <?php endif; ?>
+                <?php if ($is_fixed && $discount_per_km !== '' && (float) $discount_per_km > 0) : ?>
+                    <p class="mptbm-operation-areas-price-line">
+                        <i class="fas fa-tag" aria-hidden="true"></i>
+                        <?php printf(esc_html__('Discounted rate: %s/km', 'ecab-taxi-booking-manager'), esc_html($discount_per_km)); ?>
                     </p>
                 <?php endif; ?>
                 <footer>
@@ -743,6 +754,7 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
                     'percentageAmount' => (string) get_post_meta($post_id, 'mptbm-geo-fence-percentage-amount', true),
                     'direction' => (string) get_post_meta($post_id, 'mptbm-geo-fence-direction', true) ?: 'geo-fence-one-direction',
                     'minPrice' => (string) get_post_meta($post_id, 'mptbm-operation-area-min-price', true),
+                    'discountPerKm' => (string) get_post_meta($post_id, 'mptbm-operation-area-discount-per-km', true),
                 ]
             );
         }

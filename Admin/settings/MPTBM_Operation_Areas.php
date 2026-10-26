@@ -37,6 +37,7 @@ if (!class_exists('MPTBM_Operation_Areas')) {
             $mptbm_geo_fence_percentage_amount = MP_Global_Function::get_post_info($post_id, 'mptbm-geo-fence-percentage-amount');
             $mptbm_geo_fence_direction = MP_Global_Function::get_post_info($post_id, 'mptbm-geo-fence-direction');
             $mptbm_operation_area_min_price = MP_Global_Function::get_post_info($post_id, 'mptbm-operation-area-min-price');
+            $mptbm_operation_area_discount_per_km = MP_Global_Function::get_post_info($post_id, 'mptbm-operation-area-discount-per-km');
 
             // Get map type setting
             $map_type = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'openstreetmap');
@@ -214,6 +215,13 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                                 </div>
                                 <input class="formControl mp_price_validation" type="number" min="0" step="0.01" name="mptbm-operation-area-min-price" id="mptbm-operation-area-min-price" value="<?php echo esc_attr(!empty($mptbm_operation_area_min_price) ? $mptbm_operation_area_min_price : ''); ?>" placeholder="<?php esc_attr_e('EX: 20', 'ecab-taxi-booking-manager'); ?>" />
                             </label>
+                            <label class="label">
+                                <div>
+                                    <h6><?php esc_html_e('Discounted Per KM Rate', 'ecab-taxi-booking-manager'); ?></h6>
+                                    <span class="desc"><?php esc_html_e('Optional. Applies only to a vehicle using Dynamic (per-km) pricing that has this Operation Area selected on its own Price Settings - a trip picking up or dropping off inside this area is then charged at this per-km rate instead of the vehicle\'s normal rate, but only when it is lower. Leave blank to disable.', 'ecab-taxi-booking-manager'); ?></span>
+                                </div>
+                                <input class="formControl mp_price_validation" type="number" min="0" step="0.01" name="mptbm-operation-area-discount-per-km" id="mptbm-operation-area-discount-per-km" value="<?php echo esc_attr(!empty($mptbm_operation_area_discount_per_km) ? $mptbm_operation_area_discount_per_km : ''); ?>" placeholder="<?php esc_attr_e('EX: 1.5', 'ecab-taxi-booking-manager'); ?>" />
+                            </label>
                         </section>
                         
                         <section class="mptbm_geo_matched_operation_settings <?php echo ($operation_type == 'geo-matched-operation-area-type') ? 'mActive' : '';  ?>" data-collapse="#geo-matched-operation-area-type">
@@ -375,6 +383,13 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                     update_post_meta($post_id, 'mptbm-operation-area-min-price', (float) $mptbm_operation_area_min_price);
                 } else {
                     delete_post_meta($post_id, 'mptbm-operation-area-min-price');
+                }
+
+                $mptbm_operation_area_discount_per_km = isset($_POST['mptbm-operation-area-discount-per-km']) ? trim(sanitize_text_field($_POST['mptbm-operation-area-discount-per-km'])) : '';
+                if ($mptbm_operation_area_discount_per_km !== '' && is_numeric($mptbm_operation_area_discount_per_km) && (float) $mptbm_operation_area_discount_per_km > 0) {
+                    update_post_meta($post_id, 'mptbm-operation-area-discount-per-km', (float) $mptbm_operation_area_discount_per_km);
+                } else {
+                    delete_post_meta($post_id, 'mptbm-operation-area-discount-per-km');
                 }
             } elseif ($mptbm_operation_type === 'geo-matched-operation-area-type') {
 
