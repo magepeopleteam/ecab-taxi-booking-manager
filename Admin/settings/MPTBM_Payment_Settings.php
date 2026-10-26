@@ -515,6 +515,12 @@
 							'MXN' => 'MXN - Mexican Peso',
 							'BRL' => 'BRL - Brazilian Real',
 							'BDT' => 'BDT - Bangladeshi Taka',
+							// PayPal's own supported-currencies list does not include TTD as of
+							// this writing - selecting it here with PayPal active will fail at
+							// PayPal's API, not ours. Stripe's presentment-currency support for
+							// TTD should be confirmed in the merchant's own Stripe Dashboard
+							// before relying on it for real charges.
+							'TTD' => 'TTD - Trinidad and Tobago Dollar',
 						),
 					),
 					array(
