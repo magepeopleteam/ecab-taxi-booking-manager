@@ -950,12 +950,15 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			}
 		}
 		/**
-		 * Keep the booking's account in step with the order's customer.
+		 * Keep the booking's account AND contact details in step with the order's customer.
 		 *
 		 * checkout_order_processed() copies the customer onto the booking once, as
-		 * mptbm_user_id. An operator who books on a customer's behalf and then moves the
-		 * order to that customer in WooCommerce would otherwise leave the booking - its
-		 * account bookings list, reviews, ride notifications - on the operator's account.
+		 * mptbm_user_id plus a one-time snapshot of mptbm_billing_name/_email/_phone. An
+		 * operator who books on a customer's behalf and then moves the order to that
+		 * customer in WooCommerce would otherwise leave the booking - its account bookings
+		 * list, reviews, ride notifications, AND the name/email/phone shown in the ecab
+		 * Bookings admin screen and used for "Resend Email" - stuck on the operator's own
+		 * details, since nothing previously re-read them after that initial snapshot.
 		 */
 		public function sync_booking_customer($order_id, $order = null)
 		{
@@ -964,6 +967,9 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				return;
 			}
 			$customer_id = absint($order->get_customer_id());
+			$billing_name = trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name());
+			$billing_email = $order->get_billing_email();
+			$billing_phone = $order->get_billing_phone();
 			$records = get_posts(array(
 				'post_type' => array('mptbm_booking', 'mptbm_service_book'),
 				'post_status' => 'any',
@@ -981,6 +987,15 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				}
 				if (absint(get_post_meta($record_id, 'mptbm_user_id', true)) !== $customer_id) {
 					update_post_meta($record_id, 'mptbm_user_id', $customer_id);
+				}
+				if ('' !== $billing_name && get_post_meta($record_id, 'mptbm_billing_name', true) !== $billing_name) {
+					update_post_meta($record_id, 'mptbm_billing_name', $billing_name);
+				}
+				if ('' !== $billing_email && get_post_meta($record_id, 'mptbm_billing_email', true) !== $billing_email) {
+					update_post_meta($record_id, 'mptbm_billing_email', $billing_email);
+				}
+				if ('' !== $billing_phone && get_post_meta($record_id, 'mptbm_billing_phone', true) !== $billing_phone) {
+					update_post_meta($record_id, 'mptbm_billing_phone', $billing_phone);
 				}
 			}
 		}
