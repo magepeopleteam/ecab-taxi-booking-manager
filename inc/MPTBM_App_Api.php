@@ -95,6 +95,11 @@ if (!class_exists('MPTBM_App_Api')) {
 			));
 			register_rest_route(self::NAMESPACE_ID, '/bookings/(?P<id>\d+)/pay-link', array('methods' => 'POST', 'callback' => array($this, 'get_pay_link'), 'permission_callback' => array($this, 'permission_booking')));
 
+			register_rest_route(self::NAMESPACE_ID, '/push/register', array(
+				array('methods' => 'POST', 'callback' => array($this, 'push_register'), 'permission_callback' => $auth, 'args' => array('token' => array('type' => 'string', 'required' => true))),
+				array('methods' => 'DELETE', 'callback' => array($this, 'push_unregister'), 'permission_callback' => $auth, 'args' => array('token' => array('type' => 'string', 'required' => true))),
+			));
+
 			register_rest_route(self::NAMESPACE_ID, '/places/search', array(
 				'methods' => 'GET',
 				'callback' => array($this, 'search_places'),
@@ -486,6 +491,16 @@ if (!class_exists('MPTBM_App_Api')) {
 			return is_wp_error($result) ? $result : new WP_REST_Response($result, 200);
 		}
 
+		public function push_register($request) {
+			$result = MPTBM_App_Push::register(get_current_user_id(), (string) $request->get_param('token'));
+			return is_wp_error($result) ? $result : new WP_REST_Response(array('success' => true), 200);
+		}
+
+		public function push_unregister($request) {
+			MPTBM_App_Push::remove(get_current_user_id(), (string) $request->get_param('token'));
+			return new WP_REST_Response(array('success' => true), 200);
+		}
+
 		public function cancel_booking($request) {
 			$result = MPTBM_App_Booking::request_cancellation((int) $request['id'], get_current_user_id());
 			return is_wp_error($result) ? $result : new WP_REST_Response($result, 200);
@@ -617,6 +632,7 @@ if (!class_exists('MPTBM_App_Api')) {
 					'cancel_booking' => $has_pro,
 					'modify_booking' => $has_pro,
 					'driver_info' => $has_pro,
+					'push' => true,
 					'pdf_ticket' => $has_pro && $this->plugin_active('pdf'),
 					'tier_pricing' => $this->plugin_active('distance-base-tier-pricing'),
 					'peak_hour_pricing' => $this->plugin_active('taxi-peak-hour-pricing'),
