@@ -269,12 +269,14 @@ if (!class_exists('MPTBM_App_Booking')) {
 				'mptbm_extra_service' => array_column($extras, 'name'),
 				'mptbm_extra_service_qty' => array_column($extras, 'qty'),
 				'mptbm_stoppage_id' => array_values(array_filter(array_map('absint', (array) ($in['stoppages'] ?? array())))),
-				'mptbm_max_passenger' => (int) $trip['passengers'],
 				'payment_method' => sanitize_key((string) ($in['payment_method'] ?? '')),
 				'order_comments' => sanitize_textarea_field((string) ($in['order_notes'] ?? '')),
 			);
-			if (!empty($trip['bags'])) {
-				$post['mptbm_max_bag'] = (int) $trip['bags'];
+			// Only the Pro search filters the customer actually used are posted, as the website form does.
+			foreach (array('max_passenger', 'max_bag', 'max_hand_luggage') as $filter) {
+				if (!empty($trip[$filter])) {
+					$post['mptbm_' . $filter] = (int) $trip[$filter];
+				}
 			}
 			// WooCommerce refuses any order that posts the `terms-field` marker without `terms`, so the marker is
 			// only sent when the shop actually shows a terms checkbox (the same condition the checkout form uses).

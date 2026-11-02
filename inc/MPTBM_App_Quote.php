@@ -53,34 +53,40 @@ if (!class_exists('MPTBM_App_Quote')) {
 				return $bad(esc_html__('Unknown trip type.', 'ecab-taxi-booking-manager'));
 			}
 
-			$list_mode = in_array($mode, self::LIST_MODES, true);
-			$point = static function ($value) use ($list_mode): array {
+			// Map points carry coordinates; a place chosen from the shop's own list (a route, a zone, a flat-rate
+			// location) is only its identifier, matched against the vehicle's price table by name. A point must
+			// have coordinates exactly where the mode prices from them - the same endpoints the website checks.
+			$priced = MPTBM_Function::coordinate_priced_endpoints('fixed_distance' === $mode ? 'fixed_map' : $mode);
+			$point = static function ($value, bool $coordinates_required): array {
 				$value = is_array($value) ? $value : array();
-				if ($list_mode) {
-					// The value is the shop's own location / route identifier, matched against its price table by name.
-					$name = isset($value['name']) && is_string($value['name']) ? trim(sanitize_text_field($value['name'])) : '';
-					return '' === $name ? array() : array('name' => $name, 'lat' => 0.0, 'lng' => 0.0);
-				}
-				$lat = isset($value['lat']) ? $value['lat'] : null;
-				$lng = isset($value['lng']) ? $value['lng'] : null;
-				if (!is_numeric($lat) || !is_numeric($lng) || abs((float) $lat) > 90 || abs((float) $lng) > 180) {
+				$name = isset($value['name']) && is_string($value['name']) ? trim(sanitize_text_field($value['name'])) : '';
+				if ('' === $name) {
 					return array();
 				}
-				return array(
-					'name' => sanitize_text_field((string) ($value['name'] ?? '')),
-					'lat' => (float) $lat,
-					'lng' => (float) $lng,
-				);
+				$lat = $value['lat'] ?? null;
+				$lng = $value['lng'] ?? null;
+				if (is_numeric($lat) && is_numeric($lng) && abs((float) $lat) <= 90 && abs((float) $lng) <= 180) {
+					return array('name' => $name, 'lat' => (float) $lat, 'lng' => (float) $lng, 'has_coords' => true);
+				}
+				return $coordinates_required ? array() : array('name' => $name, 'lat' => 0.0, 'lng' => 0.0, 'has_coords' => false);
 			};
 
-			$trip = array('price_based' => $mode, 'start' => $point($in['start'] ?? null), 'end' => $point($in['end'] ?? null), 'stops' => array());
-			$needs_end = in_array($mode, self::COORDINATE_MODES, true) || 'manual' === $mode;
-			if (!$trip['start'] || '' === $trip['start']['name'] || ($needs_end && (!$trip['end'] || '' === $trip['end']['name']))) {
-				return $bad(esc_html__('Choose a pick-up and drop-off location.', 'ecab-taxi-booking-manager'));
+			$trip = array(
+				'price_based' => $mode,
+				'start' => $point($in['start'] ?? null, in_array('start', $priced, true)),
+				'end' => $point($in['end'] ?? null, in_array('end', $priced, true)),
+				'stops' => array(),
+			);
+			$needs_end = in_array($mode, array('dynamic', 'fixed_distance', 'fixed_map', 'fixed_zone', 'fixed_zone_dropoff', 'manual'), true);
+			if (!$trip['start']) {
+				return $bad('fixed_route' === $mode ? esc_html__('Choose a route.', 'ecab-taxi-booking-manager') : esc_html__('Choose a pick-up location from the suggestions.', 'ecab-taxi-booking-manager'));
+			}
+			if ($needs_end && !$trip['end']) {
+				return $bad(esc_html__('Choose a drop-off location from the suggestions.', 'ecab-taxi-booking-manager'));
 			}
 			foreach (array_slice((array) ($in['stops'] ?? array()), 0, 10) as $stop) {
-				$stop = $point($stop);
-				if ($stop && '' !== $stop['name']) {
+				$stop = $point($stop, true);
+				if ($stop) {
 					$trip['stops'][] = $stop;
 				}
 			}
@@ -116,6 +122,11 @@ if (!class_exists('MPTBM_App_Quote')) {
 			$trip['fixed_time'] = max(0, min(24 * 30, (float) ($in['fixed_time'] ?? 0)));
 			$trip['passengers'] = max(1, min(100, (int) ($in['passengers'] ?? 1)));
 			$trip['bags'] = max(0, min(100, (int) ($in['bags'] ?? 0)));
+			// The Pro search filters of the website form (Maximum Passenger / Bag / Hand luggage). The website
+			// itself hides vehicles that cannot take them; nothing else limits a search by capacity.
+			foreach (array('max_passenger', 'max_bag', 'max_hand_luggage') as $filter) {
+				$trip[$filter] = max(0, min(100, (int) ($in[$filter] ?? 0)));
+			}
 			if (in_array($mode, array('fixed_hourly', 'fixed_daily'), true) && $trip['fixed_time'] <= 0) {
 				return $bad('fixed_daily' === $mode ? esc_html__('Choose how many days.', 'ecab-taxi-booking-manager') : esc_html__('Choose how many hours.', 'ecab-taxi-booking-manager'));
 			}
@@ -130,21 +141,26 @@ if (!class_exists('MPTBM_App_Quote')) {
 
 		/** Fill $_POST the way the booking form does, so the website pipeline reads the same keys. */
 		private static function post_fields(array $trip): array {
-			$list_mode = in_array($trip['price_based'], self::LIST_MODES, true);
+			$coordinates = static function (array $point) {
+				return !empty($point['has_coords']) ? array('latitude' => $point['lat'], 'longitude' => $point['lng']) : '';
+			};
 			$post = array(
 				'price_based' => $trip['price_based'],
 				'start_place' => $trip['start']['name'],
-				'start_place_coordinates' => $list_mode ? '' : array('latitude' => $trip['start']['lat'], 'longitude' => $trip['start']['lng']),
+				'start_place_coordinates' => $coordinates($trip['start']),
 				'start_date' => $trip['date'],
 				'start_time' => self::form_time($trip['time']),
 				'two_way' => $trip['return'] ? 2 : 1,
 				'waiting_time' => $trip['waiting_time'],
 				'fixed_time' => $trip['fixed_time'],
 				'mptbm_passengers' => $trip['passengers'],
+				'mptbm_max_passenger' => $trip['max_passenger'],
+				'mptbm_max_bag' => $trip['max_bag'],
+				'mptbm_max_hand_luggage' => $trip['max_hand_luggage'],
 			);
 			if ($trip['end']) {
 				$post['end_place'] = $trip['end']['name'];
-				$post['end_place_coordinates'] = $list_mode ? '' : array('latitude' => $trip['end']['lat'], 'longitude' => $trip['end']['lng']);
+				$post['end_place_coordinates'] = $coordinates($trip['end']);
 			}
 			if ($trip['stops']) {
 				$post['mptbm_extra_stop_place'] = array_column($trip['stops'], 'name');
@@ -343,9 +359,6 @@ if (!class_exists('MPTBM_App_Quote')) {
 			}
 			$max_passengers = (int) get_post_meta($id, 'mptbm_maximum_passenger', true);
 			$max_bags = (int) get_post_meta($id, 'mptbm_maximum_bag', true);
-			if (($max_passengers && $trip['passengers'] > $max_passengers) || ($max_bags && $trip['bags'] > $max_bags)) {
-				return null;
-			}
 
 			$fare = isset($item['fare']) && is_array($item['fare']) ? $item['fare'] : array();
 			$display_type = $fare['display_type'] ?? 'normal';

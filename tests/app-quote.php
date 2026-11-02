@@ -239,6 +239,19 @@ $check(in_array('Apptest A', array_column($starts, 'value'), true), 'manual star
 $ends = $call_get('/locations', array('price_based' => 'manual', 'start' => 'Apptest A'));
 $check(array('Apptest B') === array_column($ends, 'value'), 'only the destinations priced from that start are listed');
 
+// --- Hourly trips: hours x the hourly rate, the drop-off is optional, and the website's capacity filters ----------
+$hour_vehicle = $make($cpt, array('mptbm_price_based' => 'fixed_hourly', 'mptbm_hour_price' => 10, 'mptbm_maximum_passenger' => 3));
+$hourly = $list_quote(array('price_based' => 'fixed_hourly', 'start' => array('name' => 'Anywhere', 'lat' => 23.8, 'lng' => 90.4), 'fixed_time' => 5, 'passengers' => 9));
+$check(200 === $hourly->get_status(), 'an hourly trip needs no drop-off: ' . wp_json_encode($hourly->get_data()));
+$check(isset($by_id($hourly)[$hour_vehicle]) && abs($by_id($hourly)[$hour_vehicle]['price']['total'] - 50.0) < 0.01, 'five hours at ten an hour is fifty');
+$check(isset($by_id($hourly)[$hour_vehicle]), 'a party larger than the vehicle holds is not filtered out unless the website\'s capacity filter is used');
+$check(400 === $list_quote(array('price_based' => 'fixed_hourly', 'start' => array('name' => 'Anywhere', 'lat' => 23.8, 'lng' => 90.4)))->get_status(), 'hourly trips still need the hours');
+$filtered = $list_quote(array('price_based' => 'fixed_hourly', 'start' => array('name' => 'Anywhere', 'lat' => 23.8, 'lng' => 90.4), 'fixed_time' => 5, 'max_passenger' => 5));
+$check(!isset($by_id($filtered)[$hour_vehicle]), 'the capacity filter hides a vehicle that cannot take that many passengers, as on the website');
+$zone_start = $list_quote(array('price_based' => 'fixed_zone', 'start' => array('name' => 'term_999999'), 'end' => array('name' => 'Test Dropoff', 'lat' => 23.7806, 'lng' => 90.4167)));
+$check(400 !== $zone_start->get_status() || false === strpos(wp_json_encode($zone_start->get_data()), 'pick-up location from the suggestions'), 'a fixed-zone pick-up is a list entry with no coordinates');
+$check(400 === $list_quote(array('price_based' => 'dynamic', 'start' => array('name' => 'No coordinates'), 'end' => array('name' => 'Test Dropoff', 'lat' => 23.7806, 'lng' => 90.4167)))->get_status(), 'a distance trip still needs coordinates for both places');
+
 // --- The geo-fence surcharge is priced once --------------------------------------------------------------
 // get_price() already adds the fence fee, so the quote must not add the session's copy of it again.
 $fence_vehicle = $make($cpt, array('mptbm_price_based' => 'distance'));

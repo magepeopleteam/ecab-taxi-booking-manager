@@ -790,6 +790,13 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					)
 				),
 				array(
+					'name' => 'trip_tabs',
+					'label' => esc_html__('Trip types in the app', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Leave empty to use the same tabs as your booking form. Or list them in the order to show, comma separated: hourly, distance, manual, fixed_route, daily, fixed_map, fixed_zone_pickup, fixed_zone_dropoff.', 'ecab-taxi-booking-manager'),
+					'type' => 'text',
+					'default' => ''
+				),
+				array(
 					'name' => 'brand_color',
 					'label' => esc_html__('App brand colour', 'ecab-taxi-booking-manager'),
 					'desc' => esc_html__('Buttons and highlights in the app. Leave empty for the app\'s default.', 'ecab-taxi-booking-manager'),
