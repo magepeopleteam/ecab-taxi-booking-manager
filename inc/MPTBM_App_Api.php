@@ -33,7 +33,7 @@ if (!class_exists('MPTBM_App_Api')) {
 		}
 
 		public static function is_enabled(): bool {
-			$enabled = MP_Global_Function::get_settings('mptbm_rest_api_settings', 'enable_app_api', 'yes') !== 'no';
+			$enabled = MP_Global_Function::get_settings('mptbm_app_settings', 'enable_app_api', 'yes') !== 'no';
 			return (bool) apply_filters('mptbm_app_api_enabled', $enabled);
 		}
 
@@ -574,6 +574,20 @@ if (!class_exists('MPTBM_App_Api')) {
 			return $methods;
 		}
 
+		/** The shop's brand colour for the app and a text colour that stays readable on it ('' = use the app's own). */
+		private function brand(): array {
+			$primary = strtolower(trim((string) MP_Global_Function::get_settings('mptbm_app_settings', 'brand_color', '')));
+			if (!preg_match('/^#[0-9a-f]{6}$/', $primary)) {
+				return array('primary' => '', 'on_primary' => '');
+			}
+			$channels = array_map(static function ($hex) {
+				$c = hexdec($hex) / 255;
+				return $c <= 0.03928 ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4);
+			}, str_split(substr($primary, 1), 2));
+			$luminance = 0.2126 * $channels[0] + 0.7152 * $channels[1] + 0.0722 * $channels[2];
+			return array('primary' => $primary, 'on_primary' => $luminance > 0.4 ? '#111827' : '#ffffff');
+		}
+
 		private function currency_config(): array {
 			$has_wc = function_exists('get_woocommerce_currency');
 			return array(
@@ -603,6 +617,7 @@ if (!class_exists('MPTBM_App_Api')) {
 					'timezone' => wp_timezone_string(),
 					'language' => get_locale(),
 				),
+				'brand' => $this->brand(),
 				'currency' => $this->currency_config(),
 				'distance_unit' => 'mile' === MP_Global_Function::get_settings('mp_global_settings', 'km_or_mile', 'km') ? 'mile' : 'km',
 				'map' => array(
@@ -633,7 +648,7 @@ if (!class_exists('MPTBM_App_Api')) {
 					'modify_booking' => $has_pro,
 					'driver_info' => $has_pro,
 					'push' => true,
-					'pdf_ticket' => $has_pro && $this->plugin_active('pdf'),
+					'pdf_ticket' => $has_pro && class_exists('\\Mpdf\\Mpdf') && class_exists('MPTBM_Pro_Pdf'),
 					'tier_pricing' => $this->plugin_active('distance-base-tier-pricing'),
 					'peak_hour_pricing' => $this->plugin_active('taxi-peak-hour-pricing'),
 				),
