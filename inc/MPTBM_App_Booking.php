@@ -273,10 +273,14 @@ if (!class_exists('MPTBM_App_Booking')) {
 			if (!empty($trip['bags'])) {
 				$post['mptbm_max_bag'] = (int) $trip['bags'];
 			}
-			if (!empty($in['accept_terms'])) {
-				$post['terms'] = 'on';
+			// WooCommerce refuses any order that posts the `terms-field` marker without `terms`, so the marker is
+			// only sent when the shop actually shows a terms checkbox (the same condition the checkout form uses).
+			if (function_exists('wc_terms_and_conditions_checkbox_enabled') && wc_terms_and_conditions_checkbox_enabled()) {
+				$post['terms-field'] = '1';
+				if (!empty($in['accept_terms'])) {
+					$post['terms'] = 'on';
+				}
 			}
-			$post['terms-field'] = '1';
 			foreach ((array) ($in['billing'] ?? array()) as $key => $value) {
 				if (is_string($key) && preg_match('/^[a-z0-9_]{1,60}$/i', $key) && (is_scalar($value))) {
 					$post[$key] = (string) $value;

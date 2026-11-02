@@ -246,6 +246,36 @@ try {
 	$again = $book();
 	$check(400 === $again->get_status() && false !== stripos((string) $again->get_data()['message'], 'no longer available'), 'a vehicle that is already booked for that time is refused');
 
+	// --- Terms and conditions: only asked for when the shop has a terms page ---------------------------------
+	$clear_limits();
+	$no_terms_form = $call('GET', '/checkout/form', array(), $token)->get_data();
+	$check(null === $no_terms_form['terms'], 'a shop without a terms page shows no terms checkbox');
+	$check(!wc_terms_and_conditions_checkbox_enabled(), 'the test site has no terms page by default');
+	$free_slot = $call('POST', '/quote', array('price_based' => 'dynamic', 'start' => array('name' => 'Test Pickup', 'lat' => 23.8433, 'lng' => 90.3978), 'end' => array('name' => 'Test Dropoff', 'lat' => 23.7806, 'lng' => 90.4167), 'date' => $when, 'time' => '19:00', 'passengers' => 2))->get_data();
+	$clear_limits();
+	$no_terms = $call('POST', '/bookings', array('quote_id' => $free_slot['quote_id'], 'vehicle_id' => $vehicle_id, 'billing' => $billing(), 'payment_method' => 'cod', 'accept_terms' => false), $token);
+	$check(201 === $no_terms->get_status(), 'a shop without a terms page books without any terms accepted: ' . wp_json_encode($no_terms->get_data()));
+	if (201 === $no_terms->get_status()) {
+		$created_orders[] = (int) $no_terms->get_data()['booking']['id'];
+	}
+	$terms_page = wp_insert_post(array('post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'Apptest Terms', 'post_content' => 'Terms'));
+	update_option('woocommerce_terms_page_id', $terms_page);
+	$with_terms_form = $call('GET', '/checkout/form', array(), $token)->get_data();
+	$check(is_array($with_terms_form['terms']) && true === $with_terms_form['terms']['required'], 'a shop with a terms page asks for them');
+	$later_slot = $call('POST', '/quote', array('price_based' => 'dynamic', 'start' => array('name' => 'Test Pickup', 'lat' => 23.8433, 'lng' => 90.3978), 'end' => array('name' => 'Test Dropoff', 'lat' => 23.7806, 'lng' => 90.4167), 'date' => $when, 'time' => '20:30', 'passengers' => 2))->get_data();
+	$clear_limits();
+	$refused = $call('POST', '/bookings', array('quote_id' => $later_slot['quote_id'], 'vehicle_id' => $vehicle_id, 'billing' => $billing(), 'payment_method' => 'cod', 'accept_terms' => false), $token);
+	$check(400 === $refused->get_status() && isset($refused->get_data()['data']['fields']['terms']), 'terms that were not accepted are refused when the shop requires them');
+	$clear_limits();
+	$accepted = $call('POST', '/bookings', array('quote_id' => $later_slot['quote_id'], 'vehicle_id' => $vehicle_id, 'billing' => $billing(), 'payment_method' => 'cod', 'accept_terms' => true), $token);
+	$check(201 === $accepted->get_status(), 'accepted terms are enough: ' . wp_json_encode($accepted->get_data()));
+	if (201 === $accepted->get_status()) {
+		$created_orders[] = (int) $accepted->get_data()['booking']['id'];
+	}
+	delete_option('woocommerce_terms_page_id');
+	wp_delete_post($terms_page, true);
+	$check(!wc_terms_and_conditions_checkbox_enabled(), 'the terms page was removed again');
+
 	// --- Online payment: the card form is a web page, never the API -----------------------------------------
 	$later = $call('POST', '/quote', array(
 		'price_based' => 'dynamic', 'start' => array('name' => 'Test Pickup', 'lat' => 23.8433, 'lng' => 90.3978), 'end' => array('name' => 'Test Dropoff', 'lat' => 23.7806, 'lng' => 90.4167),
