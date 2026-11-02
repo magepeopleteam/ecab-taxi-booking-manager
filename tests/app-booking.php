@@ -289,6 +289,44 @@ try {
 	$check(array() === ($call('GET', '/bookings', array(), $other['access_token'])->get_data()['bookings'] ?? null), 'another customer\'s list is empty');
 	$check(401 === $call('GET', '/bookings')->get_status(), 'the list needs a signed-in customer');
 
+	// --- Cancel / change requests (Pro) and the driver ---------------------------------------------------------
+	$pro = MPTBM_App_Booking::changes_supported();
+	$detail = $call('GET', '/bookings/' . $order->get_id(), array(), $token)->get_data();
+	$check($pro === $detail['can_cancel'] && $pro === $detail['can_modify'], 'cancel and change are offered exactly when Pro can handle them');
+	if ($pro) {
+		$clear_limits();
+		$check(404 === $call('POST', '/bookings/' . $order->get_id() . '/change', array('text' => 'x'), $other['access_token'])->get_status(), 'nobody else can ask to change this booking');
+		$check(400 === $call('POST', '/bookings/' . $order->get_id() . '/change', array('text' => '   '), $token)->get_status(), 'an empty change request is refused');
+		$check(400 === $call('POST', '/bookings/' . $order->get_id() . '/change', array('text' => str_repeat('a', 501)), $token)->get_status(), 'an over-long change request is refused');
+		$changed = $call('POST', '/bookings/' . $order->get_id() . '/change', array('text' => 'Pick me up at 11:00 instead'), $token);
+		$check(200 === $changed->get_status() && 'pending' === ($changed->get_data()['change_request']['status'] ?? ''), 'a change request is recorded for review');
+		$check(false === $changed->get_data()['can_modify'] && true === $changed->get_data()['can_cancel'], 'a second change request is not offered while one waits');
+		$check(409 === $call('POST', '/bookings/' . $order->get_id() . '/change', array('text' => 'again'), $token)->get_status(), 'a second change request is refused');
+		$check('Pick me up at 11:00 instead' === (string) wc_get_order($order->get_id())->get_meta('_mptbm_modification_request'), 'the request reaches the order for the admin');
+
+		$cancelled = $call('POST', '/bookings/' . $order->get_id() . '/cancel', array(), $token);
+		$check(200 === $cancelled->get_status() && true === $cancelled->get_data()['cancellation_requested'], 'a cancellation is requested, not executed');
+		$check('pending-cancel' === wc_get_order($order->get_id())->get_status() && in_array(wc_get_order($order->get_id())->get_meta('_mptbm_prev_status'), array('processing', 'on-hold'), true), 'the order waits for the shop with its previous status remembered');
+		$check(409 === $call('POST', '/bookings/' . $order->get_id() . '/cancel', array(), $token)->get_status(), 'a booking already awaiting cancellation cannot be cancelled again');
+		$check(404 === $call('POST', '/bookings/' . $online_order->get_id() . '/cancel', array(), $other['access_token'])->get_status(), 'nobody else can cancel this booking');
+		$check(401 === $call('POST', '/bookings/' . $online_order->get_id() . '/cancel')->get_status(), 'cancelling needs a signed-in customer');
+
+		// a driver assigned by the shop shows up only on a confirmed booking
+		$driver_id = wp_insert_user(array('user_login' => 'apptest-driver-' . wp_generate_password(5, false), 'user_pass' => wp_generate_password(20), 'user_email' => 'apptest-driver-' . wp_generate_password(5, false) . '@example.com', 'display_name' => 'Test Driver', 'role' => 'subscriber'));
+		$users[] = (int) $driver_id;
+		update_user_meta($driver_id, 'billing_phone', '5559999');
+		$vehicle_of_order = (int) $trip['vehicle_id'];
+		update_post_meta($vehicle_of_order, 'mptbm_selected_driver', $driver_id);
+		$online_order->update_status('processing');
+		$with_driver = $call('GET', '/bookings/' . $online_order->get_id(), array(), $token)->get_data();
+		$check('Test Driver' === ($with_driver['driver']['name'] ?? '') && '5559999' === ($with_driver['driver']['phone'] ?? ''), 'a confirmed booking shows its driver');
+		$online_order->update_status('pending');
+		$check(null === $call('GET', '/bookings/' . $online_order->get_id(), array(), $token)->get_data()['driver'], 'an unconfirmed booking shows no driver');
+		delete_post_meta($vehicle_of_order, 'mptbm_selected_driver');
+	} else {
+		$check(501 === $call('POST', '/bookings/' . $order->get_id() . '/cancel', array(), $token)->get_status(), 'without Pro, cancelling answers 501');
+	}
+
 	$plain = wc_create_order(array('customer_id' => (int) $customer['user']['id']));
 	$created_orders[] = $plain->get_id();
 	$check(404 === $call('GET', '/bookings/' . $plain->get_id(), array(), $token)->get_status(), 'an order that is not a taxi booking is not exposed');
