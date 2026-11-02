@@ -86,6 +86,13 @@ if (!class_exists('MPTBM_App_Api')) {
 				array('methods' => 'POST', 'callback' => array($this, 'create_booking'), 'permission_callback' => array($this, 'permission_booking')),
 			));
 			register_rest_route(self::NAMESPACE_ID, '/bookings/(?P<id>\d+)', array('methods' => 'GET', 'callback' => array($this, 'get_booking'), 'permission_callback' => $auth));
+			register_rest_route(self::NAMESPACE_ID, '/bookings/(?P<id>\d+)/cancel', array('methods' => 'POST', 'callback' => array($this, 'cancel_booking'), 'permission_callback' => array($this, 'permission_booking')));
+			register_rest_route(self::NAMESPACE_ID, '/bookings/(?P<id>\d+)/change', array(
+				'methods' => 'POST',
+				'callback' => array($this, 'change_booking'),
+				'permission_callback' => array($this, 'permission_booking'),
+				'args' => array('text' => array('type' => 'string', 'required' => true)),
+			));
 			register_rest_route(self::NAMESPACE_ID, '/bookings/(?P<id>\d+)/pay-link', array('methods' => 'POST', 'callback' => array($this, 'get_pay_link'), 'permission_callback' => array($this, 'permission_booking')));
 
 			register_rest_route(self::NAMESPACE_ID, '/places/search', array(
@@ -476,6 +483,16 @@ if (!class_exists('MPTBM_App_Api')) {
 
 		public function get_booking($request) {
 			$result = MPTBM_App_Booking::get((int) $request['id'], get_current_user_id());
+			return is_wp_error($result) ? $result : new WP_REST_Response($result, 200);
+		}
+
+		public function cancel_booking($request) {
+			$result = MPTBM_App_Booking::request_cancellation((int) $request['id'], get_current_user_id());
+			return is_wp_error($result) ? $result : new WP_REST_Response($result, 200);
+		}
+
+		public function change_booking($request) {
+			$result = MPTBM_App_Booking::request_change((int) $request['id'], get_current_user_id(), (string) $request->get_param('text'));
 			return is_wp_error($result) ? $result : new WP_REST_Response($result, 200);
 		}
 
