@@ -64,6 +64,11 @@ $check(429 === $last, 'quotes are rate limited');
 delete_transient('mptbm_app_rl_' . md5('quote|' . $_SERVER['REMOTE_ADDR']));
 
 // --- Place suggestions (validation only; the lookup itself needs the network) ----------------------
+$call_get = static function (string $route, array $query = array()): array {
+	$request = new WP_REST_Request('GET', '/ecab-app/v1' . $route);
+	$request->set_query_params($query);
+	return (array) rest_do_request($request)->get_data();
+};
 $places = static function (string $route, array $query): WP_REST_Response {
 	$request = new WP_REST_Request('GET', '/ecab-app/v1' . $route);
 	$request->set_query_params($query);
@@ -154,6 +159,34 @@ $check(MPTBM_App_Quote::area_covers_trip($v_fixed_distance, $trip('fixed_map', $
 
 $check('fixed_map' === MPTBM_App_Quote::search_mode_for_model('fixed_distance'), 'fixed distance vehicles are searched as fixed_map');
 $check('dynamic' === MPTBM_App_Quote::search_mode_for_model('inclusive') && 'dynamic' === MPTBM_App_Quote::search_mode_for_model('distance_duration'), 'combined and distance models are searched as dynamic');
+
+// --- Fixed routes and manual (listed) locations: no map points, the shop's own price table ----------------
+$route_id = $make('mptbm_routes', array());
+wp_update_post(array('ID' => $route_id, 'post_title' => 'Apptest City Tour'));
+$route_vehicle = $make($cpt, array('mptbm_price_based' => 'fixed_route', 'mptbm_assigned_routes' => array(array('route_id' => $route_id, 'price' => 120))));
+$manual_vehicle = $make($cpt, array('mptbm_price_based' => 'manual', 'mptbm_manual_price_info' => array(array('start_location' => 'Apptest A', 'end_location' => 'Apptest B', 'price' => 45))));
+$list_quote = static function (array $body) use ($quote, $tomorrow): WP_REST_Response {
+	delete_transient('mptbm_app_rl_' . md5('quote|' . $_SERVER['REMOTE_ADDR']));
+	return $quote(array_merge(array('date' => $tomorrow, 'time' => '10:30', 'passengers' => 1), $body));
+};
+$by_id = static function (WP_REST_Response $r): array {
+	return array_column((array) ($r->get_data()['vehicles'] ?? array()), null, 'id');
+};
+$route = $list_quote(array('price_based' => 'fixed_route', 'start' => array('name' => 'Apptest City Tour')));
+$check(200 === $route->get_status(), 'a fixed route needs only its name: ' . wp_json_encode($route->get_data()));
+$check(isset($by_id($route)[$route_vehicle]) && abs($by_id($route)[$route_vehicle]['price']['total'] - 120.0) < 0.01, 'the route is quoted at the vehicle\'s own price for it');
+$check(!isset($by_id($list_quote(array('price_based' => 'fixed_route', 'start' => array('name' => 'No Such Route'))))[$route_vehicle]), 'an unknown route matches no vehicle');
+$check(400 === $list_quote(array('price_based' => 'fixed_route', 'start' => array('name' => '  ')))->get_status(), 'a route without a name is refused');
+$manual = $list_quote(array('price_based' => 'manual', 'start' => array('name' => 'Apptest A'), 'end' => array('name' => 'Apptest B')));
+$check(isset($by_id($manual)[$manual_vehicle]) && abs($by_id($manual)[$manual_vehicle]['price']['total'] - 45.0) < 0.01, 'a listed pair is quoted at the shop\'s price for it');
+$check(!isset($by_id($list_quote(array('price_based' => 'manual', 'start' => array('name' => 'Apptest A'), 'end' => array('name' => 'Apptest C'))))[$manual_vehicle]), 'a pair the shop has no price for matches no vehicle');
+$check(400 === $list_quote(array('price_based' => 'manual', 'start' => array('name' => 'Apptest A')))->get_status(), 'a manual trip needs both ends');
+$routes = $call_get('/locations', array('price_based' => 'fixed_route'));
+$check(in_array('Apptest City Tour', array_column($routes, 'value'), true), 'the routes are listed for the app to offer');
+$starts = $call_get('/locations', array('price_based' => 'manual'));
+$check(in_array('Apptest A', array_column($starts, 'value'), true), 'manual start locations are listed');
+$ends = $call_get('/locations', array('price_based' => 'manual', 'start' => 'Apptest A'));
+$check(array('Apptest B') === array_column($ends, 'value'), 'only the destinations priced from that start are listed');
 
 // --- The geo-fence surcharge is priced once --------------------------------------------------------------
 // get_price() already adds the fence fee, so the quote must not add the session's copy of it again.

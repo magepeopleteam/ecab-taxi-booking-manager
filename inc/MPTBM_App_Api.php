@@ -63,7 +63,7 @@ if (!class_exists('MPTBM_App_Api')) {
 				'permission_callback' => $public,
 				'args' => array(
 					'start' => array('type' => 'string'),
-					'price_based' => array('type' => 'string', 'default' => 'manual', 'enum' => array('manual', 'fixed_zone', 'fixed_zone_dropoff')),
+					'price_based' => array('type' => 'string', 'default' => 'manual', 'enum' => array('manual', 'fixed_route', 'fixed_zone', 'fixed_zone_dropoff')),
 				),
 			));
 
@@ -673,7 +673,7 @@ if (!class_exists('MPTBM_App_Api')) {
 					'needs_dropoff' => in_array($mode, MPTBM_App_Quote::COORDINATE_MODES, true),
 					'needs_duration' => in_array($mode, array('fixed_hourly', 'fixed_daily'), true),
 					'duration_unit' => 'fixed_daily' === $mode ? 'day' : ('fixed_hourly' === $mode ? 'hour' : ''),
-					'uses_location_list' => in_array($mode, array('manual', 'fixed_route'), true),
+					'uses_location_list' => in_array($mode, MPTBM_App_Quote::LIST_MODES, true),
 				);
 			}
 			return array_values($modes);
@@ -763,9 +763,14 @@ if (!class_exists('MPTBM_App_Api')) {
 		public function get_locations($request) {
 			$price_based = (string) $request->get_param('price_based');
 			$start = sanitize_text_field((string) $request->get_param('start'));
-			$values = '' === $start
-				? MPTBM_Function::get_all_start_location('', $price_based)
-				: MPTBM_Function::get_end_location($start, '', $price_based);
+			if ('fixed_route' === $price_based) {
+				// One list of named routes; there is no separate drop-off.
+				$values = '' === $start ? MPTBM_Function::get_all_routes() : array();
+			} else {
+				$values = '' === $start
+					? MPTBM_Function::get_all_start_location('', $price_based)
+					: MPTBM_Function::get_end_location($start, '', $price_based);
+			}
 			$items = array();
 			foreach (array_values((array) $values) as $value) {
 				$items[] = array('value' => (string) $value, 'label' => $this->location_label((string) $value));
