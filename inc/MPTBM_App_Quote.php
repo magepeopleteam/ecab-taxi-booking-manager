@@ -250,12 +250,8 @@ if (!class_exists('MPTBM_App_Quote')) {
 			$transport = (float) ($fare['transport'] ?? 0);
 			$base = (float) ($fare['base_location'] ?? 0);
 			$stops = (float) ($fare['stops'] ?? 0);
-			$area_fee = 0.0;
-			if ('normal' === $display_type && isset($_SESSION['geo_fence_post_' . $id][0])) {
-				// Same figure MPTBM_Woocommerce::before_calculate_totals() adds to the cart line.
-				$area_fee = (float) $_SESSION['geo_fence_post_' . $id][0];
-			}
-			$total = 'normal' === $display_type ? $transport + $base + $stops + $area_fee : 0.0;
+			// The geo-fence surcharge is already inside the transport figure: get_price() adds it.
+			$total = 'normal' === $display_type ? $transport + $base + $stops : 0.0;
 
 			$thumb = get_post_thumbnail_id($id);
 			return array(
@@ -273,7 +269,6 @@ if (!class_exists('MPTBM_App_Quote')) {
 					'transport' => round($transport, 4),
 					'base_location' => round($base, 4),
 					'stops' => round($stops, 4),
-					'area_fee' => round($area_fee, 4),
 					'total' => round($total, 4),
 				),
 			);
