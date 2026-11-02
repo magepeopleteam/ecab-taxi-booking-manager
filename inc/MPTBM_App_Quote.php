@@ -19,6 +19,8 @@ if (!class_exists('MPTBM_App_Quote')) {
 		const MODES = array('dynamic', 'manual', 'fixed_hourly', 'fixed_daily', 'fixed_distance', 'fixed_zone', 'fixed_zone_dropoff', 'fixed_map', 'fixed_route');
 		/** Modes priced from the pick-up / drop-off coordinates, so both points are required. */
 		const COORDINATE_MODES = array('dynamic', 'fixed_distance', 'fixed_map', 'fixed_zone', 'fixed_zone_dropoff');
+		/** Modes where the customer picks from the shop's own list (a route, or a start and end location): no map points. */
+		const LIST_MODES = array('manual', 'fixed_route');
 
 		/** Search mode a vehicle's own pricing model is offered under (same mapping the website uses). */
 		public static function search_mode_for_model(string $model): string {
@@ -51,8 +53,14 @@ if (!class_exists('MPTBM_App_Quote')) {
 				return $bad(esc_html__('Unknown trip type.', 'ecab-taxi-booking-manager'));
 			}
 
-			$point = static function ($value): array {
+			$list_mode = in_array($mode, self::LIST_MODES, true);
+			$point = static function ($value) use ($list_mode): array {
 				$value = is_array($value) ? $value : array();
+				if ($list_mode) {
+					// The value is the shop's own location / route identifier, matched against its price table by name.
+					$name = isset($value['name']) && is_string($value['name']) ? trim(sanitize_text_field($value['name'])) : '';
+					return '' === $name ? array() : array('name' => $name, 'lat' => 0.0, 'lng' => 0.0);
+				}
 				$lat = isset($value['lat']) ? $value['lat'] : null;
 				$lng = isset($value['lng']) ? $value['lng'] : null;
 				if (!is_numeric($lat) || !is_numeric($lng) || abs((float) $lat) > 90 || abs((float) $lng) > 180) {
@@ -66,7 +74,7 @@ if (!class_exists('MPTBM_App_Quote')) {
 			};
 
 			$trip = array('price_based' => $mode, 'start' => $point($in['start'] ?? null), 'end' => $point($in['end'] ?? null), 'stops' => array());
-			$needs_end = in_array($mode, self::COORDINATE_MODES, true);
+			$needs_end = in_array($mode, self::COORDINATE_MODES, true) || 'manual' === $mode;
 			if (!$trip['start'] || '' === $trip['start']['name'] || ($needs_end && (!$trip['end'] || '' === $trip['end']['name']))) {
 				return $bad(esc_html__('Choose a pick-up and drop-off location.', 'ecab-taxi-booking-manager'));
 			}
@@ -122,10 +130,11 @@ if (!class_exists('MPTBM_App_Quote')) {
 
 		/** Fill $_POST the way the booking form does, so the website pipeline reads the same keys. */
 		private static function post_fields(array $trip): array {
+			$list_mode = in_array($trip['price_based'], self::LIST_MODES, true);
 			$post = array(
 				'price_based' => $trip['price_based'],
 				'start_place' => $trip['start']['name'],
-				'start_place_coordinates' => array('latitude' => $trip['start']['lat'], 'longitude' => $trip['start']['lng']),
+				'start_place_coordinates' => $list_mode ? '' : array('latitude' => $trip['start']['lat'], 'longitude' => $trip['start']['lng']),
 				'start_date' => $trip['date'],
 				'start_time' => self::form_time($trip['time']),
 				'two_way' => $trip['return'] ? 2 : 1,
@@ -135,7 +144,7 @@ if (!class_exists('MPTBM_App_Quote')) {
 			);
 			if ($trip['end']) {
 				$post['end_place'] = $trip['end']['name'];
-				$post['end_place_coordinates'] = array('latitude' => $trip['end']['lat'], 'longitude' => $trip['end']['lng']);
+				$post['end_place_coordinates'] = $list_mode ? '' : array('latitude' => $trip['end']['lat'], 'longitude' => $trip['end']['lng']);
 			}
 			if ($trip['stops']) {
 				$post['mptbm_extra_stop_place'] = array_column($trip['stops'], 'name');
@@ -415,7 +424,7 @@ if (!class_exists('MPTBM_App_Quote')) {
 			$mode = $trip['price_based'];
 			$areas = get_post_meta($vehicle_id, 'mptbm_selected_operation_areas', true);
 			$distance_mode = in_array($mode, array('fixed_distance', 'fixed_map'), true);
-			if (!$areas || in_array($mode, array('manual', 'fixed_zone', 'fixed_zone_dropoff'), true)) {
+			if (!$areas || in_array($mode, array('manual', 'fixed_route', 'fixed_zone', 'fixed_zone_dropoff'), true)) {
 				return !$distance_mode; // distance-matched vehicles need an area; the rest are not area-bound
 			}
 
