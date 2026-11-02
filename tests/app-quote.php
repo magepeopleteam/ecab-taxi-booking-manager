@@ -155,6 +155,17 @@ $check(MPTBM_App_Quote::area_covers_trip($v_fixed_distance, $trip('fixed_map', $
 $check('fixed_map' === MPTBM_App_Quote::search_mode_for_model('fixed_distance'), 'fixed distance vehicles are searched as fixed_map');
 $check('dynamic' === MPTBM_App_Quote::search_mode_for_model('inclusive') && 'dynamic' === MPTBM_App_Quote::search_mode_for_model('distance_duration'), 'combined and distance models are searched as dynamic');
 
+// --- The geo-fence surcharge is priced once --------------------------------------------------------------
+// get_price() already adds the fence fee, so the quote must not add the session's copy of it again.
+$fence_vehicle = $make($cpt, array('mptbm_price_based' => 'distance'));
+$prepare = new ReflectionMethod('MPTBM_App_Quote', 'prepare_vehicle');
+$prepare->setAccessible(true);
+$_SESSION['geo_fence_post_' . $fence_vehicle] = array(150, 'geo-fence-fixed-price');
+$priced = $prepare->invoke(null, array('post_id' => $fence_vehicle, 'rating' => 0, 'fare' => array('transport' => 100.0, 'base_location' => 5.0, 'stops' => 2.0, 'display_type' => 'normal', 'unavailable' => false)), array('price_based' => 'dynamic', 'start' => array('lat' => 0, 'lng' => 0), 'end' => array('lat' => 0, 'lng' => 0), 'passengers' => 1, 'bags' => 0));
+unset($_SESSION['geo_fence_post_' . $fence_vehicle]);
+$check(is_array($priced) && abs($priced['price']['total'] - 107.0) < 0.001, 'the quoted total is transport + base + stops, with no second geo-fence fee');
+$check(!isset($priced['price']['area_fee']), 'the quote no longer reports a separate area fee');
+
 foreach ($posts as $id) {
 	wp_delete_post($id, true);
 }
