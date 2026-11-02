@@ -67,6 +67,12 @@ if (!class_exists('MPTBM_App_Api')) {
 				),
 			));
 
+			register_rest_route(self::NAMESPACE_ID, '/quote', array(
+				'methods' => 'POST',
+				'callback' => array($this, 'get_quote'),
+				'permission_callback' => array($this, 'permission_quote'),
+			));
+
 			register_rest_route(self::NAMESPACE_ID, '/auth/register', array(
 				'methods' => 'POST',
 				'callback' => array($this, 'register_customer'),
@@ -112,6 +118,11 @@ if (!class_exists('MPTBM_App_Api')) {
 
 		public function permission_public($request) {
 			return $this->rate_limit('public', 120, MINUTE_IN_SECONDS);
+		}
+
+		/** A quote geocodes and routes on the server, so it gets a tighter budget than plain reads. */
+		public function permission_quote($request) {
+			return $this->rate_limit('quote', 30, MINUTE_IN_SECONDS);
 		}
 
 		public function permission_customer($request) {
@@ -379,6 +390,14 @@ if (!class_exists('MPTBM_App_Api')) {
 			return new WP_REST_Response($this->prepare_user($user_id), 200);
 		}
 
+		/* ------------------------------------------------------------------------ quote */
+
+		public function get_quote($request) {
+			$params = $request->get_json_params();
+			$result = MPTBM_App_Quote::quote(is_array($params) ? $params : $request->get_params());
+			return is_wp_error($result) ? $result : new WP_REST_Response($result, 200);
+		}
+
 		/* ----------------------------------------------------------------------- config */
 
 		private function plugin_active(string $needle): bool {
@@ -475,6 +494,7 @@ if (!class_exists('MPTBM_App_Api')) {
 					'peak_hour_pricing' => $this->plugin_active('taxi-peak-hour-pricing'),
 				),
 				'price_modes' => $this->price_modes(),
+				'search_modes' => $this->search_modes(),
 				'links' => array(
 					'terms' => function_exists('wc_terms_and_conditions_page_id') && wc_terms_and_conditions_page_id() ? get_permalink(wc_terms_and_conditions_page_id()) : '',
 					'privacy' => get_privacy_policy_url(),
@@ -494,6 +514,25 @@ if (!class_exists('MPTBM_App_Api')) {
 				}
 			}
 			return array_keys($modes);
+		}
+
+		/**
+		 * The trip types the app can offer, i.e. the search modes the published vehicles are sold
+		 * under, with what each one needs from the customer.
+		 */
+		private function search_modes(): array {
+			$modes = array();
+			foreach ($this->price_modes() as $model) {
+				$mode = MPTBM_App_Quote::search_mode_for_model($model);
+				$modes[$mode] = array(
+					'id' => $mode,
+					'needs_dropoff' => in_array($mode, MPTBM_App_Quote::COORDINATE_MODES, true),
+					'needs_duration' => in_array($mode, array('fixed_hourly', 'fixed_daily'), true),
+					'duration_unit' => 'fixed_daily' === $mode ? 'day' : ('fixed_hourly' === $mode ? 'hour' : ''),
+					'uses_location_list' => in_array($mode, array('manual', 'fixed_route'), true),
+				);
+			}
+			return array_values($modes);
 		}
 
 		/* -------------------------------------------------------------------- vehicles */
