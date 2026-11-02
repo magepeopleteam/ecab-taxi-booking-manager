@@ -374,10 +374,31 @@ if (!class_exists('MPTBM_App_Booking')) {
 			return array('name' => wp_strip_all_tags($driver->display_name), 'phone' => (string) get_user_meta($driver_id, 'billing_phone', true));
 		}
 
+		/**
+		 * Pro's ticket/receipt PDF, when the PDF library is present and the booking is in a status the shop
+		 * lets customers download tickets for. The link is Pro's own download URL, authorised by the order key
+		 * and a nonce made for a signed-out visitor, so it opens in the phone's browser without a login.
+		 */
+		private static function ticket_url(WC_Order $order): string {
+			if (!self::changes_supported() || !class_exists('\Mpdf\Mpdf') || !class_exists('MPTBM_Pro_Pdf')) {
+				return '';
+			}
+			$allowed = class_exists('MPTBM_Booking_Source') ? MPTBM_Booking_Source::ticket_allowed($order->get_status()) : in_array($order->get_status(), array('processing', 'completed'), true);
+			if (!$allowed) {
+				return '';
+			}
+			$current = get_current_user_id();
+			wp_set_current_user(0); // the nonce must match the signed-out visitor who opens the link
+			$url = MPTBM_Pro_Pdf::get_pdf_url(array('order_id' => $order->get_id(), 'order_key' => $order->get_order_key()));
+			wp_set_current_user($current);
+			return (string) $url;
+		}
+
 		public static function summary(WC_Order $order): array {
 			$created = $order->get_date_created();
 			$change = (string) $order->get_meta('_mptbm_modification_request');
 			return array(
+				'ticket_url' => self::ticket_url($order),
 				'can_cancel' => self::changeable($order),
 				'can_modify' => self::changeable($order) && 'pending' !== $order->get_meta('_mptbm_modification_request_status'),
 				'cancellation_requested' => 'pending-cancel' === $order->get_status(),
