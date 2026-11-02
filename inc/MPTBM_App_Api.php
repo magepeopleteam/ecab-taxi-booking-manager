@@ -73,6 +73,21 @@ if (!class_exists('MPTBM_App_Api')) {
 				'permission_callback' => array($this, 'permission_quote'),
 			));
 
+			register_rest_route(self::NAMESPACE_ID, '/vehicles/(?P<id>\d+)/extras', array('methods' => 'GET', 'callback' => array($this, 'get_extras'), 'permission_callback' => $public));
+			register_rest_route(self::NAMESPACE_ID, '/checkout/form', array('methods' => 'GET', 'callback' => array($this, 'get_checkout_form'), 'permission_callback' => array($this, 'permission_optional_customer')));
+			register_rest_route(self::NAMESPACE_ID, '/checkout/states', array(
+				'methods' => 'GET',
+				'callback' => array($this, 'get_states'),
+				'permission_callback' => $public,
+				'args' => array('country' => array('type' => 'string', 'required' => true)),
+			));
+			register_rest_route(self::NAMESPACE_ID, '/bookings', array(
+				array('methods' => 'GET', 'callback' => array($this, 'list_bookings'), 'permission_callback' => $auth),
+				array('methods' => 'POST', 'callback' => array($this, 'create_booking'), 'permission_callback' => array($this, 'permission_booking')),
+			));
+			register_rest_route(self::NAMESPACE_ID, '/bookings/(?P<id>\d+)', array('methods' => 'GET', 'callback' => array($this, 'get_booking'), 'permission_callback' => $auth));
+			register_rest_route(self::NAMESPACE_ID, '/bookings/(?P<id>\d+)/pay-link', array('methods' => 'POST', 'callback' => array($this, 'get_pay_link'), 'permission_callback' => array($this, 'permission_booking')));
+
 			register_rest_route(self::NAMESPACE_ID, '/places/search', array(
 				'methods' => 'GET',
 				'callback' => array($this, 'search_places'),
@@ -148,6 +163,17 @@ if (!class_exists('MPTBM_App_Api')) {
 		/** Typing fires many searches; cached answers are free, the budget guards outbound lookups. */
 		public function permission_places($request) {
 			return $this->rate_limit('places', 90, MINUTE_IN_SECONDS);
+		}
+
+		/** Placing a booking creates an order, so it gets the tightest budget. */
+		public function permission_booking($request) {
+			$limited = $this->rate_limit('booking', 20, MINUTE_IN_SECONDS);
+			return is_wp_error($limited) ? $limited : $this->permission_customer($request);
+		}
+
+		/** Signed in is optional (it only fills the form in); a token that is present must still be valid. */
+		public function permission_optional_customer($request) {
+			return '' === $this->bearer_token($request) ? $this->permission_public($request) : $this->permission_customer($request);
 		}
 
 		public function permission_customer($request) {
@@ -413,6 +439,49 @@ if (!class_exists('MPTBM_App_Api')) {
 				return new WP_REST_Response($this->token_response($user_id), 200); // new session for this device
 			}
 			return new WP_REST_Response($this->prepare_user($user_id), 200);
+		}
+
+		/* -------------------------------------------------------------------- bookings */
+
+		public function get_extras($request) {
+			$id = (int) $request['id'];
+			if (MPTBM_Function::get_cpt() !== get_post_type($id) || 'publish' !== get_post_status($id)) {
+				return new WP_Error('mptbm_app_not_found', esc_html__('Vehicle not found.', 'ecab-taxi-booking-manager'), array('status' => 404));
+			}
+			return new WP_REST_Response(MPTBM_App_Booking::extras($id), 200);
+		}
+
+		public function get_checkout_form($request) {
+			$unsupported = MPTBM_App_Booking::available();
+			return $unsupported ?: new WP_REST_Response(MPTBM_App_Booking::checkout_form(get_current_user_id()), 200);
+		}
+
+		public function get_states($request) {
+			if ($unsupported = MPTBM_App_Booking::available()) {
+				return $unsupported;
+			}
+			return new WP_REST_Response(MPTBM_App_Booking::states((string) $request->get_param('country')), 200);
+		}
+
+		public function create_booking($request) {
+			$params = $request->get_json_params();
+			$result = MPTBM_App_Booking::create(is_array($params) ? $params : array(), get_current_user_id());
+			return is_wp_error($result) ? $result : new WP_REST_Response($result, 201);
+		}
+
+		public function list_bookings($request) {
+			$result = MPTBM_App_Booking::list(get_current_user_id(), max(1, (int) $request->get_param('page')));
+			return is_wp_error($result) ? $result : new WP_REST_Response($result, 200);
+		}
+
+		public function get_booking($request) {
+			$result = MPTBM_App_Booking::get((int) $request['id'], get_current_user_id());
+			return is_wp_error($result) ? $result : new WP_REST_Response($result, 200);
+		}
+
+		public function get_pay_link($request) {
+			$result = MPTBM_App_Booking::new_pay_link((int) $request['id'], get_current_user_id());
+			return is_wp_error($result) ? $result : new WP_REST_Response($result, 200);
 		}
 
 		/* ----------------------------------------------------------------------- places */

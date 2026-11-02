@@ -1,0 +1,463 @@
+<?php
+/*
+ * Bookings for the mobile app: the checkout form the site is configured with, a vehicle's extras,
+ * creating a booking from a stored quote, the customer's own bookings, and the hand-off to a payment page.
+ *
+ * A booking is a normal WooCommerce order created by the website's own cart and checkout code
+ * (MPTBM_Woocommerce hooks), so fares, order meta, the taxi booking record, e-mails and addons behave
+ * exactly as for a booking made on the website. The app never sends a price: the fare is calculated
+ * again on the server from the stored quote, and the booking is refused if it no longer matches.
+ */
+if (!defined('ABSPATH')) {
+	die;
+} // Cannot access pages directly.
+
+if (!class_exists('MPTBM_App_Booking')) {
+	class MPTBM_App_Booking {
+		const PAY_TOKEN_TTL = 10 * MINUTE_IN_SECONDS;
+		/** Gateways that finish on the server with no card form: the order can be placed and the customer is done. */
+		const OFFLINE_GATEWAYS = array('cod', 'bacs', 'cheque');
+
+		public static function init(): void {
+			add_action('init', array(__CLASS__, 'pay_redirect'), 5);
+		}
+
+		/* ------------------------------------------------------------------ plumbing */
+
+		public static function available(): ?WP_Error {
+			if (!class_exists('WooCommerce') || !class_exists('MPTBM_Booking_Mode') || !MPTBM_Booking_Mode::is_woocommerce()) {
+				return new WP_Error('mptbm_app_booking_unsupported', esc_html__('Booking in the app is not available for this service yet.', 'ecab-taxi-booking-manager'), array('status' => 501));
+			}
+			return null;
+		}
+
+		/** Load the WooCommerce cart/session the way a front-end request has them. */
+		private static function load_cart(): void {
+			if (function_exists('wc_load_cart')) {
+				wc_load_cart();
+			}
+		}
+
+		public static function checkout(): WC_Checkout {
+			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_App_Checkout.php';
+			return new MPTBM_App_Checkout();
+		}
+
+		/** The cart session and PHP session cookies are of no use to a stateless API client. */
+		private static function drop_cookies(): void {
+			if (!headers_sent()) {
+				header_remove('Set-Cookie');
+			}
+		}
+
+		/* ------------------------------------------------------------ checkout fields */
+
+		/** Value stored on the customer for a checkout field, so the form can start filled in. */
+		private static function default_value(string $key, int $user_id) {
+			$value = $user_id ? (string) get_user_meta($user_id, $key, true) : '';
+			return '' === $value && 'billing_country' === $key ? (string) WC()->countries->get_base_country() : $value;
+		}
+
+		private static function countries(): array {
+			$out = array();
+			foreach (WC()->countries->get_allowed_countries() as $code => $name) {
+				$out[] = array('value' => $code, 'label' => $name);
+			}
+			return $out;
+		}
+
+		/** @return array the fields the site's checkout asks for, and what the customer must accept */
+		public static function checkout_form(int $user_id = 0): array {
+			self::load_cart();
+			$sections = WC()->checkout()->get_checkout_fields();
+			$fields = array();
+			foreach (array('billing', 'order') as $section) {
+				foreach ((array) ($sections[$section] ?? array()) as $key => $field) {
+					$type = isset($field['type']) ? (string) $field['type'] : 'text';
+					$options = array();
+					if ('country' === $type) {
+						$options = self::countries();
+						$type = 'select';
+					} elseif ('state' === $type) {
+						$type = 'state'; // a list once the country is chosen (GET /checkout/states), free text if it has none
+					} elseif ('select' === $type || 'radio' === $type) {
+						foreach ((array) ($field['options'] ?? array()) as $value => $label) {
+							$options[] = array('value' => (string) $value, 'label' => wp_strip_all_tags((string) $label));
+						}
+						$type = 'select';
+					}
+					$fields[] = array(
+						'key' => (string) $key,
+						'section' => $section,
+						'label' => wp_strip_all_tags((string) ($field['label'] ?? $key)),
+						'type' => $type,
+						'required' => !empty($field['required']),
+						'placeholder' => wp_strip_all_tags((string) ($field['placeholder'] ?? '')),
+						'options' => $options,
+						'value' => 'order' === $section ? '' : self::default_value((string) $key, $user_id),
+						'validate' => array_values((array) ($field['validate'] ?? array())),
+					);
+				}
+			}
+
+			$terms = null;
+			if (function_exists('wc_terms_and_conditions_checkbox_enabled') && wc_terms_and_conditions_checkbox_enabled()) {
+				$terms = array(
+					'required' => true,
+					'text' => trim(wp_strip_all_tags(wc_replace_policy_page_link_placeholders(wc_get_terms_and_conditions_checkbox_text()))),
+					'url' => wc_terms_and_conditions_page_id() ? (string) get_permalink(wc_terms_and_conditions_page_id()) : '',
+				);
+			}
+			return array('fields' => $fields, 'terms' => $terms);
+		}
+
+		/** The states / regions WooCommerce knows for a country; empty when it has none (the field is then free text). */
+		public static function states(string $country): array {
+			$country = strtoupper(preg_replace('/[^A-Za-z]/', '', $country));
+			if (2 !== strlen($country) || !isset(WC()->countries->get_allowed_countries()[$country])) {
+				return array();
+			}
+			$states = array();
+			foreach ((array) WC()->countries->get_states($country) as $code => $name) {
+				$states[] = array('value' => (string) $code, 'label' => wp_strip_all_tags((string) $name));
+			}
+			return $states;
+		}
+
+		/* -------------------------------------------------------------------- extras */
+
+		public static function extras(int $vehicle_id): array {
+			$extras = array();
+			foreach (MPTBM_Function::get_available_extra_services($vehicle_id) as $service) {
+				$extras[] = array('name' => $service['service_name'], 'price' => (float) $service['service_price']);
+			}
+			$stoppages = array();
+			foreach (MPTBM_Function::get_available_stoppages($vehicle_id) as $stoppage) {
+				$stoppages[] = array(
+					'id' => $stoppage['id'],
+					'name' => wp_strip_all_tags($stoppage['name']),
+					'description' => wp_strip_all_tags($stoppage['description']),
+					'duration' => wp_strip_all_tags((string) $stoppage['duration']),
+					'price' => (float) $stoppage['price'],
+				);
+			}
+			return array('extras' => $extras, 'stoppages' => $stoppages);
+		}
+
+		/* ------------------------------------------------------------------- booking */
+
+		private static function error(string $code, string $message, int $status = 400, array $data = array()): WP_Error {
+			return new WP_Error($code, $message, array_merge(array('status' => $status), $data));
+		}
+
+		/**
+		 * @param array $in quote_id, vehicle_id, extras [{name, qty}], stoppages [id], billing {field: value},
+		 *                  payment_method, order_notes, accept_terms
+		 * @return array|WP_Error the placed booking
+		 */
+		public static function create(array $in, int $user_id) {
+			if ($unsupported = self::available()) {
+				return $unsupported;
+			}
+			$quote = MPTBM_App_Quote::load((string) ($in['quote_id'] ?? ''));
+			if (!$quote) {
+				return self::error('mptbm_app_quote_expired', esc_html__('Your fare quote expired. Please search for the trip again.', 'ecab-taxi-booking-manager'), 410);
+			}
+			$vehicle_id = absint($in['vehicle_id'] ?? 0);
+			$offered = $quote['vehicles'][$vehicle_id] ?? null;
+			if (!$offered || empty($offered['available'])) {
+				return self::error('mptbm_app_vehicle_unavailable', esc_html__('This vehicle is not available for the trip. Please choose another.', 'ecab-taxi-booking-manager'), 409);
+			}
+			if (($offered['price']['display_type'] ?? 'normal') !== 'normal') {
+				return self::error('mptbm_app_price_on_request', esc_html__('This vehicle has no fixed price. Please contact us to book it.', 'ecab-taxi-booking-manager'), 409);
+			}
+			$trip = $quote['trip'];
+
+			// Same trip, same session keys, same search context as when the fare was quoted.
+			wp_set_current_user($user_id);
+			self::load_cart();
+			MPTBM_App_Quote::restore_session((array) $quote['session']);
+			MPTBM_Function::set_search_context((array) $quote['context']);
+
+			$extras = array();
+			foreach (array_slice((array) ($in['extras'] ?? array()), 0, 50) as $extra) {
+				if (is_array($extra) && !empty($extra['name']) && absint($extra['qty'] ?? 0) > 0) {
+					$extras[] = array('name' => sanitize_text_field((string) $extra['name']), 'qty' => min(100, absint($extra['qty'])));
+				}
+			}
+			$saved_post = $_POST;
+			$_POST = self::posted_fields($in, $trip, $vehicle_id, $extras);
+			// The website stores passengers and bags only when a Pro search filter asks for them; the
+			// app always collects them and the driver needs them.
+			$party = static function (array $data) use ($trip): array {
+				$data['mptbm_passengers'] = $data['mptbm_passengers'] ?? (int) $trip['passengers'];
+				if (!empty($trip['bags'])) {
+					$data['mptbm_bags'] = $data['mptbm_bags'] ?? (int) $trip['bags'];
+				}
+				return $data;
+			};
+			add_filter('mptbm_add_cart_item', $party, 99);
+			$record_party = static function ($item, $cart_item_key, $values): void {
+				if (!empty($values['mptbm_passengers']) && '' === (string) $item->get_meta('_mptbm_passengers')) {
+					$item->add_meta_data(mptbm_get_translation('number_of_passengers_label', __('Number of Passengers', 'ecab-taxi-booking-manager')), absint($values['mptbm_passengers']));
+					$item->add_meta_data('_mptbm_passengers', absint($values['mptbm_passengers']));
+				}
+			};
+			add_action('woocommerce_checkout_create_order_line_item', $record_party, 100, 3); // after the plugin's own line-item handler
+
+			try {
+				WC()->cart->empty_cart();
+				wc_clear_notices();
+				$product_id = class_exists('MPTBM_Hidden_Product') ? MPTBM_Hidden_Product::get_or_create_wc_product($vehicle_id) : 0;
+				// WC_Cart::add_to_cart() does not validate; the website's add-to-cart handler runs this filter first
+				// (extras, capacity and the verified quote are checked there), so the app must too.
+				$product_id = (int) apply_filters('woocommerce_add_to_cart_product_id', $product_id);
+				$passed = $product_id && apply_filters('woocommerce_add_to_cart_validation', true, $product_id, 1);
+				$cart_key = $passed ? WC()->cart->add_to_cart($product_id, 1) : false;
+				if (!$cart_key) {
+					return self::cart_refused();
+				}
+
+				// The fare is calculated again by the cart; it must be the fare the customer was shown.
+				$line = WC()->cart->get_cart_item($cart_key);
+				$quoted = (float) $offered['price']['transport'];
+				if (abs((float) ($line['mptbm_base_price'] ?? -1) - $quoted) > 0.01) {
+					return self::error('mptbm_app_fare_changed', esc_html__('The fare for this trip has changed. Please search again.', 'ecab-taxi-booking-manager'), 409);
+				}
+
+				$order = self::checkout()->place();
+				if (is_wp_error($order)) {
+					return $order;
+				}
+				return self::finish($order, sanitize_key((string) ($in['payment_method'] ?? '')), $user_id);
+			} finally {
+				remove_filter('mptbm_add_cart_item', $party, 99);
+				remove_action('woocommerce_checkout_create_order_line_item', $record_party, 100);
+				$_POST = $saved_post;
+				if (function_exists('WC') && WC()->cart) {
+					WC()->cart->empty_cart();
+				}
+				wc_clear_notices();
+				self::drop_cookies();
+			}
+		}
+
+		private static function cart_refused(): WP_Error {
+			$message = esc_html__('We could not add this booking. Please search again.', 'ecab-taxi-booking-manager');
+			foreach (wc_get_notices('error') as $notice) {
+				$text = trim(wp_strip_all_tags((string) ($notice['notice'] ?? '')));
+				if ('' !== $text) {
+					$message = $text;
+					break;
+				}
+			}
+			wc_clear_notices();
+			return self::error('mptbm_app_cart_refused', $message, 409);
+		}
+
+		/** What the website's booking form would have posted for this selection. */
+		private static function posted_fields(array $in, array $trip, int $vehicle_id, array $extras): array {
+			$post = array(
+				'mptbm_start_place' => $trip['start']['name'],
+				'mptbm_end_place' => $trip['end']['name'] ?? '',
+				'mptbm_original_price_base' => $trip['price_based'],
+				'mptbm_date' => $trip['date'] . ' ' . $trip['time'],
+				'transport_quantity' => 1,
+				'mptbm_extra_service' => array_column($extras, 'name'),
+				'mptbm_extra_service_qty' => array_column($extras, 'qty'),
+				'mptbm_stoppage_id' => array_values(array_filter(array_map('absint', (array) ($in['stoppages'] ?? array())))),
+				'mptbm_max_passenger' => (int) $trip['passengers'],
+				'payment_method' => sanitize_key((string) ($in['payment_method'] ?? '')),
+				'order_comments' => sanitize_textarea_field((string) ($in['order_notes'] ?? '')),
+			);
+			if (!empty($trip['bags'])) {
+				$post['mptbm_max_bag'] = (int) $trip['bags'];
+			}
+			if (!empty($in['accept_terms'])) {
+				$post['terms'] = 'on';
+			}
+			$post['terms-field'] = '1';
+			foreach ((array) ($in['billing'] ?? array()) as $key => $value) {
+				if (is_string($key) && preg_match('/^[a-z0-9_]{1,60}$/i', $key) && (is_scalar($value))) {
+					$post[$key] = (string) $value;
+				}
+			}
+			// WordPress slashes $_POST on a normal request and the plugin and WooCommerce unslash it; do the same.
+			return wp_slash($post);
+		}
+
+		/** Take payment where the server can, otherwise hand the customer a payment page. */
+		private static function finish(WC_Order $order, string $method, int $user_id): array {
+			$payment = array('method' => $method, 'title' => $order->get_payment_method_title(), 'type' => 'none', 'instructions' => '', 'pay_url' => '');
+			if (!$order->needs_payment()) {
+				$order->payment_complete();
+			} else {
+				$gateways = WC()->payment_gateways()->payment_gateways();
+				$gateway = $gateways[$method] ?? null;
+				if ($gateway && in_array($method, self::OFFLINE_GATEWAYS, true)) {
+					$result = $gateway->process_payment($order->get_id());
+					$payment['type'] = 'offline';
+					$payment['instructions'] = trim(wp_strip_all_tags((string) ($gateway->instructions ?? '')));
+					if (!is_array($result) || 'success' !== ($result['result'] ?? '')) {
+						$order->update_status('failed', esc_html__('Offline payment could not be started from the app.', 'ecab-taxi-booking-manager'));
+					}
+				} else {
+					$payment['type'] = 'online';
+					$payment['pay_url'] = self::pay_link($order, $user_id);
+				}
+			}
+			$order = wc_get_order($order->get_id()); // statuses may have moved while paying
+			return array('booking' => self::summary($order), 'payment' => $payment);
+		}
+
+		/* -------------------------------------------------------------- reading orders */
+
+		private static function order_items(WC_Order $order): array {
+			$trips = array();
+			foreach ($order->get_items() as $item) {
+				$vehicle_id = (int) $item->get_meta('_mptbm_id');
+				if (!$vehicle_id) {
+					continue;
+				}
+				$services = $item->get_meta('_mptbm_service_info');
+				$stoppages = $item->get_meta('_mptbm_stoppage_info');
+				$stops = $item->get_meta('_mptbm_extra_stop_place');
+				$trips[] = array(
+					'vehicle_id' => $vehicle_id,
+					'vehicle' => wp_strip_all_tags(get_the_title($vehicle_id)),
+					'pickup' => wp_strip_all_tags((string) $item->get_meta('_mptbm_start_place')),
+					'dropoff' => wp_strip_all_tags((string) $item->get_meta('_mptbm_end_place')),
+					'extra_stops' => array_map('wp_strip_all_tags', array_values(array_filter((array) $stops))),
+					'date' => (string) $item->get_meta('_mptbm_date'),
+					'return' => (int) $item->get_meta('_mptbm_taxi_return') > 1,
+					'passengers' => (int) $item->get_meta('_mptbm_passengers'),
+					'extras' => array_map(static function ($s) {
+						return array('name' => wp_strip_all_tags((string) ($s['service_name'] ?? '')), 'qty' => (int) ($s['service_quantity'] ?? 1), 'price' => (float) ($s['service_price'] ?? 0));
+					}, is_array($services) ? array_values($services) : array()),
+					'stoppages' => array_map(static function ($s) {
+						return array('name' => wp_strip_all_tags((string) ($s['stoppage_name'] ?? '')), 'price' => (float) ($s['stoppage_price'] ?? 0));
+					}, is_array($stoppages) ? array_values($stoppages) : array()),
+				);
+			}
+			return $trips;
+		}
+
+		public static function summary(WC_Order $order): array {
+			$created = $order->get_date_created();
+			return array(
+				'id' => $order->get_id(),
+				'number' => $order->get_order_number(),
+				'status' => $order->get_status(),
+				'status_label' => wc_get_order_status_name($order->get_status()),
+				'created' => $created ? $created->date('c') : '',
+				'total' => (float) $order->get_total(),
+				'currency' => $order->get_currency(),
+				'payment_title' => $order->get_payment_method_title(),
+				'needs_payment' => $order->needs_payment(),
+				'trips' => self::order_items($order),
+			);
+		}
+
+		private static function owned_order(int $order_id, int $user_id): ?WC_Order {
+			$order = $order_id ? wc_get_order($order_id) : null;
+			return ($order instanceof WC_Order && !($order instanceof WC_Order_Refund) && $user_id > 0 && (int) $order->get_customer_id() === $user_id && self::order_items($order)) ? $order : null;
+		}
+
+		public static function get(int $order_id, int $user_id) {
+			if ($unsupported = self::available()) {
+				return $unsupported;
+			}
+			$order = self::owned_order($order_id, $user_id);
+			return $order ? self::summary($order) : self::error('mptbm_app_not_found', esc_html__('Booking not found.', 'ecab-taxi-booking-manager'), 404);
+		}
+
+		public static function list(int $user_id, int $page = 1, int $per_page = 20) {
+			if ($unsupported = self::available()) {
+				return $unsupported;
+			}
+			$result = wc_get_orders(array(
+				'customer_id' => $user_id,
+				'limit' => $per_page,
+				'paged' => max(1, $page),
+				'paginate' => true,
+				'orderby' => 'date',
+				'order' => 'DESC',
+				'type' => 'shop_order',
+				'status' => array_keys(wc_get_order_statuses()),
+			));
+			$bookings = array();
+			foreach ($result->orders as $order) {
+				if (self::order_items($order)) {
+					$bookings[] = self::summary($order);
+				}
+			}
+			return array('bookings' => $bookings, 'total' => (int) $result->total, 'pages' => (int) $result->max_num_pages);
+		}
+
+		/* ------------------------------------------------------------------- payment */
+
+		/**
+		 * A single-use link that signs the customer in inside the app's payment web view and lands on the
+		 * order's payment page. Never issued to staff: their web session would be a shop-admin session.
+		 */
+		public static function pay_link(WC_Order $order, int $user_id): string {
+			$user = get_userdata($user_id);
+			if (!$user || user_can($user, 'edit_posts') || user_can($user, 'manage_woocommerce')) {
+				return '';
+			}
+			$token = wp_generate_password(40, false, false);
+			set_transient('mptbm_app_pay_' . hash('sha256', $token), array('user' => $user_id, 'order' => $order->get_id()), self::PAY_TOKEN_TTL);
+			return add_query_arg('ecab_app_pay', $token, home_url('/'));
+		}
+
+		public static function new_pay_link(int $order_id, int $user_id) {
+			if ($unsupported = self::available()) {
+				return $unsupported;
+			}
+			$order = self::owned_order($order_id, $user_id);
+			if (!$order) {
+				return self::error('mptbm_app_not_found', esc_html__('Booking not found.', 'ecab-taxi-booking-manager'), 404);
+			}
+			if (!$order->needs_payment()) {
+				return self::error('mptbm_app_nothing_to_pay', esc_html__('This booking does not need a payment.', 'ecab-taxi-booking-manager'), 409);
+			}
+			$url = self::pay_link($order, $user_id);
+			return '' === $url
+				? self::error('mptbm_app_pay_on_site', esc_html__('Please pay for this booking on the website.', 'ecab-taxi-booking-manager'), 403)
+				: array('pay_url' => $url);
+		}
+
+		/**
+		 * Spend a payment link. Single use: the token is gone whether or not it was valid.
+		 *
+		 * @return array|WP_Error ['user' => WP_User, 'order' => WC_Order]
+		 */
+		public static function consume_pay_token(string $token) {
+			$key = 'mptbm_app_pay_' . hash('sha256', $token);
+			$grant = get_transient($key);
+			delete_transient($key);
+			$order = is_array($grant) ? wc_get_order((int) $grant['order']) : null;
+			$user = is_array($grant) ? get_userdata((int) $grant['user']) : null;
+			if (!$order || !$user || (int) $order->get_customer_id() !== (int) $user->ID || !$order->needs_payment() || user_can($user, 'edit_posts') || user_can($user, 'manage_woocommerce')) {
+				return new WP_Error('mptbm_app_pay_link_expired', esc_html__('This payment link has expired. Go back to the app and try again.', 'ecab-taxi-booking-manager'), array('status' => 403));
+			}
+			return array('user' => $user, 'order' => $order);
+		}
+
+		/** Visited inside the payment web view: sign in, then go to the order's payment page. */
+		public static function pay_redirect(): void {
+			if (!isset($_GET['ecab_app_pay']) || !class_exists('WooCommerce')) {
+				return;
+			}
+			$grant = self::consume_pay_token(sanitize_text_field(wp_unslash((string) $_GET['ecab_app_pay'])));
+			if (is_wp_error($grant)) {
+				wp_die(esc_html($grant->get_error_message()), '', array('response' => 403));
+			}
+			wp_set_current_user($grant['user']->ID);
+			wp_set_auth_cookie($grant['user']->ID, false);
+			wp_safe_redirect($grant['order']->get_checkout_payment_url());
+			exit;
+		}
+	}
+	MPTBM_App_Booking::init();
+}
