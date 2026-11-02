@@ -160,6 +160,57 @@ $check(MPTBM_App_Quote::area_covers_trip($v_fixed_distance, $trip('fixed_map', $
 $check('fixed_map' === MPTBM_App_Quote::search_mode_for_model('fixed_distance'), 'fixed distance vehicles are searched as fixed_map');
 $check('dynamic' === MPTBM_App_Quote::search_mode_for_model('inclusive') && 'dynamic' === MPTBM_App_Quote::search_mode_for_model('distance_duration'), 'combined and distance models are searched as dynamic');
 
+// --- A quote is independent of other requests that share the phone's session cookie -------------------------
+// The app runs one search per pricing mode at once. If they shared a PHP session, the last to finish would
+// overwrite the saved search of the others and a later booking would be refused ("the pricing mode changed").
+// Simulate that: while a 'dynamic' quote runs on the ambient session, another request writes a different
+// mode's search into the same session. The stored quote must still describe the dynamic search.
+$respond = static function ($body) {
+	return array('headers' => array(), 'body' => wp_json_encode($body), 'response' => array('code' => 200, 'message' => 'OK'), 'cookies' => array(), 'filename' => null);
+};
+$stub = static function ($pre, $args, $url) use ($respond) {
+	parse_str((string) (wp_parse_url($url)['query'] ?? ''), $query);
+	$known = array('test pickup' => array(23.8433, 90.3978), 'test dropoff' => array(23.7806, 90.4167));
+	if (false !== strpos($url, 'photon.komoot.io')) {
+		$hit = $known[strtolower($query['q'] ?? '')] ?? null;
+		return $respond(array('type' => 'FeatureCollection', 'features' => $hit ? array(array('geometry' => array('coordinates' => array($hit[1], $hit[0])), 'properties' => array('name' => $query['q']))) : array()));
+	}
+	if (false !== strpos($url, 'router.project-osrm.org')) {
+		return $respond(array('code' => 'Ok', 'routes' => array(array('distance' => 9800, 'duration' => 900))));
+	}
+	return $pre;
+};
+add_filter('pre_http_request', $stub, 10, 3);
+$saved_map_settings = get_option('mptbm_map_api_settings', null);
+update_option('mptbm_map_api_settings', array_merge(is_array($saved_map_settings) ? $saved_map_settings : array(), array('display_map' => 'openstreetmap', 'gmap_api_key' => '', 'gmap_server_api_key' => '', 'fare_distance_source' => 'server', 'mptbm_address_verification' => 'strict')));
+ini_set('session.use_cookies', '0');
+ini_set('session.use_only_cookies', '0');
+$ambient = 'apptestambientsession';
+session_id($ambient);
+$rival = static function ($items) use ($ambient) {
+	$mine = session_id();
+	if (PHP_SESSION_ACTIVE === session_status()) {
+		session_write_close();
+	}
+	session_id($ambient); // the rival request, carrying the phone's session cookie
+	session_start();
+	$_SESSION['mptbm_search_context'] = array('price_based' => 'fixed_zone', 'created_at' => time());
+	session_write_close();
+	session_id($mine);
+	return $items;
+};
+add_filter('mptbm_search_result_items', $rival, 5);
+delete_transient('mptbm_app_rl_' . md5('quote|' . $_SERVER['REMOTE_ADDR']));
+$raced = $quote(array_merge($base, array('date' => $tomorrow, 'start' => array('name' => 'Test Pickup', 'lat' => 23.8433, 'lng' => 90.3978), 'end' => array('name' => 'Test Dropoff', 'lat' => 23.7806, 'lng' => 90.4167))));
+remove_filter('mptbm_search_result_items', $rival, 5);
+$stored = get_transient('mptbm_app_quote_' . ($raced->get_data()['quote_id'] ?? 'none'));
+$check(200 === $raced->get_status() && is_array($stored), 'the raced quote was made and stored: ' . wp_json_encode($raced->get_data()));
+$check('dynamic' === ($stored['context']['price_based'] ?? ''), 'a quote keeps its own search when another request rewrites the shared session (got ' . ($stored['context']['price_based'] ?? 'nothing') . ')');
+remove_filter('pre_http_request', $stub, 10);
+null === $saved_map_settings ? delete_option('mptbm_map_api_settings') : update_option('mptbm_map_api_settings', $saved_map_settings);
+$check(PHP_SESSION_ACTIVE !== session_status(), 'a quote leaves no session open');
+session_id(wp_generate_password(32, false, false)); // back to a private id for the rest of this file
+
 // --- Fixed routes and manual (listed) locations: no map points, the shop's own price table ----------------
 $route_id = $make('mptbm_routes', array());
 wp_update_post(array('ID' => $route_id, 'post_title' => 'Apptest City Tour'));

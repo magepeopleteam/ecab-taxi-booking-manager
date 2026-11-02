@@ -465,7 +465,11 @@ if (!class_exists('MPTBM_App_Api')) {
 
 		public function get_checkout_form($request) {
 			$unsupported = MPTBM_App_Booking::available();
-			return $unsupported ?: new WP_REST_Response(MPTBM_App_Booking::checkout_form(get_current_user_id()), 200);
+			$response = $unsupported ?: new WP_REST_Response(MPTBM_App_Booking::checkout_form(get_current_user_id()), 200);
+			if (!headers_sent()) {
+				header_remove('Set-Cookie'); // loading the cart starts a WooCommerce session the stateless app does not use
+			}
+			return $response;
 		}
 
 		public function get_states($request) {
