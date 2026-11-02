@@ -175,6 +175,7 @@ if (!class_exists('MPTBM_App_Quote')) {
 				return new WP_Error('mptbm_app_unavailable', esc_html__('Booking is not available right now.', 'ecab-taxi-booking-manager'), array('status' => 503));
 			}
 
+			self::isolate_session();
 			$items = array();
 			$collector = static function ($list) use (&$items) {
 				$items = is_array($list) ? $list : array();
@@ -194,11 +195,8 @@ if (!class_exists('MPTBM_App_Quote')) {
 				remove_filter('mptbm_search_result_items', $collector, PHP_INT_MAX);
 				$_POST = $saved_post;
 			}
-			// The pipeline starts a PHP session for its geo-fence bookkeeping; the API is stateless.
-			if (!headers_sent()) {
-				header_remove('Set-Cookie');
-			}
 			if ($wp_error) {
+				self::end_session();
 				return $wp_error;
 			}
 
@@ -250,9 +248,45 @@ if (!class_exists('MPTBM_App_Quote')) {
 				'session' => self::session_snapshot(),
 				'created' => time(),
 			), self::TTL);
+			self::end_session();
 			$quote['quote_id'] = $quote_id;
 			$quote['expires_in'] = self::TTL;
 			return $quote;
+		}
+
+		/**
+		 * Run the next steps in a PHP session of their own, and never hand the client a session cookie.
+		 *
+		 * The website's search and checkout keep their working state (the search context, geo-fence fee, area
+		 * matches) in the visitor's PHP session. The app is stateless and runs one search per pricing mode at
+		 * the same time; if the phone kept a session cookie they would all share one session and overwrite each
+		 * other's search, and a later booking would find the search of a different mode ("the pricing mode
+		 * changed"). A private session per call makes every quote and every booking independent of the others.
+		 */
+		public static function isolate_session(): void {
+			if (session_status() === PHP_SESSION_ACTIVE) {
+				session_write_close();
+			}
+			if (headers_sent()) {
+				return; // sessions cannot be started now; the website's own code copes the same way
+			}
+			ini_set('session.use_cookies', '0');
+			ini_set('session.use_only_cookies', '0');
+			ini_set('session.use_trans_sid', '0');
+			session_id(wp_generate_password(32, false, false));
+		}
+
+		/** Throw the private session away; its content now lives in the stored quote (or in the order). */
+		public static function end_session(): void {
+			if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
+				@session_start();
+			}
+			if (session_status() === PHP_SESSION_ACTIVE) {
+				session_destroy();
+			}
+			if (!headers_sent()) {
+				header_remove('Set-Cookie');
+			}
 		}
 
 		/** A stored quote, or null when the id is unknown or has expired. */

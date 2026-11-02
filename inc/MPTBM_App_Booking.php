@@ -173,7 +173,9 @@ if (!class_exists('MPTBM_App_Booking')) {
 			}
 			$trip = $quote['trip'];
 
-			// Same trip, same session keys, same search context as when the fare was quoted.
+			// Same trip, same session keys, same search context as when the fare was quoted - in a session of its
+			// own, so a simultaneous request from the same phone cannot swap the search for another one.
+			MPTBM_App_Quote::isolate_session();
 			wp_set_current_user($user_id);
 			self::load_cart();
 			MPTBM_App_Quote::restore_session((array) $quote['session']);
@@ -238,6 +240,7 @@ if (!class_exists('MPTBM_App_Booking')) {
 					WC()->cart->empty_cart();
 				}
 				wc_clear_notices();
+				MPTBM_App_Quote::end_session();
 				self::drop_cookies();
 			}
 		}
