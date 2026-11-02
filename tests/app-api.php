@@ -62,6 +62,41 @@ update_option('mptbm_app_settings', array('brand_color' => '#fde047'));
 $check('#111827' === $call('GET', '/config')->get_data()['brand']['on_primary'], 'a light brand colour gets dark text');
 delete_option('mptbm_app_settings');
 
+// --- The search form follows the website's booking form -------------------------------------------------
+$saved_app = get_option('mptbm_app_settings', null);
+$saved_general = get_option('mptbm_general_settings', null);
+$form = static function (array $app = array(), array $general = array()) use ($call, $saved_general): array {
+	update_option('mptbm_app_settings', $app);
+	update_option('mptbm_general_settings', array_merge(is_array($saved_general) ? $saved_general : array(), $general));
+	delete_transient('mptbm_app_detected_tabs');
+	return array_column($call('GET', '/config')->get_data()['search_form']['tabs'], null, 'key');
+};
+$order = static function (array $tabs): string {
+	return implode(',', array_keys($tabs));
+};
+$tabs = $form(array('trip_tabs' => 'hourly, distance ,flat-rate,bogus,hourly'));
+$check('hourly,distance,manual' === $order($tabs), 'the tabs follow the configured order, accept the website\'s names and drop unknown or repeated ones (got ' . $order($tabs) . ')');
+$check('fixed_hourly' === $tabs['hourly']['price_based'] && 'dynamic' === $tabs['distance']['price_based'] && 'manual' === $tabs['manual']['price_based'], 'each tab runs its own pricing mode');
+$check('Hourly' === $tabs['hourly']['label'] && 'Flat rate' === $tabs['manual']['label'], 'tab labels are the website\'s');
+$check(array('unit' => 'hour', 'min' => 1, 'max' => 12) === $tabs['hourly']['duration'] && null === $tabs['distance']['duration'], 'only the hourly tab asks for hours');
+$check(false === $tabs['hourly']['return'] && false === $tabs['hourly']['waiting'], 'the hourly tab has no return trip or waiting time, like the website');
+$check('map' === $tabs['hourly']['dropoff'] && 'map' === $tabs['hourly']['pickup'], 'the hourly tab asks for a drop-off by default');
+$check('manual' === $tabs['manual']['pickup'] && 'manual' === $tabs['manual']['dropoff'], 'the flat-rate tab picks both places from the shop\'s list');
+$tabs = $form(array('trip_tabs' => 'hourly,daily,fixed_route'), array('disable_dropoff_hourly' => 'disable', 'minimum_booking_hours' => '3', 'minimum_booking_days' => '2', 'show_number_of_passengers' => 'yes'));
+$check('none' === $tabs['hourly']['dropoff'], 'the hourly drop-off is hidden when the shop turns it off');
+$check(3 === $tabs['hourly']['duration']['min'] && array('unit' => 'day', 'min' => 2, 'max' => 30) === $tabs['daily']['duration'], 'the shortest booking comes from the shop\'s settings');
+$check('none' === $tabs['fixed_route']['dropoff'] && 'fixed_route' === $tabs['fixed_route']['pickup'], 'a fixed route is one choice with no drop-off');
+$check(true === $tabs['daily']['passengers'], 'the passenger count is asked for when the shop turns it on');
+$tabs = $form(array('trip_tabs' => 'distance'), array('mptbm_extra_stop_between_pickup_dropoff' => 'yes', 'mptbm_max_extra_stops' => '2', 'taxi_return' => 'enable', 'taxi_waiting_time' => 'enable', 'transfer_type' => 'enable', 'show_number_of_passengers' => 'no'));
+$check(2 === $tabs['distance']['extra_stops'] && true === $tabs['distance']['return'] && true === $tabs['distance']['waiting'] && false === $tabs['distance']['passengers'], 'the distance tab offers stops, return and waiting time as configured');
+$tabs = $form(array('trip_tabs' => 'distance,manual'), array('mptbm_extra_stop_between_pickup_dropoff' => 'yes', 'transfer_type' => 'disable'));
+$check(0 === $tabs['manual']['extra_stops'] && false === $tabs['distance']['return'], 'stops are not offered on the flat-rate tab and the return trip can be switched off');
+$tabs = $form(array());
+$check(count($tabs) >= 1, 'with nothing configured the app still gets the website\'s tabs');
+null === $saved_app ? delete_option('mptbm_app_settings') : update_option('mptbm_app_settings', $saved_app);
+null === $saved_general ? delete_option('mptbm_general_settings') : update_option('mptbm_general_settings', $saved_general);
+delete_transient('mptbm_app_detected_tabs');
+
 $vehicles = $call('GET', '/vehicles', array());
 $check(200 === $vehicles->get_status() && is_array($vehicles->get_data()), 'vehicles list is public');
 $check(isset($vehicles->get_headers()['X-WP-Total']), 'vehicles list reports a total');

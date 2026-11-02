@@ -638,7 +638,7 @@ if (!class_exists('MPTBM_App_Api')) {
 					'return_on_different_date' => 'yes' === MP_Global_Function::get_settings($general, 'enable_return_in_different_date', 'no'),
 					'extra_stops' => 'yes' === MP_Global_Function::get_settings($general, 'mptbm_extra_stop_between_pickup_dropoff', 'no'),
 					'max_extra_stops' => (int) MP_Global_Function::get_settings($general, 'mptbm_max_extra_stops', 0),
-					'show_passengers' => 'no' !== MP_Global_Function::get_settings($general, 'show_number_of_passengers', 'yes'),
+					'show_passengers' => 'yes' === MP_Global_Function::get_settings($general, 'show_number_of_passengers', 'no'),
 					'no_vehicle_message' => (string) MP_Global_Function::get_settings($general, 'no_transport_message', ''),
 				),
 				'payment' => array(
@@ -658,6 +658,11 @@ if (!class_exists('MPTBM_App_Api')) {
 				),
 				'price_modes' => $this->price_modes(),
 				'search_modes' => $this->search_modes(),
+				'search_form' => array(
+					'tabs' => MPTBM_App_Form::definition(),
+					'return_on_other_date' => 'yes' === MP_Global_Function::get_settings($general, 'enable_return_in_different_date', 'no'),
+					'use_my_location' => 'no' !== MP_Global_Function::get_settings($general, 'mptbm_enable_use_my_location', 'yes'),
+				),
 				'links' => array(
 					'terms' => function_exists('wc_terms_and_conditions_page_id') && wc_terms_and_conditions_page_id() ? get_permalink(wc_terms_and_conditions_page_id()) : '',
 					'privacy' => get_privacy_policy_url(),

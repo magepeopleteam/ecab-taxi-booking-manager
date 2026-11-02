@@ -53,6 +53,7 @@ if (!class_exists('MPTBM_Dependencies')) {
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Query.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Layout.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Rest_Api.php';
+			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_App_Form.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_App_Quote.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_App_Places.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_App_Booking.php';
