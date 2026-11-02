@@ -63,6 +63,24 @@ for ($i = 0; $i < 32; $i++) {
 $check(429 === $last, 'quotes are rate limited');
 delete_transient('mptbm_app_rl_' . md5('quote|' . $_SERVER['REMOTE_ADDR']));
 
+// --- Place suggestions (validation only; the lookup itself needs the network) ----------------------
+$places = static function (string $route, array $query): WP_REST_Response {
+	$request = new WP_REST_Request('GET', '/ecab-app/v1' . $route);
+	$request->set_query_params($query);
+	return rest_do_request($request);
+};
+delete_transient('mptbm_app_rl_' . md5('places|' . $_SERVER['REMOTE_ADDR']));
+$check(400 === $places('/places/search', array('q' => 'a'))->get_status(), 'a one-letter place search is rejected');
+$check(400 === $places('/places/search', array())->get_status(), 'a place search needs a query');
+$check(400 === $places('/places/search', array('q' => 'abc', 'lat' => '999', 'lng' => '1'))->get_status(), 'an out-of-range bias latitude is rejected');
+$check(400 === $places('/places/reverse', array('lat' => '12'))->get_status(), 'reverse lookup needs both coordinates');
+$check(400 === $places('/places/reverse', array('lat' => '12', 'lng' => '500'))->get_status(), 'reverse lookup rejects an impossible longitude');
+$labels = new ReflectionMethod('MPTBM_App_Places', 'label');
+$labels->setAccessible(true);
+$check('Gulshan 1, Gulshan Avenue, Gulshan, Dhaka, Bangladesh' === $labels->invoke(null, array('name' => 'Gulshan 1', 'street' => 'Gulshan Avenue', 'district' => 'Gulshan', 'city' => 'Dhaka', 'state' => 'Dhaka', 'country' => 'Bangladesh')), 'a place label drops repeated parts');
+$check('' === $labels->invoke(null, array()), 'a place with no usable name has an empty label');
+delete_transient('mptbm_app_rl_' . md5('places|' . $_SERVER['REMOTE_ADDR']));
+
 // --- Operation area / geo-fence rules --------------------------------------------------------------
 $square = static function (float $lat, float $lng, float $size = 0.1): array {
 	return array($lat, $lng, $lat + $size, $lng, $lat + $size, $lng + $size, $lat, $lng + $size);
