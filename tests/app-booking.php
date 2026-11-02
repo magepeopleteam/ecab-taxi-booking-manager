@@ -327,6 +327,28 @@ try {
 		$check(501 === $call('POST', '/bookings/' . $order->get_id() . '/cancel', array(), $token)->get_status(), 'without Pro, cancelling answers 501');
 	}
 
+	// --- A fixed route books like any other trip, priced from the shop's table ---------------------------------
+	$fixtures = array();
+	$route_post = wp_insert_post(array('post_type' => 'mptbm_routes', 'post_status' => 'publish', 'post_title' => 'Apptest Booking Tour'));
+	$route_car = wp_insert_post(array('post_type' => MPTBM_Function::get_cpt(), 'post_status' => 'publish', 'post_title' => 'Apptest Route Car'));
+	$fixtures = array($route_post, $route_car);
+	update_post_meta($route_car, 'mptbm_price_based', 'fixed_route');
+	update_post_meta($route_car, 'mptbm_assigned_routes', array(array('route_id' => $route_post, 'price' => 80)));
+	$clear_limits();
+	$route_quote = $call('POST', '/quote', array('price_based' => 'fixed_route', 'start' => array('name' => 'Apptest Booking Tour'), 'date' => $when, 'time' => '09:00', 'passengers' => 1))->get_data();
+	$clear_limits();
+	$route_booking = $call('POST', '/bookings', array('quote_id' => $route_quote['quote_id'] ?? '', 'vehicle_id' => $route_car, 'billing' => $billing(), 'payment_method' => 'cod', 'accept_terms' => true), $token);
+	$check(201 === $route_booking->get_status(), 'a fixed-route booking is placed: ' . wp_json_encode($route_booking->get_data()));
+	$route_order = wc_get_order((int) ($route_booking->get_data()['booking']['id'] ?? 0));
+	if ($route_order) {
+		$created_orders[] = $route_order->get_id();
+		$check(abs((float) $route_order->get_total() - 80.0) < 0.01, 'the fixed-route order total is the route price');
+		$check('Apptest Booking Tour' === ($route_booking->get_data()['booking']['trips'][0]['pickup'] ?? ''), 'the order records the route as the pick-up');
+	}
+	foreach ($fixtures as $fixture_id) {
+		wp_delete_post($fixture_id, true);
+	}
+
 	$plain = wc_create_order(array('customer_id' => (int) $customer['user']['id']));
 	$created_orders[] = $plain->get_id();
 	$check(404 === $call('GET', '/bookings/' . $plain->get_id(), array(), $token)->get_status(), 'an order that is not a taxi booking is not exposed');
