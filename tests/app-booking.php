@@ -291,6 +291,17 @@ try {
 
 	// --- Cancel / change requests (Pro) and the driver ---------------------------------------------------------
 	$pro = MPTBM_App_Booking::changes_supported();
+	$had_pdf_library = class_exists('\\Mpdf\\Mpdf');
+	if ($pro && !$had_pdf_library) {
+		class_alias('stdClass', 'Mpdf\\Mpdf'); // stand-in: the receipt link is only built, no PDF is rendered here
+	}
+	$ticket = (string) $call('GET', '/bookings/' . $order->get_id(), array(), $token)->get_data()['ticket_url'];
+	if ($pro && class_exists('\\Mpdf\\Mpdf') && class_exists('MPTBM_Pro_Pdf')) {
+		$check(false !== strpos($ticket, 'action=mptbm_generate_pdf') && false !== strpos($ticket, 'order_key=' . $order->get_order_key()) && false !== strpos($ticket, '_wpnonce='), 'a confirmed booking has a receipt link carrying the order key');
+		$check('' === (string) $call('GET', '/bookings/' . $online_order->get_id(), array(), $token)->get_data()['ticket_url'], 'a booking awaiting payment has no receipt link');
+	} else {
+		$check('' === $ticket, 'without Pro and its PDF library there is no receipt link');
+	}
 	$detail = $call('GET', '/bookings/' . $order->get_id(), array(), $token)->get_data();
 	$check($pro === $detail['can_cancel'] && $pro === $detail['can_modify'], 'cancel and change are offered exactly when Pro can handle them');
 	if ($pro) {
