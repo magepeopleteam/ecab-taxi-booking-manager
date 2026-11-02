@@ -73,6 +73,26 @@ if (!class_exists('MPTBM_App_Api')) {
 				'permission_callback' => array($this, 'permission_quote'),
 			));
 
+			register_rest_route(self::NAMESPACE_ID, '/places/search', array(
+				'methods' => 'GET',
+				'callback' => array($this, 'search_places'),
+				'permission_callback' => array($this, 'permission_places'),
+				'args' => array(
+					'q' => array('type' => 'string', 'required' => true),
+					'lat' => array('type' => 'number', 'minimum' => -90, 'maximum' => 90),
+					'lng' => array('type' => 'number', 'minimum' => -180, 'maximum' => 180),
+				),
+			));
+			register_rest_route(self::NAMESPACE_ID, '/places/reverse', array(
+				'methods' => 'GET',
+				'callback' => array($this, 'reverse_place'),
+				'permission_callback' => array($this, 'permission_places'),
+				'args' => array(
+					'lat' => array('type' => 'number', 'required' => true, 'minimum' => -90, 'maximum' => 90),
+					'lng' => array('type' => 'number', 'required' => true, 'minimum' => -180, 'maximum' => 180),
+				),
+			));
+
 			register_rest_route(self::NAMESPACE_ID, '/auth/register', array(
 				'methods' => 'POST',
 				'callback' => array($this, 'register_customer'),
@@ -123,6 +143,11 @@ if (!class_exists('MPTBM_App_Api')) {
 		/** A quote geocodes and routes on the server, so it gets a tighter budget than plain reads. */
 		public function permission_quote($request) {
 			return $this->rate_limit('quote', 30, MINUTE_IN_SECONDS);
+		}
+
+		/** Typing fires many searches; cached answers are free, the budget guards outbound lookups. */
+		public function permission_places($request) {
+			return $this->rate_limit('places', 90, MINUTE_IN_SECONDS);
 		}
 
 		public function permission_customer($request) {
@@ -388,6 +413,23 @@ if (!class_exists('MPTBM_App_Api')) {
 				return new WP_REST_Response($this->token_response($user_id), 200); // new session for this device
 			}
 			return new WP_REST_Response($this->prepare_user($user_id), 200);
+		}
+
+		/* ----------------------------------------------------------------------- places */
+
+		public function search_places($request) {
+			$lat = $request->get_param('lat');
+			$lng = $request->get_param('lng');
+			$places = MPTBM_App_Places::search((string) $request->get_param('q'), null !== $lat && null !== $lng ? (float) $lat : null, null !== $lat && null !== $lng ? (float) $lng : null);
+			return is_wp_error($places) ? $places : new WP_REST_Response($places, 200);
+		}
+
+		public function reverse_place($request) {
+			$places = MPTBM_App_Places::reverse((float) $request->get_param('lat'), (float) $request->get_param('lng'));
+			if (is_wp_error($places)) {
+				return $places;
+			}
+			return new WP_REST_Response($places ? $places[0] : null, 200);
 		}
 
 		/* ------------------------------------------------------------------------ quote */
