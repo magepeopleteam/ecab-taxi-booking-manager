@@ -226,11 +226,70 @@ if (!class_exists('MPTBM_App_Quote')) {
 				'no_vehicle_message' => $vehicles ? '' : wp_strip_all_tags((string) MP_Global_Function::get_settings('mptbm_general_settings', 'no_transport_message', esc_html__('No Transport Available !', 'ecab-taxi-booking-manager'))),
 			);
 
+			// Everything the booking step needs to price this exact trip again on the server: the trip, the
+			// per-vehicle fare and availability, the search context, and the session keys the pricing code
+			// reads (geo-fence fee and area matches). The customer only ever holds the random id.
 			$quote_id = wp_generate_password(32, false, false);
-			set_transient('mptbm_app_quote_' . $quote_id, array('trip' => $trip, 'vehicles' => array_column($vehicles, 'price', 'id'), 'created' => time()), self::TTL);
+			$stored = array();
+			foreach ($vehicles as $vehicle) {
+				$stored[$vehicle['id']] = array('price' => $vehicle['price'], 'available' => $vehicle['available']);
+			}
+			set_transient('mptbm_app_quote_' . $quote_id, array(
+				'trip' => $trip,
+				'vehicles' => $stored,
+				'context' => $context,
+				'session' => self::session_snapshot(),
+				'created' => time(),
+			), self::TTL);
 			$quote['quote_id'] = $quote_id;
 			$quote['expires_in'] = self::TTL;
 			return $quote;
+		}
+
+		/** A stored quote, or null when the id is unknown or has expired. */
+		public static function load(string $quote_id): ?array {
+			if (!preg_match('/^[A-Za-z0-9]{32}$/', $quote_id)) {
+				return null;
+			}
+			$quote = get_transient('mptbm_app_quote_' . $quote_id);
+			return is_array($quote) && isset($quote['trip'], $quote['vehicles'], $quote['context']) ? $quote : null;
+		}
+
+		/** Session keys the pricing and checkout code reads for the trip just searched. */
+		private const SESSION_KEYS = '/^((geo_fence_post|mptbm_operation_area_match|mptbm_fixed_distance_match)_\d+|mptbm_search_context|mptbm_secure_(distance|duration|start_place|end_place)|pickup_lat|pickup_lng|drop_lat|drop_lng)$/';
+
+		private static function session_snapshot(): array {
+			if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
+				session_start(); // reload what the search pipeline last wrote
+			}
+			$copy = session_status() === PHP_SESSION_ACTIVE ? $_SESSION : array();
+			if (session_status() === PHP_SESSION_ACTIVE) {
+				session_write_close();
+			}
+			return array_filter($copy, static function ($key) {
+				return (bool) preg_match(self::SESSION_KEYS, (string) $key);
+			}, ARRAY_FILTER_USE_KEY);
+		}
+
+		/** Put a stored quote's session keys back, so pricing at booking time sees what the search saw. */
+		public static function restore_session(array $snapshot): void {
+			if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
+				session_start();
+			}
+			if (session_status() !== PHP_SESSION_ACTIVE) {
+				return;
+			}
+			foreach (array_keys($_SESSION) as $key) {
+				if (preg_match(self::SESSION_KEYS, (string) $key)) {
+					unset($_SESSION[$key]);
+				}
+			}
+			foreach ($snapshot as $key => $value) {
+				if (preg_match(self::SESSION_KEYS, (string) $key)) {
+					$_SESSION[$key] = $value;
+				}
+			}
+			session_write_close(); // later session_start() calls in the pricing code re-read what is saved here
 		}
 
 		/** @return array|null null when the vehicle cannot take this trip */

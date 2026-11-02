@@ -55,6 +55,7 @@ if (!class_exists('MPTBM_Dependencies')) {
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_Rest_Api.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_App_Quote.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_App_Places.php';
+			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_App_Booking.php';
 			require_once MPTBM_PLUGIN_DIR . '/inc/MPTBM_App_Api.php';
 			// Post types must be registered on frontend, REST and cron requests too.
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_CPT.php';
