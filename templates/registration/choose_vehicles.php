@@ -33,6 +33,7 @@ if (!function_exists('pointInPolygon')) {
     }
 }
 
+if (!function_exists('mptbm_check_transport_area_geo_fence')) {
 function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $start_place_coordinates, $end_place_coordinates) {
     $operation_area_type = get_post_meta($operation_area_id, "mptbm-operation-type", true);
 
@@ -316,6 +317,8 @@ function mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $sta
         }
     }
 }
+}
+if (!function_exists('mptbm_check_fixed_distance_area')) {
 function mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_place_coordinates, $end_place_coordinates, $price_based) {
     // Only apply for fixed_distance pricing
     if ($price_based !== 'fixed_distance' && $price_based !== 'fixed_map') {
@@ -364,9 +367,11 @@ function mptbm_check_fixed_distance_area($post_id, $operation_area_id, $start_pl
 
     return false;
 }
+}
 
 
 
+if (!function_exists('wptbm_get_schedule')) {
 function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_schedule, $return_time_schedule, $start_place_coordinates, $end_place_coordinates, $price_based) {
     
     $timestamp = strtotime($selected_day);
@@ -729,6 +734,7 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
     }
     
     return false;
+}
 }
 $start_date = isset($_POST["start_date"]) ? sanitize_text_field($_POST["start_date"]) : "";
 
@@ -1383,6 +1389,16 @@ if ($all_posts->found_posts > 0) {
                     'price'   => (float) $display_price,
                     'rating'  => (float) $vehicle_avg_rating,
                     'html'    => $mptbm_item_html,
+                    // Structured copy of what the card shows, for the mobile app API.
+                    'fare'    => array(
+                        'transport'          => (float) $price,
+                        'base_location'      => (float) ($base_price_extra * $tax_multiplier),
+                        'stops'              => (float) $stop_total_price,
+                        'display_type'       => $price_display_type,
+                        'custom_message'     => (string) $custom_message,
+                        'unavailable'        => (bool) $mptbm_unavailable,
+                        'unavailable_reason' => (string) $mptbm_unavailable_reason,
+                    ),
                 );
             }
         }

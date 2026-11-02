@@ -6,9 +6,31 @@
 	if (!defined('ABSPATH')) {
 		die;
 	} // Cannot access pages directly.
+	if (!class_exists('MPTBM_Search_Exception')) {
+		/** Raised instead of wp_send_json_error() when the search pipeline runs for the mobile app. */
+		class MPTBM_Search_Exception extends RuntimeException {
+		}
+	}
 	if (!class_exists('MPTBM_Transport_Search')) {
 		class MPTBM_Transport_Search {
+			private static $instance = null;
+			/** True while the mobile-app API drives the search: failures are thrown, not echoed. */
+			private static $app_mode = false;
+			public static function instance() {
+				return self::$instance;
+			}
+			/**
+			 * Stop the search with a customer-facing message. The website answers the AJAX call with
+			 * a JSON error; the app API gets an exception it can turn into a REST error.
+			 */
+			private function fail($message, $status = null) {
+				if (self::$app_mode) {
+					throw new MPTBM_Search_Exception($message, (int) ($status ?: 400));
+				}
+				wp_send_json_error(array('message' => $message), $status);
+			}
 			public function __construct() {
+				self::$instance = $this;
 				add_action('mptbm_transport_search', [$this, 'transport_search'], 10, 1);
 				//add_action('mptbm_transport_search_form', [$this, 'transport_search_form'], 10, 2);
 				/*******************/
@@ -150,8 +172,28 @@
 				// lifetime. That's the "Book Now sometimes doesn't work" pattern.
 				nocache_headers();
 				$this->verify_search_request(true);
-				// Debug logging for search initiation
-				
+				$this->render_search_results();
+				die(); // Ensure further execution stops after outputting the JavaScript
+			}
+
+			/**
+			 * The same search the website runs, for the mobile app: no nonce (the API has its own
+			 * rate limit), no die(), and failures arrive as MPTBM_Search_Exception. Reads $_POST
+			 * exactly like the website form does and prints the results markup, which the caller
+			 * captures with an output buffer and the mptbm_search_result_items filter.
+			 *
+			 * @throws MPTBM_Search_Exception
+			 */
+			public function run_search_for_app() {
+				self::$app_mode = true;
+				try {
+					$this->render_search_results();
+				} finally {
+					self::$app_mode = false;
+				}
+			}
+
+			private function render_search_results() {
 				$price_based = $this->requested_search_price_mode();
 				$_POST['price_based'] = $price_based;
 				
@@ -184,13 +226,10 @@
 						
 						if ($time_difference < $buffer_time) {
 							// Return error response
-							wp_send_json_error(array(
-								'message' => sprintf(
-									esc_html__('Booking must be at least %d minutes in advance. Please select a later time.', 'ecab-taxi-booking-manager'),
-									$buffer_time
-								)
+							$this->fail(sprintf(
+								esc_html__('Booking must be at least %d minutes in advance. Please select a later time.', 'ecab-taxi-booking-manager'),
+								$buffer_time
 							));
-							die();
 						}
 					}
 				}
@@ -263,9 +302,6 @@
 				add_filter('mptbm_original_price_based', $pricing_mode_filter, 99, 2);
 				include(MPTBM_Function::template_path('registration/choose_vehicles.php'));
 				remove_filter('mptbm_original_price_based', $pricing_mode_filter, 99);
-				
-			
-			die(); // Ensure further execution stops after outputting the JavaScript
 			}
 			public function get_mptbm_map_search_result_redirect(){
 				// Same caching hazard as get_mptbm_map_search_result() above --
@@ -660,7 +696,7 @@
 						continue;
 					}
 					if (MPTBM_Function::address_verification_mode() !== 'flag') {
-						wp_send_json_error(array('message' => esc_html($messages[$check['reason'] === 'unavailable' ? 'unavailable' : $kind])));
+						$this->fail(esc_html($messages[$check['reason'] === 'unavailable' ? 'unavailable' : $kind]));
 					}
 					$verified = false;
 				}
@@ -677,7 +713,7 @@
 			 */
 			private function require_route_for_distance_pricing($server_data, $price_based): void {
 				if (!$server_data && in_array($price_based, array('dynamic', 'fixed_distance', 'fixed_map'), true)) {
-					wp_send_json_error(array('message' => esc_html__('The route between these addresses could not be calculated. Please check them and try again.', 'ecab-taxi-booking-manager')));
+					$this->fail(esc_html__('The route between these addresses could not be calculated. Please check them and try again.', 'ecab-taxi-booking-manager'));
 				}
 			}
 
@@ -721,7 +757,7 @@
 					return $requested;
 				}
 				if (!$this->validate_post_access($vehicle_id)) {
-					wp_send_json_error(array('message' => esc_html__('Invalid transportation.', 'ecab-taxi-booking-manager')), 400);
+					$this->fail(esc_html__('Invalid transportation.', 'ecab-taxi-booking-manager'), 400);
 				}
 
 				return $this->vehicle_search_price_mode($vehicle_id);
