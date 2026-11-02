@@ -170,6 +170,11 @@ if (!class_exists('MPTBM_Settings_Global')) {
 				'icon' => 'fas fa-code',
 				'title' => esc_html__('REST API Settings', 'ecab-taxi-booking-manager')
 			),
+			array(
+				'id' => 'mptbm_app_settings',
+				'icon' => 'fas fa-mobile-alt',
+				'title' => esc_html__('Mobile App', 'ecab-taxi-booking-manager')
+			),
 			
 		);
 			
@@ -772,6 +777,26 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					)
 				)),
+			'mptbm_app_settings' => apply_filters('filter_mptbm_app_settings', array(
+				array(
+					'name' => 'enable_app_api',
+					'label' => esc_html__('Enable the customer mobile app', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Lets the customer app search, book and manage trips on this site. Turning it off makes the app stop working.', 'ecab-taxi-booking-manager'),
+					'type' => 'select',
+					'default' => 'yes',
+					'options' => array(
+						'yes' => esc_html__('Enable', 'ecab-taxi-booking-manager'),
+						'no' => esc_html__('Disable', 'ecab-taxi-booking-manager')
+					)
+				),
+				array(
+					'name' => 'brand_color',
+					'label' => esc_html__('App brand colour', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Buttons and highlights in the app. Leave empty for the app\'s default.', 'ecab-taxi-booking-manager'),
+					'type' => 'color',
+					'default' => ''
+				),
+			)),
 			'mptbm_rest_api_settings' => apply_filters('filter_mptbm_rest_api_settings', array(
 				array(
 					'name' => 'enable_rest_api',

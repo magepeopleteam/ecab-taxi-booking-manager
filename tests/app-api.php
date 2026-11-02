@@ -50,6 +50,18 @@ foreach (array('api_version', 'site', 'currency', 'map', 'booking', 'payment', '
 $check(!isset($data['map']['api_key']) && !isset($data['map']['gmap_api_key']), 'config never exposes a map API key');
 $check(is_bool($data['features']['pro']) && $data['features']['cancel_booking'] === $data['features']['pro'], 'pro-only features follow Pro');
 
+$check($data['features']['pdf_ticket'] === ($data['features']['pro'] && class_exists('\\Mpdf\\Mpdf')), 'receipts are offered only when Pro and its PDF library are present');
+$check(array_key_exists('brand', $data) && array_key_exists('primary', $data['brand']), 'config carries the brand colour');
+foreach (array('', 'red', '#12345', '#GGGGGG', '#1f8a4c') as $input) {
+	update_option('mptbm_app_settings', array('brand_color' => $input));
+	$brand = $call('GET', '/config')->get_data()['brand'];
+	$expected = '#1f8a4c' === $input ? '#ffffff' : '';
+	$check(('#1f8a4c' === $input ? '#1f8a4c' : '') === $brand['primary'] && $expected === $brand['on_primary'], "brand colour '$input' is " . ('#1f8a4c' === $input ? 'accepted with white text' : 'ignored'));
+}
+update_option('mptbm_app_settings', array('brand_color' => '#fde047'));
+$check('#111827' === $call('GET', '/config')->get_data()['brand']['on_primary'], 'a light brand colour gets dark text');
+delete_option('mptbm_app_settings');
+
 $vehicles = $call('GET', '/vehicles', array());
 $check(200 === $vehicles->get_status() && is_array($vehicles->get_data()), 'vehicles list is public');
 $check(isset($vehicles->get_headers()['X-WP-Total']), 'vehicles list reports a total');
