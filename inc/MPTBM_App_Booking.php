@@ -342,9 +342,47 @@ if (!class_exists('MPTBM_App_Booking')) {
 			return $trips;
 		}
 
+		/** Cancel and change requests are Pro features: the free plugin only offers them when Pro's handlers exist. */
+		public static function changes_supported(): bool {
+			return class_exists('MPTBM_Plugin_Pro') && class_exists('MPTBM_User_Dashboard');
+		}
+
+		private static function changeable(WC_Order $order): bool {
+			return self::changes_supported() && in_array($order->get_status(), array('pending', 'processing'), true);
+		}
+
+		/** The booking's driver, once the shop has assigned one and the booking is confirmed. */
+		private static function driver_for(WC_Order $order): ?array {
+			if (!self::changes_supported() || !in_array($order->get_status(), array('processing', 'completed'), true)) {
+				return null;
+			}
+			$records = get_posts(array('post_type' => 'mptbm_booking', 'numberposts' => 1, 'post_status' => 'any', 'fields' => 'ids', 'meta_key' => 'mptbm_order_id', 'meta_value' => $order->get_id()));
+			$driver_id = 0;
+			if ($records) {
+				$driver_id = (int) (get_post_meta($records[0], 'mptbm_selected_driver', true) ?: get_post_meta($records[0], 'mptbm_driver_id', true));
+			}
+			foreach ($order->get_items() as $item) {
+				if ($driver_id) {
+					break;
+				}
+				$driver_id = (int) get_post_meta((int) $item->get_meta('_mptbm_id'), 'mptbm_selected_driver', true);
+			}
+			$driver = $driver_id ? get_userdata($driver_id) : null;
+			if (!$driver) {
+				return null;
+			}
+			return array('name' => wp_strip_all_tags($driver->display_name), 'phone' => (string) get_user_meta($driver_id, 'billing_phone', true));
+		}
+
 		public static function summary(WC_Order $order): array {
 			$created = $order->get_date_created();
+			$change = (string) $order->get_meta('_mptbm_modification_request');
 			return array(
+				'can_cancel' => self::changeable($order),
+				'can_modify' => self::changeable($order) && 'pending' !== $order->get_meta('_mptbm_modification_request_status'),
+				'cancellation_requested' => 'pending-cancel' === $order->get_status(),
+				'change_request' => '' === $change ? null : array('text' => wp_strip_all_tags($change), 'status' => (string) $order->get_meta('_mptbm_modification_request_status')),
+				'driver' => self::driver_for($order),
 				'id' => $order->get_id(),
 				'number' => $order->get_order_number(),
 				'status' => $order->get_status(),
@@ -392,6 +430,73 @@ if (!class_exists('MPTBM_App_Booking')) {
 				}
 			}
 			return array('bookings' => $bookings, 'total' => (int) $result->total, 'pages' => (int) $result->max_num_pages);
+		}
+
+		/* ------------------------------------------------------- cancel / change requests */
+
+		private static function changeable_order(int $order_id, int $user_id) {
+			if ($unsupported = self::available()) {
+				return $unsupported;
+			}
+			if (!self::changes_supported()) {
+				return self::error('mptbm_app_changes_unsupported', esc_html__('Changing a booking is not available for this service.', 'ecab-taxi-booking-manager'), 501);
+			}
+			$order = self::owned_order($order_id, $user_id);
+			if (!$order) {
+				return self::error('mptbm_app_not_found', esc_html__('Booking not found.', 'ecab-taxi-booking-manager'), 404);
+			}
+			if (!in_array($order->get_status(), array('pending', 'processing'), true)) {
+				return self::error('mptbm_app_not_changeable', esc_html__('This booking can no longer be changed.', 'ecab-taxi-booking-manager'), 409);
+			}
+			return $order;
+		}
+
+		/** Same effect as the website dashboard's cancel button: the order waits for the shop to approve. */
+		public static function request_cancellation(int $order_id, int $user_id) {
+			$order = self::changeable_order($order_id, $user_id);
+			if (is_wp_error($order)) {
+				return $order;
+			}
+			$order->update_meta_data('_mptbm_prev_status', $order->get_status());
+			$order->save();
+			$order->update_status('pending-cancel', esc_html__('Cancellation requested by user (mobile app)', 'ecab-taxi-booking-manager'));
+			if (!class_exists('MPTBM_Notification_Hub')) {
+				do_action('mptbm_notify', 'cancel_request', array(
+					/* translators: %d: order number */
+					'title' => sprintf(esc_html__('Cancellation requested for order #%d', 'ecab-taxi-booking-manager'), $order_id),
+					'desc' => '',
+					'link' => method_exists($order, 'get_edit_order_url') ? $order->get_edit_order_url() : '',
+					'object_id' => $order_id,
+				));
+			}
+			MPTBM_User_Dashboard::add_user_notification($user_id, 'info', sprintf(esc_html__('You requested cancellation for order #%d. Awaiting admin approval.', 'ecab-taxi-booking-manager'), $order_id));
+			return self::summary(wc_get_order($order_id));
+		}
+
+		public static function request_change(int $order_id, int $user_id, string $text) {
+			$text = trim(sanitize_textarea_field($text));
+			if ('' === $text || mb_strlen($text) > 500) {
+				return self::error('mptbm_app_bad_change', esc_html__('Describe the requested change in 500 characters or fewer.', 'ecab-taxi-booking-manager'));
+			}
+			$order = self::changeable_order($order_id, $user_id);
+			if (is_wp_error($order)) {
+				return $order;
+			}
+			if ('pending' === $order->get_meta('_mptbm_modification_request_status')) {
+				return self::error('mptbm_app_change_pending', esc_html__('A change request is already waiting for review.', 'ecab-taxi-booking-manager'), 409);
+			}
+			$order->update_meta_data('_mptbm_modification_request', $text);
+			$order->update_meta_data('_mptbm_modification_request_status', 'pending');
+			$order->add_order_note(sprintf(esc_html__('Customer requested a booking change: %s', 'ecab-taxi-booking-manager'), $text));
+			$order->save();
+			do_action('mptbm_notify', 'modification_request', array(
+				'title' => sprintf(esc_html__('Modification requested for order #%d', 'ecab-taxi-booking-manager'), $order_id),
+				'desc' => $text,
+				'link' => method_exists($order, 'get_edit_order_url') ? $order->get_edit_order_url() : '',
+				'object_id' => $order_id,
+			));
+			MPTBM_User_Dashboard::add_user_notification($user_id, 'info', sprintf(esc_html__('Your change request for order #%d was sent for review.', 'ecab-taxi-booking-manager'), $order_id));
+			return self::summary(wc_get_order($order_id));
 		}
 
 		/* ------------------------------------------------------------------- payment */
