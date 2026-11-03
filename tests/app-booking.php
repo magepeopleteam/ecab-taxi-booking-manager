@@ -235,6 +235,7 @@ try {
 	$check($order && abs((float) $order->get_total() - $expected) < 0.01, "the order total is the quoted fare plus the extras ({$expected})");
 	$trip = $data['booking']['trips'][0] ?? array();
 	$check(($trip['pickup'] ?? '') === 'Test Pickup' && ($trip['dropoff'] ?? '') === 'Test Dropoff', 'the order records the pick-up and drop-off');
+	$check(is_array($trip['pickup_point'] ?? null) && is_array($trip['dropoff_point'] ?? null) && is_numeric($trip['pickup_point']['lat'] ?? null), 'the order keeps the pick-up and drop-off points so My Trips can draw the route');
 	$check(2 === ($trip['passengers'] ?? 0), 'the order records the passengers');
 	$check(!$extra || 2 === ($trip['extras'][0]['qty'] ?? 0), 'the order records the extras');
 	$check('Please call on arrival' === ($order ? $order->get_customer_note() : ''), 'the order notes reach the order');
