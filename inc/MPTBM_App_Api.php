@@ -578,18 +578,30 @@ if (!class_exists('MPTBM_App_Api')) {
 			return $methods;
 		}
 
+		/** The logo for the app: the one chosen in Mobile App settings, else the site's own ('' = none). */
+		private function brand_logo(): string {
+			$id = absint(MP_Global_Function::get_settings('mptbm_app_settings', 'brand_logo', 0));
+			$url = $id ? wp_get_attachment_image_url($id, 'medium_large') : '';
+			if (!$url) {
+				$site = (int) get_theme_mod('custom_logo');
+				$url = $site ? wp_get_attachment_image_url($site, 'medium_large') : '';
+			}
+			return (string) ($url ?: '');
+		}
+
 		/** The shop's brand colour for the app and a text colour that stays readable on it ('' = use the app's own). */
 		private function brand(): array {
+			$logo = $this->brand_logo();
 			$primary = strtolower(trim((string) MP_Global_Function::get_settings('mptbm_app_settings', 'brand_color', '')));
 			if (!preg_match('/^#[0-9a-f]{6}$/', $primary)) {
-				return array('primary' => '', 'on_primary' => '');
+				return array('primary' => '', 'on_primary' => '', 'logo' => $logo);
 			}
 			$channels = array_map(static function ($hex) {
 				$c = hexdec($hex) / 255;
 				return $c <= 0.03928 ? $c / 12.92 : pow(($c + 0.055) / 1.055, 2.4);
 			}, str_split(substr($primary, 1), 2));
 			$luminance = 0.2126 * $channels[0] + 0.7152 * $channels[1] + 0.0722 * $channels[2];
-			return array('primary' => $primary, 'on_primary' => $luminance > 0.4 ? '#111827' : '#ffffff');
+			return array('primary' => $primary, 'on_primary' => $luminance > 0.4 ? '#111827' : '#ffffff', 'logo' => $logo);
 		}
 
 		private function currency_config(): array {
