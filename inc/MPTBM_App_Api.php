@@ -164,6 +164,10 @@ if (!class_exists('MPTBM_App_Api')) {
 				array('methods' => 'GET', 'callback' => array($this, 'get_me'), 'permission_callback' => $auth),
 				array('methods' => 'PUT', 'callback' => array($this, 'update_me'), 'permission_callback' => $auth),
 			));
+			register_rest_route(self::NAMESPACE_ID, '/me/avatar', array(
+				array('methods' => 'POST', 'callback' => array($this, 'set_avatar'), 'permission_callback' => $auth, 'args' => array('image' => array('type' => 'string', 'required' => true))),
+				array('methods' => 'DELETE', 'callback' => array($this, 'remove_avatar'), 'permission_callback' => $auth),
+			));
 			// Deleting an account is a POST with the password (a DELETE body is unreliable on many hosts).
 			register_rest_route(self::NAMESPACE_ID, '/me/delete', array(
 				'methods' => 'POST',
@@ -424,11 +428,90 @@ if (!class_exists('MPTBM_App_Api')) {
 				'first_name' => (string) get_user_meta($user_id, 'first_name', true),
 				'last_name' => (string) get_user_meta($user_id, 'last_name', true),
 				'phone' => (string) get_user_meta($user_id, 'billing_phone', true),
+				'avatar' => $this->avatar_url($user_id),
 				// One line for the account screen; the full address is edited through the checkout's own billing fields.
 				'address' => implode(', ', array_filter(array_map(static function ($key) use ($user_id) {
 					return trim((string) get_user_meta($user_id, $key, true));
 				}, array('billing_address_1', 'billing_city', 'billing_postcode')))),
 			);
+		}
+
+		private const AVATAR_META = 'mptbm_app_avatar';
+
+		private function avatar_url(int $user_id): string {
+			$id = (int) get_user_meta($user_id, self::AVATAR_META, true);
+			$url = $id ? wp_get_attachment_image_url($id, 'medium') : '';
+			return $url ? (string) $url : '';
+		}
+
+		private function drop_avatar(int $user_id): void {
+			$old = (int) get_user_meta($user_id, self::AVATAR_META, true);
+			if ($old && 'attachment' === get_post_type($old) && (int) get_post_field('post_author', $old) === $user_id) {
+				wp_delete_attachment($old, true);
+			}
+			delete_user_meta($user_id, self::AVATAR_META);
+		}
+
+		/**
+		 * A profile photo, sent as base64 text (the app has already cropped it square and shrunk it). The image is checked
+		 * to really be a JPEG/PNG/WebP, then re-encoded as a 512px JPEG, which also strips any hidden metadata.
+		 */
+		public function set_avatar($request) {
+			$limited = $this->rate_limit('avatar', 10, HOUR_IN_SECONDS);
+			if (is_wp_error($limited)) {
+				return $limited;
+			}
+			$bad = function (string $message, int $status = 400) {
+				return new WP_Error('mptbm_app_bad_image', $message, array('status' => $status));
+			};
+			$raw = (string) $request->get_param('image');
+			$raw = preg_replace('#^data:image/[a-z+]+;base64,#i', '', $raw);
+			if (strlen($raw) > 3 * 1024 * 1024) {
+				return $bad(esc_html__('That photo is too large. Please choose a smaller one.', 'ecab-taxi-booking-manager'), 413);
+			}
+			$bytes = base64_decode($raw, true);
+			$info = $bytes ? @getimagesizefromstring($bytes) : false;
+			if (!$info || !in_array($info[2], array(IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP), true) || $info[0] > 4096 || $info[1] > 4096) {
+				return $bad(esc_html__('Please choose a JPEG, PNG or WebP photo.', 'ecab-taxi-booking-manager'));
+			}
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+
+			$user_id = get_current_user_id();
+			$tmp = wp_tempnam('avatar');
+			file_put_contents($tmp, $bytes);
+			$editor = wp_get_image_editor($tmp);
+			if (is_wp_error($editor)) {
+				@unlink($tmp);
+				return $bad(esc_html__('That photo could not be read.', 'ecab-taxi-booking-manager'));
+			}
+			$editor->resize(512, 512, true);
+			$editor->set_quality(86);
+			$saved = $editor->save($tmp . '.jpg', 'image/jpeg');
+			@unlink($tmp);
+			if (is_wp_error($saved) || empty($saved['path'])) {
+				return $bad(esc_html__('That photo could not be saved.', 'ecab-taxi-booking-manager'), 500);
+			}
+			$upload = wp_upload_bits('profile-' . $user_id . '-' . wp_generate_password(6, false) . '.jpg', null, (string) file_get_contents($saved['path']));
+			@unlink($saved['path']);
+			if (!empty($upload['error'])) {
+				return $bad(esc_html__('That photo could not be saved.', 'ecab-taxi-booking-manager'), 500);
+			}
+			$attachment = wp_insert_attachment(array('post_mime_type' => 'image/jpeg', 'post_title' => 'Profile photo', 'post_status' => 'inherit', 'post_author' => $user_id), $upload['file']);
+			if (is_wp_error($attachment) || !$attachment) {
+				return $bad(esc_html__('That photo could not be saved.', 'ecab-taxi-booking-manager'), 500);
+			}
+			wp_update_attachment_metadata($attachment, wp_generate_attachment_metadata($attachment, $upload['file']));
+			$this->drop_avatar($user_id);
+			update_user_meta($user_id, self::AVATAR_META, (int) $attachment);
+			return new WP_REST_Response($this->prepare_user($user_id), 200);
+		}
+
+		public function remove_avatar($request) {
+			$user_id = get_current_user_id();
+			$this->drop_avatar($user_id);
+			return new WP_REST_Response($this->prepare_user($user_id), 200);
 		}
 
 		public function get_me($request) {
@@ -498,6 +581,7 @@ if (!class_exists('MPTBM_App_Api')) {
 				return $this->auth_error('mptbm_app_bad_password', esc_html__('Password is incorrect.', 'ecab-taxi-booking-manager'), 403);
 			}
 			$this->revoke_all_tokens($user_id);
+			$this->drop_avatar($user_id);
 			if (!function_exists('wp_delete_user')) {
 				require_once ABSPATH . 'wp-admin/includes/user.php';
 			}
