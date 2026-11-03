@@ -33,6 +33,7 @@
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Taxonomy_Meta.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Status.php';
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Guideline.php';
+			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_App_Notifications.php';
 			// Upgrade teaser menu listing Pro-only features. Self-instantiates; internally
 			// stands down (never registers its menu) when the Pro plugin is active.
 			require_once MPTBM_PLUGIN_DIR . '/Admin/MPTBM_Pro_Features_Page.php';

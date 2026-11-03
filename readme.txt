@@ -219,6 +219,9 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.1.8 - 2026-11-03 =
+* Added: App Notifications - a new screen under the taxi menu where an admin can write a push notification (title, message and an optional image) and send it to every customer who uses the mobile app, or as a test to their own account. Recent notifications are listed with how many devices they reached; large audiences are sent in the background.
+
 = 2.1.6 - 2026-10-14 =
 * Added: Operation Areas > a Single Operation Area can now have a "Minimum Price" set directly on it. For any vehicle that has that Operation Area selected on its own Price Settings, a trip picking up or dropping off inside it is automatically charged at least that amount - previously a minimum fare could only be set per vehicle, with no way to tie it to a specific area.
 * Fixed: A Fixed Route (`price_based='fixed_route'`) whose name contained a dash (e.g. "City A - City B") could show "No Transport Available" for every vehicle, and its stops would never preview on the map - WordPress's own title formatting turns " - " into a different dash character behind the scenes, which only matched correctly in some of the places that route name was compared against, not all of them. Those comparisons are now kept consistent, so a dash (or similar punctuation) in a route's name no longer breaks it.
