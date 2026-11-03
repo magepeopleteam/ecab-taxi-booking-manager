@@ -810,6 +810,27 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					'type' => 'color',
 					'default' => ''
 				),
+				array(
+					'name' => 'app_google_maps_key',
+					'label' => esc_html__('Google Maps API key for the app (optional)', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Leave empty and the app shows an OpenStreetMap map, which needs no key. To show Google Maps instead, paste a Google Maps API key with the "Maps JavaScript API" enabled, and restrict it to your website address (HTTP referrers) in Google Cloud so nobody else can use it.', 'ecab-taxi-booking-manager') . ' <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" rel="noopener">' . esc_html__('How to get a key', 'ecab-taxi-booking-manager') . '</a>',
+					'type' => 'text',
+					'default' => ''
+				),
+				array(
+					'name' => 'support_email',
+					'label' => esc_html__('Support email', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Passengers can email this address from the app. Leave empty to use your shop\'s own customer-email address.', 'ecab-taxi-booking-manager'),
+					'type' => 'text',
+					'default' => ''
+				),
+				array(
+					'name' => 'support_phone',
+					'label' => esc_html__('Support phone number', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Passengers can call this number from the app in an emergency or if they need help with a trip. Include the country code, for example +8801700000000. Leave empty to hide the call button.', 'ecab-taxi-booking-manager'),
+					'type' => 'text',
+					'default' => ''
+				),
 			)),
 			'mptbm_rest_api_settings' => apply_filters('filter_mptbm_rest_api_settings', array(
 				array(
