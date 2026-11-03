@@ -248,6 +248,31 @@ $check(isset($by_id($hourly)[$hour_vehicle]), 'a party larger than the vehicle h
 $check(400 === $list_quote(array('price_based' => 'fixed_hourly', 'start' => array('name' => 'Anywhere', 'lat' => 23.8, 'lng' => 90.4)))->get_status(), 'hourly trips still need the hours');
 $filtered = $list_quote(array('price_based' => 'fixed_hourly', 'start' => array('name' => 'Anywhere', 'lat' => 23.8, 'lng' => 90.4), 'fixed_time' => 5, 'max_passenger' => 5));
 $check(!isset($by_id($filtered)[$hour_vehicle]), 'the capacity filter hides a vehicle that cannot take that many passengers, as on the website');
+// With a route (pick-up and drop-off), the hours must cover the drive: 4h 20m of driving needs 5 hours.
+$long_stub = static function ($pre, $args, $url) {
+	$ok = static function ($body) {
+		return array('headers' => array(), 'body' => wp_json_encode($body), 'response' => array('code' => 200, 'message' => 'OK'), 'cookies' => array(), 'filename' => null);
+	};
+	if (false !== strpos($url, 'router.project-osrm.org')) {
+		return $ok(array('code' => 'Ok', 'routes' => array(array('distance' => 250000, 'duration' => 4 * 3600 + 20 * 60))));
+	}
+	return $pre;
+};
+add_filter('pre_http_request', $long_stub, 10, 3);
+$saved_map_hours = get_option('mptbm_map_api_settings', null);
+update_option('mptbm_map_api_settings', array_merge(is_array($saved_map_hours) ? $saved_map_hours : array(), array('display_map' => 'openstreetmap', 'gmap_api_key' => '', 'gmap_server_api_key' => '', 'fare_distance_source' => 'server')));
+$trip = array('price_based' => 'fixed_hourly', 'start' => array('name' => 'Test Pickup', 'lat' => 23.8433, 'lng' => 90.3978), 'end' => array('name' => 'Test Dropoff', 'lat' => 23.7806, 'lng' => 90.4167));
+$short = $list_quote(array_merge($trip, array('fixed_time' => 4)));
+$check(400 === $short->get_status() && false !== strpos((string) wp_json_encode($short->get_data()), 'at least 5 hours'), 'four hours is refused for a 4h 20m drive: ' . wp_json_encode($short->get_data()));
+$enough = $list_quote(array_merge($trip, array('fixed_time' => 5)));
+$check(200 === $enough->get_status() && isset($by_id($enough)[$hour_vehicle]) && abs($by_id($enough)[$hour_vehicle]['price']['total'] - 50.0) < 0.01, 'five hours is accepted and priced: ' . wp_json_encode($enough->get_data()));
+$more = $list_quote(array_merge($trip, array('fixed_time' => 8)));
+$check(200 === $more->get_status() && abs($by_id($more)[$hour_vehicle]['price']['total'] - 80.0) < 0.01, 'more hours than needed are fine');
+$no_end = $list_quote(array('price_based' => 'fixed_hourly', 'start' => $trip['start'], 'fixed_time' => 1));
+$check(200 === $no_end->get_status(), 'without a drop-off there is no route, so any hours are allowed');
+remove_filter('pre_http_request', $long_stub, 10);
+null === $saved_map_hours ? delete_option('mptbm_map_api_settings') : update_option('mptbm_map_api_settings', $saved_map_hours);
+
 $zone_start = $list_quote(array('price_based' => 'fixed_zone', 'start' => array('name' => 'term_999999'), 'end' => array('name' => 'Test Dropoff', 'lat' => 23.7806, 'lng' => 90.4167)));
 $check(400 !== $zone_start->get_status() || false === strpos(wp_json_encode($zone_start->get_data()), 'pick-up location from the suggestions'), 'a fixed-zone pick-up is a list entry with no coordinates');
 $check(400 === $list_quote(array('price_based' => 'dynamic', 'start' => array('name' => 'No coordinates'), 'end' => array('name' => 'Test Dropoff', 'lat' => 23.7806, 'lng' => 90.4167)))->get_status(), 'a distance trip still needs coordinates for both places');

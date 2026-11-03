@@ -1621,8 +1621,15 @@ function mptbm_handle_osm_address_selection(address, type) {
     }
 }
 
-// Warn the user when the selected "Select Hours" rental duration is shorter
-// than the estimated drive time for the chosen pickup/drop-off route.
+// Whole hours an hourly booking must cover for a route: the drive time rounded up, never less than one.
+function mptbmRequiredHours(durationSeconds) {
+    var seconds = parseFloat(durationSeconds) || 0;
+    return seconds > 0 ? Math.max(1, Math.ceil(seconds / 3600)) : 0;
+}
+
+// Hourly bookings must cover the drive. Once pickup and drop-off give a route, "Select Hours" starts at the whole hours
+// that drive needs (4h 20m -> 5), shorter choices can no longer be picked, and longer ones still can. With no route
+// every choice is open again.
 function mptbm_update_fixed_hours_warning() {
     var priceBasedEl = document.querySelector('[name="mptbm_price_based"]');
     if (!priceBasedEl || priceBasedEl.value !== 'fixed_hourly') return;
@@ -1630,33 +1637,48 @@ function mptbm_update_fixed_hours_warning() {
     var warningEl = document.getElementById('mptbm_fixed_hours_warning');
     var hoursEl = document.getElementById('mptbm_fixed_hours');
     var durationEl = document.getElementById('mptbm_calculated_duration');
-    if (!warningEl || !hoursEl || !durationEl) return;
+    if (!hoursEl || !durationEl) return;
 
+    var $select = jQuery(hoursEl).closest('.mp_input_select');
+    var $options = $select.find('.mp_input_select_list li');
     var durationSeconds = parseFloat(durationEl.value) || 0;
-    var selectedHours = parseInt(hoursEl.value, 10) || 0;
+    var requiredHours = mptbmRequiredHours(durationSeconds);
 
-    if (durationSeconds <= 0) {
+    // Which hours stay selectable, and which one the field should hold.
+    var chosen = null;
+    var highest = null;
+    $options.each(function () {
+        var value = parseInt(jQuery(this).attr('data-value'), 10) || 0;
+        var allowed = value >= requiredHours;
+        jQuery(this).attr('aria-disabled', allowed ? null : 'true').css({ opacity: allowed ? '' : '0.35', pointerEvents: allowed ? '' : 'none' });
+        if (allowed && (chosen === null || value < parseInt(chosen.attr('data-value'), 10))) chosen = jQuery(this);
+        if (highest === null || value > parseInt(highest.attr('data-value'), 10)) highest = jQuery(this);
+    });
+
+    var selectedHours = parseInt(hoursEl.value, 10) || 0;
+    var target = chosen || highest; // a trip longer than the longest offer is flagged below; hold the longest offer
+    if (requiredHours > 0 && target && selectedHours < requiredHours) {
+        $select.find('input.formControl').val(target.html());
+        jQuery(hoursEl).val(target.attr('data-value')).trigger('mp_change');
+        selectedHours = parseInt(target.attr('data-value'), 10) || selectedHours;
+    }
+
+    if (!warningEl) return;
+    if (requiredHours <= 0) {
         warningEl.style.display = 'none';
         return;
     }
-
-    var requiredHours = Math.max(1, Math.ceil(durationSeconds / 3600));
-
-    if (requiredHours > selectedHours) {
-        var totalMinutes = Math.round(durationSeconds / 60);
-        var h = Math.floor(totalMinutes / 60);
-        var m = totalMinutes % 60;
-        var tripTimeText = h > 0 ? (h + 'h' + (m > 0 ? ' ' + m + 'm' : '')) : m + 'm';
-        var hourWord = requiredHours === 1 ? 'hour' : 'hours';
-
-        var textEl = warningEl.querySelector('span');
-        if (textEl) {
-            textEl.textContent = 'Estimated trip time is ~' + tripTimeText + '. Select at least ' + requiredHours + ' ' + hourWord + ' to cover this trip.';
-        }
-        warningEl.style.display = 'flex';
-    } else {
-        warningEl.style.display = 'none';
+    var totalMinutes = Math.round(durationSeconds / 60);
+    var h = Math.floor(totalMinutes / 60);
+    var m = totalMinutes % 60;
+    var tripTimeText = h > 0 ? (h + 'h' + (m > 0 ? ' ' + m + 'm' : '')) : m + 'm';
+    var textEl = warningEl.querySelector('span');
+    if (textEl) {
+        textEl.textContent = chosen
+            ? 'Estimated trip time is ~' + tripTimeText + '. This trip needs at least ' + requiredHours + (requiredHours === 1 ? ' hour' : ' hours') + '; you can choose more.'
+            : 'Estimated trip time is ~' + tripTimeText + ', longer than the longest hourly booking. Please use a Distance booking for this trip.';
     }
+    warningEl.style.display = 'flex';
 }
 
 jQuery(document).on('mp_change change', '#mptbm_fixed_hours', function () {
