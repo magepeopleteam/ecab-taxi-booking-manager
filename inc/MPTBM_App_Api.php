@@ -550,7 +550,38 @@ if (!class_exists('MPTBM_App_Api')) {
 				'duration_text' => MPTBM_Function::format_duration_text($route['duration']),
 				// Fewest whole hours an hourly booking of this route can be for.
 				'hours_needed' => MPTBM_Function::required_hourly_hours($route['duration']),
+				// The road the trip follows, for drawing it on the app's map. Display only: prices never use it.
+				'polyline' => self::route_shape($points),
 			), 200);
+		}
+
+		/**
+		 * The driving route's shape as a Google-encoded polyline (precision 5), or null when it can't be had.
+		 * Cached for a day per set of places, so a customer re-opening a trip doesn't re-query the router.
+		 */
+		private static function route_shape(array $points) {
+			$coords = array();
+			foreach ($points as $point) {
+				$coords[] = round($point['lng'], 5) . ',' . round($point['lat'], 5); // the router wants lng,lat
+			}
+			$key = 'mptbm_app_shape_' . md5(implode(';', $coords));
+			$cached = get_transient($key);
+			if (false !== $cached) {
+				return '' === $cached ? null : $cached;
+			}
+			$response = wp_remote_get('https://router.project-osrm.org/route/v1/driving/' . implode(';', $coords) . '?overview=full&geometries=polyline', array('timeout' => 8));
+			$shape = '';
+			if (!is_wp_error($response) && 200 === (int) wp_remote_retrieve_response_code($response)) {
+				$data = json_decode(wp_remote_retrieve_body($response), true);
+				$line = is_array($data) && 'Ok' === ($data['code'] ?? '') ? ($data['routes'][0]['geometry'] ?? '') : '';
+				// An encoded line is plain characters; anything else, or something enormous, is not used.
+				if (is_string($line) && strlen($line) <= 120000 && preg_match('/^[\x3f-\x7e]+$/', $line)) {
+					$shape = $line;
+				}
+			}
+			// A failed lookup is remembered briefly so a down router isn't hit on every request.
+			set_transient($key, $shape, '' === $shape ? 5 * MINUTE_IN_SECONDS : DAY_IN_SECONDS);
+			return '' === $shape ? null : $shape;
 		}
 
 		public function search_places($request) {
