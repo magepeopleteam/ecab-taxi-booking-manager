@@ -144,6 +144,22 @@ $check(5 === MPTBM_Function::required_hourly_hours(4 * 3600 + 20 * 60) && 4 === 
 $check(400 === $route(array('points' => array(array('lat' => 23.78, 'lng' => 90.41))))->get_status(), 'one place is not a route');
 $check(400 === $route(array('points' => array(array('lat' => 'x', 'lng' => 1), array('lat' => 1, 'lng' => 1))))->get_status(), 'places without coordinates are not a route');
 $check(400 === $route(array('points' => array(array('lat' => 91, 'lng' => 0), array('lat' => 0, 'lng' => 0))))->get_status(), 'impossible coordinates are refused');
+$check(array_key_exists('polyline', $routed->get_data()) && null === $routed->get_data()['polyline'], 'a router that sends no shape leaves polyline empty, and the route still works');
+// With a shape from the router, the route carries it for the map (an encoded line, cached per set of places).
+$shape_stub = static function ($pre, $args, $url) {
+	if (false !== strpos($url, 'router.project-osrm.org')) {
+		return array('headers' => array(), 'body' => wp_json_encode(array('code' => 'Ok', 'routes' => array(array('distance' => 12500, 'duration' => 1500, 'geometry' => '_p~iF~ps|U_ulLnnqC_mqNvxq`@')))), 'response' => array('code' => 200, 'message' => 'OK'), 'cookies' => array(), 'filename' => null);
+	}
+	return $pre;
+};
+remove_filter('pre_http_request', $route_stub, 10);
+add_filter('pre_http_request', $shape_stub, 9, 3);
+$shaped = $route(array('points' => array(array('lat' => 23.11, 'lng' => 90.11), array('lat' => 23.22, 'lng' => 90.22))));
+$check('_p~iF~ps|U_ulLnnqC_mqNvxq`@' === ($shaped->get_data()['polyline'] ?? null), 'the route carries the road shape the router gave');
+remove_filter('pre_http_request', $shape_stub, 9);
+add_filter('pre_http_request', $route_stub, 10, 3);
+delete_transient('mptbm_app_shape_' . md5('90.11,23.11;90.22,23.22'));
+delete_transient('mptbm_app_shape_' . md5('90.41,23.78;90.39,23.85'));
 remove_filter('pre_http_request', $route_stub, 10);
 null === $saved_map_for_route ? delete_option('mptbm_map_api_settings') : update_option('mptbm_map_api_settings', $saved_map_for_route);
 
