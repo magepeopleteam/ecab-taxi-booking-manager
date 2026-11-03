@@ -221,6 +221,7 @@ if (!class_exists('MPTBM_App_Quote')) {
 			foreach ($items as $item) {
 				$vehicle = self::prepare_vehicle($item, $trip);
 				if ($vehicle) {
+					$vehicle['badges'] = self::badges((string) ($item['html'] ?? ''));
 					$vehicles[] = $vehicle;
 				}
 			}
@@ -352,6 +353,40 @@ if (!class_exists('MPTBM_App_Quote')) {
 		}
 
 		/** @return array|null null when the vehicle cannot take this trip */
+		/**
+		 * The short labels pricing add-ons show beside a fare on the website's vehicle card ("City tier 10-20km @ 4.5/km",
+		 * "Peak hour"), as plain text. They are read from the card the website's own search rendered, so they are exactly
+		 * what the website shows for this trip - whichever add-on printed them.
+		 *
+		 * @return array<int,array{label:string,tone:string}> tone is 'peak' for surge/peak labels, else 'info'
+		 */
+		private static function badges(string $card_html): array {
+			if ('' === $card_html || !class_exists('DOMDocument') || false === strpos($card_html, 'mptbm_vehicle_price_col')) {
+				return array();
+			}
+			$dom = new DOMDocument();
+			$previous = libxml_use_internal_errors(true);
+			$dom->loadHTML('<?xml encoding="UTF-8"><body>' . $card_html . '</body>');
+			libxml_clear_errors();
+			libxml_use_internal_errors($previous);
+			$xpath = new DOMXPath($dom);
+			$has = static function (string $class): string {
+				return "contains(concat(' ', normalize-space(@class), ' '), ' {$class} ')";
+			};
+			// Every innermost element in the price column except the fare itself and scripts/styles.
+			$nodes = $xpath->query("(//*[" . $has('mptbm_vehicle_price_col') . "])[1]//*[not(*) and not(self::script) and not(self::style) and not(ancestor-or-self::*[" . $has('mptbm_vehicle_price') . "])]");
+			$badges = array();
+			foreach ($nodes ?: array() as $node) {
+				$label = trim(preg_replace('/\s+/u', ' ', (string) $node->textContent));
+				$label = trim(preg_replace('/^[^\p{L}\p{N}]+/u', '', $label)); // drop a leading emoji / icon
+				if ('' === $label || mb_strlen($label) > 80 || isset($badges[$label])) {
+					continue;
+				}
+				$badges[$label] = array('label' => $label, 'tone' => preg_match('/peak|surge|rush|busy|night|holiday|weekend/i', $label) ? 'peak' : 'info');
+			}
+			return array_slice(array_values($badges), 0, 4);
+		}
+
 		private static function prepare_vehicle(array $item, array $trip) {
 			$id = (int) $item['post_id'];
 			if (!self::area_covers_trip($id, $trip)) {
