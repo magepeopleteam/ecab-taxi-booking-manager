@@ -248,6 +248,7 @@
 					$server_data = $this->resolve_trip_distance($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 				$this->require_route_for_distance_pricing($server_data, $price_based);
+				$this->require_hours_for_route($server_data, $price_based);
 
 					if ($server_data) {
 					$distance = $server_data['distance'];
@@ -371,6 +372,7 @@
 					$server_data = $this->resolve_trip_distance($s_lat, $s_lng, $e_lat, $e_lng);
 				}
 				$this->require_route_for_distance_pricing($server_data, $price_based);
+				$this->require_hours_for_route($server_data, $price_based);
 
 					if ($server_data) {
 					$distance = $server_data['distance'];
@@ -714,6 +716,19 @@
 			private function require_route_for_distance_pricing($server_data, $price_based): void {
 				if (!$server_data && in_array($price_based, array('dynamic', 'fixed_distance', 'fixed_map'), true)) {
 					$this->fail(esc_html__('The route between these addresses could not be calculated. Please check them and try again.', 'ecab-taxi-booking-manager'));
+				}
+			}
+
+			/** An hourly booking has to cover the drive: fewer hours than the route needs is refused. */
+			private function require_hours_for_route($server_data, $price_based): void {
+				if (!$server_data || $price_based !== 'fixed_hourly') {
+					return;
+				}
+				$needed = MPTBM_Function::required_hourly_hours($server_data['duration'] ?? 0);
+				$chosen = isset($_POST['fixed_time']) ? MPTBM_Function::normalize_fixed_time(wp_unslash($_POST['fixed_time'])) : 0;
+				if ($needed > 0 && $chosen < $needed) {
+					/* translators: %d: number of hours */
+					$this->fail(sprintf(_n('This trip needs at least %d hour. Please choose more hours.', 'This trip needs at least %d hours. Please choose more hours.', $needed, 'ecab-taxi-booking-manager'), $needed));
 				}
 			}
 
