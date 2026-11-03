@@ -139,6 +139,8 @@ $route = static function (array $body) use ($call): WP_REST_Response {
 $routed = $route(array('points' => array(array('lat' => 23.78, 'lng' => 90.41), array('lat' => 23.85, 'lng' => 90.39))));
 $check(200 === $routed->get_status() && 12500.0 === (float) $routed->get_data()['distance'] && 1500.0 === (float) $routed->get_data()['duration'], 'the route between two places reports its distance and time: ' . wp_json_encode($routed->get_data()));
 $check('' !== $routed->get_data()['distance_text'] && '' !== $routed->get_data()['duration_text'], 'and says them in words, in the shop\'s unit');
+$check(1 === $routed->get_data()['hours_needed'], 'a 25 minute drive needs one hour');
+$check(5 === MPTBM_Function::required_hourly_hours(4 * 3600 + 20 * 60) && 4 === MPTBM_Function::required_hourly_hours(4 * 3600) && 1 === MPTBM_Function::required_hourly_hours(60) && 0 === MPTBM_Function::required_hourly_hours(0), '4h 20m needs 5 hours, an exact 4h needs 4, a minute needs 1, no route needs none');
 $check(400 === $route(array('points' => array(array('lat' => 23.78, 'lng' => 90.41))))->get_status(), 'one place is not a route');
 $check(400 === $route(array('points' => array(array('lat' => 'x', 'lng' => 1), array('lat' => 1, 'lng' => 1))))->get_status(), 'places without coordinates are not a route');
 $check(400 === $route(array('points' => array(array('lat' => 91, 'lng' => 0), array('lat' => 0, 'lng' => 0))))->get_status(), 'impossible coordinates are refused');

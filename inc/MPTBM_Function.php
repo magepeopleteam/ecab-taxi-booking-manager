@@ -134,6 +134,16 @@ if (!class_exists('MPTBM_Function')) {
 		 * @param mixed $value Raw posted value or stored context value.
 		 * @return int Whole hours/days, or 0 when the value is not a whole number.
 		 */
+		/**
+		 * Whole hours an hourly booking has to cover for a trip: the drive time rounded up (4h 20m -> 5), never below one.
+		 * Zero when the trip has no measured duration, so nothing is imposed.
+		 */
+		public static function required_hourly_hours($seconds): int
+		{
+			$seconds = is_numeric($seconds) ? (float) $seconds : 0;
+			return $seconds > 0 ? max(1, (int) ceil($seconds / 3600)) : 0;
+		}
+
 		public static function normalize_fixed_time($value): int
 		{
 			if (is_int($value) || is_float($value)) {
@@ -268,6 +278,12 @@ if (!class_exists('MPTBM_Function')) {
 				$minimum_hours = max(1, (int) MP_Global_Function::get_settings('mptbm_general_settings', 'minimum_booking_hours', '0'));
 				if ($hours < $minimum_hours || $hours > 168) {
 					return new WP_Error('mptbm_quote_hours', __('Please select a valid hourly booking duration.', 'ecab-taxi-booking-manager'));
+				}
+				// And long enough for the measured drive, as the form enforces.
+				$route_hours = !empty($context['distance_verified']) ? self::required_hourly_hours($context['duration'] ?? 0) : 0;
+				if ($route_hours > 0 && $hours < $route_hours) {
+					/* translators: %d: number of hours */
+					return new WP_Error('mptbm_quote_hours', sprintf(_n('This trip needs at least %d hour. Please search again.', 'This trip needs at least %d hours. Please search again.', $route_hours, 'ecab-taxi-booking-manager'), $route_hours));
 				}
 			}
 			if (sanitize_key($context['price_based'] ?? '') === 'fixed_daily') {

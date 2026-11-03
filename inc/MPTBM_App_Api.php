@@ -548,6 +548,8 @@ if (!class_exists('MPTBM_App_Api')) {
 				'duration' => (float) $route['duration'],
 				'distance_text' => MPTBM_Function::format_distance_text($route['distance']),
 				'duration_text' => MPTBM_Function::format_duration_text($route['duration']),
+				// Fewest whole hours an hourly booking of this route can be for.
+				'hours_needed' => MPTBM_Function::required_hourly_hours($route['duration']),
 			), 200);
 		}
 
