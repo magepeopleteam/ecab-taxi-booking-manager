@@ -216,6 +216,27 @@ $check('12 Lake Road' === get_user_meta($user_id, 'billing_address_1', true), 'a
 $cfg = $call('GET', '/config')->get_data();
 $check(isset($cfg['support']['email']) && isset($cfg['links']['privacy']), 'config carries the support email and the policy links');
 
+// Profile photo: only real images, shrunk to a square JPEG; a new photo replaces the old one; it can be removed.
+$png = static function (): string {
+	$im = imagecreatetruecolor(900, 600);
+	imagefill($im, 0, 0, imagecolorallocate($im, 40, 120, 200));
+	ob_start();
+	imagepng($im);
+	return base64_encode((string) ob_get_clean());
+};
+$check(400 === $call('POST', '/me/avatar', array('image' => base64_encode('not an image')), $access)->get_status(), 'a file that is not an image is refused');
+$first = $call('POST', '/me/avatar', array('image' => $png()), $access);
+$first_url = (string) ($first->get_data()['avatar'] ?? '');
+$first_id = (int) get_user_meta($user_id, 'mptbm_app_avatar', true);
+$check(200 === $first->get_status() && '' !== $first_url && $first_id > 0 && 'image/jpeg' === get_post_mime_type($first_id), 'a photo is saved as a JPEG and its address returned');
+$size = wp_get_attachment_metadata($first_id);
+$check(512 === (int) ($size['width'] ?? 0) && 512 === (int) ($size['height'] ?? 0), 'the photo is cropped to a 512px square');
+$call('POST', '/me/avatar', array('image' => $png()), $access);
+$check(!get_post($first_id) && (int) get_user_meta($user_id, 'mptbm_app_avatar', true) !== $first_id, 'a new photo replaces the old one');
+$check('' !== (string) $call('GET', '/me', array(), $access)->get_data()['avatar'], 'the profile carries the photo');
+$removed = $call('DELETE', '/me/avatar', array(), $access);
+$check(200 === $removed->get_status() && '' === $removed->get_data()['avatar'] && !get_user_meta($user_id, 'mptbm_app_avatar', true), 'the photo can be removed');
+
 // Deleting the account: needs the right password, and staff accounts are refused.
 $doomed_email = 'apptest-del-' . wp_generate_password(8, false) . '@example.com';
 $doomed = $call('POST', '/auth/register', array('email' => $doomed_email, 'password' => $password, 'first_name' => 'Gone'))->get_data();
