@@ -164,6 +164,13 @@ if (!class_exists('MPTBM_App_Api')) {
 				array('methods' => 'GET', 'callback' => array($this, 'get_me'), 'permission_callback' => $auth),
 				array('methods' => 'PUT', 'callback' => array($this, 'update_me'), 'permission_callback' => $auth),
 			));
+			// Deleting an account is a POST with the password (a DELETE body is unreliable on many hosts).
+			register_rest_route(self::NAMESPACE_ID, '/me/delete', array(
+				'methods' => 'POST',
+				'callback' => array($this, 'delete_me'),
+				'permission_callback' => $auth,
+				'args' => array('current_password' => array('type' => 'string', 'required' => true)),
+			));
 		}
 
 		/* ------------------------------------------------------------------ permissions */
@@ -417,6 +424,10 @@ if (!class_exists('MPTBM_App_Api')) {
 				'first_name' => (string) get_user_meta($user_id, 'first_name', true),
 				'last_name' => (string) get_user_meta($user_id, 'last_name', true),
 				'phone' => (string) get_user_meta($user_id, 'billing_phone', true),
+				// One line for the account screen; the full address is edited through the checkout's own billing fields.
+				'address' => implode(', ', array_filter(array_map(static function ($key) use ($user_id) {
+					return trim((string) get_user_meta($user_id, $key, true));
+				}, array('billing_address_1', 'billing_city', 'billing_postcode')))),
 			);
 		}
 
@@ -442,6 +453,16 @@ if (!class_exists('MPTBM_App_Api')) {
 			if (null !== $request->get_param('phone')) {
 				update_user_meta($user_id, 'billing_phone', sanitize_text_field((string) $request->get_param('phone')));
 			}
+			if (is_array($request->get_param('billing'))) {
+				$unsupported = MPTBM_App_Booking::available();
+				if ($unsupported) {
+					return $unsupported;
+				}
+				$saved = MPTBM_App_Booking::save_billing($user_id, $request->get_param('billing'));
+				if (is_wp_error($saved)) {
+					return $saved;
+				}
+			}
 			$new_password = (string) $request->get_param('new_password');
 			if ('' !== $new_password) {
 				$user = get_userdata($user_id);
@@ -456,6 +477,34 @@ if (!class_exists('MPTBM_App_Api')) {
 				return new WP_REST_Response($this->token_response($user_id), 200); // new session for this device
 			}
 			return new WP_REST_Response($this->prepare_user($user_id), 200);
+		}
+
+		/**
+		 * Delete the signed-in customer's account (the stores require this to be possible from inside the app).
+		 * Needs the password again, and never touches staff or administrator accounts. WooCommerce keeps the orders
+		 * themselves, as it does when any customer is removed, for the shop's records.
+		 */
+		public function delete_me($request) {
+			$limited = $this->rate_limit('delete_account', 5, HOUR_IN_SECONDS);
+			if (is_wp_error($limited)) {
+				return $limited;
+			}
+			$user_id = get_current_user_id();
+			$user = get_userdata($user_id);
+			if (!$user || user_can($user, 'edit_posts') || user_can($user, 'manage_options') || user_can($user, 'manage_woocommerce')) {
+				return $this->auth_error('mptbm_app_delete_refused', esc_html__('This account can only be removed from the website.', 'ecab-taxi-booking-manager'), 403);
+			}
+			if (!wp_check_password((string) $request->get_param('current_password'), $user->user_pass, $user_id)) {
+				return $this->auth_error('mptbm_app_bad_password', esc_html__('Password is incorrect.', 'ecab-taxi-booking-manager'), 403);
+			}
+			$this->revoke_all_tokens($user_id);
+			if (!function_exists('wp_delete_user')) {
+				require_once ABSPATH . 'wp-admin/includes/user.php';
+			}
+			if (!wp_delete_user($user_id)) {
+				return $this->auth_error('mptbm_app_delete_failed', esc_html__('Your account could not be deleted. Please contact us.', 'ecab-taxi-booking-manager'), 500);
+			}
+			return new WP_REST_Response(array('success' => true), 200);
 		}
 
 		/* -------------------------------------------------------------------- bookings */
@@ -736,6 +785,10 @@ if (!class_exists('MPTBM_App_Api')) {
 					'tabs' => MPTBM_App_Form::definition(),
 					'return_on_other_date' => 'yes' === MP_Global_Function::get_settings($general, 'enable_return_in_different_date', 'no'),
 					'use_my_location' => 'no' !== MP_Global_Function::get_settings($general, 'mptbm_enable_use_my_location', 'yes'),
+				),
+				'support' => array(
+					// Where a customer can reach the shop: the address the shop's own customer emails come from.
+					'email' => sanitize_email((string) get_option('woocommerce_email_from_address', get_option('admin_email'))),
 				),
 				'links' => array(
 					'terms' => function_exists('wc_terms_and_conditions_page_id') && wc_terms_and_conditions_page_id() ? get_permalink(wc_terms_and_conditions_page_id()) : '',

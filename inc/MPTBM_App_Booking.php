@@ -66,6 +66,49 @@ if (!class_exists('MPTBM_App_Booking')) {
 			return $out;
 		}
 
+		/**
+		 * Save the billing address a customer edited in the app, into the same user meta the site's checkout prefills from.
+		 * Only the fields the site's checkout asks for are taken (never the account email); a required one cannot be emptied,
+		 * the country must be one the shop sells to, and a state must be one of that country's when it has a list.
+		 *
+		 * @param array<string,mixed> $values billing_* key => value
+		 * @return true|WP_Error
+		 */
+		public static function save_billing(int $user_id, array $values) {
+			self::load_cart();
+			$fields = (array) (WC()->checkout()->get_checkout_fields()['billing'] ?? array());
+			$clean = array();
+			foreach ($values as $key => $value) {
+				$key = (string) $key;
+				if (!isset($fields[$key]) || 'billing_email' === $key || !is_scalar($value)) {
+					continue;
+				}
+				$value = trim(sanitize_text_field((string) $value));
+				if ('' === $value && !empty($fields[$key]['required'])) {
+					/* translators: %s: field name */
+					return new WP_Error('mptbm_app_address', sprintf(__('%s is required.', 'ecab-taxi-booking-manager'), wp_strip_all_tags((string) ($fields[$key]['label'] ?? $key))), array('status' => 400));
+				}
+				$clean[$key] = $value;
+			}
+			if (isset($clean['billing_country']) && '' !== $clean['billing_country']) {
+				$clean['billing_country'] = strtoupper($clean['billing_country']);
+				if (!isset(WC()->countries->get_allowed_countries()[$clean['billing_country']])) {
+					return new WP_Error('mptbm_app_address', __('Please choose a country the shop serves.', 'ecab-taxi-booking-manager'), array('status' => 400));
+				}
+			}
+			if (isset($clean['billing_state']) && '' !== $clean['billing_state']) {
+				$country = $clean['billing_country'] ?? (string) get_user_meta($user_id, 'billing_country', true);
+				$states = $country ? self::states($country) : array();
+				if ($states && !in_array($clean['billing_state'], array_column($states, 'value'), true)) {
+					return new WP_Error('mptbm_app_address', __('Please choose a valid state or region.', 'ecab-taxi-booking-manager'), array('status' => 400));
+				}
+			}
+			foreach ($clean as $key => $value) {
+				update_user_meta($user_id, $key, $value);
+			}
+			return true;
+		}
+
 		/** @return array the fields the site's checkout asks for, and what the customer must accept */
 		public static function checkout_form(int $user_id = 0): array {
 			self::load_cart();
