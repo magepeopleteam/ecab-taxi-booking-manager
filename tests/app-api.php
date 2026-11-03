@@ -36,7 +36,7 @@ $call = static function (string $method, string $route, array $body = array(), s
 
 // Rate-limit counters are per IP; start from zero so a re-run is deterministic.
 $_SERVER['REMOTE_ADDR'] = '203.0.113.9';
-foreach (array('public', 'auth', 'register', 'login', 'refresh', 'forgot') as $bucket) {
+foreach (array('public', 'auth', 'register', 'login', 'refresh', 'forgot', 'delete_account') as $bucket) {
 	delete_transient('mptbm_app_rl_' . md5($bucket . '|' . $_SERVER['REMOTE_ADDR']));
 }
 
@@ -203,6 +203,32 @@ $check(200 === $call('POST', '/auth/login', array('username' => $email, 'passwor
 
 $phone = $call('PUT', '/me', array('phone' => '999'), $tokens['access_token'])->get_data();
 $check('999' === ($phone['phone'] ?? ''), 'profile update saves the phone');
+
+// --- Account: billing address and deleting the account -----------------------------------------------------------
+$access = $tokens['access_token'];
+$saved = $call('PUT', '/me', array('billing' => array('billing_address_1' => '12 Lake Road', 'billing_city' => 'Dhaka', 'billing_postcode' => '1212', 'billing_country' => 'BD', 'billing_email' => 'hijack@example.com', 'not_a_field' => 'x')), $access);
+$check(200 === $saved->get_status() && '12 Lake Road, Dhaka, 1212' === ($saved->get_data()['address'] ?? ''), 'a billing address is saved and summed up on /me: ' . wp_json_encode($saved->get_data()));
+$check('12 Lake Road' === get_user_meta($user_id, 'billing_address_1', true), 'it is saved where the checkout prefills from');
+$check($email === get_userdata($user_id)->user_email && '' === (string) get_user_meta($user_id, 'not_a_field', true) && 'hijack@example.com' !== get_user_meta($user_id, 'billing_email', true), 'the account email and unknown fields are never taken from the address form');
+$check(400 === $call('PUT', '/me', array('billing' => array('billing_country' => 'ZZ')), $access)->get_status(), 'a country the shop does not serve is refused');
+$check(400 === $call('PUT', '/me', array('billing' => array('billing_address_1' => '')), $access)->get_status(), 'a required address line cannot be emptied');
+$check('12 Lake Road' === get_user_meta($user_id, 'billing_address_1', true), 'a refused edit changes nothing');
+$cfg = $call('GET', '/config')->get_data();
+$check(isset($cfg['support']['email']) && isset($cfg['links']['privacy']), 'config carries the support email and the policy links');
+
+// Deleting the account: needs the right password, and staff accounts are refused.
+$doomed_email = 'apptest-del-' . wp_generate_password(8, false) . '@example.com';
+$doomed = $call('POST', '/auth/register', array('email' => $doomed_email, 'password' => $password, 'first_name' => 'Gone'))->get_data();
+$doomed_id = (int) ($doomed['user']['id'] ?? 0);
+$check(403 === $call('POST', '/me/delete', array('current_password' => 'wrong'), $doomed['access_token'])->get_status() && get_userdata($doomed_id), 'a wrong password deletes nothing');
+$check(200 === $call('POST', '/me/delete', array('current_password' => $password), $doomed['access_token'])->get_status() && !get_userdata($doomed_id), 'the right password deletes the account');
+$check(401 === $call('GET', '/me', array(), $doomed['access_token'])->get_status(), 'and its token no longer works');
+$staff_login = 'apptest-staff-' . wp_generate_password(6, false);
+$staff_id = wp_insert_user(array('user_login' => $staff_login, 'user_pass' => $password, 'user_email' => $staff_login . '@example.com', 'role' => 'editor'));
+$staff_session = $call('POST', '/auth/login', array('username' => $staff_login, 'password' => $password))->get_data();
+$check(403 === $call('POST', '/me/delete', array('current_password' => $password), $staff_session['access_token'] ?? '')->get_status() && get_userdata($staff_id), 'a staff account cannot be deleted from the app');
+require_once ABSPATH . 'wp-admin/includes/user.php';
+wp_delete_user($staff_id);
 
 $refreshed = $call('POST', '/auth/refresh', array('refresh_token' => $tokens['refresh_token']));
 $check(200 === $refreshed->get_status(), 'refresh succeeds');
