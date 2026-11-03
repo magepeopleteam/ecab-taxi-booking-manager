@@ -797,6 +797,13 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					'default' => ''
 				),
 				array(
+					'name' => 'brand_logo',
+					'label' => esc_html__('App logo', 'ecab-taxi-booking-manager'),
+					'desc' => esc_html__('Shown on the app\'s opening screen and header. A square image works best. Leave empty to use your site logo.', 'ecab-taxi-booking-manager'),
+					'type' => 'file',
+					'default' => ''
+				),
+				array(
 					'name' => 'brand_color',
 					'label' => esc_html__('App brand colour', 'ecab-taxi-booking-manager'),
 					'desc' => esc_html__('Buttons and highlights in the app. Leave empty for the app\'s default.', 'ecab-taxi-booking-manager'),

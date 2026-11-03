@@ -58,6 +58,14 @@ foreach (array('', 'red', '#12345', '#GGGGGG', '#1f8a4c') as $input) {
 	$expected = '#1f8a4c' === $input ? '#ffffff' : '';
 	$check(('#1f8a4c' === $input ? '#1f8a4c' : '') === $brand['primary'] && $expected === $brand['on_primary'], "brand colour '$input' is " . ('#1f8a4c' === $input ? 'accepted with white text' : 'ignored'));
 }
+// The app logo: the one chosen in Mobile App settings, else the site's own, else none.
+$check(array_key_exists('logo', $call('GET', '/config')->get_data()['brand']), 'config carries the app logo');
+$logo_id = wp_insert_attachment(array('post_title' => 'apptest logo', 'post_mime_type' => 'image/png', 'post_status' => 'inherit'), 'apptest-logo.png');
+update_option('mptbm_app_settings', array('brand_logo' => $logo_id));
+$check(false !== strpos((string) $call('GET', '/config')->get_data()['brand']['logo'], 'apptest-logo'), 'the logo chosen in Mobile App settings is used');
+update_option('mptbm_app_settings', array('brand_logo' => 999999999));
+$check('' === $call('GET', '/config')->get_data()['brand']['logo'] || false !== strpos($call('GET', '/config')->get_data()['brand']['logo'], 'http'), 'a logo that no longer exists falls back instead of breaking');
+wp_delete_attachment($logo_id, true);
 update_option('mptbm_app_settings', array('brand_color' => '#fde047'));
 $check('#111827' === $call('GET', '/config')->get_data()['brand']['on_primary'], 'a light brand colour gets dark text');
 delete_option('mptbm_app_settings');
