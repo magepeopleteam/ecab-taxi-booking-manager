@@ -72,6 +72,87 @@ if (!class_exists('MPTBM_App_Form')) {
 			return MP_Global_Function::get_settings('mptbm_general_settings', $key, $default);
 		}
 
+		/** Minutes since midnight of a schedule value such as 6.30 (06:30). Mirrors get_details.php's convertToMinutes(). */
+		private static function minutes(float $value): int {
+			$hours = floor($value);
+			return (int) round($hours * 60 + ($value - $hours) * 100);
+		}
+
+		/**
+		 * When a trip can be picked up, as the website's form works it out (get_details.php): the bookable dates, each
+		 * weekday's opening window across the fleet, the interval between times, and the buffer that rules out the
+		 * next few minutes or hours. The app builds its time list from this, so it offers exactly the website's.
+		 *
+		 * @return array dates (first bookable first), interval, day_ranges [weekday => [from, to] in minutes],
+		 *               buffer_minutes, today, now_minutes, time_format
+		 */
+		public static function schedule(string $price_based): array {
+			$interval = max(1, (int) MPTBM_Function::get_general_settings('mptbm_pickup_interval_time', '30'));
+			$starts = array();
+			$ends = array();
+			$week = array_keys(MP_Global_Function::week_day());
+			foreach (MP_Global_Function::get_all_post_id('mptbm_rent') as $id) {
+				$all_time = get_post_meta($id, 'mptbm_available_for_all_time', true);
+				$default_start = get_post_meta($id, 'mptbm_default_start_time', true);
+				$default_end = get_post_meta($id, 'mptbm_default_end_time', true);
+				foreach ($week as $day) {
+					if ('' === $all_time || 'on' === $all_time) {
+						$starts[$day][] = 0.5;
+						$ends[$day][] = 24.0;
+						continue;
+					}
+					$from = get_post_meta($id, 'mptbm_' . $day . '_start_time', true);
+					$to = get_post_meta($id, 'mptbm_' . $day . '_end_time', true);
+					$from = ('' === $from || 'default' === $from) ? $default_start : $from;
+					$to = ('' === $to || 'default' === $to) ? $default_end : $to;
+					if ('' === $from || '' === $to) {
+						continue;
+					}
+					if ((float) $from > (float) $to) { // overnight: the website offers the whole day and filters later
+						$starts[$day][] = 0.5;
+						$ends[$day][] = 24.0;
+						continue;
+					}
+					$starts[$day][] = (float) $from;
+					$ends[$day][] = (float) $to;
+				}
+			}
+			$ranges = array();
+			foreach ($week as $day) {
+				if (!empty($starts[$day]) && !empty($ends[$day])) {
+					$ranges[$day] = array(self::minutes(min($starts[$day])), self::minutes(max($ends[$day])));
+				}
+			}
+			$all_starts = $starts ? array_merge(...array_values($starts)) : array();
+			$all_ends = $ends ? array_merge(...array_values($ends)) : array();
+			$max_minutes = self::minutes($all_ends ? (float) max($all_ends) : 24.0);
+
+			$dates = MPTBM_Function::get_all_dates('dynamic' === $price_based || '' === $price_based ? 'dynamic' : $price_based);
+			$buffer = function_exists('ecab_get_buffer_time') ? (int) ecab_get_buffer_time() : (int) MP_Global_Function::get_settings('mptbm_general_settings', 'enable_buffer_time');
+			$now = current_time('timestamp');
+			$now_minutes = (int) wp_date('H', $now) * 60 + (int) wp_date('i', $now);
+			$buffer_end = max($now_minutes + $buffer, 0);
+			// Dates the buffer has already used up are dropped, exactly as the form does.
+			for ($i = 0, $hide = (int) floor($buffer_end / 1440); $i < $hide && $dates; $i++) {
+				array_shift($dates);
+			}
+			if ($buffer_end >= 1440) {
+				$buffer_end %= 1440;
+			}
+			if ($dates && $buffer_end >= $max_minutes) {
+				array_shift($dates);
+			}
+			return array(
+				'dates' => array_slice(array_values($dates), 0, 120),
+				'interval' => $interval,
+				'day_ranges' => (object) $ranges,
+				'buffer_minutes' => $buffer,
+				'today' => wp_date('Y-m-d', $now),
+				'now_minutes' => $now_minutes,
+				'time_format' => (string) get_option('time_format', 'g:i a'),
+			);
+		}
+
 		/** @return array the tabs of the site's form, each with the fields it asks for */
 		public static function definition(): array {
 			$pro = class_exists('MPTBM_Dependencies_Pro');
@@ -120,6 +201,7 @@ if (!class_exists('MPTBM_App_Form')) {
 					'duration' => $hourly ? array('unit' => 'hour', 'min' => $minimum_hours, 'max' => 12) : ($daily ? array('unit' => 'day', 'min' => $minimum_days, 'max' => 30) : null),
 					'passengers' => 'yes' === self::setting('show_number_of_passengers', 'no'),
 					'capacity' => (object) $capacity,
+					'schedule' => self::schedule($mode),
 				);
 			}
 			return $tabs;
