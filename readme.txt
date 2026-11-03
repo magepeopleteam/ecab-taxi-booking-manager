@@ -219,6 +219,9 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.1.9 - 2026-11-03 =
+* Added: Settings > Mobile App now has a Google Maps API key for the app (optional - leave it empty and the app shows an OpenStreetMap map, which needs no key), a Support email and a Support phone number. Passengers see the support contacts in the app (a Call and an Email button on their trip, and in the app's menu) so they can reach your company directly in an emergency.
+
 = 2.1.8 - 2026-11-03 =
 * Added: App Notifications - a new screen under the taxi menu where an admin can write a push notification (title, message and an optional image) and send it to every customer who uses the mobile app, or as a test to their own account. Recent notifications are listed with how many devices they reached; large audiences are sent in the background.
 

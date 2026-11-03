@@ -215,6 +215,14 @@ $check(400 === $call('PUT', '/me', array('billing' => array('billing_address_1' 
 $check('12 Lake Road' === get_user_meta($user_id, 'billing_address_1', true), 'a refused edit changes nothing');
 $cfg = $call('GET', '/config')->get_data();
 $check(isset($cfg['support']['email']) && isset($cfg['links']['privacy']), 'config carries the support email and the policy links');
+update_option('mptbm_app_settings', array('app_google_maps_key' => '', 'support_email' => 'help@example.com', 'support_phone' => '+880 1700-000000'));
+$cfg = $call('GET', '/config')->get_data();
+$check('openstreetmap' === $cfg['map']['app_provider'] && '' === $cfg['map']['google_key'], 'no Google key in the settings: the app map is OpenStreetMap');
+$check('help@example.com' === $cfg['support']['email'] && '+880 1700-000000' === $cfg['support']['phone'] && '+8801700000000' === $cfg['support']['phone_link'], 'support email and phone come from the Mobile App settings');
+update_option('mptbm_app_settings', array('app_google_maps_key' => 'AIzaSyFAKEKEYFORTESTSONLY0123456789ab', 'support_phone' => 'call me <b>'));
+$cfg = $call('GET', '/config')->get_data();
+$check('google' === $cfg['map']['app_provider'] && '' === $cfg['support']['phone'], 'a Google key switches the app map to Google; a bad phone number is dropped');
+delete_option('mptbm_app_settings');
 
 // Profile photo: only real images, shrunk to a square JPEG; a new photo replaces the old one; it can be removed.
 $png = static function (): string {

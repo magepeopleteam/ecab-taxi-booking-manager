@@ -837,6 +837,9 @@ if (!class_exists('MPTBM_App_Api')) {
 					'default_lng' => (float) MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_longitude', '90.41069652669002'),
 					'country' => MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country', 'BD'),
 					'restrict_to_country' => 'yes' === MP_Global_Function::get_settings('mptbm_map_api_settings', 'mp_country_restriction', 'no'),
+					// How the app itself draws maps: Google when the company entered a key under Mobile App settings, else OpenStreetMap.
+					'app_provider' => MPTBM_App_Contact::app_map()['provider'],
+					'google_key' => MPTBM_App_Contact::app_map()['google_key'],
 				),
 				'booking' => array(
 					'mode' => $mode,
@@ -870,10 +873,8 @@ if (!class_exists('MPTBM_App_Api')) {
 					'return_on_other_date' => 'yes' === MP_Global_Function::get_settings($general, 'enable_return_in_different_date', 'no'),
 					'use_my_location' => 'no' !== MP_Global_Function::get_settings($general, 'mptbm_enable_use_my_location', 'yes'),
 				),
-				'support' => array(
-					// Where a customer can reach the shop: the address the shop's own customer emails come from.
-					'email' => sanitize_email((string) get_option('woocommerce_email_from_address', get_option('admin_email'))),
-				),
+				// Where a passenger can reach the company: the Mobile App settings (email falls back to the shop's own address).
+				'support' => MPTBM_App_Contact::support(),
 				'links' => array(
 					'terms' => function_exists('wc_terms_and_conditions_page_id') && wc_terms_and_conditions_page_id() ? get_permalink(wc_terms_and_conditions_page_id()) : '',
 					'privacy' => get_privacy_policy_url(),
