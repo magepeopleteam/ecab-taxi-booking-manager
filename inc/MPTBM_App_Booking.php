@@ -274,6 +274,17 @@ if (!class_exists('MPTBM_App_Booking')) {
 				if (is_wp_error($order)) {
 					return $order;
 				}
+				// Remember where the trip runs so My Trips can draw it (the website's order items keep only the names).
+				$points = array();
+				foreach (array('start', 'end') as $key) {
+					if (isset($trip[$key]['lat'], $trip[$key]['lng'])) {
+						$points[$key] = array('lat' => (float) $trip[$key]['lat'], 'lng' => (float) $trip[$key]['lng']);
+					}
+				}
+				if ($points) {
+					$order->update_meta_data('_mptbm_app_route', $points);
+					$order->save();
+				}
 				return self::finish($order, sanitize_key((string) ($in['payment_method'] ?? '')), $user_id);
 			} finally {
 				remove_filter('mptbm_add_cart_item', $party, 99);
@@ -366,6 +377,11 @@ if (!class_exists('MPTBM_App_Booking')) {
 
 		private static function order_items(WC_Order $order): array {
 			$trips = array();
+			$route = $order->get_meta('_mptbm_app_route');
+			$point = static function ($key) use ($route) {
+				$p = is_array($route) ? ($route[$key] ?? null) : null;
+				return is_array($p) && isset($p['lat'], $p['lng']) ? array('lat' => (float) $p['lat'], 'lng' => (float) $p['lng']) : null;
+			};
 			foreach ($order->get_items() as $item) {
 				$vehicle_id = (int) $item->get_meta('_mptbm_id');
 				if (!$vehicle_id) {
@@ -379,6 +395,8 @@ if (!class_exists('MPTBM_App_Booking')) {
 					'vehicle' => wp_strip_all_tags(get_the_title($vehicle_id)),
 					'pickup' => wp_strip_all_tags((string) $item->get_meta('_mptbm_start_place')),
 					'dropoff' => wp_strip_all_tags((string) $item->get_meta('_mptbm_end_place')),
+					'pickup_point' => $point('start'),
+					'dropoff_point' => $point('end'),
 					'extra_stops' => array_map('wp_strip_all_tags', array_values(array_filter((array) $stops))),
 					'date' => (string) $item->get_meta('_mptbm_date'),
 					'return' => (int) $item->get_meta('_mptbm_taxi_return') > 1,
