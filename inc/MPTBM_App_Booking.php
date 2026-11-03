@@ -449,26 +449,85 @@ if (!class_exists('MPTBM_App_Booking')) {
 		 * lets customers download tickets for. The link is Pro's own download URL, authorised by the order key
 		 * and a nonce made for a signed-out visitor, so it opens in the phone's browser without a login.
 		 */
-		private static function ticket_url(WC_Order $order): string {
-			if (!self::changes_supported() || !class_exists('\Mpdf\Mpdf') || !class_exists('MPTBM_Pro_Pdf')) {
-				return '';
+		/** The PDF ticket and the thermal receipt are Pro features. The phone draws them, so no PDF library is needed on the site. */
+		public static function receipts_supported(): bool {
+			return class_exists('MPTBM_Plugin_Pro');
+		}
+
+		/**
+		 * Everything the app needs to draw the PDF ticket and the thermal receipt itself - the phone makes the files, so
+		 * nothing is opened on the website. Null when Pro is not active, or while the order is not in a status the site
+		 * allows tickets for (the same rule the website uses).
+		 */
+		private static function receipt(WC_Order $order): ?array {
+			if (!self::receipts_supported()) {
+				return null;
 			}
 			$allowed = class_exists('MPTBM_Booking_Source') ? MPTBM_Booking_Source::ticket_allowed($order->get_status()) : in_array($order->get_status(), array('processing', 'completed'), true);
 			if (!$allowed) {
-				return '';
+				return null;
 			}
-			$current = get_current_user_id();
-			wp_set_current_user(0); // the nonce must match the signed-out visitor who opens the link
-			$url = MPTBM_Pro_Pdf::get_pdf_url(array('order_id' => $order->get_id(), 'order_key' => $order->get_order_key()));
-			wp_set_current_user($current);
-			return (string) $url;
+			$settings = static function (string $key): string {
+				return wp_strip_all_tags((string) MP_Global_Function::get_settings('mptbm_pdf_settings', $key));
+			};
+			$extras = 0.0;
+			$stops = 0.0;
+			$base_fee = 0.0;
+			foreach ($order->get_items() as $item) {
+				if (!(int) $item->get_meta('_mptbm_id')) {
+					continue;
+				}
+				foreach ((array) $item->get_meta('_mptbm_service_info') as $service) {
+					$extras += (float) ($service['service_price'] ?? 0) * (float) ($service['service_quantity'] ?? 0);
+				}
+				foreach ((array) $item->get_meta('_mptbm_stoppage_info') as $stop) {
+					$stops += (float) ($stop['stoppage_price'] ?? 0);
+				}
+				$base_fee += (float) $item->get_meta('_mptbm_threshold_base_price');
+			}
+			$total = (float) $order->get_total();
+			$discount = (float) $order->get_discount_total();
+			$tax = (float) $order->get_total_tax();
+			$transport = max(0.0, $total + $discount - $tax - $extras - $stops - $base_fee);
+			$logo = (int) MP_Global_Function::get_settings('mptbm_pdf_settings', 'pdf_logo');
+			$created = $order->get_date_created();
+			$trips = self::order_items($order);
+			$first = $order->get_items();
+			$first = $first ? reset($first) : null;
+			$distance = $first ? (string) $first->get_meta('_mptbm_distance_text') : '';
+			$duration = $first ? (string) $first->get_meta('_mptbm_duration_text') : '';
+			return array(
+				'brand' => array(
+					'name' => wp_strip_all_tags(get_bloginfo('name')),
+					'address' => $settings('pdf_address'),
+					'phone' => $settings('pdf_phone'),
+					'logo' => $logo ? (string) wp_get_attachment_url($logo) : '',
+				),
+				'customer' => array(
+					'name' => trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()),
+					'email' => $order->get_billing_email(),
+					'phone' => $order->get_billing_phone(),
+				),
+				'reference' => 'MPTBM-' . str_pad((string) $order->get_id(), 5, '0', STR_PAD_LEFT),
+				'booked_on' => $created ? $created->date('Y-m-d H:i') : '',
+				'distance_text' => wp_strip_all_tags($distance),
+				'duration_text' => wp_strip_all_tags($duration),
+				'transport' => round($transport, 4),
+				'extras_total' => round($extras, 4),
+				'stops_total' => round($stops, 4),
+				'base_fee' => round($base_fee, 4),
+				'discount' => round($discount, 4),
+				'tax' => round($tax, 4),
+				'paid' => $order->is_paid(),
+				'trips' => count($trips),
+			);
 		}
 
 		public static function summary(WC_Order $order): array {
 			$created = $order->get_date_created();
 			$change = (string) $order->get_meta('_mptbm_modification_request');
 			return array(
-				'ticket_url' => self::ticket_url($order),
+				'receipt' => self::receipt($order),
 				'can_cancel' => self::changeable($order),
 				'can_modify' => self::changeable($order) && 'pending' !== $order->get_meta('_mptbm_modification_request_status'),
 				'cancellation_requested' => 'pending-cancel' === $order->get_status(),
