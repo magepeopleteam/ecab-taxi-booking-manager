@@ -100,6 +100,11 @@ if (!class_exists('MPTBM_App_Api')) {
 				array('methods' => 'DELETE', 'callback' => array($this, 'push_unregister'), 'permission_callback' => $auth, 'args' => array('token' => array('type' => 'string', 'required' => true))),
 			));
 
+			register_rest_route(self::NAMESPACE_ID, '/route', array(
+				'methods' => 'POST',
+				'callback' => array($this, 'get_route'),
+				'permission_callback' => array($this, 'permission_places'),
+			));
 			register_rest_route(self::NAMESPACE_ID, '/places/search', array(
 				'methods' => 'GET',
 				'callback' => array($this, 'search_places'),
@@ -521,6 +526,30 @@ if (!class_exists('MPTBM_App_Api')) {
 		}
 
 		/* ----------------------------------------------------------------------- places */
+
+		/** The distance and time of the route between the chosen places: the readout under the website's form. */
+		public function get_route($request) {
+			$params = $request->get_json_params();
+			$points = array();
+			foreach (array_slice((array) ($params['points'] ?? array()), 0, 12) as $point) {
+				if (is_array($point) && isset($point['lat'], $point['lng']) && is_numeric($point['lat']) && is_numeric($point['lng']) && abs((float) $point['lat']) <= 90 && abs((float) $point['lng']) <= 180) {
+					$points[] = array('lat' => (float) $point['lat'], 'lng' => (float) $point['lng']);
+				}
+			}
+			if (count($points) < 2) {
+				return new WP_Error('mptbm_app_bad_route', esc_html__('Choose a pick-up and a drop-off.', 'ecab-taxi-booking-manager'), array('status' => 400));
+			}
+			$route = MPTBM_Function::get_server_distance_multi($points);
+			if (!$route) {
+				return new WP_Error('mptbm_app_no_route', esc_html__('The route between these places could not be calculated.', 'ecab-taxi-booking-manager'), array('status' => 422));
+			}
+			return new WP_REST_Response(array(
+				'distance' => (float) $route['distance'],
+				'duration' => (float) $route['duration'],
+				'distance_text' => MPTBM_Function::format_distance_text($route['distance']),
+				'duration_text' => MPTBM_Function::format_duration_text($route['duration']),
+			), 200);
+		}
 
 		public function search_places($request) {
 			$lat = $request->get_param('lat');

@@ -101,6 +101,50 @@ $tabs = $form(array('trip_tabs' => 'distance,manual'), array('mptbm_extra_stop_b
 $check(0 === $tabs['manual']['extra_stops'] && false === $tabs['distance']['return'], 'stops are not offered on the flat-rate tab and the return trip can be switched off');
 $tabs = $form(array());
 $check(count($tabs) >= 1, 'with nothing configured the app still gets the website\'s tabs');
+// --- Pickup dates and times: the website's own schedule ----------------------------------------------------------------
+$sched = static function (array $general = array()) use ($form, $saved_general): array {
+	update_option('mptbm_general_settings', array_merge(is_array($saved_general) ? $saved_general : array(), $general));
+	return array_values($form(array('trip_tabs' => 'distance'), $general))[0]['schedule'];
+};
+$base_schedule = $sched();
+$check(count($base_schedule['dates']) > 0 && $base_schedule['dates'] === array_values(array_unique($base_schedule['dates'])), 'there are bookable dates, each listed once');
+$sorted = $base_schedule['dates'];
+sort($sorted);
+$check($sorted === $base_schedule['dates'] && $base_schedule['dates'][0] >= $base_schedule['today'], 'dates run from the first bookable day, in order, none in the past');
+$check(30 === $base_schedule['interval'] && 'g:i a' === $base_schedule['time_format'] || $base_schedule['interval'] > 0, 'the interval between times is the shop\'s');
+$check(15 === $sched(array('mptbm_pickup_interval_time' => '15'))['interval'], 'a different pickup interval in the settings reaches the app');
+$check($base_schedule['now_minutes'] >= 0 && $base_schedule['now_minutes'] < 1440, 'the shop\'s clock is reported, in minutes since midnight');
+$with_buffer = $sched(array('enable_buffer_time' => '1700'));
+$check(1700 === $with_buffer['buffer_minutes'], 'the buffer is reported');
+$check($with_buffer['dates'][0] > $base_schedule['today'], 'a buffer longer than the rest of today drops today, as the website does');
+$minutes = new ReflectionMethod('MPTBM_App_Form', 'minutes');
+$minutes->setAccessible(true);
+$check(390 === $minutes->invoke(null, 6.30) && 600 === $minutes->invoke(null, 10.0) && 1440 === $minutes->invoke(null, 24.0), 'schedule values such as 6.30 mean 06:30, as on the website');
+$check(isset($base_schedule['day_ranges']->monday) && $base_schedule['day_ranges']->monday[0] < $base_schedule['day_ranges']->monday[1], 'each open weekday has a window of times');
+
+// --- The route readout (distance and time once both places are chosen) ----------------------------------------------------
+$route_stub = static function ($pre, $args, $url) {
+	if (false !== strpos($url, 'router.project-osrm.org')) {
+		return array('headers' => array(), 'body' => wp_json_encode(array('code' => 'Ok', 'routes' => array(array('distance' => 12500, 'duration' => 1500)))), 'response' => array('code' => 200, 'message' => 'OK'), 'cookies' => array(), 'filename' => null);
+	}
+	return $pre;
+};
+add_filter('pre_http_request', $route_stub, 10, 3);
+$saved_map_for_route = get_option('mptbm_map_api_settings', null);
+update_option('mptbm_map_api_settings', array_merge(is_array($saved_map_for_route) ? $saved_map_for_route : array(), array('display_map' => 'openstreetmap', 'gmap_api_key' => '', 'gmap_server_api_key' => '')));
+$route = static function (array $body) use ($call): WP_REST_Response {
+	delete_transient('mptbm_app_rl_' . md5('places|' . $_SERVER['REMOTE_ADDR']));
+	return $call('POST', '/route', $body);
+};
+$routed = $route(array('points' => array(array('lat' => 23.78, 'lng' => 90.41), array('lat' => 23.85, 'lng' => 90.39))));
+$check(200 === $routed->get_status() && 12500.0 === (float) $routed->get_data()['distance'] && 1500.0 === (float) $routed->get_data()['duration'], 'the route between two places reports its distance and time: ' . wp_json_encode($routed->get_data()));
+$check('' !== $routed->get_data()['distance_text'] && '' !== $routed->get_data()['duration_text'], 'and says them in words, in the shop\'s unit');
+$check(400 === $route(array('points' => array(array('lat' => 23.78, 'lng' => 90.41))))->get_status(), 'one place is not a route');
+$check(400 === $route(array('points' => array(array('lat' => 'x', 'lng' => 1), array('lat' => 1, 'lng' => 1))))->get_status(), 'places without coordinates are not a route');
+$check(400 === $route(array('points' => array(array('lat' => 91, 'lng' => 0), array('lat' => 0, 'lng' => 0))))->get_status(), 'impossible coordinates are refused');
+remove_filter('pre_http_request', $route_stub, 10);
+null === $saved_map_for_route ? delete_option('mptbm_map_api_settings') : update_option('mptbm_map_api_settings', $saved_map_for_route);
+
 null === $saved_app ? delete_option('mptbm_app_settings') : update_option('mptbm_app_settings', $saved_app);
 null === $saved_general ? delete_option('mptbm_general_settings') : update_option('mptbm_general_settings', $saved_general);
 delete_transient('mptbm_app_detected_tabs');
