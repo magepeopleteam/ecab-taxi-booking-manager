@@ -219,6 +219,9 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.2.7 - 2026-11-05 =
+* Added: the mobile app is told where the ride is (on the way, picked up, completed) so passengers get a sound and a message the moment the driver starts or finishes their ride; add-ons can send push notifications to a user's phones.
+
 = 2.2.6 - 2026-11-04 =
 * Added: the mobile app API can be extended by add-ons (the E-cab Pro driver app reuses the app's sign-in).
 

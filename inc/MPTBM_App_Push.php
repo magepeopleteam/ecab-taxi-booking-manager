@@ -108,6 +108,19 @@ if (!class_exists('MPTBM_App_Push')) {
 			}
 		}
 
+		/**
+		 * Queue a push for every phone a user has registered. Used by add-ons (the Pro driver and ride-status alerts);
+		 * the message goes out with the other pushes when the request ends.
+		 */
+		public static function notify(int $user_id, string $title, string $body, array $data = array()): void {
+			foreach (array_keys(self::tokens($user_id)) as $token) {
+				self::$queue[] = array(
+					'user' => $user_id,
+					'message' => array('to' => $token, 'title' => $title, 'body' => $body, 'sound' => 'default', 'data' => $data),
+				);
+			}
+		}
+
 		/** Send what was queued. Public so tests can run it without ending the request. */
 		public static function flush(): void {
 			if (!self::$queue) {
