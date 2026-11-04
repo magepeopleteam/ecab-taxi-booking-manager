@@ -219,6 +219,9 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.2.4 - 2026-11-04 =
+* Fixed: paying for a booking from the mobile app - the payment link was reported as expired the moment it was opened, because it was checked before WooCommerce had finished loading its orders. Customers can now reach the payment page.
+
 = 2.2.3 - 2026-11-04 =
 * Fixed: the mobile app could answer "Too many requests" to customers who were not making many requests. The app's request limits are now counted per signed-in customer, and per real visitor address (not Cloudflare's) for signed-out requests, instead of one count shared by everyone behind the same address.
 

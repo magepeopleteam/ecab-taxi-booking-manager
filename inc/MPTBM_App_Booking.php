@@ -20,7 +20,9 @@ if (!class_exists('MPTBM_App_Booking')) {
 		const OFFLINE_GATEWAYS = array('cod', 'bacs', 'cheque');
 
 		public static function init(): void {
-			add_action('init', array(__CLASS__, 'pay_redirect'), 5);
+			// After WooCommerce has registered its order types (it does so on init at priority 5): earlier, wc_get_order() returns false
+			// and every payment link was reported as expired the moment it was opened.
+			add_action('init', array(__CLASS__, 'pay_redirect'), 20);
 		}
 
 		/* ------------------------------------------------------------------ plumbing */
