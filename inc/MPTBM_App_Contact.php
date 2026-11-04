@@ -1,6 +1,6 @@
 <?php
 /*
- * The mobile-app settings a customer (the taxi company) fills in: an optional Google Maps key for the app's map and the
+ * The mobile-app settings a customer (the taxi company) fills in: the
  * support email and phone passengers can reach in an emergency. Plain validators, so what the app receives is always
  * safe to put in a link (mailto:, tel:) or a page.
  */
@@ -34,10 +34,36 @@ if (!class_exists('MPTBM_App_Contact')) {
 			return ('+' === substr($phone, 0, 1) ? '+' : '') . preg_replace('/\D/', '', $phone);
 		}
 
-		/** @return array{provider:string, google_key:string} how the app draws its map: Google when the company gave a key, else OpenStreetMap */
+		/**
+		 * How the app draws its map: exactly what the website's Map API Settings say.
+		 * 'google' (with the site's own browser key) when the site's map is Google and has a usable key; 'tomtom' when the site
+		 * measures routes with TomTom (the app draws the road TomTom found, on OpenStreetMap tiles, as the website does);
+		 * 'none' when the site's map is off; otherwise 'openstreetmap'. The TomTom key itself never leaves the server.
+		 *
+		 * @return array{provider:string, google_key:string}
+		 */
 		public static function app_map(): array {
-			$key = self::google_key(MP_Global_Function::get_settings('mptbm_app_settings', 'app_google_maps_key', ''));
-			return array('provider' => '' !== $key ? 'google' : 'openstreetmap', 'google_key' => $key);
+			$site = 'mptbm_map_api_settings';
+			$mode = MP_Global_Function::get_settings($site, 'display_map', 'openstreetmap');
+			if ('disable' === $mode) {
+				return array('provider' => 'none', 'google_key' => '');
+			}
+			if ('enable' === $mode) {
+				$key = self::google_key(MP_Global_Function::get_settings($site, 'gmap_api_key', ''));
+				if ('' !== $key) {
+					return array('provider' => 'google', 'google_key' => $key);
+				}
+			}
+			if (self::uses_tomtom()) {
+				return array('provider' => 'tomtom', 'google_key' => '');
+			}
+			return array('provider' => 'openstreetmap', 'google_key' => '');
+		}
+
+		/** @return bool the site routes with TomTom and has entered its key */
+		public static function uses_tomtom(): bool {
+			return 'tomtom' === MP_Global_Function::get_settings('mptbm_map_api_settings', 'fallback_routing_provider', 'osrm')
+				&& '' !== trim((string) MP_Global_Function::get_settings('mptbm_map_api_settings', 'tomtom_api_key', ''));
 		}
 
 		/** @return array{email:string, phone:string, phone_link:string} */

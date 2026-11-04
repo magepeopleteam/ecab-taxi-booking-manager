@@ -697,24 +697,77 @@ if (!class_exists('MPTBM_App_Api')) {
 			foreach ($points as $point) {
 				$coords[] = round($point['lng'], 5) . ',' . round($point['lat'], 5); // the router wants lng,lat
 			}
-			$key = 'mptbm_app_shape_' . md5(implode(';', $coords));
+			$tomtom = MPTBM_App_Contact::uses_tomtom();
+			$key = 'mptbm_app_shape_' . ($tomtom ? 't_' : '') . md5(implode(';', $coords));
 			$cached = get_transient($key);
 			if (false !== $cached) {
 				return '' === $cached ? null : $cached;
 			}
-			$response = wp_remote_get('https://router.project-osrm.org/route/v1/driving/' . implode(';', $coords) . '?overview=full&geometries=polyline', array('timeout' => 8));
-			$shape = '';
-			if (!is_wp_error($response) && 200 === (int) wp_remote_retrieve_response_code($response)) {
-				$data = json_decode(wp_remote_retrieve_body($response), true);
-				$line = is_array($data) && 'Ok' === ($data['code'] ?? '') ? ($data['routes'][0]['geometry'] ?? '') : '';
-				// An encoded line is plain characters; anything else, or something enormous, is not used.
-				if (is_string($line) && strlen($line) <= 120000 && preg_match('/^[\x3f-\x7e]+$/', $line)) {
-					$shape = $line;
+			$shape = $tomtom ? self::tomtom_shape($points) : '';
+			if ('' === $shape) { // OpenStreetMap's router, also when TomTom has nothing for these places
+				$response = wp_remote_get('https://router.project-osrm.org/route/v1/driving/' . implode(';', $coords) . '?overview=full&geometries=polyline', array('timeout' => 8));
+				if (!is_wp_error($response) && 200 === (int) wp_remote_retrieve_response_code($response)) {
+					$data = json_decode(wp_remote_retrieve_body($response), true);
+					$line = is_array($data) && 'Ok' === ($data['code'] ?? '') ? ($data['routes'][0]['geometry'] ?? '') : '';
+					// An encoded line is plain characters; anything else, or something enormous, is not used.
+					if (is_string($line) && strlen($line) <= 120000 && preg_match('/^[\x3f-\x7e]+$/', $line)) {
+						$shape = $line;
+					}
 				}
 			}
 			// A failed lookup is remembered briefly so a down router isn't hit on every request.
 			set_transient($key, $shape, '' === $shape ? 5 * MINUTE_IN_SECONDS : DAY_IN_SECONDS);
 			return '' === $shape ? null : $shape;
+		}
+
+		/** The road TomTom's router finds (the service the site prices with), as an encoded polyline; '' when it has none. */
+		private static function tomtom_shape(array $points): string {
+			$api_key = trim((string) MP_Global_Function::get_settings('mptbm_map_api_settings', 'tomtom_api_key', ''));
+			$path = implode(':', array_map(static function ($p) {
+				return round($p['lat'], 5) . ',' . round($p['lng'], 5);
+			}, $points));
+			$route_type = 'yes' === MP_Global_Function::get_settings('mptbm_map_api_settings', 'use_shortest_route', 'no') ? 'shortest' : 'fastest';
+			$url = add_query_arg(
+				array('key' => rawurlencode($api_key), 'travelMode' => 'car', 'routeType' => $route_type, 'routeRepresentation' => 'polyline'),
+				'https://api.tomtom.com/routing/1/calculateRoute/' . rawurlencode($path) . '/json'
+			);
+			$response = wp_remote_get($url, array('timeout' => 8));
+			if (is_wp_error($response) || 200 !== (int) wp_remote_retrieve_response_code($response)) {
+				return '';
+			}
+			$data = json_decode(wp_remote_retrieve_body($response), true);
+			$line = array();
+			foreach ((array) ($data['routes'][0]['legs'] ?? array()) as $leg) {
+				foreach ((array) ($leg['points'] ?? array()) as $pt) {
+					if (isset($pt['latitude'], $pt['longitude']) && is_numeric($pt['latitude']) && is_numeric($pt['longitude'])) {
+						$line[] = array((float) $pt['latitude'], (float) $pt['longitude']);
+					}
+				}
+			}
+			if (count($line) < 2 || count($line) > 20000) {
+				return '';
+			}
+			return self::encode_polyline($line);
+		}
+
+		/** Google's encoded-polyline format (precision 5), which the app already decodes. */
+		private static function encode_polyline(array $line): string {
+			$out = '';
+			$prev = array(0, 0);
+			foreach ($line as $pt) {
+				foreach (array(0, 1) as $i) {
+					$value = (int) round($pt[$i] * 1e5);
+					$delta = $value - $prev[$i];
+					$prev[$i] = $value;
+					$delta = $delta < 0 ? ~($delta << 1) : ($delta << 1);
+					while ($delta >= 0x20) {
+						$out .= chr((0x20 | ($delta & 0x1f)) + 63);
+						$delta >>= 5;
+					}
+					$out .= chr($delta + 63);
+				}
+			}
+			return $out;
 		}
 
 		public function search_places($request) {
@@ -881,7 +934,14 @@ if (!class_exists('MPTBM_App_Api')) {
 				),
 			);
 
-			return new WP_REST_Response(apply_filters('mptbm_app_config', $config), 200);
+			// The app must always see the settings as they are now (trip types, map, support contacts): never let a page cache keep an old copy.
+			if (!defined('DONOTCACHEPAGE')) {
+				define('DONOTCACHEPAGE', true);
+			}
+			$response = new WP_REST_Response(apply_filters('mptbm_app_config', $config), 200);
+			$response->header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+			$response->header('X-LiteSpeed-Cache-Control', 'no-cache');
+			return $response;
 		}
 
 		/** Pricing modes in use by published vehicles, so the app shows only the forms that apply. */
