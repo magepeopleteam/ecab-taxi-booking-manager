@@ -299,7 +299,9 @@ try {
 	parse_str((string) wp_parse_url($pay_url, PHP_URL_QUERY), $link);
 	$spent = MPTBM_App_Booking::consume_pay_token((string) ($link['ecab_app_pay'] ?? ''));
 	$check(!is_wp_error($spent) && $spent['order']->get_id() === $online_order->get_id() && (int) $spent['user']->ID === (int) $customer['user']['id'], 'the link resolves to the customer\'s order');
-	$check(is_wp_error(MPTBM_App_Booking::consume_pay_token((string) ($link['ecab_app_pay'] ?? ''))), 'a payment link works only once');
+	$check(!is_wp_error(MPTBM_App_Booking::consume_pay_token((string) ($link['ecab_app_pay'] ?? ''))), 'the same page may be reloaded right after the link is first used');
+	set_transient('mptbm_app_pay_' . hash('sha256', (string) ($link['ecab_app_pay'] ?? '')), array('user' => (int) $spent['user']->ID, 'order' => (int) $spent['order']->get_id(), 'used' => time() - 3600), 600);
+	$check(is_wp_error(MPTBM_App_Booking::consume_pay_token((string) ($link['ecab_app_pay'] ?? ''))), 'a payment link that was used a while ago is refused');
 	$check(is_wp_error(MPTBM_App_Booking::consume_pay_token('guess')), 'a guessed payment link is refused');
 
 	$fresh = $call('POST', '/bookings/' . $online_order->get_id() . '/pay-link', array(), $token);
