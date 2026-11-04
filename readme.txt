@@ -3,7 +3,7 @@ Contributors: magepeopleteam, hamidxazad, aamahin, raselsha
 Author URI : https://mage-people.com
 Tags: Taxi booking, Cab booking, Ride booking , Chauffeur service, Airport transfer, Distance based pricing, Fare calculator, Car booking, Map Booking, Limousine service, Transportation, Dispatch system
 Requires at least: 5.3
-Stable tag: trunk
+Stable tag: 2.2.6
 Tested up to: 7.1
 Requires PHP: 7.0
 License: GPLv2 or later
@@ -219,6 +219,9 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.2.6 - 2026-11-04 =
+* Added: the mobile app API can be extended by add-ons (the E-cab Pro driver app reuses the app's sign-in).
+
 = 2.2.5 - 2026-11-04 =
 * Added: mobile app payments stay inside the app. The app opens the payment page in a secure in-app sheet and names its own address to return to; when the payment is done the shop's "order received" page sends the customer straight back into the app instead of showing the shop's thank-you page.
 
