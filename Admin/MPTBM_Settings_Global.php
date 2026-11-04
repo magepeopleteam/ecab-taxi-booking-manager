@@ -801,6 +801,8 @@ if (!class_exists('MPTBM_Settings_Global')) {
 					'label' => esc_html__('App logo', 'ecab-taxi-booking-manager'),
 					'desc' => esc_html__('Shown on the app\'s opening screen and header. A square image works best. Leave empty to use your site logo.', 'ecab-taxi-booking-manager'),
 					'type' => 'file',
+					// The picker stores the image's attachment ID; the generic 'file' cleaning treats it as a web address and turns 2179 into http://2179.
+					'sanitize_callback' => 'absint',
 					'default' => ''
 				),
 				array(

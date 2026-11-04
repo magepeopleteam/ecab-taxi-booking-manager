@@ -10,6 +10,14 @@ if (!defined('ABSPATH')) {
 
 if (!class_exists('MPTBM_App_Contact')) {
 	class MPTBM_App_Contact {
+		/** A logo saved before the fix reads back as "http://2179"; turn it into the image ID it was so the picker and the app see the image. */
+		public static function repair_logo($value) {
+			if (is_array($value) && isset($value['brand_logo']) && is_string($value['brand_logo']) && preg_match('#^https?://(\d+)/?$#', $value['brand_logo'], $m)) {
+				$value['brand_logo'] = (int) $m[1];
+			}
+			return $value;
+		}
+
 		/** @return string a Google Maps (browser) key, or '' when empty or not shaped like one */
 		public static function google_key($raw): string {
 			$key = trim((string) $raw);
@@ -78,3 +86,5 @@ if (!class_exists('MPTBM_App_Contact')) {
 		}
 	}
 }
+
+add_filter('option_mptbm_app_settings', array('MPTBM_App_Contact', 'repair_logo'));

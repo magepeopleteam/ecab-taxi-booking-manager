@@ -219,6 +219,9 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.2.1 - 2026-11-04 =
+* Fixed: the App logo picker in Settings > Mobile App showed a broken image after saving; the chosen logo now saves and shows correctly (a logo already saved this way is repaired automatically).
+
 = 2.2.0 - 2026-11-04 =
 * Changed: the mobile app's map now follows Map API Settings exactly - Google Maps with the same Google key as the website, OpenStreetMap, or no map. When the site routes with TomTom, the app draws the road TomTom found (the TomTom key stays on the server). The separate Google Maps key under Settings > Mobile App is removed.
 * Fixed: changes to Settings > Mobile App (for example Trip types in the app) reached the app late because a page cache kept an old copy of the app's settings; the app now always gets the current settings.
