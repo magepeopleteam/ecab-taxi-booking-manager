@@ -28,8 +28,16 @@ if (!class_exists('MPTBM_App_Api')) {
 		const META_VERSION = 'mptbm_app_token_ver';
 		const META_REFRESH = 'mptbm_app_refresh_tokens';
 
+		/** @var MPTBM_App_Api|null The one instance, so add-ons (the Pro driver app API) can reuse the app's sign-in check. */
+		private static $instance = null;
+
 		public function __construct() {
+			self::$instance = $this;
 			add_action('rest_api_init', array($this, 'register_routes'));
+		}
+
+		public static function instance(): ?MPTBM_App_Api {
+			return self::$instance;
 		}
 
 		public static function is_enabled(): bool {
