@@ -542,6 +542,7 @@ if (!class_exists('MPTBM_App_Booking')) {
 				'total' => (float) $order->get_total(),
 				'currency' => $order->get_currency(),
 				'payment_title' => $order->get_payment_method_title(),
+				'payment_method' => (string) $order->get_payment_method(),
 				'needs_payment' => $order->needs_payment(),
 				'trips' => self::order_items($order),
 			);
