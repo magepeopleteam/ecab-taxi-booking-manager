@@ -3,7 +3,7 @@ Contributors: magepeopleteam, hamidxazad, aamahin, raselsha
 Author URI : https://mage-people.com
 Tags: Taxi booking, Cab booking, Ride booking , Chauffeur service, Airport transfer, Distance based pricing, Fare calculator, Car booking, Map Booking, Limousine service, Transportation, Dispatch system
 Requires at least: 5.3
-Stable tag: 2.2.6
+Stable tag: trunk
 Tested up to: 7.1
 Requires PHP: 7.0
 License: GPLv2 or later
