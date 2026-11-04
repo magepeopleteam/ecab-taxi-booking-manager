@@ -219,6 +219,9 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.2.3 - 2026-11-04 =
+* Fixed: the mobile app could answer "Too many requests" to customers who were not making many requests. The app's request limits are now counted per signed-in customer, and per real visitor address (not Cloudflare's) for signed-out requests, instead of one count shared by everyone behind the same address.
+
 = 2.2.2 - 2026-11-04 =
 * Added: in the mobile app an unpaid booking can be paid with a different payment method (the app asks for a new payment link with the chosen method; cash-type methods are set up straight away).
 * Fixed: the mobile app's payment link no longer reports "expired" when its page is reloaded within a minute (a web view reloads when a bot check or a slow page interrupts it).
