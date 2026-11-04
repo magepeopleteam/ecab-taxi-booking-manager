@@ -303,6 +303,8 @@ try {
 	set_transient('mptbm_app_pay_' . hash('sha256', (string) ($link['ecab_app_pay'] ?? '')), array('user' => (int) $spent['user']->ID, 'order' => (int) $spent['order']->get_id(), 'used' => time() - 3600), 600);
 	$check(is_wp_error(MPTBM_App_Booking::consume_pay_token((string) ($link['ecab_app_pay'] ?? ''))), 'a payment link that was used a while ago is refused');
 	$check(is_wp_error(MPTBM_App_Booking::consume_pay_token('guess')), 'a guessed payment link is refused');
+	$check('ecabtaxi://pay-done' === MPTBM_App_Booking::return_url('ecabtaxi://pay-done') && 'exp://192.168.1.5:8081/--/pay-done' === MPTBM_App_Booking::return_url('exp://192.168.1.5:8081/--/pay-done'), 'the app may name its own address to return to');
+	$check('' === MPTBM_App_Booking::return_url('https://evil.example/') && '' === MPTBM_App_Booking::return_url('javascript:alert(1)') && '' === MPTBM_App_Booking::return_url('ecab://x"onload=1'), 'a web address or script is never accepted as the return address');
 
 	$fresh = $call('POST', '/bookings/' . $online_order->get_id() . '/pay-link', array(), $token);
 	$check(200 === $fresh->get_status() && !empty($fresh->get_data()['pay_url']), 'a new payment link can be asked for');
