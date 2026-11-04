@@ -426,6 +426,25 @@ if (!class_exists('MPTBM_App_Booking')) {
 			return self::changes_supported() && in_array($order->get_status(), array('pending', 'processing'), true);
 		}
 
+		/**
+		 * Where the ride itself is (the driver's ride status), as opposed to the order's payment status. Pro only; null while
+		 * the driver has not set one. The app watches it to tell the passenger the ride started and finished.
+		 *
+		 * @return array{status:string,label:string}|null
+		 */
+		public static function ride_for(WC_Order $order): ?array {
+			if (!self::changes_supported() || !in_array($order->get_status(), array('processing', 'completed'), true)) {
+				return null;
+			}
+			$records = get_posts(array('post_type' => 'mptbm_booking', 'numberposts' => 1, 'post_status' => 'any', 'fields' => 'ids', 'meta_key' => 'mptbm_order_id', 'meta_value' => $order->get_id()));
+			$slug = $records ? sanitize_key((string) get_post_meta($records[0], 'mptbm_service_status', true)) : '';
+			if ('' === $slug) {
+				return null;
+			}
+			$term = taxonomy_exists('mptbm_service_status') ? get_term_by('slug', $slug, 'mptbm_service_status') : false;
+			return array('status' => $slug, 'label' => $term ? wp_strip_all_tags(html_entity_decode($term->name, ENT_QUOTES, 'UTF-8')) : ucwords(str_replace('-', ' ', $slug)));
+		}
+
 		/** The booking's driver, once the shop has assigned one and the booking is confirmed. */
 		private static function driver_for(WC_Order $order): ?array {
 			if (!self::changes_supported() || !in_array($order->get_status(), array('processing', 'completed'), true)) {
@@ -538,6 +557,7 @@ if (!class_exists('MPTBM_App_Booking')) {
 				'cancellation_requested' => 'pending-cancel' === $order->get_status(),
 				'change_request' => '' === $change ? null : array('text' => wp_strip_all_tags($change), 'status' => (string) $order->get_meta('_mptbm_modification_request_status')),
 				'driver' => self::driver_for($order),
+				'ride' => self::ride_for($order),
 				'id' => $order->get_id(),
 				'number' => $order->get_order_number(),
 				'status' => $order->get_status(),
