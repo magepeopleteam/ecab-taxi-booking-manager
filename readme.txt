@@ -219,6 +219,10 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.2.2 - 2026-11-04 =
+* Added: in the mobile app an unpaid booking can be paid with a different payment method (the app asks for a new payment link with the chosen method; cash-type methods are set up straight away).
+* Fixed: the mobile app's payment link no longer reports "expired" when its page is reloaded within a minute (a web view reloads when a bot check or a slow page interrupts it).
+
 = 2.2.1 - 2026-11-04 =
 * Fixed: the App logo picker in Settings > Mobile App showed a broken image after saving; the chosen logo now saves and shows correctly (a logo already saved this way is repaired automatically).
 

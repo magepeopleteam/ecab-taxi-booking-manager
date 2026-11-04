@@ -15,6 +15,7 @@ if (!defined('ABSPATH')) {
 if (!class_exists('MPTBM_App_Booking')) {
 	class MPTBM_App_Booking {
 		const PAY_TOKEN_TTL = 10 * MINUTE_IN_SECONDS;
+		const PAY_TOKEN_REUSE = 60; // seconds a spent link still works for the same page load
 		/** Gateways that finish on the server with no card form: the order can be placed and the customer is done. */
 		const OFFLINE_GATEWAYS = array('cod', 'bacs', 'cheque');
 
@@ -665,7 +666,14 @@ if (!class_exists('MPTBM_App_Booking')) {
 			return add_query_arg('ecab_app_pay', $token, home_url('/'));
 		}
 
-		public static function new_pay_link(int $order_id, int $user_id) {
+		/**
+		 * A payment link for an unpaid booking. With $method the customer first switches the booking to another payment
+		 * method the shop offers (the website's order-pay page lets them do the same): an offline method (cash ...) is
+		 * set up right away and no link is returned; an online one returns the link to pay with it.
+		 *
+		 * @return array|WP_Error pay_url ('' when nothing is to be opened) and, after a switch, booking + payment
+		 */
+		public static function new_pay_link(int $order_id, int $user_id, string $method = '') {
 			if ($unsupported = self::available()) {
 				return $unsupported;
 			}
@@ -676,10 +684,34 @@ if (!class_exists('MPTBM_App_Booking')) {
 			if (!$order->needs_payment()) {
 				return self::error('mptbm_app_nothing_to_pay', esc_html__('This booking does not need a payment.', 'ecab-taxi-booking-manager'), 409);
 			}
+			if ('' !== $method && $method !== $order->get_payment_method()) {
+				self::load_cart();
+				$gateways = WC()->payment_gateways() ? WC()->payment_gateways()->get_available_payment_gateways() : array();
+				if (!isset($gateways[$method])) {
+					return self::error('mptbm_app_bad_payment_method', esc_html__('Choose one of the payment methods offered.', 'ecab-taxi-booking-manager'), 400);
+				}
+				$order->set_payment_method($gateways[$method]);
+				$order->save();
+				$order->add_order_note(sprintf(
+					/* translators: %s: payment method name */
+					esc_html__('Customer chose another payment method in the app: %s', 'ecab-taxi-booking-manager'),
+					wp_strip_all_tags($gateways[$method]->get_title())
+				));
+			}
+			if ('' !== $method && in_array($order->get_payment_method(), self::OFFLINE_GATEWAYS, true)) {
+				$done = self::finish($order, $order->get_payment_method(), $user_id);
+				return array_merge(array('pay_url' => ''), $done);
+			}
 			$url = self::pay_link($order, $user_id);
-			return '' === $url
-				? self::error('mptbm_app_pay_on_site', esc_html__('Please pay for this booking on the website.', 'ecab-taxi-booking-manager'), 403)
-				: array('pay_url' => $url);
+			if ('' === $url) {
+				return self::error('mptbm_app_pay_on_site', esc_html__('Please pay for this booking on the website.', 'ecab-taxi-booking-manager'), 403);
+			}
+			return '' !== $method ? array_merge(array('pay_url' => $url), self::finish_summary($order)) : array('pay_url' => $url);
+		}
+
+		private static function finish_summary(WC_Order $order): array {
+			$order = wc_get_order($order->get_id());
+			return array('booking' => self::summary($order), 'payment' => array('method' => $order->get_payment_method(), 'title' => $order->get_payment_method_title(), 'type' => 'online', 'instructions' => '', 'pay_url' => ''));
 		}
 
 		/**
@@ -690,7 +722,17 @@ if (!class_exists('MPTBM_App_Booking')) {
 		public static function consume_pay_token(string $token) {
 			$key = 'mptbm_app_pay_' . hash('sha256', $token);
 			$grant = get_transient($key);
-			delete_transient($key);
+			// Single use, except that the very same page may be loaded again for a minute: a web view reloads when a bot check
+			// or a slow page interrupts it, and the customer must not be told the link is spent by their own reload.
+			if (is_array($grant) && !empty($grant['used']) && time() - (int) $grant['used'] > self::PAY_TOKEN_REUSE) {
+				$grant = false;
+			}
+			if (is_array($grant) && empty($grant['used'])) {
+				$grant['used'] = time();
+				set_transient($key, $grant, self::PAY_TOKEN_REUSE + 5);
+			} elseif (!is_array($grant)) {
+				delete_transient($key);
+			}
 			$order = is_array($grant) ? wc_get_order((int) $grant['order']) : null;
 			$user = is_array($grant) ? get_userdata((int) $grant['user']) : null;
 			if (!$order || !$user || (int) $order->get_customer_id() !== (int) $user->ID || !$order->needs_payment() || user_can($user, 'edit_posts') || user_can($user, 'manage_woocommerce')) {
@@ -708,6 +750,8 @@ if (!class_exists('MPTBM_App_Booking')) {
 			if (is_wp_error($grant)) {
 				wp_die(esc_html($grant->get_error_message()), '', array('response' => 403));
 			}
+			nocache_headers();
+			header('X-LiteSpeed-Cache-Control: no-cache');
 			wp_set_current_user($grant['user']->ID);
 			wp_set_auth_cookie($grant['user']->ID, false);
 			wp_safe_redirect($grant['order']->get_checkout_payment_url());
