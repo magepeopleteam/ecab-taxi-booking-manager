@@ -219,6 +219,9 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.2.5 - 2026-11-04 =
+* Added: mobile app payments stay inside the app. The app opens the payment page in a secure in-app sheet and names its own address to return to; when the payment is done the shop's "order received" page sends the customer straight back into the app instead of showing the shop's thank-you page.
+
 = 2.2.4 - 2026-11-04 =
 * Fixed: paying for a booking from the mobile app - the payment link was reported as expired the moment it was opened, because it was checked before WooCommerce had finished loading its orders. Customers can now reach the payment page.
 

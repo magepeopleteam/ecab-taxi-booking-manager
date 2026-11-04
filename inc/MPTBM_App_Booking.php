@@ -15,6 +15,7 @@ if (!defined('ABSPATH')) {
 if (!class_exists('MPTBM_App_Booking')) {
 	class MPTBM_App_Booking {
 		const PAY_TOKEN_TTL = 10 * MINUTE_IN_SECONDS;
+		const RETURN_META = '_mptbm_app_return';
 		const PAY_TOKEN_REUSE = 60; // seconds a spent link still works for the same page load
 		/** Gateways that finish on the server with no card form: the order can be placed and the customer is done. */
 		const OFFLINE_GATEWAYS = array('cod', 'bacs', 'cheque');
@@ -23,6 +24,7 @@ if (!class_exists('MPTBM_App_Booking')) {
 			// After WooCommerce has registered its order types (it does so on init at priority 5): earlier, wc_get_order() returns false
 			// and every payment link was reported as expired the moment it was opened.
 			add_action('init', array(__CLASS__, 'pay_redirect'), 20);
+			add_action('template_redirect', array(__CLASS__, 'return_page'), 1);
 		}
 
 		/* ------------------------------------------------------------------ plumbing */
@@ -676,7 +678,7 @@ if (!class_exists('MPTBM_App_Booking')) {
 		 *
 		 * @return array|WP_Error pay_url ('' when nothing is to be opened) and, after a switch, booking + payment
 		 */
-		public static function new_pay_link(int $order_id, int $user_id, string $method = '') {
+		public static function new_pay_link(int $order_id, int $user_id, string $method = '', string $return_url = '') {
 			if ($unsupported = self::available()) {
 				return $unsupported;
 			}
@@ -686,6 +688,12 @@ if (!class_exists('MPTBM_App_Booking')) {
 			}
 			if (!$order->needs_payment()) {
 				return self::error('mptbm_app_nothing_to_pay', esc_html__('This booking does not need a payment.', 'ecab-taxi-booking-manager'), 409);
+			}
+			// Where the shop's "payment received" page sends the customer back to: the app's own address (never a web address).
+			$return_url = self::return_url($return_url);
+			if ('' !== $return_url) {
+				$order->update_meta_data(self::RETURN_META, $return_url);
+				$order->save();
 			}
 			if ('' !== $method && $method !== $order->get_payment_method()) {
 				self::load_cart();
@@ -710,6 +718,47 @@ if (!class_exists('MPTBM_App_Booking')) {
 				return self::error('mptbm_app_pay_on_site', esc_html__('Please pay for this booking on the website.', 'ecab-taxi-booking-manager'), 403);
 			}
 			return '' !== $method ? array_merge(array('pay_url' => $url), self::finish_summary($order)) : array('pay_url' => $url);
+		}
+
+		/** @return string the app address to return to ('' unless it is a custom-scheme link such as ecabtaxi://pay-done): never http(s) or anything a browser would run */
+		public static function return_url(string $url): string {
+			$url = trim($url);
+			if (strlen($url) > 300 || !preg_match('#^([a-z][a-z0-9+.\-]{1,40}):(//)?[A-Za-z0-9\-._~:/?\#\[\]@!$&()*+,;=%]*$#', $url, $m)) {
+				return '';
+			}
+			$blocked = array('http', 'https', 'javascript', 'data', 'file', 'vbscript', 'blob', 'about', 'intent', 'content', 'ftp', 'ws', 'wss', 'mailto', 'tel', 'sms');
+			return in_array(strtolower($m[1]), $blocked, true) ? '' : $url;
+		}
+
+		/**
+		 * The shop's "order received" page, for a booking paid from the app: instead of the shop's thank-you page it sends the customer
+		 * straight back into the app (which closes the in-app payment sheet). A button is there too, in case the phone wants a tap first.
+		 */
+		public static function return_page(): void {
+			if (!function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('order-received')) {
+				return;
+			}
+			$id = absint(get_query_var('order-received'));
+			$key = isset($_GET['key']) ? sanitize_text_field(wp_unslash((string) $_GET['key'])) : '';
+			$order = $id ? wc_get_order($id) : null;
+			if (!$order instanceof WC_Order || '' === $key || !hash_equals((string) $order->get_order_key(), $key)) {
+				return;
+			}
+			$return = self::return_url((string) $order->get_meta(self::RETURN_META));
+			if ('' === $return) {
+				return;
+			}
+			$target = $return . (false === strpos($return, '?') ? '?' : '&') . 'order=' . $id . '&paid=' . ($order->needs_payment() ? '0' : '1');
+			nocache_headers();
+			header('X-LiteSpeed-Cache-Control: no-cache');
+			header('Content-Type: text/html; charset=UTF-8');
+			$title = $order->needs_payment() ? esc_html__('Confirming your payment', 'ecab-taxi-booking-manager') : esc_html__('Payment received', 'ecab-taxi-booking-manager');
+			echo '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>' . esc_html($title) . '</title>'
+				. '<style>body{margin:0;font-family:-apple-system,Roboto,Arial,sans-serif;background:#f2f6f6;color:#14262a;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center}'
+				. '.c{padding:32px;max-width:360px}h1{font-size:22px;margin:0 0 8px}p{color:#5b6b6e;margin:0 0 24px}a{display:block;background:#0b7f85;color:#fff;text-decoration:none;font-weight:700;padding:16px;border-radius:12px}</style></head><body><div class="c"><h1>'
+				. esc_html($title) . '</h1><p>' . esc_html__('Taking you back to the app…', 'ecab-taxi-booking-manager') . '</p><a href="' . esc_attr($target) . '">' . esc_html__('Return to the app', 'ecab-taxi-booking-manager') . '</a></div>'
+				. '<script>setTimeout(function(){location.href=' . wp_json_encode($target, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';},400);</script></body></html>';
+			exit;
 		}
 
 		private static function finish_summary(WC_Order $order): array {

@@ -93,7 +93,7 @@ if (!class_exists('MPTBM_App_Api')) {
 				'permission_callback' => array($this, 'permission_booking'),
 				'args' => array('text' => array('type' => 'string', 'required' => true)),
 			));
-			register_rest_route(self::NAMESPACE_ID, '/bookings/(?P<id>\d+)/pay-link', array('methods' => 'POST', 'callback' => array($this, 'get_pay_link'), 'permission_callback' => array($this, 'permission_booking'), 'args' => array('method' => array('type' => 'string', 'default' => ''))));
+			register_rest_route(self::NAMESPACE_ID, '/bookings/(?P<id>\d+)/pay-link', array('methods' => 'POST', 'callback' => array($this, 'get_pay_link'), 'permission_callback' => array($this, 'permission_booking'), 'args' => array('method' => array('type' => 'string', 'default' => ''), 'return_url' => array('type' => 'string', 'default' => ''))));
 
 			register_rest_route(self::NAMESPACE_ID, '/push/register', array(
 				array('methods' => 'POST', 'callback' => array($this, 'push_register'), 'permission_callback' => $auth, 'args' => array('token' => array('type' => 'string', 'required' => true))),
@@ -696,7 +696,7 @@ if (!class_exists('MPTBM_App_Api')) {
 		}
 
 		public function get_pay_link($request) {
-			$result = MPTBM_App_Booking::new_pay_link((int) $request['id'], get_current_user_id(), sanitize_key((string) $request->get_param('method')));
+			$result = MPTBM_App_Booking::new_pay_link((int) $request['id'], get_current_user_id(), sanitize_key((string) $request->get_param('method')), (string) $request->get_param('return_url'));
 			return is_wp_error($result) ? $result : new WP_REST_Response($result, 200);
 		}
 
