@@ -195,8 +195,8 @@ if (!class_exists('MPTBM_App_Api')) {
 
 		/** Placing a booking creates an order, so it gets the tightest budget. */
 		public function permission_booking($request) {
-			$limited = $this->rate_limit('booking', 20, MINUTE_IN_SECONDS);
-			return is_wp_error($limited) ? $limited : $this->permission_customer($request);
+			$allowed = $this->permission_customer($request);
+			return is_wp_error($allowed) ? $allowed : $this->rate_limit('booking', 20, MINUTE_IN_SECONDS, (string) get_current_user_id());
 		}
 
 		/** Signed in is optional (it only fills the form in); a token that is present must still be valid. */
@@ -205,28 +205,70 @@ if (!class_exists('MPTBM_App_Api')) {
 		}
 
 		public function permission_customer($request) {
-			$limited = $this->rate_limit('auth', 120, MINUTE_IN_SECONDS);
-			if (is_wp_error($limited)) {
-				return $limited;
-			}
 			$user_id = $this->authenticate($request);
 			if (is_wp_error($user_id)) {
-				return $user_id;
+				// No valid sign-in: count it against the caller's address so guessing tokens is not free.
+				$limited = $this->rate_limit('auth', 120, MINUTE_IN_SECONDS);
+				return is_wp_error($limited) ? $limited : $user_id;
+			}
+			// A signed-in customer is counted as themselves, not by address: behind a CDN or a shared Wi-Fi many customers have one.
+			$limited = $this->rate_limit('auth_user', 240, MINUTE_IN_SECONDS, (string) $user_id);
+			if (is_wp_error($limited)) {
+				return $limited;
 			}
 			wp_set_current_user($user_id);
 			return true;
 		}
 
-		/** Fixed-window counter per client IP and bucket. */
-		private function rate_limit(string $bucket, int $max, int $window) {
-			$ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
-			$key = 'mptbm_app_rl_' . md5($bucket . '|' . $ip);
+		/** Fixed-window counter per client (the signed-in user when given, else the visitor's address) and bucket. */
+		private function rate_limit(string $bucket, int $max, int $window, string $who = '') {
+			$who = '' !== $who ? 'u' . $who : self::client_ip();
+			$key = 'mptbm_app_rl_' . md5($bucket . '|' . $who);
 			$count = (int) get_transient($key);
 			if ($count >= $max) {
 				return new WP_Error('mptbm_app_rate_limited', esc_html__('Too many requests. Please try again shortly.', 'ecab-taxi-booking-manager'), array('status' => 429));
 			}
 			set_transient($key, $count + 1, $window);
 			return true;
+		}
+
+		/** The visitor's address. Behind Cloudflare the connection comes from Cloudflare, so its real-visitor header is used, but only when the connection really is Cloudflare's. */
+		private static function client_ip(): string {
+			$remote = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+			$cf = isset($_SERVER['HTTP_CF_CONNECTING_IP']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_CF_CONNECTING_IP'])) : '';
+			if ('' !== $cf && false !== filter_var($cf, FILTER_VALIDATE_IP) && self::is_cloudflare($remote)) {
+				return $cf;
+			}
+			return $remote;
+		}
+
+		private static function is_cloudflare(string $ip): bool {
+			$binary = @inet_pton($ip);
+			if (false === $binary) {
+				return false;
+			}
+			$ranges = array(
+				'173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22', '141.101.64.0/18', '108.162.192.0/18', '190.93.240.0/20',
+				'188.114.96.0/20', '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/13', '104.24.0.0/14', '172.64.0.0/13', '131.0.72.0/22',
+				'2400:cb00::/32', '2606:4700::/32', '2803:f800::/32', '2405:b500::/32', '2405:8100::/32', '2a06:98c0::/29', '2c0f:f248::/32',
+			);
+			foreach ($ranges as $range) {
+				list($base, $bits) = explode('/', $range);
+				$base_bin = inet_pton($base);
+				if (strlen($base_bin) !== strlen($binary)) {
+					continue;
+				}
+				$bits = (int) $bits;
+				$bytes = intdiv($bits, 8);
+				if (substr($binary, 0, $bytes) !== substr($base_bin, 0, $bytes)) {
+					continue;
+				}
+				$rest = $bits % 8;
+				if (0 === $rest || (ord($binary[$bytes]) & (0xff << (8 - $rest)) & 0xff) === (ord($base_bin[$bytes]) & (0xff << (8 - $rest)) & 0xff)) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		/* ----------------------------------------------------------------------- tokens */
