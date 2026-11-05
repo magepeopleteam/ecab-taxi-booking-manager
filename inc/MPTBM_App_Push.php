@@ -128,20 +128,146 @@ if (!class_exists('MPTBM_App_Push')) {
 			}
 			$queue = self::$queue;
 			self::$queue = array();
-			$response = wp_remote_post(self::ENDPOINT, array(
-				'timeout' => 8,
-				'headers' => array('Accept' => 'application/json', 'Content-Type' => 'application/json'),
-				'body' => wp_json_encode(array_column($queue, 'message')),
-			));
-			if (is_wp_error($response)) {
-				return;
-			}
-			$body = json_decode(wp_remote_retrieve_body($response), true);
-			foreach ((array) ($body['data'] ?? array()) as $index => $ticket) {
+			$result = self::deliver(array_column($queue, 'message'), 8);
+			foreach ($result['tickets'] as $index => $ticket) {
 				if (isset($queue[$index]) && 'error' === ($ticket['status'] ?? '') && 'DeviceNotRegistered' === ($ticket['details']['error'] ?? '')) {
 					self::remove($queue[$index]['user'], $queue[$index]['message']['to']);
 				}
 			}
+		}
+
+		/**
+		 * Send messages to Expo and say how each one went.
+		 *
+		 * Expo takes one project's devices per request. A site that serves two apps (the customer app and the driver app,
+		 * or an installed app and Expo Go) has tokens from several projects, and Expo then refuses the whole request.
+		 * When that happens the messages are sent again, one project at a time, using the grouping Expo returns.
+		 *
+		 * @param array<int, array> $messages Expo push messages (each has a "to").
+		 * @return array{tickets: array<int, array>, errors: array<string,int>} one ticket per message, same order; error reasons with counts
+		 */
+		public static function deliver(array $messages, int $timeout = 20): array {
+			$messages = array_values($messages);
+			$tickets  = array();
+			$errors   = array();
+			if (!$messages) {
+				return compact('tickets', 'errors');
+			}
+			$result = self::post($messages, $timeout);
+			if ('PUSH_TOO_MANY_EXPERIENCE_IDS' === $result['refused']) {
+				$groups = array();
+				foreach ($result['groups'] as $tokens) {
+					$groups[] = array_flip($tokens);
+				}
+				$buckets = array();
+				foreach ($messages as $index => $message) {
+					$bucket = 'rest';
+					foreach ($groups as $g => $set) {
+						if (isset($set[$message['to'] ?? ''])) {
+							$bucket = 'g' . $g;
+							break;
+						}
+					}
+					// Without a usable grouping every device goes alone, so one odd app can never block the others.
+					$buckets[$groups ? $bucket : 'm' . $index][] = $index;
+				}
+				foreach ($buckets as $indexes) {
+					$part = self::post(array_map(static function ($i) use ($messages) {
+						return $messages[$i];
+					}, $indexes), $timeout);
+					foreach ($indexes as $n => $i) {
+						$tickets[$i] = $part['tickets'][$n] ?? self::failed_ticket($part['reason']);
+					}
+				}
+			} else {
+				foreach ($messages as $index => $message) {
+					$tickets[$index] = $result['tickets'][$index] ?? self::failed_ticket($result['reason']);
+				}
+			}
+			ksort($tickets);
+			foreach ($tickets as $ticket) {
+				if ('ok' !== ($ticket['status'] ?? '')) {
+					$reason = self::reason((string) ($ticket['details']['error'] ?? ''), (string) ($ticket['message'] ?? ''));
+					$errors[$reason] = ($errors[$reason] ?? 0) + 1;
+				}
+			}
+			return compact('tickets', 'errors');
+		}
+
+		/** @return array{tickets: array, reason: string, refused: string, groups: array} */
+		private static function post(array $messages, int $timeout): array {
+			$out      = array('tickets' => array(), 'reason' => '', 'refused' => '', 'groups' => array());
+			$response = wp_remote_post(self::ENDPOINT, array(
+				'timeout' => $timeout,
+				'headers' => array('Accept' => 'application/json', 'Content-Type' => 'application/json'),
+				'body'    => wp_json_encode($messages),
+			));
+			if (is_wp_error($response)) {
+				$out['reason'] = 'NETWORK:' . $response->get_error_message();
+				return $out;
+			}
+			$status = (int) wp_remote_retrieve_response_code($response);
+			$body   = json_decode(wp_remote_retrieve_body($response), true);
+			$body   = is_array($body) ? $body : array();
+			foreach ((array) ($body['errors'] ?? array()) as $error) {
+				$code = (string) ($error['code'] ?? '');
+				if ('' === $out['reason']) {
+					$out['reason'] = '' !== $code ? $code . ':' . (string) ($error['message'] ?? '') : 'HTTP ' . $status;
+				}
+				if ('PUSH_TOO_MANY_EXPERIENCE_IDS' === $code) {
+					$out['refused'] = $code;
+					foreach ((array) ($error['details'] ?? array()) as $tokens) {
+						if (is_array($tokens)) {
+							$out['groups'][] = array_values(array_filter($tokens, 'is_string'));
+						}
+					}
+				}
+			}
+			if ($status >= 400 && '' === $out['reason']) {
+				$out['reason'] = 'HTTP ' . $status;
+			}
+			if (is_array($body['data'] ?? null)) {
+				$out['tickets'] = array_values($body['data']);
+				// Some replies mark each ticket instead of refusing the request; treat that the same way.
+				foreach ($out['tickets'] as $ticket) {
+					if ('PUSH_TOO_MANY_EXPERIENCE_IDS' === ($ticket['details']['error'] ?? '')) {
+						$out['refused'] = 'PUSH_TOO_MANY_EXPERIENCE_IDS';
+						foreach ((array) ($ticket['details']['experienceIdToTokens'] ?? $ticket['details']['experiences'] ?? array()) as $tokens) {
+							if (is_array($tokens)) {
+								$out['groups'][] = array_values(array_filter($tokens, 'is_string'));
+							}
+						}
+					}
+				}
+			}
+			return $out;
+		}
+
+		private static function failed_ticket(string $reason): array {
+			$code = explode(':', $reason, 2);
+			return array('status' => 'error', 'message' => $code[1] ?? '', 'details' => array('error' => $code[0]));
+		}
+
+		/** A short, human reason for the notifications screen. */
+		public static function reason(string $code, string $message = ''): string {
+			switch ($code) {
+				case 'DeviceNotRegistered':
+					return __('device no longer registered (app removed or reinstalled)', 'ecab-taxi-booking-manager');
+				case 'InvalidCredentials':
+				case 'MismatchSenderId':
+					return __('the app has no valid Firebase push key in Expo', 'ecab-taxi-booking-manager');
+				case 'MessageRateExceeded':
+					return __('sending too fast, will work later', 'ecab-taxi-booking-manager');
+				case 'MessageTooBig':
+					return __('message too large', 'ecab-taxi-booking-manager');
+				case 'PUSH_TOO_MANY_EXPERIENCE_IDS':
+					return __('devices from different apps could not be separated', 'ecab-taxi-booking-manager');
+				case 'NETWORK':
+					return __('could not reach the push service', 'ecab-taxi-booking-manager');
+				case '':
+					return '' !== $message ? $message : __('unknown reason', 'ecab-taxi-booking-manager');
+			}
+			return '' !== $message ? $code . ': ' . $message : $code;
 		}
 
 		/** For tests. */

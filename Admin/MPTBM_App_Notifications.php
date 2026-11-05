@@ -136,7 +136,11 @@ if (!class_exists('MPTBM_App_Notifications')) {
 							<td><?php echo esc_html($row['title']); ?><?php echo 'test' === $row['audience'] ? ' <em>(' . esc_html__('test', 'ecab-taxi-booking-manager') . ')</em>' : ''; ?></td>
 							<td><?php echo esc_html($row['body']); ?></td>
 							<td><?php echo $row['image'] ? '<img src="' . esc_url($row['image']) . '" alt="" style="width:60px;height:auto;border-radius:3px">' : '&mdash;'; ?></td>
-							<td><?php echo (int) $row['sent'] . ' / ' . (int) $row['total']; ?></td>
+							<td><?php echo (int) $row['sent'] . ' / ' . (int) $row['total']; ?><?php
+								foreach ((array) ($row['errors'] ?? array()) as $reason => $count) {
+									echo '<br><span class="description">' . esc_html((int) $count . ' × ' . $reason) . '</span>';
+								}
+							?></td>
 							<td><?php echo esc_html('done' === $row['status'] ? __('Sent', 'ecab-taxi-booking-manager') : ('sending' === $row['status'] ? __('Sending…', 'ecab-taxi-booking-manager') : __('Failed', 'ecab-taxi-booking-manager'))); ?></td>
 						</tr>
 					<?php endforeach; ?>

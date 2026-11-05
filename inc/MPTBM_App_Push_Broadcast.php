@@ -83,6 +83,7 @@ if (!class_exists('MPTBM_App_Push_Broadcast')) {
 				'sent'     => 0,
 				'failed'   => 0,
 				'status'   => 'sending',
+				'errors'   => array(),
 			);
 			self::save_entry($entry);
 			update_option(self::PENDING_PREFIX . $id, $devices, false);
@@ -115,6 +116,9 @@ if (!class_exists('MPTBM_App_Push_Broadcast')) {
 				$result  = self::send_chunk($chunk, $entry);
 				$entry['sent']   += $result['sent'];
 				$entry['failed'] += $result['failed'];
+				foreach ($result['errors'] as $reason => $count) {
+					$entry['errors'][$reason] = ($entry['errors'][$reason] ?? 0) + $count; // why devices were not reached, shown on the screen
+				}
 			}
 			if ($pending) {
 				update_option(self::PENDING_PREFIX . $id, $pending, false);
@@ -126,7 +130,7 @@ if (!class_exists('MPTBM_App_Push_Broadcast')) {
 			return $entry;
 		}
 
-		/** @return array{sent:int, failed:int} */
+		/** @return array{sent:int, failed:int, errors:array<string,int>} */
 		private static function send_chunk(array $devices, array $entry): array {
 			$messages = array();
 			foreach ($devices as $device) {
@@ -145,19 +149,11 @@ if (!class_exists('MPTBM_App_Push_Broadcast')) {
 				}
 				$messages[] = $message;
 			}
-			$response = wp_remote_post(MPTBM_App_Push::ENDPOINT, array(
-				'timeout' => 20,
-				'headers' => array('Accept' => 'application/json', 'Content-Type' => 'application/json'),
-				'body'    => wp_json_encode($messages),
-			));
-			if (is_wp_error($response) || 200 !== (int) wp_remote_retrieve_response_code($response)) {
-				return array('sent' => 0, 'failed' => count($devices));
-			}
-			$tickets = (array) (json_decode(wp_remote_retrieve_body($response), true)['data'] ?? array());
-			$sent    = 0;
-			$failed  = 0;
+			$result = MPTBM_App_Push::deliver($messages, 20);
+			$sent   = 0;
+			$failed = 0;
 			foreach ($devices as $index => $device) {
-				$ticket = $tickets[$index] ?? array();
+				$ticket = $result['tickets'][$index] ?? array();
 				if ('ok' === ($ticket['status'] ?? '')) {
 					++$sent;
 					continue;
@@ -167,7 +163,7 @@ if (!class_exists('MPTBM_App_Push_Broadcast')) {
 					MPTBM_App_Push::remove($device['user'], $device['token']);
 				}
 			}
-			return array('sent' => $sent, 'failed' => $failed);
+			return array('sent' => $sent, 'failed' => $failed, 'errors' => $result['errors']);
 		}
 
 		/* ------------------------------------------------------------- history */

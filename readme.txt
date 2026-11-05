@@ -219,6 +219,10 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.2.9 - 2026-11-05 =
+* Fixed: an app notification sent from App Notifications failed for everyone when the site had devices from more than one app (for example the customer app and the driver app). Each app's devices are now sent separately.
+* Improved: the notifications screen now says why devices were not reached, for example a missing Firebase push key.
+
 = 2.2.8 - 2026-11-05 =
 * Added: pickup code. Every new booking gets a 6-digit code that the passenger sees in the mobile app (also as a QR code), on the order page and in the order email, so the driver can confirm who they are picking up.
 
