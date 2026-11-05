@@ -558,6 +558,7 @@ if (!class_exists('MPTBM_App_Booking')) {
 				'change_request' => '' === $change ? null : array('text' => wp_strip_all_tags($change), 'status' => (string) $order->get_meta('_mptbm_modification_request_status')),
 				'driver' => self::driver_for($order),
 				'ride' => self::ride_for($order),
+				'pickup' => class_exists('MPTBM_Pickup_Code') ? MPTBM_Pickup_Code::for_order($order) : null,
 				'id' => $order->get_id(),
 				'number' => $order->get_order_number(),
 				'status' => $order->get_status(),
