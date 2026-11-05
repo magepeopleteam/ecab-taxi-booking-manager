@@ -426,6 +426,7 @@
 				}
 
 				update_post_meta($booking_id, 'mptbm_pin', MPTBM_Function::create_booking_reference());
+				MPTBM_Pickup_Code::ensure($booking_id);
 				MPTBM_Function::get_booking_access_token($booking_id, true);
 
 				do_action('mptbm_custom_booking_created', $booking_id, $meta, 'pending');
