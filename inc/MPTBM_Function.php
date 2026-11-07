@@ -331,6 +331,100 @@ if (!class_exists('MPTBM_Function')) {
 			return true;
 		}
 
+		/** Every pricing mode a search can quote (the allow-list in MPTBM_Transport_Search). */
+		public static function search_price_modes(): array
+		{
+			return array('dynamic', 'manual', 'fixed_hourly', 'fixed_daily', 'fixed_distance', 'fixed_zone', 'fixed_zone_dropoff', 'fixed_map', 'fixed_route');
+		}
+
+		/**
+		 * Whether the search lists this vehicle for this pricing mode.
+		 *
+		 * Runs the query the search results are built from (MPTBM_Query::query_transport_list),
+		 * scoped to this one vehicle. A vehicle model the mode has no fare formula for (a
+		 * distance-priced taxi under an hourly search, a manual-route taxi under a daily one) is
+		 * then never accepted just because its id was posted.
+		 */
+		public static function vehicle_offered_in_mode($post_id, $price_based): bool
+		{
+			$post_id = absint($post_id);
+			$price_based = sanitize_key((string) $price_based);
+			if (!$post_id || !in_array($price_based, self::search_price_modes(), true)
+				|| get_post_type($post_id) !== self::get_cpt() || get_post_status($post_id) !== 'publish') {
+				return false;
+			}
+			$offered = MPTBM_Query::query_transport_list($price_based, $post_id);
+			return in_array($post_id, array_map('absint', wp_list_pluck($offered->posts, 'ID')), true);
+		}
+
+		/**
+		 * Whether a vehicle can be booked on the quote the server saved for this visitor.
+		 *
+		 * The search lists a vehicle only after two gates: the pricing-mode query
+		 * (vehicle_offered_in_mode()) and, for route- and zone-priced modes, a match of the searched
+		 * places against the vehicle's own rows (location_exit()). The vehicle id of a booking
+		 * comes from the browser, so every booking path runs both again here.
+		 *
+		 * @param int   $post_id Vehicle being booked.
+		 * @param array $context Verified search context (get_checkout_search_context()).
+		 * @return true|WP_Error
+		 */
+		public static function validate_vehicle_for_quote($post_id, array $context)
+		{
+			$price_based = sanitize_key((string) ($context['price_based'] ?? ''));
+			$refused = new WP_Error('mptbm_vehicle_not_offered', __('This vehicle is not available for the trip you searched. Please search again and choose one of the vehicles shown.', 'ecab-taxi-booking-manager'));
+			if (!self::vehicle_offered_in_mode($post_id, $price_based)) {
+				return $refused;
+			}
+
+			// location_exit() reads the mode through the filter get_price() uses; bind it to the
+			// quote's own mode so the rows it checks are the ones this quote is priced from.
+			$geo_fence_coords = null;
+			if ($price_based === 'fixed_zone' && !empty($context['end_coords'])) {
+				$geo_fence_coords = $context['end_coords'];
+			} elseif ($price_based === 'fixed_zone_dropoff' && !empty($context['start_coords'])) {
+				$geo_fence_coords = $context['start_coords'];
+			}
+			$bind_mode = static function () use ($price_based) {
+				return $price_based;
+			};
+			add_filter('mptbm_original_price_based', $bind_mode, 99);
+			$route_found = self::location_exit($post_id, (string) ($context['start_place'] ?? ''), (string) ($context['end_place'] ?? ''), $geo_fence_coords);
+			remove_filter('mptbm_original_price_based', $bind_mode, 99);
+
+			return $route_found ? true : $refused;
+		}
+
+		/** Vehicles whose fare is shown as 0.00 or as a custom message: booked at 0 on purpose. */
+		public static function zero_priced_by_design($post_id): bool
+		{
+			return in_array(MP_Global_Function::get_post_info($post_id, 'mptbm_price_display_type', 'normal'), array('zero', 'custom_message'), true);
+		}
+
+		/**
+		 * Whether a get_price() result can be charged for a booking.
+		 *
+		 * get_price() returns false when the vehicle has no fare formula for the searched mode.
+		 * Zero or less means no fare row matched or discounts used the whole fare up. Only a
+		 * vehicle the admin set to show its price as zero or as a custom message is booked at 0.
+		 *
+		 * @param int   $post_id Vehicle being booked.
+		 * @param mixed $price   What get_price() returned for it.
+		 * @return true|WP_Error
+		 */
+		public static function validate_transport_price($post_id, $price)
+		{
+			if (is_numeric($price) && is_finite((float) $price)) {
+				if ((float) $price > 0) {
+					return true;
+				}
+				if ((float) $price == 0.0 && self::zero_priced_by_design($post_id)) {
+					return true;
+				}
+			}
+			return new WP_Error('mptbm_price_unavailable', __('This vehicle cannot be priced for the trip you searched. Please search again and choose one of the vehicles shown.', 'ecab-taxi-booking-manager'));
+		}
+
 		/** Recalculate the optional base-to-pickup/drop-off charge from server data. */
 		public static function calculate_base_location_price($post_id, array $context): float
 		{
@@ -960,7 +1054,8 @@ if (!class_exists('MPTBM_Function')) {
 			$context_price_based = isset($search_context['price_based']) ? sanitize_key($search_context['price_based']) : '';
 			$original_price_based = apply_filters('mptbm_original_price_based', $context_price_based ?: 'dynamic', $post_id);
 
-			// If original price basis is fixed_hourly but current price basis is distance, return false
+			// A distance-priced vehicle has no hourly fare: an hourly search never lists it, and
+			// false tells a booking path to refuse it (MPTBM_Function::validate_transport_price()).
 			if ($original_price_based === 'fixed_hourly' && $price_based === 'distance') {
 				return false;
 			}
@@ -1309,6 +1404,13 @@ if (!class_exists('MPTBM_Function')) {
 							}
 						}
 					}
+				}
+				else {
+					// No fare formula exists for this vehicle model under this search mode (e.g. a
+					// manual-route vehicle under a daily search). Pricing it at 0 plus base fares
+					// would let it be booked for nothing; false means "not bookable in this mode".
+					session_write_close();
+					return false;
 				}
 
 				if ($initial_price > 0) {

@@ -223,9 +223,17 @@
 					if (is_wp_error($selection)) {
 						return $this->error_html($selection->get_error_message());
 					}
+					// The vehicle id is posted by the browser: it must be one the search offers for this quote.
+					$vehicle = MPTBM_Function::validate_vehicle_for_quote($post_id, $context);
+					if (is_wp_error($vehicle)) {
+						return $this->error_html($vehicle->get_error_message());
+					}
 
 					// Fare is always recomputed here - the posted price is display-only.
 					$unit_price = $this->get_total_price($post_id, $context);
+					if (is_wp_error($unit_price)) {
+						return $this->error_html($unit_price->get_error_message());
+					}
 				$total      = round((float) $unit_price * $quantity, 2);
 
 					$meta = $this->build_booking_meta($post_id, $quantity, $unit_price, $total, $name, $email, $phone, $context);
@@ -241,8 +249,10 @@
 			/**
 			 * Server-side fare for one vehicle incl. extra services.
 			 * Mirrors MPTBM_Woocommerce's cart price calculation.
+			 *
+			 * @return float|WP_Error WP_Error when the vehicle has no real fare for this quote.
 			 */
-			private function get_total_price($post_id, array $context): float {
+			private function get_total_price($post_id, array $context) {
 				$distance = absint($context['distance'] ?? 0);
 				$duration = absint($context['duration'] ?? 0);
 				$start    = sanitize_text_field($context['start_place'] ?? '');
@@ -264,6 +274,11 @@
 				}
 
 				$price     = MPTBM_Function::get_price($post_id, $distance, $duration, $start, $end, $waiting, $two_way, $fixed, $geo_coords);
+				// false (no fare formula for this mode) or a fare of 0 must not become a free booking.
+				$price_check = MPTBM_Function::validate_transport_price($post_id, $price);
+				if (is_wp_error($price_check)) {
+					return $price_check;
+				}
 				$raw_price = (float) MP_Global_Function::price_convert_raw(MP_Global_Function::wc_price($post_id, $price));
 
 				foreach ($this->posted_extra_services($post_id) as $service) {

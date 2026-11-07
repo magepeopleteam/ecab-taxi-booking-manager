@@ -1340,8 +1340,10 @@ if ($all_posts->found_posts > 0) {
             $display_price = $price + ($base_price_extra * $tax_multiplier) + $stop_total_price;
 
 
-            // Only skip display if price is 0 and we're not in zero or custom message mode
-            if (!$display_price && $price_display_type === 'normal') {
+            // Only skip display if price is 0 and we're not in zero or custom message mode. A card
+            // whose own fare is not a real price is skipped too: checkout refuses to book it
+            // (MPTBM_Function::validate_transport_price()), even when base or stop charges add up.
+            if ($price_display_type === 'normal' && (!$display_price || is_wp_error(MPTBM_Function::validate_transport_price($post_id, $price)))) {
                 continue;
             }
             

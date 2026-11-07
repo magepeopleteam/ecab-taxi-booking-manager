@@ -1739,6 +1739,16 @@ if (!class_exists('MPTBM_REST_API')) {
 			if ($max_passengers && $passenger_count > $max_passengers) {
 				return new WP_Error('capacity_exceeded', 'Passenger count exceeds this vehicle capacity', array('status' => 400));
 			}
+			// Only a taxi the website's search offers for this pricing type and route can be booked:
+			// another model has no fare formula for it and would be priced at 0.
+			$offered = MPTBM_Function::validate_vehicle_for_quote($taxi_id, array(
+				'price_based' => $pricing_type,
+				'start_place' => $pickup_location,
+				'end_place'   => $dropoff_location,
+			));
+			if (is_wp_error($offered)) {
+				return new WP_Error('taxi_not_offered', 'This taxi is not offered for this pricing type or route', array('status' => 400));
+			}
             
             // Validate date format
 			$pickup_timestamp = strtotime($pickup_date . ' ' . $pickup_time);
@@ -1757,8 +1767,12 @@ if (!class_exists('MPTBM_REST_API')) {
 			$return_multiplier = $is_actual_return ? 2 : 1;
 			$pricing_filter = static function () use ($pricing_type) { return $pricing_type; };
 			add_filter('mptbm_original_price_based', $pricing_filter);
-			$total_price = (float) MPTBM_Function::get_price($taxi_id, $distance, $duration, $pickup_location, $dropoff_location, 0, $return_multiplier, 0);
+			$transport_price = MPTBM_Function::get_price($taxi_id, $distance, $duration, $pickup_location, $dropoff_location, 0, $return_multiplier, 0);
 			remove_filter('mptbm_original_price_based', $pricing_filter);
+			if (is_wp_error(MPTBM_Function::validate_transport_price($taxi_id, $transport_price))) {
+				return new WP_Error('price_unavailable', 'This trip cannot be priced for this taxi', array('status' => 400));
+			}
+			$total_price = (float) $transport_price;
 
 			$extra_service_info = $this->normalize_api_extra_services($taxi_id, $request->get_param('extra_service_info'));
 			if (is_wp_error($extra_service_info)) {

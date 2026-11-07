@@ -28,6 +28,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			add_filter('woocommerce_order_item_quantity_html', array($this, 'filter_order_item_quantity'), 10, 2);
 			//************//
 			add_action('woocommerce_after_checkout_validation', array($this, 'after_checkout_validation'));
+			// Runs on the cart and checkout pages, the classic checkout submit and the Store API checkout.
+			add_action('woocommerce_check_cart_items', array($this, 'validate_cart_bookings'));
 			add_action('woocommerce_checkout_create_order_line_item', array($this, 'checkout_create_order_line_item'), 90, 4);
 
 			add_action('woocommerce_checkout_order_processed', array($this, 'checkout_order_processed'), 90, 3);
@@ -73,7 +75,59 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				wc_add_notice($selection->get_error_message(), 'error');
 				return false;
 			}
+			// The vehicle id is posted by the browser: it must be one the search offers for this quote.
+			$vehicle = MPTBM_Function::validate_vehicle_for_quote($vehicle_id, $context);
+			if (is_wp_error($vehicle)) {
+				wc_add_notice($vehicle->get_error_message(), 'error');
+				return false;
+			}
 			return $passed;
+		}
+
+		/**
+		 * Abort adding a cart item from woocommerce_add_cart_item_data. The classic cart turns the
+		 * exception into an error notice; the Store API answers 400 with this error code (a plain
+		 * Exception would come back as a 500 "unknown server error").
+		 *
+		 * @throws Exception Always (a Store API RouteException when WooCommerce has it).
+		 */
+		private function refuse_cart_item(WP_Error $error): void
+		{
+			$message = esc_html($error->get_error_message());
+			$route_exception = 'Automattic\\WooCommerce\\StoreApi\\Exceptions\\RouteException';
+			if (class_exists($route_exception)) {
+				throw new $route_exception(sanitize_key((string) $error->get_error_code()), $message, 400);
+			}
+			throw new Exception($message);
+		}
+
+		/**
+		 * Re-check every booking line before the cart is shown or paid for: the vehicle must still
+		 * be one the search offers for the line's pricing mode, and its fare must be a real price.
+		 * Also catches lines put in the cart before this check existed.
+		 */
+		public function validate_cart_bookings()
+		{
+			if (!function_exists('WC') || !WC()->cart) {
+				return;
+			}
+			foreach (WC()->cart->get_cart() as $values) {
+				$post_id = absint($values['mptbm_id'] ?? 0);
+				if (!$post_id || get_post_type($post_id) !== MPTBM_Function::get_cpt()) {
+					continue;
+				}
+				$mode = sanitize_key((string) ($values['original_price_based'] ?? ''));
+				$price = array_key_exists('mptbm_base_price', $values) ? $values['mptbm_base_price'] : ($values['mptbm_tp'] ?? null);
+				if ($mode !== '' && !MPTBM_Function::vehicle_offered_in_mode($post_id, $mode)) {
+					wc_add_notice(__('This vehicle is not available for the trip you searched. Please search again and choose one of the vehicles shown.', 'ecab-taxi-booking-manager'), 'error');
+					return;
+				}
+				$check = MPTBM_Function::validate_transport_price($post_id, $price);
+				if (is_wp_error($check)) {
+					wc_add_notice($check->get_error_message(), 'error');
+					return;
+				}
+			}
 		}
 
 		public function hide_internal_item_meta($hidden)
@@ -175,12 +229,20 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					$end_place = isset($_POST['mptbm_end_place']) ? sanitize_text_field(wp_unslash($_POST['mptbm_end_place'])) : '';
 					$context = MPTBM_Function::get_checkout_search_context($start_place, $end_place, $mptbm_original_price_base);
 					if (is_wp_error($context)) {
-						return $cart_item_data;
+						// A taxi line without a verified quote has no fare: never add it.
+						$this->refuse_cart_item($context);
+					}
+					$vehicle = MPTBM_Function::validate_vehicle_for_quote($post_id, $context);
+					if (is_wp_error($vehicle)) {
+						$this->refuse_cart_item($vehicle);
 					}
 					$distance = absint($context['distance'] ?? 0);
 					$duration = absint($context['duration'] ?? 0);
-				$start_place = isset($_POST['mptbm_start_place']) ? sanitize_text_field(wp_unslash($_POST['mptbm_start_place'])) : '';
-				$end_place = isset($_POST['mptbm_end_place']) ? sanitize_text_field(wp_unslash($_POST['mptbm_end_place'])) : '';
+				// Price from the places the search quoted. The posted ones only match them
+				// case-insensitively, while route and zone rows are matched exactly, so a
+				// re-cased name missed every row and priced the trip at 0.
+				$start_place = sanitize_text_field((string) ($context['start_place'] ?? ''));
+				$end_place = sanitize_text_field((string) ($context['end_place'] ?? ''));
 				$extra_stop_places = isset($context['extra_stop_places']) && is_array($context['extra_stop_places']) ? $context['extra_stop_places'] : array();
 					$waiting_time = absint($context['waiting_time'] ?? 0);
 					$return       = max(1, absint($context['two_way'] ?? 1));
@@ -189,11 +251,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					$threshold_base_price = MPTBM_Function::calculate_base_location_price($post_id, $context);
 					$cart_item_data['mptbm_threshold_base_price'] = $threshold_base_price;
 				
-				// Get price_based to determine if we need geo_fence_coords
-				$price_based = isset($_POST['mptbm_original_price_base']) ? sanitize_text_field($_POST['mptbm_original_price_base']) : '';
-				if (empty($price_based)) {
-					$price_based = isset($_POST['mptbm_price_based']) ? sanitize_text_field($_POST['mptbm_price_based']) : '';
-				}
+				// The quote's own pricing mode (a posted mode is only compared with it when present).
+				$price_based = sanitize_key((string) ($context['price_based'] ?? ''));
 
 				// Fixed Daily has no map route to derive a duration from (dropoff may not even
 				// be routed), so the inventory/calendar-blocking duration is the full rental
@@ -219,11 +278,14 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				
 				// Calculate single-unit transport price
 				$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $return, $fixed_hour, $geo_fence_coords);
-				
-				
+				// false (no fare formula for this mode) or a fare of 0 must not become a free booking.
+				$price_check = MPTBM_Function::validate_transport_price($post_id, $price);
+				if (is_wp_error($price_check)) {
+					$this->refuse_cart_item($price_check);
+				}
 
 				// Send the raw, tax-exclusive price to WooCommerce and let it handle tax calculations at checkout to avoid double taxation.
-				$raw_price = $price;
+				$raw_price = (float) $price;
 				// Multiply transport unit price by quantity
 				$transport_total_price = $raw_price * $quantity;
 
@@ -304,7 +366,8 @@ if (!class_exists('MPTBM_Woocommerce')) {
 					$cart_item_data['mptbm_return_target_date'] = $return_target_date;
 					$cart_item_data['mptbm_return_target_time'] = $return_target_time;
 				}
-				$cart_item_data['original_price_based'] = isset($_POST['mptbm_original_price_base']) && $_POST['mptbm_original_price_base'] ? sanitize_text_field($_POST['mptbm_original_price_base']) : (isset($_POST['mptbm_price_based']) ? sanitize_text_field($_POST['mptbm_price_based']) : '');
+				// The mode this line was priced under; validate_cart_bookings() re-checks the vehicle against it.
+				$cart_item_data['original_price_based'] = $price_based;
 				$cart_item_data = apply_filters('mptbm_add_cart_item', $cart_item_data, $post_id);
 			}
 			$cart_item_data['mptbm_id'] = $post_id;
