@@ -78,9 +78,16 @@ add_filter('woocommerce_payment_gateways', static function ($gateways) {
 WC()->payment_gateways()->init();
 
 $_SERVER['REMOTE_ADDR'] = '203.0.113.30';
-$clear_limits = static function () {
+$users = array();
+$clear_limits = static function () use (&$users) {
 	foreach (array('public', 'auth', 'quote', 'booking', 'register', 'login') as $bucket) {
 		delete_transient('mptbm_app_rl_' . md5($bucket . '|' . $_SERVER['REMOTE_ADDR']));
+	}
+	// Signed-in calls count per customer, not per address (MPTBM_App_Api::rate_limit()).
+	foreach ($users as $user_id) {
+		foreach (array('booking', 'auth_user') as $bucket) {
+			delete_transient('mptbm_app_rl_' . md5($bucket . '|u' . $user_id));
+		}
 	}
 	delete_transient('mptbm_route_rate_' . md5($_SERVER['REMOTE_ADDR']));
 };
@@ -102,7 +109,6 @@ $call = static function (string $method, string $route, array $body = array(), s
 };
 
 $created_orders = array();
-$users = array();
 $cleanup = static function () use (&$created_orders, &$users, $saved_map, $saved_cod): void {
 	foreach ($created_orders as $order_id) {
 		$order = wc_get_order($order_id);
