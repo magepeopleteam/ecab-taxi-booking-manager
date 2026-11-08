@@ -219,6 +219,44 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.2.9 - 2026-11-08 =
+* New: Add customer-facing app API (ecab-app/v1) for the mobile app.
+* New: Route quote for the mobile app (POST /ecab-app/v1/quote).
+* New: Place search and reverse lookup for the mobile app.
+* New: Bookings for the mobile app (checkout form, extras, create, list, pay link).
+* New: Cancel and change requests, driver info (Pro).
+* New: Push notifications for the mobile app.
+* New: Fixed-route and manual (listed-location) trips.
+* New: Receipt link (Pro PDF) and brand colour; "Mobile App" settings.
+* New: The search form follows the website's booking form (tabs and fields).
+* New: App logo setting (Mobile App settings) and brand.logo in /config.
+* New: Pickup schedule per tab and a route readout.
+* Improvement: Remove a stray file that was added by mistake (Admin/MPTBM Quick Setup.php is not part of the plugin).
+* Improvement: Hourly bookings must cover the drive: minimum hours from the route time.
+* Improvement: App API: /route returns the road shape (encoded polyline) for the map.
+* Improvement: App API: billing address, delete account, support email.
+* Improvement: App API: orders keep the trip's pick-up/drop-off points for the My Trips map.
+* Improvement: App API: quote carries the pricing add-on labels shown on the website card (tier, peak hour).
+* Improvement: App API: bookings carry receipt data so the app draws the PDF ticket and thermal receipt (Pro).
+* Improvement: App API: profile photo (POST/DELETE /me/avatar), returned on the profile.
+* Improvement: App API: admin-written push notifications with image (App Notifications screen).
+* Improvement: App settings: Google Maps key for the app (OpenStreetMap when empty), support email and phone.
+* Improvement: App API: map follows Map API Settings (Google/OSM/TomTom/off); app config never cached; drop separate app Google key.
+* Improvement: Mobile App settings: app logo picker saved the image ID as http://<id>; save it as an ID and repair old values.
+* Improvement: App API: pay with another method from the app; payment link survives a reload; no-cache on the pay redirect.
+* Improvement: App API: booking carries payment method id.
+* Improvement: App API: rate limits per signed-in customer and real visitor IP behind Cloudflare.
+* Improvement: App payment link: open it after WooCommerce registers order types (links were always 'expired').
+* Improvement: App payments: return to the app after payment (app-chosen return address, order-received hands back to the app).
+* Improvement: App API: expose the instance so add-ons can reuse the app sign-in check.
+* Improvement: App API: ride status in the booking payload; MPTBM App Push::notify for add-ons (2.2.7).
+* Improvement: Pickup code: a 6-digit code for every new booking (2.2.8).
+* Improvement: Booking: only a vehicle the search offers, at a real fare.
+* Improvement: Tests/app-booking: clear the per-customer rate limits too.
+* Fix: Quote counted the geo-fence surcharge twice.
+* Fix: Booking failed with "accept the terms" on shops without a terms page.
+* Fix: Booking refused with "pricing mode changed" - isolate each quote and booking session.
+
 = 2.2.8 - 2026-11-05 =
 * Added: pickup code. Every new booking gets a 6-digit code that the passenger sees in the mobile app (also as a QR code), on the order page and in the order email, so the driver can confirm who they are picking up.
 
