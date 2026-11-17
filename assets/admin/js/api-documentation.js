@@ -50,7 +50,13 @@ jQuery(document).ready(function($) {
         // Send AJAX request
         $.post(mptbm_api.ajax_url, formData, function(response) {
             if (response.success) {
-                alert('API key generated successfully!');
+                // generate_api_key_endpoint() returns a WP_REST_Response whose own body is
+                // already {success, data}; wp_send_json_success() wraps that again, so the
+                // actual key/secret end up one level deeper than a plain AJAX response.
+                const keyData = (response.data && response.data.data) ? response.data.data : response.data;
+                $('#mptbm-new-api-key').text(keyData.api_key || '');
+                $('#mptbm-new-api-secret').text(keyData.api_secret || '');
+                $('#mptbm-apidocs-key-modal').css('display', 'flex');
                 $form[0].reset();
                 $form.find('input[name="permissions[]"]').prop('checked', true);
                 loadApiKeys(); // Refresh the list
@@ -63,6 +69,52 @@ jQuery(document).ready(function($) {
             $submitBtn.text(originalText).prop('disabled', false);
         });
     });
+
+    // Close the "key created" modal
+    $(document).on('click', '#mptbm-apidocs-key-modal-close', function() {
+        $('#mptbm-apidocs-key-modal').css('display', 'none');
+        $('#mptbm-new-api-key').text('');
+        $('#mptbm-new-api-secret').text('');
+    });
+
+    // Copy the key/secret shown in the modal
+    $(document).on('click', '.mptbm-apidocs-modal-copy', function(e) {
+        e.preventDefault();
+        const $button = $(this);
+        const targetId = $button.data('copy-target');
+        const text = targetId ? $('#' + targetId).text().trim() : '';
+        if (!text) {
+            return;
+        }
+
+        function onCopied() {
+            const $icon = $button.find('i');
+            $icon.removeClass('fa-copy').addClass('fa-check');
+            window.setTimeout(function() {
+                $icon.removeClass('fa-check').addClass('fa-copy');
+            }, 1600);
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(onCopied).catch(function() {
+                legacyCopy(text, onCopied);
+            });
+        } else {
+            legacyCopy(text, onCopied);
+        }
+    });
+
+    function legacyCopy(text, onCopied) {
+        const $temp = $('<textarea readonly></textarea>').val(text).css({ position: 'fixed', top: '-9999px' }).appendTo('body');
+        $temp[0].select();
+        try {
+            document.execCommand('copy');
+            onCopied();
+        } catch (err) {
+            // Nothing more we can do without clipboard access.
+        }
+        $temp.remove();
+    }
 
     // Handle API key revocation
     $(document).on('click', '.revoke-key', function(e) {

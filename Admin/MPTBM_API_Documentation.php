@@ -136,6 +136,28 @@ if (!class_exists('MPTBM_API_Documentation')) {
                                     </div>
                                 </div>
                             </div>
+
+                            <div id="mptbm-apidocs-key-modal" class="mptbm-apidocs-modal-overlay" style="display:none;">
+                                <div class="mptbm-apidocs-modal">
+                                    <h3><i class="fas fa-key" aria-hidden="true"></i> <?php esc_html_e('API Key Created', 'ecab-taxi-booking-manager'); ?></h3>
+                                    <p class="mptbm-apidocs-modal-warning"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> <?php esc_html_e('Copy the secret now - for your security, it will not be shown again.', 'ecab-taxi-booking-manager'); ?></p>
+                                    <div class="mptbm-apidocs-modal-field">
+                                        <label><?php esc_html_e('API Key', 'ecab-taxi-booking-manager'); ?></label>
+                                        <div class="mptbm-apidocs-modal-value-row">
+                                            <code id="mptbm-new-api-key"></code>
+                                            <button type="button" class="mptbm-apidocs-modal-copy" data-copy-target="mptbm-new-api-key" title="<?php esc_attr_e('Copy', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-copy" aria-hidden="true"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="mptbm-apidocs-modal-field">
+                                        <label><?php esc_html_e('API Secret', 'ecab-taxi-booking-manager'); ?></label>
+                                        <div class="mptbm-apidocs-modal-value-row">
+                                            <code id="mptbm-new-api-secret"></code>
+                                            <button type="button" class="mptbm-apidocs-modal-copy" data-copy-target="mptbm-new-api-secret" title="<?php esc_attr_e('Copy', 'ecab-taxi-booking-manager'); ?>"><i class="fas fa-copy" aria-hidden="true"></i></button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="button button-primary" id="mptbm-apidocs-key-modal-close"><?php esc_html_e("Done, I've copied it", 'ecab-taxi-booking-manager'); ?></button>
+                                </div>
+                            </div>
                         </section>
 
                         <?php
