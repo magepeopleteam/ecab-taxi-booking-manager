@@ -219,6 +219,9 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.2.10 - 2026-11-17 =
+* Fix: Route: list and price only a route the vehicle is assigned.
+
 = 2.2.9 - 2026-11-08 =
 * New: Add customer-facing app API (ecab-app/v1) for the mobile app.
 * New: Route quote for the mobile app (POST /ecab-app/v1/quote).

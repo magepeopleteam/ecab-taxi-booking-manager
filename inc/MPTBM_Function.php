@@ -1388,22 +1388,16 @@ if (!class_exists('MPTBM_Function')) {
 					// price for that route (mptbm_assigned_routes), with no live
 					// distance/duration calculation. The route's name/waypoints
 					// themselves live once on the global mptbm_routes CPT post.
-					$assigned_routes = MP_Global_Function::get_post_info($post_id, 'mptbm_assigned_routes', []);
-					if (sizeof($assigned_routes) > 0) {
-						foreach ($assigned_routes as $assigned_route) {
-							$route_id = array_key_exists('route_id', $assigned_route) ? absint($assigned_route['route_id']) : 0;
-							// Same html_entity_decode() as get_all_routes()/get_route_waypoints_map()
-							// (MPTBM_Function) - $start_place arrives from the browser already
-							// HTML-entity-decoded (it's a <select> option's .value), so without this
-							// decode here too, a route name containing " - " (wptexturize'd by
-							// get_the_title() into "&#8211;") would never match, silently pricing
-							// every vehicle at 0 and showing "No Transport Available".
-							$route_name = ($route_id && get_post_status($route_id) === 'publish') ? html_entity_decode(get_the_title($route_id), ENT_QUOTES, 'UTF-8') : '';
-							if ($start_place !== '' && $route_name !== '' && $start_place == $route_name) {
-								$price = (float) ($assigned_route['price'] ?? 0);
-							}
-						}
+					$assigned_route = self::match_fixed_route($post_id, $start_place);
+					if (null === $assigned_route) {
+						// No route of this vehicle has that name (wrong capitalisation, a
+						// made-up or unpublished route). Pricing it at 0 plus the base fare
+						// would sell the trip for the base fare alone; false means "not
+						// bookable" to every booking path (validate_transport_price()).
+						session_write_close();
+						return false;
 					}
+					$price = (float) ($assigned_route['price'] ?? 0);
 				}
 				else {
 					// No fare formula exists for this vehicle model under this search mode (e.g. a
@@ -2293,7 +2287,8 @@ if (!class_exists('MPTBM_Function')) {
 		//************Location*******************//
 		public static function location_exit($post_id, $start_place, $destination_place, $end_coords = null)
 		{
-			$price_based = MP_Global_Function::get_post_info($post_id, 'mptbm_price_based');
+			// Trimmed like get_price() reads it, so both see the same pricing model.
+			$price_based = trim((string) MP_Global_Function::get_post_info($post_id, 'mptbm_price_based'));
 			$search_context = self::get_search_context();
 			// Same fallback chain as get_price(): trust the request-scoped
 			// mptbm_original_price_based filter (set by MPTBM_Transport_Search for the
@@ -2390,10 +2385,14 @@ if (!class_exists('MPTBM_Function')) {
 					}
 				}
 				return false; // No matching fixed zone price found
+			} elseif ($price_based == 'fixed_route') {
+				// The picked route must be one this vehicle is assigned, by its exact name.
+				return null !== self::match_fixed_route($post_id, $start_place);
 			}
-			// For other pricing modes (dynamic, fixed_distance, fixed_hourly, etc.), return true by default
-			// as location_exit check is not required for those modes
-			return true;
+			// Models priced from the map, the clock or the vehicle's own rates need no place
+			// match here (distance quotes are verified by the search itself). Any other model,
+			// including one added later, is refused until it gets its own check above.
+			return in_array($price_based, array('inclusive', 'distance', 'duration', 'distance_duration', 'fixed_hourly', 'fixed_daily', 'fixed_distance', 'fixed_map'), true);
 		}
 		public static function get_all_start_location($post_id = '', $price_based = 'manual')
 		{
@@ -2508,6 +2507,42 @@ if (!class_exists('MPTBM_Function')) {
 				}
 			}
 			return array_unique($route_names);
+		}
+
+		/**
+		 * The vehicle's assigned route the customer picked by name, or null.
+		 *
+		 * The name comes from the browser, so it must be the exact title of a published route
+		 * in this vehicle's mptbm_assigned_routes, decoded the way get_all_routes() offers it.
+		 * Case is never folded: "real route" does not match "Real Route". location_exit() and
+		 * get_price() both use this one match, so the vehicle listed and the fare charged agree.
+		 *
+		 * @param int    $post_id    Vehicle.
+		 * @param string $route_name Route name from the search request.
+		 * @return array|null The assigned route row (route_id, price), or null if none matches.
+		 */
+		public static function match_fixed_route($post_id, $route_name)
+		{
+			$route_name = (string) $route_name;
+			$assigned_routes = MP_Global_Function::get_post_info($post_id, 'mptbm_assigned_routes', []);
+			if ('' === $route_name || !is_array($assigned_routes)) {
+				return null;
+			}
+			$match = null;
+			foreach ($assigned_routes as $assigned_route) {
+				$route_id = is_array($assigned_route) ? absint($assigned_route['route_id'] ?? 0) : 0;
+				if (!$route_id || get_post_status($route_id) !== 'publish') {
+					continue;
+				}
+				// Decoded like get_all_routes(): get_the_title() can return entities ("&#8211;").
+				$title = html_entity_decode(get_the_title($route_id), ENT_QUOTES, 'UTF-8');
+				// The search passes the name through sanitize_text_field(), which folds runs of
+				// spaces, so the title is also compared in that form.
+				if ('' !== $title && ($route_name === $title || $route_name === sanitize_text_field($title))) {
+					$match = $assigned_route; // The last matching row wins, as before.
+				}
+			}
+			return $match;
 		}
 		// route_name => comma-separated waypoints, for the browser to geocode
 		// and pin on the map as a preview once a route is picked - display
