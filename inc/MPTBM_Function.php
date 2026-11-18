@@ -577,6 +577,8 @@ if (!class_exists('MPTBM_Function')) {
 		{
 			$tour_id = get_the_id();
 			$template_name = MP_Global_Function::get_post_info($tour_id, 'mptbm_theme_file', 'default.php');
+			// A file name inside templates/themes/ only: never a path out of it.
+			$template_name = basename((string) $template_name) ?: 'default.php';
 			$file_name = 'themes/' . $template_name;
 			$dir = MPTBM_PLUGIN_DIR . '/templates/' . $file_name;
 			if (!file_exists($dir)) {

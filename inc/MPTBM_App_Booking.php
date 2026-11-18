@@ -290,7 +290,8 @@ if (!class_exists('MPTBM_App_Booking')) {
 					$order->update_meta_data('_mptbm_app_route', $points);
 					$order->save();
 				}
-				return self::finish($order, sanitize_key((string) ($in['payment_method'] ?? '')), $user_id);
+				// The gateway WooCommerce validated and stored on the order is the only one that may take the payment.
+				return self::finish($order, $user_id);
 			} finally {
 				remove_filter('mptbm_add_cart_item', $party, 99);
 				remove_action('woocommerce_checkout_create_order_line_item', $record_party, 100);
@@ -345,8 +346,12 @@ if (!class_exists('MPTBM_App_Booking')) {
 					$post['terms'] = 'on';
 				}
 			}
+			// Only the customer fields the site's checkout asks for (the ones GET /checkout/form lists) are taken from
+			// `billing`. The payment method, the terms markers and the booking's own fields are set above from the
+			// request itself and must never be replaced by a value sent along with the customer's address.
+			$allowed = self::customer_field_keys();
 			foreach ((array) ($in['billing'] ?? array()) as $key => $value) {
-				if (is_string($key) && preg_match('/^[a-z0-9_]{1,60}$/i', $key) && (is_scalar($value))) {
+				if (is_string($key) && isset($allowed[$key]) && is_scalar($value)) {
 					$post[$key] = (string) $value;
 				}
 			}
@@ -354,14 +359,47 @@ if (!class_exists('MPTBM_App_Booking')) {
 			return wp_slash($post);
 		}
 
-		/** Take payment where the server can, otherwise hand the customer a payment page. */
-		private static function finish(WC_Order $order, string $method, int $user_id): array {
+		/** @return array<string,true> the billing and order field keys of the site's checkout, minus reserved checkout keys */
+		private static function customer_field_keys(): array {
+			$sections = WC()->checkout()->get_checkout_fields();
+			$keys = array();
+			foreach (array('billing', 'order') as $section) {
+				foreach (array_keys((array) ($sections[$section] ?? array())) as $key) {
+					$key = (string) $key;
+					if (!self::reserved_post_key($key)) {
+						$keys[$key] = true;
+					}
+				}
+			}
+			return $keys;
+		}
+
+		/** Keys WooCommerce's checkout or the plugin's booking handler read as instructions rather than as customer details. */
+		private static function reserved_post_key(string $key): bool {
+			static $reserved = array(
+				'payment_method', 'terms', 'terms-field', 'createaccount', 'ship_to_different_address', 'shipping_method',
+				'woocommerce-process-checkout-nonce', '_wpnonce', '_wp_http_referer', 'post_data', 'action', 'nonce',
+				'transport_quantity', 'link_id', 'start_place_coordinates', 'end_place_coordinates',
+				'origin_lat', 'origin_lng', 'pickup_lat', 'pickup_lng', 'dest_lat', 'dest_lng', 'drop_lat', 'drop_lng',
+			);
+			return in_array($key, $reserved, true) || 0 === strpos($key, 'mptbm_');
+		}
+
+		/**
+		 * Take payment where the server can, otherwise hand the customer a payment page.
+		 *
+		 * Always with the order's own payment method, and only through a gateway the shop currently offers: an offline
+		 * gateway marks the order as being paid, so a disabled one, or one other than the order's, must never run.
+		 */
+		private static function finish(WC_Order $order, int $user_id): array {
+			$method = (string) $order->get_payment_method();
 			$payment = array('method' => $method, 'title' => $order->get_payment_method_title(), 'type' => 'none', 'instructions' => '', 'pay_url' => '');
 			if (!$order->needs_payment()) {
 				$order->payment_complete();
 			} else {
-				$gateways = WC()->payment_gateways()->payment_gateways();
-				$gateway = $gateways[$method] ?? null;
+				self::load_cart(); // gateway availability rules read the cart; already loaded when called from create()
+				$gateways = WC()->payment_gateways() ? WC()->payment_gateways()->get_available_payment_gateways() : array();
+				$gateway = '' !== $method ? ($gateways[$method] ?? null) : null;
 				if ($gateway && in_array($method, self::OFFLINE_GATEWAYS, true)) {
 					$result = $gateway->process_payment($order->get_id());
 					$payment['type'] = 'offline';
@@ -731,7 +769,7 @@ if (!class_exists('MPTBM_App_Booking')) {
 				));
 			}
 			if ('' !== $method && in_array($order->get_payment_method(), self::OFFLINE_GATEWAYS, true)) {
-				$done = self::finish($order, $order->get_payment_method(), $user_id);
+				$done = self::finish($order, $user_id);
 				return array_merge(array('pay_url' => ''), $done);
 			}
 			$url = self::pay_link($order, $user_id);

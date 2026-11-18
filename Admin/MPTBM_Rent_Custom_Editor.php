@@ -228,6 +228,17 @@ if (!class_exists('MPTBM_Rent_Custom_Editor')) {
 
 
         function mptbm_save_taxi_data( $post_id ){
+            // save_post fires for every post type and for saves that never came from the vehicle editor
+            // (quick edit, REST, code). Only the editor's own submission may write these fields; without
+            // this, any other save of a vehicle reset its switches below to "off".
+            if ( get_post_type( $post_id ) !== MPTBM_Function::get_cpt()
+                || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+                || wp_is_post_revision( $post_id )
+                || ! current_user_can( 'edit_post', $post_id )
+                || ! isset( $_POST['mptbm_transportation_type_nonce'] )
+                || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['mptbm_transportation_type_nonce'] ) ), 'mptbm_transportation_type_nonce' ) ) {
+                return;
+            }
 
             if( $post_id ) {
                 if (isset($_POST['mptbm_feature_image_id'])) {
