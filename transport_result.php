@@ -87,7 +87,7 @@ if (function_exists('wp_is_block_theme') && wp_is_block_theme()) {
 <!-- Theme: <?php echo get_template(); ?> -->
 <!-- Template: <?php echo get_page_template_slug(); ?> -->
 <script type="text/javascript">
-    var httpReferrer = "<?php echo isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : ''; ?>";
+    var httpReferrer = <?php echo wp_json_encode( isset( $_SERVER['HTTP_REFERER'] ) ? esc_url_raw( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ); ?>;
     document.cookie = "httpReferrer=" + httpReferrer + ";path=/";
 </script>
 

@@ -615,6 +615,23 @@ if (!class_exists('MPTBM_Dependencies')) {
 			$bias_lon = isset($_REQUEST['lon']) && is_numeric($_REQUEST['lon']) ? (float) $_REQUEST['lon'] : null;
 
 			$cache_key = $this->geocode_cache_key($query, $bias_lat, $bias_lon);
+			// Anyone can call this, so an entry is written once and never replaced: a later
+			// visitor cannot move a place another visitor already resolved. The browser only
+			// writes after a cache miss, so a hit here means there is nothing to store.
+			if (is_array(get_transient($cache_key))) {
+				wp_send_json_success(true);
+				return;
+			}
+			// One page view geocodes a handful of stops; cap writes per client so the cache
+			// cannot be used to fill the options table.
+			$client_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
+			$rate_key = 'mptbm_geocode_set_' . md5($client_ip);
+			$writes = (int) get_transient($rate_key);
+			if ($writes >= 30) {
+				wp_send_json_error('Too many requests', 429);
+				return;
+			}
+			set_transient($rate_key, $writes + 1, HOUR_IN_SECONDS);
 			// Long-lived: a landmark's coordinates don't change, so once one
 			// visitor's browser has paid for the lookup there's no reason to
 			// make anyone pay for it again for months.

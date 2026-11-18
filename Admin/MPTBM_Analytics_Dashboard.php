@@ -287,6 +287,11 @@ if (!class_exists('MPTBM_Analytics_Dashboard')) {
                 wp_send_json_error(array('message' => 'Invalid security token'));
                 wp_die();
             }
+            // Same capability as the Analytics Dashboard screen that issues the nonce.
+            if (!current_user_can('manage_options')) {
+                wp_send_json_error(array('message' => esc_html__('You do not have permission to view analytics.', 'ecab-taxi-booking-manager')), 403);
+                wp_die();
+            }
 
             // Get date range parameters
             $start_date = isset($_POST['start_date']) ? sanitize_text_field($_POST['start_date']) : date('Y-m-d', strtotime('-30 days'));
