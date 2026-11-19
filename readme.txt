@@ -219,6 +219,10 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= 2.2.11 - 2026-11-19 =
+* Improvement: App bookings: pay only with the order's own, available gateway; harden request handlers.
+* Improvement: WooCommerce counts as active only when WordPress actually loads it.
+
 = 2.2.10 - 2026-11-17 =
 * Fix: Route: list and price only a route the vehicle is assigned.
 
