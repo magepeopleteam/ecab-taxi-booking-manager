@@ -141,10 +141,24 @@
 			 * @return string The mode passed in, so callers can return it directly.
 			 */
 			private static function remember( $mode ) {
-				if ( '' === self::get_stored_mode() ) {
+				if ( '' === self::get_stored_mode() && ! self::woo_listed_but_unavailable() ) {
 					self::set_mode( $mode );
 				}
 				return $mode;
+			}
+
+			/**
+			 * WooCommerce is in the active-plugins list but not running: its folder is
+			 * missing for a few seconds while it updates, or was deleted. That is a passing
+			 * or broken state, not the site's setup, so get_mode() serves the fallback for
+			 * this request without recording it. Otherwise one request during a WooCommerce
+			 * update would switch a site that never saved a mode to Custom checkout for good.
+			 */
+			private static function woo_listed_but_unavailable() {
+				if ( ! function_exists( 'is_plugin_active' ) ) {
+					include_once ABSPATH . 'wp-admin/includes/plugin.php';
+				}
+				return is_plugin_active( 'woocommerce/woocommerce.php' ) && ! self::has_woo();
 			}
 
 			public static function is_woocommerce() {

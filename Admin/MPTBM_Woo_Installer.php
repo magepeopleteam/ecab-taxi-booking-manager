@@ -59,7 +59,9 @@ if ( ! class_exists( 'MPTBM_Woo_Installer' ) ) {
 			if ( ! function_exists( 'is_plugin_active' ) ) {
 				include_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
-			return is_plugin_active( 'woocommerce/woocommerce.php' );
+			// A plugin whose folder is gone stays in the active list until the Plugins
+			// screen cleans it up; count it as missing so the popup offers to reinstall it.
+			return is_plugin_active( 'woocommerce/woocommerce.php' ) && $this->is_installed( 'woocommerce/woocommerce.php' );
 		}
 
 		private function is_installed( $plugin_file ) {

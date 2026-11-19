@@ -548,7 +548,7 @@
 			public static function check_woocommerce(): int {
 				include_once(ABSPATH . 'wp-admin/includes/plugin.php');
 				$plugin_dir = ABSPATH . 'wp-content/plugins/woocommerce';
-				if (is_plugin_active('woocommerce/woocommerce.php')) {
+				if (is_plugin_active('woocommerce/woocommerce.php') && self::plugin_loads('woocommerce/woocommerce.php')) {
 					return 1;
 				}
 				elseif (is_dir($plugin_dir)) {
@@ -557,6 +557,25 @@
 				else {
 					return 0;
 				}
+			}
+			/**
+			 * True when WordPress loads this plugin in the current request. The active-plugins
+			 * option alone is not enough: it still lists a plugin whose folder is gone (deleted
+			 * over FTP, or missing during or after a failed update) or that is paused in
+			 * recovery mode. WooCommerce loads after this plugin, so its classes cannot be
+			 * checked yet; ask WordPress for the list it is loading instead. Cached per request.
+			 *
+			 * @param string $plugin_file Plugin basename, e.g. 'woocommerce/woocommerce.php'.
+			 * @return bool
+			 */
+			private static function plugin_loads(string $plugin_file): bool {
+				static $loads = array();
+				if (!isset($loads[$plugin_file])) {
+					$path = WP_PLUGIN_DIR . '/' . $plugin_file;
+					$loads[$plugin_file] = in_array($path, wp_get_active_and_valid_plugins(), true)
+						|| (is_multisite() && function_exists('wp_get_active_network_plugins') && in_array($path, wp_get_active_network_plugins(), true));
+				}
+				return $loads[$plugin_file];
 			}
 			public static function get_order_item_meta($item_id, $key): string {
 				// Check if WooCommerce is active before accessing WooCommerce tables
