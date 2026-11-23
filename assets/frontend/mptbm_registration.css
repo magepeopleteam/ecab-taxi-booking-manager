@@ -988,7 +988,15 @@ button.mptbm_inline_results_reset {
 	display: none;
 }
 
-.mptbm_distance_time h1 {
+/* The icon badge is a span: an empty h1 per icon gave every booking page
+   extra headings with no text (SEO / screen readers). The h1 selector stays
+   for theme copies of registration/get_details.php that still print one.
+   span.class has the same specificity as ".mptbm_distance_time h1", so the
+   _mR/_mLR margin utilities still win exactly as before. Keep "_icon" out
+   of the class name: mp_style.css zeroes the margin of
+   .mpStyle span[class*="_icon"], which would pull the labels 20px closer. */
+.mptbm_distance_time h1,
+span.mptbm_distance_time_badge {
 	width: 30px;
 	height: 30px;
 	min-width: 30px;
@@ -1007,7 +1015,8 @@ button.mptbm_inline_results_reset {
 	background: rgba(5, 150, 105, 0.12);
 }
 
-.mptbm_distance_time h1 .mi {
+.mptbm_distance_time h1 .mi,
+span.mptbm_distance_time_badge .mi {
 	font-size: 14px;
 	color: var(--color_theme);
 }
