@@ -1346,9 +1346,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				<div class="_dLayout mptbm_distance_time">
 					<div class="_equalChild_separatorRight">
 						<div class="_dFlex_pR_xs">
-							<h1 class="_mR">
+							<span class="_mR mptbm_distance_time_badge" aria-hidden="true">
 								<span class="mi mi-car-journey textTheme"></span>
-							</h1>
+							</span>
 							<div class="fdColumn">
 								<h6><?php echo mptbm_get_translation('total_distance_label', __('TOTAL DISTANCE', 'ecab-taxi-booking-manager')); ?></h6>
 								<?php if ($km_or_mile != 'km') { ?>
@@ -1359,9 +1359,9 @@ document.addEventListener('DOMContentLoaded', function () {
 							</div>
 						</div>
 						<div class="dFlex">
-							<h1 class="_mLR">
+							<span class="_mLR mptbm_distance_time_badge" aria-hidden="true">
 								<span class="mi mi-clock-three textTheme"></span>
-							</h1>
+							</span>
 							<div class="fdColumn">
 								<div class="fdColumn">
 									<h6><?php echo mptbm_get_translation('total_time_label', __('TOTAL TIME', 'ecab-taxi-booking-manager')); ?></h6>
