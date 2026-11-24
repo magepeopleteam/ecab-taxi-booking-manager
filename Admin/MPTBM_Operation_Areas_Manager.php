@@ -24,7 +24,7 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
         public function __construct() {
             add_filter('admin_body_class', [ $this, 'add_body_class' ]);
             add_action('admin_enqueue_scripts', [ $this, 'enqueue_assets' ], 90);
-            add_action('admin_notices', [ $this, 'render_screen' ], 20);
+            add_action('all_admin_notices', [ $this, 'render_screen' ], 9999999);
             add_action('wp_ajax_mptbm_add_operation_area', [ $this, 'ajax_add_operation_area' ]);
             add_action('wp_ajax_mptbm_update_operation_area', [ $this, 'ajax_update_operation_area' ]);
             add_action('wp_ajax_mptbm_delete_operation_area', [ $this, 'ajax_delete_operation_area' ]);
@@ -155,7 +155,7 @@ if (!class_exists('MPTBM_Operation_Areas_Manager')) {
 
             $map_type = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'openstreetmap');
             ?>
-            <section class="mptbm-operation-areas-page" aria-labelledby="mptbm-operation-areas-title">
+            <section class="mptbm-operation-areas-page anm-display-notice leave-in-place" aria-labelledby="mptbm-operation-areas-title">
                 <header class="mptbm-operation-areas-hero">
                     <div class="mptbm-operation-areas-heading">
                         <span class="mptbm-operation-areas-heading-icon" aria-hidden="true">

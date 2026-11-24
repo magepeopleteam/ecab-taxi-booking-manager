@@ -575,3 +575,15 @@ jQuery(function ($) {
 		});
 	});
 });
+
+// Native taxonomy/CPT management screens: ensure custom page is never trapped
+// inside any 3rd-party notice wrappers (e.g. Admin Notices Manager / Melapress).
+jQuery(function ($) {
+	var $nativePage = $('.mptbm-service-status-page, .mptbm-locations-page, .mptbm-extra-services-page, .mptbm-stoppages-page, .mptbm-operation-areas-page, .mptbm-routes-page');
+	if ($nativePage.length) {
+		var $noticeWrapper = $nativePage.closest('.anm-notices-wrapper, .notice, .updated, .error');
+		if ($noticeWrapper.length) {
+			$noticeWrapper.before($nativePage);
+		}
+	}
+});

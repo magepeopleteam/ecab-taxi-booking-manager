@@ -16,7 +16,7 @@ if (!class_exists('MPTBM_Locations_Manager')) {
         public function __construct() {
             add_filter('admin_body_class', [ $this, 'add_body_class' ]);
             add_action('admin_enqueue_scripts', [ $this, 'enqueue_assets' ], 90);
-            add_action('admin_notices', [ $this, 'render_screen' ], 20);
+            add_action('all_admin_notices', [ $this, 'render_screen' ], 9999999);
             add_action('wp_ajax_mptbm_add_location', [ $this, 'ajax_add_location' ]);
             add_action('wp_ajax_mptbm_update_location', [ $this, 'ajax_update_location' ]);
             add_action('wp_ajax_mptbm_delete_location', [ $this, 'ajax_delete_location' ]);
@@ -121,7 +121,7 @@ if (!class_exists('MPTBM_Locations_Manager')) {
 
             $map_type = MP_Global_Function::get_settings('mptbm_map_api_settings', 'display_map', 'openstreetmap');
             ?>
-            <section class="mptbm-locations-page" aria-labelledby="mptbm-locations-title">
+            <section class="mptbm-locations-page anm-display-notice leave-in-place" aria-labelledby="mptbm-locations-title">
                 <header class="mptbm-locations-hero">
                     <div class="mptbm-locations-heading">
                         <span class="mptbm-locations-heading-icon" aria-hidden="true">

@@ -15,7 +15,7 @@ if (!class_exists('MPTBM_Stoppages_Manager')) {
         public function __construct() {
             add_filter('admin_body_class', [ $this, 'add_body_class' ]);
             add_action('admin_enqueue_scripts', [ $this, 'enqueue_assets' ], 90);
-            add_action('admin_notices', [ $this, 'render_screen' ], 20);
+            add_action('all_admin_notices', [ $this, 'render_screen' ], 9999999);
             add_action('wp_ajax_mptbm_add_stoppage', [ $this, 'ajax_add_stoppage' ]);
             add_action('wp_ajax_mptbm_update_stoppage', [ $this, 'ajax_update_stoppage' ]);
             add_action('wp_ajax_mptbm_delete_stoppage', [ $this, 'ajax_delete_stoppage' ]);
@@ -116,7 +116,7 @@ if (!class_exists('MPTBM_Stoppages_Manager')) {
                 'order'          => 'ASC',
             ]);
             ?>
-            <section class="mptbm-stoppages-page" aria-labelledby="mptbm-stoppages-title">
+            <section class="mptbm-stoppages-page anm-display-notice leave-in-place" aria-labelledby="mptbm-stoppages-title">
                 <header class="mptbm-stoppages-hero">
                     <div class="mptbm-stoppages-heading">
                         <span class="mptbm-stoppages-heading-icon" aria-hidden="true">

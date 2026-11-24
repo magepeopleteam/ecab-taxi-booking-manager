@@ -16,7 +16,7 @@ if (!class_exists('MPTBM_Service_Status_Manager')) {
         public function __construct() {
             add_filter('admin_body_class', [ $this, 'add_body_class' ]);
             add_action('admin_enqueue_scripts', [ $this, 'enqueue_assets' ]);
-            add_action('admin_notices', [ $this, 'render_screen' ], 20);
+            add_action('all_admin_notices', [ $this, 'render_screen' ], 9999999);
             add_action('wp_ajax_mptbm_add_service_status', [ $this, 'ajax_add_service_status' ]);
         }
 
@@ -95,7 +95,7 @@ if (!class_exists('MPTBM_Service_Status_Manager')) {
                 $terms = [];
             }
             ?>
-            <section class="mptbm-service-status-page" aria-labelledby="mptbm-service-status-title">
+            <section class="mptbm-service-status-page anm-display-notice leave-in-place" aria-labelledby="mptbm-service-status-title">
                 <header class="mptbm-service-status-hero">
                     <div class="mptbm-service-status-heading">
                         <span class="mptbm-service-status-heading-icon" aria-hidden="true">

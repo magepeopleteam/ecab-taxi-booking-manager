@@ -16,7 +16,7 @@ if (!class_exists('MPTBM_Extra_Services_Manager')) {
         public function __construct() {
             add_filter('admin_body_class', [ $this, 'add_body_class' ]);
             add_action('admin_enqueue_scripts', [ $this, 'enqueue_assets' ], 90);
-            add_action('admin_notices', [ $this, 'render_screen' ], 20);
+            add_action('all_admin_notices', [ $this, 'render_screen' ], 9999999);
             add_action('wp_ajax_mptbm_add_extra_service_set', [ $this, 'ajax_add_extra_service_set' ]);
             add_action('wp_ajax_mptbm_update_extra_service_set', [ $this, 'ajax_update_extra_service_set' ]);
             add_action('wp_ajax_mptbm_delete_extra_service_set', [ $this, 'ajax_delete_extra_service_set' ]);
@@ -116,7 +116,7 @@ if (!class_exists('MPTBM_Extra_Services_Manager')) {
                 ]
             );
             ?>
-            <section class="mptbm-extra-services-page" aria-labelledby="mptbm-extra-services-title">
+            <section class="mptbm-extra-services-page anm-display-notice leave-in-place" aria-labelledby="mptbm-extra-services-title">
                 <header class="mptbm-extra-services-hero">
                     <div class="mptbm-extra-services-heading">
                         <span class="mptbm-extra-services-heading-icon" aria-hidden="true">
