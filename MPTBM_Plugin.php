@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 require_once __DIR__ . '/vendor/appneck/wordpress-sdk/appneck-wordpress-sdk/appneck-sdk.php';
 appneck_sdk_load_latest();
 
-$GLOBALS['my_plugin_sdk'] = \Appneck\Sdk\Sdk::bootstrap(
+$GLOBALS['ecab_taxi_booking_manager_appneck_sdk'] = \Appneck\Sdk\Sdk::bootstrap(
     'pk_t0NcmxN5ewf1uF8LKVhGQ9TeBEzhKrf1',  // your API key
     'sk_snylfjL4rTOk7Ybc061xuOcFt3mOYD2xjC5OTbuI2BElNM8G', // your product secret
     'https://appneck.com',                  // the Appneck server URL
