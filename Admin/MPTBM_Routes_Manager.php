@@ -16,7 +16,7 @@ if (!class_exists('MPTBM_Routes_Manager')) {
         public function __construct() {
             add_filter('admin_body_class', [ $this, 'add_body_class' ]);
             add_action('admin_enqueue_scripts', [ $this, 'enqueue_assets' ], 90);
-            add_action('admin_notices', [ $this, 'render_screen' ], 20);
+            add_action('all_admin_notices', [ $this, 'render_screen' ], 9999999);
             add_action('wp_ajax_mptbm_add_route', [ $this, 'ajax_add_route' ]);
             add_action('wp_ajax_mptbm_update_route', [ $this, 'ajax_update_route' ]);
             add_action('wp_ajax_mptbm_delete_route', [ $this, 'ajax_delete_route' ]);
@@ -125,7 +125,7 @@ if (!class_exists('MPTBM_Routes_Manager')) {
                 'order'          => 'ASC',
             ]);
             ?>
-            <section class="mptbm-routes-page" aria-labelledby="mptbm-routes-title">
+            <section class="mptbm-routes-page anm-display-notice leave-in-place" aria-labelledby="mptbm-routes-title">
                 <header class="mptbm-routes-hero">
                     <div class="mptbm-routes-heading">
                         <span class="mptbm-routes-heading-icon" aria-hidden="true">
