@@ -273,6 +273,10 @@
 					}
 				}
 
+				$dist_check = MPTBM_Function::validate_distance_bounds($distance, $price_based);
+				if (is_wp_error($dist_check)) {
+					return $dist_check;
+				}
 				$price     = MPTBM_Function::get_price($post_id, $distance, $duration, $start, $end, $waiting, $two_way, $fixed, $geo_coords);
 				// false (no fare formula for this mode) or a fare of 0 must not become a free booking.
 				$price_check = MPTBM_Function::validate_transport_price($post_id, $price);
@@ -292,6 +296,10 @@
 				foreach ($this->posted_stoppages($post_id) as $stoppage) {
 					$raw_price += (float) $stoppage['stoppage_price'];
 				}
+				$surcharges = MPTBM_Function::calculate_surcharges($post_id, $context);
+				$raw_price += (float) $surcharges['total'];
+				$tip_amount = isset($_POST['mptbm_tip_amount']) ? MPTBM_Function::sanitize_tip_amount(wp_unslash($_POST['mptbm_tip_amount'])) : 0.0;
+				$raw_price += $tip_amount;
 
 				return $raw_price;
 			}
@@ -394,6 +402,27 @@
 				}
 				if (isset($_POST['mptbm_passengers'])) {
 					$meta['mptbm_passengers'] = absint($_POST['mptbm_passengers']);
+				}
+				$child_seats = isset($_POST['mptbm_child_seats']) ? min(4, absint($_POST['mptbm_child_seats'])) : 0;
+				if ($child_seats > 0) {
+					$meta['mptbm_child_seats'] = $child_seats;
+				}
+				foreach (array('mptbm_flight_number', 'mptbm_airport_terminal', 'mptbm_nameboard_text', 'mptbm_lead_passenger_name', 'mptbm_lead_passenger_phone') as $chauffeur_key) {
+					$val = $post_value($chauffeur_key);
+					if ($val !== '') {
+						$meta[$chauffeur_key] = $val;
+					}
+				}
+				$surcharges = MPTBM_Function::calculate_surcharges($post_id, $context);
+				if ($surcharges['airport_fee'] > 0) {
+					$meta['mptbm_airport_fee'] = $surcharges['airport_fee'];
+				}
+				if ($surcharges['rush_fee'] > 0) {
+					$meta['mptbm_rush_fee'] = $surcharges['rush_fee'];
+				}
+				$tip_amount = isset($_POST['mptbm_tip_amount']) ? MPTBM_Function::sanitize_tip_amount(wp_unslash($_POST['mptbm_tip_amount'])) : 0.0;
+				if ($tip_amount > 0) {
+					$meta['mptbm_tip_amount'] = $tip_amount;
 				}
 
 				return apply_filters('add_mptbm_booking_data', $meta, $post_id);

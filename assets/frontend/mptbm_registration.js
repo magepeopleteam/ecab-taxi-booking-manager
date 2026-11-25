@@ -3002,6 +3002,12 @@ function mptbm_init_google_map() {
                             mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                             mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                             mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                            mptbm_child_seats: parent.find('#mptbm_child_seats').val() || 0,
+                            mptbm_flight_number: parent.find('#mptbm_flight_number').val() || '',
+                            mptbm_airport_terminal: parent.find('#mptbm_airport_terminal').val() || '',
+                            mptbm_nameboard_text: parent.find('#mptbm_nameboard_text').val() || '',
+                            mptbm_lead_passenger_name: parent.find('#mptbm_lead_passenger_name').val() || '',
+                            mptbm_lead_passenger_phone: parent.find('#mptbm_lead_passenger_phone').val() || '',
                             mptbm_extra_stop_place: mptbm_collect_extra_stop_places(parent),
                             mptbm_extra_stop_place_coordinates: mptbm_collect_extra_stop_coordinates(parent),
                             mptbm_original_price_base: mptbm_original_price_base,
@@ -4819,6 +4825,13 @@ function mptbm_calculate_base_distances(settings, pickup, dropoff, callback) {
                     mptbm_max_passenger: parent.find('#mptbm_max_passenger').val(),
                     mptbm_max_bag: parent.find('#mptbm_max_bag').val(),
                     mptbm_max_hand_luggage: parent.find('#mptbm_max_hand_luggage').val(),
+                    mptbm_child_seats: parent.find('[name="mptbm_child_seats"]').val() || 0,
+                    mptbm_flight_number: parent.find('[name="mptbm_flight_number"]').val() || '',
+                    mptbm_airport_terminal: parent.find('[name="mptbm_airport_terminal"]').val() || '',
+                    mptbm_nameboard_text: parent.find('[name="mptbm_nameboard_text"]').val() || '',
+                    mptbm_lead_passenger_name: parent.find('[name="mptbm_lead_passenger_name"]').val() || '',
+                    mptbm_lead_passenger_phone: parent.find('[name="mptbm_lead_passenger_phone"]').val() || '',
+                    mptbm_tip_amount: parent.find('[name="mptbm_tip_amount"]').val() || 0,
                     mptbm_extra_stop_place: parent.find('input[name="mptbm_extra_stop_place"]').val(),
                     mptbm_original_price_base: mptbm_original_price_base,
                     mptbm_distance: parent.find('input[name="mptbm_hidden_distance"]').val(),
@@ -6441,4 +6454,192 @@ function mptbm_fallback_distance_calculation(start_place, end_place) {
     // The search form is re-rendered by AJAX in several flows (tab switch,
     // vehicle change) - re-check rather than leaving a dead link behind.
     $(document).ajaxComplete(mptbm_geo_sync_visibility);
+})(jQuery);
+
+/* Chauffeur UX Batch 1: Swap Pickup/Drop-off, Saved Addresses, Airport & Lead Passenger toggles */
+(function ($) {
+    'use strict';
+
+    var SAVED_KEY = 'mptbm_saved_addresses_v1';
+    var lastFocusedField = '#mptbm_map_start_place';
+
+    function loadSaved() {
+        try {
+            var raw = localStorage.getItem(SAVED_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function storeSaved(map) {
+        try {
+            localStorage.setItem(SAVED_KEY, JSON.stringify(map));
+        } catch (e) {}
+    }
+
+    function renderSavedChips($root) {
+        var saved = loadSaved();
+        $root.find('.mptbm_saved_addresses_bar').each(function () {
+            var $bar = $(this);
+            var $chips = $bar.find('.mptbm_saved_addr_chips').empty();
+            Object.keys(saved).forEach(function (slot) {
+                var item = saved[slot];
+                if (!item || !item.address) return;
+                var $chip = $('<button type="button" class="mptbm_saved_addr_chip"></button>')
+                    .attr('data-slot', slot)
+                    .attr('title', item.address)
+                    .append($('<i class="fas fa-map-pin" aria-hidden="true"></i>'))
+                    .append(' ' + slot);
+                var $del = $('<span class="mptbm_saved_addr_del" title="Remove">&times;</span>').attr('data-del-slot', slot);
+                $chip.append($del);
+                $chips.append($chip);
+            });
+        });
+    }
+
+    $(document).on('focus', '#mptbm_map_start_place, #mptbm_map_end_place', function () {
+        lastFocusedField = '#' + this.id;
+    });
+
+    $(document).on('click', '.mptbm_save_addr_btn', function () {
+        var $area = $(this).closest('.mptbm_transport_search_area');
+        var slot = $(this).data('slot');
+        var $target = $area.find(lastFocusedField);
+        if (!$target.length || !$.trim($target.val())) {
+            $target = $area.find('#mptbm_map_start_place');
+        }
+        var address = $.trim($target.val() || '');
+        if (!address) {
+            $target.focus();
+            return;
+        }
+        var saved = loadSaved();
+        saved[slot] = {
+            address: address,
+            lat: $target.attr('data-lat') || '',
+            lng: $target.attr('data-lng') || ''
+        };
+        storeSaved(saved);
+        renderSavedChips($area);
+    });
+
+    $(document).on('click', '.mptbm_saved_addr_del', function (e) {
+        e.stopPropagation();
+        var slot = $(this).data('del-slot');
+        var saved = loadSaved();
+        delete saved[slot];
+        storeSaved(saved);
+        renderSavedChips($(this).closest('.mptbm_transport_search_area'));
+    });
+
+    $(document).on('click', '.mptbm_saved_addr_chip', function () {
+        var slot = $(this).data('slot');
+        var saved = loadSaved();
+        var item = saved[slot];
+        if (!item || !item.address) return;
+        var $area = $(this).closest('.mptbm_transport_search_area');
+        var $target = $area.find(lastFocusedField);
+        if (!$target.length) $target = $area.find('#mptbm_map_start_place');
+        $target.val(item.address);
+        if (item.lat && item.lng) {
+            $target.attr('data-lat', item.lat).attr('data-lng', item.lng);
+        }
+        $target.trigger('input').trigger('change');
+    });
+
+    $(document).on('click', '.mptbm_swap_locations_btn', function () {
+        var $area = $(this).closest('.mptbm_transport_search_area');
+        var $start = $area.find('#mptbm_map_start_place');
+        var $end = $area.find('#mptbm_map_end_place');
+        if (!$start.length || !$end.length) return;
+
+        var startVal = $start.val();
+        var endVal = $end.val();
+        var startLat = $start.attr('data-lat') || '';
+        var startLng = $start.attr('data-lng') || '';
+        var endLat = $end.attr('data-lat') || '';
+        var endLng = $end.attr('data-lng') || '';
+
+        $start.val(endVal);
+        $end.val(startVal);
+        if (endLat && endLng) {
+            $start.attr('data-lat', endLat).attr('data-lng', endLng);
+        } else {
+            $start.removeAttr('data-lat data-lng');
+        }
+        if (startLat && startLng) {
+            $end.attr('data-lat', startLat).attr('data-lng', startLng);
+        } else {
+            $end.removeAttr('data-lat data-lng');
+        }
+
+        // Swap hidden coordinate inputs if present
+        ['start_place_coordinates', 'end_place_coordinates'].forEach(function () {});
+        var $sc = $area.find('#mptbm_start_place_coordinates, [name="start_place_coordinates"]');
+        var $ec = $area.find('#mptbm_end_place_coordinates, [name="end_place_coordinates"]');
+        if ($sc.length && $ec.length) {
+            var tmpC = $sc.val();
+            $sc.val($ec.val());
+            $ec.val(tmpC);
+        }
+
+        $start.trigger('input').trigger('change');
+        $end.trigger('input').trigger('change');
+    });
+
+    $(document).on('change', '#mptbm_is_airport_pickup', function () {
+        var $panel = $(this).closest('.mptbm_chauffeur_extras_wrap').find('.mptbm_airport_fields_panel');
+        if (this.checked) {
+            $panel.stop(true, true).slideDown(150);
+        } else {
+            $panel.stop(true, true).slideUp(150);
+        }
+    });
+
+    $(document).on('change', '#mptbm_book_for_other', function () {
+        var $panel = $(this).closest('.mptbm_chauffeur_extras_wrap').find('.mptbm_lead_passenger_panel');
+        if (this.checked) {
+            $panel.stop(true, true).slideDown(150);
+        } else {
+            $panel.stop(true, true).slideUp(150);
+        }
+    });
+
+    $(document).on('input change', '#mptbm_map_start_place', function () {
+        var val = ($(this).val() || '').toLowerCase();
+        var isAirport = /(airport|airfield|aeroport|flughafen|aeropuerto|terminal)/i.test(val);
+        if (isAirport) {
+            var $area = $(this).closest('.mptbm_transport_search_area');
+            var $cb = $area.find('#mptbm_is_airport_pickup');
+            if ($cb.length && !$cb.prop('checked')) {
+                $cb.prop('checked', true).trigger('change');
+            }
+        }
+    });
+
+    $(document).ready(function () {
+        renderSavedChips($(document));
+    });
+    $(document).ajaxComplete(function () {
+        renderSavedChips($(document));
+    });
+
+    $(document).on('click', '.mptbm_tip_chip', function () {
+        var $chip = $(this);
+        var $wrap = $chip.closest('.mptbm_checkout_tip_wrap');
+        $wrap.find('.mptbm_tip_chip').removeClass('is-active');
+        $chip.addClass('is-active');
+        var pct = parseFloat($chip.data('tip-pct')) || 0;
+        var $input = $wrap.find('.mptbm_tip_custom_input');
+        if (pct <= 0) {
+            $input.val('0');
+            return;
+        }
+        var rawFareText = $wrap.closest('.mptbm_exsvc_summary, .mptbm_booking_summary, .mptbm_registration_wrap')
+            .find('.mptbm_product_price').first().text() || '';
+        var numericFare = parseFloat(rawFareText.replace(/[^0-9.]/g, '')) || 0;
+        var tipVal = numericFare > 0 ? (numericFare * (pct / 100)).toFixed(2) : pct.toFixed(2);
+        $input.val(tipVal);
+    });
 })(jQuery);

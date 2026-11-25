@@ -315,6 +315,24 @@
 					</section>
 
 					<!-- End Off days and date config -->
+					<section>
+						<label class="label">
+							<div>
+								<h6><?php esc_html_e('Vehicle Maintenance / MOT Block', 'ecab-taxi-booking-manager'); ?></h6>
+								<span class="desc"><?php esc_html_e('Temporarily block this vehicle from bookings during servicing or MOT.', 'ecab-taxi-booking-manager'); ?></span>
+							</div>
+							<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+								<?php
+								$maint_blocks = (array) MP_Global_Function::get_post_info($post_id, 'mptbm_maintenance_blocks', array());
+								$first_block  = !empty($maint_blocks[0]) && is_array($maint_blocks[0]) ? $maint_blocks[0] : array();
+								?>
+								<input type="date" class="formControl" name="mptbm_maintenance_from" value="<?php echo esc_attr($first_block['from'] ?? ''); ?>" />
+								<span>&rarr;</span>
+								<input type="date" class="formControl" name="mptbm_maintenance_to" value="<?php echo esc_attr($first_block['to'] ?? ''); ?>" />
+								<input type="text" class="formControl" name="mptbm_maintenance_reason" value="<?php echo esc_attr($first_block['reason'] ?? ''); ?>" placeholder="<?php esc_attr_e('e.g. Annual MOT / Service', 'ecab-taxi-booking-manager'); ?>" />
+							</div>
+						</label>
+					</section>
 				</div>
 				<?php
 			}
@@ -396,6 +414,15 @@
 						}
 					}
 					update_post_meta($post_id, 'mptbm_off_dates', $_off_dates);
+					$m_from   = isset($_POST['mptbm_maintenance_from']) ? sanitize_text_field(wp_unslash($_POST['mptbm_maintenance_from'])) : '';
+					$m_to     = isset($_POST['mptbm_maintenance_to']) ? sanitize_text_field(wp_unslash($_POST['mptbm_maintenance_to'])) : '';
+					$m_reason = isset($_POST['mptbm_maintenance_reason']) ? sanitize_text_field(wp_unslash($_POST['mptbm_maintenance_reason'])) : '';
+					if ($m_from !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $m_from)) {
+						$m_to = ($m_to !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $m_to) && $m_to >= $m_from) ? $m_to : $m_from;
+						update_post_meta($post_id, 'mptbm_maintenance_blocks', array(array('from' => $m_from, 'to' => $m_to, 'reason' => $m_reason)));
+					} else {
+						delete_post_meta($post_id, 'mptbm_maintenance_blocks');
+					}
 					$this->save_schedule($post_id, 'default');
 					$days = MP_Global_Function::week_day();
 					foreach ($days as $key => $day) {

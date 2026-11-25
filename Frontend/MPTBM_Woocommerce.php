@@ -277,6 +277,10 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				}
 				
 				// Calculate single-unit transport price
+				$dist_check = MPTBM_Function::validate_distance_bounds($distance, $price_based);
+				if (is_wp_error($dist_check)) {
+					$this->refuse_cart_item($dist_check);
+				}
 				$price = MPTBM_Function::get_price($post_id, $distance, $duration, $start_place, $end_place, $waiting_time, $return, $fixed_hour, $geo_fence_coords);
 				// false (no fare formula for this mode) or a fare of 0 must not become a free booking.
 				$price_check = MPTBM_Function::validate_transport_price($post_id, $price);
@@ -306,8 +310,13 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				foreach ($mptbm_stoppage_selection as $stoppage) {
 					$stoppage_total_price += (float) $stoppage['stoppage_price'];
 				}
-				// Final total: transport plus extra services plus threshold-based base distance price plus extra stops plus stoppages
-				$total_price = $transport_total_price + $extra_total_price + $threshold_base_price + $stop_total_price + $stoppage_total_price;
+				// Final total: transport plus extra services plus threshold-based base distance price plus extra stops plus stoppages plus surcharges & tip
+				$surcharges = MPTBM_Function::calculate_surcharges($post_id, $context);
+				$tip_amount = isset($_POST['mptbm_tip_amount']) ? MPTBM_Function::sanitize_tip_amount(wp_unslash($_POST['mptbm_tip_amount'])) : 0.0;
+				$total_price = $transport_total_price + $extra_total_price + $threshold_base_price + $stop_total_price + $stoppage_total_price + $surcharges['total'] + $tip_amount;
+				$cart_item_data['mptbm_airport_fee'] = $surcharges['airport_fee'];
+				$cart_item_data['mptbm_rush_fee'] = $surcharges['rush_fee'];
+				$cart_item_data['mptbm_tip_amount'] = $tip_amount;
                 
                 
 					$cart_item_data['mptbm_date'] = $booking_date;
@@ -358,7 +367,13 @@ if (!class_exists('MPTBM_Woocommerce')) {
 			if ($pro_active && $enable_max_hand_luggage_filter === 'yes') {
 				$max_hand_luggage = isset($_POST['mptbm_max_hand_luggage']) ? absint($_POST['mptbm_max_hand_luggage']) : 0;
 				$cart_item_data['mptbm_hand_luggage'] = $max_hand_luggage;
-			}	
+			}
+			$cart_item_data['mptbm_child_seats'] = isset($_POST['mptbm_child_seats']) ? min(4, absint($_POST['mptbm_child_seats'])) : 0;
+			$cart_item_data['mptbm_flight_number'] = isset($_POST['mptbm_flight_number']) ? sanitize_text_field(wp_unslash($_POST['mptbm_flight_number'])) : '';
+			$cart_item_data['mptbm_airport_terminal'] = isset($_POST['mptbm_airport_terminal']) ? sanitize_text_field(wp_unslash($_POST['mptbm_airport_terminal'])) : '';
+			$cart_item_data['mptbm_nameboard_text'] = isset($_POST['mptbm_nameboard_text']) ? sanitize_text_field(wp_unslash($_POST['mptbm_nameboard_text'])) : '';
+			$cart_item_data['mptbm_lead_passenger_name'] = isset($_POST['mptbm_lead_passenger_name']) ? sanitize_text_field(wp_unslash($_POST['mptbm_lead_passenger_name'])) : '';
+			$cart_item_data['mptbm_lead_passenger_phone'] = isset($_POST['mptbm_lead_passenger_phone']) ? sanitize_text_field(wp_unslash($_POST['mptbm_lead_passenger_phone'])) : '';	
 				// End modification
 				if ($return > 1 && MP_Global_Function::get_settings('mptbm_general_settings', 'enable_return_in_different_date') == 'yes') {
 					$return_target_date = sanitize_text_field($context['return_date'] ?? '');
@@ -632,6 +647,51 @@ if (!class_exists('MPTBM_Woocommerce')) {
 				$hand_luggage = isset($values['mptbm_hand_luggage']) ? absint($values['mptbm_hand_luggage']) : 0;
 				$item->add_meta_data(mptbm_get_translation('number_of_hand_luggage_label', __('Number of Hand Luggage', 'ecab-taxi-booking-manager')), $hand_luggage);
 				$item->add_meta_data('_mptbm_hand_luggage', $hand_luggage);
+			}
+			$child_seats = isset($values['mptbm_child_seats']) ? absint($values['mptbm_child_seats']) : 0;
+			if ($child_seats > 0) {
+				$item->add_meta_data(esc_html__('Child / Booster Seats', 'ecab-taxi-booking-manager'), $child_seats);
+				$item->add_meta_data('_mptbm_child_seats', $child_seats);
+			}
+			$flight_number = isset($values['mptbm_flight_number']) ? sanitize_text_field($values['mptbm_flight_number']) : '';
+			if ($flight_number !== '') {
+				$item->add_meta_data(esc_html__('Flight Number', 'ecab-taxi-booking-manager'), $flight_number);
+				$item->add_meta_data('_mptbm_flight_number', $flight_number);
+			}
+			$airport_terminal = isset($values['mptbm_airport_terminal']) ? sanitize_text_field($values['mptbm_airport_terminal']) : '';
+			if ($airport_terminal !== '') {
+				$item->add_meta_data(esc_html__('Terminal', 'ecab-taxi-booking-manager'), $airport_terminal);
+				$item->add_meta_data('_mptbm_airport_terminal', $airport_terminal);
+			}
+			$nameboard_text = isset($values['mptbm_nameboard_text']) ? sanitize_text_field($values['mptbm_nameboard_text']) : '';
+			if ($nameboard_text !== '') {
+				$item->add_meta_data(esc_html__('Nameboard Sign', 'ecab-taxi-booking-manager'), $nameboard_text);
+				$item->add_meta_data('_mptbm_nameboard_text', $nameboard_text);
+			}
+			$lead_name = isset($values['mptbm_lead_passenger_name']) ? sanitize_text_field($values['mptbm_lead_passenger_name']) : '';
+			if ($lead_name !== '') {
+				$item->add_meta_data(esc_html__('Lead Passenger Name', 'ecab-taxi-booking-manager'), $lead_name);
+				$item->add_meta_data('_mptbm_lead_passenger_name', $lead_name);
+			}
+			$lead_phone = isset($values['mptbm_lead_passenger_phone']) ? sanitize_text_field($values['mptbm_lead_passenger_phone']) : '';
+			if ($lead_phone !== '') {
+				$item->add_meta_data(esc_html__('Lead Passenger Phone', 'ecab-taxi-booking-manager'), $lead_phone);
+				$item->add_meta_data('_mptbm_lead_passenger_phone', $lead_phone);
+			}
+			$airport_fee = isset($values['mptbm_airport_fee']) ? (float) $values['mptbm_airport_fee'] : 0.0;
+			if ($airport_fee > 0) {
+				$item->add_meta_data(esc_html__('Airport Surcharge', 'ecab-taxi-booking-manager'), wp_strip_all_tags(wc_price($airport_fee)));
+				$item->add_meta_data('_mptbm_airport_fee', $airport_fee);
+			}
+			$rush_fee = isset($values['mptbm_rush_fee']) ? (float) $values['mptbm_rush_fee'] : 0.0;
+			if ($rush_fee > 0) {
+				$item->add_meta_data(esc_html__('Rush Booking Fee', 'ecab-taxi-booking-manager'), wp_strip_all_tags(wc_price($rush_fee)));
+				$item->add_meta_data('_mptbm_rush_fee', $rush_fee);
+			}
+			$tip_amount = isset($values['mptbm_tip_amount']) ? (float) $values['mptbm_tip_amount'] : 0.0;
+			if ($tip_amount > 0) {
+				$item->add_meta_data(esc_html__('Chauffeur Tip', 'ecab-taxi-booking-manager'), wp_strip_all_tags(wc_price($tip_amount)));
+				$item->add_meta_data('_mptbm_tip_amount', $tip_amount);
 			}	
 
 				if ($return && $return > 1) {

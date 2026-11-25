@@ -587,7 +587,26 @@ if (sizeof($all_dates) > 0) {
 							</button>
 						</div>
 					<?php } ?>
+					<?php
+						$enable_saved_addresses = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_saved_addresses', 'yes');
+						if ($pickup_is_map_input && $enable_saved_addresses === 'yes') {
+					?>
+						<div class="mptbm_saved_addresses_bar" data-target="pickup" aria-label="<?php esc_attr_e('Saved addresses', 'ecab-taxi-booking-manager'); ?>">
+							<span class="mptbm_saved_addr_label"><i class="fas fa-bookmark" aria-hidden="true"></i> <?php esc_html_e('Saved:', 'ecab-taxi-booking-manager'); ?></span>
+							<div class="mptbm_saved_addr_chips"></div>
+							<button type="button" class="mptbm_save_addr_btn" data-slot="Home" title="<?php esc_attr_e('Save current address as Home', 'ecab-taxi-booking-manager'); ?>">+ <?php esc_html_e('Home', 'ecab-taxi-booking-manager'); ?></button>
+							<button type="button" class="mptbm_save_addr_btn" data-slot="Work" title="<?php esc_attr_e('Save current address as Work', 'ecab-taxi-booking-manager'); ?>">+ <?php esc_html_e('Work', 'ecab-taxi-booking-manager'); ?></button>
+						</div>
+					<?php } ?>
 				</div>
+				<?php if ($pickup_is_map_input && !$hide_dropoff) : ?>
+					<div class="mptbm_swap_locations_wrap">
+						<button type="button" class="mptbm_swap_locations_btn" title="<?php esc_attr_e('Swap Pickup & Drop-off', 'ecab-taxi-booking-manager'); ?>" aria-label="<?php esc_attr_e('Swap Pickup and Drop-off', 'ecab-taxi-booking-manager'); ?>">
+							<i class="fas fa-exchange-alt" aria-hidden="true"></i>
+							<span><?php esc_html_e('Swap', 'ecab-taxi-booking-manager'); ?></span>
+						</button>
+					</div>
+				<?php endif; ?>
 				<?php
 					$extra_stop = MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_extra_stop_between_pickup_dropoff', 'no');
 					$max_extra_stops = (int) MP_Global_Function::get_settings('mptbm_general_settings', 'mptbm_max_extra_stops', 3);
@@ -1237,6 +1256,88 @@ document.addEventListener('DOMContentLoaded', function () {
 					</label>
 				</div>
 				<?php } ?>
+				<?php
+				$enable_child_seat_selector = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_child_seat_selector', 'yes');
+				if ($enable_child_seat_selector === 'yes') {
+				?>
+				<div class="inputList mptbm_select_proxy" data-proxy-for="mptbm_child_seats">
+					<label class="fdColumn">
+						<span><?php esc_html_e('Child / Booster Seats', 'ecab-taxi-booking-manager'); ?></span>
+						<input type="text" class="formControl" value="<?php esc_attr_e('None (0)', 'ecab-taxi-booking-manager'); ?>" readonly />
+						<i class="fas fa-baby mptbm_left_icon allCenter"></i>
+					</label>
+					<ul class="mp_input_select_list">
+						<li data-value="0"><?php esc_html_e('None (0)', 'ecab-taxi-booking-manager'); ?></li>
+						<li data-value="1"><?php esc_html_e('1 Seat', 'ecab-taxi-booking-manager'); ?></li>
+						<li data-value="2"><?php esc_html_e('2 Seats', 'ecab-taxi-booking-manager'); ?></li>
+						<li data-value="3"><?php esc_html_e('3 Seats', 'ecab-taxi-booking-manager'); ?></li>
+						<li data-value="4"><?php esc_html_e('4 Seats', 'ecab-taxi-booking-manager'); ?></li>
+					</ul>
+					<select name="mptbm_child_seats" id="mptbm_child_seats" class="mptbm_proxy_native_select">
+						<option value="0" selected><?php esc_html_e('None (0)', 'ecab-taxi-booking-manager'); ?></option>
+						<option value="1"><?php esc_html_e('1 Seat', 'ecab-taxi-booking-manager'); ?></option>
+						<option value="2"><?php esc_html_e('2 Seats', 'ecab-taxi-booking-manager'); ?></option>
+						<option value="3"><?php esc_html_e('3 Seats', 'ecab-taxi-booking-manager'); ?></option>
+						<option value="4"><?php esc_html_e('4 Seats', 'ecab-taxi-booking-manager'); ?></option>
+					</select>
+				</div>
+				<?php } ?>
+				<?php
+				$enable_airport_fields = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_chauffeur_airport_fields', 'yes');
+				$enable_lead_passenger = MP_Global_Function::get_settings('mptbm_general_settings', 'enable_lead_passenger_fields', 'yes');
+				if ($enable_airport_fields === 'yes' || $enable_lead_passenger === 'yes') :
+				?>
+				<div class="inputList mptbm_chauffeur_extras_wrap" style="flex-basis:100%;width:100%;">
+					<div class="mptbm_chauffeur_toggles">
+						<?php if ($enable_airport_fields === 'yes') : ?>
+						<label class="mptbm_chauffeur_toggle_chip">
+							<input type="checkbox" id="mptbm_is_airport_pickup" value="1" />
+							<i class="fas fa-plane-arrival" aria-hidden="true"></i>
+							<span><?php esc_html_e('Airport Meet & Greet', 'ecab-taxi-booking-manager'); ?></span>
+						</label>
+						<?php endif; ?>
+						<?php if ($enable_lead_passenger === 'yes') : ?>
+						<label class="mptbm_chauffeur_toggle_chip">
+							<input type="checkbox" id="mptbm_book_for_other" value="1" />
+							<i class="fas fa-user-tie" aria-hidden="true"></i>
+							<span><?php esc_html_e('Booking for someone else', 'ecab-taxi-booking-manager'); ?></span>
+						</label>
+						<?php endif; ?>
+					</div>
+					<?php if ($enable_airport_fields === 'yes') : ?>
+					<div class="mptbm_chauffeur_subpanel mptbm_airport_fields_panel" style="display:none;">
+						<div class="mptbm_chauffeur_grid">
+							<label class="fdColumn">
+								<span><?php esc_html_e('Flight Number / Airline', 'ecab-taxi-booking-manager'); ?></span>
+								<input type="text" class="formControl" id="mptbm_flight_number" name="mptbm_flight_number" placeholder="<?php esc_attr_e('e.g. BA 142', 'ecab-taxi-booking-manager'); ?>" maxlength="40" />
+							</label>
+							<label class="fdColumn">
+								<span><?php esc_html_e('Terminal', 'ecab-taxi-booking-manager'); ?></span>
+								<input type="text" class="formControl" id="mptbm_airport_terminal" name="mptbm_airport_terminal" placeholder="<?php esc_attr_e('e.g. Terminal 5', 'ecab-taxi-booking-manager'); ?>" maxlength="40" />
+							</label>
+							<label class="fdColumn">
+								<span><?php esc_html_e('Nameboard Sign Text', 'ecab-taxi-booking-manager'); ?></span>
+								<input type="text" class="formControl" id="mptbm_nameboard_text" name="mptbm_nameboard_text" placeholder="<?php esc_attr_e('Name on chauffeur sign', 'ecab-taxi-booking-manager'); ?>" maxlength="80" />
+							</label>
+						</div>
+					</div>
+					<?php endif; ?>
+					<?php if ($enable_lead_passenger === 'yes') : ?>
+					<div class="mptbm_chauffeur_subpanel mptbm_lead_passenger_panel" style="display:none;">
+						<div class="mptbm_chauffeur_grid">
+							<label class="fdColumn">
+								<span><?php esc_html_e('Lead Passenger Name', 'ecab-taxi-booking-manager'); ?></span>
+								<input type="text" class="formControl" id="mptbm_lead_passenger_name" name="mptbm_lead_passenger_name" placeholder="<?php esc_attr_e('Passenger full name', 'ecab-taxi-booking-manager'); ?>" maxlength="80" />
+							</label>
+							<label class="fdColumn">
+								<span><?php esc_html_e('Lead Passenger Phone', 'ecab-taxi-booking-manager'); ?></span>
+								<input type="tel" class="formControl" id="mptbm_lead_passenger_phone" name="mptbm_lead_passenger_phone" placeholder="<?php esc_attr_e('+44 7700 900123', 'ecab-taxi-booking-manager'); ?>" maxlength="30" />
+							</label>
+						</div>
+					</div>
+					<?php endif; ?>
+				</div>
+				<?php endif; ?>
 				<?php if ($form_style == 'horizontal') { ?>
 					<div class="divider"></div>
 				<?php } ?>

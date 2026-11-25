@@ -1025,6 +1025,12 @@ $mptbm_priced_duration_text = !empty($mptbm_search_context['distance_verified'])
 	<input type="hidden" name="mptbm_max_passenger" value="<?php echo esc_attr($selected_max_passenger); ?>"/>
 	<input type="hidden" name="mptbm_max_bag" value="<?php echo esc_attr($selected_max_bag); ?>"/>
 	<input type="hidden" name="mptbm_max_hand_luggage" value="<?php echo esc_attr($selected_max_hand_luggage); ?>"/>
+	<input type="hidden" name="mptbm_child_seats" value="<?php echo esc_attr(isset($_POST['mptbm_child_seats']) ? absint($_POST['mptbm_child_seats']) : 0); ?>"/>
+	<input type="hidden" name="mptbm_flight_number" value="<?php echo esc_attr(isset($_POST['mptbm_flight_number']) ? sanitize_text_field(wp_unslash($_POST['mptbm_flight_number'])) : ''); ?>"/>
+	<input type="hidden" name="mptbm_airport_terminal" value="<?php echo esc_attr(isset($_POST['mptbm_airport_terminal']) ? sanitize_text_field(wp_unslash($_POST['mptbm_airport_terminal'])) : ''); ?>"/>
+	<input type="hidden" name="mptbm_nameboard_text" value="<?php echo esc_attr(isset($_POST['mptbm_nameboard_text']) ? sanitize_text_field(wp_unslash($_POST['mptbm_nameboard_text'])) : ''); ?>"/>
+	<input type="hidden" name="mptbm_lead_passenger_name" value="<?php echo esc_attr(isset($_POST['mptbm_lead_passenger_name']) ? sanitize_text_field(wp_unslash($_POST['mptbm_lead_passenger_name'])) : ''); ?>"/>
+	<input type="hidden" name="mptbm_lead_passenger_phone" value="<?php echo esc_attr(isset($_POST['mptbm_lead_passenger_phone']) ? sanitize_text_field(wp_unslash($_POST['mptbm_lead_passenger_phone'])) : ''); ?>"/>
 	<input type="hidden" name="mptbm_original_price_base" value="<?php echo esc_attr($mptbm_original_price_base); ?>" />
 	<?php if ($two_way > 1 && MP_Global_Function::get_settings("mptbm_general_settings", "enable_return_in_different_date") == "yes") { ?>
 				<input type="hidden" name="mptbm_map_return_date" id="mptbm_map_return_date" value="<?php echo esc_attr($return_date); ?>" />

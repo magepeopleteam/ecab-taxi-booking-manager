@@ -843,6 +843,9 @@ if (!class_exists('MPTBM_Function')) {
 
 		public static function get_available_quantity($post_id, $start_date, $start_time_formatted = '', $force_single_quantity = false, $trip_duration = 0, $return_datetime = '')
 		{
+			if (self::is_vehicle_in_maintenance($post_id, $start_date)) {
+				return 0;
+			}
 			$total_quantity = $force_single_quantity ? 1 : (int) MP_Global_Function::get_post_info($post_id, 'mptbm_quantity', 1);
 			$available_quantity = $total_quantity;
 
@@ -1089,7 +1092,15 @@ if (!class_exists('MPTBM_Function')) {
                     $initial_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_initial_price');
                     $min_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_min_price');
                     $return_min_price = MP_Global_Function::get_post_info($post_id, 'mptbm_min_price_return');
-                    $waiting_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_waiting_price', 0) * (float) $waiting_time;
+                    $is_airport_pickup = self::is_airport_location($start_place);
+                    $billable_waiting_hours = apply_filters(
+                        'mptbm_effective_waiting_hours',
+                        self::effective_waiting_hours($waiting_time, $is_airport_pickup),
+                        $waiting_time,
+                        $is_airport_pickup,
+                        $post_id
+                    );
+                    $waiting_price = (float) MP_Global_Function::get_post_info($post_id, 'mptbm_waiting_price', 0) * (float) $billable_waiting_hours;
                 }else{
                     $initial_price = 0;
                     $min_price = 0;
@@ -3733,6 +3744,161 @@ if (!class_exists('MPTBM_Function')) {
 				}
 			}
 
+			return false;
+		}
+
+		/**
+		 * Detect whether a pickup location looks like an airport or terminal.
+		 *
+		 * @param string $place Raw pickup address or location label.
+		 * @return bool
+		 */
+		public static function is_airport_location($place) {
+			$place = strtolower(trim((string) $place));
+			if ($place === '') {
+				return false;
+			}
+			$keywords = apply_filters('mptbm_airport_location_keywords', array(
+				'airport',
+				'airfield',
+				'aerodrome',
+				'aeroport',
+				'aeropuerto',
+				'flughafen',
+				'aeroporto',
+				'terminal',
+			));
+			foreach ((array) $keywords as $kw) {
+				if ($kw !== '' && strpos($place, strtolower((string) $kw)) !== false) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/**
+		 * Deduct configured free waiting grace period (airport or city) from requested waiting hours.
+		 *
+		 * @param float|int $waiting_hours Requested waiting hours.
+		 * @param bool      $is_airport    Whether pickup is at an airport.
+		 * @return float Billable waiting hours (>= 0).
+		 */
+		public static function effective_waiting_hours($waiting_hours, $is_airport = false) {
+			$waiting_hours = max(0.0, (float) $waiting_hours);
+			if ($waiting_hours <= 0.0) {
+				return 0.0;
+			}
+			$key = $is_airport ? 'free_airport_waiting_minutes' : 'free_city_waiting_minutes';
+			$grace_minutes = absint(MP_Global_Function::get_settings('mptbm_general_settings', $key, 0));
+			if ($grace_minutes <= 0) {
+				return $waiting_hours;
+			}
+			return max(0.0, $waiting_hours - ($grace_minutes / 60.0));
+		}
+
+		/**
+		 * Calculate server-authoritative airport & rush booking surcharges.
+		 *
+		 * @param int   $post_id Vehicle ID.
+		 * @param array $context Quote context.
+		 * @return array{airport_fee:float,rush_fee:float,total:float}
+		 */
+		public static function calculate_surcharges($post_id, array $context) {
+			$start = (string) ($context['start_place'] ?? '');
+			$end   = (string) ($context['end_place'] ?? '');
+
+			$airport_fee = 0.0;
+			$cfg_airport = (float) MP_Global_Function::get_settings('mptbm_general_settings', 'airport_pickup_fee', 0);
+			if ($cfg_airport > 0 && (self::is_airport_location($start) || self::is_airport_location($end))) {
+				$airport_fee = round($cfg_airport, 2);
+			}
+
+			$rush_fee   = 0.0;
+			$rush_hours = (float) MP_Global_Function::get_settings('mptbm_general_settings', 'rush_booking_hours', 0);
+			$cfg_rush   = (float) MP_Global_Function::get_settings('mptbm_general_settings', 'rush_booking_fee', 0);
+			if ($rush_hours > 0 && $cfg_rush > 0) {
+				$pickup_raw = (string) ($context['booking_datetime'] ?? ($context['start_date'] ?? ''));
+				$pickup_ts  = $pickup_raw ? strtotime($pickup_raw) : 0;
+				if ($pickup_ts > 0 && ($pickup_ts - time()) <= ($rush_hours * HOUR_IN_SECONDS)) {
+					$rush_fee = round($cfg_rush, 2);
+				}
+			}
+
+			$result = array(
+				'airport_fee' => $airport_fee,
+				'rush_fee'    => $rush_fee,
+				'total'       => round($airport_fee + $rush_fee, 2),
+			);
+			return apply_filters('mptbm_booking_surcharges', $result, $post_id, $context);
+		}
+
+		/**
+		 * Enforce optional minimum/maximum trip distance on distance-based bookings.
+		 *
+		 * @param int    $distance_meters Distance in meters.
+		 * @param string $price_based     Pricing mode.
+		 * @return true|WP_Error
+		 */
+		public static function validate_distance_bounds($distance_meters, $price_based = '') {
+			$price_based = sanitize_key((string) $price_based);
+			if (in_array($price_based, array('manual', 'fixed_zone', 'fixed_zone_dropoff', 'fixed_route', 'fixed_hourly', 'fixed_daily'), true)) {
+				return true;
+			}
+			$min_dist = (float) MP_Global_Function::get_settings('mptbm_general_settings', 'min_trip_distance_km', 0);
+			$max_dist = (float) MP_Global_Function::get_settings('mptbm_general_settings', 'max_trip_distance_km', 0);
+			if ($min_dist <= 0 && $max_dist <= 0) {
+				return true;
+			}
+			$dist_unit = (float) self::distance_in_unit($distance_meters);
+			$unit_lbl  = strtolower(self::distance_unit_label());
+			if ($min_dist > 0 && $dist_unit < $min_dist) {
+				return new WP_Error(
+					'mptbm_distance_too_short',
+					sprintf(esc_html__('Minimum trip distance is %1$s %2$s.', 'ecab-taxi-booking-manager'), $min_dist, $unit_lbl)
+				);
+			}
+			if ($max_dist > 0 && $dist_unit > $max_dist) {
+				return new WP_Error(
+					'mptbm_distance_too_long',
+					sprintf(esc_html__('Maximum online booking distance is %1$s %2$s. Please contact us for a custom quote.', 'ecab-taxi-booking-manager'), $max_dist, $unit_lbl)
+				);
+			}
+			return true;
+		}
+
+		/** Clamp client-provided tip amount to a safe non-negative float. */
+		public static function sanitize_tip_amount($raw) {
+			return round(max(0.0, min(10000.0, (float) $raw)), 2);
+		}
+
+		/**
+		 * Check whether a vehicle is blocked for maintenance / MOT on a given date.
+		 *
+		 * @param int    $post_id  Vehicle ID.
+		 * @param string $date_str Date string (any strtotime-parseable format).
+		 * @return bool
+		 */
+		public static function is_vehicle_in_maintenance($post_id, $date_str) {
+			$post_id = absint($post_id);
+			$ts      = $date_str ? strtotime((string) $date_str) : 0;
+			if (!$post_id || !$ts) {
+				return false;
+			}
+			$day    = gmdate('Y-m-d', $ts);
+			$blocks = get_post_meta($post_id, 'mptbm_maintenance_blocks', true);
+			if (!is_array($blocks)) {
+				return false;
+			}
+			foreach ($blocks as $block) {
+				if (!is_array($block) || empty($block['from'])) {
+					continue;
+				}
+				$from = (string) $block['from'];
+				$to   = !empty($block['to']) ? (string) $block['to'] : $from;
+				if ($day >= $from && $day <= $to) {
+					return true;
+				}
+			}
 			return false;
 		}
 	}

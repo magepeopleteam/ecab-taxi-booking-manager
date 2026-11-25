@@ -135,6 +135,18 @@
 			<div class="mptbm_stop_price_detail"></div>
 			<div class="mptbm_stoppage_price_detail"></div>
 			<div class="mptbm_extra_service_summary"></div>
+			<?php if (MP_Global_Function::get_settings('mptbm_general_settings', 'enable_checkout_tipping', 'yes') === 'yes') : ?>
+			<div class="mptbm_checkout_tip_wrap" style="margin:10px 0;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;">
+				<div style="font-size:13px;font-weight:600;margin-bottom:6px;"><?php esc_html_e('Chauffeur Tip / Gratuity (Optional)', 'ecab-taxi-booking-manager'); ?></div>
+				<div class="mptbm_tip_chips" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+					<button type="button" class="mptbm_tip_chip is-active" data-tip-pct="0"><?php esc_html_e('None', 'ecab-taxi-booking-manager'); ?></button>
+					<button type="button" class="mptbm_tip_chip" data-tip-pct="10">10%</button>
+					<button type="button" class="mptbm_tip_chip" data-tip-pct="15">15%</button>
+					<button type="button" class="mptbm_tip_chip" data-tip-pct="20">20%</button>
+					<input type="number" class="mptbm_tip_custom_input formControl" name="mptbm_tip_amount" min="0" max="10000" step="0.5" value="0" style="width:90px;height:32px;padding:0 8px;" placeholder="<?php esc_attr_e('Custom', 'ecab-taxi-booking-manager'); ?>" />
+				</div>
+			</div>
+			<?php endif; ?>
 			<div class="divider"></div>
 			<div class="justifyBetween">
 				<h4><?php esc_html_e('Total:', 'ecab-taxi-booking-manager'); ?></h4>

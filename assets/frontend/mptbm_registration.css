@@ -1788,3 +1788,127 @@ button.mptbm_use_my_location.mptbm_use_my_location_busy i {
 .mptbm_use_my_location_status.mptbm_use_my_location_status_error {
 	color: #dc3545;
 }
+
+/* Chauffeur UX Batch 1 */
+.mptbm_swap_locations_wrap {
+	display: flex;
+	justify-content: flex-end;
+	margin: -4px 0 8px;
+}
+button.mptbm_swap_locations_btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 12px;
+	border: 1px solid #d1d5db;
+	border-radius: 999px;
+	background: #f9fafb;
+	color: #374151;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background .15s, border-color .15s;
+}
+button.mptbm_swap_locations_btn:hover {
+	background: #eef2ff;
+	border-color: var(--color_theme, #3b82f6);
+	color: var(--color_theme, #1d4ed8);
+}
+.mptbm_saved_addresses_bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin-top: 6px;
+	font-size: 12px;
+}
+.mptbm_saved_addr_label {
+	color: #6b7280;
+	font-weight: 500;
+}
+.mptbm_saved_addr_chips {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 5px;
+}
+button.mptbm_saved_addr_chip,
+button.mptbm_save_addr_btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 9px;
+	border-radius: 999px;
+	font-size: 11px;
+	cursor: pointer;
+	border: 1px solid #d1d5db;
+	background: #fff;
+	color: #374151;
+}
+button.mptbm_saved_addr_chip {
+	background: #eff6ff;
+	border-color: #bfdbfe;
+	color: #1e40af;
+	font-weight: 600;
+}
+.mptbm_saved_addr_del {
+	margin-left: 3px;
+	font-weight: 700;
+	opacity: .65;
+}
+.mptbm_saved_addr_del:hover {
+	opacity: 1;
+	color: #dc2626;
+}
+.mptbm_chauffeur_extras_wrap {
+	margin: 10px 0 6px;
+	padding: 12px 14px;
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	background: #f9fafb;
+}
+.mptbm_chauffeur_toggles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+.mptbm_chauffeur_toggle_chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 6px 12px;
+	border: 1px solid #d1d5db;
+	border-radius: 999px;
+	background: #fff;
+	font-size: 13px;
+	font-weight: 500;
+	color: #1f2937;
+	cursor: pointer;
+}
+.mptbm_chauffeur_toggle_chip input {
+	margin: 0;
+}
+.mptbm_chauffeur_subpanel {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px dashed #d1d5db;
+}
+.mptbm_chauffeur_grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 10px;
+}
+button.mptbm_tip_chip {
+	padding: 5px 11px;
+	border-radius: 999px;
+	border: 1px solid #d1d5db;
+	background: #fff;
+	color: #374151;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+}
+button.mptbm_tip_chip.is-active {
+	background: var(--color_theme, #1d4ed8);
+	border-color: var(--color_theme, #1d4ed8);
+	color: #fff;
+}

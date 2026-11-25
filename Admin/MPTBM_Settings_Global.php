@@ -258,6 +258,110 @@ if (!class_exists('MPTBM_Settings_Global')) {
 						)
 					),
 					array(
+						'name' => 'free_airport_waiting_minutes',
+						'label' => esc_html__('Free Airport Waiting Time (Minutes)', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Free waiting grace period in minutes for airport pickups before paid waiting time applies (e.g. 45 or 60). Set 0 to disable.', 'ecab-taxi-booking-manager'),
+						'type' => 'number',
+						'default' => '0',
+					),
+					array(
+						'name' => 'free_city_waiting_minutes',
+						'label' => esc_html__('Free City Waiting Time (Minutes)', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Free waiting grace period in minutes for non-airport pickups before paid waiting time applies (e.g. 15). Set 0 to disable.', 'ecab-taxi-booking-manager'),
+						'type' => 'number',
+						'default' => '0',
+					),
+					array(
+						'name' => 'enable_chauffeur_airport_fields',
+						'label' => esc_html__('Enable Airport Meet & Greet Fields', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Show Flight Number, Terminal, and Nameboard Sign fields in the booking form.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'yes',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no'  => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
+						'name' => 'enable_lead_passenger_fields',
+						'label' => esc_html__('Enable "Book for Someone Else" (Lead Passenger)', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Allow bookers to enter a separate Lead Passenger name and phone number.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'yes',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no'  => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
+						'name' => 'enable_child_seat_selector',
+						'label' => esc_html__('Enable Child / Booster Seat Selector', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Show a quick Child/Booster Seat selector in the booking form.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'yes',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no'  => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
+						'name' => 'enable_saved_addresses',
+						'label' => esc_html__('Enable Saved / Favorite Addresses', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Allow passengers to save Home/Work/Favorite addresses for quick pickup & drop-off selection.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'yes',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no'  => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
+						'name' => 'airport_pickup_fee',
+						'label' => esc_html__('Airport / Gate Surcharge Fee', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Flat fee automatically added when pickup or drop-off is an airport (0 to disable).', 'ecab-taxi-booking-manager'),
+						'type' => 'number',
+						'default' => '0',
+					),
+					array(
+						'name' => 'rush_booking_hours',
+						'label' => esc_html__('Last-Minute / Rush Window (Hours)', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Apply a rush fee if pickup is within this many hours from booking time (0 to disable).', 'ecab-taxi-booking-manager'),
+						'type' => 'number',
+						'default' => '0',
+					),
+					array(
+						'name' => 'rush_booking_fee',
+						'label' => esc_html__('Last-Minute / Rush Booking Fee', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Flat surcharge added for bookings inside the rush window.', 'ecab-taxi-booking-manager'),
+						'type' => 'number',
+						'default' => '0',
+					),
+					array(
+						'name' => 'min_trip_distance_km',
+						'label' => esc_html__('Minimum Trip Distance', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Reject distance-based bookings shorter than this distance in your configured unit (0 to disable).', 'ecab-taxi-booking-manager'),
+						'type' => 'number',
+						'default' => '0',
+					),
+					array(
+						'name' => 'max_trip_distance_km',
+						'label' => esc_html__('Maximum Trip Distance', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Reject distance-based bookings longer than this distance in your configured unit (0 to disable).', 'ecab-taxi-booking-manager'),
+						'type' => 'number',
+						'default' => '0',
+					),
+					array(
+						'name' => 'enable_checkout_tipping',
+						'label' => esc_html__('Enable Chauffeur Tip Selector', 'ecab-taxi-booking-manager'),
+						'desc' => esc_html__('Show an optional tip/gratuity selector during booking.', 'ecab-taxi-booking-manager'),
+						'type' => 'select',
+						'default' => 'yes',
+						'options' => array(
+							'yes' => esc_html__('Yes', 'ecab-taxi-booking-manager'),
+							'no'  => esc_html__('No', 'ecab-taxi-booking-manager')
+						)
+					),
+					array(
 						'name' => 'disable_dropoff_hourly',
 						'label' => esc_html__('Disable/Enable drop off location in hourly pricing', 'ecab-taxi-booking-manager'),
 						'desc' => esc_html__('If you want to disable drop off location in hourly pricing, please select disable. default enable', 'ecab-taxi-booking-manager'),
