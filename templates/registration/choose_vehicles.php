@@ -399,6 +399,9 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
         // Handle multiple operation areas
         if (is_array($operation_area_ids)) {
             $is_in_any_area = false;
+            $geo_fence_matches = array();
+            $geo_fence_area_seen = false;
+            $multi_intercity_enabled = (bool) apply_filters('mptbm_enable_multi_intercity_areas', false);
             $transport_operation_type = get_post_meta($post_id, 'mptbm_operation_area_type', true);
             // Inclusive vehicles resolve to $price_based === 'dynamic' for search matching
             // (see MPTBM_Transport_Search::vehicle_search_price_mode()), so without this
@@ -509,8 +512,31 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                         }
                     }
                 } elseif ($operation_area_type === "geo-fence-operation-area-type") {
-                    mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $start_place_coordinates, $end_place_coordinates);
-                    $is_in_any_area = true;
+                    if ($multi_intercity_enabled) {
+                        $geo_fence_area_seen = true;
+                        $geo_eval = MPTBM_Function::evaluate_geo_fence_area($operation_area_id, $start_place_coordinates, $end_place_coordinates);
+                        if (!empty($geo_eval['covers_trip'])) {
+                            $is_in_any_area = true;
+                            ?>
+                            <script>
+                                var post_id = <?php echo wp_json_encode($post_id); ?>;
+                                var selectorClass = `.mptbm_booking_item_${post_id}`;
+                                jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
+                                document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                            </script>
+                            <?php
+                            if (!empty($geo_eval['is_surcharge'])) {
+                                $geo_fence_matches[] = array(
+                                    'area_id' => $geo_eval['area_id'],
+                                    'amount'  => $geo_eval['amount'],
+                                    'type'    => $geo_eval['price_type'],
+                                );
+                            }
+                        }
+                    } else {
+                        mptbm_check_transport_area_geo_fence($post_id, $operation_area_id, $start_place_coordinates, $end_place_coordinates);
+                        $is_in_any_area = true;
+                    }
                 } else {
                     $flat_operation_area_coordinates = get_post_meta($operation_area_id, "mptbm-coordinates-three", true);
                     if (is_array($flat_operation_area_coordinates)) {
@@ -565,6 +591,20 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                 }
             }
 
+            if ($geo_fence_area_seen && $multi_intercity_enabled) {
+                if (session_status() === PHP_SESSION_NONE) {
+                    session_start();
+                }
+                $_SESSION['geo_fence_matches_' . $post_id] = $geo_fence_matches;
+                if (!empty($geo_fence_matches)) {
+                    $_SESSION['geo_fence_post_' . $post_id] = array($geo_fence_matches[0]['amount'], $geo_fence_matches[0]['type']);
+                } else {
+                    unset($_SESSION['geo_fence_post_' . $post_id]);
+                }
+                session_write_close();
+                do_action('mptbm_geo_fence_areas_evaluated', $post_id, $geo_fence_matches, $start_place_coordinates, $end_place_coordinates);
+            }
+
             if (!$is_in_any_area) {
                 if ($price_based === 'fixed_distance' || $price_based === 'fixed_map') {
                     return false;
@@ -600,7 +640,40 @@ function wptbm_get_schedule($post_id, $days_name, $selected_day,$start_time_sche
                     return false;
                 }
             } else {
-                mptbm_check_transport_area_geo_fence($post_id, $operation_area_ids, $start_place_coordinates, $end_place_coordinates);
+                if (apply_filters('mptbm_enable_multi_intercity_areas', false)) {
+                    $geo_eval = MPTBM_Function::evaluate_geo_fence_area($operation_area_ids, $start_place_coordinates, $end_place_coordinates);
+                    if (session_status() === PHP_SESSION_NONE) {
+                        session_start();
+                    }
+                    if (!empty($geo_eval['covers_trip'])) {
+                        ?>
+                        <script>
+                            var post_id = <?php echo wp_json_encode($post_id); ?>;
+                            var selectorClass = `.mptbm_booking_item_${post_id}`;
+                            jQuery(selectorClass).removeClass('mptbm_booking_item_hidden');
+                            document.cookie = selectorClass + '=' + selectorClass + ";path=/";
+                        </script>
+                        <?php
+                    }
+                    if (!empty($geo_eval['is_surcharge'])) {
+                        $single_match = array(
+                            array(
+                                'area_id' => $geo_eval['area_id'],
+                                'amount'  => $geo_eval['amount'],
+                                'type'    => $geo_eval['price_type'],
+                            ),
+                        );
+                        $_SESSION['geo_fence_matches_' . $post_id] = $single_match;
+                        $_SESSION['geo_fence_post_' . $post_id] = array($geo_eval['amount'], $geo_eval['price_type']);
+                    } else {
+                        $_SESSION['geo_fence_matches_' . $post_id] = array();
+                        unset($_SESSION['geo_fence_post_' . $post_id]);
+                    }
+                    session_write_close();
+                    do_action('mptbm_geo_fence_areas_evaluated', $post_id, $_SESSION['geo_fence_matches_' . $post_id], $start_place_coordinates, $end_place_coordinates);
+                } else {
+                    mptbm_check_transport_area_geo_fence($post_id, $operation_area_ids, $start_place_coordinates, $end_place_coordinates);
+                }
             }
         }
     } else {

@@ -367,6 +367,10 @@
 
             $('#mptbm_selected_operation_areas').val(values.join(','));
         }
+        function allowMultiIntercity() {
+            return typeof mptbm_editor_l10n !== 'undefined' && Boolean(mptbm_editor_l10n.allow_multiple_intercity_areas);
+        }
+
         $('.mptbm_taxi_pricing_area_pills').on('click', '.mptbm_taxi_pricing_pill', function (e) {
             e.preventDefault();
 
@@ -374,7 +378,7 @@
             let type = getOperationType();
 
             // SINGLE SELECT MODE
-            if (type === 'geo-matched-operation-area-type' || type === 'geo-fence-operation-area-type' ) {
+            if (type === 'geo-matched-operation-area-type' || (type === 'geo-fence-operation-area-type' && !allowMultiIntercity())) {
 
                 $('.mptbm_taxi_pricing_pill')
                     .removeClass('selected')
@@ -968,7 +972,7 @@
             }
 
             // Single / multiple label
-            if (operationType === 'geo-matched-operation-area-type' || operationType === 'geo-fence-operation-area-type') {
+            if (operationType === 'geo-matched-operation-area-type' || (operationType === 'geo-fence-operation-area-type' && !allowMultiIntercity())) {
                 $("#mptbm_single_mul_operation_area").text('single allowed');
             } else {
                 $("#mptbm_single_mul_operation_area").text('multiple allowed');
@@ -1084,7 +1088,7 @@
             let isGeoFenceType = currentAreaType === 'geo-fence-operation-area-type';
             let isSingle = (
                 currentAreaType === 'geo-matched-operation-area-type' ||
-                isGeoFenceType
+                (isGeoFenceType && !allowMultiIntercity())
             );
 
             // 1. Restore pills.

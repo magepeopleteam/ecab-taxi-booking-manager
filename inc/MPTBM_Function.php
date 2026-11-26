@@ -1584,7 +1584,13 @@ if (!class_exists('MPTBM_Function')) {
 			}
 
             if( !empty( $operation_area_type ) && $operation_area_type === 'geo-fence-operation-area-type' ){
-                if (isset($_SESSION['geo_fence_post_' . $post_id])) {
+                $geo_fence_matches = isset($_SESSION['geo_fence_matches_' . $post_id]) && is_array($_SESSION['geo_fence_matches_' . $post_id])
+                    ? $_SESSION['geo_fence_matches_' . $post_id]
+                    : array();
+                $custom_uplift_price = apply_filters('mptbm_apply_geo_fence_uplift_price', null, (float) $price, $post_id, $geo_fence_matches, $search_context);
+                if (null !== $custom_uplift_price) {
+                    $price = (float) $custom_uplift_price;
+                } elseif (isset($_SESSION['geo_fence_post_' . $post_id])) {
                     $session_data = $_SESSION['geo_fence_post_' . $post_id];
                     if (isset($session_data[0])) {
                         if (isset($session_data[1]) && $session_data[1] == 'geo-fence-fixed-price') {
@@ -2275,6 +2281,103 @@ if (!class_exists('MPTBM_Function')) {
 			}
 			
 			return $inside;
+		}
+
+		/**
+		 * Evaluate a single Intercity (geo-fence) Operation Area against pickup/dropoff coordinates.
+		 *
+		 * @param int          $operation_area_id       Operation area post ID.
+		 * @param array|string $start_place_coordinates Pickup coordinates.
+		 * @param array|string $end_place_coordinates   Drop-off coordinates.
+		 * @return array{area_id:int,covers_trip:bool,is_surcharge:bool,amount:float,price_type:string}
+		 */
+		public static function evaluate_geo_fence_area($operation_area_id, $start_place_coordinates, $end_place_coordinates) {
+			$area_id = absint($operation_area_id);
+			$result  = array(
+				'area_id'      => $area_id,
+				'covers_trip'  => false,
+				'is_surcharge' => false,
+				'amount'       => 0.0,
+				'price_type'   => 'geo-fence-fixed-price',
+			);
+
+			if (!$area_id) {
+				return $result;
+			}
+
+			$flat_one  = get_post_meta($area_id, 'mptbm-coordinates-one', true);
+			$flat_two  = get_post_meta($area_id, 'mptbm-coordinates-two', true);
+			$direction = get_post_meta($area_id, 'mptbm-geo-fence-direction', true);
+
+			if (!is_array($flat_one) || !is_array($flat_two) || count($flat_one) < 6 || count($flat_two) < 6) {
+				return $result;
+			}
+
+			$poly_one = array();
+			for ($i = 0; $i + 1 < count($flat_one); $i += 2) {
+				$poly_one[] = array('latitude' => floatval($flat_one[$i]), 'longitude' => floatval($flat_one[$i + 1]));
+			}
+			$poly_two = array();
+			for ($i = 0; $i + 1 < count($flat_two); $i += 2) {
+				$poly_two[] = array('latitude' => floatval($flat_two[$i]), 'longitude' => floatval($flat_two[$i + 1]));
+			}
+
+			$start_coords = is_array($start_place_coordinates) ? $start_place_coordinates : json_decode(stripslashes((string) $start_place_coordinates), true);
+			$end_coords   = is_array($end_place_coordinates) ? $end_place_coordinates : json_decode(stripslashes((string) $end_place_coordinates), true);
+
+			$start_lat = is_array($start_coords) ? ($start_coords['latitude'] ?? $start_coords['lat'] ?? null) : null;
+			$start_lng = is_array($start_coords) ? ($start_coords['longitude'] ?? $start_coords['lng'] ?? null) : null;
+			$end_lat   = is_array($end_coords) ? ($end_coords['latitude'] ?? $end_coords['lat'] ?? null) : null;
+			$end_lng   = is_array($end_coords) ? ($end_coords['longitude'] ?? $end_coords['lng'] ?? null) : null;
+
+			if ($start_lat === null || $start_lng === null || $end_lat === null || $end_lng === null) {
+				return $result;
+			}
+
+			$s_lat = floatval($start_lat);
+			$s_lng = floatval($start_lng);
+			$e_lat = floatval($end_lat);
+			$e_lng = floatval($end_lng);
+
+			$s_in_one = self::point_in_polygon($s_lat, $s_lng, $poly_one);
+			$e_in_one = self::point_in_polygon($e_lat, $e_lng, $poly_one);
+			$s_in_two = self::point_in_polygon($s_lat, $s_lng, $poly_two);
+			$e_in_two = self::point_in_polygon($e_lat, $e_lng, $poly_two);
+
+			$is_surcharge = false;
+			$covers_trip  = false;
+
+			if ($direction === 'geo-fence-one-direction') {
+				if ($s_in_one && $e_in_two) {
+					$is_surcharge = true;
+					$covers_trip  = true;
+				} elseif ($s_in_one && $e_in_one) {
+					$covers_trip = true;
+				}
+			} else {
+				if (($s_in_one && $e_in_two) || ($s_in_two && $e_in_one)) {
+					$is_surcharge = true;
+					$covers_trip  = true;
+				} elseif (($s_in_one && $e_in_one) || ($s_in_two && $e_in_two)) {
+					$covers_trip = true;
+				}
+			}
+
+			$increase_by = get_post_meta($area_id, 'mptbm-geo-fence-increase-price-by', true);
+			if ($increase_by === 'geo-fence-percentage-price') {
+				$amount     = (float) get_post_meta($area_id, 'mptbm-geo-fence-percentage-amount', true);
+				$price_type = 'geo-fence-percentage-price';
+			} else {
+				$amount     = (float) get_post_meta($area_id, 'mptbm-geo-fence-fixed-price-amount', true);
+				$price_type = 'geo-fence-fixed-price';
+			}
+
+			$result['covers_trip']  = $covers_trip;
+			$result['is_surcharge'] = $is_surcharge;
+			$result['amount']       = max(0.0, $amount);
+			$result['price_type']   = $price_type;
+
+			return $result;
 		}
 		
 		/**
