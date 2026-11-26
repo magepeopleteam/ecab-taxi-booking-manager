@@ -219,6 +219,13 @@ Appneck SDK **does not gather any data by default.** The SDK only starts gatheri
 Learn more about how [Appneck collects and uses this data](https://appneck.com/privacy-policy/).
 
 == Changelog ==
+= Unreleased - 2026-11-26 =
+* New: Chauffeur booking UX: one-click Swap Pickup & Drop-off button, browser-saved Home/Work addresses, and quick Child/Booster Seat selector (0-4).
+* New: Structured Airport Meet & Greet fields (Flight Number/Airline, Terminal, Nameboard Sign) with airport keyword auto-expand, plus "Booking for someone else" Lead Passenger Name & Phone.
+* New: Free Airport & City Waiting Time grace periods (minutes deducted before paid waiting time applies).
+* New: Server-authoritative Airport/Gate surcharge, Last-Minute/Rush booking surcharge, Min/Max trip distance bounds, and optional Chauffeur Tip/Gratuity selector at booking.
+* New: Per-vehicle Maintenance / MOT date-range blocking (`mptbm_maintenance_blocks`) integrated into availability checks.
+
 = 2.2.11 - 2026-11-19 =
 * Improvement: App bookings: pay only with the order's own, available gateway; harden request handlers.
 * Improvement: WooCommerce counts as active only when WordPress actually loads it.
