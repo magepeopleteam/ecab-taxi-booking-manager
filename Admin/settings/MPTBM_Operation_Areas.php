@@ -508,14 +508,17 @@ if (!class_exists('MPTBM_Operation_Areas')) {
                         </label>
                     </section>
 
+                    <?php $allow_multi_intercity = (bool) apply_filters('mptbm_allow_multiple_intercity_areas', false); ?>
                     <section id="geo-fence-operation-area-section" class="<?php echo ($selected_operation_type == 'geo-fence-operation-area-type') ? 'mActive' : ''; ?>" data-collapse="#geo-fence-operation-area-type">
                         <label class="label">
                             <div>
                                 <h6><?php esc_html_e('Select Geo Fence Operation Area', 'ecab-taxi-booking-manager'); ?></h6>
-                                <span class="desc"><?php esc_html_e('Select a geo fence operation area', 'ecab-taxi-booking-manager'); ?></span>
+                                <span class="desc"><?php echo $allow_multi_intercity ? esc_html__('Select one or more geo fence (intercity) operation areas', 'ecab-taxi-booking-manager') : esc_html__('Select a geo fence operation area', 'ecab-taxi-booking-manager'); ?></span>
                             </div>
-                            <select class="formControl" name="mptbm_selected_operation_areas[]" id="mptbm_selected_geo_fence_area">
-                                <option value=""><?php esc_html_e('Select Geo Fence Area', 'ecab-taxi-booking-manager'); ?></option>
+                            <select class="formControl" name="mptbm_selected_operation_areas[]" id="mptbm_selected_geo_fence_area"<?php echo $allow_multi_intercity ? ' multiple' : ''; ?>>
+                                <?php if (!$allow_multi_intercity) : ?>
+                                    <option value=""><?php esc_html_e('Select Geo Fence Area', 'ecab-taxi-booking-manager'); ?></option>
+                                <?php endif; ?>
                                 <?php
                                 foreach ($all_operation_area_infos as $area_info) {
                                     if ($area_info['operation_type'] == 'geo-fence-operation-area-type') {
@@ -616,7 +619,8 @@ if (!class_exists('MPTBM_Operation_Areas')) {
 
                     // Handle geo fence operation area selection
                     $('#mptbm_selected_geo_fence_area').on('change', function() {
-                        var selectedAreaId = $(this).val();
+                        var rawVal = $(this).val();
+                        var selectedAreaId = Array.isArray(rawVal) ? (rawVal.length ? rawVal[0] : '') : rawVal;
                         var mapsContainer = $('#selected-operation-area-maps');
                         mapsContainer.empty();
 
